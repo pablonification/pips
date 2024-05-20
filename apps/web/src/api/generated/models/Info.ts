@@ -4,7 +4,7 @@
 /* eslint-disable */
 export type Info = {
   id: string;
-  creatorId: string | null;
+  creatorId: string;
   content: string;
   category: string | null;
   forAngkatan: number | null;
