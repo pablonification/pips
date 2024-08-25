@@ -5,10 +5,9 @@ import {
   CompetitionSchemaType,
 } from '../-constants';
 import { zodResolver } from '@hookform/resolvers/zod';
-import DrawerForm from '~/components/drawer-form/DrawerForm';
-import DrawerTextField from '~/components/drawer-form/DrawerTextField';
-import DrawerDatePicker from '~/components/drawer-form/DrawerDatePicker';
-import DrawerMultiSelect from '~/components/drawer-form/DrawerMultiSelect';
+import FormTextField from '~/components/custom-form/FormTextField';
+import DatePicker from '~/components/custom-form/DatePicker';
+import MultiSelect from '~/components/custom-form/MultiSelect';
 import { useEffect, useState } from 'react';
 import PersonIcon from '~/assets/icons/competition/person.svg';
 import MoneyIcon from '~/assets/icons/competition/money.svg';
@@ -19,8 +18,9 @@ import { useMutation } from '@tanstack/react-query';
 import { api, queryClient } from '~/api/client';
 import toast from 'react-hot-toast';
 import { CompetitionCategories, PresignedURL } from '~/api/generated';
-import DrawerAttachment from '~/components/drawer-form/DrawerAttachment';
+import Attachment from '~/components/custom-form/Attachment';
 import { FileUpload } from '~/routes/_app/add-announcement';
+import MobileForm from '~/components/custom-form/MobileForm';
 
 type ComponentProps = {
   isOpen: boolean;
@@ -88,24 +88,43 @@ export function AddCompetitionDrawer(props: Readonly<ComponentProps>) {
         await fetch(presignedUrl.presignedUrl, {
           method: 'PUT',
           body: image.file,
-        }).then(() => setPendingUpload(presignedUrl.mediaUrl));
+        }).then(() =>
+          setPendingUpload(() => {
+            postCompetition.mutate({
+              requestBody: {
+                name: values.title,
+                organizer: values.organizer,
+                registrationStart: values.registrationStart,
+                registrationDeadline: values.registrationDeadline,
+                price: values.price ? values.price.toString() : '0',
+                registrationUrl: values.registrationURL,
+                sourceUrl: values.sourceURL,
+                categories: values.categories.map(
+                  (c) => c.title,
+                ) as CompetitionCategories,
+                mediaUrls: [presignedUrl.mediaUrl],
+              },
+            });
+            return presignedUrl.mediaUrl;
+          }),
+        );
+      } else {
+        postCompetition.mutate({
+          requestBody: {
+            name: values.title,
+            organizer: values.organizer,
+            registrationStart: values.registrationStart,
+            registrationDeadline: values.registrationDeadline,
+            price: values.price ? values.price.toString() : '0',
+            registrationUrl: values.registrationURL,
+            sourceUrl: values.sourceURL,
+            categories: values.categories.map(
+              (c) => c.title,
+            ) as CompetitionCategories,
+            mediaUrls: [pendingUpload],
+          },
+        });
       }
-
-      postCompetition.mutate({
-        requestBody: {
-          name: values.title,
-          organizer: values.organizer,
-          registrationStart: values.registrationStart,
-          registrationDeadline: values.registrationDeadline,
-          price: values.price ? values.price.toString() : '0',
-          registrationUrl: values.registrationURL,
-          sourceUrl: values.sourceURL,
-          categories: values.categories.map(
-            (c) => c.title,
-          ) as CompetitionCategories,
-          mediaUrls: [pendingUpload],
-        },
-      });
     } catch (err) {
       console.log(err);
       toast.error('Failed to post competition', { id: TOAST_ID });
@@ -113,15 +132,15 @@ export function AddCompetitionDrawer(props: Readonly<ComponentProps>) {
   };
 
   return (
-    <DrawerForm
+    <MobileForm
       form={form}
       onSubmit={onSubmit}
       isOpen={isOpen}
       setOpen={setOpen}
       title="New Competition"
     >
-      <DrawerTextField form={form} name="title" placeholder="Add Title" />
-      <DrawerTextField
+      <FormTextField form={form} name="title" placeholder="Add Title" />
+      <FormTextField
         icon={PersonIcon}
         form={form}
         name="organizer"
@@ -130,22 +149,22 @@ export function AddCompetitionDrawer(props: Readonly<ComponentProps>) {
         iconClassName="size-6"
       />
 
-      <DrawerDatePicker
+      <DatePicker
         icon={ClockIcon}
         form={form}
         name="registrationStart"
-        placeholder="Select Registration Start Date"
+        placeholder="Add registration start date"
         iconClassName="size-6"
       />
-      <DrawerDatePicker
+      <DatePicker
         icon={ClockIcon}
         form={form}
         name="registrationDeadline"
-        placeholder="Select Registration Deadline Date"
+        placeholder="Add registration end date"
         iconClassName="size-6 opacity-0"
       />
 
-      <DrawerMultiSelect
+      <MultiSelect
         icon={CategoryIcon}
         form={form}
         name="categories"
@@ -154,7 +173,7 @@ export function AddCompetitionDrawer(props: Readonly<ComponentProps>) {
         iconClassName="size-6"
       />
 
-      <DrawerTextField
+      <FormTextField
         type="number"
         icon={MoneyIcon}
         form={form}
@@ -163,7 +182,7 @@ export function AddCompetitionDrawer(props: Readonly<ComponentProps>) {
         inputClassName="py-3 text-base"
         iconClassName="size-5"
       />
-      <DrawerTextField
+      <FormTextField
         icon={LinkIcon}
         form={form}
         name="registrationURL"
@@ -171,7 +190,7 @@ export function AddCompetitionDrawer(props: Readonly<ComponentProps>) {
         inputClassName="py-3 text-base"
         iconClassName="size-5"
       />
-      <DrawerTextField
+      <FormTextField
         icon={LinkIcon}
         form={form}
         name="sourceURL"
@@ -180,13 +199,13 @@ export function AddCompetitionDrawer(props: Readonly<ComponentProps>) {
         iconClassName="size-5 opacity-0"
       />
 
-      <DrawerAttachment
+      <Attachment
         icon={LinkIcon}
         image={image}
         setImage={setImage}
         placeholder="Add Attachment"
         iconClassName="size-5 opacity-0"
       />
-    </DrawerForm>
+    </MobileForm>
   );
 }
