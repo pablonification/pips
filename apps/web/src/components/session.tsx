@@ -1,36 +1,38 @@
 import { useQuery } from '@tanstack/react-query';
-import { Navigate } from '@tanstack/react-router';
+import { Navigate, useLocation } from '@tanstack/react-router';
 import { createContext, useEffect } from 'react';
-import { api } from '~/api/client';
 import { UserWithRoles } from '~/api/generated';
-import { saveUserCache } from '~/lib/session';
+import { common } from '~/copy/common';
+import { loginSearch } from '~/lib/safe-redirect';
+import {
+  fetchSession,
+  saveUserCache,
+  sessionRetry,
+  sessionRetryDelay,
+} from '~/lib/session';
+import { Button } from './ui/button';
 
 export const SessionContext = createContext<UserWithRoles>(
   null as unknown as UserWithRoles,
 );
 
+/**
+ * Keeps the signed-in user. Only a 401 from the session check signs out (and sends you to sign-in, then back
+ * here). Offline, dropped requests and server errors keep the cached user on screen while the check retries
+ * with backoff; with no cached user, a plain error with Coba lagi shows after the second failure.
+ */
 export default function SessionProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data } = useQuery({
+  const location = useLocation();
+  const { data, failureCount, refetch, isFetching } = useQuery({
     queryKey: ['me'],
-    queryFn: () => api.auth.getMe().catch(() => null),
+    queryFn: fetchSession,
+    retry: sessionRetry,
+    retryDelay: sessionRetryDelay,
   });
-
-  // const { data: subs, isPending } = useQuery({
-  //   queryKey: ['pushsubs'],
-  //   queryFn: () => setupNotification(),
-  //   enabled: !!data,
-  //   staleTime: Infinity,
-  //   refetchOnWindowFocus: false,
-  //   refetchOnMount: false,
-  // });
-
-  // const queryClient = useQueryClient();
-
-  // const askForNotif = Boolean(isMobile() && data && !subs && !isPending);
 
   useEffect(() => {
     if (data !== undefined) {
@@ -39,49 +41,31 @@ export default function SessionProvider({
   }, [data]);
 
   if (data === null) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" search={loginSearch(location.href)} replace />;
   }
 
   if (!data) {
+    if (failureCount >= 2) {
+      return (
+        <main
+          role="alert"
+          className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center"
+        >
+          <p>{common.errors.sesi}</p>
+          <Button
+            type="button"
+            disabled={isFetching}
+            onClick={() => void refetch()}
+          >
+            {common.actions.cobaLagi}
+          </Button>
+        </main>
+      );
+    }
     // TODO: loading UI
     return <div>Loading...</div>;
   }
   return (
-    <SessionContext.Provider value={data}>
-      {/* <Dialog open={askForNotif}>
-        <DialogContent hideCloseButton>
-          <DialogDescription className="text-black">
-            You cannot use this app because notification permission is not
-            granted. Please allow first by clicking the button below or from
-            device settings.
-          </DialogDescription>
-          <div className="flex justify-center">
-            <Button
-              onClick={async () => {
-                const promise = setupNotification().then((result) => {
-                  if (result) {
-                    queryClient.setQueryData(['pushsubs'], result);
-                  } else {
-                    throw new Error('Permission denied!');
-                  }
-                });
-
-                toast.promise(promise, {
-                  loading: 'Requesting permission...',
-                  success: 'Permission granted',
-                  error:
-                    'Failed to ask permission. If the popup did not appear, please allow directly from settings or reinstall the app.',
-                });
-              }}
-              className="bg-green-400"
-              size={'sm'}
-            >
-              Ask Permission
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog> */}
-      {children}
-    </SessionContext.Provider>
+    <SessionContext.Provider value={data}>{children}</SessionContext.Provider>
   );
 }

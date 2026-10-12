@@ -15,13 +15,15 @@ function Navbar() {
     >
       <nav className="flex w-full justify-between bg-neutral-light px-8 py-3 lg:hidden">
         <BottomNavigationItem
-          to="/timeline"
+          to="/pengumuman"
+          item="timeline"
           Icon={QuestionMarkIcon}
           alt="Timeline"
           title="Timeline"
         />
         <BottomNavigationItem
-          to="/home"
+          to="/"
+          item="home"
           Icon={HomeFilledIcon}
           alt="Home"
           title="Home"
@@ -29,7 +31,8 @@ function Navbar() {
         {/* <Event /> */}
 
         <BottomNavigationItem
-          to="/settings"
+          to="/profil"
+          item="settings"
           Icon={SettingsIcon}
           alt="Settings"
           title="Settings"

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { queryClient } from '~/api/client';
-import { User, UserWithRoles } from '~/api/generated';
+import { api, queryClient } from '~/api/client';
+import { ApiError, User, UserWithRoles } from '~/api/generated';
 
 export function invalidateSession(user?: User | null) {
   if (user === undefined) {
@@ -58,3 +58,27 @@ export function tryToLoadUserLocalStorage() {
 export function saveUserCache(user: User | null) {
   localStorage.setItem('user', JSON.stringify(user));
 }
+
+/** Only an authentication failure means "signed out" (SPEC "Session, persistence and resilience"). */
+export function isSignedOutError(error: unknown) {
+  return error instanceof ApiError && error.status === 401;
+}
+
+/**
+ * The session check (`GET /api/me`): the user, or null when the server says the session is gone (401).
+ * Anything else (offline, a dropped request, a 5xx) throws, so the cached user stays and the check retries.
+ */
+export async function fetchSession(): Promise<UserWithRoles | null> {
+  try {
+    return await api.auth.getMe();
+  } catch (error) {
+    if (isSignedOutError(error)) return null;
+    throw error;
+  }
+}
+
+/** Retry the session check on anything but a 401, backing off 1, 2, 4, 8, 16 s, then every 30 s. */
+export const sessionRetry = (_failureCount: number, error: unknown) =>
+  !isSignedOutError(error);
+export const sessionRetryDelay = (attempt: number) =>
+  Math.min(1000 * 2 ** attempt, 30_000);

@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { XIcon } from 'lucide-react';
 import { useRef } from 'react';
-import { FileUpload } from '~/routes/_app/_left-navbar/add-announcement';
+import { FileUpload } from '~/routes/_app/_left-navbar/pengumuman/tulis';
 import { Button } from '../../ui/button';
 
 type ComponentProps = {

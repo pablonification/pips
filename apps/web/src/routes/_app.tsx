@@ -4,6 +4,7 @@ import { queryClient } from '~/api/client';
 import Navbar from '~/components/navbar/navbar';
 import SessionProvider from '~/components/session';
 import { initialLoadUserAcademic } from '~/hooks/useUserAcademic';
+import { loginSearch } from '~/lib/safe-redirect';
 import { loadUserCache } from '~/lib/session';
 
 const appSearchSchema = z.object({
@@ -13,15 +14,16 @@ const appSearchSchema = z.object({
 export const Route = createFileRoute('/_app')({
   component: AppLayout,
   validateSearch: (search) => appSearchSchema.parse(search),
-  loader: () => {
+  // Runs before any child route loads its code or data. Signed out (the cached user is null), go to sign-in and
+  // come back to this exact page afterwards.
+  beforeLoad: ({ location }) => {
     const user = loadUserCache();
     initialLoadUserAcademic();
-    // not logged in based on local storage
     if (user === null) {
       queryClient.setQueryData(['me'], null);
-      throw redirect({ to: '/login' });
+      throw redirect({ to: '/login', search: loginSearch(location.href) });
     }
-    if (user) {
+    if (user && queryClient.getQueryData(['me']) === undefined) {
       queryClient.setQueryData(['me'], user);
     }
   },

@@ -5,14 +5,16 @@ import { api } from '~/api/client';
 import { ApiError, User } from '~/api/generated';
 import { invalidateSession } from '~/lib/session';
 
-export default function useLogin() {
+/** Sign-in with Google (and, on staging, test login). Afterwards goes to `redirectTo`, a path already checked by `safeRedirect`. */
+export default function useLogin(redirectTo = '/') {
   const navigate = useNavigate();
+  const goOn = () => navigate({ href: redirectTo, replace: true });
 
   const loginCallbackMutation = useMutation({
     mutationFn: api.auth.loginAccessToken.bind(api.auth),
     onSuccess(data: User) {
       invalidateSession(data);
-      navigate({ to: '/home' });
+      goOn();
     },
     onError(error) {
       if (error instanceof ApiError && error.status === 401) {
@@ -33,7 +35,7 @@ export default function useLogin() {
     mutationFn: __TEST_LOGIN_ENABLED__ ? requestDevLogin : testLoginUnavailable,
     onSuccess(data) {
       invalidateSession(data);
-      navigate({ to: '/home' });
+      goOn();
     },
   });
 
