@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { getRouteApi } from '@tanstack/react-router';
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import MegaphoneIcon from '~/assets/icons/megaphone-fill.svg';
 import { deleteSharedData } from '~/lib/share-db';
 import { AddAnnouncementPage } from '~/routes/_app/_left-navbar/add-announcement';
@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogTrigger } from '~/components/ui/dialog';
 const routeApi = getRouteApi('/_app');
 
 export default function Announce(): JSX.Element {
-  const navigate = routeApi.useNavigate();
+  // Plain useNavigate: since router 1.170 the route API's navigate resolves from `/_app`'s path (`/`), which would leave the page.
+  const navigate = useNavigate();
   const { showAnnounce } = routeApi.useSearch();
 
   return (
@@ -19,6 +20,7 @@ export default function Announce(): JSX.Element {
         onOpenChange={(open) => {
           if (open) {
             navigate({
+              to: '.',
               search: (prev: { showAnnounce?: boolean }) => ({
                 ...prev,
                 showAnnounce: true,
@@ -26,6 +28,7 @@ export default function Announce(): JSX.Element {
             });
           } else {
             navigate({
+              to: '.',
               search: (prev: { showAnnounce?: boolean }) => ({
                 ...prev,
                 showAnnounce: undefined,

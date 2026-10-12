@@ -19,6 +19,8 @@ export default defineConfig([
       prettierRecommended,
       tailwind.configs.recommended,
     ],
+    // ESLint 9 started reporting unused eslint-disable comments by default; ESLint 8 didn't.
+    linterOptions: { reportUnusedDisableDirectives: 'off' },
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

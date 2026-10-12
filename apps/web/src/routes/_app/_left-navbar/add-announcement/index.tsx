@@ -85,6 +85,7 @@ export function AddAnnouncementPage({
   const mobileHandleSuccess = () => navigate({ to: '/timeline' });
   const desktopHandleSuccess = () =>
     navigate({
+      to: '.',
       search: (prev: { showAnnounce?: boolean }) => ({
         ...prev,
         showAnnounce: undefined,
