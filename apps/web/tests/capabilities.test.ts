@@ -1,0 +1,140 @@
+import { strict as assert } from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { test } from 'node:test';
+import {
+  CAPABILITY_ROLES,
+  can,
+  canCreateEvent,
+  canDeleteContent,
+  canPostInCategory,
+  type Capability,
+} from '../src/lib/capabilities';
+
+const api = (file: string) =>
+  fs.readFileSync(
+    path.resolve(import.meta.dirname, '../../api/src', file),
+    'utf8',
+  );
+const list = (source: string) =>
+  [...source.matchAll(/'([a-z0-9]+)'/g)].map((m) => m[1]).sort();
+const constant = (source: string, name: string) =>
+  list(new RegExp(`${name}\\s*=\\s*\\[([^\\]]*)\\]`).exec(source)![1]);
+const middlewareRoles = (source: string) => [
+  ...new Set(
+    [...source.matchAll(/roleMiddleware\(\[([^\]]*)\]\)/g)].map((m) =>
+      list(m[1]).join(','),
+    ),
+  ),
+];
+
+// The map mirrors the server: each row is read back from the API's own source, so a change there fails here.
+const SERVER: Record<Capability, () => string[]> = {
+  createCompetition: () => {
+    const sets = middlewareRoles(api('controllers/competitions.controller.ts'));
+    assert.equal(sets.length, 1, 'competitions use one role set');
+    return sets[0].split(',');
+  },
+  createTestimonial: () =>
+    middlewareRoles(api('controllers/testimoni.controller.ts'))[0].split(','),
+  broadcastPush: () =>
+    middlewareRoles(api('controllers/push.controller.ts'))[0].split(','),
+  liveCounting: () =>
+    constant(api('controllers/form.controller.ts'), 'FORM_ADMIN_ROLES'),
+  spartaData: () =>
+    constant(api('controllers/internship.controller.ts'), 'SPARTA_ADMIN_ROLES'),
+  moderateContent: () =>
+    constant(api('lib/authorization.ts'), 'CONTENT_MODERATOR_ROLES'),
+  editCourseCatalog: () =>
+    constant(api('lib/authorization.ts'), 'COURSE_CATALOG_MANAGER_ROLES'),
+  createAkademikEvent: () => {
+    const src = api('controllers/calendar.controller.ts');
+    assert.match(
+      src,
+      /category === 'akademik'[\s\S]{0,200}roles\.includes\('akademik'\)/,
+    );
+    return ['akademik'];
+  },
+  createHimpunanEvent: () => {
+    const src = api('controllers/calendar.controller.ts');
+    assert.match(src, /roles\.includes\('ring1'\)/);
+    return ['ring1'];
+  },
+  respondCurhat: () => {
+    assert.match(
+      api('controllers/curhat.controller.ts'),
+      /roles\.includes\('curhatadmin'\)/,
+    );
+    return ['curhatadmin'];
+  },
+};
+
+for (const capability of Object.keys(CAPABILITY_ROLES) as Capability[]) {
+  test(`${capability} mirrors the server's roles`, () => {
+    assert.deepEqual(
+      [...CAPABILITY_ROLES[capability]].sort(),
+      SERVER[capability]().sort(),
+    );
+  });
+}
+
+test('every capability is checked against the server', () => {
+  assert.deepEqual(
+    Object.keys(SERVER).sort(),
+    Object.keys(CAPABILITY_ROLES).sort(),
+  );
+});
+
+// The prototype's two personas (garis/data.js).
+const nadia = { id: 'nadia', roles: [] as string[] };
+const raka = {
+  id: 'raka',
+  roles: ['welfarenakademik', 'akademik', 'de', 'admin'],
+};
+
+test('a member with no roles can do none of the pengurus actions', () => {
+  for (const capability of Object.keys(CAPABILITY_ROLES) as Capability[]) {
+    assert.equal(can(nadia, capability), false, capability);
+  }
+  assert.equal(can(null, 'liveCounting'), false);
+  assert.equal(can(undefined, 'liveCounting'), false);
+  assert.equal(can({ roles: null }, 'liveCounting'), false);
+});
+
+test('Raka (akademik, admin) gets exactly the tools his roles allow', () => {
+  const granted = (Object.keys(CAPABILITY_ROLES) as Capability[])
+    .filter((c) => can(raka, c))
+    .sort();
+  assert.deepEqual(granted, [
+    'createAkademikEvent',
+    'createTestimonial',
+    'editCourseCatalog',
+    'liveCounting',
+    'moderateContent',
+    'spartaData',
+  ]);
+  assert.equal(canCreateEvent(raka), true);
+  assert.equal(canCreateEvent({ roles: ['ring1'] }), true);
+  assert.equal(canCreateEvent({ roles: ['cnc'] }), false);
+  assert.equal(can({ roles: ['peoplemanage'] }, 'spartaData'), true);
+  assert.equal(can({ roles: ['peoplemanage'] }, 'liveCounting'), false);
+});
+
+test('posting: open categories for everyone, restricted ones by role', () => {
+  assert.equal(canPostInCategory(nadia, { rolesAllowed: null }), true);
+  assert.equal(canPostInCategory(nadia, {}), true);
+  assert.equal(canPostInCategory(nadia, { rolesAllowed: [] }), true);
+  assert.equal(canPostInCategory(nadia, { rolesAllowed: ['akademik'] }), false);
+  assert.equal(canPostInCategory(raka, { rolesAllowed: ['akademik'] }), true);
+});
+
+test('deleting: the author, or a moderator (admin)', () => {
+  assert.equal(canDeleteContent(nadia, 'nadia'), true);
+  assert.equal(canDeleteContent(nadia, 'raka'), false);
+  assert.equal(canDeleteContent(raka, 'nadia'), true);
+  assert.equal(
+    canDeleteContent({ id: 'x', roles: ['akademik'] }, 'nadia'),
+    false,
+  );
+  assert.equal(canDeleteContent(null, 'nadia'), false);
+});

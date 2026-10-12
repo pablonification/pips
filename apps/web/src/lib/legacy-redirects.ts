@@ -33,7 +33,7 @@ export const LEGACY_REDIRECTS: ReadonlyArray<
   ['/home/rekomendasi/$rekomendasiId', '/'],
   ['/socket', '/'],
   ['/timeline', '/pengumuman'],
-  ['/timeline/$infoId', '/pengumuman/$infoId'],
+  ['/timeline/$id', '/pengumuman/$id'],
   ['/add-announcement', '/pengumuman/tulis'],
   ['/calendar', '/kalender'],
   ['/settings', '/profil'],
