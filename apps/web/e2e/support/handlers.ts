@@ -16,6 +16,7 @@ import type {
   InternshipService,
   MarkdownService,
   OpenGraphService,
+  ProgrammeWindowService,
   ReactionService,
   TestimoniService,
   UnsubscribeService,
@@ -315,6 +316,13 @@ export const defaultHandlers: Record<string, Handler> = {
         }))
         .filter((r) => r.unreadCount > 0),
     ),
+  ),
+
+  // Programme windows: the API answers only the windows open now for this member, so `db.windows` holds just those.
+  'GET /api/programme-windows': signedIn(({ db }) =>
+    ok<R<ProgrammeWindowService['listProgrammeWindows']>>({
+      windows: db.windows,
+    }),
   ),
 
   // Forms

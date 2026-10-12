@@ -116,3 +116,9 @@ fixtures follow the API, as listed here.
 ## Credits
 
 - The prototype has no credits text; the fixture uses one sample line.
+
+## Programme windows
+
+- `GET /api/programme-windows` answers `{ windows: db.windows }`, empty by default: nothing is open, and SPARTA's
+  next dates aren't known. The API filters by the clock and eligibility itself, so a test puts only the windows
+  that should show into `db.windows`.

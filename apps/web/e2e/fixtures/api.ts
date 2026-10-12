@@ -25,6 +25,7 @@ import type {
   InternshipSubmission,
   ListChatroom,
   Markdown,
+  ProgrammeWindow,
   ReactionAggregate,
   Testimoni,
   User,
@@ -695,6 +696,8 @@ export interface Db {
   members: User[];
   internshipDepartments: InternshipDepartment[];
   internshipSubmissions: InternshipSubmission[];
+  /** `GET /api/programme-windows`: the windows open now for this member. None by default (nothing is open). */
+  windows: ProgrammeWindow[];
   /** SPARTA's window (`SPARTA_WINDOW`, closed); a test may open it. */
   spartaWindow: { opensAt: string | null; closesAt: string | null };
   credits: Markdown;
@@ -798,6 +801,7 @@ export function buildDb(persona: PersonaKey | null): Db {
     }),
     internshipDepartments,
     internshipSubmissions: internshipSubmissions(),
+    windows: [],
     spartaWindow: { ...SPARTA_WINDOW },
     credits,
   };
