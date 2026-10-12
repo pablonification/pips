@@ -20,7 +20,9 @@ function disconnectAt(socket: Socket, expiresAt: number) {
     );
   };
   schedule();
-  socket.once('disconnect', () => clearTimeout(timer));
+  socket.once('disconnect', () => {
+    clearTimeout(timer);
+  });
 }
 
 export function formAdminRoom(formId: string) {
