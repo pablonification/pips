@@ -100,3 +100,41 @@ export const submitForm: Handler = ({ db, params, body }) => {
   );
   return db.myResponses[params.formId];
 };
+
+// Curhat Yuk! (as `apps/api/src/controllers/curhat.controller.ts`; `db.chatrooms` holds only your rooms).
+
+/** POST /api/curhat/chatroom — start a room; a fourth is refused with 400. The server names it. */
+export const createRoom: Handler = ({ db }) => {
+  const rooms = Object.values(db.chatrooms).filter((r) => r.canDelete);
+  if (rooms.length >= 3)
+    return reply.status(400, {
+      error: 'You have reached the maximum chatrooms limit',
+    });
+  const id = `e2e-room-${Object.keys(db.chatrooms).length + 1}`;
+  db.chatrooms[id] = {
+    id,
+    title: 'lime otter',
+    messages: [],
+    canDelete: true,
+  };
+  return reply.status(201, db.chatrooms[id]);
+};
+
+/** POST /api/curhat/chatroom/:chatroomId/read — mark the room's messages from others read; safe to repeat. */
+export const readRoom: Handler = ({ db, params }) => {
+  const room = db.chatrooms[params.chatroomId];
+  if (!room) return reply.status(404, { error: 'Chatroom not found' });
+  for (const m of room.messages ?? [])
+    if (!m.isSender && !db.chatroomReads.includes(m.id))
+      db.chatroomReads.push(m.id);
+  return { message: 'Chatroom messages read' };
+};
+
+/** DELETE /api/curhat/chatroom/:chatroomId — the owner deletes a room and its messages. */
+export const deleteRoom: Handler = ({ db, params }) => {
+  const room = db.chatrooms[params.chatroomId];
+  if (!room) return reply.status(404, { error: 'Chatroom not found' });
+  if (!room.canDelete) return reply.status(401, { error: 'Unauthorized' });
+  delete db.chatrooms[params.chatroomId];
+  return { message: 'Chatroom deleted' };
+};

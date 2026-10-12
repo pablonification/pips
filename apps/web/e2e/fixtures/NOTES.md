@@ -73,8 +73,15 @@ fixtures follow the API, as listed here.
 ## Curhat Yuk!
 
 - Rooms come back as the API's map keyed by room id, messages newest first with `isSender`, and `reply` filled
-  for replies (m4 replies to m3). The API has no per-message unread flag; `GET /api/curhat/chatrooms/unread`
-  reports one unread message in r1 (m4), as the prototype marks it.
+  for replies (m4 replies to m3). No `userId` anywhere, as the API now sends them (P0-D).
+- `db.chatroomReads` holds the read marks: every Welfare message except m4 (the prototype's unread one).
+  `GET /api/curhat/chatrooms/unread` counts as the API does: your rooms only, messages you didn't send, without a
+  read mark, and rooms with none left out. So Nadia gets `[{ chatroomId: 'r1', unreadCount: 1 }]`.
+- Writes (opt in): `writes.createRoom` (400 at three rooms), `writes.readRoom` (marks the room read, so the count
+  goes), `writes.deleteRoom`.
+- The fake socket answers acknowledgements as the API does (see `support/socketio.ts`): a `message` in your room
+  is saved into `db.chatrooms` and acknowledged `{ ok: true, message }`; `api.socket.answer()` changes or withholds
+  the answer for the delivery states.
 
 ## Forms
 

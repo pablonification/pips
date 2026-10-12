@@ -616,6 +616,8 @@ export interface Db {
   courses: Course[];
   myCourses: UserCourse[];
   chatrooms: ListChatroom;
+  /** Ids of the messages in `chatrooms` you have read (`chatroom_message_reads`); the rest from others are unread. */
+  chatroomReads: string[];
   forms: FormListItem[];
   formDetails: Record<string, FormDetail>;
   myResponses: Record<string, FormResponse>;
@@ -694,6 +696,11 @@ export function buildDb(persona: PersonaKey | null): Db {
         }))
       : [],
     chatrooms: persona ? toChatrooms(persona) : {},
+    chatroomReads: persona
+      ? ROOMS[persona].flatMap((r) =>
+          r.msgs.filter((m) => !m.me && !m.unread).map((m) => m.id),
+        )
+      : [],
     forms: persona ? formList(persona, false) : [],
     formDetails: { [pixelForm.id]: pixelForm },
     myResponses: {},

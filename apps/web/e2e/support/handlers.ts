@@ -270,12 +270,18 @@ export const defaultHandlers: Record<string, Handler> = {
   'GET /api/curhat/chatrooms': signedIn(({ db }) =>
     ok<R<CurhatService['getUserChatrooms']>>(db.chatrooms),
   ),
+  // As the API counts them: only your rooms, only messages you didn't send, without a read mark; rooms with none
+  // are left out.
   'GET /api/curhat/chatrooms/unread': signedIn(({ db }) =>
     ok<R<CurhatService['unreadCountChatroomMessages']>>(
-      Object.values(db.chatrooms).map((r) => ({
-        chatroomId: r.id,
-        unreadCount: r.id === 'r1' && r.messages?.[0]?.id === 'm4' ? 1 : 0,
-      })),
+      Object.values(db.chatrooms)
+        .map((r) => ({
+          chatroomId: r.id,
+          unreadCount: (r.messages ?? []).filter(
+            (m) => !m.isSender && !db.chatroomReads.includes(m.id),
+          ).length,
+        }))
+        .filter((r) => r.unreadCount > 0),
     ),
   ),
 
