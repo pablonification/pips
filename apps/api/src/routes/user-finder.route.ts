@@ -1,8 +1,8 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { ErrorSchema, ValidationErrorSchema } from '~/types/responses.type';
 import {
-  ListUserSchema,
   NimFinderQuerySchema,
+  NimFinderResultSchema,
 } from '~/types/user-finder.types';
 
 export const getUserRoute = createRoute({
@@ -15,10 +15,11 @@ export const getUserRoute = createRoute({
   },
   responses: {
     200: {
-      description: 'Get user By Nim or Full Name',
+      description:
+        'Members whose NIM or name contains the search (taken literally), closest NIM matches first, at most 30. Only name, NIM, programme and photo.',
       content: {
         'application/json': {
-          schema: ListUserSchema,
+          schema: z.array(NimFinderResultSchema),
         },
       },
     },
