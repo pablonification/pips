@@ -119,16 +119,6 @@ function MobileView() {
       </section>
 
       <div className="flex w-full flex-col items-center gap-4">
-        <a href="https://pemilu.hmif.dev" className="m-4">
-          <img
-            src="/img/pemilu-banner.png"
-            alt="Calendar"
-            className="rounded-xl"
-            width={2902}
-            height={1980}
-          />
-        </a>
-
         <Separator />
 
         {/* Schedule Section */}

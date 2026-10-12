@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
 import { CirclePlus } from 'lucide-react';
 import { lazy, Suspense, useMemo, useRef, useState } from 'react';
-import { CalendarEvent } from '~/api/generated';
+import { CalendarCategory, CalendarEvent } from '~/api/generated';
 import { Button } from '~/components/ui/button';
 import {
   Popover,
@@ -14,7 +14,6 @@ import useSession from '~/hooks/auth/useSession';
 import { useThreeMonthCalendarEvents } from '~/hooks/calendar';
 import { generateDate } from '~/lib/calendar';
 import { isInRoles } from '~/lib/roles';
-import { CalendarCategory } from '../-archive/DesktopAddEvent';
 
 // The add-event dialog's form loads when it opens, not before the page (P0-B).
 const AddEventDialog = lazy(() => import('./AddEventDialog'));
