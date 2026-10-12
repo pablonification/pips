@@ -115,7 +115,26 @@ export default defineConfig([
             'g-[a-z-]+',
             's16|s20|s24|glyph|f|gf|pp|k|o|w|r|c|l|b',
             'gold|paper|ghost|danger|danger-ghost|sm|lg|md|square|wide|round|in-text|full|radio|box|center|on|n',
-            'accent|success|inverse|outline|error|dialog|handle|rule|hint|dis-ic|msg|t-ic|act|sq|bars',
+            'accent|success|inverse|outlined|error|dialog|handle|rule|hint|dis-ic|msg|t-ic|act|sq|bars',
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The gallery's own page classes (src/dev/garis/gallery.css, ported from the prototype's docs.css).
+    files: ['src/dev/garis/**/*.{ts,tsx}'],
+    rules: {
+      'tailwindcss/no-custom-classname': [
+        'warn',
+        {
+          whitelist: [
+            'g-[a-z-]+',
+            'gal|gal-[a-z-]+|theme-light|theme-dark|key|cg|no|meta|sw|sks',
+            'page|page-head|lede|controls|system|sys-grid|sys-card|wide|scale-table|logo-show|swatches|chip-c',
+            'pair-grid|pair|layers|layer|app-icons|appicon|splash|icon-sizes|icons-grid|icon-cell|px-show',
+            'kit|kit-panel|kit-fields|wrap|motion-list|voice|note|new-list|rules|tok-grid|tok|demo-row',
+            'gold|sm',
           ],
         },
       ],

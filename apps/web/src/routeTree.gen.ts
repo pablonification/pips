@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppLeftNavbarRouteImport } from './routes/_app/_left-navbar'
 import { Route as AppCalendarRouteImport } from './routes/_app/calendar'
+import { Route as DevGarisRouteImport } from './routes/dev/garis'
 import { Route as SocketIndexRouteImport } from './routes/socket/index'
 import { Route as AppLeftNavbarSettingsRouteImport } from './routes/_app/_left-navbar/settings'
 import { Route as AppCalendarIndexRouteImport } from './routes/_app/calendar/index'
@@ -66,6 +67,11 @@ const AppCalendarRoute = AppCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
   getParentRoute: () => AppRoute,
+} as any)
+const DevGarisRoute = DevGarisRouteImport.update({
+  id: '/dev/garis',
+  path: '/dev/garis',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LoginIndexLazyRoute = LoginIndexLazyRouteImport.update({
   id: '/login/',
@@ -257,6 +263,7 @@ const AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar': typeof AppCalendarRouteWithChildren
+  '/dev/garis': typeof DevGarisRoute
   '/socket/': typeof SocketIndexRoute
   '/login/': typeof LoginIndexLazyRoute
   '/settings': typeof AppLeftNavbarSettingsRouteWithChildren
@@ -291,6 +298,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dev/garis': typeof DevGarisRoute
   '/socket': typeof SocketIndexRoute
   '/login': typeof LoginIndexLazyRoute
   '/calendar': typeof AppCalendarIndexRoute
@@ -327,6 +335,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/_left-navbar': typeof AppLeftNavbarRouteWithChildren
   '/_app/calendar': typeof AppCalendarRouteWithChildren
+  '/dev/garis': typeof DevGarisRoute
   '/socket/': typeof SocketIndexRoute
   '/login/': typeof LoginIndexLazyRoute
   '/_app/_left-navbar/settings': typeof AppLeftNavbarSettingsRouteWithChildren
@@ -365,6 +374,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/calendar'
+    | '/dev/garis'
     | '/socket/'
     | '/login/'
     | '/settings'
@@ -399,6 +409,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dev/garis'
     | '/socket'
     | '/login'
     | '/calendar'
@@ -434,6 +445,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_app/_left-navbar'
     | '/_app/calendar'
+    | '/dev/garis'
     | '/socket/'
     | '/login/'
     | '/_app/_left-navbar/settings'
@@ -471,6 +483,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  DevGarisRoute: typeof DevGarisRoute
   SocketIndexRoute: typeof SocketIndexRoute
   LoginIndexLazyRoute: typeof LoginIndexLazyRoute
 }
@@ -504,6 +517,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/calendar'
       preLoaderRoute: typeof AppCalendarRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/dev/garis': {
+      id: '/dev/garis'
+      path: '/dev/garis'
+      fullPath: '/dev/garis'
+      preLoaderRoute: typeof DevGarisRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/login/': {
       id: '/login/'
@@ -876,6 +896,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  DevGarisRoute: DevGarisRoute,
   SocketIndexRoute: SocketIndexRoute,
   LoginIndexLazyRoute: LoginIndexLazyRoute,
 }
