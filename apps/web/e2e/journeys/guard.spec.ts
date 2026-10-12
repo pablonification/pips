@@ -110,6 +110,10 @@ test('overrides answer with errors, delays and empty lists', async ({
 
 test('the browser can be taken offline', async ({ page, api }) => {
   await page.goto('/');
+  // Routes load their code on demand, and TanStack Router reloads the page once when a route's code fails to
+  // load (lazyRouteComponent). Going offline before Beranda's code arrives would trigger that reload, so wait
+  // until the network is quiet. Members don't hit this: the service worker precaches route code.
+  await page.waitForLoadState('networkidle');
   await api.setOffline(true);
   expect(await page.evaluate(() => navigator.onLine)).toBe(false);
   expect(await page.evaluate(fetchStatus, { path: '/api/me' })).toBe(
