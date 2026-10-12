@@ -50,6 +50,7 @@ export type { InternshipSubmission } from './models/InternshipSubmission';
 export type { InternshipSubmissionChoice } from './models/InternshipSubmissionChoice';
 export type { ListChatroom } from './models/ListChatroom';
 export type { Markdown } from './models/Markdown';
+export type { NimFinderResult } from './models/NimFinderResult';
 export type { OgObject } from './models/OgObject';
 export type { PresignedURL } from './models/PresignedURL';
 export type { PushSubscription } from './models/PushSubscription';

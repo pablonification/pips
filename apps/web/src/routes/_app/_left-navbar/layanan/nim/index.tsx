@@ -60,7 +60,7 @@ function NimFinderPage() {
           {searchResult?.map((user) => (
             <div className="flex w-full items-center justify-between rounded-lg bg-white p-3 lg:px-5">
               <UserInfo
-                key={user.id}
+                key={user.nim}
                 name={user.fullName}
                 nameClassName="leading-tight text-body-md"
                 email={
