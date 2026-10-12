@@ -62,3 +62,33 @@ for (const [from, to] of REDIRECTS) {
     await expect(page.getByText('Bagian ini gagal dimuat.')).toHaveCount(0);
   });
 }
+
+// Review m4: a value the page doesn't expect (a number for `unread`, an object for `sort`, text for a date
+// number) is dropped and the page opens, never an error page.
+for (const from of [
+  '/timeline?unread=1',
+  '/timeline?sort=%7B%22a%22%3A1%7D&excludeCategories=akademik',
+  '/pengumuman?search=5&showAnnounce=ya',
+  '/calendar?selectedDate=abc&selectedMonth=%7B%7D',
+  '/home/testimoni/teknik-informatika/3/course-IF2110?page=satu',
+]) {
+  test(`a bad value in an old link still opens the page: ${from}`, async ({
+    page,
+    api,
+  }) => {
+    api.on('POST /api/info/:infoId/read', () => ({}));
+    await page.goto(from);
+    await expect
+      .poll(() => new URL(page.url()).pathname)
+      .not.toMatch(/^\/(timeline|calendar|home)/);
+    await expect(page.locator('#root')).not.toBeEmpty();
+    await expect(
+      page
+        .getByRole('link', { name: 'Home', exact: true })
+        .locator('visible=true')
+        .first(),
+    ).toBeVisible();
+    await expect(page.getByText('Halaman ini gagal dimuat.')).toHaveCount(0);
+    await expect(page.getByText('Bagian ini gagal dimuat.')).toHaveCount(0);
+  });
+}

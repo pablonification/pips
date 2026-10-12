@@ -1,15 +1,11 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router';
-import { z } from 'zod';
 import { queryClient } from '~/api/client';
 import Navbar from '~/components/navbar/navbar';
 import SessionProvider from '~/components/session';
 import { initialLoadUserAcademic } from '~/hooks/useUserAcademic';
 import { loginSearch } from '~/lib/safe-redirect';
+import { appSearchSchema } from '~/lib/search-params';
 import { loadUserCache } from '~/lib/session';
-
-const appSearchSchema = z.object({
-  showAnnounce: z.boolean().optional(),
-});
 
 export const Route = createFileRoute('/_app')({
   component: AppLayout,

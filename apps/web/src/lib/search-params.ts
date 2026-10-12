@@ -19,12 +19,24 @@ export const kalenderSearchSchema = z.object({
   acara: z.string().min(1).optional().catch(undefined),
 });
 
+/** Every page in the app: `showAnnounce` opens today's desktop composer. */
+export const appSearchSchema = z.object({
+  showAnnounce: z.boolean().optional().catch(undefined),
+});
+
+/** Kalender's route: the redesign's `hari` and `acara` (P1-A), and today's screen's `selected*` until it is replaced. */
+export const kalenderRouteSearchSchema = kalenderSearchSchema.extend({
+  selectedDate: z.number().optional().catch(undefined),
+  selectedMonth: z.number().optional().catch(undefined),
+  selectedYear: z.number().optional().catch(undefined),
+});
+
 /** Pengumuman: today's names (`/timeline?…` links keep working through the redirect). */
 export const pengumumanSearchSchema = z.object({
-  search: z.string().optional(),
-  unread: z.boolean().optional(),
-  excludeCategories: z.array(z.string()).optional(),
-  sort: z.string().optional(),
+  search: z.string().optional().catch(undefined),
+  unread: z.boolean().optional().catch(undefined),
+  excludeCategories: z.array(z.string()).optional().catch(undefined),
+  sort: z.string().optional().catch(undefined),
 });
 
 /** NIM Finder and other searches: the query (`q`). */
@@ -34,5 +46,5 @@ export const querySearchSchema = z.object({
 
 /** Testi Matkul's testimonial pages: today's 1-based `page`. Programme, semester and course are path params. */
 export const testiSearchSchema = z.object({
-  page: z.number().optional(),
+  page: z.number().optional().catch(undefined),
 });
