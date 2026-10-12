@@ -88,7 +88,7 @@ export const InternshipSubmissionSchema = createSelectSchema(
     kesibukan: z.array(InternshipKesibukanSchema),
     createdAt: z.union([z.string(), z.date()]),
     updatedAt: z.union([z.string(), z.date()]),
-    submittedAt: z.union([z.string(), z.date(), z.null()]),
+    submittedAt: z.date().nullable(),
   },
 )
   .extend({
