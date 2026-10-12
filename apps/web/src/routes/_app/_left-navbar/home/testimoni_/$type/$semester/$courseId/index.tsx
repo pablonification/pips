@@ -177,7 +177,9 @@ function TestimoniListPage(): JSX.Element {
                     'flex size-10 items-center justify-center rounded-md',
                     currentPage === parseInt(page)
                       ? 'bg-[#E2C66F] text-black'
-                      : 'bg-none!',
+                      : // Was 'bg-none!': tailwind-merge 2 took it for a background colour and dropped the button's
+                        // black; tailwind-merge 3 reads it as background-image, so say what it did.
+                        'bg-transparent',
                   )}
                 >
                   {page}

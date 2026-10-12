@@ -32,12 +32,25 @@ test('Testi Matkul by browsing: program, semester, course, testimonials', async 
   ).toBeVisible();
   await expect(visibleText(page, /Lanjutan Dasar Pemrograman/)).toBeVisible();
   await checkGates(page, testInfo, 'testi-course');
-  await page
+  const semesterUrl = page.url().replace(/\/[^/]+\/?$/, '');
+  // Regression (T4): pages other than the current one have no background. Under tailwind-merge 3 their
+  // 'bg-none!' class let the button's black background through.
+  const pageTwo = page
     .getByRole('button', { name: '2', exact: true })
-    .locator('visible=true')
-    .click();
+    .locator('visible=true');
+  await expect(pageTwo).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await pageTwo.click();
   await expect(
     visibleText(page, /Konsep list berkait dan pohon/),
+  ).toBeVisible();
+  // Back leads to the semester's courses (T4 spelled out the path that '..' led to).
+  await page
+    .getByRole('link', { name: 'Back' })
+    .locator('visible=true')
+    .click();
+  await expect(page).toHaveURL(semesterUrl);
+  await expect(
+    page.getByRole('link', { name: 'Sistem Operasi' }).locator('visible=true'),
   ).toBeVisible();
 });
 

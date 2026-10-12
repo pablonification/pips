@@ -4,6 +4,11 @@
 
 @config '../tailwind.config.js';
 
+/* Tailwind 4 ignores the config's `safelist`: the calendar builds these class names from each category's colour. */
+@source inline(
+  '{bg-{teal,yellow,red,blue}-200,text-{teal,yellow,red,blue}-500,border-{teal,yellow,red,blue}-500}'
+);
+
 /* Hover styles apply on touch screens too, as they did in Tailwind CSS v3. */
 @custom-variant hover (&:hover);
 
@@ -34,6 +39,12 @@
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
+  }
+
+  /* Version 4's base styles zero every element's padding; version 3 left table cells the browser's 1px. */
+  td,
+  th {
+    padding: 1px;
   }
 }
 
@@ -169,5 +180,74 @@
   * {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
+  }
+}
+
+/*
+  Tailwind 4 changed space-x and space-y: the gap now goes after every child but the last, at zero specificity, so
+  a child's own margin wins. Version 3 put it before every visible child but the first, strongly enough to win over
+  the child's margins. These rules give back version 3's spacing for the sizes the app uses (the redesign uses gap).
+  The reset's `:not(html)` weighs one element: enough to beat Tailwind 4's rule (which this build emits after it),
+  still less than any class on the child, as in version 3.
+*/
+@layer utilities {
+  :where(
+    .space-x-1 > :not(:last-child),
+    .space-x-2 > :not(:last-child),
+    .space-x-3 > :not(:last-child),
+    .space-x-6 > :not(:last-child),
+    .space-x-12 > :not(:last-child)
+  ):not(html) {
+    margin-inline: 0;
+  }
+  :where(
+    .space-y-0 > :not(:last-child),
+    .space-y-1\.5 > :not(:last-child),
+    .space-y-2 > :not(:last-child),
+    .space-y-3 > :not(:last-child),
+    .space-y-4 > :not(:last-child)
+  ):not(html) {
+    margin-block: 0;
+  }
+
+  .space-x-1 > :not([hidden]) ~ :not([hidden]) {
+    margin-right: 0;
+    margin-left: 0.25rem;
+  }
+  .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+    margin-right: 0;
+    margin-left: 0.5rem;
+  }
+  .space-x-3 > :not([hidden]) ~ :not([hidden]) {
+    margin-right: 0;
+    margin-left: 0.75rem;
+  }
+  .space-x-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-right: 0;
+    margin-left: 1.5rem;
+  }
+  .space-x-12 > :not([hidden]) ~ :not([hidden]) {
+    margin-right: 0;
+    margin-left: 3rem;
+  }
+  .space-y-0 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0px;
+    margin-bottom: 0;
+  }
+  .space-y-1\.5 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.375rem;
+    margin-bottom: 0;
+  }
+  .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+  }
+  .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+  }
+  .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem;
+    margin-bottom: 0;
   }
 }
