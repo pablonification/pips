@@ -99,6 +99,7 @@ export default function CalendarNavbar() {
           currentMonth={currentMonth}
           currentYear={currentYear}
           onMonthChange={handleMonthChange}
+          // The calendar reports its first day on mount: that sync replaces the entry, so Back leaves Kalender.
           onChange={(date) =>
             navigate({
               search: {
@@ -106,6 +107,7 @@ export default function CalendarNavbar() {
                 selectedMonth: date.getMonth(),
                 selectedYear: date.getFullYear(),
               },
+              replace: !isQueryParamSet,
             })
           }
           defaultDate={

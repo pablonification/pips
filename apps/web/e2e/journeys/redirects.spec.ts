@@ -49,15 +49,23 @@ for (const [from, to] of REDIRECTS) {
   test(`${from} → ${to}`, async ({ page, api }) => {
     api.on('POST /api/info/:infoId/read', () => ({}));
     await page.goto(from);
+    // The new path with the old link's search string; a screen may add its own view params (today's Kalender
+    // writes the day it opens on).
+    const expected = new URL(to, 'http://x');
     await expect
       .poll(() => {
         const url = new URL(page.url());
-        return `${url.pathname}${url.search}`;
+        const kept = [...expected.searchParams].every(
+          ([key, value]) => url.searchParams.get(key) === value,
+        );
+        return `${url.pathname}${kept ? expected.search : url.search}`;
       })
       .toBe(to);
-    // The old path doesn't stay in history: Back doesn't bounce through it.
-    expect(await page.evaluate(() => history.length)).toBe(2);
     await expect(page.locator('#root')).not.toBeEmpty();
+    // The old path doesn't stay in history: Back doesn't bounce through it. Checked once the screen has
+    // settled, so a navigation the screen makes itself would be counted too.
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => history.length)).toBe(2);
     await expect(page.getByText('Halaman ini gagal dimuat.')).toHaveCount(0);
     await expect(page.getByText('Bagian ini gagal dimuat.')).toHaveCount(0);
   });

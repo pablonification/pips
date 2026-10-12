@@ -58,3 +58,16 @@ test.describe('Raka, akademik', () => {
     await checkGates(page, testInfo, 'calendar-add-event');
   });
 });
+
+test('opening Kalender adds no history entry of its own: Back leaves it', async ({
+  page,
+}) => {
+  // Regression: the desktop calendar reports its first day on mount, and the navbar pushed that into history
+  // (`?selectedDate=…`), so Back from Kalender landed on Kalender again. Its first sync now replaces the entry.
+  await page.goto('/kalender');
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get('selectedDate'))
+    .toBe('8');
+  await page.waitForTimeout(500);
+  expect(await page.evaluate(() => history.length)).toBe(2);
+});
