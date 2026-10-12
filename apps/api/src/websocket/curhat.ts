@@ -1,0 +1,178 @@
+import type { Socket } from 'socket.io';
+import type { ChatroomMessage } from '~/db/schema';
+import {
+  canAccessChatroom,
+  toChatroomMessageResponse,
+  type ChatroomMessageResponse,
+} from '~/lib/curhat';
+import {
+  CurhatJoinPayloadSchema,
+  CurhatMessagePayloadSchema,
+  type CurhatJoinAck,
+  type CurhatMessageAck,
+  type CurhatSocketError,
+} from '~/types/curhat.types';
+import type { SocketSession } from './session';
+
+/** What the chat socket needs from storage and push, passed in so tests run without a database. */
+export interface CurhatSocketDeps {
+  getChatroom: (
+    chatroomId: string,
+  ) => Promise<{ id: string; userId: string | null } | undefined>;
+  getOwnedChatroomIds: (userId: string) => Promise<string[]>;
+  getMessage: (messageId: string) => Promise<ChatroomMessage | undefined>;
+  saveMessage: (message: {
+    userId: string;
+    chatroomId: string;
+    content: string;
+    replyId: string | null;
+  }) => Promise<ChatroomMessage>;
+  /** Tells the room's other participants (owner and Welfare), never the sender. */
+  notifyParticipants: (message: {
+    chatroomId: string;
+    senderId: string;
+    content: string;
+  }) => Promise<void>;
+  onError?: (error: unknown) => void;
+}
+
+type Ack<T> = (answer: T) => void;
+
+function ackOf<T>(ack: unknown): Ack<T> {
+  return typeof ack === 'function' ? (ack as Ack<T>) : () => {};
+}
+
+const refuse = (error: CurhatSocketError) => ({ ok: false as const, error });
+
+/** A message as JSON carries it on the socket (`CurhatSocketMessageSchema`). */
+function onTheWire(message: ChatroomMessageResponse) {
+  const { reply, ...fields } = message;
+  return {
+    ...fields,
+    isSender: message.isSender === true,
+    createdAt: message.createdAt.toISOString(),
+    ...(reply
+      ? { reply: { ...reply, createdAt: reply.createdAt.toISOString() } }
+      : {}),
+  };
+}
+
+/**
+ * Curhat on one socket. The member is the signed-in session, never an id the client sends; every join and every
+ * message checks `canAccessChatroom`. Old clients still work: a handshake `chatroomId` joins that room after the
+ * check, and `message` without an acknowledgement callback is still saved and relayed.
+ *
+ * Handlers are registered at once and wait for the session, so nothing sent right after connecting is lost.
+ */
+export function registerCurhatSocket(
+  socket: Socket,
+  session: Promise<SocketSession | null>,
+  deps: CurhatSocketDeps,
+) {
+  async function mayAccess(s: SocketSession, chatroomId: string) {
+    const room = await deps.getChatroom(chatroomId);
+    return canAccessChatroom({ id: s.userId }, s.roles, room);
+  }
+
+  socket.on('message', async (payload: unknown, ack?: unknown) => {
+    const answer = ackOf<CurhatMessageAck>(ack);
+    try {
+      answer(await receiveMessage(payload));
+    } catch (error) {
+      deps.onError?.(error);
+      answer(refuse('server'));
+    }
+  });
+
+  async function receiveMessage(payload: unknown): Promise<CurhatMessageAck> {
+    const s = await session;
+    if (!s) return refuse('unauthorized');
+
+    const parsed = CurhatMessagePayloadSchema.safeParse(payload);
+    if (!parsed.success || parsed.data.message.trim() === '') {
+      return refuse('invalid');
+    }
+    const { chatroomId, message: content } = parsed.data;
+    const replyId = parsed.data.replyId ?? null;
+
+    if (!(await mayAccess(s, chatroomId))) return refuse('forbidden');
+
+    let quoted: ChatroomMessage | undefined;
+    if (replyId) {
+      quoted = await deps.getMessage(replyId);
+      if (!quoted || quoted.chatroomId !== chatroomId) return refuse('invalid');
+    }
+
+    const saved = await deps.saveMessage({
+      userId: s.userId,
+      chatroomId,
+      content,
+      replyId,
+    });
+
+    await socket.join(chatroomId);
+    const receivers = await socket.nsp.in(chatroomId).fetchSockets();
+    for (const receiver of receivers) {
+      if (receiver.id === socket.id) continue;
+      // `reply` keeps today's shape (no quoted message); `isSender` is for whoever receives it.
+      const receiverId = (receiver.data as { userId?: string }).userId;
+      receiver.emit(
+        'reply',
+        onTheWire(toChatroomMessageResponse(saved, receiverId ?? '')),
+      );
+    }
+
+    deps
+      .notifyParticipants({ chatroomId, senderId: s.userId, content })
+      .catch((error) => deps.onError?.(error));
+
+    return {
+      ok: true,
+      message: onTheWire(
+        toChatroomMessageResponse(
+          { ...saved, reply: quoted ?? null },
+          s.userId,
+        ),
+      ),
+    };
+  }
+
+  async function joinRoom(payload: unknown): Promise<CurhatJoinAck> {
+    const s = await session;
+    if (!s) return refuse('unauthorized');
+    const parsed = CurhatJoinPayloadSchema.safeParse(payload);
+    if (!parsed.success) return refuse('invalid');
+    if (!(await mayAccess(s, parsed.data.chatroomId))) {
+      return refuse('forbidden');
+    }
+    await socket.join(parsed.data.chatroomId);
+    return { ok: true };
+  }
+
+  socket.on('curhat:join', async (payload: unknown, ack?: unknown) => {
+    const answer = ackOf<CurhatJoinAck>(ack);
+    try {
+      answer(await joinRoom(payload));
+    } catch (error) {
+      deps.onError?.(error);
+      answer(refuse('server'));
+    }
+  });
+
+  void (async () => {
+    const s = await session;
+    if (!s) return;
+    const auth = (socket.handshake.auth ?? {}) as Record<string, unknown>;
+    // One connection for the whole Curhat area: every room the member owns.
+    if (auth.curhat === true) {
+      const owned = await deps.getOwnedChatroomIds(s.userId);
+      if (owned.length) await socket.join(owned);
+    }
+    // Today's screens open one socket per room.
+    if (typeof auth.chatroomId === 'string' && auth.chatroomId) {
+      if (await mayAccess(s, auth.chatroomId)) {
+        await socket.join(auth.chatroomId);
+      }
+    }
+  })().catch((error) => deps.onError?.(error));
+}

@@ -1,4 +1,4 @@
-import { eq, InferInsertModel, not, sql, inArray, and } from 'drizzle-orm';
+import { and, eq, inArray, InferInsertModel, sql } from 'drizzle-orm';
 import { Database } from '~/db/drizzle';
 import {
   chatroomMessageReads,
@@ -93,7 +93,7 @@ export async function saveMessage(
   userId: string,
   chatroomId: string,
   message: string,
-  replyId: string,
+  replyId: string | null,
 ) {
   return await db.transaction(async (tx) => {
     return await tx
@@ -117,29 +117,82 @@ export async function getChatroomById(db: Database, chatroomId: string) {
   });
 }
 
+/** A room's id and owner: what the access check needs, without its messages. */
+export async function getChatroomOwner(db: Database, chatroomId: string) {
+  return await db.query.chatrooms.findFirst({
+    columns: { id: true, userId: true },
+    where: eq(chatrooms.id, chatroomId),
+  });
+}
+
+export async function getOwnedChatroomIds(db: Database, userId: string) {
+  const rows = await db
+    .select({ id: chatrooms.id })
+    .from(chatrooms)
+    .where(eq(chatrooms.userId, userId));
+  return rows.map((r) => r.id);
+}
+
+export async function countUserChatrooms(db: Database, userId: string) {
+  const [row] = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(chatrooms)
+    .where(eq(chatrooms.userId, userId));
+  return Number(row?.count ?? 0);
+}
+
+export async function getChatroomMessageById(db: Database, messageId: string) {
+  return await db.query.chatroomMessages.findFirst({
+    where: eq(chatroomMessages.id, messageId),
+  });
+}
+
 export async function deleteChatroom(db: Database, chatroomId: string) {
   return await db.transaction(async (tx) => {
     return await tx.delete(chatrooms).where(eq(chatrooms.id, chatroomId));
   });
 }
 
-export async function getUnreadCountChatroomMessages(
+/** The ids of the messages in these rooms that `userId` has marked read. */
+export async function getReadMessageIds(
   db: Database,
   userId: string,
+  chatroomIds: string[],
 ) {
-  const readMessageIdsSubquery = db
-    .select({ chatroomMessageId: chatroomMessageReads.chatroomMessageId })
+  if (chatroomIds.length === 0) return new Set<string>();
+  const rows = await db
+    .select({ id: chatroomMessageReads.chatroomMessageId })
     .from(chatroomMessageReads)
-    .where(eq(chatroomMessageReads.userId, userId));
+    .innerJoin(
+      chatroomMessages,
+      eq(chatroomMessages.id, chatroomMessageReads.chatroomMessageId),
+    )
+    .where(
+      and(
+        eq(chatroomMessageReads.userId, userId),
+        inArray(chatroomMessages.chatroomId, chatroomIds),
+      ),
+    );
+  return new Set(rows.map((r) => r.id));
+}
 
-  return await db
-    .select({
-      chatroomId: chatroomMessages.chatroomId,
-      unreadCount: sql<number>`COUNT(${chatroomMessages.id})`,
-    })
-    .from(chatroomMessages)
-    .where(not(inArray(chatroomMessages.id, readMessageIdsSubquery)))
-    .groupBy(chatroomMessages.chatroomId);
+/**
+ * Marks every message in the room that `userId` didn't send as read by them. Safe to repeat: a message already
+ * marked is left alone (`on conflict do nothing` on the (user, message) key).
+ */
+export function markChatroomReadQuery(chatroomId: string, userId: string) {
+  return sql`insert into ${chatroomMessageReads} (user_id, chatroom_message_id)
+    select ${userId}, ${chatroomMessages.id} from ${chatroomMessages}
+    where ${chatroomMessages.chatroomId} = ${chatroomId} and ${chatroomMessages.userId} <> ${userId}
+    on conflict do nothing`;
+}
+
+export async function markChatroomRead(
+  db: Database,
+  chatroomId: string,
+  userId: string,
+) {
+  await db.execute(markChatroomReadQuery(chatroomId, userId));
 }
 
 export async function pinChatroom(
