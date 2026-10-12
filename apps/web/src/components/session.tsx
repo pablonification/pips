@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Navigate, useLocation } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 import { createContext, useEffect } from 'react';
 import { UserWithRoles } from '~/api/generated';
 import { clearPersistedQueries } from '~/api/persister';
@@ -27,7 +27,7 @@ export default function SessionProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const location = useLocation();
+  const router = useRouter();
   const { data, failureCount, refetch, isFetching } = useQuery({
     queryKey: ['me'],
     queryFn: fetchSession,
@@ -39,13 +39,19 @@ export default function SessionProvider({
     if (data !== undefined) {
       saveUserCache(data);
     }
-    // Signed out by the server: nothing of this user's stays on the device.
-    if (data === null) void clearPersistedQueries();
-  }, [data]);
+    // Signed out by the server: nothing of this user's stays on the device, and sign-in brings them back here.
+    // Navigated once, from an effect: a <Navigate> with a fresh `search` object re-navigates on every render.
+    if (data === null) {
+      void clearPersistedQueries();
+      void router.navigate({
+        to: '/login',
+        search: loginSearch(router.state.location.href),
+        replace: true,
+      });
+    }
+  }, [data, router]);
 
-  if (data === null) {
-    return <Navigate to="/login" search={loginSearch(location.href)} replace />;
-  }
+  if (data === null) return null;
 
   if (!data) {
     if (failureCount >= 2) {
