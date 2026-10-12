@@ -61,30 +61,48 @@ export class CurhatService {
     });
   }
   /**
-   * Get unread chatroom messages count
+   * Unread messages per room: only rooms the caller may access (their own; every room for Welfare), only messages they did not send. Rooms with none are left out.
    * @returns any Get unread chatroom messages count success
    * @throws ApiError
    */
-  public unreadCountChatroomMessages({
-    chatroomId,
-  }: {
-    /**
-     * Id of chatroom
-     */
-    chatroomId: string,
-  }): CancelablePromise<Array<{
+  public unreadCountChatroomMessages(): CancelablePromise<Array<{
     chatroomId: string;
     unreadCount: number;
   }>> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/api/curhat/chatrooms/unread',
+      errors: {
+        401: `Unauthorized`,
+        500: `Internal Server Error`,
+      },
+    });
+  }
+  /**
+   * Marks every message in the room that the caller did not send as read. Needs access to the room; safe to repeat.
+   * @returns any Read chatroom messages success
+   * @throws ApiError
+   */
+  public readChatroomMessages({
+    chatroomId,
+  }: {
+    /**
+     * Id of chatroom
+     */
+    chatroomId: string,
+  }): CancelablePromise<{
+    message: string;
+  }> {
+    return this.httpRequest.request({
+      method: 'POST',
+      url: '/api/curhat/chatroom/{chatroomId}/read',
       path: {
         'chatroomId': chatroomId,
       },
       errors: {
-        401: `Unauthorized`,
-        500: `Internal Server Error`,
+        400: `Bad request`,
+        403: `Not your room`,
+        404: `No such room`,
       },
     });
   }
