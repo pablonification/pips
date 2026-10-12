@@ -6,6 +6,7 @@ import {
   type Ref,
 } from 'react';
 import { IconCentang } from '~/components/icons/centang';
+import { IconPeringatan } from '~/components/icons/peringatan';
 import { cn } from '~/lib/utils';
 
 export interface SegOption<V extends string> {
@@ -148,6 +149,69 @@ export function Options({
     <fieldset className={cn('g-opts', className)}>
       <legend className="mb-1.5 t-label">{legend}</legend>
       {children}
+    </fieldset>
+  );
+}
+
+export interface RatingProps {
+  /** The question ("Seberapa puas kamu dengan PIXEL?"). */
+  label: ReactNode;
+  /** What the ends mean, under the question. */
+  hint?: ReactNode;
+  value: number | null;
+  onChange: (value: number) => void;
+  /** The error, saying the cause and the fix; linked to the group. */
+  error?: ReactNode;
+  name?: string;
+  className?: string;
+}
+
+/**
+ * A 1–5 rating question (garis.css `.rating`): native radios under keycaps, so arrow keys move the choice; the chosen
+ * one turns gold. Hint and error are linked to the group.
+ */
+export function Rating({
+  label,
+  hint,
+  value,
+  onChange,
+  error,
+  name,
+  className,
+}: RatingProps) {
+  const auto = useId();
+  const noteId = `${auto}-note`;
+  return (
+    <fieldset
+      className={cn('g-rating-field', className)}
+      aria-describedby={error || hint ? noteId : undefined}
+    >
+      <legend className="t-label">{label}</legend>
+      {hint && !error ? (
+        <p className="t-cap text-fg-3" id={noteId}>
+          {hint}
+        </p>
+      ) : null}
+      <div className="g-rating">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <label key={n}>
+            <input
+              type="radio"
+              name={name ?? auto}
+              value={n}
+              checked={value === n}
+              onChange={() => onChange(n)}
+            />
+            {n}
+          </label>
+        ))}
+      </div>
+      {error ? (
+        <p className="g-err t-cap" id={noteId}>
+          <IconPeringatan size={16} />
+          {error}
+        </p>
+      ) : null}
     </fieldset>
   );
 }

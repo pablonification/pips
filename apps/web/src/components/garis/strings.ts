@@ -9,10 +9,12 @@ export const GARIS_STRINGS = {
   undo: 'Urungkan',
   loading: 'Memuat…',
   saved: 'Draf tersimpan',
-  errorTitle: 'Gagal memuat',
+  errorTitle: 'Bagian ini gagal dimuat.',
   /** "offline · diperbarui 07.45" (SPEC story 135). */
   offline: (time: string) => `Offline · diperbarui ${time}`,
   statusOpen: 'Isi sekarang',
   statusSoon: 'Belum dibuka',
   statusDone: 'Sudah diisi',
+  /** Under a course's credits (garis.css `.sks`). */
+  sks: 'SKS',
 } as const;

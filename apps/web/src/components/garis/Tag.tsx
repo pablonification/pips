@@ -74,11 +74,20 @@ export function Count({
 }: {
   value: number;
   className?: string;
+  /** What screen readers hear instead of the bare figure ("3 belum dibaca"). */
   label?: string;
 }) {
+  // A label on a plain span isn't read (ARIA forbids naming a generic element), so it is hidden text instead.
   return (
-    <span className={cn('g-count', className)} aria-label={label}>
-      {value}
+    <span className={cn('g-count', className)}>
+      {label ? (
+        <>
+          <span aria-hidden="true">{value}</span>
+          <span className="sr-only">{label}</span>
+        </>
+      ) : (
+        value
+      )}
     </span>
   );
 }

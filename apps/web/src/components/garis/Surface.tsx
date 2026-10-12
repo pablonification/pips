@@ -18,25 +18,45 @@ export function Plaque({ className, ...rest }: DivProps) {
   return <div className={cn('g-plaque', className)} {...rest} />;
 }
 
-export interface TileProps extends HTMLAttributes<HTMLSpanElement> {
+export interface TileProps extends Omit<
+  HTMLAttributes<HTMLSpanElement>,
+  'aria-label'
+> {
   /** Gold with an ink rim, only when the row asks you to act inside the app now. */
   gold?: boolean;
   size?: 'md' | 'sm';
+  /** What the icon means, when the row doesn't say it in words; without it the tile is decoration. */
+  label?: string;
 }
 
 /** A 36 px icon tile for list rows (garis.css `.tile`). */
 export function Tile({
   gold = false,
   size = 'md',
+  label,
   className,
+  children,
   ...rest
 }: TileProps) {
+  // A label on a plain span isn't read (ARIA forbids naming a generic element): the meaning is hidden text, and the
+  // icon itself stays hidden.
   return (
     <span
       className={cn('g-tile', gold && 'gold', size === 'sm' && 'sm', className)}
-      aria-hidden={rest['aria-label'] ? undefined : true}
+      aria-hidden={label ? undefined : true}
       {...rest}
-    />
+    >
+      {label ? (
+        <>
+          <span className="contents" aria-hidden="true">
+            {children}
+          </span>
+          <span className="sr-only">{label}</span>
+        </>
+      ) : (
+        children
+      )}
+    </span>
   );
 }
 

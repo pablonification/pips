@@ -141,6 +141,16 @@ html.dark,
   --dur-overlay: 180ms;
   --dur-sheet: 220ms;
   --dur-route: 220ms;
+
+  /*
+    Layers, lowest first: one scale for everything that floats. A menu or popover can open from inside a sheet or
+    dialog, so poppers sit above the modal layers; toasts stay above everything. Radix copies a popper's computed
+    z-index onto its positioning wrapper, so the content's value is the one that counts.
+  */
+  --z-scrim: 40;
+  --z-modal: 41;
+  --z-popper: 50;
+  --z-toast: 60;
 }
 
 /*

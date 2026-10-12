@@ -3,6 +3,7 @@ import { useRef, type ReactNode } from 'react';
 import { IconTutup } from '~/components/icons/tutup';
 import { cn } from '~/lib/utils';
 import { Button } from './Button';
+import { takeMenuOpener } from './menu-opener';
 import { IconButton } from './IconButton';
 import { GARIS_STRINGS } from './strings';
 import { DESKTOP_QUERY, useMediaQuery } from './useMediaQuery';
@@ -70,11 +71,17 @@ function Shell({
           )}
           role={role}
           onOpenAutoFocus={(e) => {
-            returnTo.current =
+            const active =
               document.activeElement instanceof HTMLElement &&
               document.activeElement !== document.body
                 ? document.activeElement
                 : null;
+            // Opened from a menu item: the menu closes and the item goes, so return to the menu's button.
+            const menuOpener = takeMenuOpener();
+            returnTo.current =
+              !active || active.closest('[role="menu"]')
+                ? (menuOpener ?? active)
+                : active;
             onOpenAutoFocus?.(e);
           }}
           onCloseAutoFocus={(e) => {

@@ -487,6 +487,180 @@
   .g-disclosure > :not(summary) {
     padding: 0 14px 14px;
   }
+  .g-disclosure > .g-facts-list {
+    padding-bottom: 2px;
+  }
+  /* Facts as label and value rows (Informasi akun, Info Lomba). */
+  .g-facts-list > li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 0;
+    font-size: 14px;
+  }
+  .g-facts-list > li > :first-child {
+    color: var(--text-2);
+  }
+  .g-facts-list > li > :last-child {
+    text-align: right;
+    font-weight: 500;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  /* Deadlines; urgent ones (today, overdue) in red, with the words saying when. */
+  .g-due {
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 600;
+    color: var(--text-accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .g-due.urgent {
+    color: var(--text-danger);
+  }
+  /* The feed row's unread bar, and the empty slot that keeps read rows aligned. */
+  .g-unread-bar {
+    width: 4px;
+    align-self: stretch;
+    margin: 2px 0;
+    background: var(--gold);
+    box-shadow: 0 0 0 1px var(--border-key);
+    border-radius: 1px;
+    flex: none;
+  }
+  .g-read-bar {
+    width: 4px;
+    flex: none;
+  }
+  /* A keyboard shortcut (the sidebar search's ⌘K). */
+  .g-kbd {
+    margin-left: auto;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-2);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  /* A course's credits. */
+  .g-sks {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    width: 42px;
+    height: 42px;
+    flex: none;
+    border-radius: 8px;
+    background: var(--bg-inverse);
+    color: var(--text-on-inverse);
+  }
+  .g-sks b {
+    font-size: 16px;
+    line-height: 1;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .g-sks span {
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 500;
+    margin-top: 2px;
+    opacity: 0.85;
+  }
+  /* Reactions: the overlapped top reactions, the row under a post, and one reaction with its count. */
+  .g-stackpx {
+    display: inline-flex;
+  }
+  .g-stackpx .g-px + .g-px {
+    margin-left: -5px;
+  }
+  .g-stackpx .g-px {
+    box-shadow: 0 0 0 1.5px var(--bg-app);
+    border-radius: 2px;
+  }
+  .g-reacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .g-react {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 36px;
+    padding: 0 10px 0 7px;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--bg-muted);
+    font-size: 13px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+  .g-react[aria-pressed='true'] {
+    background: var(--bg-accent-subtle);
+    box-shadow: inset 0 0 0 1.5px var(--mark);
+  }
+  /* A 1–5 rating question: radios under keycaps; the chosen one turns gold. */
+  .g-rating-field {
+    display: grid;
+    gap: 10px;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  .g-rating-field > legend {
+    margin-bottom: 4px;
+    padding: 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .g-rating {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  .g-rating label {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 48px;
+    border-radius: 8px;
+    background: var(--bg-surface);
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 2px 0 var(--border);
+  }
+  .g-rating input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .g-rating label:has(input:checked) {
+    background: var(--gold);
+    color: var(--ink);
+    box-shadow:
+      0 0 0 1.5px var(--border-key),
+      0 2px 0 var(--border-key);
+  }
+  .g-rating label:has(input:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
   .g-saved {
     display: inline-flex;
     align-items: center;
@@ -578,6 +752,22 @@
     background: var(--bg-selected);
     color: var(--text-on-selected);
     box-shadow: none;
+  }
+  .g-ck-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .g-ck-chips .g-chip .g-ic {
+    margin-left: -2px;
+  }
+  .g-chip-group {
+    display: flex;
+    gap: 6px;
+  }
+  .g-chip-group .g-chip {
+    min-width: 44px;
+    justify-content: center;
   }
   .g-searchbox {
     display: flex;
@@ -821,7 +1011,7 @@
 
   /* ============ Menus and popovers ============ */
   .g-popover {
-    z-index: 30;
+    z-index: var(--z-popper);
     padding: 6px;
     border-radius: 12px;
     background: var(--bg-raised);
@@ -833,7 +1023,7 @@
     animation: g-fade-out 120ms ease-in forwards;
   }
   .g-menu {
-    z-index: 30;
+    z-index: var(--z-popper);
     min-width: 230px;
     padding: 6px;
     border-radius: 12px;
@@ -864,13 +1054,16 @@
   .g-menu [role='menuitem'][data-highlighted] {
     background: var(--bg-muted);
   }
-  .g-menu [role='menuitem'][data-highlighted] {
-    box-shadow: inset 0 0 0 2px var(--focus);
+  /* The prototype's focus ring, for keyboard focus only: Radix also highlights the item under the pointer, which gets
+     just the fill. (Menu items have tabindex -1, which the base styles leave without an outline.) */
+  .g-menu:not([data-input='pointer']) [role='menuitem']:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
   }
   .g-menu [role='menuitem'].danger {
     color: var(--text-danger);
   }
-  .g-menu [role='menuitem'][data-disabled] {
+  .g-menu [role='menuitem'][aria-disabled='true'] {
     color: var(--text-3);
     cursor: not-allowed;
   }
@@ -885,7 +1078,7 @@
   .g-ov {
     position: fixed;
     inset: 0;
-    z-index: 40;
+    z-index: var(--z-scrim);
     background: var(--scrim);
     animation: g-fade var(--dur-overlay) ease-out;
   }
@@ -894,7 +1087,7 @@
   }
   .g-sheet {
     position: fixed;
-    z-index: 41;
+    z-index: var(--z-modal);
     left: 0;
     right: 0;
     bottom: 0;
@@ -944,7 +1137,7 @@
   }
   .g-dlg {
     position: fixed;
-    z-index: 41;
+    z-index: var(--z-modal);
     left: 50%;
     top: 50%;
     translate: -50% -50%;
@@ -989,14 +1182,22 @@
     position: fixed;
     left: 50%;
     bottom: 24px;
-    z-index: 60;
+    z-index: var(--z-toast);
     translate: -50% 0;
     display: grid;
-    gap: 8px;
     justify-items: center;
     width: max-content;
     max-width: calc(100vw - 32px);
     pointer-events: none;
+  }
+  /* The two live regions (errors, then successes) are always there; empty, they take no space. */
+  .g-toast-region {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+  }
+  .g-toast-region:not(:empty) + .g-toast-region:not(:empty) {
+    margin-top: 8px;
   }
   @media (max-width: 639.98px) {
     .g-toasts {
@@ -1108,6 +1309,7 @@
       .g-icon-btn,
       .g-link:not(.in-text),
       .g-chip,
+      .g-react,
       .g-switch,
       button.g-avatar,
       .g-seg label

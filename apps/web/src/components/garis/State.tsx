@@ -60,9 +60,12 @@ export function ErrorState({
       <Button
         variant="paper"
         size="sm"
-        onClick={onRetry}
+        // Not `disabled`: that would drop keyboard focus to the page while it retries. It stays focusable and says
+        // it is busy; clicks are ignored until the retry ends.
+        onClick={() => {
+          if (!retrying) onRetry();
+        }}
         aria-disabled={retrying || undefined}
-        disabled={retrying}
       >
         <IconUlang size={16} />
         {GARIS_STRINGS.retry}

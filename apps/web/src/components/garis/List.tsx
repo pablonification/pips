@@ -15,6 +15,29 @@ export function RuledList({
   return <ul className={cn('g-ruled-list', className)} {...rest} />;
 }
 
+/**
+ * Facts as label and value rows on hairlines (garis.css `.facts-list`): Informasi akun, a competition's details. The
+ * label is muted on the left, the value on the right.
+ */
+export function FactsList({
+  facts,
+  className,
+}: {
+  facts: [label: ReactNode, value: ReactNode][];
+  className?: string;
+}) {
+  return (
+    <ul className={cn('g-ruled-list g-facts-list', className)}>
+      {facts.map(([k, v], i) => (
+        <li key={i}>
+          <span>{k}</span>
+          <span>{v}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** A list row's content: icon or tile, then text, then whatever ends the row (garis.css `.item`). */
 export function Item({
   center = false,

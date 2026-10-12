@@ -136,3 +136,29 @@ test('SPEC’s measured lows hold: tertiary on muted 5.10:1 light and 6.08:1 dar
   assert.equal(contrast(dark['--text-3'], dark['--bg-muted']).toFixed(2), '6.08');
   assert.equal(contrast(light['--ink'], light['--gold']).toFixed(2), '11.06');
 });
+
+// Review M1: a menu or popover opened from inside a sheet or dialog rendered under the scrim (z-index 30 below 40/41).
+// Every layer now comes from one scale in tokens.css, poppers above the modal layers and toasts above everything.
+test('everything that floats takes its z-index from the one layer scale, poppers above sheets and dialogs', () => {
+  const z = Object.fromEntries(
+    Object.entries(light)
+      .filter(([k]) => k.startsWith('--z-'))
+      .map(([k, v]) => [k, Number(v)]),
+  );
+  assert.ok(z['--z-scrim'] < z['--z-modal'], 'the panel sits on its scrim');
+  assert.ok(z['--z-modal'] < z['--z-popper'], 'menus and popovers open above sheets and dialogs');
+  assert.ok(z['--z-popper'] < z['--z-toast'], 'toasts stay above everything');
+  const raw = [...components.matchAll(/z-index:\s*([^;]+);/g)].map((m) => m[1].trim()).filter((v) => !/^var\(--z-[\w-]+\)$/.test(v));
+  assert.deepEqual(raw, [], 'z-index values outside the scale');
+  const layer = (sel) => {
+    const at = components.indexOf(`${sel} {`);
+    assert.notEqual(at, -1, `no ${sel} rule`);
+    return /z-index:\s*var\((--z-[\w-]+)\)/.exec(components.slice(at, components.indexOf('}', at)))?.[1];
+  };
+  assert.equal(layer('.g-ov'), '--z-scrim');
+  assert.equal(layer('.g-sheet'), '--z-modal');
+  assert.equal(layer('.g-dlg'), '--z-modal');
+  assert.equal(layer('.g-menu'), '--z-popper');
+  assert.equal(layer('.g-popover'), '--z-popper');
+  assert.equal(layer('.g-toasts'), '--z-toast');
+});

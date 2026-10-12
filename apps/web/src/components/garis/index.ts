@@ -4,11 +4,12 @@
  */
 export { Avatar, AvatarButton } from './Avatar';
 export { Button, LinkButton, type ButtonVariant } from './Button';
-export { Chip, Chips } from './Chip';
+export { Chip, ChipGroup, Chips, type ChipKind } from './Chip';
 export {
   Checkbox,
   Options,
   Radio,
+  Rating,
   Seg,
   Switch,
   type SegOption,
@@ -18,7 +19,8 @@ export { Field, Input, Searchbox, Select, Textarea } from './Field';
 export { Halftone } from './Halftone';
 export { HmifLogo } from './HmifLogo';
 export { IconButton } from './IconButton';
-export { Item, RowButton, RuledList, SectionHead } from './List';
+export { FactsList, Item, RowButton, RuledList, SectionHead } from './List';
+export { Due, Kbd, SksMark, UnreadBar } from './Marks';
 export { Menu, MenuItem } from './Menu';
 export { ConfirmDialog, Dialog, Modal, Sheet } from './Overlay';
 export { PixelReaction } from './PixelReaction';
@@ -28,6 +30,7 @@ export {
   type PixelReactionKey,
 } from './pixel-art';
 export { Popover } from './Popover';
+export { ReactionButton, Reactions, ReactionStack } from './Reactions';
 export {
   EmptyState,
   ErrorState,
