@@ -11,6 +11,8 @@ import { expect, test } from '../support/test';
 test.use({ persona: null });
 
 const isPhone = (t: TestInfo) => t.project.name.startsWith('phone');
+/** Phones and tablets (P0-C's tablet projects): below 1024 px, Modal is a sheet and controls get 44 px targets. */
+const isTouch = (t: TestInfo) => /^(phone|tablet)/.test(t.project.name);
 const isDark = (t: TestInfo) => t.project.name.endsWith('dark');
 
 async function open(page: Page) {
@@ -243,7 +245,7 @@ test('a sheet rises from the bottom on phones and closes with Tutup; on desktop 
   const modal = page.getByRole('dialog', { name: 'Nyalakan notifikasi?' });
   await expect(modal).toHaveAccessibleDescription(/Pengumuman baru/);
   expect(await modal.evaluate((el) => el.className)).toContain(
-    isPhone(testInfo) ? 'g-sheet' : 'g-dlg',
+    isTouch(testInfo) ? 'g-sheet' : 'g-dlg',
   );
   await page.keyboard.press('Escape');
 });
@@ -511,7 +513,7 @@ test('a labelled count and tile read their words, not the bare figure or icon', 
 test('on touch layouts every small control has a 44 px hit area, and the gold action is 48 px tall', async ({
   page,
 }, testInfo) => {
-  test.skip(!isPhone(testInfo), 'touch layouts only');
+  test.skip(!isTouch(testInfo), 'touch layouts only');
   await open(page);
   const hit = async (sel: ReturnType<Page['locator']>) =>
     sel.evaluate((el) => {

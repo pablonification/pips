@@ -299,9 +299,7 @@ test.describe('Beranda’s gold header', () => {
     await expect(ht.locator('[aria-hidden="true"]')).toHaveCount(1);
     const htBox = (await ht.boundingBox())!;
     expect(Math.round(htBox.x + htBox.width)).toBe(page.viewportSize()!.width);
-    await expect(
-      page.locator('.g-shell img[src="/logo/hmif.png"]'),
-    ).toHaveCount(0);
+    await expect(page.locator('.g-top img, .g-hero img')).toHaveCount(0);
     // It stays at the top while the page scrolls.
     await page
       .locator('[data-scroll-restoration-id="isi"]')
@@ -420,21 +418,29 @@ test.describe('global search', () => {
 
   test('an external service opens in a new tab and PIPS! stays', async ({
     page,
-    context,
   }) => {
     await page.goto('/layanan');
     await expect(mainNav(page)).toBeVisible();
+    // The harness keeps the outside world out, so record what the app asks the browser to open.
+    await page.evaluate(() => {
+      (window as unknown as { opened: unknown[] }).opened = [];
+      window.open = (...args: unknown[]) => {
+        (window as unknown as { opened: unknown[] }).opened.push(args);
+        return null;
+      };
+    });
     await page.keyboard.press('ControlOrMeta+k');
-    // The harness blocks the outside world; the new tab's address is what matters.
-    const popup = context.waitForEvent('page');
     await palette(page)
       .getByRole('option', { name: /^Bayar Kas!/ })
       .click();
-    const tab = await popup;
-    expect(tab.url()).toMatch(
-      /^(https:\/\/s\.hmif\.dev\/BayarKasHMIF|about:blank)/,
-    );
-    await tab.close();
+    await expect(palette(page)).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { opened: unknown[] }).opened,
+      ),
+    ).toEqual([
+      ['https://s.hmif.dev/BayarKasHMIF', '_blank', 'noopener,noreferrer'],
+    ]);
     await expect(page).toHaveURL(/\/layanan$/);
   });
 });
