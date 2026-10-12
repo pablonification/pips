@@ -1,0 +1,5 @@
+# Harness output: the production build it serves, test results and reports.
+.build/
+.results/
+.report/
+.out/
