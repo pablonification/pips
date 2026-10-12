@@ -1173,6 +1173,33 @@ export const forms = pgTable('forms', {
 
 export type Form = InferSelectModel<typeof forms>;
 
+/**
+ * Seasonal programmes and campaigns the app points members to while they're open (SPEC "Service registry,
+ * programme windows and campaigns"). Open while is_active, from opens_at until closes_at (null: until switched
+ * off); for everyone when both eligibility lists are empty, otherwise a listed angkatan or NIM.
+ */
+export const programmeWindows = pgTable('programme_windows', {
+  id: text('id').primaryKey().$defaultFn(createId),
+  slug: text('slug').unique().notNull(),
+  kind: text('kind', { enum: ['programme', 'campaign'] }).notNull(),
+  label: text('label').notNull(),
+  // An app path ("/layanan/sparta") or an https:// address; anything else is never served.
+  route: text('route').notNull(),
+  opensAt: timestamp('opens_at', { withTimezone: true }).notNull(),
+  closesAt: timestamp('closes_at', { withTimezone: true }),
+  eligibleAngkatan: json('eligible_angkatan')
+    .$type<number[]>()
+    .notNull()
+    .default([]),
+  eligibleNims: json('eligible_nims').$type<string[]>().notNull().default([]),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type ProgrammeWindow = InferSelectModel<typeof programmeWindows>;
+
 export const formsRelation = relations(forms, ({ many }) => ({
   responses: many(formResponses),
 }));

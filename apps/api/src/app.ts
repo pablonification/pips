@@ -121,6 +121,7 @@ export function createApp() {
       { name: 'curhat', description: 'Curhat API' },
       { name: 'internship', description: 'Internship API' },
       { name: 'form', description: 'Form API' },
+      { name: 'programme-window', description: 'Programme windows API' },
     ],
   });
   app.get('/swagger', swaggerUI({ url: '/doc' }));
