@@ -102,6 +102,27 @@ test('commenting on a post', async ({ page, api }) => {
   });
 });
 
+test('the announce button opens the composer over the feed, and closing it stays there @desktop-only', async ({
+  page,
+}) => {
+  // Regression (T4): with TanStack Router 1.170 this button navigated from the /_app layout's path, which left the feed.
+  await page.goto('/timeline');
+  await expect(timelineTitle(page)).toBeVisible();
+  // The megaphone button has no name: it is the dialog trigger floating over the feed.
+  const announce = page.locator('div.fixed > button[aria-haspopup="dialog"]');
+  await expect(announce).toHaveCount(1);
+  await announce.click();
+  await expect(page).toHaveURL(/\/timeline\?showAnnounce=true$/);
+  const dialog = page.getByRole('dialog');
+  await expect(
+    dialog.getByPlaceholder('What do you want announce?'),
+  ).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(page).toHaveURL(/\/timeline$/);
+  await expect(timelineTitle(page)).toBeVisible();
+});
+
 test('searching the feed', async ({ page, api }) => {
   await page.goto('/timeline');
   await page
