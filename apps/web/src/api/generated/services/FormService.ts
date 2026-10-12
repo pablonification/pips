@@ -43,7 +43,7 @@ export class FormService {
     });
   }
   /**
-   * @returns FormDetail Form detail. `sections` is null if the form has not opened yet.
+   * @returns FormDetail Form detail with your `status`. `sections` is null until the form opens; a closed form still has them, for a read-only view.
    * @throws ApiError
    */
   public getForm({
@@ -117,7 +117,7 @@ export class FormService {
       errors: {
         400: `Bad request`,
         401: `Error`,
-        403: `Error`,
+        403: `Not for your angkatan, not open yet, or closed (switched off or past closesAt)`,
         404: `Error`,
         409: `Already submitted a response for this form`,
       },

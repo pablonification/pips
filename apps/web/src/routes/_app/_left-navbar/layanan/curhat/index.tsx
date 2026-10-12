@@ -30,6 +30,8 @@ const Curhat: React.FC = () => {
           key,
           io(import.meta.env.VITE_API_URL, {
             auth: { chatroomId: key },
+            // The API reads the session from the cookie on the handshake (it can't be read by script).
+            withCredentials: true,
           }),
         ),
       );

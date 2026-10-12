@@ -1,13 +1,13 @@
 import { z } from '@hono/zod-openapi';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { comments } from '~/db/schema';
-import { JWTPayloadSchema } from './login.types';
+import { AuthorSchema } from './author.types';
 import { ReactionResponseSchema } from './reaction.types';
 
 export const CommentSchema = createSelectSchema(comments, {
   createdAt: z.union([z.string(), z.date()]),
 })
-  .extend({ creator: JWTPayloadSchema })
+  .extend({ creator: AuthorSchema })
   .openapi('Comment');
 
 export const CommentListSchema = z.object({

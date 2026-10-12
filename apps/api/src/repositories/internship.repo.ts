@@ -11,6 +11,7 @@ import {
 import {
   CreateInternshipDepartmentSchema,
   CreateInternshipDivisionSchema,
+  DraftInternshipSubmissionSchema,
   ListInternshipSubmissionsQuerySchema,
   UpdateInternshipDepartmentSchema,
   UpdateInternshipDivisionSchema,
@@ -135,7 +136,9 @@ export async function getSubmissionById(db: Database, id: string) {
 export async function upsertSubmission(
   db: Database,
   user: { id: string; nim: string; fullName: string; major: string },
-  data: z.infer<typeof UpsertInternshipSubmissionSchema>,
+  data:
+    | z.infer<typeof UpsertInternshipSubmissionSchema>
+    | z.infer<typeof DraftInternshipSubmissionSchema>,
   submit: boolean,
 ) {
   return await db.transaction(async (trx) => {

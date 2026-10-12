@@ -10,7 +10,7 @@ import {
 import { AngkatanSchema } from './angkatan.types';
 import { CategorySchema } from './category.types';
 import { CourseSchema } from './course.types';
-import { JWTPayloadSchema } from './login.types';
+import { AuthorSchema } from './author.types';
 import { MediaSchema } from './media.types';
 import { ReactionResponseSchema } from './reaction.types';
 import { UserGroupSchema } from './user.types';
@@ -46,7 +46,7 @@ export const InfoSchema = createSelectSchema(infos, {
     infoGroups: z.array(UserGroupSchema).optional(),
     comments: z.number(),
     reactions: ReactionResponseSchema,
-    creator: JWTPayloadSchema,
+    creator: AuthorSchema,
     isRead: z.boolean().optional(),
     canNotify: z.boolean().optional(),
     isForAngkatan: z.boolean().optional(),

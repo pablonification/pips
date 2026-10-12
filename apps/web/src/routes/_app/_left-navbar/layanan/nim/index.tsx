@@ -5,9 +5,9 @@ import { api } from '~/api/client';
 import SearchIcon from '~/assets/icons/textfield/search.svg';
 import HeaderTitle from '~/components/header-title';
 import { TextField } from '~/components/ui/textfield';
-import UserInfo from '~/components/user/user-info';
 import { DEBOUNCE_TIME } from '~/lib/constants';
 import { querySearchSchema } from '~/lib/search-params';
+import { NimResults } from './-components/nim-results';
 
 export const Route = createFileRoute('/_app/_left-navbar/layanan/nim/')({
   component: NimFinderPage,
@@ -56,28 +56,7 @@ function NimFinderPage() {
           {searchResult && `Menampilkan ${searchResult.length} hasil`}
         </p>
 
-        <ul className="flex w-full flex-col gap-3 overflow-auto pb-28 lg:pb-6">
-          {searchResult?.map((user) => (
-            <div className="flex w-full items-center justify-between rounded-lg bg-white p-3 lg:px-5">
-              <UserInfo
-                key={user.id}
-                name={user.fullName}
-                nameClassName="leading-tight text-body-md"
-                email={
-                  user.major === 'IF'
-                    ? 'Teknik Informatika'
-                    : 'Sistem dan Teknologi Informasi'
-                }
-                emailClassName="text-body-sm mt-1"
-                imageURL={user.picture}
-                avatarClassName="size-10"
-              />
-              <p className="self-end pl-1.5 text-xs text-muted-foreground lg:text-body-md">
-                {user.nim}
-              </p>
-            </div>
-          ))}
-        </ul>
+        <NimResults results={searchResult ?? []} />
       </main>
     </div>
   );

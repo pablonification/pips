@@ -199,13 +199,35 @@ export const readChatroomMessages = createRoute({
   tags: ['curhat'],
   method: 'post',
   path: '/curhat/chatroom/{chatroomId}/read',
-  description: 'Read all chatroom messages',
+  description:
+    'Marks every message in the room that the caller did not send as read. Needs access to the room; safe to repeat.',
   request: {
     params: ChatroomIdParamsSchema,
   },
   responses: {
     200: {
       description: 'Read chatroom messages success',
+      content: {
+        'application/json': {
+          schema: z.object({ message: z.string() }),
+        },
+      },
+    },
+    403: {
+      description: 'Not your room',
+      content: {
+        'application/json': {
+          schema: ErrorSchema,
+        },
+      },
+    },
+    404: {
+      description: 'No such room',
+      content: {
+        'application/json': {
+          schema: ErrorSchema,
+        },
+      },
     },
     400: {
       description: 'Bad request',
@@ -223,10 +245,8 @@ export const unreadCountChatroomMessages = createRoute({
   tags: ['curhat'],
   method: 'get',
   path: '/curhat/chatrooms/unread',
-  description: 'Get unread chatroom messages count',
-  request: {
-    params: ChatroomIdParamsSchema,
-  },
+  description:
+    'Unread messages per room: only rooms the caller may access (their own; every room for Welfare), only messages they did not send. Rooms with none are left out.',
   responses: {
     200: {
       description: 'Get unread chatroom messages count success',

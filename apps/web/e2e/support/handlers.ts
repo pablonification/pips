@@ -16,13 +16,20 @@ import type {
   InternshipService,
   MarkdownService,
   OpenGraphService,
+  ProgrammeWindowService,
   ReactionService,
   TestimoniService,
   UnsubscribeService,
   UserFinderService,
   UserProfileService,
 } from '../../src/api/generated';
-import { NOW } from '../fixtures/api';
+import {
+  NOW,
+  formSectionsVisibleFor,
+  formStatusFor,
+  isSpartaEligible,
+  spartaWindowFor,
+} from '../fixtures/api';
 import { reply, type Handler } from './mock';
 
 const PAGE = 10;
@@ -219,14 +226,41 @@ export const defaultHandlers: Record<string, Handler> = {
   ),
 
   // Services
+  // As the API answers (src/lib/nim-finder.ts): only name, NIM, programme and photo; the closest NIM matches
+  // first (exact, prefix, other), then names, A–Z within each; at most 30. Under 3 characters (trimmed) is a 400.
   'GET /api/user/nim': signedIn(({ db, query }) => {
     const search = query.get('search')?.trim() ?? '';
+    if (search.length < 3)
+      return reply.status(400, {
+        errors: {
+          formErrors: [],
+          fieldErrors: {
+            search: ['String must contain at least 3 character(s)'],
+          },
+        },
+      });
+    const rank = (nim: string) =>
+      nim === search
+        ? 0
+        : nim.startsWith(search)
+          ? 1
+          : nim.includes(search)
+            ? 2
+            : 3;
     return ok<R<UserFinderService['getUser']>>(
-      search.length < 3
-        ? []
-        : db.members.filter(
-            (m) => includes(m.fullName, search) || m.nim.includes(search),
-          ),
+      db.members
+        .filter((m) => includes(m.fullName, search) || m.nim.includes(search))
+        .sort(
+          (a, b) =>
+            rank(a.nim) - rank(b.nim) || a.fullName.localeCompare(b.fullName),
+        )
+        .slice(0, 30)
+        .map(({ fullName, nim, major, picture }) => ({
+          fullName,
+          nim,
+          major,
+          picture: picture ?? null,
+        })),
     );
   }),
   'GET /api/testimoni/course/:courseId': signedIn(({ db, params }) =>
@@ -270,13 +304,26 @@ export const defaultHandlers: Record<string, Handler> = {
   'GET /api/curhat/chatrooms': signedIn(({ db }) =>
     ok<R<CurhatService['getUserChatrooms']>>(db.chatrooms),
   ),
+  // As the API counts them: only your rooms, only messages you didn't send, without a read mark; rooms with none
+  // are left out.
   'GET /api/curhat/chatrooms/unread': signedIn(({ db }) =>
     ok<R<CurhatService['unreadCountChatroomMessages']>>(
-      Object.values(db.chatrooms).map((r) => ({
-        chatroomId: r.id,
-        unreadCount: r.id === 'r1' && r.messages?.[0]?.id === 'm4' ? 1 : 0,
-      })),
+      Object.values(db.chatrooms)
+        .map((r) => ({
+          chatroomId: r.id,
+          unreadCount: (r.messages ?? []).filter(
+            (m) => !m.isSender && !db.chatroomReads.includes(m.id),
+          ).length,
+        }))
+        .filter((r) => r.unreadCount > 0),
     ),
+  ),
+
+  // Programme windows: the API answers only the windows open now for this member, so `db.windows` holds just those.
+  'GET /api/programme-windows': signedIn(({ db }) =>
+    ok<R<ProgrammeWindowService['listProgrammeWindows']>>({
+      windows: db.windows,
+    }),
   ),
 
   // Forms
@@ -288,14 +335,23 @@ export const defaultHandlers: Record<string, Handler> = {
       ? ok<R<FormService['listAllForms']>>({ forms: db.adminForms })
       : reply.status(403),
   ),
-  'GET /api/form/:formId': signedIn(
-    ({ db, params }) =>
-      ok<R<FormService['getForm']> | undefined>(
-        Object.values(db.formDetails).find(
-          (f) => f.id === params.formId || f.slug === params.formId,
-        ),
-      ) ?? notFound('form'),
-  ),
+  // As the API answers: the member's status, and no questions until the form opens, even if switched off (kept once it closes).
+  'GET /api/form/:formId': signedIn(({ db, params }) => {
+    const form = Object.values(db.formDetails).find(
+      (f) => f.id === params.formId || f.slug === params.formId,
+    );
+    if (!form) return notFound('form');
+    const nim = db.me!.nim;
+    const status = formStatusFor(form, {
+      responded: !!db.myResponses[form.id],
+      nim,
+    });
+    return ok<R<FormService['getForm']>>({
+      ...form,
+      sections: formSectionsVisibleFor(form, nim) ? form.sections : null,
+      status,
+    });
+  }),
   'GET /api/form/:formId/my-response': signedIn(
     (
       { db, params }, // The API answers 200 with null when you haven't responded; its OpenAPI type omits the null (NOTES.md).
@@ -339,11 +395,18 @@ export const defaultHandlers: Record<string, Handler> = {
       departments: db.internshipDepartments,
     }),
   ),
-  'GET /api/internship/submission': signedIn(
-    ({ db }) =>
-      ok<R<InternshipService['getMyInternshipSubmission']> | undefined>(
-        db.internshipSubmissions.find((s) => s.userId === db.me!.id),
-      ) ?? notFound('submission'),
+  // As the API answers: 401 for a member SPARTA isn't for, 200 null when there's no submission yet.
+  'GET /api/internship/submission': signedIn(({ db }) =>
+    !isSpartaEligible(db.me!)
+      ? reply.status(401, {
+          error: 'You are not eligible to access SPARTA internship form',
+        })
+      : ok<R<InternshipService['getMyInternshipSubmission']> | null>(
+          db.internshipSubmissions.find((s) => s.userId === db.me!.id) ?? null,
+        ),
+  ),
+  'GET /api/internship/window': signedIn(({ db }) =>
+    ok<R<InternshipService['getInternshipWindow']>>(spartaWindowFor(db)),
   ),
   'GET /api/internship/submissions': signedIn(({ db, query }) => {
     const locked = query.get('locked');

@@ -1,28 +1,21 @@
 import { ServerType } from '@hono/node-server';
-import { verify } from 'hono/jwt';
+import * as Sentry from '@sentry/node';
 import { Server } from 'socket.io';
 import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
-import { JWT_ALG } from '~/lib/jwt';
 import { sendNotificationToAll } from '~/lib/push-manager';
 import {
-  getChatroomById,
+  getChatroomMessageById,
+  getChatroomOwner,
   getChatroomParticipantIds,
+  getOwnedChatroomIds,
   saveMessage,
 } from '~/repositories/chatroom.repo';
 import { getPushSubscriptionsByUserIds } from '~/repositories/push.repo';
 import { getUserRoles } from '~/repositories/user-role.repo';
+import { createConnectionHandler, formAdminRoom } from './connection';
 
-interface Message {
-  chatroomId: string;
-  message: string;
-  userId: string;
-  replyId: string;
-}
-
-export function formAdminRoom(formId: string) {
-  return `form-admin:${formId}`;
-}
+export { formAdminRoom };
 
 let ioInstance: Server | undefined;
 
@@ -47,85 +40,47 @@ export default function setupWebsocket(httpServer: ServerType) {
   });
   ioInstance = io;
 
-  io.on('connection', async (socket) => {
-    const chatroomId = socket.handshake.auth.chatroomId as string | undefined;
-    if (chatroomId) {
-      await socket.join(chatroomId);
-    }
-
-    const formAdminId = socket.handshake.auth.formAdminId as string | undefined;
-    if (formAdminId) {
-      // Live counting rooms expose NIM + name of everyone who has submitted
-      // a form response — unlike chat rooms, membership here must be
-      // verified against the 'admin' role before joining, not just trusted
-      // based on client-supplied ids. The auth cookie is httpOnly, so the FE
-      // can't read the JWT to send it explicitly — it rides along on the
-      // handshake request instead (client connects with withCredentials).
-      const token = extractTokenFromCookie(socket.handshake.headers.cookie);
-      const isAdmin = await isSocketAdmin(token);
-      if (isAdmin) {
-        await socket.join(formAdminRoom(formAdminId));
-      }
-    }
-
-    socket.on('message', async (msg: Message) => {
-      const [savedMessage] = await saveMessage(
-        db,
-        msg.userId,
-        msg.chatroomId,
-        msg.message,
-        msg.replyId,
-      );
-
-      sendNotification(msg).then(
-        () => {},
-        () => {},
-      );
-
-      socket.to(msg.chatroomId).emit('reply', {
-        ...savedMessage,
-        userId: undefined,
-        isSender: false,
-      });
-    });
-  });
-}
-
-function extractTokenFromCookie(
-  cookieHeader: string | undefined,
-): string | undefined {
-  if (!cookieHeader) return undefined;
-  const prefix = 'hmif-app.access-cookie=';
-  const raw = cookieHeader
-    .split(';')
-    .map((c) => c.trim())
-    .find((c) => c.startsWith(prefix));
-  if (!raw) return undefined;
-  return decodeURIComponent(raw.slice(prefix.length));
-}
-
-async function isSocketAdmin(token: unknown): Promise<boolean> {
-  if (typeof token !== 'string' || !token) return false;
-
-  try {
-    const payload = await verify(token, env.JWT_SECRET, JWT_ALG);
-    const userId = payload.id as string | undefined;
-    if (!userId) return false;
-
-    const roles = await getUserRoles(db, userId);
-    return roles.includes('admin');
-  } catch {
-    return false;
-  }
+  io.on(
+    'connection',
+    createConnectionHandler({
+      jwtSecret: env.JWT_SECRET,
+      getUserRoles: async (userId) => await getUserRoles(db, userId),
+      onError: (error) => Sentry.captureException(error),
+      curhat: {
+        getChatroom: async (chatroomId) =>
+          await getChatroomOwner(db, chatroomId),
+        getOwnedChatroomIds: async (userId) =>
+          await getOwnedChatroomIds(db, userId),
+        getMessage: async (messageId) =>
+          await getChatroomMessageById(db, messageId),
+        saveMessage: async ({ userId, chatroomId, content, replyId }) => {
+          const [saved] = await saveMessage(
+            db,
+            userId,
+            chatroomId,
+            content,
+            replyId,
+          );
+          return saved;
+        },
+        notifyParticipants: sendNotification,
+        onError: (error) => Sentry.captureException(error),
+      },
+    }),
+  );
 }
 
 /**
  * Send notification to all participants in a chatroom except the sender.
  */
-async function sendNotification(msg: Message) {
+async function sendNotification(msg: {
+  chatroomId: string;
+  senderId: string;
+  content: string;
+}) {
   const participantIds = (
     await getChatroomParticipantIds(db, msg.chatroomId)
-  ).filter((ids) => ids !== msg.userId);
+  ).filter((ids) => ids !== msg.senderId);
 
   const pushSubscriptions = await getPushSubscriptionsByUserIds(
     db,
@@ -135,7 +90,7 @@ async function sendNotification(msg: Message) {
   await sendNotificationToAll(pushSubscriptions, {
     title: 'New Curhat Message',
     options: {
-      body: msg.message,
+      body: msg.content,
       data: {
         url: '/home/curhat',
       },

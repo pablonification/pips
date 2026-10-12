@@ -7,7 +7,7 @@ import {
   chatroomMessages,
   chatrooms,
 } from '~/db/schema';
-import { z } from 'zod';
+import { z } from '@hono/zod-openapi';
 
 export const ChatroomMessageSchema = createSelectSchema(chatroomMessages)
   .omit({
@@ -77,3 +77,68 @@ export const PinChatroomBodySchema = z.object({
 export type TChatroom = Chatroom & {
   messages: ChatroomMessage[];
 };
+
+// --- Chat socket contract (`websocket/curhat.ts`). The web client relies on these shapes. ---
+
+/** `message`: what a client sends. Any `userId` is ignored: the sender is the signed-in member. */
+export const CurhatMessagePayloadSchema = z
+  .object({
+    chatroomId: z.string().min(1),
+    message: z.string(),
+    replyId: z.string().min(1).nullish(),
+  })
+  .openapi('CurhatMessagePayload');
+
+/** `curhat:join`: join a room created after connecting. */
+export const CurhatJoinPayloadSchema = z
+  .object({
+    chatroomId: z.string().min(1),
+  })
+  .openapi('CurhatJoinPayload');
+
+/**
+ * Why the server refused: `unauthorized` (no valid session), `forbidden` (not your room, or no such room),
+ * `invalid` (empty text, a reply to a message outside the room, a malformed payload), `server` (saving failed).
+ */
+export const CurhatSocketErrorSchema = z
+  .enum(['unauthorized', 'forbidden', 'invalid', 'server'])
+  .openapi('CurhatSocketError');
+
+/** A message on the socket, as JSON carries it (`createdAt` an ISO string); never the sender's id. */
+const CurhatQuotedMessageSchema = z.object({
+  id: z.string(),
+  chatroomId: z.string(),
+  replyId: z.string().nullable(),
+  content: z.string(),
+  createdAt: z.string().datetime(),
+});
+
+export const CurhatSocketMessageSchema = CurhatQuotedMessageSchema.extend({
+  isSender: z.boolean(),
+  reply: CurhatQuotedMessageSchema.optional(),
+}).openapi('CurhatSocketMessage');
+
+/** The acknowledgement of `message`: the saved message as its sender sees it, or why it wasn't saved. */
+export const CurhatMessageAckSchema = z
+  .discriminatedUnion('ok', [
+    z.object({ ok: z.literal(true), message: CurhatSocketMessageSchema }),
+    z.object({ ok: z.literal(false), error: CurhatSocketErrorSchema }),
+  ])
+  .openapi('CurhatMessageAck');
+
+/** The acknowledgement of `curhat:join`. */
+export const CurhatJoinAckSchema = z
+  .discriminatedUnion('ok', [
+    z.object({ ok: z.literal(true) }),
+    z.object({ ok: z.literal(false), error: CurhatSocketErrorSchema }),
+  ])
+  .openapi('CurhatJoinAck');
+
+/** `reply`: a message someone else in the room just sent, as the receiver sees it (never the sender's id). */
+export const CurhatReplyEventSchema = CurhatSocketMessageSchema.omit({
+  reply: true,
+}).openapi('CurhatReplyEvent');
+
+export type CurhatSocketError = z.infer<typeof CurhatSocketErrorSchema>;
+export type CurhatMessageAck = z.infer<typeof CurhatMessageAckSchema>;
+export type CurhatJoinAck = z.infer<typeof CurhatJoinAckSchema>;

@@ -127,11 +127,15 @@ test('every entry has a description, an owner, an icon key and lower-case synony
   }
 });
 
-test('Magang SPARTA is hidden after its deadline (23 Agustus 2026, 23.59 WIB), as the prototype hides it', () => {
+test('Magang SPARTA is hidden from its deadline (23 Agustus 2026, 23.59 WIB), as the prototype hides it', () => {
   const sparta = all.find((s) => s.id === 'sparta')!;
   assert.equal(
-    isServiceActive(sparta, new Date('2026-08-23T23:59:00+07:00')),
+    isServiceActive(sparta, new Date('2026-08-23T23:58:59+07:00')),
     true,
+  );
+  assert.equal(
+    isServiceActive(sparta, new Date('2026-08-23T23:59:00+07:00')),
+    false,
   );
   assert.equal(
     isServiceActive(sparta, new Date('2026-08-24T00:00:00+07:00')),
@@ -193,4 +197,16 @@ test('search matches names, descriptions and synonyms, ignoring case', () => {
     searchServices('rekap', raka, NOW).map((s) => s.id),
     ['live'],
   );
+});
+
+// Regression (P0-D review minor 6): the registry hid SPARTA at 23.59.59, 59 seconds after the server closed it.
+test("SPARTA's registry deadline is the server's closing time", () => {
+  const sparta = all.find((s) => s.id === 'sparta')!;
+  const server = fs.readFileSync(
+    path.resolve(import.meta.dirname, '../../api/src/lib/sparta-window.ts'),
+    'utf8',
+  );
+  const closesAt = /closesAt: new Date\('([^']+)'\)/.exec(server)?.[1];
+  assert.ok(closesAt, 'SPARTA_WINDOW.closesAt in sparta-window.ts');
+  assert.equal(Date.parse(sparta.validUntil!), Date.parse(closesAt));
 });

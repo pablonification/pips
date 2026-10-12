@@ -1,21 +1,34 @@
 import postgres from 'postgres';
-import { db } from '~/db/drizzle';
+import { toNimFinderResult } from '~/lib/nim-finder';
 import { getUserByNimOrName } from '~/repositories/user-finder.repo';
 import { getUserRoute } from '~/routes/user-finder.route';
+import { withDb, type WithoutDb } from './deps';
 import { createAuthRouter } from './router-factory';
 
-export const userFinderRouter = createAuthRouter();
+export interface UserFinderDeps {
+  getUserByNimOrName: WithoutDb<typeof getUserByNimOrName>;
+}
 
-userFinderRouter.openapi(getUserRoute, async (c) => {
-  const q = c.req.valid('query');
+export function createUserFinderRouter(
+  deps: UserFinderDeps = { getUserByNimOrName: withDb(getUserByNimOrName) },
+) {
+  const userFinderRouter = createAuthRouter();
 
-  try {
-    const users = await getUserByNimOrName(db, q);
-    return c.json(users, 200);
-  } catch (error) {
-    if (error instanceof postgres.PostgresError) {
-      return c.json({ error: error.message }, 400);
+  userFinderRouter.openapi(getUserRoute, async (c) => {
+    const q = c.req.valid('query');
+
+    try {
+      const users = await deps.getUserByNimOrName(q);
+      return c.json(users.map(toNimFinderResult), 200);
+    } catch (error) {
+      if (error instanceof postgres.PostgresError) {
+        return c.json({ error: error.message }, 400);
+      }
+      throw error;
     }
-    throw error;
-  }
-});
+  });
+
+  return userFinderRouter;
+}
+
+export const userFinderRouter = createUserFinderRouter();

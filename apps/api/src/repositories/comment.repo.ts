@@ -10,24 +10,33 @@ import {
   CommentUpdateBodySchema,
 } from '~/types/comment.types';
 import { getCommentsReactions } from './reaction.repo';
+import { AUTHOR_COLUMNS, AUTHOR_SELECT } from '~/lib/author';
 
-export async function getCommentList(
+/** A post's comments with their authors, cut to `AUTHOR_SELECT`. */
+export function commentListQuery(
   db: Database,
   q: z.infer<typeof CommentListQuerySchema>,
-  userId: string,
 ) {
   const infoIdQ = q.infoId ? eq(comments.repliedInfoId, q.infoId) : undefined;
   const sortQ =
     q.sort === 'oldest' ? asc(comments.createdAt) : desc(comments.createdAt);
   const where = and(infoIdQ);
 
-  const result = await db
-    .select({ ...getTableColumns(comments), creator: users })
+  return db
+    .select({ ...getTableColumns(comments), creator: AUTHOR_SELECT })
     .from(comments)
     .where(where)
     .innerJoin(users, eq(users.id, comments.creatorId))
     .orderBy(sortQ)
     .groupBy(comments.id, users.id);
+}
+
+export async function getCommentList(
+  db: Database,
+  q: z.infer<typeof CommentListQuerySchema>,
+  userId: string,
+) {
+  const result = await commentListQuery(db, q);
 
   const reactions = await getCommentsReactions(
     db,
@@ -47,7 +56,7 @@ export async function getCommentById(
   return await db.query.comments.findFirst({
     where: eq(comments.id, q.commentId),
     with: {
-      creator: true,
+      creator: { columns: AUTHOR_COLUMNS },
     },
   });
 }

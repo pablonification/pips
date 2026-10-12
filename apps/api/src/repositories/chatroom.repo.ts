@@ -1,4 +1,4 @@
-import { eq, InferInsertModel, not, sql, inArray, and } from 'drizzle-orm';
+import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import { Database } from '~/db/drizzle';
 import {
   chatroomMessageReads,
@@ -8,8 +8,10 @@ import {
   Chatroom,
   ChatroomMessage,
   UserPinnedChatrooms,
+  users,
 } from '~/db/schema';
 import { TChatroom } from '~/types/curhat.types';
+import { canCreateChatroom } from '~/lib/curhat';
 import { getUsersByRole } from './user-role.repo';
 
 type ChatroomWithMessages = Chatroom & {
@@ -79,21 +81,12 @@ export async function getWelfareChatrooms(db: Database, userId: string) {
   return processChatrooms(crms, pinned);
 }
 
-export async function createChatroom(
-  db: Database,
-  data: InferInsertModel<typeof chatrooms>,
-) {
-  return await db.transaction(async (tx) => {
-    return await tx.insert(chatrooms).values(data).returning();
-  });
-}
-
 export async function saveMessage(
   db: Database,
   userId: string,
   chatroomId: string,
   message: string,
-  replyId: string,
+  replyId: string | null,
 ) {
   return await db.transaction(async (tx) => {
     return await tx
@@ -117,29 +110,122 @@ export async function getChatroomById(db: Database, chatroomId: string) {
   });
 }
 
+/** A room's id and owner: what the access check needs, without its messages. */
+export async function getChatroomOwner(db: Database, chatroomId: string) {
+  return await db.query.chatrooms.findFirst({
+    columns: { id: true, userId: true },
+    where: eq(chatrooms.id, chatroomId),
+  });
+}
+
+export async function getOwnedChatroomIds(db: Database, userId: string) {
+  const rows = await db
+    .select({ id: chatrooms.id })
+    .from(chatrooms)
+    .where(eq(chatrooms.userId, userId));
+  return rows.map((r) => r.id);
+}
+
+/**
+ * Locks the member's row until the transaction ends, so two room creates for the same member run one after the
+ * other: the second waits, then counts the first one's room.
+ */
+export function lockMemberQuery(userId: string) {
+  return sql`select ${users.id} from ${users} where ${users.id} = ${userId} for update`;
+}
+
+/**
+ * Creates a room for `data.userId` unless they already have the most rooms allowed; answers `null` then. The
+ * count and the insert run in one transaction behind a lock on the member's row, so parallel requests can't all
+ * see the same count and slip past the limit (C4).
+ */
+export async function createChatroomWithinLimit(
+  db: Database,
+  data: { title: string; userId: string },
+) {
+  return await db.transaction(async (tx) => {
+    await tx.execute(lockMemberQuery(data.userId));
+    const [row] = await tx
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(chatrooms)
+      .where(eq(chatrooms.userId, data.userId));
+    if (!canCreateChatroom(Number(row?.count ?? 0))) return null;
+    const [room] = await tx.insert(chatrooms).values(data).returning();
+    return room;
+  });
+}
+
+export async function getChatroomMessageById(db: Database, messageId: string) {
+  return await db.query.chatroomMessages.findFirst({
+    where: eq(chatroomMessages.id, messageId),
+  });
+}
+
 export async function deleteChatroom(db: Database, chatroomId: string) {
   return await db.transaction(async (tx) => {
     return await tx.delete(chatrooms).where(eq(chatrooms.id, chatroomId));
   });
 }
 
-export async function getUnreadCountChatroomMessages(
+/**
+ * Unread messages per room for `userId`, counted in one statement: the member's own rooms (every room when
+ * `everyRoom`, for Welfare), only messages they didn't send, and only those without their read mark. Rooms with
+ * nothing unread are left out. The same rule as `countUnread` in `src/lib/curhat.ts`.
+ */
+export function unreadCountsQuery(
   db: Database,
   userId: string,
+  everyRoom: boolean,
 ) {
-  const readMessageIdsSubquery = db
-    .select({ chatroomMessageId: chatroomMessageReads.chatroomMessageId })
-    .from(chatroomMessageReads)
-    .where(eq(chatroomMessageReads.userId, userId));
-
-  return await db
+  return db
     .select({
       chatroomId: chatroomMessages.chatroomId,
-      unreadCount: sql<number>`COUNT(${chatroomMessages.id})`,
+      unreadCount: sql<number>`cast(count(*) as int)`,
     })
     .from(chatroomMessages)
-    .where(not(inArray(chatroomMessages.id, readMessageIdsSubquery)))
+    .innerJoin(chatrooms, eq(chatrooms.id, chatroomMessages.chatroomId))
+    .leftJoin(
+      chatroomMessageReads,
+      and(
+        eq(chatroomMessageReads.chatroomMessageId, chatroomMessages.id),
+        eq(chatroomMessageReads.userId, userId),
+      ),
+    )
+    .where(
+      and(
+        everyRoom ? undefined : eq(chatrooms.userId, userId),
+        ne(chatroomMessages.userId, userId),
+        isNull(chatroomMessageReads.userId),
+      ),
+    )
     .groupBy(chatroomMessages.chatroomId);
+}
+
+export async function getUnreadCounts(
+  db: Database,
+  userId: string,
+  everyRoom: boolean,
+) {
+  return await unreadCountsQuery(db, userId, everyRoom);
+}
+
+/**
+ * Marks every message in the room that `userId` didn't send as read by them. Safe to repeat: a message already
+ * marked is left alone (`on conflict do nothing` on the (user, message) key).
+ */
+export function markChatroomReadQuery(chatroomId: string, userId: string) {
+  return sql`insert into ${chatroomMessageReads} (user_id, chatroom_message_id)
+    select ${userId}, ${chatroomMessages.id} from ${chatroomMessages}
+    where ${chatroomMessages.chatroomId} = ${chatroomId} and ${chatroomMessages.userId} <> ${userId}
+    on conflict do nothing`;
+}
+
+export async function markChatroomRead(
+  db: Database,
+  chatroomId: string,
+  userId: string,
+) {
+  await db.execute(markChatroomReadQuery(chatroomId, userId));
 }
 
 export async function pinChatroom(

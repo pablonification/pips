@@ -24,7 +24,9 @@ fixtures follow the API, as listed here.
 - **Roles:** Raka has `welfarenakademik`, `akademik`, `de` and `admin`, as in the prototype. Groups come back as
   `{ role, group }` with the display names from `roles-group.ts`.
 - **NIM Finder members** that the prototype gives only a name, NIM and programme get the same defaults (campus
-  Ganesha, gender F, angkatan from the NIM).
+  Ganesha, gender F, angkatan from the NIM). `GET /api/user/nim` answers only `fullName`, `nim`, `major` and
+  `picture`, closest NIM matches first and then names A–Z, at most 30, and 400 under 3 characters, as the API does
+  since P0-D.
 
 ## Angkatan
 
@@ -44,6 +46,8 @@ fixtures follow the API, as listed here.
   doesn't get p5 (for the akademik group); Raka doesn't get p3 (for angkatan 2025).
 - **Reactions** become `ReactionAggregate` (`reactionsCount` in the prototype's reaction order).
 - **Comment ids** are `<post>-c<n>`.
+- **Authors** (since P0-D round 2, as the API): a post's or comment's `creator` is `authorOf(user)`, only `id`,
+  `fullName`, `picture` and `email`, never the whole user record.
 
 ## Calendar
 
@@ -73,8 +77,15 @@ fixtures follow the API, as listed here.
 ## Curhat Yuk!
 
 - Rooms come back as the API's map keyed by room id, messages newest first with `isSender`, and `reply` filled
-  for replies (m4 replies to m3). The API has no per-message unread flag; `GET /api/curhat/chatrooms/unread`
-  reports one unread message in r1 (m4), as the prototype marks it.
+  for replies (m4 replies to m3). No `userId` anywhere, as the API now sends them (P0-D).
+- `db.chatroomReads` holds the read marks: every Welfare message except m4 (the prototype's unread one).
+  `GET /api/curhat/chatrooms/unread` counts as the API does: your rooms only, messages you didn't send, without a
+  read mark, and rooms with none left out. So Nadia gets `[{ chatroomId: 'r1', unreadCount: 1 }]`.
+- Writes (opt in): `writes.createRoom` (400 at three rooms), `writes.readRoom` (marks the room read, so the count
+  goes), `writes.deleteRoom`.
+- The fake socket answers acknowledgements as the API does (see `support/socketio.ts`): a `message` in your room
+  is saved into `db.chatrooms` and acknowledged `{ ok: true, message }`; `api.socket.answer()` changes or withholds
+  the answer for the delivery states.
 
 ## Forms
 
@@ -86,6 +97,10 @@ fixtures follow the API, as listed here.
   its OpenAPI type (`FormResponse`) leaves the null out. The default handler follows the API.
 - **Status** comes from the clock: the form opened Sabtu, 12 September 2026, 13.00 WIB, so it is `open` for
   Nadia. Raka (angkatan 2024) gets no forms.
+- Since P0-D, as the API: `closesAt: null` (set it to close the form), `sectionCount` on list items, `status` on
+  `GET /api/form/:id` (`formStatusFor`: already responded, closed, not opened except early access, open), no
+  `sections` until the form opens, even if switched off (kept once it closes), and `prefill` on q1
+  (`fullName`) and q2 (`nim`), as the seed marks them. `writes.submitForm` answers 403 for a closed or switched-off form, or one not open yet.
 
 ## Admin
 
@@ -94,7 +109,18 @@ fixtures follow the API, as listed here.
   prototype's numbers.
 - **SPARTA Magang** isn't in the prototype's data at all. The fixtures invent two departments, three divisions
   and three submissions (Bima, Tasya, Nadia), enough for the admin table and the detail page.
+- **SPARTA for members** (since P0-D, as the API): `GET /api/internship/window` answers SPARTA's window
+  (`db.spartaWindow`: closed since Minggu, 23 Agustus 2026, 23.59 WIB) and `eligible` (angkatan 2025 or the three
+  listed NIMs: Nadia yes, Raka no). `GET /api/internship/submission` is `200 null` without a submission and 401
+  for a member SPARTA isn't for. `writes.saveSpartaDraft` (partial drafts) and `writes.submitSparta` (everything,
+  then locked) answer 403 while the window is closed: open it with `db.spartaWindow`.
 
 ## Credits
 
 - The prototype has no credits text; the fixture uses one sample line.
+
+## Programme windows
+
+- `GET /api/programme-windows` answers `{ windows: db.windows }`, empty by default: nothing is open, and SPARTA's
+  next dates aren't known. The API filters by the clock and eligibility itself, so a test puts only the windows
+  that should show into `db.windows`.

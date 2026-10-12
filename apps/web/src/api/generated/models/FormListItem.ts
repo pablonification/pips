@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { FormStatus } from './FormStatus';
 export type FormListItem = {
   id: string;
   slug: string;
@@ -9,9 +10,11 @@ export type FormListItem = {
   description: string | null;
   eligibleAngkatan: Array<number>;
   opensAt: string;
+  closesAt: string | null;
   isActive: boolean;
   order: number;
   createdAt: string;
-  status: 'not_opened' | 'open' | 'already_responded';
+  status: FormStatus;
+  sectionCount: number;
 };
 

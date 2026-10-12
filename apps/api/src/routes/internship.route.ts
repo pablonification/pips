@@ -2,10 +2,12 @@ import { createRoute, z } from '@hono/zod-openapi';
 import {
   CreateInternshipDepartmentSchema,
   CreateInternshipDivisionSchema,
+  DraftInternshipSubmissionSchema,
   InternshipDepartmentSchema,
   InternshipDivisionSchema,
   InternshipIdParamSchema,
   InternshipSubmissionSchema,
+  InternshipWindowSchema,
   ListInternshipSubmissionsQuerySchema,
   ListInternshipSubmissionsSchema,
   UpdateInternshipDepartmentSchema,
@@ -181,6 +183,22 @@ export const deleteInternshipDivisionRoute = createRoute({
   },
 });
 
+export const getInternshipWindowRoute = createRoute({
+  operationId: 'getInternshipWindow',
+  tags: ['internship'],
+  method: 'get',
+  path: '/internship/window',
+  description:
+    "SPARTA's window on the server's clock, and whether the signed-in member may take part. Open to every member.",
+  responses: {
+    200: {
+      description: "SPARTA's window for you",
+      content: { 'application/json': { schema: InternshipWindowSchema } },
+    },
+    401: errorResponse,
+  },
+});
+
 export const getMyInternshipSubmissionRoute = createRoute({
   operationId: 'getMyInternshipSubmission',
   tags: ['internship'],
@@ -207,13 +225,14 @@ export const upsertMyInternshipSubmissionRoute = createRoute({
   request: {
     body: {
       content: {
-        'application/json': { schema: UpsertInternshipSubmissionSchema },
+        'application/json': { schema: DraftInternshipSubmissionSchema },
       },
     },
   },
   responses: {
     200: {
-      description: 'Saved submission draft',
+      description:
+        'Saved submission draft. Kelas and ID Line may be empty and up to 4 choices; /submit checks it all.',
       content: {
         'application/json': { schema: InternshipSubmissionSchema },
       },
@@ -227,6 +246,10 @@ export const upsertMyInternshipSubmissionRoute = createRoute({
       },
     },
     401: errorResponse,
+    403: {
+      description: "Outside SPARTA's window (src/lib/sparta-window.ts)",
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
     409: {
       description: 'Submission already locked/finalized',
       content: { 'application/json': { schema: ErrorSchema } },
@@ -262,6 +285,10 @@ export const submitMyInternshipSubmissionRoute = createRoute({
       },
     },
     401: errorResponse,
+    403: {
+      description: "Outside SPARTA's window (src/lib/sparta-window.ts)",
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
     409: {
       description: 'Submission already locked/finalized',
       content: { 'application/json': { schema: ErrorSchema } },

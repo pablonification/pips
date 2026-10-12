@@ -18,6 +18,7 @@ import { InternshipService } from './services/InternshipService';
 import { MarkdownService } from './services/MarkdownService';
 import { MediaService } from './services/MediaService';
 import { OpenGraphService } from './services/OpenGraphService';
+import { ProgrammeWindowService } from './services/ProgrammeWindowService';
 import { PushService } from './services/PushService';
 import { ReactionService } from './services/ReactionService';
 import { RecommendationService } from './services/RecommendationService';
@@ -40,6 +41,7 @@ export class ApiClient {
   public readonly markdown: MarkdownService;
   public readonly media: MediaService;
   public readonly openGraph: OpenGraphService;
+  public readonly programmeWindow: ProgrammeWindowService;
   public readonly push: PushService;
   public readonly reaction: ReactionService;
   public readonly recommendation: RecommendationService;
@@ -73,6 +75,7 @@ export class ApiClient {
     this.markdown = new MarkdownService(this.request);
     this.media = new MediaService(this.request);
     this.openGraph = new OpenGraphService(this.request);
+    this.programmeWindow = new ProgrammeWindowService(this.request);
     this.push = new PushService(this.request);
     this.reaction = new ReactionService(this.request);
     this.recommendation = new RecommendationService(this.request);
