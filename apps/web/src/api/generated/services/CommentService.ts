@@ -83,6 +83,7 @@ export class CommentService {
       },
       errors: {
         400: `Bad request`,
+        403: `Only the author or a moderator can delete this comment`,
         404: `Error`,
       },
     });
@@ -113,6 +114,7 @@ export class CommentService {
       mediaType: 'application/json',
       errors: {
         400: `Bad request`,
+        403: `Only the author can edit this comment`,
         404: `Comment not found`,
       },
     });
