@@ -12,6 +12,7 @@ import {
 } from '../src/lib/shell/palette';
 import {
   activeItem,
+  deskCrumbs,
   DESTINATION_PATH,
   fillPath,
   isRootPage,
@@ -61,7 +62,10 @@ test('every parent is a route of its own, and following parents always reaches a
 test('titles: members’ service names and the prototype’s page names', () => {
   assert.equal(titleOf('/layanan/dingdong'), 'Ding Dong');
   assert.equal(titleOf('/layanan/curhat'), 'Curhat Yuk!');
-  assert.equal(titleOf('/kelola/live'), 'Live Counting & Rekap Form');
+  // The prototype's titleOf and the locked desk-pengurus-live screen ("Kelola › Live Counting"); the page's own
+  // heading is the long service name.
+  assert.equal(titleOf('/kelola/live'), 'Live Counting');
+  assert.equal(titleOf('/kelola/live/$formId'), 'Live Counting');
   assert.equal(titleOf('/pengumuman/tulis'), 'Buat pengumuman');
   assert.equal(titleOf('/profil/matkul'), 'Mata kuliahku');
   assert.equal(titleOf('/profil/matkul/tambah'), 'Tambah mata kuliah');
@@ -153,6 +157,16 @@ test('the desktop breadcrumbs start at the sidebar item and end at the page', ()
     '/profil',
   ] as const)
     assert.equal(trailOf(p).length, 1, p);
+});
+
+test('a split page shows no breadcrumbs on desktop: the post beside the feed (the prototype’s openPost)', () => {
+  // Review M3: "Pengumuman › Pengumuman" over the post.
+  assert.deepEqual(deskCrumbs('/pengumuman/$id', { id: 'p1' }), []);
+  assert.deepEqual(
+    deskCrumbs('/layanan/dingdong').map((c) => c.href),
+    ['/layanan', '/layanan/dingdong'],
+  );
+  assert.deepEqual(deskCrumbs('/layanan'), []);
 });
 
 test('a router match’s path maps to the table, trailing slash or not', () => {

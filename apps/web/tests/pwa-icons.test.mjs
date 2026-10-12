@@ -71,3 +71,110 @@ test('every icon is square, ink at the edges, with the logo whole in the middle'
     }
   }
 });
+
+/*
+ * Review m4: the checks above would pass a recoloured, redrawn or filtered logo of the same shape. This one scales
+ * the official public/logo/hmif.png as scripts/icons/build-icons.py does (Pillow's LANCZOS, premultiplied alpha, the
+ * share of the side, centred on ink) and compares it with the icon pixel by pixel. Only rounding differs.
+ */
+const SHARES = {
+  'android-chrome-192x192.png': 0.7,
+  'android-chrome-384x384.png': 0.7,
+  'android-chrome-512x512.png': 0.7,
+  'android-chrome-maskable-192x192.png': 0.56,
+  'android-chrome-maskable-512x512.png': 0.56,
+  'apple-touch-icon.png': 0.7,
+  'mstile-150x150.png': 0.7,
+  'push-icon-192x192.png': 0.7,
+  'push-badge-96x96.png': 0.86,
+};
+
+const sinc = (x) => (x === 0 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x));
+const lanczos = (x) => (Math.abs(x) < 3 ? sinc(x) * sinc(x / 3) : 0);
+
+/** Pillow's resampling weights (libImaging/Resample.c, precompute_coeffs) for `from` → `to` pixels. */
+function weights(from, to) {
+  const scale = from / to;
+  const filterscale = Math.max(scale, 1);
+  const support = 3 * filterscale;
+  return Array.from({ length: to }, (_, i) => {
+    const center = (i + 0.5) * scale;
+    const min = Math.max(Math.trunc(center - support + 0.5), 0);
+    const max = Math.min(Math.trunc(center + support + 0.5), from);
+    const k = [];
+    for (let x = min; x < max; x++) k.push(lanczos((x - center + 0.5) / filterscale));
+    const sum = k.reduce((a, b) => a + b, 0);
+    return { min, k: k.map((w) => w / sum) };
+  });
+}
+
+/** The logo resized to width × height (premultiplied, as Pillow does for RGBA), over ink: RGB floats. */
+function logoOnInk(logo, width, height) {
+  const pre = new Float64Array(logo.width * logo.height * 4);
+  for (let i = 0; i < logo.width * logo.height; i++) {
+    const a = logo.data[i * 4 + 3] / 255;
+    for (let c = 0; c < 3; c++) pre[i * 4 + c] = logo.data[i * 4 + c] * a;
+    pre[i * 4 + 3] = logo.data[i * 4 + 3];
+  }
+  const wx = weights(logo.width, width);
+  const wy = weights(logo.height, height);
+  const rows = new Float64Array(width * logo.height * 4);
+  for (let y = 0; y < logo.height; y++)
+    for (let x = 0; x < width; x++)
+      for (let c = 0; c < 4; c++) {
+        let v = 0;
+        wx[x].k.forEach((w, j) => (v += w * pre[(y * logo.width + wx[x].min + j) * 4 + c]));
+        rows[(y * width + x) * 4 + c] = v;
+      }
+  const out = new Float64Array(width * height * 3);
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) {
+      const px = [0, 0, 0, 0];
+      for (let c = 0; c < 4; c++) wy[y].k.forEach((w, j) => (px[c] += w * rows[((wy[y].min + j) * width + x) * 4 + c]));
+      const a = Math.min(1, Math.max(0, px[3] / 255));
+      for (let c = 0; c < 3; c++) out[(y * width + x) * 3 + c] = Math.min(255, Math.max(0, px[c])) + (1 - a) * INK[c];
+    }
+  return out;
+}
+
+/** Mean absolute difference (0–255) between the icon's centre and the official logo placed as the script does. */
+function logoDifference(icon, logo, share) {
+  const size = icon.width;
+  const width = Math.max(1, Math.round(size * share));
+  const height = Math.max(1, Math.round((width * logo.height) / logo.width));
+  const left = Math.floor((size - width) / 2);
+  const top = Math.floor((size - height) / 2);
+  const want = logoOnInk(logo, width, height);
+  let sum = 0;
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++)
+      for (let c = 0; c < 3; c++)
+        sum += Math.abs(icon.data[((top + y) * size + left + x) * 4 + c] - want[(y * width + x) * 3 + c]);
+  return sum / (width * height * 3);
+}
+
+test('every icon shows the official logo itself, unaltered: the same pixels as public/logo/hmif.png scaled', () => {
+  const logo = png('logo/hmif.png');
+  for (const [f, share] of Object.entries(SHARES)) {
+    const diff = logoDifference(png(f), logo, share);
+    assert.ok(diff < 1.5, `${f}: differs from the official logo by ${diff.toFixed(2)} on average`);
+  }
+});
+
+test('the comparison catches a recoloured or redrawn logo', () => {
+  const logo = png('logo/hmif.png');
+  const icon = png('android-chrome-512x512.png');
+  const recoloured = { ...icon, data: Buffer.from(icon.data) };
+  // Gold turned to green: swap red and green wherever the logo is.
+  for (let i = 0; i < recoloured.data.length; i += 4) {
+    const [r, g] = [recoloured.data[i], recoloured.data[i + 1]];
+    recoloured.data[i] = g;
+    recoloured.data[i + 1] = r;
+  }
+  assert.ok(logoDifference(recoloured, logo, 0.7) >= 1.5);
+  const mirrored = { ...icon, data: Buffer.from(icon.data) };
+  for (let y = 0; y < 512; y++)
+    for (let x = 0; x < 512; x++)
+      for (let c = 0; c < 4; c++) mirrored.data[(y * 512 + x) * 4 + c] = icon.data[(y * 512 + 511 - x) * 4 + c];
+  assert.ok(logoDifference(mirrored, logo, 0.7) >= 1.5);
+});

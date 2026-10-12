@@ -347,6 +347,27 @@ test.describe('Beranda’s gold header', () => {
     );
   });
 
+  test('on tablets the gold bar and the greeting keep the locked screens’ edges beside the rail @phone-only', async ({
+    page,
+  }, testInfo) => {
+    // Review M1: they were pulled into the 720 px column (31 px from the rail at 834 px, 115 px at 1000 px).
+    test.skip(layoutOf(testInfo) !== 'tablet', 'the rail is the tablet layout');
+    for (const width of [834, 1000]) {
+      await page.setViewportSize({ width, height: 1112 });
+      await page.goto('/');
+      await expect(greeting(page)).toBeVisible();
+      const rail = (await page.locator('.g-tabbar').boundingBox())!;
+      const edge = rail.x + rail.width;
+      const field = (await page
+        .locator('header.g-top.gold')
+        .getByRole('button', { name: 'Cari di PIPS!' })
+        .boundingBox())!;
+      const hello = (await page.locator('.g-hero-hi').boundingBox())!;
+      expect(Math.round(field.x - edge), `field at ${width} px`).toBe(16);
+      expect(Math.round(hello.x - edge), `greeting at ${width} px`).toBe(18);
+    }
+  });
+
   test('no gold header on desktop; the greeting is the page title @desktop-only', async ({
     page,
   }) => {
@@ -473,7 +494,62 @@ test.describe('global search', () => {
       ['https://s.hmif.dev/BayarKasHMIF', '_blank', 'noopener,noreferrer'],
     ]);
     await expect(page).toHaveURL(/\/layanan$/);
+    // Review m1: focus was left on nothing. Opened from the keyboard, it goes to the page.
+    await expect(page.locator('#isi')).toBeFocused();
   });
+
+  test('opening something that leaves you on this page gives focus back to what opened search', async ({
+    page,
+  }, testInfo) => {
+    const desk = layoutOf(testInfo) === 'desktop';
+    // Phones and tablets have the search button on a tab's own page; the desktop sidebar has it everywhere.
+    await page.goto(desk ? '/layanan/nim' : '/layanan');
+    await expect(mainNav(page)).toBeVisible();
+    await page.evaluate(() => {
+      window.open = () => null;
+    });
+    const opener = desk
+      ? page.getByRole('button', { name: /^Cari/ })
+      : page.getByRole('button', { name: 'Cari di PIPS!' });
+    // An outside service, then (desktop) the page you are already on.
+    for (const name of desk
+      ? [/^Bayar Kas!/, /^NIM Finder/]
+      : [/^Bayar Kas!/]) {
+      await opener.click();
+      await palette(page).getByRole('option', { name }).click();
+      await expect(palette(page)).toHaveCount(0);
+      await expect(page).toHaveURL(desk ? /\/layanan\/nim$/ : /\/layanan$/);
+      await expect(opener).toBeFocused();
+    }
+    if (desk) return;
+    // Opened from the keyboard on the page you then choose: focus goes to the page's title.
+    await page.goto('/layanan/nim');
+    await expect(topTitle(page)).toBeVisible();
+    await page.keyboard.press('ControlOrMeta+k');
+    await palette(page)
+      .getByRole('option', { name: /^NIM Finder/ })
+      .click();
+    await expect(palette(page)).toHaveCount(0);
+    await expect(topTitle(page)).toBeFocused();
+  });
+});
+
+test.describe('the search shortcut’s name follows the platform, as the prototype’s', () => {
+  for (const [platform, label] of [
+    ['MacIntel', '⌘K'],
+    ['Linux x86_64', 'Ctrl K'],
+    ['Win32', 'Ctrl K'],
+  ] as const) {
+    test.describe(platform, () => {
+      test.use({ platform });
+      test(`${label} on ${platform} @desktop-only`, async ({ page }) => {
+        await page.goto('/');
+        await expect(
+          page.getByRole('button', { name: /^Cari/ }).locator('kbd'),
+        ).toHaveText(label);
+      });
+    });
+  }
 });
 
 test.describe('Kelola', () => {
@@ -498,8 +574,9 @@ test.describe('Kelola', () => {
     await page.goto('/kelola/live');
     await expectLit(page, 'Kelola');
     await expect(crumbs(page).getByRole('link')).toHaveText(['Kelola']);
+    // The prototype's titleOf and the locked desk-pengurus-live screen: "Kelola › Live Counting".
     await expect(crumbs(page).locator('[aria-current="page"]')).toHaveText(
-      'Live Counting & Rekap Form',
+      'Live Counting',
     );
   });
 
@@ -549,35 +626,40 @@ test.describe('accessibility', () => {
   test('every shell control on a touch layout has a 44 px target @phone-only', async ({
     page,
   }) => {
-    const sizes = async () =>
-      page.evaluate(() =>
-        [
-          ...document.querySelectorAll<HTMLElement>(
-            '.g-tab, .g-top a, .g-top button',
-          ),
-        ].map((el) => {
-          const r = el.getBoundingClientRect();
-          const before = getComputedStyle(el, '::before');
-          const hit =
-            before.content !== 'none' && before.position === 'absolute'
-              ? {
-                  w: r.width - 2 * Math.min(0, parseFloat(before.left)),
-                  h: r.height - 2 * Math.min(0, parseFloat(before.top)),
-                }
-              : { w: r.width, h: r.height };
-          return {
-            name: el.getAttribute('aria-label') ?? el.textContent,
-            ok: hit.w >= 44 && hit.h >= 44,
-          };
-        }),
+    const sizes = async (selector: string) =>
+      page.evaluate(
+        (selector) =>
+          [...document.querySelectorAll<HTMLElement>(selector)].map((el) => {
+            const r = el.getBoundingClientRect();
+            const before = getComputedStyle(el, '::before');
+            const hit =
+              before.content !== 'none' && before.position === 'absolute'
+                ? {
+                    w: r.width - 2 * Math.min(0, parseFloat(before.left)),
+                    h: r.height - 2 * Math.min(0, parseFloat(before.top)),
+                  }
+                : { w: r.width, h: r.height };
+            return {
+              name: el.getAttribute('aria-label') ?? el.textContent,
+              ok: hit.w >= 44 && hit.h >= 44,
+            };
+          }),
+        selector,
       );
     for (const path of ['/', '/pengumuman', '/layanan/dingdong']) {
       await page.goto(path);
       await expect(page.locator('.g-top')).toBeVisible();
-      const all = await sizes();
+      const all = await sizes('.g-tab, .g-top a, .g-top button');
       expect(all.length).toBeGreaterThan(2);
       expect(all.filter((s) => !s.ok)).toEqual([]);
     }
+    // Review m2: search's Tutup had a 32 px target.
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Cari di PIPS!' }).click();
+    await expect(palette(page)).toBeVisible();
+    const close = await sizes('.g-palette button');
+    expect(close.map((s) => s.name)).toContain('Tutup');
+    expect(close.filter((s) => !s.ok)).toEqual([]);
   });
 
   test('the shell fits, without sideways scrolling, at 320, 390, 768, 1024 and 1440 px and at 200% zoom', async ({
