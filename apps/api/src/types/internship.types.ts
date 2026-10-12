@@ -115,6 +115,54 @@ export const UpsertInternshipSubmissionSchema = z.object({
     }),
 });
 
+/**
+ * A draft, saved on every step (SPEC "Autosave"): Kelas and ID Line may still be empty, and up to 4 choices, each
+ * division and each priority (1–4) at most once. Sending (`/submit`) still needs the strict schema above.
+ */
+export const DraftInternshipSubmissionSchema = z
+  .object({
+    kelas: z.string(),
+    idLine: z.string(),
+    pengalamanOrganisasi: z.string().optional(),
+    kesibukan: z.array(InternshipKesibukanSchema).default([]),
+    choices: z
+      .array(
+        UpsertInternshipSubmissionChoiceSchema.extend({
+          priorityOrder: z.number().int().min(1).max(4),
+        }),
+      )
+      .max(4, 'Maksimal 4 divisi'),
+  })
+  .superRefine((draft, ctx) => {
+    const divisions = draft.choices.map((c) => c.divisionId);
+    if (new Set(divisions).size !== divisions.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['choices'],
+        message: 'Setiap divisi hanya boleh dipilih sekali',
+      });
+    }
+    const priorities = draft.choices.map((c) => c.priorityOrder);
+    if (new Set(priorities).size !== priorities.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['choices'],
+        message: 'Setiap prioritas hanya boleh dipakai sekali',
+      });
+    }
+  })
+  .openapi('DraftInternshipSubmission');
+
+/** SPARTA's window for the signed-in member. */
+export const InternshipWindowSchema = z
+  .object({
+    opensAt: z.union([z.string(), z.date()]).nullable(),
+    closesAt: z.union([z.string(), z.date()]).nullable(),
+    status: z.enum(['not_opened', 'open', 'closed']),
+    eligible: z.boolean(),
+  })
+  .openapi('InternshipWindow');
+
 export const ListInternshipSubmissionsQuerySchema = z.object({
   divisionId: z
     .string()
