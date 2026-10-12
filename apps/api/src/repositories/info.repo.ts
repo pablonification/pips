@@ -51,8 +51,49 @@ import { getUserRoles } from './user-role.repo';
 import dayjs from 'dayjs';
 import { env } from '~/configs/env.config';
 import { canRenotify, DEFAULT_RENOTIFY_HOURS } from '~/lib/renotify';
+import { AUTHOR_COLUMNS } from '~/lib/author';
 
 const INFOS_PER_PAGE = 10;
+
+/**
+ * What a post comes with, in the feed and on its own page. The author is cut to `AUTHOR_COLUMNS` in the query
+ * itself, so other members' private fields are never even read.
+ */
+export function infoRelations(userId: string) {
+  return {
+    infoMedias: {
+      with: {
+        media: true,
+      },
+      orderBy: asc(infoMedias.order),
+    },
+    infoCategories: {
+      with: {
+        category: true,
+      },
+    },
+    infoCourses: {
+      with: {
+        course: true,
+      },
+    },
+    infoAngkatan: {
+      with: {
+        angkatan: true,
+      },
+    },
+    infoGroups: {
+      columns: {
+        role: true,
+      },
+    },
+    creator: { columns: AUTHOR_COLUMNS },
+    userReadInfos: {
+      where: eq(userReadInfos.userId, userId),
+      limit: 1,
+    },
+  } as const;
+}
 
 /**
  * Create an info.
@@ -322,39 +363,7 @@ export async function getListInfos(
     limit: INFOS_PER_PAGE,
     offset: q.offset,
     orderBy: q.sort === 'oldest' ? asc(infos.createdAt) : desc(infos.createdAt),
-    with: {
-      infoMedias: {
-        with: {
-          media: true,
-        },
-        orderBy: asc(infoMedias.order),
-      },
-      infoCategories: {
-        with: {
-          category: true,
-        },
-      },
-      infoCourses: {
-        with: {
-          course: true,
-        },
-      },
-      infoAngkatan: {
-        with: {
-          angkatan: true,
-        },
-      },
-      infoGroups: {
-        columns: {
-          role: true,
-        },
-      },
-      creator: true,
-      userReadInfos: {
-        where: eq(userReadInfos.userId, userId),
-        limit: 1,
-      },
-    },
+    with: infoRelations(userId),
   });
 
   if (listInfo.length === 0) return [];
@@ -394,39 +403,7 @@ export async function getInfoById(db: Database, id: string, userId: string) {
       // check for groups
       getInfoGroupQuery(db, userRoles),
     ),
-    with: {
-      infoMedias: {
-        with: {
-          media: true,
-        },
-        orderBy: asc(infoMedias.order),
-      },
-      infoCategories: {
-        with: {
-          category: true,
-        },
-      },
-      infoCourses: {
-        with: {
-          course: true,
-        },
-      },
-      infoAngkatan: {
-        with: {
-          angkatan: true,
-        },
-      },
-      infoGroups: {
-        columns: {
-          role: true,
-        },
-      },
-      creator: true,
-      userReadInfos: {
-        where: eq(userReadInfos.userId, userId),
-        limit: 1,
-      },
-    },
+    with: infoRelations(userId),
   });
 
   const commentsCount = await db

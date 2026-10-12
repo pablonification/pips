@@ -1,4 +1,5 @@
 import postgres from 'postgres';
+import { withAuthor } from '~/lib/author';
 import { canDeleteContent } from '~/lib/authorization';
 import { checkPostCategories } from '~/lib/category-audience';
 import { getCategoriesByIds } from '~/repositories/category.repo';
@@ -153,7 +154,7 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
     );
     return c.json(
       {
-        infos,
+        infos: infos.map(withAuthor),
       },
       200,
     );
@@ -165,7 +166,7 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
     if (!info) {
       return c.json({ error: 'Info not found' }, 404);
     }
-    return c.json(info, 200);
+    return c.json(withAuthor(info), 200);
   });
 
   infoRouter.openapi(postRenotifyInfoRoute, async (c) => {
