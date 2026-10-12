@@ -12,6 +12,11 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
   const appName = env.VITE_APP_NAME || 'PIPS!';
   const analyticsId = env.VITE_ANALYTICS_ID || null;
+  // Where the dev server sends API requests. Not VITE_-prefixed, so it never reaches the bundle.
+  // Staging's API listens on 5000; on a Mac (AirPlay owns 5000) set DEV_API_ORIGIN, e.g. http://127.0.0.1:5100.
+  const apiOrigin =
+    loadEnv(mode, process.cwd(), 'DEV_API_ORIGIN').DEV_API_ORIGIN ||
+    'http://127.0.0.1:5000';
   return {
     define: {
       __TEST_LOGIN_ENABLED__: JSON.stringify(
@@ -25,10 +30,10 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       allowedHosts: ['staging.hmif.dev'],
       proxy: {
-        '/api': 'http://127.0.0.1:5000',
-        '/socket.io': { target: 'http://127.0.0.1:5000', ws: true },
-        '/swagger': 'http://127.0.0.1:5000',
-        '/doc': 'http://127.0.0.1:5000',
+        '/api': apiOrigin,
+        '/socket.io': { target: apiOrigin, ws: true },
+        '/swagger': apiOrigin,
+        '/doc': apiOrigin,
       },
     },
     resolve: {
