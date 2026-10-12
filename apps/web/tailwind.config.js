@@ -158,7 +158,8 @@ export default {
         'body-sm': ['0.75rem', { lineHeight: '1.25rem' }],
       },
       fontFamily: {
-        inter: ['Inter', 'sans-serif'],
+        // Inter is no longer loaded: old screens' font-inter means the app's text face until C1 removes them.
+        inter: ['var(--font-text)'],
       },
     },
   },

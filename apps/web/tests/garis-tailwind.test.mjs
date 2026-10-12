@@ -90,3 +90,13 @@ test('reduced motion removes all motion; nothing uses transition: all', () => {
   assert.doesNotMatch(comp, /transition:\s*all|transition-property:\s*all/);
   assert.match(comp, /prefers-reduced-motion: reduce/);
 });
+
+// Review m5: Inter is no longer loaded (no Google Fonts), so old screens' `font-inter` fell back to the system font next
+// to Geist everywhere else. Until C1 deletes those screens, it means the app's text face.
+test('the old font-inter class sets Geist, the app’s text face, not an Inter that is never loaded', async () => {
+  const out = await css(['font-inter']);
+  const r = rule(out, 'font-inter');
+  assert.ok(r, 'font-inter compiles');
+  assert.match(r, /font-family: var\(--font-text\)/);
+  assert.doesNotMatch(r, /Inter/);
+});
