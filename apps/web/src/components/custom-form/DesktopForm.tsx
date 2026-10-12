@@ -41,7 +41,7 @@ export default function DesktopForm<T extends FieldValues>(
       animate={{ scale: 1 }}
       exit={{ scale: 0.9, opacity: 0 }}
       transition={{ duration: 0.1 }}
-      className="absolute left-1/4 top-3 z-50 max-h-[88vh] w-[564px] overflow-auto rounded-2xl bg-white shadow-[0_4px_4px_3px_rgba(0,0,0,0.25)]"
+      className="absolute top-3 left-1/4 z-50 max-h-[88vh] w-[564px] overflow-auto rounded-2xl bg-white shadow-[0_4px_4px_3px_rgba(0,0,0,0.25)]"
       ref={containerRef}
     >
       <div className="flex flex-row justify-end rounded-t-2xl bg-[#D9D9D9] px-4 py-3">
@@ -63,7 +63,7 @@ export default function DesktopForm<T extends FieldValues>(
               size="sm"
               type="submit"
               variant="solid"
-              className="bg-[#305138] px-5"
+              className="bg-green-300 px-5"
             >
               Save
             </Button>

@@ -2,6 +2,7 @@ import { Hook, OpenAPIHono, z } from '@hono/zod-openapi';
 import { jwt } from 'hono/jwt';
 import type { RequestIdVariables } from 'hono/request-id';
 import { env } from '~/configs/env.config';
+import { JWT_ALG } from '~/lib/jwt';
 import { JWTPayloadSchema } from '~/types/login.types';
 
 const defaultHook: Hook<any, any, any, any> = (result, c) => {
@@ -36,6 +37,7 @@ export function createAuthRouter() {
     jwt({
       secret: env.JWT_SECRET,
       cookie: 'hmif-app.access-cookie',
+      alg: JWT_ALG,
     }),
   );
 

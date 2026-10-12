@@ -5,8 +5,10 @@ import { TextField } from '../../ui/textfield';
 import { FormProps } from '../-types';
 import { GrowingTextarea } from '../../ui/growingtextarea';
 
-interface FormTextFieldProps<TFV extends FieldValues>
-  extends Pick<FormProps<TFV>, 'form'> {
+interface FormTextFieldProps<TFV extends FieldValues> extends Pick<
+  FormProps<TFV>,
+  'form'
+> {
   name: FieldPath<TFV>;
   placeholder: string;
   className?: string;
@@ -60,10 +62,10 @@ export default function FormTextField<T extends FieldValues>(
                   maxLength={growableMaxLength}
                   placeholder={placeholder}
                   inputClassName={clsx(
-                    '!lg:text-lg min-h-0 rounded-none border-none px-0 py-6 !text-base outline-none',
+                    '!lg:text-lg min-h-0 rounded-none border-none px-0 py-6 text-base! outline-hidden',
                     inputClassName,
                   )}
-                  iconClassName="!size-3 !top-auto bottom-1 !translate-y-0 !right-14"
+                  iconClassName="size-3! top-auto! bottom-1 translate-y-0! right-14!"
                   className="w-full flex-auto gap-0"
                   success={form.formState.isSubmitSuccessful}
                   error={form.formState.errors[name]?.message as string}
@@ -76,7 +78,7 @@ export default function FormTextField<T extends FieldValues>(
                   id={name}
                   placeholder={placeholder}
                   inputClassName={clsx(
-                    'rounded-none border-none px-0 py-6 text-[20px] outline-none',
+                    'rounded-none border-none px-0 py-6 text-[20px] outline-hidden',
                     inputClassName,
                   )}
                   className="flex-auto gap-0"

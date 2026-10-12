@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { createLazyFileRoute } from '@tanstack/react-router';
 import GoogleLogo from '~/assets/icons/login/google.svg';
 import { Button } from '~/components/ui/button';
@@ -13,7 +14,7 @@ function LoginPage(): JSX.Element {
 
   return (
     <LoginLayout>
-      <h1 className="italic text-white lg:text-black">
+      <h1 className="text-white italic lg:text-black">
         <span className="text-heading-lg not-italic">
           Hello, <span className="font-bold italic">Pips!</span>
         </span>

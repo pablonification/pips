@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useState, type JSX } from 'react';
 import { api } from '~/api/client';
 import FolderIcon from '~/assets/icons/testimoni/folder.svg';
 import TestiListItem from '../../-components/TestiListItem';

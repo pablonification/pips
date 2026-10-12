@@ -48,7 +48,7 @@ export default function CountdownTimer(props: Readonly<ComponentProps>) {
 
   return (
     <div className="flex w-full flex-col items-center gap-4 rounded-lg bg-white/90 p-6">
-      <p className="flex flex-wrap items-center justify-center gap-2 break-words text-center text-sm font-semibold text-neutral-black">
+      <p className="flex flex-wrap items-center justify-center gap-2 text-center text-sm font-semibold wrap-break-word text-neutral-black">
         <Clock className="size-4 shrink-0" />
         Form dibuka {dayjs(target).format('DD MMMM YYYY, HH.mm')} WIB
       </p>
@@ -63,10 +63,10 @@ export default function CountdownTimer(props: Readonly<ComponentProps>) {
               key={u.label}
               className="flex flex-1 flex-col items-center rounded-md bg-green-950 py-3 text-white"
             >
-              <span className="text-xl font-bold leading-none lg:text-3xl">
+              <span className="text-xl leading-none font-bold lg:text-3xl">
                 {pad(u.value)}
               </span>
-              <span className="text-[10px] uppercase leading-none opacity-80">
+              <span className="text-[10px] leading-none uppercase opacity-80">
                 {u.label}
               </span>
             </div>

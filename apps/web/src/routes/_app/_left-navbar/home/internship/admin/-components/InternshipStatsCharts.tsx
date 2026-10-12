@@ -70,7 +70,7 @@ export function InternshipStatsCharts({
       const choices =
         metric === 'first'
           ? (sub.choices ?? []).filter((c) => c.priorityOrder === 1)
-          : sub.choices ?? [];
+          : (sub.choices ?? []);
 
       for (const choice of choices) {
         const division = divisionById.get(choice.divisionId);

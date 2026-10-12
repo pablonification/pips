@@ -146,7 +146,7 @@ function FormFillPage() {
 
   return (
     <div className="flex size-full h-screen flex-col overflow-hidden bg-green-50">
-      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center overflow-auto lg:max-w-screen-lg lg:px-8">
+      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center overflow-auto lg:max-w-(--breakpoint-lg) lg:px-8">
         <Button
           variant="link"
           className="my-6 w-full justify-start gap-8 p-0 text-2xl font-medium lg:text-3xl"
@@ -163,8 +163,8 @@ function FormFillPage() {
 
           {!isLoading && form && !isEligible && (
             <div className="flex w-full flex-col items-center gap-2 rounded-xl bg-white p-8 text-center">
-              <p className="break-words font-semibold">{form.title}</p>
-              <p className="break-words text-sm text-neutral-darker">
+              <p className="font-semibold wrap-break-word">{form.title}</p>
+              <p className="text-sm wrap-break-word text-neutral-darker">
                 Maaf, form ini tidak tersedia untuk kamu.
               </p>
             </div>
@@ -172,11 +172,11 @@ function FormFillPage() {
 
           {!isLoading && form && isEligible && (
             <>
-              <h1 className="break-words text-2xl font-bold lg:text-3xl">
+              <h1 className="text-2xl font-bold wrap-break-word lg:text-3xl">
                 {form.title}
               </h1>
               {form.description && (
-                <p className="break-words text-sm text-neutral-darker">
+                <p className="text-sm wrap-break-word text-neutral-darker">
                   {form.description}
                 </p>
               )}
@@ -192,7 +192,7 @@ function FormFillPage() {
                 <div className="flex w-full flex-col items-center gap-3 rounded-xl bg-white p-8 text-center">
                   <PartyPopper className="size-8 text-green-800" />
                   <p className="font-semibold">Terima kasih sudah mengisi!</p>
-                  <p className="break-words text-sm text-neutral-darker">
+                  <p className="text-sm wrap-break-word text-neutral-darker">
                     Jawaban kamu untuk form ini sudah tersimpan dan tidak dapat
                     diubah lagi.
                   </p>
@@ -223,7 +223,7 @@ function FormFillPage() {
                   />
 
                   <div className="flex flex-col gap-6">
-                    <h2 className="break-words text-lg font-bold">
+                    <h2 className="text-lg font-bold wrap-break-word">
                       {sections[sectionIndex].title}
                     </h2>
                     {sections[sectionIndex].questions

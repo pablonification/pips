@@ -20,7 +20,7 @@ function MobileView() {
       <Profile />
 
       {/* Top Navigation Section */}
-      <section className="mt-4 flex w-full max-w-screen-md flex-wrap justify-center gap-x-6 gap-y-4 px-8">
+      <section className="mt-4 flex w-full max-w-(--breakpoint-md) flex-wrap justify-center gap-x-6 gap-y-4 px-8">
         <NavigationItem
           src="/img/home/folder.svg"
           alt="Ding Dong"

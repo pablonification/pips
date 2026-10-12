@@ -24,7 +24,7 @@ import { ChevronDown, Check } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '~/api/client';
 import { PopoverClose } from '@radix-ui/react-popover';
-import { useRef } from 'react';
+import { useRef, type JSX } from 'react';
 
 export default function Courses({ form }: ComponentProps): JSX.Element {
   const { data } = useQuery({

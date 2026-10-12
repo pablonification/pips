@@ -3,9 +3,17 @@
   "private": true,
   "description": "PIPS!, the HMIF ITB members app: the web app (apps/web) and its API (apps/api).",
   "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "check": "pnpm -r --if-present run check",
-    "test": "pnpm -r --if-present run test",
-    "build": "pnpm -r --if-present run build"
+    "build": "turbo run build",
+    "check": "turbo run check",
+    "test": "turbo run test",
+    "e2e": "turbo run e2e",
+    "dev": "turbo run dev"
+  },
+  "devDependencies": {
+    "turbo": "^2.11.7"
   }
 }

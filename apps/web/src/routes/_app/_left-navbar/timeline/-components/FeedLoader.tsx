@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { Skeleton } from '~/components/ui/skeleton';
 
 export default function FeedLoader(): JSX.Element {

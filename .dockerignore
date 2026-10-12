@@ -1,0 +1,12 @@
+# Both Dockerfiles build from the repository root. Keep dependencies, build output, Git data and private
+# configuration out of the build context.
+**/node_modules
+**/dist
+**/dev-dist
+**/.turbo
+**/.env
+**/.env.local
+**/.env.*.local
+**/google_credentials.json
+.git
+apps/web/public/prototypes

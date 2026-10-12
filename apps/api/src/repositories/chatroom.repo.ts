@@ -32,7 +32,7 @@ function processChatrooms(
           .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
           .map((message) => {
             const reply = message.replyId
-              ? messageMap.get(message.replyId) ?? null
+              ? (messageMap.get(message.replyId) ?? null)
               : null;
             if (reply) {
               const { userId, ...replyWithoutUserId } = reply;
@@ -186,6 +186,6 @@ export async function getChatroomParticipantIds(
   }
 
   return [chatroom.userId, ...adminUsers.map((u) => u.id)].filter(
-    (id) => id !== null,
+    (id): id is string => id !== null,
   );
 }

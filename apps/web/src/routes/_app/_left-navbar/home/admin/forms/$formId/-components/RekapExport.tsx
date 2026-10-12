@@ -56,7 +56,7 @@ export default function RekapExport(props: Readonly<ComponentProps>) {
     <div className="flex w-full flex-col gap-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-darker" />
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-darker" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}

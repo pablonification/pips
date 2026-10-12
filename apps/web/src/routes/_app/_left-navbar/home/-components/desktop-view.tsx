@@ -20,7 +20,7 @@ function DesktopView() {
         <div className="flex min-h-full flex-1 flex-col items-center gap-8 border-r border-gray-300 py-8">
           <div className="flex w-full flex-col items-center gap-8">
             {/* Top Navigation Section */}
-            <section className="flex h-[220px] w-full max-w-screen-md flex-wrap justify-center gap-x-12 gap-y-4 overflow-y-scroll px-8">
+            <section className="flex h-[220px] w-full max-w-(--breakpoint-md) flex-wrap justify-center gap-x-12 gap-y-4 overflow-y-scroll px-8">
               <NavigationItem
                 src="/img/home/folder.svg"
                 alt="Ding Dong"

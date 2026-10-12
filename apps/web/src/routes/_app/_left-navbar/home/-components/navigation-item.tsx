@@ -24,7 +24,7 @@ function NavigationItem({
         {highlighted && (
           <span
             aria-hidden="true"
-            className="absolute -inset-1.5 rounded-full bg-amber-400/60 blur-sm"
+            className="absolute -inset-1.5 rounded-full bg-amber-400/60 blur-xs"
           />
         )}
         <Button

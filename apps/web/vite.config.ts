@@ -1,5 +1,6 @@
 import { sentryVitePlugin } from '@sentry/vite-plugin';
-import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
+import tailwindcss from '@tailwindcss/vite';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
@@ -32,7 +33,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        '~': path.resolve(__dirname, './src'),
+        '~': path.resolve(import.meta.dirname, './src'),
       },
     },
 
@@ -158,8 +159,10 @@ export default defineConfig(({ mode }) => {
           ],
         },
       }),
+      // The router plugin must come before the React plugin. P0-B turns on automatic code splitting.
+      tanstackRouter({ target: 'react', autoCodeSplitting: false }),
       react(),
-      TanStackRouterVite(),
+      tailwindcss(),
       sentryVitePlugin({
         authToken: env.SENTRY_AUTH_TOKEN,
         org: env.SENTRY_ORG || 'hmif',

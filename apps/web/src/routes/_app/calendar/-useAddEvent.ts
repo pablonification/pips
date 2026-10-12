@@ -41,7 +41,7 @@ export default function useAddEvent(props: Readonly<HookProps>) {
     onSuccess: () => {
       toast.success('Event Added!', { id: TOAST_ID });
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-      onSubmitSuccess && onSubmitSuccess();
+      onSubmitSuccess?.();
     },
     onError: () => toast.error('Failed to add event', { id: TOAST_ID }),
   });

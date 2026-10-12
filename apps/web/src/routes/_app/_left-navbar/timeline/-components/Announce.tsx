@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { getRouteApi } from '@tanstack/react-router';
 import MegaphoneIcon from '~/assets/icons/megaphone-fill.svg';
 import { deleteSharedData } from '~/lib/share-db';
@@ -12,7 +13,7 @@ export default function Announce(): JSX.Element {
   const { showAnnounce } = routeApi.useSearch();
 
   return (
-    <div className="fixed bottom-16 right-[28vw] z-50">
+    <div className="fixed right-[28vw] bottom-16 z-50">
       <Dialog
         open={showAnnounce ?? false}
         onOpenChange={(open) => {
@@ -38,7 +39,7 @@ export default function Announce(): JSX.Element {
           <Button
             variant="solid"
             size="icon-sm"
-            className="z-[200] size-[70px] bg-green-200 shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]"
+            className="z-200 size-[70px] bg-green-200 shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]"
           >
             <img src={MegaphoneIcon} className="size-8" alt="" />
           </Button>
@@ -46,7 +47,7 @@ export default function Announce(): JSX.Element {
 
         <DialogContent
           hideCloseButton
-          className="w-[62vw] max-w-none overflow-hidden !rounded-3xl p-0"
+          className="w-[62vw] max-w-none overflow-hidden rounded-3xl! p-0"
         >
           <AddAnnouncementPage isDesktop />
         </DialogContent>

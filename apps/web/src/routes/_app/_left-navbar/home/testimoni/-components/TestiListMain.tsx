@@ -1,5 +1,5 @@
-import { Link, useParams } from '@tanstack/react-router';
-import { useRef } from 'react';
+import { Link, useParams, type LinkProps } from '@tanstack/react-router';
+import { useRef, type JSX } from 'react';
 import SearchIcon from '~/assets/icons/searchbar/search.svg';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -8,7 +8,7 @@ import { DEBOUNCE_TIME } from '~/lib/constants';
 type ComponentProps = {
   children?: JSX.Element[];
   major?: string;
-  linkFrom: string;
+  linkFrom: LinkProps['from'];
   onSearchChange?: (search: string) => void;
 };
 
@@ -23,7 +23,7 @@ export default function TestiListMain({
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   return (
-    <section className="flex-1 overflow-y-auto rounded-t-2xl bg-[url('/images/courses/gradient.png')] bg-cover bg-no-repeat px-4 pb-28 pt-10 lg:rounded-none lg:pb-6">
+    <section className="flex-1 overflow-y-auto rounded-t-2xl bg-[url('/images/courses/gradient.png')] bg-cover bg-no-repeat px-4 pt-10 pb-28 lg:rounded-none lg:pb-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-[30px] font-bold text-white antialiased">
           Testimoni

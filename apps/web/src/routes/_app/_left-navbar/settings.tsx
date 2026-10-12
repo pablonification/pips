@@ -27,7 +27,7 @@ function SettingsLayout() {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <div className="flex-1 overflow-hidden bg-green-50">
-        <div className="mx-auto mb-10 flex h-full max-w-screen-lg flex-col lg:px-8">
+        <div className="mx-auto mb-10 flex h-full max-w-(--breakpoint-lg) flex-col lg:px-8">
           <h1 className="my-6 hidden items-center space-x-12 text-heading-lg font-bold lg:flex">
             {selectedSettings && (
               <button

@@ -130,7 +130,7 @@ function RecommendationDetail() {
 
   return (
     <div className="flex size-full h-screen flex-col overflow-auto bg-green-50">
-      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center lg:max-w-screen-lg lg:px-8">
+      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center lg:max-w-(--breakpoint-lg) lg:px-8">
         <Button
           variant="link"
           className="my-6 hidden w-full justify-start gap-8 p-0 text-3xl font-medium lg:flex"
@@ -142,11 +142,11 @@ function RecommendationDetail() {
           <span>Back</span>
         </Button>
 
-        <main className="flex h-auto flex-col items-center gap-3 bg-[url(/img/rekomendasi/recommendation-bg-mobile.jpg)] bg-cover bg-center md:bg-[url(/img/rekomendasi/recommendation-bg-desktop.jpg)] lg:h-auto lg:max-w-screen-lg lg:rounded-t-2xl lg:px-[82px]">
+        <main className="flex h-auto flex-col items-center gap-3 bg-[url(/img/rekomendasi/recommendation-bg-mobile.jpg)] bg-cover bg-center md:bg-[url(/img/rekomendasi/recommendation-bg-desktop.jpg)] lg:h-auto lg:max-w-(--breakpoint-lg) lg:rounded-t-2xl lg:px-[82px]">
           <div className="w-full px-6 pt-6 lg:mt-8 lg:px-0">
             <Header title={mockData.title} creatorId={mockData.creatorId} />
           </div>
-          <div className="size-full px-6 pb-28 pt-6 lg:px-0 lg:pb-6 lg:pt-3">
+          <div className="size-full px-6 pt-6 pb-28 lg:px-0 lg:pt-3 lg:pb-6">
             {mockData.type === 'co-working' ? (
               <div className="flex flex-col gap-6">
                 <PlaceDetail data={mockData} />

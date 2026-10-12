@@ -27,7 +27,7 @@ function AdminHubPage() {
 
   return (
     <div className="flex size-full h-screen flex-col overflow-hidden bg-green-50">
-      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center overflow-auto lg:max-w-screen-lg lg:px-8">
+      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center overflow-auto lg:max-w-(--breakpoint-lg) lg:px-8">
         <Button
           variant="link"
           className="my-6 w-full justify-start gap-8 p-0 text-2xl font-medium lg:text-3xl"
@@ -38,13 +38,15 @@ function AdminHubPage() {
         </Button>
 
         <div className="flex w-full flex-col gap-4 px-4 pb-24 lg:px-0">
-          <h1 className="break-words text-2xl font-bold lg:text-3xl">Admin</h1>
+          <h1 className="text-2xl font-bold wrap-break-word lg:text-3xl">
+            Admin
+          </h1>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {isAdmin && (
               <Link
                 to="/home/admin/forms"
-                className="flex w-full flex-col gap-3 break-words rounded-xl bg-white p-5"
+                className="flex w-full flex-col gap-3 rounded-xl bg-white p-5 wrap-break-word"
               >
                 <ClipboardList className="size-8 shrink-0 text-green-950" />
                 <div>
@@ -60,7 +62,7 @@ function AdminHubPage() {
             {(isAdmin || isPeopleManage) && (
               <Link
                 to="/home/internship/admin"
-                className="flex w-full flex-col gap-3 break-words rounded-xl bg-white p-5"
+                className="flex w-full flex-col gap-3 rounded-xl bg-white p-5 wrap-break-word"
               >
                 <GraduationCap className="size-8 shrink-0 text-green-950" />
                 <div>

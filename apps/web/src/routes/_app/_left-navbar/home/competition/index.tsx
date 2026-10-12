@@ -67,7 +67,7 @@ function CompetitionPage() {
       ref={constraintRef}
       className="flex size-full h-screen flex-col overflow-hidden bg-green-50"
     >
-      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center lg:max-w-screen-lg lg:px-8">
+      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center lg:max-w-(--breakpoint-lg) lg:px-8">
         <Button
           variant="link"
           className="my-6 hidden w-full justify-start gap-8 p-0 text-3xl font-medium lg:flex"
@@ -79,7 +79,7 @@ function CompetitionPage() {
           <span>Back</span>
         </Button>
 
-        <main className="flex max-h-screen w-full flex-col items-center gap-3 overflow-hidden bg-[url(/img/login/login-bg.jpg)] bg-no-repeat px-8 md:bg-[url(/img/login/login-bg-desktop.jpg)] lg:max-w-screen-lg lg:rounded-t-2xl lg:px-[82px]">
+        <main className="flex max-h-screen w-full flex-col items-center gap-3 overflow-hidden bg-[url(/img/login/login-bg.jpg)] bg-no-repeat px-8 md:bg-[url(/img/login/login-bg-desktop.jpg)] lg:max-w-(--breakpoint-lg) lg:rounded-t-2xl lg:px-[82px]">
           <AddCompetitionDialog
             isOpen={dialogOpen}
             setOpen={setDialogOpen}
@@ -101,7 +101,7 @@ function CompetitionPage() {
             )}
           </div>
 
-          <ul className="flex max-w-full flex-col gap-4 overflow-auto pb-28 pt-6 lg:grid lg:grid-cols-2 lg:gap-10 lg:px-4 lg:pb-6 lg:pt-3">
+          <ul className="flex max-w-full flex-col gap-4 overflow-auto pt-6 pb-28 lg:grid lg:grid-cols-2 lg:gap-10 lg:px-4 lg:pt-3 lg:pb-6">
             {competitions?.pages
               .flatMap((c) => c)
               .map((competition, idx) =>
@@ -122,7 +122,7 @@ function CompetitionPage() {
 
           <Button
             onClick={() => setDrawerOpen(true)}
-            className="fixed bottom-24 right-5 z-20 rounded-full border border-green-300 bg-yellow-75 p-5 lg:hidden"
+            className="fixed right-5 bottom-24 z-20 rounded-full border border-green-300 bg-yellow-75 p-5 lg:hidden"
           >
             <img src={PlusIcon} className="size-8" alt="" />
           </Button>

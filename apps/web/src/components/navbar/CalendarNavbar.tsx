@@ -26,7 +26,11 @@ export default function CalendarNavbar() {
     if (newMonth < 0) {
       if (isQueryParamSet) {
         navigate({
-          search: (prev: { selectedDate?: number; selectedMonth?: number; selectedYear?: number }) => ({
+          search: (prev: {
+            selectedDate?: number;
+            selectedMonth?: number;
+            selectedYear?: number;
+          }) => ({
             ...prev,
             selectedYear: selectedYear - 1,
             selectedMonth: 11,
@@ -44,7 +48,11 @@ export default function CalendarNavbar() {
     } else if (newMonth > 11) {
       if (isQueryParamSet) {
         navigate({
-          search: (prev: { selectedDate?: number; selectedMonth?: number; selectedYear?: number }) => ({
+          search: (prev: {
+            selectedDate?: number;
+            selectedMonth?: number;
+            selectedYear?: number;
+          }) => ({
             ...prev,
             selectedYear: selectedYear + 1,
             selectedMonth: 0,
@@ -62,7 +70,11 @@ export default function CalendarNavbar() {
     } else {
       if (isQueryParamSet) {
         navigate({
-          search: (prev: { selectedDate?: number; selectedMonth?: number; selectedYear?: number }) => ({
+          search: (prev: {
+            selectedDate?: number;
+            selectedMonth?: number;
+            selectedYear?: number;
+          }) => ({
             ...prev,
             selectedMonth: newMonth,
           }),
@@ -120,21 +132,21 @@ export default function CalendarNavbar() {
           to="/home"
           className={`flex w-full items-center gap-8 border-l-8 border-green-300 bg-yellow-75 px-4 py-2 pl-8 font-bold text-green-300 hover:bg-yellow-75 [&>svg]:fill-green-300 [&>svg]:stroke-neutral-light`}
         >
-          <HomeFilledIcon className="size-[2.625rem] fill-transparent stroke-black transition-colors duration-200" />
+          <HomeFilledIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
           <span>Home</span>
         </Link>
         <Link
           to="/timeline"
-          className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-[status]:border-green-300`}
+          className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-status:border-green-300`}
         >
-          <QuestionMarkIcon className="size-[2.625rem] fill-transparent stroke-black transition-colors duration-200" />
+          <QuestionMarkIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
           <span>Timeline</span>
         </Link>
         <Link
           to="/settings"
-          className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-[status]:border-green-300`}
+          className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-status:border-green-300`}
         >
-          <SettingsIcon className="size-[2.625rem] fill-transparent stroke-black transition-colors duration-200" />
+          <SettingsIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
           <span>Settings</span>
         </Link>
       </section>

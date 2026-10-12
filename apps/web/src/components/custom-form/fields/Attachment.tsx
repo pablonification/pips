@@ -26,12 +26,12 @@ export default function Attachment(props: Readonly<ComponentProps>) {
           <img
             src={image.url}
             alt="Preview image"
-            className="aspect-[3/4] w-full overflow-hidden rounded-2xl border object-cover"
+            className="aspect-3/4 w-full overflow-hidden rounded-2xl border object-cover"
           />
         </a>
         <button
           type="button"
-          className="absolute right-2.5 top-2.5 rounded-full border-2 border-black bg-gray-300 lg:right-0"
+          className="absolute top-2.5 right-2.5 rounded-full border-2 border-black bg-gray-300 lg:right-0"
           onClick={() =>
             setImage({ url: '', file: new File([''], 'filename') })
           }

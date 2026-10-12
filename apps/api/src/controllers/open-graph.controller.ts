@@ -1,7 +1,10 @@
-import og, { ErrorResult } from 'open-graph-scraper';
+import og from 'open-graph-scraper';
 import { getOpenGraph } from '~/routes/open-graph.route';
 import { OpenGraphErrorSchema, OgObjectSchema } from '~/types/open-graph.types';
 import { createRouter } from './router-factory';
+
+// open-graph-scraper 6.12 no longer exports its result types by name.
+type ErrorResult = Extract<Awaited<ReturnType<typeof og>>, { error: true }>;
 
 export const openGraphScrapeRoute = createRouter();
 

@@ -26,7 +26,7 @@ export default function SubscriptionCard({
       <div className="z-10 flex w-full items-center justify-between rounded-xl bg-white transition-all duration-300 ease-out">
         <div className="flex items-center gap-4 px-5 py-4">
           <img src="/logo/hmif.png" alt="Logo" className="w-10" />
-          <p className="font-bold leading-5">{categoryData.name}</p>
+          <p className="leading-5 font-bold">{categoryData.name}</p>
         </div>
         <div className="px-5 py-4">
           <Switch

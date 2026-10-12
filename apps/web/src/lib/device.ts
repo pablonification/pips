@@ -1,7 +1,7 @@
 export function isPWA() {
   return Boolean(
     ('standalone' in navigator && navigator.standalone) ||
-      window.matchMedia('(display-mode: standalone)').matches,
+    window.matchMedia('(display-mode: standalone)').matches,
   );
 }
 

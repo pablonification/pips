@@ -11,7 +11,7 @@ function Avatar({ alt, src, className, imgClassName }: AvatarProps) {
   return (
     <div
       className={cn(
-        'size-[3.25rem] overflow-hidden rounded-full bg-[#E8C55F]',
+        'size-13 overflow-hidden rounded-full bg-[#E8C55F]',
         className,
       )}
     >

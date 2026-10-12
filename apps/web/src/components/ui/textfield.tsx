@@ -9,14 +9,14 @@ import SearchIcon from '~/assets/icons/textfield/search.svg';
 import WarningIcon from '~/assets/icons/textfield/warning.svg';
 
 const textFieldVariants = cva(
-  'flex w-full rounded-lg border bg-background text-sm text-[#020617] ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[#64748B] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+  'flex w-full rounded-lg border bg-background text-sm text-[#020617] ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[#64748B] focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
   {
     variants: {
       variant: {
         default:
           'border-[#E2E8F0] hover:border-[#CBD5E1] focus-visible:border-[#94A3B8]',
         search:
-          'border-[#F8FAFC] bg-[#F8FAFC] !pl-12 hover:border-[#F1F5F9] hover:bg-[#F1F5F9] focus-visible:border-[#F1F5F9] focus-visible:bg-[#F1F5F9] group-hover:bg-[#F1F5F9]',
+          'border-[#F8FAFC] bg-[#F8FAFC] pl-12! hover:border-[#F1F5F9] hover:bg-[#F1F5F9] focus-visible:border-[#F1F5F9] focus-visible:bg-[#F1F5F9] group-hover:bg-[#F1F5F9]',
       },
       fieldSize: {
         default: 'px-4 py-3',
@@ -32,7 +32,8 @@ const textFieldVariants = cva(
 );
 
 export interface TextFieldProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
+  extends
+    React.InputHTMLAttributes<HTMLInputElement>,
     VariantProps<typeof textFieldVariants> {
   error?: string;
   success?: boolean;
@@ -77,7 +78,7 @@ const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
       <div className={cn('flex flex-col gap-2 font-inter', className)}>
         <div
           className={cn(
-            props.disabled && '!border-[#E2E8F0]',
+            props.disabled && 'border-[#E2E8F0]!',
             'relative',
             inputContainerClassName,
           )}
@@ -85,14 +86,14 @@ const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
           {variant === 'search' && (
             <img
               src={SearchIcon}
-              className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2"
+              className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
             />
           )}
           <input
             type={type}
             className={cn(
               textFieldVariants({ variant, fieldSize }),
-              error ? '!text-[#FF2C20]' : '',
+              error ? 'text-[#FF2C20]!' : '',
               props.disabled || error || success || children
                 ? children && (props.disabled || error || success)
                   ? 'pr-16'
@@ -105,7 +106,7 @@ const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
           />
           <div
             className={cn(
-              'pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2',
+              'pointer-events-none absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-2',
               iconClassName,
             )}
           >

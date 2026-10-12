@@ -26,7 +26,7 @@ export default function ProgressBar(props: Readonly<ComponentProps>) {
             key={s.id}
             type="button"
             onClick={() => onSelect(idx)}
-            className={`min-w-0 flex-1 shrink-0 rounded-full p-2 text-center text-[11px] font-semibold leading-tight ${
+            className={`min-w-0 flex-1 shrink-0 rounded-full p-2 text-center text-[11px] leading-tight font-semibold ${
               idx === currentIndex
                 ? 'bg-green-950 text-white'
                 : completedIndexes.has(idx)
@@ -34,7 +34,7 @@ export default function ProgressBar(props: Readonly<ComponentProps>) {
                   : 'bg-gray-100 text-neutral-darker'
             }`}
           >
-            <span className="block truncate break-words">
+            <span className="block truncate wrap-break-word">
               {idx + 1}. {s.title}
             </span>
           </button>

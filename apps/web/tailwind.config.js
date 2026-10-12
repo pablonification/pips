@@ -1,5 +1,7 @@
+import typography from '@tailwindcss/typography';
+
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   darkMode: ['class'],
   content: [
     './pages/**/*.{ts,tsx}',
@@ -162,5 +164,5 @@ module.exports = {
     `text-${color}-500`,
     `border-${color}-500`,
   ]),
-  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
+  plugins: [typography],
 };

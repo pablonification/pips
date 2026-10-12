@@ -23,7 +23,7 @@ function Index() {
         <Button
           asChild
           variant="solid"
-          className="w-full font-medium max-lg:bg-white  max-lg:text-black"
+          className="w-full font-medium max-lg:bg-white max-lg:text-black"
         >
           <Link to="/login">Log in</Link>
         </Button>

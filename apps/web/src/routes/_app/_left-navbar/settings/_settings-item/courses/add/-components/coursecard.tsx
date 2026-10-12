@@ -29,9 +29,9 @@ export default function CourseCard({ course }: { course: Course }) {
         className={`content flex items-center justify-between rounded-lg bg-white px-4 py-2 text-body-md`}
       >
         <div className="flex items-center gap-4">
-          <div className="flex h-min flex-col items-center gap-1 rounded-md bg-[#305138] px-3 py-2">
+          <div className="flex h-min flex-col items-center gap-1 rounded-md bg-green-300 px-3 py-2">
             <p className="text-xs text-white">SKS</p>
-            <p className="text-heading-sm font-medium leading-6 text-white">
+            <p className="text-heading-sm leading-6 font-medium text-white">
               {course.credits}
             </p>
           </div>

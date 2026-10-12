@@ -20,7 +20,7 @@ export function VoucherDetail({ data }: VoucherDetailProps) {
       <div className="flex flex-col lg:flex-row lg:gap-6">
         {/* Image */}
         <div className="relative w-full lg:w-1/2">
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-xl">
+          <div className="aspect-4/3 w-full overflow-hidden rounded-xl">
             <img
               src={data.imageUrl}
               alt={data.title}
@@ -55,7 +55,7 @@ export function VoucherDetail({ data }: VoucherDetailProps) {
               </div>
               <div>
                 <p className="text-sm font-bold">Description:</p>
-                <p className="whitespace-normal break-words text-sm">
+                <p className="text-sm wrap-break-word whitespace-normal">
                   {data.description}
                 </p>
               </div>

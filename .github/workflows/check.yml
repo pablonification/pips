@@ -8,26 +8,23 @@ on:
 
 jobs:
   check:
-    name: ${{ matrix.app }}
+    name: check, test and build
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        app: [web, api]
     steps:
       - uses: actions/checkout@v4
+      # Uses the pnpm version in package.json's packageManager.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Type check and lint
-        run: pnpm --filter ${{ matrix.app }} run check
+        run: pnpm check
       - name: Unit tests
-        run: pnpm --filter ${{ matrix.app }} --if-present run test
+        run: pnpm test
       - name: Production build
-        if: matrix.app == 'web'
-        run: pnpm --filter web run build && node apps/web/scripts/verify-production-bundle.mjs apps/web/dist
+        run: pnpm build
+      - name: No test login in the production bundle
+        run: node apps/web/scripts/verify-production-bundle.mjs apps/web/dist

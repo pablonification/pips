@@ -19,10 +19,10 @@ export function PlaceDetail({ data }: PlaceDetailProps) {
       <div className="flex flex-col lg:flex-row lg:gap-6">
         {/* Image */}
         <div className="relative w-full lg:w-1/2">
-          <span className="absolute right-2 top-2 rounded-lg bg-[#F3E8C4] px-2 py-1 text-xs lg:hidden">
+          <span className="absolute top-2 right-2 rounded-lg bg-[#F3E8C4] px-2 py-1 text-xs lg:hidden">
             {data.region}
           </span>
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-xl">
+          <div className="aspect-4/3 w-full overflow-hidden rounded-xl">
             <img
               src={data.imageUrl}
               alt={data.title}
@@ -43,8 +43,8 @@ export function PlaceDetail({ data }: PlaceDetailProps) {
 
           <hr className="my-4 hidden border-black lg:block" />
 
-          <div className="h-0 flex-1 lg:h-auto  lg:overflow-auto  ">
-            <div className="space-y-2 pt-2 lg:pt-0 ">
+          <div className="h-0 flex-1 lg:h-auto lg:overflow-auto">
+            <div className="space-y-2 pt-2 lg:pt-0">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-bold">Location:</p>
                 <p className="text-sm">{data.address}</p>
@@ -56,7 +56,7 @@ export function PlaceDetail({ data }: PlaceDetailProps) {
 
               <div>
                 <p className="font-bold">Description :</p>
-                <p className="whitespace-normal break-words text-sm">
+                <p className="text-sm wrap-break-word whitespace-normal">
                   {data.description}
                 </p>
               </div>
@@ -73,7 +73,7 @@ export function PlaceDetail({ data }: PlaceDetailProps) {
               <img
                 src="/img/rekomendasi/location.svg"
                 alt="Location"
-                className="size-5 "
+                className="size-5"
               />
             </Button>
           </div>

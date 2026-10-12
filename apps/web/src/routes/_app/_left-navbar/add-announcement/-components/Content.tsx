@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem } from '~/components/ui/form';
 import { GrowingTextarea } from '~/components/ui/growingtextarea';
@@ -37,11 +38,11 @@ export default function Content({
                 errorClassName="absolute top-0.5 left-4 text-xs"
                 error={form.formState.errors.announcement?.message}
                 success={form.formState.isSubmitSuccessful}
-                iconClassName="!size-3 !top-auto bottom-1 !translate-y-0 !right-14"
+                iconClassName="size-3! top-auto! bottom-1 translate-y-0! right-14!"
                 {...field}
               />
             </FormControl>
-            <p className="absolute bottom-0.5 right-4 text-xs text-[#6A6B6A]">
+            <p className="absolute right-4 bottom-0.5 text-xs text-[#6A6B6A]">
               {field.value.length}/1000
             </p>
           </div>

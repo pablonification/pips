@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -13,7 +14,7 @@ const testiSearchSchema = z.object({
 });
 
 export const Route = createFileRoute(
-  '/_app/_left-navbar/home/testimoni/$type/$semester/$courseId/',
+  '/_app/_left-navbar/home/testimoni_/$type/$semester/$courseId/',
 )({
   component: TestimoniListPage,
   validateSearch: (search) => testiSearchSchema.parse(search),

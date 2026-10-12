@@ -42,9 +42,9 @@ const PostText = ({
   return (
     <div className="flex-col space-y-2">
       {title && (
-        <h1 className="whitespace-pre-line text-xl font-semibold">{title}</h1>
+        <h1 className="text-xl font-semibold whitespace-pre-line">{title}</h1>
       )}
-      <div className="whitespace-pre-line break-words text-base">
+      <div className="text-base wrap-break-word whitespace-pre-line">
         {/* Render text as normal, but if link make it into anchor tag, split it on space and newline */}
         {renderInfoContent(infoId, content, urls)}
       </div>

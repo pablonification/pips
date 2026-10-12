@@ -1,9 +1,10 @@
-import { Link } from '@tanstack/react-router';
+import type { JSX } from 'react';
+import { Link, type LinkProps } from '@tanstack/react-router';
 
 type ComponentProps = {
   icon: string;
   title: string;
-  linkFrom: string;
+  linkFrom: LinkProps['from'];
   linkTo: string;
 };
 

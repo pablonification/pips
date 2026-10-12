@@ -15,7 +15,7 @@ export default function EmbeddedGform(props: Readonly<ComponentProps>) {
         <DialogTrigger asChild>
           <Button
             size="icon-sm"
-            className="absolute left-2 top-2 size-10 bg-white shadow-lg hover:bg-purple-50"
+            className="absolute top-2 left-2 size-10 bg-white shadow-lg hover:bg-purple-50"
           >
             <img src={ExpandIcon} className="size-7" alt="expand" />
           </Button>

@@ -50,9 +50,9 @@ export default function AddEventDialog(props: Readonly<ComponentProps>) {
         iconClassName="size-6 opacity-0"
       />
 
-      <div className="ml-12 mt-2 flex w-fit items-center gap-2 rounded-lg bg-yellow-75 p-2">
+      <div className="mt-2 ml-12 flex w-fit items-center gap-2 rounded-lg bg-yellow-75 p-2">
         {/* <img src={BookIcon} alt="" className="size-4" /> */}
-        <p className="text-sm font-medium capitalize text-green-300">
+        <p className="text-sm font-medium text-green-300 capitalize">
           {category}
         </p>
       </div>

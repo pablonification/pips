@@ -57,10 +57,10 @@ export default function CountdownTimer() {
             key={u.label}
             className="flex flex-1 flex-col items-center rounded-md bg-green-950 py-2 text-white"
           >
-            <span className="text-lg font-bold leading-none lg:text-2xl">
+            <span className="text-lg leading-none font-bold lg:text-2xl">
               {pad(u.value)}
             </span>
-            <span className="text-[10px] uppercase leading-none opacity-80">
+            <span className="text-[10px] leading-none uppercase opacity-80">
               {u.label}
             </span>
           </div>

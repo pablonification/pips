@@ -21,7 +21,7 @@ function CreditsPage() {
 
   if (!credits) return null;
   return (
-    <div className="prose prose-sm prose-invert relative text-center prose-h4:mt-2 prose-p:my-0 prose-p:text-white">
+    <div className="relative prose prose-sm text-center prose-invert prose-h4:mt-2 prose-p:my-0 prose-p:text-white">
       <Markdown>{credits.content}</Markdown>
     </div>
   );

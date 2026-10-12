@@ -41,12 +41,12 @@ export default function SearchBar({
           onKeyDown={handleKeyDown}
           type="text"
           placeholder="Search..."
-          className="h-auto w-full rounded-full border-2 border-black py-2 pl-4 shadow-sm outline-none lg:border-2 lg:py-3 lg:text-sm lg:font-semibold"
+          className="h-auto w-full rounded-full border-2 border-black py-2 pl-4 shadow-xs outline-hidden lg:border-2 lg:py-3 lg:text-sm lg:font-semibold"
           name=""
           id=""
         />
         <button
-          className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-[.57rem] lg:p-[.8rem]"
+          className="absolute top-1/2 right-1 -translate-y-1/2 rounded-full p-[.57rem] lg:p-[.8rem]"
           onClick={handleClearSearch}
         >
           <img
@@ -66,16 +66,16 @@ export default function SearchBar({
           <DrawerTrigger
             asChild
             onClick={() => {
-              openDrawer((a) => (a = !a));
+              openDrawer((a) => !a);
             }}
           >
             <ThumbToggle Icon={FilterIcon} isPressed={drawerState} />
           </DrawerTrigger>
           <DrawerContent
             onInteractOutside={() => {
-              openDrawer((a) => (a = !a));
+              openDrawer((a) => !a);
             }}
-            className="z-[100] bg-[#EAEEEB] p-0"
+            className="z-100 bg-[#EAEEEB] p-0"
           >
             <FilterContent
               {...props}
@@ -100,8 +100,8 @@ const ThumbToggle = forwardRef<HTMLButtonElement, ThumbToggleProps>(
       <button
         ref={ref}
         className={`${
-          isPressed ? `bg-green-900` : `bg-white `
-        } rounded-[14.4px] border border-black p-[.6rem] shadow-sm`}
+          isPressed ? `bg-green-900` : `bg-white`
+        } rounded-[14.4px] border border-black p-[.6rem] shadow-xs`}
         type="button"
         onClick={onClick}
       >

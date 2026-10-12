@@ -40,7 +40,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
           </div>
         </div>
       </div>
-      <p className="mt-2 break-words text-xs">{review.review}</p>
+      <p className="mt-2 text-xs wrap-break-word">{review.review}</p>
     </div>
   );
 }

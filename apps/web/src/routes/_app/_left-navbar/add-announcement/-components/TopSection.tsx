@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { Button } from '~/components/ui/button';
 import { FormSchemaType } from '../-constants';
 import { useRouter } from '@tanstack/react-router';
@@ -22,7 +23,7 @@ export default function TopSection({
 
   return (
     <>
-      <div className="flex items-center justify-between pb-4 pl-4 pr-5">
+      <div className="flex items-center justify-between pr-5 pb-4 pl-4">
         {isDialog ? (
           <DialogClose asChild>
             <Button
@@ -52,7 +53,7 @@ export default function TopSection({
         <Button
           disabled={isMutating}
           type="submit"
-          className="bg-[#305138]"
+          className="bg-green-300"
           size="sm"
           variant="solid"
         >

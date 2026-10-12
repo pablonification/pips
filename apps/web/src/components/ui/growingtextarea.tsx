@@ -4,7 +4,7 @@ import { cn } from '~/lib/utils';
 
 // Referensi: https://codepen.io/chriscoyier/pen/XWKEVLy
 
-export interface GrowingTextAreaProps extends TextareaProps {}
+export type GrowingTextAreaProps = TextareaProps;
 
 /**
  * A textarea component that grows based on its content.
@@ -26,7 +26,7 @@ const GrowingTextarea = React.forwardRef<
   return (
     <div
       ref={divRef}
-      className='grid after:invisible after:col-start-1 after:col-end-2 after:row-start-1 after:row-end-2 after:whitespace-pre-wrap after:break-all after:border after:border-[#E2E8F0] after:px-6 after:py-4 after:content-[attr(data-replicated-value)_"_"]'
+      className='grid after:invisible after:col-start-1 after:col-end-2 after:row-start-1 after:row-end-2 after:border after:border-[#E2E8F0] after:px-6 after:py-4 after:break-all after:whitespace-pre-wrap after:content-[attr(data-replicated-value)_"_"]'
     >
       <Textarea
         onInput={(e) => {
@@ -36,7 +36,7 @@ const GrowingTextarea = React.forwardRef<
         }}
         className="col-start-1 col-end-2 row-start-1 row-end-2 h-full"
         inputClassName={cn(
-          'resize-none overflow-hidden break-words',
+          'resize-none overflow-hidden wrap-break-word',
           className,
         )}
         inputContainerClassName="h-full"

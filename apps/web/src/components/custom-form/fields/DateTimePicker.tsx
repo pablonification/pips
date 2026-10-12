@@ -16,8 +16,10 @@ import dayjs from 'dayjs';
 import generateTimeOptions from '~/lib/generateTimeOptions';
 import clsx from 'clsx';
 
-interface DateTimePickerProps<TFV extends FieldValues>
-  extends Pick<FormProps<TFV>, 'form'> {
+interface DateTimePickerProps<TFV extends FieldValues> extends Pick<
+  FormProps<TFV>,
+  'form'
+> {
   startName: FieldPath<TFV>;
   endName: FieldPath<TFV>;
   placeholder: string;
@@ -26,8 +28,10 @@ interface DateTimePickerProps<TFV extends FieldValues>
   className?: string;
 }
 
-interface TimePickerProps<TFV extends FieldValues>
-  extends Pick<FormProps<TFV>, 'form'> {
+interface TimePickerProps<TFV extends FieldValues> extends Pick<
+  FormProps<TFV>,
+  'form'
+> {
   timeDisplay: string;
   baseDate: string;
   name: FieldPath<TFV>;
@@ -80,9 +84,9 @@ export default function DateTimePicker<T extends FieldValues>(
             <Calendar
               onChange={(date) => {
                 // eslint-disable-next-line
-              form.setValue(startName, date.toISOString() as any);
+                form.setValue(startName, date.toISOString() as any);
                 // eslint-disable-next-line
-              form.setValue(endName, date.toISOString() as any);
+                form.setValue(endName, date.toISOString() as any);
               }}
               isMobile={false}
               defaultDate={watchStart && new Date(watchStart)}

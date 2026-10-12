@@ -34,9 +34,9 @@ function Timeline() {
   );
 
   const allEvents = [
-    ...(useLeft ? leftEvents ?? [] : []),
+    ...(useLeft ? (leftEvents ?? []) : []),
     ...(middleEvents ?? []),
-    ...(useRight ? rightEvents ?? [] : []),
+    ...(useRight ? (rightEvents ?? []) : []),
   ];
 
   const dates: Dayjs[] = [];
@@ -54,7 +54,7 @@ function Timeline() {
   return (
     <>
       {/* Date Section */}
-      <section className="grid w-full max-w-screen-md grid-cols-7 justify-between gap-1 px-4 sm:gap-4">
+      <section className="grid w-full max-w-(--breakpoint-md) grid-cols-7 justify-between gap-1 px-4 sm:gap-4">
         {dates.map((date) => (
           <Dates
             key={date.toString()}
@@ -66,7 +66,7 @@ function Timeline() {
       </section>
 
       {/* Schedule Section */}
-      <section className="mt-2 flex w-full max-w-screen-md flex-col gap-4 px-6 pb-28 lg:mt-10 lg:pb-6">
+      <section className="mt-2 flex w-full max-w-(--breakpoint-md) flex-col gap-4 px-6 pb-28 lg:mt-10 lg:pb-6">
         <p className="self-start font-semibold">Schedule Today</p>
 
         <div className="flex justify-between px-1 text-[#BCC1CD]">

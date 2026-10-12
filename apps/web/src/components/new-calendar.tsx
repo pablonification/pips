@@ -73,7 +73,7 @@ export default function Calendar({
               <div
                 className={cn(
                   isMobile
-                    ? 'size-[2.125rem] rounded-[0.625rem] border-[#CED3DE]/50'
+                    ? 'size-8.5 rounded-[0.625rem] border-[#CED3DE]/50'
                     : 'size-[20px] rounded-full border-black',
                   'flex items-center justify-center border',
                 )}
@@ -92,7 +92,7 @@ export default function Calendar({
               <div
                 className={cn(
                   isMobile
-                    ? 'size-[2.125rem] rounded-[0.625rem] border-[#CED3DE]/50'
+                    ? 'size-8.5 rounded-[0.625rem] border-[#CED3DE]/50'
                     : 'size-[20px] rounded-full border-black',
                   'flex items-center justify-center border',
                 )}
@@ -117,7 +117,7 @@ export default function Calendar({
               <div
                 key={index}
                 className={cn(
-                  'grid select-none place-content-center text-center text-sm text-[#8F9BB3]',
+                  'grid place-content-center text-center text-sm text-[#8F9BB3] select-none',
                   dayClassName,
                 )}
               >
@@ -150,7 +150,7 @@ export default function Calendar({
                           date.toDate().toDateString()
                         ? 'text-white'
                         : '',
-                      'grid size-8 cursor-pointer select-none place-content-center transition-all hover:bg-[#E2C66F]/50',
+                      'grid size-8 cursor-pointer place-content-center transition-all select-none hover:bg-[#E2C66F]/50',
                       dateClassName,
                     )}
                     onClick={() => {

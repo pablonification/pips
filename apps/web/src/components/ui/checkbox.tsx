@@ -21,7 +21,7 @@ const CheckboxGroup = React.forwardRef<HTMLDivElement, CheckboxGroupProps>(
             <CheckboxItem
               key={idx}
               checked={isChecked}
-              onCheckedChange={(checked: boolean) => {
+              onCheckedChange={(checked) => {
                 const newCheckedChoices = checked
                   ? [...selectedValues, choice]
                   : selectedValues.filter((item) => item !== choice);
@@ -50,11 +50,11 @@ const CheckboxItem = React.forwardRef<
         className,
       )}
     >
-      <div className="absolute left-2 top-1/2 -translate-y-1/2">
+      <div className="absolute top-1/2 left-2 -translate-y-1/2">
         <CheckboxPrimitive.Root
           ref={ref}
           className={cn(
-            'flex h-4 w-4 items-center justify-center rounded-full border border-primary text-primary ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+            'flex h-4 w-4 items-center justify-center rounded-full border border-primary text-primary ring-offset-background focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
             className,
           )}
           {...props}
@@ -64,7 +64,7 @@ const CheckboxItem = React.forwardRef<
           </CheckboxPrimitive.Indicator>
         </CheckboxPrimitive.Root>
       </div>
-      <span className="block w-full cursor-pointer py-1 pl-8 pr-3 text-sm font-medium">
+      <span className="block w-full cursor-pointer py-1 pr-3 pl-8 text-sm font-medium">
         {children}
       </span>
     </label>

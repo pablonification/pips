@@ -139,7 +139,7 @@ function Timeline() {
 
       <Link
         to="/add-announcement"
-        className="fixed bottom-[120px] right-4 z-20 flex size-[4.5625rem] flex-col items-center justify-center rounded-full border-2 border-green-300 bg-yellow-75 lg:hidden"
+        className="fixed right-4 bottom-[120px] z-20 flex size-18.25 flex-col items-center justify-center rounded-full border-2 border-green-300 bg-yellow-75 lg:hidden"
       >
         <img src={MegaphoneIcon} className="mr-1 size-7" alt="" />
       </Link>

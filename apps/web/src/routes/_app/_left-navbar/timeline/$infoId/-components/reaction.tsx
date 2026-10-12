@@ -88,10 +88,10 @@ const Reaction = ({
   };
 
   return (
-    <div className="relative ml-0 mr-1">
+    <div className="relative mr-1 ml-0">
       {isActive && (
         <div
-          className="fixed left-0 top-0 z-20 h-screen w-full bg-black/10"
+          className="fixed top-0 left-0 z-20 h-screen w-full bg-black/10"
           onClick={toggleReaction}
         ></div>
       )}
@@ -220,7 +220,7 @@ const Reaction = ({
               return (
                 <div className="relative" key={index}>
                   {reaction.count > 1 && (
-                    <div className="absolute -bottom-1 -right-0 z-10 rounded-full bg-slate-200 px-1 text-[10px]">
+                    <div className="absolute right-0 -bottom-1 z-10 rounded-full bg-slate-200 px-1 text-[10px]">
                       {reaction.count}
                     </div>
                   )}

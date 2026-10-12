@@ -48,19 +48,19 @@ function SearchAndFilter() {
 
   return (
     <div className="relative w-[95%]">
-      <form className="ml-[9px] mr-[58px] flex w-full flex-col gap-4">
+      <form className="mr-[58px] ml-[9px] flex w-full flex-col gap-4">
         {/* Search Bar and Filter Button */}
         <div className="flex items-center gap-[2px]">
           <div className="flex h-10 w-full grow items-center overflow-hidden rounded-full border border-black">
             <Input
               type="text"
               placeholder="Search..."
-              className="grow border-none font-semibold text-gray-700 outline-none"
+              className="grow border-none font-semibold text-gray-700 outline-hidden"
             />
             <Button
               variant="solid"
               size="icon-sm"
-              className="rounded-full bg-[#305138] hover:bg-green-200"
+              className="rounded-full bg-green-300 hover:bg-green-200"
             >
               <img src={SearchIcon} alt="Search Icon" className="size-6" />
             </Button>
@@ -79,7 +79,7 @@ function SearchAndFilter() {
 
         {/* Filtercard */}
         {isFilterVisible && (
-          <div className="absolute left-3 right-0 top-8 z-10 mx-auto w-full max-w-[350px] rounded-[15px] bg-gray-100 p-3 shadow-md">
+          <div className="absolute top-8 right-0 left-3 z-10 mx-auto w-full max-w-[350px] rounded-[15px] bg-gray-100 p-3 shadow-md">
             <div className="mx-auto h-2 w-[50px] rounded-full bg-[#3C3C434D]" />
             <div className="mt-2 flex flex-col gap-4">
               <div className="flex items-center justify-between">
@@ -115,11 +115,11 @@ function SearchAndFilter() {
                   className="w-[250px] grid-flow-col-dense gap-3"
                 />
               </div>
-              <Separator className="mb-[13px] mt-[60px] border-t-[1.3px] border-[#8e8e93]" />
+              <Separator className="mt-[60px] mb-[13px] border-t-[1.3px] border-[#8e8e93]" />
               <div className="mb-[18px] flex items-center justify-center gap-3">
                 <Button
                   variant="outlined"
-                  className="w-[100px] bg-[#305138] text-white"
+                  className="w-[100px] bg-green-300 text-white"
                   size="sm"
                   onClick={toggleFilterVisibility}
                 >

@@ -1,4 +1,2 @@
 packages:
   - apps/*
-# pnpm 10+ reads settings here (pnpm 9 reads .npmrc): each app keeps its own lockfile until the toolchain upgrade.
-sharedWorkspaceLockfile: false

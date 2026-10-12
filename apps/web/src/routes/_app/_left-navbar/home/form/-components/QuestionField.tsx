@@ -21,8 +21,8 @@ export default function QuestionField(props: Readonly<ComponentProps>) {
   const { question, value, onChange, error, disabled, required = true } = props;
 
   return (
-    <div className="flex w-full flex-col gap-2 break-words">
-      <Label className="break-words text-sm">
+    <div className="flex w-full flex-col gap-2 wrap-break-word">
+      <Label className="text-sm wrap-break-word">
         {question.label}
         {required && <span className="text-red-500"> *</span>}
       </Label>
@@ -53,10 +53,10 @@ export default function QuestionField(props: Readonly<ComponentProps>) {
           {(question.options ?? []).map((option) => (
             <label
               key={option}
-              className="flex items-start gap-2 break-words text-sm"
+              className="flex items-start gap-2 text-sm wrap-break-word"
             >
               <RadioGroupItem value={option} className="mt-0.5 shrink-0" />
-              <span className="break-words">{option}</span>
+              <span className="wrap-break-word">{option}</span>
             </label>
           ))}
         </RadioGroup>

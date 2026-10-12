@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import clsx from 'clsx';
 import dayjs from 'dayjs';
 import { FieldPath, FieldValues } from 'react-hook-form';
@@ -10,8 +11,10 @@ import {
 } from '~/components/ui/popover';
 import { FormProps } from '../-types';
 
-interface DatePickerProps<TFV extends FieldValues>
-  extends Pick<FormProps<TFV>, 'form'> {
+interface DatePickerProps<TFV extends FieldValues> extends Pick<
+  FormProps<TFV>,
+  'form'
+> {
   name: FieldPath<TFV>;
   placeholder: string;
   icon?: string;

@@ -6,13 +6,13 @@ function SettingsDekstop() {
   const user = useSession();
   const { userAcademic } = useUserAcademic();
   return (
-    <div className="hidden px-6 py-[3.25rem] lg:block">
+    <div className="hidden px-6 py-13 lg:block">
       <UserInfo
         name={user.fullName}
         email={user.email}
         imageURL={user.picture}
         className="w-full gap-4 rounded-md border border-[#D2D5DA] px-5 py-4 lg:gap-9"
-        avatarClassName="size-[3.3125rem] lg:size-[5.25rem]"
+        avatarClassName="size-13.25 lg:size-21"
         nameClassName="font-bold lg:text-heading-md"
         emailClassName="text-[#B0B3B0] lg:text-body-xl lg:text-neutral-darker"
       />

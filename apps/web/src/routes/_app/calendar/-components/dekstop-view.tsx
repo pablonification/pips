@@ -132,7 +132,7 @@ function DesktopView({
             <div key={day}>{day}</div>
           ))}
         </div>
-        <div className="grid min-h-0 flex-auto grid-cols-7 grid-rows-6 border-l border-t border-gray-300">
+        <div className="grid min-h-0 flex-auto grid-cols-7 grid-rows-6 border-t border-l border-gray-300">
           {calendarDays?.map(
             ({ date, currentMonth: isCurrentMonth }, index) => (
               <CalendarDay

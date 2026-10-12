@@ -9,6 +9,10 @@
       "WebWorker"
     ],
     "module": "ESNext",
+    /* TypeScript 6 no longer includes every @types package by default; the app uses Node's types (timers). */
+    "types": [
+      "node"
+    ],
     "skipLibCheck": true,
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -24,10 +28,9 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "~/*": [
-        "src/*"
+        "./src/*"
       ],
-    },
-    "baseUrl": "."
+    }
   },
   "include": [
     "src"
