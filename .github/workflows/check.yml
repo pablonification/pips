@@ -28,3 +28,47 @@ jobs:
         run: pnpm build
       - name: No test login in the production bundle
         run: node apps/web/scripts/verify-production-bundle.mjs apps/web/dist
+
+  docker:
+    name: docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Both images build from the repository root, as Dokploy will build them.
+      - name: Build the web image
+        run: docker build -f apps/web/Dockerfile -t pips-web .
+      - name: Build the api image
+        run: docker build -f apps/api/Dockerfile -t pips-api .
+      - name: The web image serves index.html, also for app routes
+        run: |
+          docker run -d --name web -p 3000:3000 pips-web
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:3000/ -o /dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:3000/ | grep -q '<div id="root">'
+          curl -fsS http://127.0.0.1:3000/home | grep -q '<div id="root">'
+          curl -fsS -o /dev/null http://127.0.0.1:3000/manifest.webmanifest
+      - name: The api image starts and serves until it needs its database
+        run: |
+          # Placeholder settings only: nothing here is a real secret, and the database address leads nowhere.
+          # Web push checks its key pair at startup, so make a throwaway one with the image's own web-push.
+          read -r PUB PRIV < <(docker run --rm pips-api node -e \
+            "const k=require('web-push').generateVAPIDKeys();console.log(k.publicKey+' '+k.privateKey)")
+          docker run -d --name api -p 5000:5000 \
+            -e VAPID_PUBLIC_KEY="$PUB" -e VAPID_PRIVATE_KEY="$PRIV" \
+            -e DATABASE_URL=postgres://pips:pips@127.0.0.1:1/pips \
+            -e SMTP_HOST=localhost -e SMTP_PORT=25 -e SMTP_PASS=ci \
+            -e GOOGLE_CLIENT_ID=ci -e GOOGLE_CLIENT_SECRET=ci \
+            -e GOOGLE_CALLBACK_URL=http://127.0.0.1/callback \
+            -e JWT_SECRET=ci -e TOKEN_EXPIRATION=1h \
+            -e R2_ENDPOINT=http://127.0.0.1:1 -e R2_PUBLIC_URL=http://127.0.0.1:1 \
+            pips-api
+          for i in $(seq 1 60); do curl -fsS http://127.0.0.1:5000/ -o /dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:5000/ | grep -q 'Server runs successfully'
+          docker logs api 2>&1 | grep -q 'Server is running on port 5000'
+          # Routes that need the database answer; /api/me without a session is 401 before any query.
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5000/api/me)" = 401
+          test "$(docker inspect -f '{{.State.Running}}' api)" = true
+      - name: Container logs
+        if: always()
+        run: |
+          docker logs web 2>&1 | tail -n 50 || true
+          docker logs api 2>&1 | tail -n 80 || true
