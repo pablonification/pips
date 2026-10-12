@@ -472,6 +472,13 @@
     .g-body.wide {
       max-width: 1180px;
     }
+    /* Beranda's frame and agenda slot keep their place in the tree on desktop, without boxes of their own there: the
+       head, the agenda and the content lay out as the page's own. */
+    .g-home,
+    .g-home-agenda,
+    .g-home-agenda > .g-lap {
+      display: contents;
+    }
     .g-d-head {
       display: flex;
       align-items: flex-end;

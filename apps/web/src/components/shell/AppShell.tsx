@@ -199,11 +199,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {desk ? (
-        <DeskShell route={route}>{children}</DeskShell>
-      ) : (
-        <TouchShell route={route}>{children}</TouchShell>
-      )}
+      <Frame route={route} desk={desk}>
+        {children}
+      </Frame>
       {paletteOpen ? (
         <Suspense fallback={null}>
           <Palette />
@@ -217,7 +215,11 @@ export function AppShell({ children }: { children: ReactNode }) {
  * The page area's height (the scrolling area below the top bar or the breadcrumbs) as --g-page-h on `root`, so
  * today's screens that fill "the screen" fill the space between the bars instead (shell.css).
  */
-function usePageHeight(root: HTMLElement | null, pathname: string) {
+function usePageHeight(
+  root: HTMLElement | null,
+  pathname: string,
+  desk: boolean,
+) {
   useEffect(() => {
     if (!root) return;
     const scroller = root.querySelector<HTMLElement>(
@@ -242,7 +244,7 @@ function usePageHeight(root: HTMLElement | null, pathname: string) {
     for (const el of scroller.querySelectorAll('.g-top, .g-crumbs'))
       ro.observe(el);
     return () => ro.disconnect();
-  }, [root, pathname]);
+  }, [root, pathname, desk]);
 }
 
 function SkipLink() {
@@ -286,24 +288,77 @@ function AvatarLink({ name, initials }: { name: string; initials: string }) {
   );
 }
 
-/* ================= Phones and tablets ================= */
+/* ================= The frame ================= */
 
-function TouchShell({
+/**
+ * One tree for every layout (review M2): the page (`main#isi` and what's in it) and its scrolling area stay at the
+ * same place whatever the width, and only the chrome around them changes: the top bar and the tab bar or rail
+ * below 1024 px, the sidebar and the breadcrumbs from 1024 px. So rotating a tablet or resizing a window across
+ * 1024 px keeps what the member typed and where they were. Chrome that isn't shown renders as null in its slot.
+ */
+function Frame({
   route,
+  desk,
   children,
 }: {
   route: ShellRoute;
+  desk: boolean;
   children: ReactNode;
 }) {
   const me = useMe();
   const lastRoot = useLastRoot();
   const badges = useNavBadges();
   const [slot, setSlot] = useState<HTMLElement | null>(null);
-  const [shellEl, setShellEl] = useState<HTMLElement | null>(null);
-  usePageHeight(shellEl, route.pathname);
+  const [root, setRoot] = useState<HTMLElement | null>(null);
+  usePageHeight(root, route.pathname, desk);
+  const trail = desk && route.path ? trailOf(route.path, route.params) : [];
+
+  return (
+    <div className={desk ? 'g-desk' : 'g-shell'} ref={setRoot}>
+      <SkipLink />
+      {desk ? (
+        <Sidebar route={route} lastRoot={lastRoot} badges={badges} />
+      ) : null}
+      <div
+        className={desk ? 'g-desk-scroll' : 'g-scroll'}
+        data-scroll-restoration-id="isi"
+      >
+        {desk ? null : (
+          <TopBar route={route} lastRoot={lastRoot} me={me} onSlot={setSlot} />
+        )}
+        <main id="isi" tabIndex={-1} className="g-main">
+          {trail.length > 1 ? <Crumbs route={route} trail={trail} /> : null}
+          <TopBarSlot.Provider value={desk ? null : slot}>
+            <Page meta={route.meta}>{children}</Page>
+          </TopBarSlot.Provider>
+        </main>
+      </div>
+      {desk || route.meta.focused ? null : (
+        <TabBar
+          active={route.path ? activeItem(route.path, 'touch', lastRoot) : null}
+          badges={badges}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ================= Phones and tablets ================= */
+
+/** The top bar: Beranda's gold bar, a tab's own page (search and you), or back and the page's title. */
+function TopBar({
+  route,
+  lastRoot,
+  me,
+  onSlot,
+}: {
+  route: ShellRoute;
+  lastRoot: Destination;
+  me: { name: string; initials: string };
+  onSlot: (el: HTMLElement | null) => void;
+}) {
   const beranda = route.path === '/';
   const root = route.path ? isRootPage(route.path) : false;
-  const active = route.path ? activeItem(route.path, 'touch', lastRoot) : null;
 
   let bar: ReactNode;
   if (beranda) {
@@ -333,25 +388,11 @@ function TouchShell({
         <h1 className="g-top-title" data-page-title="" tabIndex={-1}>
           {route.title}
         </h1>
-        <div className="g-top-actions" ref={setSlot} />
+        <div className="g-top-actions" ref={onSlot} />
       </>
     );
   }
-
-  return (
-    <div className="g-shell" ref={setShellEl}>
-      <SkipLink />
-      <div className="g-scroll" data-scroll-restoration-id="isi">
-        <header className={cn('g-top', beranda && 'gold')}>{bar}</header>
-        <main id="isi" tabIndex={-1} className="g-main">
-          <TopBarSlot.Provider value={slot}>
-            <Page meta={route.meta}>{children}</Page>
-          </TopBarSlot.Provider>
-        </main>
-      </div>
-      {route.meta.focused ? null : <TabBar active={active} badges={badges} />}
-    </div>
-  );
+  return <header className={cn('g-top', beranda && 'gold')}>{bar}</header>;
 }
 
 /** Back: to the previous page when history has one from this app, otherwise up to the page above (SPEC story 18). */
@@ -445,96 +486,85 @@ function TabBar({
 
 /* ================= Desktop ================= */
 
-function DeskShell({
+/** The desktop sidebar (`renderDesk`): the official logo, the wordmark, search, every destination, you at the foot. */
+function Sidebar({
   route,
-  children,
+  lastRoot,
+  badges,
 }: {
   route: ShellRoute;
-  children: ReactNode;
+  lastRoot: Destination;
+  badges: NavBadges;
 }) {
   const me = useMe();
   const user = useSession();
-  const lastRoot = useLastRoot();
-  const badges = useNavBadges();
   const active = route.path ? activeItem(route.path, 'desk', lastRoot) : null;
   const kelola = servicesByGroup(user).some((g) => g.group === 'Kelola');
-  const trail = route.path ? trailOf(route.path, route.params) : [];
   const mod = modKeyLabel(navigator.platform);
-  const [root, setRoot] = useState<HTMLElement | null>(null);
-  usePageHeight(root, route.pathname);
 
   return (
-    <div className="g-desk" ref={setRoot}>
-      <SkipLink />
-      <div className="g-side">
-        <div className="g-side-brand">
-          <HmifLogo width={54} />
-          <div>
-            <Wordmark size={20} />
-            <p className="sub">{common.app.org}</p>
-          </div>
+    <div className="g-side">
+      <div className="g-side-brand">
+        <HmifLogo width={54} />
+        <div>
+          <Wordmark size={20} />
+          <p className="sub">{common.app.org}</p>
         </div>
-        <button type="button" className="g-side-search" {...searchProps}>
-          <IconCari size={16} />
-          <span>{common.shell.cari}</span>
-          <Kbd aria-hidden="true">{mod}</Kbd>
-        </button>
-        <nav className="g-side-nav" aria-label={common.shell.navigasiUtama}>
-          {DESTINATIONS.map((d) => {
-            const Icon = ICON[d];
-            const n = badges[d] ?? 0;
-            return (
-              <Link
-                key={d}
-                to={DESTINATION_PATH[d]}
-                className="g-side-item"
-                aria-current={active === d ? 'page' : undefined}
-                activeOptions={{ exact: true }}
-              >
-                <Icon size={20} />
-                <span>{common.nav[d]}</span>
-                {n > 0 ? (
-                  <span className="n">
-                    <span aria-hidden="true">{n}</span>
-                    <span className="sr-only">
-                      {fill(common.shell.belumDibaca, { jumlah: n })}
-                    </span>
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
-          {kelola ? (
+      </div>
+      <button type="button" className="g-side-search" {...searchProps}>
+        <IconCari size={16} />
+        <span>{common.shell.cari}</span>
+        <Kbd aria-hidden="true">{mod}</Kbd>
+      </button>
+      <nav className="g-side-nav" aria-label={common.shell.navigasiUtama}>
+        {DESTINATIONS.map((d) => {
+          const Icon = ICON[d];
+          const n = badges[d] ?? 0;
+          return (
             <Link
-              to="/kelola"
+              key={d}
+              to={DESTINATION_PATH[d]}
               className="g-side-item"
-              aria-current={active === 'kelola' ? 'page' : undefined}
+              aria-current={active === d ? 'page' : undefined}
               activeOptions={{ exact: true }}
             >
-              <IconKelola size={20} />
-              <span>{common.nav.kelola}</span>
+              <Icon size={20} />
+              <span>{common.nav[d]}</span>
+              {n > 0 ? (
+                <span className="n">
+                  <span aria-hidden="true">{n}</span>
+                  <span className="sr-only">
+                    {fill(common.shell.belumDibaca, { jumlah: n })}
+                  </span>
+                </span>
+              ) : null}
             </Link>
-          ) : null}
-        </nav>
-        <Link
-          to="/profil"
-          className="g-side-me"
-          aria-current={active === 'profil' ? 'page' : undefined}
-          activeOptions={{ exact: true }}
-        >
-          <Avatar initials={me.initials} shape="square" />
-          <span>
-            <b>{me.name}</b>
-            <span className="s">{common.nav.profil}</span>
-          </span>
-        </Link>
-      </div>
-      <div className="g-desk-scroll" data-scroll-restoration-id="isi">
-        <main id="isi" tabIndex={-1} className="g-main">
-          {trail.length > 1 ? <Crumbs route={route} trail={trail} /> : null}
-          <Page meta={route.meta}>{children}</Page>
-        </main>
-      </div>
+          );
+        })}
+        {kelola ? (
+          <Link
+            to="/kelola"
+            className="g-side-item"
+            aria-current={active === 'kelola' ? 'page' : undefined}
+            activeOptions={{ exact: true }}
+          >
+            <IconKelola size={20} />
+            <span>{common.nav.kelola}</span>
+          </Link>
+        ) : null}
+      </nav>
+      <Link
+        to="/profil"
+        className="g-side-me"
+        aria-current={active === 'profil' ? 'page' : undefined}
+        activeOptions={{ exact: true }}
+      >
+        <Avatar initials={me.initials} shape="square" />
+        <span>
+          <b>{me.name}</b>
+          <span className="s">{common.nav.profil}</span>
+        </span>
+      </Link>
     </div>
   );
 }

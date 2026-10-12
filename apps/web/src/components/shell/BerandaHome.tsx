@@ -32,25 +32,22 @@ export function BerandaHome({
   const greeting = fill(common.shell.halo, {
     nama: firstNameOf(user.fullName),
   });
-  if (desk) {
-    return (
-      <>
-        <DeskHead title={greeting} />
-        {agenda}
-        {children}
-      </>
-    );
-  }
+  // One tree on every layout (review M2): P1-A's agenda and content keep their place, and their state, when the
+  // width crosses 1024 px; only the head changes (the gold header below 1024 px, the desktop head from there).
   return (
     <div className="g-home">
-      <div className={cn('g-hero', agenda ? 'lap' : undefined)}>
-        <span className="g-hero-ht">
-          <Halftone length={216} />
-        </span>
-        <PageTitle className="g-hero-hi">{greeting}</PageTitle>
-      </div>
+      {desk ? (
+        <DeskHead title={greeting} />
+      ) : (
+        <div className={cn('g-hero', agenda ? 'lap' : undefined)}>
+          <span className="g-hero-ht">
+            <Halftone length={216} />
+          </span>
+          <PageTitle className="g-hero-hi">{greeting}</PageTitle>
+        </div>
+      )}
       {agenda ? (
-        <PageBody className="pt-0">
+        <PageBody className="g-home-agenda pt-0">
           <div className="g-lap">{agenda}</div>
         </PageBody>
       ) : null}
