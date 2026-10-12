@@ -25,6 +25,7 @@ import type {
 } from '../../src/api/generated';
 import {
   NOW,
+  formSectionsVisibleFor,
   formStatusFor,
   isSpartaEligible,
   spartaWindowFor,
@@ -334,7 +335,7 @@ export const defaultHandlers: Record<string, Handler> = {
       ? ok<R<FormService['listAllForms']>>({ forms: db.adminForms })
       : reply.status(403),
   ),
-  // As the API answers: the member's status, and no questions until the form opens (kept once it closes).
+  // As the API answers: the member's status, and no questions until the form opens, even if switched off (kept once it closes).
   'GET /api/form/:formId': signedIn(({ db, params }) => {
     const form = Object.values(db.formDetails).find(
       (f) => f.id === params.formId || f.slug === params.formId,
@@ -345,11 +346,9 @@ export const defaultHandlers: Record<string, Handler> = {
       responded: !!db.myResponses[form.id],
       nim,
     });
-    const opened =
-      formStatusFor(form, { responded: false, nim }) !== 'not_opened';
     return ok<R<FormService['getForm']>>({
       ...form,
-      sections: opened ? form.sections : null,
+      sections: formSectionsVisibleFor(form, nim) ? form.sections : null,
       status,
     });
   }),

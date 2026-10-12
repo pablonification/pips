@@ -106,6 +106,41 @@ test('questions show from opening (early access too), and stay visible once clos
   assert.equal(sectionCount({ sections: [1, 2, 3, 4, 5] }), 5);
 });
 
+// Regression (review M2): a form switched off before it opened counted as closed, and a closed form shows its
+// questions, so they leaked before opening. Visibility depends on opening alone, as it did before this branch.
+test('a switched-off form, or one whose closing time is before its opening, hides its questions until it opens', () => {
+  const before = opensAt.getTime() - 1;
+  assert.equal(
+    formSectionsVisible(win({ isActive: false }), nim, before),
+    false,
+  );
+  assert.equal(
+    formSectionsVisible(
+      win({ closesAt: new Date(opensAt.getTime() - 60_000) }),
+      nim,
+      before,
+    ),
+    false,
+  );
+  assert.equal(
+    formSectionsVisible(win({ isActive: false }), EARLY_ACCESS_NIMS[0], before),
+    true,
+  );
+  assert.equal(
+    formSectionsVisible(win({ isActive: false }), nim, opensAt),
+    true,
+  );
+  // The status is still closed: switched off wins over not opened.
+  assert.equal(
+    formStatus(win({ isActive: false }), {
+      hasResponse: false,
+      nim,
+      now: before,
+    }),
+    'closed',
+  );
+});
+
 // --- the routes, storage faked ---
 
 const nadia = testUser('u-nadia', { nim, angkatan: 2025 });
@@ -214,6 +249,17 @@ test('GET /form/{id}: status; sections null until opening, kept once closed', as
   );
   assert.equal(closed.body.status, 'closed');
   assert.equal(closed.body.sections.length, 2);
+
+  const offBeforeOpening = await callRouter(
+    world(
+      pixelForm({ opensAt: new Date('2026-12-01T06:00:00Z'), isActive: false }),
+    ).router,
+    nadia,
+    'GET',
+    '/form/pixel',
+  );
+  assert.equal(offBeforeOpening.body.status, 'closed');
+  assert.equal(offBeforeOpening.body.sections, null);
 
   const done = await callRouter(
     world(pixelForm(), true).router,

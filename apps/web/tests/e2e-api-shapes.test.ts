@@ -77,6 +77,18 @@ test('a form not open yet has no questions', () => {
   assert.equal(detail.sections, null);
 });
 
+// Regression (review M2): a form switched off before it opened is closed, and its questions stay hidden.
+test('a switched-off form keeps its questions hidden until it opens', () => {
+  const db = buildDb('anggota');
+  db.formDetails.pixel.opensAt = '2026-12-01T06:00:00.000Z';
+  db.formDetails.pixel.isActive = false;
+  const detail = call(get('/api/form/:formId'), db, {
+    params: { formId: 'pixel' },
+  });
+  assert.equal(detail.status, 'closed');
+  assert.equal(detail.sections, null);
+});
+
 test('PIXEL q1 and q2 ask for prefill', () => {
   const q = buildDb('anggota').formDetails.pixel.sections!.flatMap(
     (s) => s.questions,

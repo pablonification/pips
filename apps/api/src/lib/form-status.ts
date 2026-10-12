@@ -32,13 +32,19 @@ export function formStatus(
   return 'open';
 }
 
-/** Whether a form's questions may be shown: once it opens (or early access), and still once it closes (read-only). */
+/**
+ * Whether a form's questions may be shown: from its opening time (or early access), whatever its status, so a
+ * closed form stays readable once it has opened. Switched off or closed before opening still hides them.
+ */
 export function formSectionsVisible(
-  form: FormWindow,
+  form: Pick<FormWindow, 'opensAt'>,
   nim: string,
   now: Date | number = Date.now(),
 ): boolean {
-  return formStatus(form, { hasResponse: false, nim, now }) !== 'not_opened';
+  return (
+    new Date(now).getTime() >= new Date(form.opensAt).getTime() ||
+    EARLY_ACCESS_NIMS.includes(nim)
+  );
 }
 
 /** Number of sections, for the list ("5 bagian"). */

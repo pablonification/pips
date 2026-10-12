@@ -410,6 +410,18 @@ export function formStatusFor(
   return 'open';
 }
 
+/** Whether a form's questions are shown, as the API's formSectionsVisible: from opening (or early access) on. */
+export function formSectionsVisibleFor(
+  form: Pick<FormDetail, 'opensAt'>,
+  nim: string,
+  now = NOW,
+): boolean {
+  return (
+    Date.parse(now) >= Date.parse(form.opensAt) ||
+    EARLY_ACCESS_NIMS.includes(nim)
+  );
+}
+
 /** Magang SPARTA's audience and window, as the API has them (apps/api/src/lib/sparta-window.ts). */
 export const SPARTA_ELIGIBLE_ANGKATAN = [2025];
 export const SPARTA_ELIGIBLE_NIMS = ['13524108', '18224053', '18224112'];
