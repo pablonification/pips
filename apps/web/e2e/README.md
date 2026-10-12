@@ -51,8 +51,12 @@ goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
 - **The shell** (P0-C): `navLink(page, 'Beranda' | 'Pengumuman' | 'Kalender' | 'Layanan' | 'Profil')` finds a
   destination in whichever navigation the layout shows (Profil: your avatar, or your name in the sidebar);
   `greeting(page, 'Nadia')` is Beranda's "Halo, Nadia"; `inMain(page, text)` finds text in the page, not the
-  shell. On phones and tablets a drill-down page's title is also the top bar's `h1`, so look for a screen's own
-  headings inside `page.getByRole('main')`.
+  shell. On phones and tablets a drill-down page's title is also the top bar's `h1` (unless the screen shows its own
+  `PageTitle`; then the top bar's title is hidden from screen readers), so look for a screen's own headings inside
+  `page.getByRole('main')`.
+- **The shell's test page** `/dev/shell` (`src/dev/shell/`, development, staging and the harness's build only): a
+  page below Layanan with its own title, top-bar actions, a field and 30 buttons; `?judul=…` gives it a title from
+  data. `journeys/shell-page.spec.ts` checks the shell's slots on it until real screens use them.
 - **Defaults:** time zone `Asia/Jakarta`, locale `id-ID`, service workers blocked, reduced motion, CSS
   animations and transitions off, and a fixed clock: **Kamis, 8 Oktober 2026, 13.35 WIB** (the prototype's
   "now"; see `fixtures/NOTES.md`). Time then runs normally from there.
@@ -63,6 +67,9 @@ goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
   - `installed` (default `true`): runs as the installed PWA. Until P0-B removed it, the production build showed
     phone browsers an install tutorial instead of the app; `installed: false` checks it is gone.
   - `now`: another fixed time (ISO string), or `null` for the real clock.
+  - `platform`: what `navigator.platform` reports (`'MacIntel'`, `'Linux x86_64'`), or `null` (default) for the
+    browser's own. The app names the search shortcut by platform (⌘K on Apple, Ctrl K elsewhere); the fidelity
+    captures run as `'Linux x86_64'`, where the locked screens were rendered.
 - **Fixtures:** `db` is this test's own copy of the persona's data (`fixtures/api.ts`); `api` is the mock layer.
 
 ## Fixtures
