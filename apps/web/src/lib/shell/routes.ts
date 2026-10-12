@@ -128,9 +128,13 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     deskRoot: 'kelola',
     legacy: true,
   },
-  '/kelola/live': { title: svc('live'), parent: '/kelola', legacy: true },
+  '/kelola/live': {
+    title: common.shell.liveCounting,
+    parent: '/kelola',
+    legacy: true,
+  },
   '/kelola/live/$formId': {
-    title: svc('live'),
+    title: common.shell.liveCounting,
     parent: '/kelola/live',
     legacy: true,
   },

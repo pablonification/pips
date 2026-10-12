@@ -39,6 +39,9 @@ export const common = {
     notifikasi: 'Notifikasi',
     kredit: 'Kredit',
     ruang: 'Ruang',
+    // Kelola's Live Counting pages: the prototype's titleOf ("Kelola › Live Counting"); the page's own heading is
+    // the service's full name.
+    liveCounting: 'Live Counting',
     judulDokumen: '{judul} · PIPS!',
   },
   // Global search (garis/app.js `palIndex`, `renderPal` and the palette in hmif-garis-prototype.html).
