@@ -21,6 +21,12 @@ async function open(page: Page) {
   await page.evaluate(() => document.fonts.ready);
 }
 
+/** The toasts' two live regions (always in the page): successes are polite, errors assertive. */
+const politeToasts = (page: Page) =>
+  page.locator('.g-toasts [aria-live="polite"]');
+const assertiveToasts = (page: Page) =>
+  page.locator('.g-toasts [aria-live="assertive"]');
+
 async function strictGates(page: Page, testInfo: TestInfo, name: string) {
   const a = await audit(page);
   await testInfo.attach(`gates-${name}.json`, {
@@ -123,6 +129,54 @@ test('Seg is a radio group the arrow keys move; Switch and Chip report their sta
   await expect(chip).toHaveAttribute('aria-pressed', 'true');
 });
 
+// Review M4: chips could only be toggle buttons; the prototype also uses them as checkboxes (the composer's categories)
+// and as a radio group (the class picker).
+test('chips work as toggles, as checkboxes with a check, and as a radio group with one tab stop and arrow keys', async ({
+  page,
+}) => {
+  await open(page);
+  const cats = page.getByRole('group', { name: 'Kategori' });
+  const akademik = cats.getByRole('checkbox', { name: 'Akademik' });
+  const lomba = cats.getByRole('checkbox', { name: 'Lomba' });
+  await expect(akademik).toBeChecked();
+  await expect(akademik).not.toHaveAttribute('aria-pressed');
+  await expect(akademik.locator('svg')).toHaveCount(1);
+  await expect(lomba).not.toBeChecked();
+  await expect(lomba.locator('svg')).toHaveCount(0);
+  await lomba.focus();
+  await page.keyboard.press('Space');
+  await expect(lomba).toBeChecked();
+  await expect(akademik).toBeChecked();
+  await akademik.click();
+  await expect(akademik).not.toBeChecked();
+
+  const kelas = page.getByRole('radiogroup', { name: 'Kelas IF2110' });
+  const k = (n: number) => kelas.getByRole('radio', { name: `K${n}` });
+  for (const n of [1, 2, 3]) await expect(k(n)).not.toBeChecked();
+  // One tab stop: the first chip while none is chosen.
+  await expect(kelas.locator('[tabindex="0"]')).toHaveCount(1);
+  await expect(k(1)).toHaveAttribute('tabindex', '0');
+  await k(1).focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(k(2)).toBeChecked();
+  await expect(k(2)).toBeFocused();
+  await expect(k(2)).toHaveAttribute('tabindex', '0');
+  await expect(k(1)).toHaveAttribute('tabindex', '-1');
+  await page.keyboard.press('End');
+  await expect(k(3)).toBeChecked();
+  await page.keyboard.press('ArrowRight');
+  await expect(k(1)).toBeChecked();
+  await expect(k(1)).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(k(3)).toBeChecked();
+  await page.keyboard.press('Home');
+  await expect(k(1)).toBeChecked();
+  await expect(k(3)).not.toBeChecked();
+  // Choosing the chosen class again clears it, as in the prototype.
+  await k(1).click();
+  for (const n of [1, 2, 3]) await expect(k(n)).not.toBeChecked();
+});
+
 test('fields name their hint or error, and mark the error invalid', async ({
   page,
 }) => {
@@ -204,12 +258,12 @@ test('a confirmation is an alert dialog with Batal focused, and its action runs'
   await expect(dlg.getByRole('button', { name: 'Batal' })).toBeFocused();
   await dlg.getByRole('button', { name: 'Hapus ruang' }).click();
   await expect(dlg).toBeHidden();
-  await expect(
-    page.getByRole('status').filter({ hasText: 'Ruang dihapus.' }),
-  ).toBeVisible();
+  await expect(politeToasts(page).getByText('Ruang dihapus.')).toBeVisible();
 });
 
-test('a menu opens from the keyboard, arrow keys move between the items it can act on, and focus returns', async ({
+// Review M3: Radix skipped the disabled item, so its reason couldn't be reached by keyboard and choosing it did
+// nothing. As in the prototype, it stays focusable (aria-disabled) and choosing it says why, keeping the menu open.
+test('a menu opens from the keyboard, its unavailable item stays reachable and says why, and focus returns', async ({
   page,
 }) => {
   await open(page);
@@ -218,13 +272,16 @@ test('a menu opens from the keyboard, arrow keys move between the items it can a
   await page.keyboard.press('Enter');
   const menu = page.getByRole('menu');
   await expect(menu).toBeVisible();
+  const renotify = menu.getByRole('menuitem', { name: /Umumkan ulang/ });
+  await expect(renotify).toHaveAttribute('aria-disabled', 'true');
+  await expect(renotify).toContainText('Bisa lagi mulai 15.30');
+  await expect(renotify).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(menu).toBeVisible();
   await expect(
-    menu.getByRole('menuitem', { name: /Umumkan ulang/ }),
-  ).toHaveAttribute('aria-disabled', 'true');
-  await expect(
-    menu.getByRole('menuitem', { name: /Umumkan ulang/ }),
-  ).toContainText('Bisa lagi mulai 15.30');
-  // Opened from the keyboard, focus lands on the first item it can act on: the disabled one is skipped.
+    politeToasts(page).getByText(/Umumkan ulang bisa lagi mulai 15\.30/),
+  ).toBeVisible();
+  await page.keyboard.press('ArrowDown');
   await expect(
     menu.getByRole('menuitem', { name: 'Salin tautan' }),
   ).toBeFocused();
@@ -246,6 +303,88 @@ test('a menu opens from the keyboard, arrow keys move between the items it can a
   await expect(trigger).toBeFocused();
 });
 
+// Review m4: Radix marks the item under the pointer as highlighted, and that drew the focus ring on hover.
+test('a menu item under the pointer gets the hover fill only; keyboard focus gets the ring', async ({
+  page,
+}) => {
+  await open(page);
+  const trigger = page.getByRole('button', { name: 'Pilihan lain' });
+  await trigger.click();
+  const menu = page.getByRole('menu');
+  const copy = menu.getByRole('menuitem', { name: 'Salin tautan' });
+  await copy.hover();
+  await expect(copy).toHaveAttribute('data-highlighted', '');
+  const ring = (el: Element) => {
+    const cs = getComputedStyle(el);
+    return { outline: cs.outlineStyle, shadow: cs.boxShadow };
+  };
+  expect(await copy.evaluate(ring)).toEqual({
+    outline: 'none',
+    shadow: 'none',
+  });
+  await page.keyboard.press('Escape');
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('ArrowDown');
+  await expect(copy).toBeFocused();
+  expect((await copy.evaluate(ring)).outline).toBe('solid');
+});
+
+// Review M1: menus and popovers sat at z-index 30, under the scrim (40) and the panel (41) of a dialog or sheet.
+test('a menu opened inside a dialog shows above it, acts, and returns focus inside the dialog', async ({
+  page,
+}) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Buka dialog' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Detail acara' });
+  const trigger = dialog.getByRole('button', { name: 'Pilihan acara' });
+  await trigger.click();
+  const item = page
+    .getByRole('menu')
+    .getByRole('menuitem', { name: 'Salin tautan acara' });
+  await expect(item).toBeVisible();
+  // The item is the topmost element where it is drawn: nothing of the dialog covers it.
+  expect(
+    await item.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const top = document.elementFromPoint(
+        r.left + r.width / 2,
+        r.top + r.height / 2,
+      );
+      return el === top || el.contains(top);
+    }),
+  ).toBe(true);
+  await item.click();
+  await expect(page.getByRole('menu')).toBeHidden();
+  await expect(dialog).toBeVisible();
+  await expect(page.getByTestId('menu-result')).toHaveText(
+    'Tautan acara disalin',
+  );
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+});
+
+// The prototype's main pattern: a post's menu, then Hapus, then the confirmation. Closing it returns focus to the
+// menu's button, not to the page.
+test('a confirmation opened from a menu item returns focus to the menu button when it closes', async ({
+  page,
+}) => {
+  await open(page);
+  const trigger = page.getByRole('button', { name: 'Pilihan lain' });
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('End');
+  await expect(page.getByRole('menuitem', { name: 'Hapus' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  const dlg = page.getByRole('alertdialog', { name: 'Hapus pengumuman ini?' });
+  await expect(dlg).toBeVisible();
+  await expect(dlg.getByRole('button', { name: 'Batal' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dlg).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
 test('a popover closes on Escape and returns focus', async ({ page }) => {
   await open(page);
   const trigger = page.getByRole('button', { name: 'Reaksi' });
@@ -258,6 +397,40 @@ test('a popover closes on Escape and returns focus', async ({ page }) => {
   await expect(trigger).toBeFocused();
 });
 
+// Review M2: each toast mounted together with its role, which screen readers often don't announce. The live regions
+// are now always in the page, before the first toast, and stay readable while a dialog hides the rest.
+test('toasts are announced from live regions that exist before the first toast, polite for successes and assertive for errors', async ({
+  page,
+}) => {
+  await open(page);
+  await expect(politeToasts(page)).toHaveCount(1);
+  await expect(assertiveToasts(page)).toHaveCount(1);
+  await expect(politeToasts(page)).toBeEmpty();
+  await expect(assertiveToasts(page)).toBeEmpty();
+  await expect(page.locator('.g-toasts [role]')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Notifikasi berhasil' }).click();
+  await expect(politeToasts(page)).toContainText('Komentar terkirim.');
+  await expect(assertiveToasts(page)).toBeEmpty();
+  await page.getByRole('button', { name: 'Notifikasi gagal' }).click();
+  await expect(assertiveToasts(page)).toContainText('Komentar gagal terkirim');
+  await assertiveToasts(page).getByRole('button', { name: 'Tutup' }).click();
+  await expect(assertiveToasts(page)).toBeEmpty();
+
+  // With a dialog open, the rest of the page is hidden from screen readers, but not the live regions.
+  await page.getByRole('button', { name: 'Buka dialog' }).click();
+  await expect(
+    page.getByRole('dialog', { name: 'Detail acara' }),
+  ).toBeVisible();
+  for (const region of [politeToasts(page), assertiveToasts(page)])
+    expect(
+      await region.evaluate(
+        (el) => el.closest('[aria-hidden="true"]') === null,
+      ),
+    ).toBe(true);
+  await page.keyboard.press('Escape');
+});
+
 test('success toasts stay 5 s (8 s with Urungkan); error toasts stay until dismissed', async ({
   page,
 }) => {
@@ -267,7 +440,7 @@ test('success toasts stay 5 s (8 s with Urungkan); error toasts stay until dismi
     new Date((await page.evaluate(() => Date.now())) + 1_000),
   );
   await page.getByRole('button', { name: 'Notifikasi berhasil' }).click();
-  const ok = page.getByRole('status').filter({ hasText: 'Komentar terkirim.' });
+  const ok = politeToasts(page).getByText('Komentar terkirim.');
   await expect(ok).toBeVisible();
   await page.clock.runFor(4_900);
   await expect(ok).toBeVisible();
@@ -275,19 +448,21 @@ test('success toasts stay 5 s (8 s with Urungkan); error toasts stay until dismi
   await expect(ok).toBeHidden();
 
   await page.getByRole('button', { name: 'Dengan urungkan' }).click();
-  const undo = page.getByRole('status').filter({ hasText: 'IF2110 dihapus' });
+  const undo = politeToasts(page).locator('.g-toast', {
+    hasText: 'IF2110 dihapus',
+  });
   await page.clock.runFor(7_000);
   await expect(undo).toBeVisible();
   await undo.getByRole('button', { name: 'Urungkan' }).click();
   await expect(undo).toBeHidden();
   await expect(
-    page.getByRole('status').filter({ hasText: 'IF2110 dikembalikan.' }),
+    politeToasts(page).getByText('IF2110 dikembalikan.'),
   ).toBeVisible();
 
   await page.getByRole('button', { name: 'Notifikasi gagal' }).click();
-  const err = page
-    .getByRole('alert')
-    .filter({ hasText: 'Komentar gagal terkirim' });
+  const err = assertiveToasts(page).locator('.g-toast', {
+    hasText: 'Komentar gagal terkirim',
+  });
   await expect(err).toBeVisible();
   await page.clock.runFor(120_000);
   await expect(err).toBeVisible();
@@ -295,14 +470,22 @@ test('success toasts stay 5 s (8 s with Urungkan); error toasts stay until dismi
   await expect(err).toBeHidden();
 });
 
-test('Coba lagi retries; offline names the last update; skeletons name what is loading', async ({
+// Review m2: Coba lagi was disabled while retrying, which dropped keyboard focus to the page.
+test('Coba lagi keeps focus while it retries and ignores presses until it ends; offline names the last update; skeletons name what is loading', async ({
   page,
 }) => {
   await open(page);
   const error = page
     .getByRole('alert')
     .filter({ hasText: 'Pengumuman gagal dimuat' });
-  await error.getByRole('button', { name: 'Coba lagi' }).click();
+  const retry = error.getByRole('button', { name: 'Coba lagi' });
+  await retry.focus();
+  await page.keyboard.press('Enter');
+  await expect(retry).toHaveAttribute('aria-disabled', 'true');
+  await expect(retry).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(retry).not.toHaveAttribute('aria-disabled');
+  await expect(retry).toBeFocused();
   await expect(page.getByTestId('retry-count')).toHaveText('Dicoba lagi 1×');
   await expect(
     page.getByRole('status').filter({ hasText: 'Offline · diperbarui 07.45' }),
@@ -310,6 +493,19 @@ test('Coba lagi retries; offline names the last update; skeletons name what is l
   await expect(
     page.getByRole('status', { name: 'Memuat kalender' }),
   ).toBeVisible();
+});
+
+// Review m3: Count and Tile put aria-label on a plain span, which ARIA doesn't let screen readers read.
+test('a labelled count and tile read their words, not the bare figure or icon', async ({
+  page,
+}) => {
+  await open(page);
+  const marks = page.getByTestId('labelled-marks');
+  const snapshot = await marks.ariaSnapshot();
+  expect(snapshot).toContain('3 belum dibaca');
+  expect(snapshot).toContain('Ruang terkunci');
+  expect(snapshot).not.toMatch(/text: 3\s*$/m);
+  await expect(marks.locator('[aria-label]')).toHaveCount(0);
 });
 
 test('on touch layouts every small control has a 44 px hit area, and the gold action is 48 px tall', async ({
@@ -328,42 +524,132 @@ test('on touch layouts every small control has a 44 px hit area, and the gold ac
         h: r.height - px(b.top) - px(b.bottom),
       };
     });
-  for (const control of [
-    kit.getByRole('switch', { name: 'Contoh switch mati' }),
-    kit.getByRole('button', { name: 'Terbaru' }),
-    page.getByRole('button', { name: 'Pilihan lain' }),
-    page.getByRole('button', { name: 'Lihat semua' }).last(),
-  ]) {
+  // Review m8: every kind of small control, in both kits, not only four in the light one.
+  const checked: string[] = [];
+  const measure = async (
+    name: string,
+    control: ReturnType<Page['locator']>,
+  ) => {
+    await expect(control, name).toBeVisible();
     const { w, h } = await hit(control);
-    expect(w).toBeGreaterThanOrEqual(44);
-    expect(h).toBeGreaterThanOrEqual(44);
+    expect(w, `${name} width`).toBeGreaterThanOrEqual(44);
+    expect(h, `${name} height`).toBeGreaterThanOrEqual(44);
+    checked.push(name);
+  };
+  for (const theme of ['light', 'dark'] as const) {
+    const k = page.getByTestId(`garis-kit-${theme}`);
+    await measure(
+      `${theme} switch`,
+      k.getByRole('switch', { name: 'Contoh switch mati' }),
+    );
+    await measure(`${theme} chip`, k.getByRole('button', { name: 'Terbaru' }));
+    await measure(
+      `${theme} checkbox row`,
+      k
+        .locator('.g-opt')
+        .filter({ has: page.getByRole('checkbox') })
+        .first(),
+    );
+    await measure(
+      `${theme} radio row`,
+      k
+        .locator('.g-opt')
+        .filter({ has: page.getByRole('radio') })
+        .first(),
+    );
+    const gold = k.getByRole('button', { name: 'Umumkan' });
+    expect((await gold.boundingBox())!.height).toBeGreaterThanOrEqual(48);
   }
-  const gold = kit.getByRole('button', { name: 'Umumkan' });
-  expect((await gold.boundingBox())!.height).toBeGreaterThanOrEqual(48);
+  await page.getByRole('button', { name: 'Notifikasi gagal' }).click();
+  await measure(
+    'icon button sm',
+    assertiveToasts(page).getByRole('button', { name: 'Tutup' }),
+  );
+  await measure(
+    'icon button',
+    page.getByRole('button', { name: 'Pilihan lain' }),
+  );
+  await measure(
+    'seg label',
+    page.getByRole('group', { name: 'Tema contoh' }).locator('label').first(),
+  );
+  await measure(
+    'link',
+    page.getByRole('button', { name: 'Lihat semua' }).last(),
+  );
+  await measure('avatar button', page.getByRole('button', { name: 'Profil' }));
+  await measure(
+    'reaction',
+    page
+      .getByTestId('garis-shared')
+      .getByRole('button', { pressed: false })
+      .first(),
+  );
+  await measure(
+    'checkbox chip',
+    page.getByRole('group', { name: 'Kategori' }).getByRole('checkbox').first(),
+  );
+  await measure('radio chip', page.getByRole('radio', { name: 'K1' }));
+  await measure('disclosure', page.locator('.g-disclosure > summary').first());
+  expect(checked.length).toBe(17);
 });
 
 test('every HMIF logo is the official file, whole, unstretched and at least 40 px wide; icons are inline SVG', async ({
   page,
 }) => {
   await open(page);
-  const logos = await page
-    .locator('img[src="/logo/hmif.png"]')
-    .evaluateAll((imgs) =>
-      (imgs as HTMLImageElement[]).map((i) => ({
-        loaded: i.complete && i.naturalWidth === 800 && i.naturalHeight === 533,
-        w: i.getBoundingClientRect().width,
-        ratio:
-          i.getBoundingClientRect().width / i.getBoundingClientRect().height,
-        filter: getComputedStyle(i).filter,
-      })),
+  // As ops/ui-revamp-review/tools/garis-check.mjs checks the prototype (review m7: also uncovered, unclipped and at
+  // full opacity): each copy is scrolled into view and its corners and centre must hit the image itself.
+  const report = await page.evaluate(async () => {
+    const bad: string[] = [];
+    const redrawn = document.querySelectorAll(
+      'svg[viewBox="0 0 160 93"]',
+    ).length;
+    if (redrawn) bad.push(`${redrawn} redrawn IF marks`);
+    const logos = [...document.querySelectorAll('img')].filter(
+      (i) => /\/logo\/hmif\.png$/.test(i.src) && i.getClientRects().length,
     );
-  expect(logos.length).toBeGreaterThanOrEqual(6);
-  for (const l of logos) {
-    expect(l.loaded).toBe(true);
-    expect(l.w).toBeGreaterThanOrEqual(40);
-    expect(Math.abs(l.ratio - 800 / 533)).toBeLessThan(0.02);
-    expect(l.filter).toBe('none');
-  }
+    for (const [n, img] of logos.entries()) {
+      img.scrollIntoView({ block: 'center' });
+      await new Promise((r) => setTimeout(r, 60));
+      const r = img.getBoundingClientRect();
+      const cs = getComputedStyle(img);
+      const where = `logo ${n + 1} in ${img.parentElement?.className || img.parentElement?.tagName}`;
+      if (
+        !img.complete ||
+        img.naturalWidth !== 800 ||
+        img.naturalHeight !== 533
+      )
+        bad.push(`${where}: not loaded`);
+      if (Math.abs(r.width / r.height - 800 / 533) > 0.02)
+        bad.push(`${where}: stretched to ${r.width}×${r.height}`);
+      if (r.width < 40) bad.push(`${where}: ${r.width} px wide`);
+      if (
+        cs.filter !== 'none' ||
+        cs.mixBlendMode !== 'normal' ||
+        cs.transform !== 'none' ||
+        cs.rotate !== 'none' ||
+        cs.clipPath !== 'none'
+      )
+        bad.push(`${where}: altered by CSS`);
+      let opacity = 1;
+      for (let el: Element | null = img; el; el = el.parentElement)
+        opacity *= Number(getComputedStyle(el).opacity);
+      if (opacity !== 1) bad.push(`${where}: opacity ${opacity}`);
+      const pts = [
+        [r.left + 2, r.top + 2],
+        [r.right - 2, r.top + 2],
+        [r.left + 2, r.bottom - 2],
+        [r.right - 2, r.bottom - 2],
+        [r.left + r.width / 2, r.top + r.height / 2],
+      ];
+      if (pts.some(([x, y]) => document.elementFromPoint(x, y) !== img))
+        bad.push(`${where}: covered or clipped`);
+    }
+    return { n: logos.length, bad };
+  });
+  expect(report.n).toBeGreaterThanOrEqual(6);
+  expect(report.bad).toEqual([]);
   expect(await page.locator('#icons .icon-cell svg.g-ic').count()).toBe(54);
   expect(
     await page.locator('main img:not([src="/logo/hmif.png"])').count(),

@@ -32,7 +32,17 @@ import {
   Card,
   Checkbox,
   Chip,
+  ChipGroup,
   Chips,
+  Due,
+  FactsList,
+  Kbd,
+  Rating,
+  ReactionButton,
+  Reactions,
+  ReactionStack,
+  SksMark,
+  UnreadBar,
   ConfirmDialog,
   Count,
   Dialog,
@@ -56,6 +66,7 @@ import {
   PIXEL_REACTION_KEYS,
   PIXEL_REACTION_LABELS,
   PixelReaction,
+  type PixelReactionKey,
   Plaque,
   Popover,
   Radio,
@@ -599,11 +610,11 @@ function SystemCards() {
           <Tag tone="inverse">Pengurus</Tag>
         </div>
         <div className="wrap" style={{ gap: 8 }}>
-          <Chip pressed={false} icon={<IconUrut size={16} />}>
+          <Chip selected={false} icon={<IconUrut size={16} />}>
             {' '}
             Terbaru
           </Chip>
-          <Chip pressed count={4}>
+          <Chip selected count={4}>
             Belum dibaca{' '}
           </Chip>
           <Count value={3} />
@@ -811,10 +822,10 @@ function KitPanel({
         <Tag tone="inverse">Pengurus</Tag>
       </div>
       <div className="wrap" style={{ gap: 8 }}>
-        <Chip pressed={chip} onPressedChange={setChip} count={4}>
+        <Chip selected={chip} onSelectedChange={setChip} count={4}>
           Belum dibaca{' '}
         </Chip>
-        <Chip pressed={chip2} onPressedChange={setChip2}>
+        <Chip selected={chip2} onSelectedChange={setChip2}>
           Terbaru
         </Chip>
         <Switch
@@ -866,10 +877,7 @@ function KitPanel({
           alignItems: 'center',
         }}
       >
-        <span className="sks" aria-hidden="true">
-          <b>3</b>
-          <span>SKS</span>
-        </span>
+        <SksMark sks={3} />
         <span className="min-w-0 flex-1">
           <span className="block t-label num">IF2110</span>
           <span className="block t-sm">Algoritma dan Pemrograman II</span>
@@ -992,6 +1000,16 @@ function TokenPanel({ theme }: { theme: 'light' | 'dark' }) {
   );
 }
 
+/** Three of the prototype's announcement categories (data.js CATEGORIES), for the checkbox chips. */
+/** Sample counts for the reaction row, without the member's own. */
+const SAMPLE_REACTIONS = { grin: 12, fire: 7, party: 3 } as const;
+
+const CATEGORY_NAMES = {
+  akademik: 'Akademik',
+  himpunan: 'Himpunan',
+  lomba: 'Lomba',
+} as const;
+
 /** Overlays, menus, toasts and states, to try by hand and in the gallery journey. */
 function Interactive() {
   const [dialog, setDialog] = useState(false);
@@ -1003,7 +1021,13 @@ function Interactive() {
   const [course, setCourse] = useState('IF2110');
   const [notes, setNotes] = useState('');
   const [retries, setRetries] = useState(0);
+  const [retrying, setRetrying] = useState(false);
   const [menuResult, setMenuResult] = useState('');
+  const [deletePost, setDeletePost] = useState(false);
+  const [cats, setCats] = useState<string[]>(['akademik']);
+  const [kelas, setKelas] = useState<number | null>(null);
+  const [myReaction, setMyReaction] = useState<PixelReactionKey | null>('fire');
+  const [rating, setRating] = useState<number | null>(null);
   return (
     <div className="sys-grid" data-testid="garis-interactive">
       <div className="sys-card">
@@ -1041,6 +1065,19 @@ function Interactive() {
           <Field label="Judul acara">
             <Input defaultValue="Kuis 2" />
           </Field>
+          <Menu
+            align="start"
+            trigger={
+              <Button variant="paper" size="sm">
+                <IconLainnya size={16} />
+                Pilihan acara
+              </Button>
+            }
+          >
+            <MenuItem onSelect={() => setMenuResult('Tautan acara disalin')}>
+              Salin tautan acara
+            </MenuItem>
+          </Menu>
         </Dialog>
         <Sheet open={sheet} onOpenChange={setSheet} title="Filter">
           <Seg
@@ -1114,6 +1151,11 @@ function Interactive() {
               icon={<IconUlang size={16} />}
               disabled
               hint="Bisa lagi mulai 15.30"
+              onSelect={() =>
+                toast.success(
+                  'Umumkan ulang bisa lagi mulai 15.30. Jeda 3 jam supaya anggota tidak kebanjiran notifikasi.',
+                )
+              }
             >
               Umumkan ulang
             </MenuItem>
@@ -1123,11 +1165,25 @@ function Interactive() {
             <MenuItem
               danger
               icon={<IconHapus size={16} />}
-              onSelect={() => setMenuResult('Hapus dipilih')}
+              onSelect={() => setDeletePost(true)}
             >
               Hapus
             </MenuItem>
           </Menu>
+          <ConfirmDialog
+            open={deletePost}
+            onOpenChange={setDeletePost}
+            title="Hapus pengumuman ini?"
+            confirmLabel="Hapus"
+            cancelLabel="Batal"
+            danger
+            onConfirm={() => {
+              setDeletePost(false);
+              toast.success('Pengumuman dihapus.');
+            }}
+          >
+            Pengumuman, komentar, dan reaksinya ikut terhapus.
+          </ConfirmDialog>
           <span className="t-cap text-fg-2" data-testid="menu-result">
             {menuResult}
           </span>
@@ -1196,26 +1252,27 @@ function Interactive() {
             { value: 'himpunan', label: 'Himpunan' },
           ]}
         />
-        <Chips>
-          <Chip
-            pressed={seg === 'semua'}
-            onPressedChange={() => setSeg('semua')}
-          >
-            Semua
-          </Chip>
-          <Chip
-            pressed={seg === 'akademik'}
-            onPressedChange={() => setSeg('akademik')}
-          >
-            Akademik
-          </Chip>
-          <Chip
-            pressed={seg === 'himpunan'}
-            onPressedChange={() => setSeg('himpunan')}
-          >
-            Himpunan
-          </Chip>
+        <Chips wrap label="Kategori">
+          {(['akademik', 'himpunan', 'lomba'] as const).map((c) => (
+            <Chip
+              key={c}
+              kind="checkbox"
+              selected={cats.includes(c)}
+              onSelectedChange={(on) =>
+                setCats((v) => (on ? [...v, c] : v.filter((x) => x !== c)))
+              }
+            >
+              {CATEGORY_NAMES[c]}
+            </Chip>
+          ))}
         </Chips>
+        <ChipGroup
+          label="Kelas IF2110"
+          value={kelas}
+          onChange={setKelas}
+          deselectable
+          options={[1, 2, 3].map((k) => ({ value: k, label: `K${k}` }))}
+        />
         <Saved />
       </div>
       <div className="sys-card">
@@ -1262,6 +1319,12 @@ function Interactive() {
           <AvatarButton initials="NP" label="Profil" />
           <Avatar initials="RP" size="lg" />
         </div>
+        <div className="demo-row" data-testid="labelled-marks">
+          <Count value={3} label="3 belum dibaca" />
+          <Tile label="Ruang terkunci">
+            <IconKunci size={20} />
+          </Tile>
+        </div>
         <Segbar total={5} done={2} label="Bagian 2 dari 5" />
         <NoteBox icon={<IconKunci size={16} />}>
           Namamu tetap tersembunyi. Welfare hanya melihat nama ruang.
@@ -1269,6 +1332,54 @@ function Interactive() {
         <Media alt="" ratio="16 / 10">
           <span className="t-cap text-cream">Foto</span>
         </Media>
+      </div>
+      <div className="sys-card" data-testid="garis-shared">
+        <h3 className="t-heading">Bagian bersama</h3>
+        <FactsList
+          facts={[
+            ['Email', '13525045@std.stei.itb.ac.id'],
+            ['Program', 'Teknik Informatika'],
+            ['Kampus', 'Ganesha'],
+            ['Semester', '3 · Ganjil 2026/2027'],
+          ]}
+        />
+        <div className="flex items-stretch gap-3">
+          <UnreadBar unread />
+          <span className="min-w-0 flex-1">
+            <span className="block t-sub">Kuis 2 Algoritma</span>
+            <Due urgent>Hari ini, 23.59</Due>
+          </span>
+        </div>
+        <div className="flex items-stretch gap-3">
+          <UnreadBar unread={false} />
+          <span className="min-w-0 flex-1">
+            <span className="block t-sub">Tugas Besar 1</span>
+            <Due>Sen, 12 Okt, 23.59</Due>
+          </span>
+        </div>
+        <Reactions>
+          {(['grin', 'fire', 'party'] as const).map((k) => (
+            <ReactionButton
+              key={k}
+              reaction={k}
+              count={SAMPLE_REACTIONS[k] + (myReaction === k ? 1 : 0)}
+              mine={myReaction === k}
+              label={`${PIXEL_REACTION_LABELS[k]}, ${SAMPLE_REACTIONS[k] + (myReaction === k ? 1 : 0)} orang${myReaction === k ? ', termasuk kamu' : ''}`}
+              onClick={() => setMyReaction((r) => (r === k ? null : k))}
+            />
+          ))}
+          <ReactionStack reactions={['grin', 'fire', 'party']} />
+        </Reactions>
+        <Rating
+          label="Secara keseluruhan, gimana penilaian kamu soal Welcoming Party 2025?"
+          hint="1 = sangat kurang, 5 = sangat baik"
+          value={rating}
+          onChange={setRating}
+        />
+        <span className="flex items-center gap-2 t-sm text-fg-2">
+          Cari
+          <Kbd>⌘K</Kbd>
+        </span>
       </div>
       <div className="sys-card">
         <h3 className="t-heading">Tanda merek</h3>
@@ -1310,7 +1421,14 @@ function Interactive() {
         <ErrorState
           title="Pengumuman gagal dimuat"
           text="Periksa koneksimu, lalu coba lagi."
-          onRetry={() => setRetries((n) => n + 1)}
+          retrying={retrying}
+          onRetry={() => {
+            setRetrying(true);
+            setTimeout(() => {
+              setRetries((n) => n + 1);
+              setRetrying(false);
+            }, 800);
+          }}
         />
         <span className="t-cap text-fg-3" data-testid="retry-count">
           Dicoba lagi {retries}×

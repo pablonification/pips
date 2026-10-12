@@ -341,31 +341,6 @@
 .gal .voice .cg {
   color: var(--text-accent);
 }
-/* The course row in the kit (garis.css .sks): P1-C builds the real one. */
-.gal .sks {
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  width: 42px;
-  height: 42px;
-  flex: none;
-  border-radius: 8px;
-  background: var(--bg-inverse);
-  color: var(--text-on-inverse);
-}
-.gal .sks b {
-  font-size: 16px;
-  line-height: 1;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.gal .sks span {
-  font-size: 12px;
-  line-height: 1;
-  font-weight: 500;
-  margin-top: 2px;
-  opacity: 0.85;
-}
 /* The Beranda service tile (garis.css .tile-btn): P1-A builds the real one. */
 .gal .gal-tile-btn {
   display: grid;
