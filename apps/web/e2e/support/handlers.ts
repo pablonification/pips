@@ -219,14 +219,41 @@ export const defaultHandlers: Record<string, Handler> = {
   ),
 
   // Services
+  // As the API answers (src/lib/nim-finder.ts): only name, NIM, programme and photo; the closest NIM matches
+  // first (exact, prefix, other), then names, A–Z within each; at most 30. Under 3 characters (trimmed) is a 400.
   'GET /api/user/nim': signedIn(({ db, query }) => {
     const search = query.get('search')?.trim() ?? '';
+    if (search.length < 3)
+      return reply.status(400, {
+        errors: {
+          formErrors: [],
+          fieldErrors: {
+            search: ['String must contain at least 3 character(s)'],
+          },
+        },
+      });
+    const rank = (nim: string) =>
+      nim === search
+        ? 0
+        : nim.startsWith(search)
+          ? 1
+          : nim.includes(search)
+            ? 2
+            : 3;
     return ok<R<UserFinderService['getUser']>>(
-      search.length < 3
-        ? []
-        : db.members.filter(
-            (m) => includes(m.fullName, search) || m.nim.includes(search),
-          ),
+      db.members
+        .filter((m) => includes(m.fullName, search) || m.nim.includes(search))
+        .sort(
+          (a, b) =>
+            rank(a.nim) - rank(b.nim) || a.fullName.localeCompare(b.fullName),
+        )
+        .slice(0, 30)
+        .map(({ fullName, nim, major, picture }) => ({
+          fullName,
+          nim,
+          major,
+          picture: picture ?? null,
+        })),
     );
   }),
   'GET /api/testimoni/course/:courseId': signedIn(({ db, params }) =>

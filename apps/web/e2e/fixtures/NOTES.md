@@ -24,7 +24,9 @@ fixtures follow the API, as listed here.
 - **Roles:** Raka has `welfarenakademik`, `akademik`, `de` and `admin`, as in the prototype. Groups come back as
   `{ role, group }` with the display names from `roles-group.ts`.
 - **NIM Finder members** that the prototype gives only a name, NIM and programme get the same defaults (campus
-  Ganesha, gender F, angkatan from the NIM).
+  Ganesha, gender F, angkatan from the NIM). `GET /api/user/nim` answers only `fullName`, `nim`, `major` and
+  `picture`, closest NIM matches first and then names A–Z, at most 30, and 400 under 3 characters, as the API does
+  since P0-D.
 
 ## Angkatan
 
