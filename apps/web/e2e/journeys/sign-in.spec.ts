@@ -104,8 +104,10 @@ test.describe('signed out', () => {
 
   test('a stale session on a deep page comes back to that page after sign-in', async ({
     page,
+    api,
     db,
   }) => {
+    await fakeGoogleSignIn(page);
     await page.addInitScript(
       (user) => localStorage.setItem('user', JSON.stringify(user)),
       db.me,
@@ -114,6 +116,19 @@ test.describe('signed out', () => {
     await expect(page).toHaveURL(
       /\/login\?redirect=%2Flayanan%2Fnim%3Fq%3Dnadia$/,
     );
+    // Review m5: the return itself, not only the kept page.
+    api.on('POST /api/auth/login/accesstoken', () => {
+      db.signedIn = true;
+      return db.me;
+    });
+    await page
+      .getByRole('button', { name: 'Log in with Google' })
+      .locator('visible=true')
+      .click();
+    await expect(page).toHaveURL(/\/layanan\/nim\?q=nadia$/);
+    await expect(
+      page.getByPlaceholder('Ketik nama atau NIM').locator('visible=true'),
+    ).toBeVisible();
   });
 });
 

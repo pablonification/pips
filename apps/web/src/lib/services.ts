@@ -226,7 +226,9 @@ export const SERVICES = [
     icon: 'kelola',
   },
   {
-    // The prototype shows it to `akademik` and `ring1` alike; P3-B opens its dialog from Kalender.
+    // Deviation (report, round 2): the prototype shows it to `akademik` and `ring1` alike, but its form adds a
+    // course's Akademik event, which the server allows `akademik` only (calendar.controller.ts); `ring1` adds
+    // Himpunan events from Kalender's "Tambah acara" (canCreateEvent). P3-B opens its dialog from Kalender.
     id: 'acara',
     label: 'Tambah acara Akademik',
     description: 'Kuis, UTS, dan tenggat per mata kuliah',
