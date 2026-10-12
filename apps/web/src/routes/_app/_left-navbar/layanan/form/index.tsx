@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
-import { queryClient } from '~/api/client';
-import { formListQuery } from '~/api/queries';
+import { formListQuery, prefetch } from '~/api/queries';
 import dayjs from 'dayjs';
 import { CheckCircle2, ChevronLeft, Clock } from 'lucide-react';
 import { FormListItem } from '~/api/generated';
@@ -9,7 +8,7 @@ import { useFormsList } from './-useFormData';
 
 export const Route = createFileRoute('/_app/_left-navbar/layanan/form/')({
   // Fetched while the page's code downloads; the page picks up the same request.
-  loader: () => void queryClient.prefetchQuery(formListQuery()),
+  loader: () => prefetch(formListQuery()),
   component: FormListPage,
 });
 

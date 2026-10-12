@@ -1,5 +1,5 @@
-import { queryOptions } from '@tanstack/react-query';
-import { api } from './client';
+import { queryOptions, type QueryKey } from '@tanstack/react-query';
+import { api, queryClient } from './client';
 import {
   CALENDAR_EVENTS_QUERY_KEY,
   CHATROOMS_QUERY_KEY,
@@ -7,6 +7,7 @@ import {
   CURRENT_COURSES_QUERY_KEY,
   FORM_QUERY_KEY,
   INFO_QUERY_KEY,
+  ME_QUERY_KEY,
   USER_ACADEMIC_QUERY_KEY,
 } from './constants';
 
@@ -14,6 +15,18 @@ import {
  * Query options shared by route loaders (which start the request while the route's code downloads) and the
  * screens (which then pick up the same request instead of starting another). Keys from ./constants.
  */
+
+/**
+ * For route loaders: start a request while the route's code downloads, without waiting for it. Only once a
+ * member is known (cached or checked): on a first visit nothing is asked for before the session check, so a
+ * signed-out visitor's deep link never requests the page's data.
+ */
+export function prefetch(options: { queryKey: QueryKey; queryFn?: unknown }) {
+  if (!queryClient.getQueryData([ME_QUERY_KEY])) return;
+  void queryClient.prefetchQuery(
+    options as Parameters<typeof queryClient.prefetchQuery>[0],
+  );
+}
 
 /** Personal calendar for one month (1–12): Himpunan events plus Akademik events of this semester's courses. */
 export const calendarEventsQuery = ({

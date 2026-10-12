@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { queryClient } from '~/api/client';
-import { calendarEventsQuery } from '~/api/queries';
+import { calendarEventsQuery, prefetch } from '~/api/queries';
 import DesktopView from './-components/dekstop-view';
 import { useState } from 'react';
 import dayjs from 'dayjs';
@@ -12,7 +11,7 @@ export const Route = createFileRoute('/_app/kalender/')({
     const now = new Date();
     for (const offset of [-1, 0, 1]) {
       const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-      void queryClient.prefetchQuery(
+      prefetch(
         calendarEventsQuery({ month: d.getMonth() + 1, year: d.getFullYear() }),
       );
     }

@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryClient } from '~/api/client';
-import { creditsQuery } from '~/api/queries';
+import { creditsQuery, prefetch } from '~/api/queries';
 import { createFileRoute } from '@tanstack/react-router';
 import Markdown from 'markdown-to-jsx';
 import { api } from '~/api/client';
@@ -9,7 +8,7 @@ export const Route = createFileRoute(
   '/_app/_left-navbar/profil/_settings-item/kredit/',
 )({
   // Fetched while the page's code downloads; the page picks up the same request.
-  loader: () => void queryClient.prefetchQuery(creditsQuery()),
+  loader: () => prefetch(creditsQuery()),
   component: CreditsPage,
 });
 

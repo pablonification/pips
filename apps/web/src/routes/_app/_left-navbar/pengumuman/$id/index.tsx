@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { api, queryClient } from '~/api/client';
-import { infoCommentsQuery, infoDetailQuery } from '~/api/queries';
+import { api } from '~/api/client';
+import { infoCommentsQuery, infoDetailQuery, prefetch } from '~/api/queries';
 import { preloadImages } from '~/lib/image';
 import CommentForm from './-components/comment-form';
 import Comments from './-components/comments';
@@ -19,8 +19,8 @@ export const Route = createFileRoute('/_app/_left-navbar/pengumuman/$id/')({
   },
   // Starts the post and its comments while the page's code downloads; the page picks up the same requests.
   loader: ({ params }) => {
-    void queryClient.prefetchQuery(infoDetailQuery(params.id));
-    void queryClient.prefetchQuery(infoCommentsQuery(params.id));
+    prefetch(infoDetailQuery(params.id));
+    prefetch(infoCommentsQuery(params.id));
   },
 });
 
