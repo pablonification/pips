@@ -1,6 +1,7 @@
 import { z } from '@hono/zod-openapi';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { calendarEvent, calendarGroup } from '~/db/schema';
+import { currentWibMonthYear } from '~/lib/wib';
 
 // Helpers
 const optionalDateCoerce = z.preprocess((arg) => {
@@ -128,18 +129,21 @@ export const UpdateCalendarEventBodySchema = createInsertSchema(calendarEvent, {
 
 export const CalendarGroupSchema = createSelectSchema(calendarGroup);
 
+// Missing month or year means this month in WIB, read per request. A `.default(new Date()…)` was read once when
+// the server started, so a server started in September kept answering September, and the OpenAPI document (and
+// the web client generated from it) changed with the month it was generated in.
 export const PersonalCalendarParamSchema = z.object({
   month: z.coerce
     .number()
     .min(1)
     .max(12)
     .optional()
-    .default(new Date().getMonth() + 1)
-    .openapi({ example: 1 }),
+    .openapi({ example: 1 })
+    .transform((month) => month ?? currentWibMonthYear().month),
   year: z.coerce
     .number()
     .min(1)
     .optional()
-    .default(new Date().getFullYear())
-    .openapi({ example: 2021 }),
+    .openapi({ example: 2021 })
+    .transform((year) => year ?? currentWibMonthYear().year),
 });
