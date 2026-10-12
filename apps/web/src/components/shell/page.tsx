@@ -5,8 +5,12 @@
  * - `usePageTitle('Form Analisis Kondisi PIXEL')`: a title from the screen's data. It replaces the route's title
  *   (src/lib/shell/routes.ts) in the phone top bar, the breadcrumbs, the next page's back ("Kembali ke …") and
  *   the document title ("… · PIPS!").
- * - `<PageTitle>`: the page's `h1`, when the screen shows its own title (tabs' pages, the desktop head). The shell
- *   moves focus to it after each navigation.
+ * - `<PageTitle>`: the page's `h1`, when the screen shows its own title: a tab's page, or a drill-down page with a
+ *   heading of its own (P1-B's post detail: the post's title under a top bar that says "Pengumuman"). On a
+ *   drill-down page the top bar then keeps showing the page's name, but as plain text hidden from screen readers,
+ *   so the page has one `h1`, the screen's, and the shell moves focus to it after each navigation (the prototype's
+ *   `hasTitle` in renderPhone).
+ *   A split page on desktop (the post beside the feed) sets `crumbs: false` in src/lib/shell/routes.ts.
  * - `<DeskHead title actions>`: the desktop page head (the prototype's `deskHead`); hidden below 1024 px, where the
  *   top bar has the title.
  * - `<TopBarActions>`: up to two actions in the phone and tablet top bar of a drill-down page (share, the post's
@@ -18,6 +22,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   type HTMLAttributes,
   type ReactNode,
 } from 'react';
@@ -34,10 +39,10 @@ export function usePageTitle(title: string | null | undefined) {
   }, [pathname, title]);
 }
 
-export function PageTitle({
-  className,
-  ...rest
-}: HTMLAttributes<HTMLHeadingElement>) {
+/** The shell counts the screen's own titles on the page, so the top bar knows whether its title is the heading. */
+export const OwnTitle = createContext<((delta: 1 | -1) => void) | null>(null);
+
+function Heading({ className, ...rest }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h1
       data-page-title=""
@@ -48,6 +53,17 @@ export function PageTitle({
   );
 }
 
+export function PageTitle(props: HTMLAttributes<HTMLHeadingElement>) {
+  const register = useContext(OwnTitle);
+  // Before paint, so the top bar never shows a second h1, and focus after navigation finds this one.
+  useLayoutEffect(() => {
+    if (!register) return;
+    register(1);
+    return () => register(-1);
+  }, [register]);
+  return <Heading {...props} />;
+}
+
 export function DeskHead({
   title,
   actions,
@@ -55,9 +71,10 @@ export function DeskHead({
   title: ReactNode;
   actions?: ReactNode;
 }) {
+  // Hidden below 1024 px, where the top bar has the title: so it doesn't count as the screen's own title there.
   return (
     <div className="g-d-head">
-      <PageTitle className="t-display-l">{title}</PageTitle>
+      <Heading className="t-display-l">{title}</Heading>
       {actions}
     </div>
   );

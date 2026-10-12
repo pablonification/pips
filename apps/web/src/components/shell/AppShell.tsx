@@ -19,6 +19,7 @@ import {
 import {
   lazy,
   Suspense,
+  useCallback,
   useEffect,
   useState,
   type MouseEvent,
@@ -53,10 +54,10 @@ import {
   fillPath,
   isRootPage,
   parentOf,
+  deskCrumbs,
   ROUTE_META,
   shellPath,
   titleOf,
-  trailOf,
   type Destination,
   type RouteMeta,
   type ShellPath,
@@ -65,7 +66,7 @@ import { currentTheme, subscribe as onThemeChange } from '~/lib/theme/theme';
 import { THEME_COLORS } from '~/lib/theme/theme-core.mjs';
 import { cn } from '~/lib/utils';
 import { useNavBadges, type NavBadges } from './nav-badges';
-import { LegacyScreen, TopBarSlot } from './page';
+import { LegacyScreen, OwnTitle, TopBarSlot } from './page';
 import { openPalette, usePaletteOpen } from './palette/palette-store';
 import {
   entryAt,
@@ -311,7 +312,13 @@ function Frame({
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   const [root, setRoot] = useState<HTMLElement | null>(null);
   usePageHeight(root, route.pathname, desk);
-  const trail = desk && route.path ? trailOf(route.path, route.params) : [];
+  const trail = desk && route.path ? deskCrumbs(route.path, route.params) : [];
+  // How many titles of its own the screen shows (`PageTitle`): then the top bar's title isn't the page's heading.
+  const [ownTitles, setOwnTitles] = useState(0);
+  const registerTitle = useCallback(
+    (delta: 1 | -1) => setOwnTitles((n) => n + delta),
+    [],
+  );
 
   return (
     <div className={desk ? 'g-desk' : 'g-shell'} ref={setRoot}>
@@ -324,13 +331,21 @@ function Frame({
         data-scroll-restoration-id="isi"
       >
         {desk ? null : (
-          <TopBar route={route} lastRoot={lastRoot} me={me} onSlot={setSlot} />
+          <TopBar
+            route={route}
+            lastRoot={lastRoot}
+            me={me}
+            ownTitle={ownTitles > 0}
+            onSlot={setSlot}
+          />
         )}
         <main id="isi" tabIndex={-1} className="g-main">
-          {trail.length > 1 ? <Crumbs route={route} trail={trail} /> : null}
-          <TopBarSlot.Provider value={desk ? null : slot}>
-            <Page meta={route.meta}>{children}</Page>
-          </TopBarSlot.Provider>
+          {trail.length ? <Crumbs route={route} trail={trail} /> : null}
+          <OwnTitle.Provider value={registerTitle}>
+            <TopBarSlot.Provider value={desk ? null : slot}>
+              <Page meta={route.meta}>{children}</Page>
+            </TopBarSlot.Provider>
+          </OwnTitle.Provider>
         </main>
       </div>
       {desk || route.meta.focused ? null : (
@@ -350,11 +365,14 @@ function TopBar({
   route,
   lastRoot,
   me,
+  ownTitle,
   onSlot,
 }: {
   route: ShellRoute;
   lastRoot: Destination;
   me: { name: string; initials: string };
+  /** The screen shows its own title (`PageTitle`): this one is plain text, hidden from screen readers. */
+  ownTitle: boolean;
   onSlot: (el: HTMLElement | null) => void;
 }) {
   const beranda = route.path === '/';
@@ -385,9 +403,15 @@ function TopBar({
     bar = (
       <>
         <BackButton route={route} lastRoot={lastRoot} />
-        <h1 className="g-top-title" data-page-title="" tabIndex={-1}>
-          {route.title}
-        </h1>
+        {ownTitle ? (
+          <span className="g-top-title" aria-hidden="true">
+            {route.title}
+          </span>
+        ) : (
+          <h1 className="g-top-title" data-page-title="" tabIndex={-1}>
+            {route.title}
+          </h1>
+        )}
         <div className="g-top-actions" ref={onSlot} />
       </>
     );
@@ -575,7 +599,7 @@ function Crumbs({
   trail,
 }: {
   route: ShellRoute;
-  trail: ReturnType<typeof trailOf>;
+  trail: ReturnType<typeof deskCrumbs>;
 }) {
   return (
     <nav className="g-crumbs" aria-label={common.shell.jejakHalaman}>

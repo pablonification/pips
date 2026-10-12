@@ -44,6 +44,11 @@ export interface RouteMeta {
    * lights it. On phones and tablets it is still reached from `parent`.
    */
   deskRoot?: 'kelola' | 'profil';
+  /**
+   * False on a split page on desktop, which shows no breadcrumbs: the post beside the feed (the prototype's
+   * `openPost` starts a new stack, so `renderDesk` shows no trail).
+   */
+  crumbs?: false;
   /** Filling a form, writing an announcement, a Curhat room: no tab bar or rail, back stays (SPEC story 19). */
   focused?: boolean;
   /** Today's screen, not yet redesigned: the shell keeps it on its old light surface (P0-C report). */
@@ -59,6 +64,7 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   '/pengumuman/$id': {
     title: nav.pengumuman,
     parent: '/pengumuman',
+    crumbs: false,
     legacy: true,
   },
   '/pengumuman/tulis': {
@@ -256,6 +262,16 @@ export function trailOf(
     p = meta.parent;
   }
   return out;
+}
+
+/** The breadcrumbs a desktop page shows: its trail when it is below a sidebar item, none on a split page. */
+export function deskCrumbs(
+  path: ShellPath,
+  params: Record<string, string> = {},
+): Crumb[] {
+  if (ROUTE_META[path].crumbs === false) return [];
+  const trail = trailOf(path, params);
+  return trail.length > 1 ? trail : [];
 }
 
 /** A tab's own page (phones and tablets show search and the avatar instead of back and a title). */
