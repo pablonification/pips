@@ -43,6 +43,8 @@ test.describe('a screen’s own title', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
     await navLink(page, 'Layanan').click();
     await expect(page).toHaveURL(/\/layanan$/);
+    // Layanan has to be on screen first: Back before it renders cancels the navigation, and focus rightly stays.
+    await expect(page.getByText('Halaman uji shell')).toHaveCount(0);
     await page.goBack();
     await expect(page).toHaveURL(/\/dev\/shell$/);
     await expect(
@@ -50,23 +52,22 @@ test.describe('a screen’s own title', () => {
     ).toBeFocused();
   });
 
-  test('on a slow device too, Back moves focus to the screen’s own title', async ({
+  test('a screen’s own title that appears late (its data loading) still gets focus after a navigation', async ({
     page,
   }) => {
-    // Regression: under load the router's onRendered event sometimes reported no path change on Back, so focus
-    // stayed on the link clicked before (seen in the full suite; 1 in 9 runs at 20× CPU slowdown before the fix).
-    await page.goto('/dev/shell');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+    // Without it, focus went to the top bar's title, which the screen's title then replaced (phones and tablets),
+    // or stayed on the main landmark (desktop).
+    await page.goto('/dev/shell?lambat=1');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Halaman uji shell',
+    );
     await navLink(page, 'Layanan').click();
-    await expect(page).toHaveURL(/\/layanan$/);
-    const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 20 });
+    await expect(page.getByText('Halaman uji shell')).toHaveCount(0);
     await page.goBack();
-    await expect(page).toHaveURL(/\/dev\/shell$/);
+    await expect(page).toHaveURL(/\/dev\/shell\?lambat=1$/);
     await expect(
       page.getByRole('heading', { level: 1, name: 'Halaman uji shell' }),
     ).toBeFocused();
-    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   });
 
   test('a title from data names the page in the top bar, the breadcrumbs and the document title', async ({

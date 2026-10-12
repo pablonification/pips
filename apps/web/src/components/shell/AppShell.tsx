@@ -21,7 +21,6 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useRef,
   useState,
   type MouseEvent,
   type ReactNode,
@@ -97,8 +96,6 @@ interface ShellRoute {
   params: Record<string, string>;
   pathname: string;
   title: string;
-  /** The path of the page on screen (the leaf match), which changes once the new page has rendered. */
-  renderedPath: string;
   /** This entry's place in the tab's history (TanStack Router's `__TSR_index`). */
   index: number;
   titles: Record<string, string>;
@@ -119,7 +116,6 @@ function useShellRoute(): ShellRoute {
     meta: path ? ROUTE_META[path] : UNKNOWN,
     params,
     pathname: location.pathname,
-    renderedPath: leaf?.pathname ?? location.pathname,
     title,
     index: (location.state as { __TSR_index?: number }).__TSR_index ?? 0,
     titles,
@@ -129,6 +125,7 @@ function useShellRoute(): ShellRoute {
 export function AppShell({ children }: { children: ReactNode }) {
   const route = useShellRoute();
   const desk = useMediaQuery(DESKTOP_QUERY);
+  const router = useRouter();
   const paletteOpen = usePaletteOpen();
 
   // "Mata kuliahku · PIPS!" in the browser tab and history (SPEC story 25).
@@ -168,15 +165,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, [goldBar]);
 
-  // Focus moves to the new page once it has rendered: keyed on the rendered page's path, not on the router's
-  // onRendered event, which under load sometimes reported no path change on Back and left focus where it was.
-  const shown = useRef<string | null>(null);
-  useEffect(() => {
-    const before = shown.current;
-    shown.current = route.renderedPath;
-    if (before !== null && before !== route.renderedPath)
-      focusAfterNavigation();
-  }, [route.renderedPath]);
+  useEffect(
+    () =>
+      router.subscribe('onRendered', (e) => {
+        if (!e.fromLocation || !e.pathChanged) return;
+        focusAfterNavigation();
+      }),
+    [router],
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

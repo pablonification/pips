@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 const probeSearchSchema = z.object({
   judul: z.string().optional().catch(undefined),
+  lambat: z.coerce.number().optional().catch(undefined),
 });
 
 /**

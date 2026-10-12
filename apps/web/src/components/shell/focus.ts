@@ -1,10 +1,11 @@
 /**
  * Focus after a navigation (SPEC "Route changes move focus to the h1"). The shell moves focus to the page's title
- * once the new page has rendered. A screen's own title can arrive later than that (its route's code or data still
- * loading), and on phones the top bar's title it replaces disappears, taking focus with it: so for a moment after
- * a navigation, a `PageTitle` that appears takes focus itself, as long as focus is still where the shell put it.
+ * once the new page has rendered. A screen's own title can appear later than that (its data still loading), and on
+ * phones the top bar's title it replaces disappears, taking focus with it. So until the member next taps or types,
+ * a `PageTitle` that appears takes focus itself, as long as focus is still where the shell put it.
  */
-let titleDueUntil = 0;
+let titleDue = false;
+let listening = false;
 
 const visible = (el: HTMLElement) =>
   typeof el.checkVisibility === 'function'
@@ -21,15 +22,22 @@ export function focusPageTitle() {
   (title ?? document.getElementById('isi'))?.focus({ preventScroll: true });
 }
 
-/** After a navigation has rendered: focus its title, and let a title that arrives within 2 s take it. */
+/** After a navigation has rendered: focus its title, and let a title that appears later take it. */
 export function focusAfterNavigation() {
-  titleDueUntil = performance.now() + 2000;
+  if (!listening) {
+    listening = true;
+    // Once the member acts, focus is theirs again.
+    const done = () => (titleDue = false);
+    window.addEventListener('pointerdown', done, true);
+    window.addEventListener('keydown', done, true);
+  }
+  titleDue = true;
   requestAnimationFrame(focusPageTitle);
 }
 
 /** A screen's own title has just appeared (PageTitle, before paint). */
 export function titleAppeared(el: HTMLElement) {
-  if (performance.now() > titleDueUntil || !visible(el)) return;
+  if (!titleDue || !visible(el)) return;
   const active = document.activeElement;
   // Only from where the shell put focus: nothing, the main landmark, or the top bar's title this one replaces.
   const shellFocus =
@@ -38,6 +46,6 @@ export function titleAppeared(el: HTMLElement) {
     active.id === 'isi' ||
     active.classList.contains('g-top-title');
   if (!shellFocus) return;
-  titleDueUntil = 0;
+  titleDue = false;
   el.focus({ preventScroll: true });
 }
