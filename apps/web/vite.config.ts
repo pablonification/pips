@@ -97,6 +97,7 @@ export default defineConfig(({ mode }) => {
         },
         srcDir: 'src',
         filename: 'sw.ts',
+        // Icons: scripts/icons/build-icons.py, the official logo on ink.
         manifest: {
           name: appName,
           short_name: appName,
@@ -142,8 +143,10 @@ export default defineConfig(({ mode }) => {
             { name: 'Kalender', url: '/kalender' },
             { name: 'Layanan', url: '/layanan' },
           ],
-          theme_color: '#FFFFFF',
-          background_color: '#2F754A',
+          // The app background (tokens.css --bg-app, light), so the status bar blends with the top bar; the splash is
+          // the official logo on ink (SPEC "Design tokens and theming"), so its background is HMIF's ink.
+          theme_color: '#FCFBF8',
+          background_color: '#1B1508',
           display: 'standalone',
           share_target: {
             action: '/share-file-handler',

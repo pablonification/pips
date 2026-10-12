@@ -82,8 +82,9 @@ self.addEventListener('push', (e) => {
     const message = e.data.json();
     e.waitUntil(
       self.registration.showNotification(message.title, {
-        icon: '/icon-foreground.png',
-        badge: '/logo-nobg-256x256.png',
+        // The official logo on ink (scripts/icons/build-icons.py).
+        icon: '/push-icon-192x192.png',
+        badge: '/push-badge-96x96.png',
         ...message.options,
       }),
     );
