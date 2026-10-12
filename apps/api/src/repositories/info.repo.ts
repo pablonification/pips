@@ -45,7 +45,6 @@ import {
   InfoSchema,
   ListInfoParamsSchema,
 } from '~/types/info.types';
-import { getInfoCategoryList } from './category.repo';
 import { createMediasFromUrl } from './media.repo';
 import { getReactions } from './reaction.repo';
 import { getUserRoles } from './user-role.repo';
@@ -70,18 +69,7 @@ export async function createInfo(
   forCourses: z.infer<typeof CreateInfoBodySchema.shape.forCourses>,
   forGroups: z.infer<typeof CreateInfoBodySchema.shape.forGroups>,
 ) {
-  const creatorId = data.creatorId;
-  const userRoles = await getUserRoles(db, creatorId);
-  const categoriesAllowed = await getInfoCategoryList(db, userRoles);
-
-  if (
-    forCategories.some(
-      (category) => !categoriesAllowed.some((c) => c.id === category),
-    )
-  ) {
-    throw new Error('Invalid category');
-  }
-
+  // Who may post in each category is checked before this (checkPostCategories in the controller).
   // transaction drizzle auto rollback kalo error
   return await db.transaction(async (tx) => {
     const isForAngkatan = forAngkatan !== undefined && forAngkatan.length > 0;
