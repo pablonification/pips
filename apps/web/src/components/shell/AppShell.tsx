@@ -214,7 +214,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 /**
  * The page area's height (the scrolling area below the top bar or the breadcrumbs) as --g-page-h on `root`, so
- * today's screens that fill "the screen" fill the space between the bars instead (shell.css).
+ * today's screens that fill "the screen" fill the space between the bars instead (shell.css). Also the sticky top
+ * bar's height as --g-top-h, which the scrolling area keeps clear when it brings a focused control into view.
  */
 function usePageHeight(
   root: HTMLElement | null,
@@ -238,6 +239,8 @@ function usePageHeight(
         '--g-page-h',
         `${Math.max(0, scroller.clientHeight - top)}px`,
       );
+      const bar = scroller.querySelector<HTMLElement>('.g-top');
+      root.style.setProperty('--g-top-h', `${bar ? bar.offsetHeight : 0}px`);
     };
     measure();
     const ro = new ResizeObserver(measure);

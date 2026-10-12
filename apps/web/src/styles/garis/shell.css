@@ -25,6 +25,9 @@
     overflow-y: auto;
     scrollbar-width: none;
     overscroll-behavior: contain;
+    /* Focus is never hidden (WCAG 2.4.11, SPEC "Accessibility"): a control brought into view stops below the
+       sticky top bar, which the shell measures (review M4). Sticky toolbars inside a page add their own. */
+    scroll-padding-top: calc(var(--g-top-h, 58px) + 8px);
   }
   .g-scroll::-webkit-scrollbar {
     display: none;
