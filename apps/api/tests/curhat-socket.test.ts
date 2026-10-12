@@ -182,6 +182,19 @@ test('a forged or expired cookie counts as no session', async () => {
     ok: false,
     error: 'unauthorized',
   });
+
+  // Signed with the right secret, but expired a minute ago.
+  const expired = await client(
+    null,
+    { chatroomId: 'r1', curhat: true },
+    await sessionCookie(nadia, PLACEHOLDER_JWT_SECRET, -60),
+  );
+  await settled();
+  assert.deepEqual(await roomsOf(expired.id!), []);
+  assert.deepEqual(await send(expired, { chatroomId: 'r1', message: 'x' }), {
+    ok: false,
+    error: 'unauthorized',
+  });
 });
 
 // Regression (review minor 1): the session was read once, so a socket kept sending after its token expired.
