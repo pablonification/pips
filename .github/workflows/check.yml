@@ -1,0 +1,33 @@
+name: check
+
+on:
+  pull_request:
+    branches: [main, redesign]
+  push:
+    branches: [main, redesign]
+
+jobs:
+  check:
+    name: ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [web, api]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Type check and lint
+        run: pnpm --filter ${{ matrix.app }} run check
+      - name: Unit tests
+        run: pnpm --filter ${{ matrix.app }} --if-present run test
+      - name: Production build
+        if: matrix.app == 'web'
+        run: pnpm --filter web run build && node apps/web/scripts/verify-production-bundle.mjs apps/web/dist

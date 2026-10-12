@@ -1,0 +1,4 @@
+node_modules/
+.turbo/
+# The live prototype copy that staging serves; the locked copy is kept outside the repo.
+apps/web/public/prototypes/

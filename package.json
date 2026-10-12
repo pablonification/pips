@@ -1,0 +1,11 @@
+{
+  "name": "pips",
+  "private": true,
+  "description": "PIPS!, the HMIF ITB members app: the web app (apps/web) and its API (apps/api).",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "check": "pnpm -r --if-present run check",
+    "test": "pnpm -r --if-present run test",
+    "build": "pnpm -r --if-present run build"
+  }
+}
