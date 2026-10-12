@@ -12,6 +12,7 @@ import type {
 } from '../../src/api/generated';
 import {
   NOW,
+  authorOf,
   formStatusFor,
   isSpartaEligible,
   spartaWindowFor,
@@ -82,7 +83,7 @@ export const comment: Handler = ({ db, body }) => {
     creatorId: db.me!.id,
     content,
     createdAt: NOW,
-    creator: db.me!,
+    creator: authorOf(db.me!),
     reactions: { totalReactions: 0, reactionsCount: [] },
   };
   list.push(created);

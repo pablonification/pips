@@ -46,6 +46,8 @@ fixtures follow the API, as listed here.
   doesn't get p5 (for the akademik group); Raka doesn't get p3 (for angkatan 2025).
 - **Reactions** become `ReactionAggregate` (`reactionsCount` in the prototype's reaction order).
 - **Comment ids** are `<post>-c<n>`.
+- **Authors** (since P0-D round 2, as the API): a post's or comment's `creator` is `authorOf(user)`, only `id`,
+  `fullName`, `picture` and `email`, never the whole user record.
 
 ## Calendar
 
@@ -97,8 +99,8 @@ fixtures follow the API, as listed here.
   Nadia. Raka (angkatan 2024) gets no forms.
 - Since P0-D, as the API: `closesAt: null` (set it to close the form), `sectionCount` on list items, `status` on
   `GET /api/form/:id` (`formStatusFor`: already responded, closed, not opened except early access, open), no
-  `sections` until the form opens, even if switched off (kept once it closes), and `prefill` on q1 (`fullName`) and q2 (`nim`), as the
-  seed marks them. `writes.submitForm` answers 403 for a closed or switched-off form, or one not open yet.
+  `sections` until the form opens, even if switched off (kept once it closes), and `prefill` on q1
+  (`fullName`) and q2 (`nim`), as the seed marks them. `writes.submitForm` answers 403 for a closed or switched-off form, or one not open yet.
 
 ## Admin
 

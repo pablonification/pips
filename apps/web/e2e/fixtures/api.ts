@@ -6,6 +6,7 @@
  * support/handlers.ts read from it, and a test's own write handlers may change it.
  */
 import type {
+  Author,
   AdminFormListItem,
   AdminFormResponseItem,
   Angkatan,
@@ -85,6 +86,19 @@ export function personUser(key: PersonKey): User {
     angkatan: p.ang,
     gender: p.gender,
     membershipStatus: 'Anggota Biasa',
+  };
+}
+
+/**
+ * A post's or comment's author as the API sends it to other members (apps/api/src/lib/author.ts): id, name,
+ * photo and email, nothing else.
+ */
+export function authorOf(user: User): Author {
+  return {
+    id: user.id,
+    fullName: user.fullName,
+    picture: user.picture,
+    email: user.email,
   };
 }
 
@@ -168,7 +182,7 @@ function postContent(post: ProtoPost): string {
 }
 
 function toInfo(post: ProtoPost, persona: PersonaKey): Info {
-  const creator = personUser(post.by);
+  const creator = authorOf(personUser(post.by));
   const mine = post.by === PERSON_OF[persona];
   return {
     id: post.id,
@@ -221,7 +235,7 @@ function toInfo(post: ProtoPost, persona: PersonaKey): Info {
 
 function toComments(post: ProtoPost): CommentWithReactions[] {
   return post.comments.map((c, i) => {
-    const creator = personUser(c.by);
+    const creator = authorOf(personUser(c.by));
     return {
       id: `${post.id}-c${i + 1}`,
       repliedInfoId: post.id,

@@ -189,3 +189,30 @@ test('NIM Finder: four fields, closest NIM first, 400 under three characters', (
     400,
   );
 });
+
+// Regression (review M3): the harness handed out each author's whole user record, as the API used to.
+test('posts and comments carry only the author fields: id, name, photo, email', () => {
+  const AUTHOR_KEYS = ['email', 'fullName', 'id', 'picture'];
+  const db = buildDb('anggota');
+  const { infos } = call(get('/api/info'), db) as unknown as {
+    infos: Array<{ id: string; creator: object }>;
+  };
+  assert.ok(infos.length > 0);
+  for (const info of infos) {
+    assert.deepEqual(Object.keys(info.creator).sort(), AUTHOR_KEYS);
+  }
+  const withComments = Object.keys(db.comments).find(
+    (id) => db.comments[id].length > 0,
+  )!;
+  const { comment } = call(get('/api/comments'), db, {
+    query: `infoId=${withComments}`,
+  }) as unknown as { comment: Array<{ creator: object }> };
+  assert.ok(comment.length > 0);
+  for (const c of comment) {
+    assert.deepEqual(Object.keys(c.creator).sort(), AUTHOR_KEYS);
+  }
+  const posted = call(writes.comment, db, {
+    body: { content: 'Makasih!', repliedInfoId: withComments },
+  }) as unknown as { creator: object };
+  assert.deepEqual(Object.keys(posted.creator).sort(), AUTHOR_KEYS);
+});
