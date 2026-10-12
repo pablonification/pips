@@ -72,3 +72,34 @@ jobs:
         run: |
           docker logs web 2>&1 | tail -n 50 || true
           docker logs api 2>&1 | tail -n 80 || true
+
+  e2e:
+    name: e2e (web journeys)
+    # The browser journeys run on pull requests to main and redesign.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      # pnpm's version comes from packageManager in package.json.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium for Playwright
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Journeys (builds the app for production and serves it with vite preview)
+        run: pnpm --filter web e2e
+        env:
+          E2E_WORKERS: 2
+      - name: Keep the report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: |
+            apps/web/e2e/.report
+            apps/web/e2e/.results
+          retention-days: 14

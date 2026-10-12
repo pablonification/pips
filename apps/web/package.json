@@ -13,8 +13,13 @@
     "lint:fix": "eslint ./src --fix",
     "preview": "vite preview",
     "check": "pnpm run typecheck && pnpm run lint",
-    "typecheck": "tsc --noEmit",
-    "test": "node --test tests/*.test.mjs"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p e2e",
+    "test": "node --test tests/*.test.mjs",
+    "e2e": "playwright test -c e2e --project=phone-light --project=phone-dark --project=desktop-light --project=desktop-dark --project=visual-phone-light --project=visual-phone-dark --project=visual-desktop-light --project=visual-desktop-dark --pass-with-no-tests",
+    "e2e:before": "node e2e/scripts/before.mjs",
+    "e2e:compare-before": "node e2e/scripts/compare-before.mjs",
+    "fidelity": "node e2e/scripts/fidelity.mjs",
+    "e2e:update": "playwright test -c e2e --project=visual-phone-light --project=visual-phone-dark --project=visual-desktop-light --project=visual-desktop-dark --update-snapshots --pass-with-no-tests"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -64,11 +69,14 @@
     "zod": "^3.23.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/router-plugin": "^1.168.43",
     "@types/node": "^22.19.0",
+    "@types/pngjs": "^6.0.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
@@ -80,6 +88,8 @@
     "eslint-plugin-tailwindcss": "^4.4.0",
     "globals": "^17.13.0",
     "openapi-typescript-codegen": "^0.28.0",
+    "pixelmatch": "^8.0.0",
+    "pngjs": "^7.0.0",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.3.3",

@@ -10,7 +10,15 @@ import tseslint from 'typescript-eslint';
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
 export default defineConfig([
-  globalIgnores(['dist', 'dev-dist', '**/*.{js,cjs,mjs}']),
+  globalIgnores([
+    'dist',
+    'dev-dist',
+    '**/*.{js,cjs,mjs}',
+    'e2e/.build',
+    'e2e/.results',
+    'e2e/.report',
+    'e2e/.out',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -46,5 +54,10 @@ export default defineConfig([
       'tailwindcss/enforces-canonical-classname': 'off',
       'tailwindcss/important-modifier-suffix': 'off',
     },
+  },
+  {
+    // Playwright's fixtures call \`use()\`, which react-hooks 7 takes for React 19's \`use\`. The e2e code isn't React.
+    files: ['e2e/**/*.ts'],
+    rules: { 'react-hooks/rules-of-hooks': 'off' },
   },
 ]);
