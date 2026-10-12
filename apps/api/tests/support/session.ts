@@ -35,13 +35,17 @@ export function testUser(
   };
 }
 
-/** A `Cookie` header carrying a valid session for `user`, as the API sets it at sign-in. */
+/**
+ * A `Cookie` header carrying a session for `user`, as the API sets it at sign-in: valid for `expiresIn` seconds
+ * (negative for one already expired).
+ */
 export async function sessionCookie(
   user: TestUser,
   secret = PLACEHOLDER_JWT_SECRET,
+  expiresIn = 3600,
 ) {
   const token = await sign(
-    { ...user, exp: Math.floor(Date.now() / 1000) + 3600 },
+    { ...user, exp: Math.floor(Date.now() / 1000) + expiresIn },
     secret,
     'HS256',
   );

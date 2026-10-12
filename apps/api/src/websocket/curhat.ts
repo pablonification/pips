@@ -12,10 +12,12 @@ import {
   type CurhatMessageAck,
   type CurhatSocketError,
 } from '~/types/curhat.types';
-import type { SocketSession } from './session';
+import { sessionExpired, type SocketSession } from './session';
 
 /** What the chat socket needs from storage and push, passed in so tests run without a database. */
 export interface CurhatSocketDeps {
+  /** Read again on every access check, so a role taken away applies at once, not at the next connection. */
+  getUserRoles: (userId: string) => Promise<string[]>;
   getChatroom: (
     chatroomId: string,
   ) => Promise<{ id: string; userId: string | null } | undefined>;
@@ -69,9 +71,21 @@ export function registerCurhatSocket(
   session: Promise<SocketSession | null>,
   deps: CurhatSocketDeps,
 ) {
-  async function mayAccess(s: SocketSession, chatroomId: string) {
+  async function mayAccess(userId: string, chatroomId: string) {
     const room = await deps.getChatroom(chatroomId);
-    return canAccessChatroom({ id: s.userId }, s.roles, room);
+    const roles = await deps.getUserRoles(userId);
+    return canAccessChatroom({ id: userId }, roles, room);
+  }
+
+  /** The session, while its token is valid. Once it has expired the socket is cut off (`connection.ts` too). */
+  async function liveSession() {
+    const s = await session;
+    if (!s) return null;
+    if (sessionExpired(s)) {
+      socket.disconnect(true);
+      return null;
+    }
+    return s;
   }
 
   socket.on('message', async (payload: unknown, ack?: unknown) => {
@@ -85,7 +99,7 @@ export function registerCurhatSocket(
   });
 
   async function receiveMessage(payload: unknown): Promise<CurhatMessageAck> {
-    const s = await session;
+    const s = await liveSession();
     if (!s) return refuse('unauthorized');
 
     const parsed = CurhatMessagePayloadSchema.safeParse(payload);
@@ -95,7 +109,7 @@ export function registerCurhatSocket(
     const { chatroomId, message: content } = parsed.data;
     const replyId = parsed.data.replyId ?? null;
 
-    if (!(await mayAccess(s, chatroomId))) return refuse('forbidden');
+    if (!(await mayAccess(s.userId, chatroomId))) return refuse('forbidden');
 
     let quoted: ChatroomMessage | undefined;
     if (replyId) {
@@ -116,6 +130,11 @@ export function registerCurhatSocket(
       if (receiver.id === socket.id) continue;
       // `reply` keeps today's shape (no quoted message); `isSender` is for whoever receives it.
       const receiverId = (receiver.data as { userId?: string }).userId;
+      // Someone who lost access since joining (Welfare's role taken away) leaves the room instead.
+      if (!receiverId || !(await mayAccess(receiverId, chatroomId))) {
+        receiver.leave(chatroomId);
+        continue;
+      }
       receiver.emit(
         'reply',
         onTheWire(toChatroomMessageResponse(saved, receiverId ?? '')),
@@ -138,11 +157,11 @@ export function registerCurhatSocket(
   }
 
   async function joinRoom(payload: unknown): Promise<CurhatJoinAck> {
-    const s = await session;
+    const s = await liveSession();
     if (!s) return refuse('unauthorized');
     const parsed = CurhatJoinPayloadSchema.safeParse(payload);
     if (!parsed.success) return refuse('invalid');
-    if (!(await mayAccess(s, parsed.data.chatroomId))) {
+    if (!(await mayAccess(s.userId, parsed.data.chatroomId))) {
       return refuse('forbidden');
     }
     await socket.join(parsed.data.chatroomId);
@@ -170,7 +189,7 @@ export function registerCurhatSocket(
     }
     // Today's screens open one socket per room.
     if (typeof auth.chatroomId === 'string' && auth.chatroomId) {
-      if (await mayAccess(s, auth.chatroomId)) {
+      if (await mayAccess(s.userId, auth.chatroomId)) {
         await socket.join(auth.chatroomId);
       }
     }

@@ -1,10 +1,22 @@
 import { verify } from 'hono/jwt';
 import { JWT_ALG } from '~/lib/jwt';
 
-/** The signed-in member behind a socket, read once from the handshake's session cookie. */
+/**
+ * The signed-in member behind a socket, read from the handshake's session cookie. `roles` are the roles at the
+ * handshake; access checks read them again. `expiresAt` is the token's expiry (ms), when the socket is cut off.
+ */
 export interface SocketSession {
   userId: string;
   roles: string[];
+  expiresAt: number | null;
+}
+
+/** Whether the session's token has run out. */
+export function sessionExpired(
+  s: Pick<SocketSession, 'expiresAt'>,
+  now: number = Date.now(),
+): boolean {
+  return s.expiresAt !== null && now >= s.expiresAt;
 }
 
 export function extractTokenFromCookie(
@@ -35,7 +47,9 @@ export async function readSocketSession(
     const payload = await verify(token, jwtSecret, JWT_ALG);
     const userId = payload.id;
     if (typeof userId !== 'string' || !userId) return null;
-    return { userId, roles: await getUserRoles(userId) };
+    const expiresAt =
+      typeof payload.exp === 'number' ? payload.exp * 1000 : null;
+    return { userId, roles: await getUserRoles(userId), expiresAt };
   } catch {
     return null;
   }

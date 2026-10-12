@@ -2,6 +2,27 @@ import type { Socket } from 'socket.io';
 import { registerCurhatSocket, type CurhatSocketDeps } from './curhat';
 import { readSocketSession, type SocketSession } from './session';
 
+/** setTimeout's longest delay (about 24.8 days); a later expiry is reached in steps. */
+const MAX_TIMEOUT = 2 ** 31 - 1;
+
+/** Disconnects the socket when its session expires, so it neither sends nor receives on an expired token. */
+function disconnectAt(socket: Socket, expiresAt: number) {
+  let timer: ReturnType<typeof setTimeout>;
+  const schedule = () => {
+    const left = expiresAt - Date.now();
+    timer = setTimeout(
+      left > MAX_TIMEOUT
+        ? schedule
+        : () => {
+            socket.disconnect(true);
+          },
+      Math.min(Math.max(left, 0), MAX_TIMEOUT),
+    );
+  };
+  schedule();
+  socket.once('disconnect', () => clearTimeout(timer));
+}
+
 export function formAdminRoom(formId: string) {
   return `form-admin:${formId}`;
 }
@@ -9,7 +30,7 @@ export function formAdminRoom(formId: string) {
 export interface ConnectionDeps {
   jwtSecret: string;
   getUserRoles: (userId: string) => Promise<string[]>;
-  curhat: CurhatSocketDeps;
+  curhat: Omit<CurhatSocketDeps, 'getUserRoles'>;
   onError?: (error: unknown) => void;
 }
 
@@ -26,6 +47,7 @@ export function createConnectionHandler(deps: ConnectionDeps) {
     )
       .then((s) => {
         if (s) socket.data.userId = s.userId;
+        if (s?.expiresAt != null) disconnectAt(socket, s.expiresAt);
         return s;
       })
       .catch((error) => {
@@ -33,7 +55,10 @@ export function createConnectionHandler(deps: ConnectionDeps) {
         return null;
       });
 
-    registerCurhatSocket(socket, session, deps.curhat);
+    registerCurhatSocket(socket, session, {
+      ...deps.curhat,
+      getUserRoles: deps.getUserRoles,
+    });
 
     const formAdminId = socket.handshake.auth.formAdminId as string | undefined;
     if (formAdminId) {

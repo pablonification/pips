@@ -184,6 +184,66 @@ test('a forged or expired cookie counts as no session', async () => {
   });
 });
 
+// Regression (review minor 1): the session was read once, so a socket kept sending after its token expired.
+test('a socket is cut off when its session expires', async () => {
+  const socket = await client(
+    null,
+    { chatroomId: 'r1' },
+    await sessionCookie(nadia, PLACEHOLDER_JWT_SECRET, 2),
+  );
+  await settled();
+  assert.deepEqual(await roomsOf(socket.id!), ['r1']);
+  assert.equal(
+    (await send(socket, { chatroomId: 'r1', message: 'masih bisa' })).ok,
+    true,
+  );
+  // The token lasts 1–2 s (whole seconds); give the server 4 s before calling it a failure.
+  const reason = await new Promise<string>((resolve) => {
+    const timer = setTimeout(() => resolve('still connected'), 4000);
+    socket.once('disconnect', (r) => {
+      clearTimeout(timer);
+      resolve(r);
+    });
+  });
+  assert.equal(reason, 'io server disconnect');
+  assert.deepEqual(
+    await send(socket, { chatroomId: 'r1', message: 'x' }).catch(
+      () => 'no answer',
+    ),
+    'no answer',
+  );
+});
+
+// Regression (review minor 1): roles were read once, so Welfare kept every room after its role was taken away.
+test('Welfare loses access at once when its role is taken away', async () => {
+  const w = await client(welfare, { chatroomId: 'r9' });
+  const owner = await client(other, { chatroomId: 'r9' });
+  await settled();
+  assert.deepEqual(await roomsOf(w.id!), ['r9']);
+  const got = collect(w, 'reply');
+  try {
+    ROLES[welfare.id] = [];
+    assert.deepEqual(await send(w, { chatroomId: 'r9', message: 'halo' }), {
+      ok: false,
+      error: 'forbidden',
+    });
+    assert.deepEqual(
+      await w.timeout(2000).emitWithAck('curhat:join', { chatroomId: 'r1' }),
+      { ok: false, error: 'forbidden' },
+    );
+    // The owner's next message no longer reaches the former Welfare socket, which leaves the room.
+    assert.equal(
+      (await send(owner, { chatroomId: 'r9', message: 'ada orang?' })).ok,
+      true,
+    );
+    await settled();
+    assert.deepEqual(got, []);
+    assert.deepEqual(await roomsOf(w.id!), []);
+  } finally {
+    ROLES[welfare.id] = ['curhatadmin'];
+  }
+});
+
 test("a member can neither join nor post into another member's room", async () => {
   const socket = await client(other, { chatroomId: 'r1' });
   await settled();
