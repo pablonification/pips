@@ -4,8 +4,11 @@
 // quality-gate measurements, then writes manifest.json and an index.html gallery to ops/redesign/before-set/.
 // The before set is a record: it is never updated. A second run refuses to overwrite it unless
 // E2E_BEFORE_OVERWRITE=1 (only for a set that was recorded wrongly).
+// If some captures failed, the set is marked incomplete; E2E_BEFORE_RESUME=1 then keeps what was captured and
+// captures again only what the arguments select (e.g. `--grep "app-loading|settings"`).
 import {
   existsSync,
+  readFileSync,
   mkdirSync,
   readdirSync,
   rmSync,
@@ -24,21 +27,24 @@ import {
 } from './lib/run.mjs';
 
 const dir = recordDir('before-set');
-if (
-  existsSync(path.join(dir, 'manifest.json')) &&
-  process.env.E2E_BEFORE_OVERWRITE !== '1'
-) {
+const manifestPath = path.join(dir, 'manifest.json');
+const previous = existsSync(manifestPath)
+  ? JSON.parse(readFileSync(manifestPath, 'utf8'))
+  : null;
+const resume =
+  process.env.E2E_BEFORE_RESUME === '1' && previous && !previous.complete;
+if (previous && !resume && process.env.E2E_BEFORE_OVERWRITE !== '1') {
   console.error(
-    `The before set already exists at ${dir}.\nIt is a record and is never updated. To compare against it, run e2e:compare-before.`,
+    `The before set already exists at ${dir}${previous.complete ? '' : ' (incomplete: resume it with E2E_BEFORE_RESUME=1)'}.\nIt is a record and is never updated. To compare against it, run e2e:compare-before.`,
   );
   process.exit(1);
 }
-rmSync(dir, { recursive: true, force: true });
+if (!resume) rmSync(dir, { recursive: true, force: true });
 mkdirSync(dir, { recursive: true });
 
 const code = playwright(CAPTURE_PROJECTS, { E2E_CAPTURE_DIR: dir });
 const records = readRecords(dir);
-const manifest = buildManifest(records);
+const manifest = buildManifest(records, code === 0, resume ? previous : null);
 writeFileSync(
   path.join(dir, 'manifest.json'),
   JSON.stringify(manifest, null, 2),
@@ -50,11 +56,11 @@ console.log(
 console.log(`Gallery: ${path.join(dir, 'index.html')}`);
 if (code !== 0)
   console.error(
-    'Some captures failed; the set is incomplete. Fix them and record again with E2E_BEFORE_OVERWRITE=1.',
+    'Some captures failed; the set is incomplete. Fix them, then capture the rest with E2E_BEFORE_RESUME=1 and --grep.',
   );
 process.exit(code);
 
-function buildManifest(records) {
+function buildManifest(records, complete, resumedFrom) {
   const states = new Map();
   for (const r of records) {
     const s = states.get(r.id) ?? {
@@ -87,7 +93,9 @@ function buildManifest(records) {
     records.reduce((n, r) => n + (r.audit.axe.byImpact[key] ?? 0), 0);
   return {
     kind: 'pips-before-set',
-    recordedAt: new Date().toISOString(),
+    complete,
+    recordedAt: resumedFrom?.recordedAt ?? new Date().toISOString(),
+    ...(resumedFrom ? { completedAt: new Date().toISOString() } : {}),
     app: `today's interface, apps/web at ${gitHead()}`,
     clock: 'Kamis, 8 Oktober 2026, 13.35 WIB (Asia/Jakarta), page.clock',
     fixtures: 'apps/web/e2e/fixtures (the locked prototype’s sample data)',

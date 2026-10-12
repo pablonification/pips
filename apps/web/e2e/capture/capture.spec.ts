@@ -32,6 +32,7 @@ for (const state of STATES) {
         throw new Error(
           'Run captures through `pnpm e2e:before` or `pnpm e2e:compare-before`; they set E2E_CAPTURE_DIR.',
         );
+      await state.prepare?.(page);
       state.mock?.(api);
       await page.goto(state.path);
       await state.act?.(page, { api, context });

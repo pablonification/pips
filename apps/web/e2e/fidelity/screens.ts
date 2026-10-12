@@ -65,11 +65,11 @@ export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
   },
   'anggota-profil': {
     path: '/settings',
-    ready: (p) => visibleText(p, 'NIM 13525045'),
+    ready: (p) => p.getByRole('listitem').filter({ hasText: '13525045' }).locator('visible=true').first(),
   },
   'anggota-matkul': {
     path: '/settings/courses',
-    ready: (p) => visibleText(p, 'Jumlah SKS 18'),
+    ready: (p) => p.getByText('Jumlah SKS').locator('visible=true').first(),
   },
   'anggota-notif': {
     path: '/settings/subscriptions',

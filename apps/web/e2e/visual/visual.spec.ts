@@ -26,6 +26,7 @@ for (const state of VISUAL_STATES) {
           ? ' @desktop-only'
           : '';
     test(`${state.id}${tag}`, async ({ page, api, context }) => {
+      await state.prepare?.(page);
       state.mock?.(api);
       await page.goto(state.path);
       await state.act?.(page, { api, context });

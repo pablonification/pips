@@ -22,6 +22,8 @@ export interface CaptureState {
   /** Only one layout has this state. */
   only?: 'phone' | 'desktop';
   path: string;
+  /** Steps before the page opens (init scripts, storage). */
+  prepare?: (page: Page) => Promise<void>;
   /** Mock overrides, installed before the page opens. */
   mock?: (api: ApiMock) => void;
   /** Steps after the page opens, to reach the state. */
@@ -62,6 +64,8 @@ export const STATES: CaptureState[] = [
     id: 'app-loading',
     title: 'App loading the session',
     path: '/home',
+    // Shown only before the member is cached on the device, while /api/me is pending.
+    prepare: (p) => p.addInitScript(() => localStorage.removeItem('user')),
     mock: (api) => api.on('GET /api/me', reply.hang()),
     ready: (p) => p.getByText('Loading...'),
   },
@@ -142,6 +146,8 @@ export const STATES: CaptureState[] = [
   },
   {
     id: 'timeline-unread',
+    // Today's desktop timeline has no unread toggle or filter drawer.
+    only: 'phone',
     title: 'Timeline, unread only',
     path: '/timeline',
     act: async (p) => {
@@ -156,6 +162,8 @@ export const STATES: CaptureState[] = [
   },
   {
     id: 'timeline-filter',
+    // Today's desktop timeline has no unread toggle or filter drawer.
+    only: 'phone',
     title: 'Timeline filter open',
     path: '/timeline',
     act: async (p) => {
@@ -174,9 +182,13 @@ export const STATES: CaptureState[] = [
     path: '/timeline',
     act: async (p) => {
       await heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4).waitFor();
+      // The menu button of the first post's card (on desktop the composer also opens a dialog).
       await p
+        .locator('div')
+        .filter({ has: heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4) })
+        .filter({ has: p.locator('button[aria-haspopup="dialog"]') })
+        .last()
         .locator('button[aria-haspopup="dialog"]')
-        .locator('visible=true')
         .first()
         .click();
     },
@@ -383,13 +395,13 @@ export const STATES: CaptureState[] = [
     id: 'settings',
     title: 'Settings',
     path: '/settings',
-    ready: (p) => visibleText(p, 'NIM 13525045'),
+    ready: (p) => p.getByRole('listitem').filter({ hasText: '13525045' }).locator('visible=true').first(),
   },
   {
     id: 'settings-courses',
     title: 'Set Courses',
     path: '/settings/courses',
-    ready: (p) => visibleText(p, 'Jumlah SKS 18'),
+    ready: (p) => p.getByText('Jumlah SKS').locator('visible=true').first(),
   },
   {
     id: 'settings-courses-add',
@@ -437,7 +449,7 @@ export const STATES: CaptureState[] = [
     title: 'Data SPARTA Magang table',
     persona: 'pengurus',
     path: '/home/internship/admin',
-    ready: (p) => p.getByRole('row', { name: /Bima Santoso/ }),
+    ready: (p) => p.locator('a[href="/home/internship/admin/sub-13525071"]').locator('visible=true'),
   },
   {
     id: 'sparta-submission',
