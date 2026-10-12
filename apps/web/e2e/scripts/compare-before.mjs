@@ -5,12 +5,18 @@
 // tolerance 0.1, anti-aliasing ignored). Writes report.json, side-by-side images (before | after | diff) and an
 // index.html summary to ops/redesign/compare/<timestamp>/.
 //
-// A state counts as changed when more than E2E_COMPARE_THRESHOLD of its pixels differ (default 0.001 = 0.1 %),
+// A state counts as changed when more than E2E_COMPARE_THRESHOLD of its pixels differ (default 0.0001 = 0.01 %),
 // or when it is missing on either side. The command exits 1 if any state changed.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { FILTER_SCRIPT, filterSelect, page } from './lib/html.mjs';
-import { pixelDiff, readPng, sideBySide, writePng } from './lib/image.mjs';
+import {
+  COMPARE_THRESHOLD,
+  pixelDiff,
+  readPng,
+  sideBySide,
+  writePng,
+} from './lib/image.mjs';
 import { recordDir, stamp } from './lib/paths.mjs';
 import {
   CAPTURE_PROJECTS,
@@ -21,9 +27,8 @@ import {
   readRecords,
 } from './lib/run.mjs';
 
-export const DEFAULT_THRESHOLD = 0.001;
 const threshold = Number(
-  process.env.E2E_COMPARE_THRESHOLD ?? DEFAULT_THRESHOLD,
+  process.env.E2E_COMPARE_THRESHOLD ?? COMPARE_THRESHOLD,
 );
 const beforeDir = recordDir('before-set');
 const manifestFile = path.join(beforeDir, 'manifest.json');

@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import {
+  COMPARE_THRESHOLD,
   blank,
   fit,
   pixelDiff,
@@ -46,6 +47,19 @@ test('a blank screen is far from a busy one', () => {
   for (let i = 0; i < busy.data.length; i += 4)
     busy.data.set((i / 4) % 7 < 3 ? [0, 0, 0, 255] : [255, 255, 255, 255], i);
   assert.ok(ssim(busy, blank(120, 120), 120) < 0.5);
+});
+
+// Regression: the PIXEL form's success toast once showed in some captures and not others. It changed 643
+// pixels of a 1440 × 900 capture, under the old 0.1 % threshold, so compare-before would have called it unchanged.
+test('compare-before counts a toast-sized change as changed', () => {
+  const before = blank(1440, 900);
+  const toast = square(1440, 900, 625, 29, 26); // 676 pixels
+  assert.ok(pixelDiff(before, toast).ratio > COMPARE_THRESHOLD);
+  // A one-glyph shift of anti-aliased pixels stays under it.
+  assert.ok(
+    pixelDiff(before, square(1440, 900, 1390, 134, 5)).ratio <=
+      COMPARE_THRESHOLD,
+  );
 });
 
 test('pixelDiff refuses images of different sizes', () => {

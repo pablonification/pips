@@ -90,13 +90,13 @@ const projects: Project[] = [
 
 const config: PlaywrightTestConfig = defineConfig({
   outputDir: './.results',
-  // Generous: the shared host is often busy, and axe on a long page takes seconds.
+  // Generous: the machine is shared with other work, and axe on a long page takes seconds.
   timeout: 90_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  // Two workers by default: the host this runs on has four threads shared with other work.
+  // Two workers by default (CI too); on the shared Mac use at most E2E_WORKERS=3.
   workers: Number(process.env.E2E_WORKERS ?? 2),
   reporter: [['list'], ['html', { outputFolder: './.report', open: 'never' }]],
   use: {

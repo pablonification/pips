@@ -82,6 +82,13 @@ export function fit(img, width, height, rgb = [255, 255, 255]) {
 }
 
 /**
+ * compare-before's threshold: a capture counts as changed when more than this share of its pixels differ
+ * (0.01 %: about 130 pixels of a 1440 × 900 desktop capture or a 390 × 844 phone capture at device scale 2). Unchanged builds
+ * are pixel-identical; a toast or a changed word is several hundred pixels and must count.
+ */
+export const COMPARE_THRESHOLD = 0.0001;
+
+/**
  * Changed pixels between two images of the same size, and a diff image (changed pixels in red over a faded copy).
  * `threshold` is pixelmatch's per-pixel colour tolerance (0–1); anti-aliasing differences are ignored.
  * @param {Img} a @param {Img} b

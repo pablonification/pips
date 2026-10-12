@@ -4,7 +4,8 @@ Playwright drives a **production build** of the web app, served locally with `vi
 app makes is answered from typed fixtures built from the locked Garis v4 prototype's sample data, with a fixed
 clock. Nothing reaches a real API, Google, Sentry or any other site.
 
-On the shared host, run every command below through `/home/pabs/.local/bin/host-heavy`, one at a time.
+The Mac this runs on is shared and short of disk: run `ops/redesign/disk-guard.sh` (in the workspace) before each
+command below, run one at a time, and use at most 3 workers (`E2E_WORKERS=3`).
 
 ## Commands
 
@@ -30,7 +31,7 @@ Arguments after the script name go to Playwright, e.g. `pnpm --filter web e2e --
 | `E2E_WORKERS`            | Parallel browsers (default 2).                                                                                                    |
 | `E2E_PORT`               | The preview port (default 4310, inside this worktree's range 4310–4319).                                                          |
 | `E2E_GATES=strict`       | Make the quality gates fail tests (see below).                                                                                    |
-| `E2E_COMPARE_THRESHOLD`  | Changed-pixel ratio above which a state counts as changed (default `0.001`).                                                      |
+| `E2E_COMPARE_THRESHOLD`  | Changed-pixel ratio above which a state counts as changed (default `0.0001`).                                                     |
 | `E2E_BEFORE_OVERWRITE=1` | Let `e2e:before` replace an existing before set. Only for a set recorded wrongly.                                                 |
 | `PIPS_OPS_DIR`           | Where `ops/` is. By default the scripts look for `ops/redesign/PLAN.md` above the app; without it (CI) records go to `e2e/.out/`. |
 
@@ -139,12 +140,20 @@ makes strict the default.
 - States live in `capture/states.ts`: each destination's main view, the empty, loading, error and offline states
   today's app has, open overlays, the form steps and the admin tables. Each is captured at phone and desktop size
   in light and dark (today's app has no dark theme; the dark captures show that).
-- A capture is taken once fonts and images have loaded and two screenshots in a row are identical.
+- A capture is taken once fonts and images have loaded, every image has been painted again after decoding, and two
+  screenshots in a row are identical. The repaint matters: Chromium sometimes keeps an image raster drawn before its
+  decode finished, and an SVG at a fractional position then lands half a pixel apart between runs.
+- A state's steps must wait for what they wait on to happen. To capture a page after a toast has gone, wait for the
+  toast to appear and then to leave: waiting only for "hidden" passes at once while the request is still running.
 - `e2e:compare-before` compares each pair with pixelmatch (colour tolerance 0.1, anti-aliasing ignored).
-  **Threshold:** a state counts as changed when more than **0.1 %** of its pixels differ, or when it is missing.
-  An unchanged build reports 0 changed states; real visual changes (a moved element, changed text) are far above
-  0.1 %. New states (in `states.ts` but not in the before set) are listed, not failed.
-- The before set is a record and is never updated.
+  **Threshold:** a state counts as changed when more than **0.01 %** of its pixels differ (about 130 pixels on
+  either size), or when it is missing. An unchanged build is pixel-identical: on 2026-10-12 all 200 captures had
+  0 changed pixels, reusing the build and after a clean rebuild. A toast or a changed word is several hundred
+  pixels (the flaky toast above was 643, which the earlier 0.1 % would have let through); the margin only absorbs
+  a few anti-aliased pixels. Never raise it to get green: find what moves and fix it in the harness. New states
+  (in `states.ts` but not in the before set) are listed, not failed.
+- The before set is a record and is never updated. It was recorded on the owner's Mac on 2026-10-12; rendering
+  differs between machines, so compare on the same machine (or record a new set there with `E2E_BEFORE_OVERWRITE=1`).
 
 ## Fidelity against the locked prototype
 
