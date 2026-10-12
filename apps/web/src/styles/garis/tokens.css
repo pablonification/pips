@@ -1,0 +1,212 @@
+/*
+  Garis design tokens, ported exactly from the locked prototype (garis/garis.css, 2026-10-12).
+  Semantic tokens are named by role. Dark mode is the `.dark` class on <html> (set before first paint by the
+  script in index.html); `.theme-light` and `.theme-dark` force a theme inside one element (the gallery uses them).
+  Every text/background pair is checked in both themes by tests/garis-tokens.test.mjs (text ≥ 4.5:1, focus and
+  input boundaries ≥ 3:1), which reads this file. Components use only these tokens: lint stops raw colours.
+*/
+:root,
+.theme-light {
+  /* Brand primitives: only for the plaque, keycaps, marks and pixel art. */
+  --gold: #f8c249;
+  --gold-hover: #edb431;
+  --ink: #1b1508;
+  --cream: #fbe3a1;
+  /* Backgrounds */
+  --bg-page: #f1eee8;
+  --bg-app: #fcfbf8;
+  --bg-chrome: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-raised: #ffffff;
+  --bg-muted: #efece5;
+  --bg-hover: #f6f4ef;
+  --bg-accent: #f8c249;
+  --bg-accent-subtle: #fcefc7;
+  --bg-inverse: #1b1508;
+  --bg-selected: #1b1508;
+  --bg-event: #1b1508;
+  /* Text */
+  --text: #1b1508;
+  --text-2: #594f3f;
+  --text-3: #6b6250;
+  --text-accent: #7a5a0e;
+  --text-danger: #b42318;
+  --text-success: #0f6e56;
+  --text-on-accent: #1b1508;
+  --text-on-inverse: #fcfbf8;
+  --text-on-selected: #f8c249;
+  --text-on-event: #fbe3a1;
+  /* Lines */
+  --border: #e4dfd4;
+  --border-strong: #8a8170;
+  --border-key: #1b1508;
+  --focus: #1b1508;
+  --mark: #1b1508;
+  --danger-solid: #c9302d;
+  --danger-edge: #8e1f1c;
+  --hatch: repeating-linear-gradient(
+    135deg,
+    #1b1508 0 1.5px,
+    transparent 1.5px 5px
+  );
+  --px-rim: #1b1508;
+  --image-outline: rgb(0 0 0 / 0.1);
+  --shadow-raised:
+    0 0 0 1px var(--border), 0 8px 20px -6px rgb(27 21 8 / 0.18),
+    0 2px 6px rgb(27 21 8 / 0.06);
+  --shadow-frame:
+    0 0 0 1px rgb(27 21 8 / 0.1), 0 30px 70px -20px rgb(27 21 8 / 0.35),
+    0 8px 18px -6px rgb(27 21 8 / 0.12);
+  /* Beranda on phones: the gold header, the cards on it, and the two-tone service glyphs. */
+  --bg-hero: #f8c249;
+  --text-on-hero: #1b1508;
+  --hero-tone: rgb(27 21 8 / 0.13);
+  --avatar-on-hero: #ffffff;
+  --glyph-fill: #f8c249;
+  color: var(--text);
+}
+
+html.dark,
+.theme-dark {
+  --bg-page: #030302;
+  --bg-app: #0a0907;
+  --bg-chrome: #100e0b;
+  --bg-surface: #181510;
+  --bg-raised: #1f1b15;
+  --bg-muted: #26211a;
+  --bg-hover: #13110d;
+  --bg-accent-subtle: #3a2d11;
+  --bg-inverse: #f3eee0;
+  --bg-selected: #f8c249;
+  --bg-event: #2f2920;
+  --text: #f3eee0;
+  --text-2: #cbc2ae;
+  --text-3: #a89f8a;
+  --text-accent: #f8c249;
+  --text-danger: #ff8a7a;
+  --text-success: #4fd1ae;
+  --text-on-inverse: #1b1508;
+  --text-on-selected: #1b1508;
+  --text-on-event: #f3eee0;
+  --border: #353025;
+  --border-strong: #8a8170;
+  --border-key: #8f6714;
+  --focus: #f8c249;
+  --mark: #f8c249;
+  --hatch: repeating-linear-gradient(
+    135deg,
+    #f8c249 0 1.5px,
+    transparent 1.5px 5px
+  );
+  --px-rim: #8f6714;
+  --image-outline: rgb(255 255 255 / 0.1);
+  --shadow-raised: 0 0 0 1px var(--border), 0 18px 40px -8px rgb(0 0 0 / 0.7);
+  --shadow-frame:
+    0 0 0 1px rgb(251 246 233 / 0.1), 0 30px 70px -20px rgb(0 0 0 / 0.8);
+  --bg-hero: #33270b;
+  --text-on-hero: #f8c249;
+  --hero-tone: rgb(248 194 73 / 0.18);
+  --avatar-on-hero: #f8c249;
+  --glyph-fill: #8f6714;
+  color: var(--text);
+}
+
+/*
+  Fixed values the prototype writes inline in its component styles, named here so components hold no raw colour.
+  They are the same in both themes, as in the prototype.
+*/
+:root {
+  --on-danger: #ffffff;
+  --key-highlight: rgb(255 255 255 / 0.55);
+  --key-highlight-pressed: rgb(255 255 255 / 0.3);
+  --plaque-highlight: rgb(255 255 255 / 0.45);
+  --plaque-drop: rgb(27 21 8 / 0.6);
+  --danger-highlight: rgb(255 255 255 / 0.2);
+  --cap-edge: rgb(27 21 8 / 0.14);
+  --scrim: rgb(8 6 4 / 0.5);
+  --scrim-dialog: rgb(8 6 4 / 0.55);
+  --thumb-scrim: rgb(27 21 8 / 0.72);
+  --quote-tint: rgb(27 21 8 / 0.07);
+  /* The pixel reactions' palette (garis/ui.js PX_COL); the rim is --px-rim, which turns bronze in dark mode. */
+  --px-gold: #f8c249;
+  --px-white: #ffffff;
+  --px-red: #e5484d;
+  --px-cream: #fbe3a1;
+  --px-blue: #7cc7f2;
+  --px-bronze: #966f16;
+
+  /* Motion (SPEC "Motion tokens"). */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-control: 100ms;
+  --dur-overlay: 180ms;
+  --dur-sheet: 220ms;
+  --dur-route: 220ms;
+}
+
+/*
+  The tokens as Tailwind utilities. Backgrounds, text, lines and rings are separate scales (SPEC "Design tokens"),
+  so a text colour can't be used as a background: `bg-surface`, `text-fg-2`, `border-line`, `ring-focus`.
+  `reference`: nothing is emitted here; each utility reads the custom property above, so the theme swaps at run time.
+*/
+@theme inline reference {
+  --background-color-page: var(--bg-page);
+  --background-color-app: var(--bg-app);
+  --background-color-chrome: var(--bg-chrome);
+  --background-color-surface: var(--bg-surface);
+  --background-color-raised: var(--bg-raised);
+  --background-color-muted: var(--bg-muted);
+  --background-color-hover: var(--bg-hover);
+  --background-color-accent: var(--bg-accent);
+  --background-color-accent-subtle: var(--bg-accent-subtle);
+  --background-color-inverse: var(--bg-inverse);
+  --background-color-selected: var(--bg-selected);
+  --background-color-event: var(--bg-event);
+  --background-color-hero: var(--bg-hero);
+  --background-color-danger: var(--danger-solid);
+  --background-color-gold: var(--gold);
+  --background-color-gold-hover: var(--gold-hover);
+  --background-color-ink: var(--ink);
+  --background-color-cream: var(--cream);
+
+  --text-color-fg: var(--text);
+  --text-color-fg-2: var(--text-2);
+  --text-color-fg-3: var(--text-3);
+  --text-color-accent: var(--text-accent);
+  --text-color-danger: var(--text-danger);
+  --text-color-success: var(--text-success);
+  --text-color-on-accent: var(--text-on-accent);
+  --text-color-on-inverse: var(--text-on-inverse);
+  --text-color-on-selected: var(--text-on-selected);
+  --text-color-on-event: var(--text-on-event);
+  --text-color-on-hero: var(--text-on-hero);
+  --text-color-on-danger: var(--on-danger);
+  --text-color-ink: var(--ink);
+  --text-color-gold: var(--gold);
+  --text-color-cream: var(--cream);
+
+  --border-color-line: var(--border);
+  --border-color-strong: var(--border-strong);
+  --border-color-key: var(--border-key);
+  --border-color-focus: var(--focus);
+  --border-color-mark: var(--mark);
+  --border-color-danger-edge: var(--danger-edge);
+  --border-color-ink: var(--ink);
+
+  --ring-color-line: var(--border);
+  --ring-color-strong: var(--border-strong);
+  --ring-color-key: var(--border-key);
+  --ring-color-focus: var(--focus);
+  --ring-color-mark: var(--mark);
+
+  --outline-color-focus: var(--focus);
+  --outline-color-line: var(--border);
+
+  --radius-tag: 6px;
+  --radius-control: 8px;
+  --radius-list: 10px;
+  --radius-card: 12px;
+  --radius-sheet: 16px;
+
+  --shadow-raised: var(--shadow-raised);
+  --shadow-frame: var(--shadow-frame);
+}

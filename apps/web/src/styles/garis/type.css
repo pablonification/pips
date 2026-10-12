@@ -1,0 +1,98 @@
+/*
+  Garis type: nine sizes (12–32 px) plus the 56 px figure, two faces, sentence case, no monospace, nothing under
+  12 px. Ported exactly from garis/garis.css. Archivo Expanded (`disp`, `t-display`, `t-display-l`) only for page
+  titles, the greeting and brand marks; Geist for everything else, including NIMs, course codes and times
+  (`num`/`code`: tabular figures).
+*/
+@utility disp {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+@utility t-display-l {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+@utility t-display {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+@utility t-title {
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+@utility t-heading {
+  font-size: 17px;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+@utility t-body-l {
+  font-size: 16px;
+  line-height: 1.6;
+}
+@utility t-body {
+  font-size: 15px;
+  line-height: 1.5;
+}
+@utility t-sub {
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+@utility t-sm {
+  font-size: 14px;
+  line-height: 1.5;
+}
+@utility t-label {
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+@utility t-cap {
+  font-size: 13px;
+  line-height: 1.4;
+}
+@utility t-micro {
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 500;
+}
+@utility t-figure {
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+@utility t-figure-xl {
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+@utility strong {
+  font-weight: 600;
+}
+@utility num {
+  font-variant-numeric: tabular-nums;
+}
+@utility code {
+  font-variant-numeric: tabular-nums;
+}
