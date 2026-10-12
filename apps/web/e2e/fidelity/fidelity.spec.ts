@@ -4,9 +4,10 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { stableScreenshot } from '../support/capture';
+import { stableElementScreenshot, stableScreenshot } from '../support/capture';
 import { expect, test } from '../support/test';
-import { PENGURUS_ROUTES, ROUTES } from './names.mjs';
+import { EXTRAS } from './extras';
+import { EXTRA_SCREENS, PENGURUS_ROUTES, ROUTES } from './names.mjs';
 import { SCREENS } from './screens';
 
 const dir = process.env.E2E_FIDELITY_DIR;
@@ -47,4 +48,45 @@ for (const [persona, routes] of [
       });
     });
   }
+}
+
+// The non-route locked screens (names.mjs EXTRA_SCREENS) that extras.ts maps, each in its own project and viewport.
+for (const meta of EXTRA_SCREENS) {
+  const screen = EXTRAS[meta.name];
+  if (!screen) continue; // not built yet: the report lists it
+  test.describe(meta.name, () => {
+    test.use({
+      persona: screen.persona === undefined ? 'anggota' : screen.persona,
+      viewport: meta.viewport,
+    });
+    test(meta.name, async ({ page, api, context }, testInfo) => {
+      if (!dir)
+        throw new Error(
+          'Run fidelity captures through `pnpm fidelity`; it sets E2E_FIDELITY_DIR.',
+        );
+      if (testInfo.project.name !== `fidelity-${meta.layout}-${meta.theme}`)
+        return;
+      screen.mock?.(api);
+      await page.goto(screen.path);
+      await screen.act?.(page, { api, context });
+      await expect(screen.ready(page)).toBeVisible({ timeout: 15_000 });
+      if (meta.capture === 'element' && !screen.target)
+        throw new Error(
+          `${meta.name} is an element capture: give extras.ts a target.`,
+        );
+      const png = screen.target
+        ? await stableElementScreenshot(page, screen.target(page))
+        : await stableScreenshot(page);
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(path.join(dir, `${meta.name}.png`), png);
+      writeFileSync(
+        path.join(dir, `${meta.name}.json`),
+        JSON.stringify(
+          { name: meta.name, url: page.url(), path: screen.path },
+          null,
+          2,
+        ),
+      );
+    });
+  });
 }

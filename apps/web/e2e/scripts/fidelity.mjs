@@ -16,7 +16,13 @@ import {
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
-import { LAYOUTS, THEMES, screenNames } from '../fidelity/names.mjs';
+import {
+  EXTRA_SCREENS,
+  LAYOUTS,
+  PROTOTYPE_ONLY,
+  THEMES,
+  screenNames,
+} from '../fidelity/names.mjs';
 import { FILTER_SCRIPT, filterSelect, page } from './lib/html.mjs';
 import {
   fit,
@@ -49,11 +55,21 @@ const code = playwright(projects, { E2E_FIDELITY_DIR: appDir }, [
   ...process.argv.slice(2),
 ]);
 
-const names = screenNames();
+// Route screens, then the non-route ones (interactions, page sizes, the design-system page).
+const names = [
+  ...screenNames().map((s) => ({ ...s, kind: 'route', note: '' })),
+  ...EXTRA_SCREENS.map((e) => ({
+    name: e.name,
+    layout: e.layout,
+    theme: e.theme,
+    persona: 'none',
+    route: e.name,
+    kind: 'extra',
+    note: e.note ?? '',
+  })),
+];
 const lockedFiles = new Set(
-  readdirSync(locked).filter((f) =>
-    /^(phone|tablet|desk)-(anggota|pengurus)-.+-(light|dark)\.png$/.test(f),
-  ),
+  readdirSync(locked).filter((f) => f.endsWith('.png')),
 );
 const rows = names.map((s) => {
   const lockedFile = path.join(locked, `${s.name}.png`);
@@ -89,7 +105,9 @@ const rows = names.map((s) => {
   };
 });
 const unexpected = [...lockedFiles].filter(
-  (f) => !names.some((n) => `${n.name}.png` === f),
+  (f) =>
+    !names.some((n) => `${n.name}.png` === f) &&
+    !PROTOTYPE_ONLY.includes(f.replace(/\.png$/, '')),
 );
 
 /** @param {string} st */
@@ -105,6 +123,8 @@ const report = {
     close: count('close'),
     different: count('different'),
     notBuiltYet: count('not built yet'),
+    extras: rows.filter((r) => r.kind === 'extra').length,
+    prototypeOnly: PROTOTYPE_ONLY.length,
     lockedScreensNotInList: unexpected,
   },
   captureExitCode: code,
@@ -114,7 +134,7 @@ writeFileSync(path.join(out, 'report.json'), JSON.stringify(report, null, 2));
 writeFileSync(path.join(out, 'index.html'), html(report));
 const s = report.summary;
 console.log(
-  `\nFidelity: ${s.screens} locked screens: ${s.close} close, ${s.different} different, ${s.notBuiltYet} not built yet.`,
+  `\nFidelity: ${s.screens} locked screens (${s.extras} of them non-route): ${s.close} close, ${s.different} different, ${s.notBuiltYet} not built yet. ${s.prototypeOnly} prototype-only screens skipped.`,
 );
 if (unexpected.length)
   console.log(
@@ -139,9 +159,9 @@ function html(r) {
           : '';
       const media = row.sideBySide
         ? `<a href="${esc(row.sideBySide)}"><img loading="lazy" src="${esc(row.sideBySide)}" alt="${esc(`${row.name}: prototype, app, difference`)}"></a><p class="muted">prototype · app (${esc(row.url)}) · difference${row.sizeMatches ? '' : ' · sizes differ'}</p>`
-        : `<div class="row"><figure><a href="${esc(row.prototype)}"><img loading="lazy" src="${esc(row.prototype)}" alt="${esc(`${row.name}: prototype`)}"></a><figcaption>prototype</figcaption></figure><figure><p>Not built yet: add <code>${esc(`${row.persona}-${row.route}`)}</code> to e2e/fidelity/screens.ts.</p></figure></div>`;
-      return `<div class="card" data-card data-layout="${row.layout}" data-theme="${row.theme}" data-persona="${row.persona}" data-status="${row.status}">
-  <h3>${esc(row.name)} <span class="tag ${cls}">${row.status}${score}</span></h3>
+        : `<div class="row"><figure><a href="${esc(row.prototype)}"><img loading="lazy" src="${esc(row.prototype)}" alt="${esc(`${row.name}: prototype`)}"></a><figcaption>prototype</figcaption></figure><figure><p>Not built yet: add <code>${esc(row.kind === 'extra' ? row.name : `${row.persona}-${row.route}`)}</code> to e2e/fidelity/${row.kind === 'extra' ? 'extras.ts' : 'screens.ts'}.</p></figure></div>`;
+      return `<div class="card" data-card data-layout="${row.layout}" data-theme="${row.theme}" data-persona="${row.persona}" data-kind="${row.kind}" data-status="${row.status}">
+  <h3>${esc(row.name)} <span class="tag ${cls}">${row.status}${score}</span></h3>${row.note ? `<p class="muted">${esc(row.note)}</p>` : ''}
   ${media}
 </div>`;
     })
@@ -150,7 +170,7 @@ function html(r) {
   const body = `<h1>Fidelity: the app next to the locked prototype</h1>
 <p>${esc(r.app)}, ${esc(r.createdAt)}. Locked screens: ${esc(r.locked)}.</p>
 <p><strong>${s.screens} screens: ${s.close} close, ${s.different} different, ${s.notBuiltYet} not built yet.</strong> “Close” means a perceptual similarity (SSIM on luminance) of at least ${r.closeAtSsim}. Read the pairs, not just the score: SSIM rewards matching layout and contrast, not matching words.</p>
-<div class="filters">${filterSelect('layout', 'Layout', [...LAYOUTS])}${filterSelect('theme', 'Theme', [...THEMES])}${filterSelect('persona', 'Persona', ['anggota', 'pengurus'])}${filterSelect('status', 'Status', ['close', 'different', 'not built yet'])}<span class="muted"><span id="count"></span> shown</span></div>
+<div class="filters">${filterSelect('layout', 'Layout', [...LAYOUTS])}${filterSelect('theme', 'Theme', [...THEMES])}${filterSelect('persona', 'Persona', ['anggota', 'pengurus', 'none'])}${filterSelect('kind', 'Kind', ['route', 'extra'])}${filterSelect('status', 'Status', ['close', 'different', 'not built yet'])}<span class="muted"><span id="count"></span> shown</span></div>
 <div class="wide"><div class="grid">${cards}</div></div>`;
   return page('PIPS! fidelity', body, FILTER_SCRIPT);
 }
