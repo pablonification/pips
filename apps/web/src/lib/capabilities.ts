@@ -48,15 +48,16 @@ export function canCreateEvent(user: WithRoles): boolean {
 }
 
 /**
- * Posting an announcement needs no role, except in a category whose `rolesAllowed` lists some (`null` or empty
- * means open to every member), as the composer's `GET /category/info` already filters.
+ * Posting an announcement needs no role, except in a category with a `rolesAllowed` list: then one of the
+ * member's roles must be in it. As the composer's `GET /category/info` filters: only `null` is open to every
+ * member, and an empty list is open to nobody.
  */
 export function canPostInCategory(
   user: WithRoles,
   category: { rolesAllowed?: readonly string[] | null },
 ): boolean {
   const allowed = category.rolesAllowed;
-  if (!allowed || allowed.length === 0) return true;
+  if (allowed === null || allowed === undefined) return true;
   const roles = user?.roles ?? [];
   return allowed.some((role) => roles.includes(role));
 }

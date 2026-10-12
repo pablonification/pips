@@ -120,12 +120,27 @@ test('Raka (akademik, admin) gets exactly the tools his roles allow', () => {
   assert.equal(can({ roles: ['peoplemanage'] }, 'liveCounting'), false);
 });
 
-test('posting: open categories for everyone, restricted ones by role', () => {
+test('posting: open categories for everyone, restricted ones by role, an empty list for nobody', () => {
   assert.equal(canPostInCategory(nadia, { rolesAllowed: null }), true);
   assert.equal(canPostInCategory(nadia, {}), true);
-  assert.equal(canPostInCategory(nadia, { rolesAllowed: [] }), true);
   assert.equal(canPostInCategory(nadia, { rolesAllowed: ['akademik'] }), false);
   assert.equal(canPostInCategory(raka, { rolesAllowed: ['akademik'] }), true);
+  // Review m1: the server lists a category only when rolesAllowed IS NULL or one of the member's roles is in it,
+  // and an empty JSON array has no roles, so [] means nobody can post there.
+  assert.equal(canPostInCategory(nadia, { rolesAllowed: [] }), false);
+  assert.equal(canPostInCategory(raka, { rolesAllowed: [] }), false);
+  const repo = api('repositories/category.repo.ts');
+  const listing = repo.slice(repo.indexOf('getInfoCategoryList'));
+  assert.match(
+    listing,
+    /isNull\(categories\.rolesAllowed\)/,
+    'only null is open',
+  );
+  assert.match(
+    listing,
+    /json_array_elements_text\(\$\{categories\.rolesAllowed\}\)/,
+    'otherwise a role must be in the list',
+  );
 });
 
 test('deleting: the author, or a moderator (admin)', () => {
