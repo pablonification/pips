@@ -55,6 +55,31 @@ test('at most three toasts: the oldest success leaves first, errors are kept', (
   assert.deepEqual(store.get().map((t) => t.message), ['E', 'B', 'C']);
 });
 
+// Review m1: with three errors showing, a new success removed itself at once, and a fourth error evicted the oldest
+// error. Errors stay until the member dismisses them; only older successes make room.
+test('errors are never evicted: a new success still shows next to three errors, and a fourth error joins them', () => {
+  const store = createToastStore(clock().timers);
+  for (const m of ['E1', 'E2', 'E3']) store.error(m);
+  store.success('S');
+  assert.deepEqual(store.get().map((t) => t.message), ['E1', 'E2', 'E3', 'S']);
+
+  const errors = createToastStore(clock().timers);
+  for (const m of ['E1', 'E2', 'E3', 'E4']) errors.error(m);
+  assert.deepEqual(errors.get().map((t) => t.message), ['E1', 'E2', 'E3', 'E4']);
+});
+
+test('a new toast makes room by removing the oldest older success, never itself', () => {
+  const store = createToastStore(clock().timers);
+  store.success('A');
+  store.error('E1');
+  store.error('E2');
+  store.error('E3');
+  assert.deepEqual(store.get().map((t) => t.message), ['E1', 'E2', 'E3']);
+  store.success('B');
+  store.success('C');
+  assert.deepEqual(store.get().map((t) => t.message), ['E1', 'E2', 'E3', 'C']);
+});
+
 test('subscribers hear every change', () => {
   const store = createToastStore(clock().timers);
   const seen = [];

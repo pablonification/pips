@@ -21,7 +21,7 @@ export interface ToastItem {
 
 export const SUCCESS_MS = 5000;
 export const SUCCESS_WITH_ACTION_MS = 8000;
-/** At most this many toasts at once; the oldest leaves first. */
+/** At most this many toasts at once: the oldest success leaves first. Errors are never removed to make room. */
 export const MAX_TOASTS = 3;
 
 export function toastDuration(
@@ -70,8 +70,11 @@ export function createToastStore(
       duration: toastDuration(tone, Boolean(opts.action), opts.duration),
     };
     items = [...items, item];
+    // Make room by removing older successes only: errors stay until dismissed, and the new toast always shows, so
+    // the stack can go over the limit when it is full of errors.
     while (items.length > MAX_TOASTS) {
-      const oldest = items.find((t) => t.tone !== 'error') ?? items[0];
+      const oldest = items.find((t) => t.tone !== 'error' && t.id !== item.id);
+      if (!oldest) break;
       dismiss(oldest.id);
     }
     if (item.duration !== null)
