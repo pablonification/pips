@@ -9,6 +9,7 @@ export type AdminFormListItem = {
   description: string | null;
   eligibleAngkatan: Array<number>;
   opensAt: string;
+  closesAt: string | null;
   isActive: boolean;
   order: number;
   createdAt: string;
