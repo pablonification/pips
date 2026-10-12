@@ -5,7 +5,7 @@ import { cn } from '~/lib/utils';
 import { Button } from './Button';
 import { takeMenuOpener } from './menu-opener';
 import { IconButton } from './IconButton';
-import { GARIS_STRINGS } from './strings';
+import { common } from '~/copy/common';
 import { DESKTOP_QUERY, useMediaQuery } from './useMediaQuery';
 
 export interface OverlayProps {
@@ -55,7 +55,7 @@ function Shell({
   role = 'dialog',
   onOpenAutoFocus,
   className,
-  closeLabel = GARIS_STRINGS.close,
+  closeLabel = common.actions.tutup,
 }: OverlayProps & { kind: 'sheet' | 'dialog' }) {
   // Radix returns focus only to its own Trigger; screens open overlays from their own buttons, so remember what had
   // focus when it opened and go back there when it closes (SPEC: dialogs restore focus).

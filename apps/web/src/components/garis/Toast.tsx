@@ -3,7 +3,7 @@ import { IconCentang } from '~/components/icons/centang';
 import { IconPeringatan } from '~/components/icons/peringatan';
 import { IconTutup } from '~/components/icons/tutup';
 import { IconButton } from './IconButton';
-import { GARIS_STRINGS } from './strings';
+import { common } from '~/copy/common';
 import { toast, type ToastItem } from './toast-store';
 
 function Item({ t }: { t: ToastItem }) {
@@ -33,7 +33,7 @@ function Item({ t }: { t: ToastItem }) {
       ) : null}
       {t.tone === 'error' ? (
         <IconButton
-          label={GARIS_STRINGS.close}
+          label={common.actions.tutup}
           size="sm"
           onClick={() => toast.dismiss(t.id)}
         >
