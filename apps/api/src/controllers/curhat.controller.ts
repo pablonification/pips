@@ -11,7 +11,7 @@ import {
   createChatroomWithinLimit,
   deleteChatroom,
   getChatroomOwner,
-  getReadMessageIds,
+  getUnreadCounts,
   getUserChatrooms,
   getWelfareChatrooms,
   markChatroomRead,
@@ -26,7 +26,6 @@ import { TChatroom } from '~/types/curhat.types';
 import {
   CURHAT_ADMIN_ROLE,
   canAccessChatroom,
-  countUnread,
   toChatroomResponse,
 } from '~/lib/curhat';
 
@@ -44,10 +43,11 @@ export interface CurhatDeps {
     chatroomId: string,
   ) => Promise<{ id: string; userId: string | null } | undefined>;
   deleteChatroom: (chatroomId: string) => Promise<void>;
-  getReadMessageIds: (
+  /** Unread counts per room, in the database; `everyRoom` for Welfare. The rule is `countUnread`'s. */
+  getUnreadCounts: (
     userId: string,
-    chatroomIds: string[],
-  ) => Promise<Set<string>>;
+    everyRoom: boolean,
+  ) => Promise<Array<{ chatroomId: string; unreadCount: number }>>;
   markChatroomRead: (chatroomId: string, userId: string) => Promise<void>;
   pinChatroom: (
     chatroomId: string,
@@ -67,8 +67,8 @@ const databaseDeps: CurhatDeps = {
   deleteChatroom: async (chatroomId) => {
     await deleteChatroom(db, chatroomId);
   },
-  getReadMessageIds: async (userId, chatroomIds) =>
-    await getReadMessageIds(db, userId, chatroomIds),
+  getUnreadCounts: async (userId, everyRoom) =>
+    await getUnreadCounts(db, userId, everyRoom),
   markChatroomRead: async (chatroomId, userId) => {
     await markChatroomRead(db, chatroomId, userId);
   },
@@ -150,14 +150,9 @@ export function createCurhatRouter(deps: CurhatDeps = databaseDeps) {
       return c.json({ error: 'Unauthorized' }, 401);
     }
     try {
-      const { roles, rooms } = await visibleChatrooms(deps, userId);
-      const roomList = [...rooms.values()];
-      const readIds = await deps.getReadMessageIds(
-        userId,
-        roomList.map((r) => r.id),
-      );
-
-      return c.json(countUnread(roomList, readIds, { id: userId }, roles), 200);
+      const roles = await deps.getUserRoles(userId);
+      const everyRoom = roles.includes(CURHAT_ADMIN_ROLE);
+      return c.json(await deps.getUnreadCounts(userId, everyRoom), 200);
     } catch (error) {
       return c.json({ error: 'Internal Server Error' }, 500);
     }

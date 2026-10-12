@@ -203,9 +203,17 @@ function fakeDeps(world: World): CurhatDeps {
     deleteChatroom: async (id) => {
       world.rooms = world.rooms.filter((r) => r.id !== id);
     },
-    getReadMessageIds: async (userId) =>
-      new Set(
-        world.reads.filter((r) => r.userId === userId).map((r) => r.messageId),
+    // The model of the SQL count (tests/db/ checks the two agree on PostgreSQL).
+    getUnreadCounts: async (userId, everyRoom) =>
+      countUnread(
+        world.rooms,
+        new Set(
+          world.reads
+            .filter((r) => r.userId === userId)
+            .map((r) => r.messageId),
+        ),
+        { id: userId },
+        everyRoom ? ['curhatadmin'] : [],
       ),
     markChatroomRead: async (chatroomId, userId) => {
       const r = world.rooms.find((x) => x.id === chatroomId)!;
@@ -319,6 +327,33 @@ test('the room create locks the member row, then counts and inserts in the same 
     'select "users"."id" from "users" where "users"."id" = $1 for update',
   );
   assert.deepEqual(query.params, [nadia.id]);
+});
+
+test('unread is one SQL count: your rooms (or every room for Welfare), not your messages, no read mark', async () => {
+  usePlaceholderEnv();
+  const { db } = await import('../src/db/drizzle');
+  const { unreadCountsQuery } =
+    await import('../src/repositories/chatroom.repo');
+  const mine = unreadCountsQuery(db, nadia.id, false).toSQL();
+  const sql = mine.sql.replace(/\s+/g, ' ');
+  assert.match(
+    sql,
+    /^select "chatroom_messages"\."chatroom_id", cast\(count\(\*\) as int\)/,
+  );
+  assert.match(
+    sql,
+    /left join "chatroom_message_reads" on \("chatroom_message_reads"\."chatroom_message_id" = "chatroom_messages"\."id" and "chatroom_message_reads"\."user_id" = \$1\)/,
+  );
+  assert.match(
+    sql,
+    /"chatrooms"\."user_id" = \$2 and "chatroom_messages"\."user_id" <> \$3 and "chatroom_message_reads"\."user_id" is null/,
+  );
+  assert.match(sql, /group by "chatroom_messages"\."chatroom_id"$/);
+  assert.deepEqual(mine.params, [nadia.id, nadia.id, nadia.id]);
+
+  const forWelfare = unreadCountsQuery(db, welfare.id, true).toSQL();
+  assert.doesNotMatch(forWelfare.sql, /"chatrooms"\."user_id" =/);
+  assert.match(forWelfare.sql, /"chatroom_messages"\."user_id" <> \$2/);
 });
 
 test('a new room comes back without its owner id, named by the server', async () => {

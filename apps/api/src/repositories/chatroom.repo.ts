@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import { Database } from '~/db/drizzle';
 import {
   chatroomMessageReads,
@@ -167,27 +167,46 @@ export async function deleteChatroom(db: Database, chatroomId: string) {
   });
 }
 
-/** The ids of the messages in these rooms that `userId` has marked read. */
-export async function getReadMessageIds(
+/**
+ * Unread messages per room for `userId`, counted in one statement: the member's own rooms (every room when
+ * `everyRoom`, for Welfare), only messages they didn't send, and only those without their read mark. Rooms with
+ * nothing unread are left out. The same rule as `countUnread` in `src/lib/curhat.ts`.
+ */
+export function unreadCountsQuery(
   db: Database,
   userId: string,
-  chatroomIds: string[],
+  everyRoom: boolean,
 ) {
-  if (chatroomIds.length === 0) return new Set<string>();
-  const rows = await db
-    .select({ id: chatroomMessageReads.chatroomMessageId })
-    .from(chatroomMessageReads)
-    .innerJoin(
-      chatroomMessages,
-      eq(chatroomMessages.id, chatroomMessageReads.chatroomMessageId),
+  return db
+    .select({
+      chatroomId: chatroomMessages.chatroomId,
+      unreadCount: sql<number>`cast(count(*) as int)`,
+    })
+    .from(chatroomMessages)
+    .innerJoin(chatrooms, eq(chatrooms.id, chatroomMessages.chatroomId))
+    .leftJoin(
+      chatroomMessageReads,
+      and(
+        eq(chatroomMessageReads.chatroomMessageId, chatroomMessages.id),
+        eq(chatroomMessageReads.userId, userId),
+      ),
     )
     .where(
       and(
-        eq(chatroomMessageReads.userId, userId),
-        inArray(chatroomMessages.chatroomId, chatroomIds),
+        everyRoom ? undefined : eq(chatrooms.userId, userId),
+        ne(chatroomMessages.userId, userId),
+        isNull(chatroomMessageReads.userId),
       ),
-    );
-  return new Set(rows.map((r) => r.id));
+    )
+    .groupBy(chatroomMessages.chatroomId);
+}
+
+export async function getUnreadCounts(
+  db: Database,
+  userId: string,
+  everyRoom: boolean,
+) {
+  return await unreadCountsQuery(db, userId, everyRoom);
 }
 
 /**
