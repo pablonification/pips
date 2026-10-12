@@ -6,6 +6,9 @@
  * - `installed`: whether the app runs as the installed PWA (default true). Until P0-B the production build
  *   showed a phone browser an install tutorial instead of the app; `installed: false` now checks it doesn't.
  * - `now`: the fixed clock (default: Kamis, 8 Oktober 2026, 13.35 WIB); null leaves the real clock.
+ * - `platform`: what `navigator.platform` reports ('MacIntel', 'Linux x86_64'); null leaves the browser's own. The
+ *   app names the search shortcut by platform (⌘K on Apple, Ctrl K elsewhere), so fidelity captures run as Linux,
+ *   where the locked screens were rendered.
  * - `api`: the mock layer (mock.ts). Its guard fails the test after it ends if any request went unanswered.
  */
 import { test as base, expect } from '@playwright/test';
@@ -17,6 +20,7 @@ export interface HarnessOptions {
   signedIn: boolean;
   installed: boolean;
   now: string | null;
+  platform: string | null;
 }
 
 /** Freezes motion: no CSS animations or transitions, no smooth scrolling, no blinking caret. */
@@ -28,6 +32,7 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
   signedIn: [true, { option: true }],
   installed: [true, { option: true }],
   now: [NOW, { option: true }],
+  platform: [null, { option: true }],
 
   /** This test's own copy of the persona's fixture data; the default handlers answer from it. */
   db: async ({ persona, signedIn }, use) => {
@@ -36,8 +41,15 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
     await use(db);
   },
 
-  context: async ({ context, db, installed, now }, use) => {
+  context: async ({ context, db, installed, now, platform }, use) => {
     if (now) await context.clock.install({ time: new Date(now) });
+    if (platform)
+      await context.addInitScript((p) => {
+        Object.defineProperty(Navigator.prototype, 'platform', {
+          get: () => p,
+          configurable: true,
+        });
+      }, platform);
     await context.addInitScript(
       ({ css, installed, user, academic }) => {
         if (installed)

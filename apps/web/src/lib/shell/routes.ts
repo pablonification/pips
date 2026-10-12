@@ -168,6 +168,8 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     parent: '/profil',
     legacy: true,
   },
+  // The shell's test page (src/dev/shell, development and staging only): a drill-down page below Layanan.
+  '/dev/shell': { title: 'Uji shell', parent: '/layanan' },
 };
 
 /** A router match's path ('/layanan/dingdong/', '/_app/…' ids aside) as a `ShellPath`, or null outside the shell. */

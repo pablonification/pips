@@ -16,6 +16,7 @@ import { Route as DevGarisRouteImport } from './routes/dev/garis'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as AppLeftNavbarIndexRouteImport } from './routes/_app/_left-navbar/index'
 import { Route as AppLeftNavbarProfilRouteImport } from './routes/_app/_left-navbar/profil'
+import { Route as AppDevShellRouteImport } from './routes/_app/dev/shell'
 import { Route as AppKalenderIndexRouteImport } from './routes/_app/kalender/index'
 import { Route as AppLeftNavbarKelolaIndexRouteImport } from './routes/_app/_left-navbar/kelola/index'
 import { Route as AppLeftNavbarKelolaAcaraRouteImport } from './routes/_app/_left-navbar/kelola/acara'
@@ -81,6 +82,11 @@ const AppLeftNavbarProfilRoute = AppLeftNavbarProfilRouteImport.update({
   id: '/profil',
   path: '/profil',
   getParentRoute: () => AppLeftNavbarRoute,
+} as any)
+const AppDevShellRoute = AppDevShellRouteImport.update({
+  id: '/dev/shell',
+  path: '/dev/shell',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppKalenderIndexRoute = AppKalenderIndexRouteImport.update({
   id: '/',
@@ -279,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/dev/garis': typeof DevGarisRoute
   '/login/': typeof LoginIndexRoute
   '/profil': typeof AppLeftNavbarProfilRouteWithChildren
+  '/dev/shell': typeof AppDevShellRoute
   '/kalender/': typeof AppKalenderIndexRoute
   '/kelola/acara': typeof AppLeftNavbarKelolaAcaraRoute
   '/kelola/lomba': typeof AppLeftNavbarKelolaLombaRoute
@@ -315,6 +322,7 @@ export interface FileRoutesByTo {
   '/': typeof AppLeftNavbarIndexRoute
   '/dev/garis': typeof DevGarisRoute
   '/login': typeof LoginIndexRoute
+  '/dev/shell': typeof AppDevShellRoute
   '/kalender': typeof AppKalenderIndexRoute
   '/kelola/acara': typeof AppLeftNavbarKelolaAcaraRoute
   '/kelola/lomba': typeof AppLeftNavbarKelolaLombaRoute
@@ -354,6 +362,7 @@ export interface FileRoutesById {
   '/dev/garis': typeof DevGarisRoute
   '/login/': typeof LoginIndexRoute
   '/_app/_left-navbar/profil': typeof AppLeftNavbarProfilRouteWithChildren
+  '/_app/dev/shell': typeof AppDevShellRoute
   '/_app/_left-navbar/': typeof AppLeftNavbarIndexRoute
   '/_app/kalender/': typeof AppKalenderIndexRoute
   '/_app/_left-navbar/kelola/acara': typeof AppLeftNavbarKelolaAcaraRoute
@@ -396,6 +405,7 @@ export interface FileRouteTypes {
     | '/dev/garis'
     | '/login/'
     | '/profil'
+    | '/dev/shell'
     | '/kalender/'
     | '/kelola/acara'
     | '/kelola/lomba'
@@ -432,6 +442,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dev/garis'
     | '/login'
+    | '/dev/shell'
     | '/kalender'
     | '/kelola/acara'
     | '/kelola/lomba'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/dev/garis'
     | '/login/'
     | '/_app/_left-navbar/profil'
+    | '/_app/dev/shell'
     | '/_app/_left-navbar/'
     | '/_app/kalender/'
     | '/_app/_left-navbar/kelola/acara'
@@ -561,6 +573,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/profil'
       preLoaderRoute: typeof AppLeftNavbarProfilRouteImport
       parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/dev/shell': {
+      id: '/_app/dev/shell'
+      path: '/dev/shell'
+      fullPath: '/dev/shell'
+      preLoaderRoute: typeof AppDevShellRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/kalender/': {
       id: '/_app/kalender/'
@@ -925,11 +944,13 @@ const AppKalenderRouteWithChildren = AppKalenderRoute._addFileChildren(
 interface AppRouteChildren {
   AppLeftNavbarRoute: typeof AppLeftNavbarRouteWithChildren
   AppKalenderRoute: typeof AppKalenderRouteWithChildren
+  AppDevShellRoute: typeof AppDevShellRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppLeftNavbarRoute: AppLeftNavbarRouteWithChildren,
   AppKalenderRoute: AppKalenderRouteWithChildren,
+  AppDevShellRoute: AppDevShellRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
