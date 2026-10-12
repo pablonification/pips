@@ -42,6 +42,25 @@ test('arbitrary and non-Garis text sizes are rejected; the type styles pass', as
   assert.deepEqual(await rules(wrap(`<p className="t-display t-sm t-cap num text-fg-3" />`)), []);
 });
 
+// Review m6: a fixed size in a style object slipped past the text-size rule.
+test('a fixed font size in a style object is rejected; a component’s own size prop is its types’ business', async () => {
+  for (const bad of [wrap(`<p style={{ fontSize: 11 }} />`), wrap(`<p style={{ fontSize: '0.7rem' }} />`), wrap('<p style={{ fontSize: `${11}px` }} />')])
+    assert.deepEqual(await rules(bad), ['garis/no-arbitrary-text-size'], bad);
+  assert.deepEqual(await rules(`export function W({ size }: { size: 15 | 20 }) {\n  return <b style={{ fontSize: size }} />;\n}\n`), []);
+});
+
+// Review m6: nothing stopped capitals added by CSS. Sentence case everywhere; the app adds no capitals of its own.
+test('capitals added by styling are rejected: uppercase, capitalize, text-transform', async () => {
+  for (const bad of [
+    wrap(`<span className="uppercase" />`),
+    wrap(`<span className="md:capitalize t-cap" />`),
+    wrap(`<span style={{ textTransform: 'uppercase' }} />`),
+    'export const css = `.x { text-transform: uppercase; }`;\n',
+  ])
+    assert.deepEqual(await rules(bad), ['garis/no-added-capitals'], bad);
+  assert.deepEqual(await rules(wrap(`<span className="normal-case t-cap" style={{ textTransform: 'none' }} />`)), []);
+});
+
 test('transition-all is rejected', async () => {
   assert.deepEqual(await rules(wrap(`<div className="transition-all" />`)), ['garis/no-transition-all']);
   assert.deepEqual(await rules(wrap(`<div style={{ transition: 'all 100ms' }} />`)), ['garis/no-transition-all']);
@@ -65,7 +84,7 @@ test('monospace is rejected', async () => {
 });
 
 test('the rules leave today’s screens alone until C1, and cover the other new folders', async () => {
-  assert.deepEqual(await rules(wrap(`<div className="bg-white text-[13px] transition-all font-mono" />`), OLD), []);
+  assert.deepEqual(await rules(wrap(`<div className="bg-white text-[13px] transition-all font-mono uppercase" />`), OLD), []);
   for (const f of ['src/components/icons/__x.tsx', 'src/lib/theme/__x.tsx', 'src/dev/garis/__x.tsx', 'src/routes/dev/__x.tsx'])
     assert.deepEqual(await rules(wrap(`<div className="bg-white" />`), f), ['garis/no-raw-colour'], f);
 });

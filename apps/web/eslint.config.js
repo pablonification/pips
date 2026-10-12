@@ -94,6 +94,7 @@ export default defineConfig([
       ],
       'garis/no-icon-library': 'error',
       'garis/no-monospace': 'error',
+      'garis/no-added-capitals': 'error',
       // The shell's motion is CSS only (SPEC "Stack and foundations"); no animation library in new code.
       'no-restricted-imports': [
         'error',

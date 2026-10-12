@@ -41,6 +41,7 @@ function onStrings(context, check) {
 }
 
 const tokens = (text) => text.split(/\s+/).filter(Boolean);
+const propertyName = (node) => (node.key.type === 'Identifier' ? node.key.name : node.key.value);
 
 const noRawColour = {
   meta: {
@@ -78,8 +79,8 @@ const noArbitraryTextSize = {
     messages: { size: 'Text size "{{value}}": use a Garis type style (t-display-l … t-micro, t-figure).' },
     schema: [],
   },
-  create(context) {
-    return onStrings(context, (node, text) => {
+  create: (context) => ({
+    ...onStrings(context, (node, text) => {
       for (const t of tokens(text)) {
         const bare = t.replace(/^(?:[\w@[\]&>:*-]+:)*!?/, '');
         if (!TEXT_SIZE_CLASS.test(t)) continue;
@@ -87,8 +88,47 @@ const noArbitraryTextSize = {
         if (bare.startsWith('text-[') && !ARBITRARY_SIZE_VALUE.test(bare)) continue;
         context.report({ node, messageId: 'size', data: { value: t } });
       }
-    });
+    }),
+    // style={{ fontSize: 11 }} or fontSize: '11px': a fixed size outside the type styles. A size computed from a
+    // component's own prop (Wordmark's) is left to that component's types.
+    Property(node) {
+      if (propertyName(node) !== 'fontSize') return;
+      const v = node.value;
+      if ((v.type === 'Literal' && (typeof v.value === 'number' || typeof v.value === 'string')) || v.type === 'TemplateLiteral')
+        context.report({ node, messageId: 'size', data: { value: `fontSize: ${context.sourceCode.getText(v)}` } });
+    },
+  }),
+};
+
+const ADDED_CAPITALS_CLASS = /^(?:[\w@[\]&>:*-]+:)*!?(?:uppercase|capitalize)!?$/;
+
+const noAddedCapitals = {
+  meta: {
+    type: 'problem',
+    docs: { description: 'Sentence case: the app adds no capitals of its own (SPEC "Typography").' },
+    messages: { caps: 'Capitals added by styling ("{{value}}"): write the copy in sentence case and drop the transform.' },
+    schema: [],
   },
+  create: (context) => ({
+    ...onStrings(context, (node, text) => {
+      // A textTransform value is the Property check's (below), not a class list.
+      if (node.parent?.type === 'Property' && node.parent.value === node && propertyName(node.parent) === 'textTransform') return;
+      const css = /text-transform\s*:\s*(?:uppercase|capitalize)\b/i.exec(text);
+      if (css) {
+        context.report({ node, messageId: 'caps', data: { value: css[0] } });
+        return;
+      }
+      for (const t of tokens(text))
+        if (ADDED_CAPITALS_CLASS.test(t)) context.report({ node, messageId: 'caps', data: { value: t } });
+    }),
+    // style={{ textTransform: 'uppercase' }}
+    Property(node) {
+      if (propertyName(node) !== 'textTransform') return;
+      const v = node.value;
+      if (!(v.type === 'Literal' && v.value === 'none'))
+        context.report({ node, messageId: 'caps', data: { value: `textTransform: ${context.sourceCode.getText(v)}` } });
+    },
+  }),
 };
 
 const noTransitionAll = {
@@ -186,5 +226,6 @@ export default {
     'no-img-icon': noImgIcon,
     'no-icon-library': noIconLibrary,
     'no-monospace': noMonospace,
+    'no-added-capitals': noAddedCapitals,
   },
 };
