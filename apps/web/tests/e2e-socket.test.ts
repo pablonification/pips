@@ -70,7 +70,10 @@ test('message acknowledgements: saved and acknowledged, or refused with the APIâ
     error: 'forbidden',
   });
   // No callback: still saved, nothing answered.
-  assert.equal(send('message', { chatroomId: 'r2', message: 'lama' }), undefined);
+  assert.equal(
+    send('message', { chatroomId: 'r2', message: 'lama' }),
+    undefined,
+  );
   assert.equal(db.chatrooms.r2.messages![0].content, 'lama');
 
   db.signedIn = false;
@@ -96,5 +99,8 @@ test('curhat:join checks access, and a test can change or withhold an answer', (
     error: 'server',
   });
   server.answer('message', () => undefined);
-  assert.equal(send('message', { chatroomId: 'r1', message: 'x' }, 4), undefined);
+  assert.equal(
+    send('message', { chatroomId: 'r1', message: 'x' }, 4),
+    undefined,
+  );
 });

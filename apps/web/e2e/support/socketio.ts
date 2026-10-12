@@ -203,7 +203,8 @@ export class FakeSocketServer {
     const mine = this.myRooms();
     if (session.auth.curhat === true) mine.forEach((r) => session.rooms.add(r));
     const room = session.auth.chatroomId;
-    if (typeof room === 'string' && mine.includes(room)) session.rooms.add(room);
+    if (typeof room === 'string' && mine.includes(room))
+      session.rooms.add(room);
   }
 
   private join(data: unknown, session: FakeSocket): CurhatJoinAck {
