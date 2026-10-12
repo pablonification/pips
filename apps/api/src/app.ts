@@ -12,6 +12,15 @@ import { fileURLToPath } from 'url';
 import { env } from './configs/env.config';
 import { apiRouter } from './controllers/api.controller';
 import { logger } from './logger';
+import {
+  CurhatJoinAckSchema,
+  CurhatJoinPayloadSchema,
+  CurhatMessageAckSchema,
+  CurhatMessagePayloadSchema,
+  CurhatReplyEventSchema,
+  CurhatSocketErrorSchema,
+  CurhatSocketMessageSchema,
+} from './types/curhat.types';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
@@ -73,6 +82,18 @@ export function createApp() {
   );
   app.get('/', (c) => c.json({ message: 'Server runs successfully' }));
   app.route('/api', apiRouter);
+  // The chat socket's payloads (websocket/curhat.ts) aren't routes; listing them puts their types in the web client.
+  for (const [name, schema] of Object.entries({
+    CurhatMessagePayload: CurhatMessagePayloadSchema,
+    CurhatJoinPayload: CurhatJoinPayloadSchema,
+    CurhatSocketError: CurhatSocketErrorSchema,
+    CurhatSocketMessage: CurhatSocketMessageSchema,
+    CurhatMessageAck: CurhatMessageAckSchema,
+    CurhatJoinAck: CurhatJoinAckSchema,
+    CurhatReplyEvent: CurhatReplyEventSchema,
+  })) {
+    app.openAPIRegistry.register(name, schema);
+  }
   app.doc('/doc', {
     openapi: '3.1.0',
     info: {

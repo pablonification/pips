@@ -396,4 +396,16 @@ test('the OpenAPI document: the unread route takes no path parameter, and the re
     undefined,
   );
   assert.ok(doc.paths['/api/curhat/chatroom/{chatroomId}/read'].post);
+  // The socket's contract is in the document too, so the web client is typed against it.
+  const schemas = (doc as unknown as { components: { schemas: object } })
+    .components.schemas;
+  for (const name of [
+    'CurhatMessagePayload',
+    'CurhatJoinPayload',
+    'CurhatMessageAck',
+    'CurhatJoinAck',
+    'CurhatReplyEvent',
+  ]) {
+    assert.ok(name in schemas, name);
+  }
 });
