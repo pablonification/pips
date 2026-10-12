@@ -110,6 +110,7 @@ export class InfoService {
       mediaType: 'application/json',
       errors: {
         400: `Bad request`,
+        403: `A chosen category is closed to the poster (its rolesAllowed doesn't include any of their roles)`,
       },
     });
   }
