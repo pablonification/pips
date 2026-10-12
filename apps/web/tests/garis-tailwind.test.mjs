@@ -45,9 +45,10 @@ test('backgrounds, text and lines are separate scales: a text token is not a bac
 });
 
 test('today’s screens keep their colours: the old shadcn classes no longer share the Garis names', async () => {
-  const out = await css(['border-border', 'bg-[hsl(var(--accent))]', 'bg-[hsl(var(--muted))]']);
+  const out = await css(['border-border', 'bg-sc-accent', 'bg-sc-muted']);
   assert.match(rule(out, 'border-border'), /hsl\(var\(--sc-border\)\)/);
-  assert.match(rule(out, 'bg-[hsl(var(--accent))]'), /hsl\(var\(--accent\)\)/);
+  assert.match(rule(out, 'bg-sc-accent'), /hsl\(var\(--accent\)\)/);
+  assert.match(rule(out, 'bg-sc-muted'), /hsl\(var\(--muted\)\)/);
   // The Garis --border is a colour; the old value lives on as --sc-border.
   const index = fs.readFileSync(path.join(appDir, 'src/index.css'), 'utf8');
   assert.doesNotMatch(index, /^\s*--border:/m);

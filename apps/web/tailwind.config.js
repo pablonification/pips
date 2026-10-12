@@ -49,6 +49,9 @@ export default {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
         },
+        // The old components' shadcn accent and muted fills, named apart from the Garis bg-accent and bg-muted.
+        'sc-accent': 'hsl(var(--accent))',
+        'sc-muted': 'hsl(var(--muted))',
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',

@@ -6,7 +6,7 @@ import { cn } from '~/lib/utils';
 import { GARIS_STRINGS } from './strings';
 
 export type TagTone =
-  'default' | 'accent' | 'success' | 'danger' | 'inverse' | 'outline';
+  'default' | 'accent' | 'success' | 'danger' | 'inverse' | 'outlined';
 
 export interface TagProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: TagTone;
