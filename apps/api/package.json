@@ -12,7 +12,8 @@
     "check": "pnpm run typecheck && pnpm run codecheck",
     "codecheck": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "openapi": "tsx scripts/openapi.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.556.0",

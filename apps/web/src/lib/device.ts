@@ -1,10 +1,3 @@
-export function isPWA() {
-  return Boolean(
-    ('standalone' in navigator && navigator.standalone) ||
-    window.matchMedia('(display-mode: standalone)').matches,
-  );
-}
-
 function getAgent() {
   return (
     navigator.userAgent ||
@@ -25,15 +18,4 @@ export function isMobile() {
       agent.substr(0, 4),
     )
   );
-}
-
-export function isiOS() {
-  return (
-    /(iPad|iPhone)/g.test(getAgent()) ||
-    import.meta.env.VITE_FORCE_IOS === 'true'
-  );
-}
-
-export function isAndroid() {
-  return isMobile() && !isiOS();
 }

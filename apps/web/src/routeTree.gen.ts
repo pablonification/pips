@@ -8,52 +8,46 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppLeftNavbarRouteImport } from './routes/_app/_left-navbar'
-import { Route as AppCalendarRouteImport } from './routes/_app/calendar'
-import { Route as SocketIndexRouteImport } from './routes/socket/index'
-import { Route as AppLeftNavbarSettingsRouteImport } from './routes/_app/_left-navbar/settings'
-import { Route as AppCalendarIndexRouteImport } from './routes/_app/calendar/index'
-import { Route as AppLeftNavbarAddAnnouncementIndexRouteImport } from './routes/_app/_left-navbar/add-announcement/index'
-import { Route as AppLeftNavbarHomeIndexRouteImport } from './routes/_app/_left-navbar/home/index'
-import { Route as AppLeftNavbarHomeTestimoniRouteImport } from './routes/_app/_left-navbar/home/testimoni'
-import { Route as AppLeftNavbarSettingsIndexRouteImport } from './routes/_app/_left-navbar/settings/index'
-import { Route as AppLeftNavbarSettingsSettingsItemRouteImport } from './routes/_app/_left-navbar/settings/_settings-item'
-import { Route as AppLeftNavbarTimelineIndexRouteImport } from './routes/_app/_left-navbar/timeline/index'
-import { Route as AppLeftNavbarHomeAdminIndexRouteImport } from './routes/_app/_left-navbar/home/admin/index'
-import { Route as AppLeftNavbarHomeCompetitionIndexRouteImport } from './routes/_app/_left-navbar/home/competition/index'
-import { Route as AppLeftNavbarHomeCurhatIndexRouteImport } from './routes/_app/_left-navbar/home/curhat/index'
-import { Route as AppLeftNavbarHomeDingdongIndexRouteImport } from './routes/_app/_left-navbar/home/dingdong/index'
-import { Route as AppLeftNavbarHomeFormIndexRouteImport } from './routes/_app/_left-navbar/home/form/index'
-import { Route as AppLeftNavbarHomeFormFormIdRouteImport } from './routes/_app/_left-navbar/home/form/$formId'
-import { Route as AppLeftNavbarHomeInternshipIndexRouteImport } from './routes/_app/_left-navbar/home/internship/index'
-import { Route as AppLeftNavbarHomeNimFinderIndexRouteImport } from './routes/_app/_left-navbar/home/nim-finder/index'
-import { Route as AppLeftNavbarHomeTestimoniIndexRouteImport } from './routes/_app/_left-navbar/home/testimoni/index'
-import { Route as AppLeftNavbarTimelineInfoIdIndexRouteImport } from './routes/_app/_left-navbar/timeline/$infoId/index'
-import { Route as AppLeftNavbarHomeAdminFormsIndexRouteImport } from './routes/_app/_left-navbar/home/admin/forms/index'
-import { Route as AppLeftNavbarHomeInternshipAdminIndexRouteImport } from './routes/_app/_left-navbar/home/internship/admin/index'
-import { Route as AppLeftNavbarHomeInternshipAdminSubmissionIdRouteImport } from './routes/_app/_left-navbar/home/internship/admin/$submissionId'
-import { Route as AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRouteImport } from './routes/_app/_left-navbar/home/rekomendasi/$rekomendasiId/index'
-import { Route as AppLeftNavbarHomeTestimoniTypeIndexRouteImport } from './routes/_app/_left-navbar/home/testimoni/$type/index'
-import { Route as AppLeftNavbarSettingsSettingsItemCoursesIndexRouteImport } from './routes/_app/_left-navbar/settings/_settings-item/courses/index'
-import { Route as AppLeftNavbarSettingsSettingsItemCreditsIndexRouteImport } from './routes/_app/_left-navbar/settings/_settings-item/credits/index'
-import { Route as AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRouteImport } from './routes/_app/_left-navbar/settings/_settings-item/subscriptions/index'
-import { Route as AppLeftNavbarHomeAdminFormsFormIdIndexRouteImport } from './routes/_app/_left-navbar/home/admin/forms/$formId/index'
-import { Route as AppLeftNavbarHomeTestimoniTypeSemesterIndexRouteImport } from './routes/_app/_left-navbar/home/testimoni/$type/$semester/index'
-import { Route as AppLeftNavbarSettingsSettingsItemCoursesAddIndexRouteImport } from './routes/_app/_left-navbar/settings/_settings-item/courses/add/index'
-import { Route as AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRouteImport } from './routes/_app/_left-navbar/home/testimoni_/$type/$semester/$courseId/index'
+import { Route as AppKalenderRouteImport } from './routes/_app/kalender'
+import { Route as LoginIndexRouteImport } from './routes/login/index'
+import { Route as AppLeftNavbarIndexRouteImport } from './routes/_app/_left-navbar/index'
+import { Route as AppLeftNavbarProfilRouteImport } from './routes/_app/_left-navbar/profil'
+import { Route as AppKalenderIndexRouteImport } from './routes/_app/kalender/index'
+import { Route as AppLeftNavbarKelolaIndexRouteImport } from './routes/_app/_left-navbar/kelola/index'
+import { Route as AppLeftNavbarKelolaAcaraRouteImport } from './routes/_app/_left-navbar/kelola/acara'
+import { Route as AppLeftNavbarKelolaLombaRouteImport } from './routes/_app/_left-navbar/kelola/lomba'
+import { Route as AppLeftNavbarKelolaTestiRouteImport } from './routes/_app/_left-navbar/kelola/testi'
+import { Route as AppLeftNavbarLayananIndexRouteImport } from './routes/_app/_left-navbar/layanan/index'
+import { Route as AppLeftNavbarLayananTestiRouteImport } from './routes/_app/_left-navbar/layanan/testi'
+import { Route as AppLeftNavbarPengumumanIndexRouteImport } from './routes/_app/_left-navbar/pengumuman/index'
+import { Route as AppLeftNavbarProfilIndexRouteImport } from './routes/_app/_left-navbar/profil/index'
+import { Route as AppLeftNavbarProfilSettingsItemRouteImport } from './routes/_app/_left-navbar/profil/_settings-item'
+import { Route as AppLeftNavbarKelolaLiveIndexRouteImport } from './routes/_app/_left-navbar/kelola/live/index'
+import { Route as AppLeftNavbarKelolaSpartaIndexRouteImport } from './routes/_app/_left-navbar/kelola/sparta/index'
+import { Route as AppLeftNavbarKelolaSpartaSubmissionIdRouteImport } from './routes/_app/_left-navbar/kelola/sparta/$submissionId'
+import { Route as AppLeftNavbarLayananCurhatIndexRouteImport } from './routes/_app/_left-navbar/layanan/curhat/index'
+import { Route as AppLeftNavbarLayananCurhatRoomIdRouteImport } from './routes/_app/_left-navbar/layanan/curhat/$roomId'
+import { Route as AppLeftNavbarLayananDingdongIndexRouteImport } from './routes/_app/_left-navbar/layanan/dingdong/index'
+import { Route as AppLeftNavbarLayananFormIndexRouteImport } from './routes/_app/_left-navbar/layanan/form/index'
+import { Route as AppLeftNavbarLayananFormFormIdRouteImport } from './routes/_app/_left-navbar/layanan/form/$formId'
+import { Route as AppLeftNavbarLayananLombaIndexRouteImport } from './routes/_app/_left-navbar/layanan/lomba/index'
+import { Route as AppLeftNavbarLayananNimIndexRouteImport } from './routes/_app/_left-navbar/layanan/nim/index'
+import { Route as AppLeftNavbarLayananSpartaIndexRouteImport } from './routes/_app/_left-navbar/layanan/sparta/index'
+import { Route as AppLeftNavbarLayananTestiIndexRouteImport } from './routes/_app/_left-navbar/layanan/testi/index'
+import { Route as AppLeftNavbarPengumumanIdIndexRouteImport } from './routes/_app/_left-navbar/pengumuman/$id/index'
+import { Route as AppLeftNavbarPengumumanTulisIndexRouteImport } from './routes/_app/_left-navbar/pengumuman/tulis/index'
+import { Route as AppLeftNavbarKelolaLiveFormIdIndexRouteImport } from './routes/_app/_left-navbar/kelola/live/$formId/index'
+import { Route as AppLeftNavbarLayananTestiTypeIndexRouteImport } from './routes/_app/_left-navbar/layanan/testi/$type/index'
+import { Route as AppLeftNavbarProfilSettingsItemKreditIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/kredit/index'
+import { Route as AppLeftNavbarProfilSettingsItemMatkulIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/matkul/index'
+import { Route as AppLeftNavbarProfilSettingsItemNotifikasiIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/notifikasi/index'
+import { Route as AppLeftNavbarLayananTestiTypeSemesterIndexRouteImport } from './routes/_app/_left-navbar/layanan/testi/$type/$semester/index'
+import { Route as AppLeftNavbarProfilSettingsItemMatkulTambahIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/matkul/tambah/index'
+import { Route as AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRouteImport } from './routes/_app/_left-navbar/layanan/testi_/$type/$semester/$courseId/index'
 
-const LoginIndexLazyRouteImport = createFileRoute('/login/')()
-
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -62,428 +56,450 @@ const AppLeftNavbarRoute = AppLeftNavbarRouteImport.update({
   id: '/_left-navbar',
   getParentRoute: () => AppRoute,
 } as any)
-const AppCalendarRoute = AppCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
+const AppKalenderRoute = AppKalenderRouteImport.update({
+  id: '/kalender',
+  path: '/kalender',
   getParentRoute: () => AppRoute,
 } as any)
-const LoginIndexLazyRoute = LoginIndexLazyRouteImport.update({
+const LoginIndexRoute = LoginIndexRouteImport.update({
   id: '/login/',
   path: '/login/',
   getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/login/index.lazy').then((d) => d.Route))
-const SocketIndexRoute = SocketIndexRouteImport.update({
-  id: '/socket/',
-  path: '/socket/',
-  getParentRoute: () => rootRouteImport,
 } as any)
-const AppLeftNavbarSettingsRoute = AppLeftNavbarSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppLeftNavbarRoute,
-} as any)
-const AppCalendarIndexRoute = AppCalendarIndexRouteImport.update({
+const AppLeftNavbarIndexRoute = AppLeftNavbarIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppCalendarRoute,
-} as any)
-const AppLeftNavbarAddAnnouncementIndexRoute =
-  AppLeftNavbarAddAnnouncementIndexRouteImport.update({
-    id: '/add-announcement/',
-    path: '/add-announcement/',
-    getParentRoute: () => AppLeftNavbarRoute,
-  } as any)
-const AppLeftNavbarHomeIndexRoute = AppLeftNavbarHomeIndexRouteImport.update({
-  id: '/home/',
-  path: '/home/',
   getParentRoute: () => AppLeftNavbarRoute,
 } as any)
-const AppLeftNavbarHomeTestimoniRoute =
-  AppLeftNavbarHomeTestimoniRouteImport.update({
-    id: '/home/testimoni',
-    path: '/home/testimoni',
+const AppLeftNavbarProfilRoute = AppLeftNavbarProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => AppLeftNavbarRoute,
+} as any)
+const AppKalenderIndexRoute = AppKalenderIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppKalenderRoute,
+} as any)
+const AppLeftNavbarKelolaIndexRoute =
+  AppLeftNavbarKelolaIndexRouteImport.update({
+    id: '/kelola/',
+    path: '/kelola/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarSettingsIndexRoute =
-  AppLeftNavbarSettingsIndexRouteImport.update({
+const AppLeftNavbarKelolaAcaraRoute =
+  AppLeftNavbarKelolaAcaraRouteImport.update({
+    id: '/kelola/acara',
+    path: '/kelola/acara',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarKelolaLombaRoute =
+  AppLeftNavbarKelolaLombaRouteImport.update({
+    id: '/kelola/lomba',
+    path: '/kelola/lomba',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarKelolaTestiRoute =
+  AppLeftNavbarKelolaTestiRouteImport.update({
+    id: '/kelola/testi',
+    path: '/kelola/testi',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarLayananIndexRoute =
+  AppLeftNavbarLayananIndexRouteImport.update({
+    id: '/layanan/',
+    path: '/layanan/',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarLayananTestiRoute =
+  AppLeftNavbarLayananTestiRouteImport.update({
+    id: '/layanan/testi',
+    path: '/layanan/testi',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarPengumumanIndexRoute =
+  AppLeftNavbarPengumumanIndexRouteImport.update({
+    id: '/pengumuman/',
+    path: '/pengumuman/',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarProfilIndexRoute =
+  AppLeftNavbarProfilIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AppLeftNavbarSettingsRoute,
+    getParentRoute: () => AppLeftNavbarProfilRoute,
   } as any)
-const AppLeftNavbarSettingsSettingsItemRoute =
-  AppLeftNavbarSettingsSettingsItemRouteImport.update({
+const AppLeftNavbarProfilSettingsItemRoute =
+  AppLeftNavbarProfilSettingsItemRouteImport.update({
     id: '/_settings-item',
-    getParentRoute: () => AppLeftNavbarSettingsRoute,
+    getParentRoute: () => AppLeftNavbarProfilRoute,
   } as any)
-const AppLeftNavbarTimelineIndexRoute =
-  AppLeftNavbarTimelineIndexRouteImport.update({
-    id: '/timeline/',
-    path: '/timeline/',
+const AppLeftNavbarKelolaLiveIndexRoute =
+  AppLeftNavbarKelolaLiveIndexRouteImport.update({
+    id: '/kelola/live/',
+    path: '/kelola/live/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeAdminIndexRoute =
-  AppLeftNavbarHomeAdminIndexRouteImport.update({
-    id: '/home/admin/',
-    path: '/home/admin/',
+const AppLeftNavbarKelolaSpartaIndexRoute =
+  AppLeftNavbarKelolaSpartaIndexRouteImport.update({
+    id: '/kelola/sparta/',
+    path: '/kelola/sparta/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeCompetitionIndexRoute =
-  AppLeftNavbarHomeCompetitionIndexRouteImport.update({
-    id: '/home/competition/',
-    path: '/home/competition/',
+const AppLeftNavbarKelolaSpartaSubmissionIdRoute =
+  AppLeftNavbarKelolaSpartaSubmissionIdRouteImport.update({
+    id: '/kelola/sparta/$submissionId',
+    path: '/kelola/sparta/$submissionId',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeCurhatIndexRoute =
-  AppLeftNavbarHomeCurhatIndexRouteImport.update({
-    id: '/home/curhat/',
-    path: '/home/curhat/',
+const AppLeftNavbarLayananCurhatIndexRoute =
+  AppLeftNavbarLayananCurhatIndexRouteImport.update({
+    id: '/layanan/curhat/',
+    path: '/layanan/curhat/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeDingdongIndexRoute =
-  AppLeftNavbarHomeDingdongIndexRouteImport.update({
-    id: '/home/dingdong/',
-    path: '/home/dingdong/',
+const AppLeftNavbarLayananCurhatRoomIdRoute =
+  AppLeftNavbarLayananCurhatRoomIdRouteImport.update({
+    id: '/layanan/curhat/$roomId',
+    path: '/layanan/curhat/$roomId',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeFormIndexRoute =
-  AppLeftNavbarHomeFormIndexRouteImport.update({
-    id: '/home/form/',
-    path: '/home/form/',
+const AppLeftNavbarLayananDingdongIndexRoute =
+  AppLeftNavbarLayananDingdongIndexRouteImport.update({
+    id: '/layanan/dingdong/',
+    path: '/layanan/dingdong/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeFormFormIdRoute =
-  AppLeftNavbarHomeFormFormIdRouteImport.update({
-    id: '/home/form/$formId',
-    path: '/home/form/$formId',
+const AppLeftNavbarLayananFormIndexRoute =
+  AppLeftNavbarLayananFormIndexRouteImport.update({
+    id: '/layanan/form/',
+    path: '/layanan/form/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeInternshipIndexRoute =
-  AppLeftNavbarHomeInternshipIndexRouteImport.update({
-    id: '/home/internship/',
-    path: '/home/internship/',
+const AppLeftNavbarLayananFormFormIdRoute =
+  AppLeftNavbarLayananFormFormIdRouteImport.update({
+    id: '/layanan/form/$formId',
+    path: '/layanan/form/$formId',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeNimFinderIndexRoute =
-  AppLeftNavbarHomeNimFinderIndexRouteImport.update({
-    id: '/home/nim-finder/',
-    path: '/home/nim-finder/',
+const AppLeftNavbarLayananLombaIndexRoute =
+  AppLeftNavbarLayananLombaIndexRouteImport.update({
+    id: '/layanan/lomba/',
+    path: '/layanan/lomba/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeTestimoniIndexRoute =
-  AppLeftNavbarHomeTestimoniIndexRouteImport.update({
+const AppLeftNavbarLayananNimIndexRoute =
+  AppLeftNavbarLayananNimIndexRouteImport.update({
+    id: '/layanan/nim/',
+    path: '/layanan/nim/',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarLayananSpartaIndexRoute =
+  AppLeftNavbarLayananSpartaIndexRouteImport.update({
+    id: '/layanan/sparta/',
+    path: '/layanan/sparta/',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarLayananTestiIndexRoute =
+  AppLeftNavbarLayananTestiIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AppLeftNavbarHomeTestimoniRoute,
+    getParentRoute: () => AppLeftNavbarLayananTestiRoute,
   } as any)
-const AppLeftNavbarTimelineInfoIdIndexRoute =
-  AppLeftNavbarTimelineInfoIdIndexRouteImport.update({
-    id: '/timeline/$infoId/',
-    path: '/timeline/$infoId/',
+const AppLeftNavbarPengumumanIdIndexRoute =
+  AppLeftNavbarPengumumanIdIndexRouteImport.update({
+    id: '/pengumuman/$id/',
+    path: '/pengumuman/$id/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeAdminFormsIndexRoute =
-  AppLeftNavbarHomeAdminFormsIndexRouteImport.update({
-    id: '/home/admin/forms/',
-    path: '/home/admin/forms/',
+const AppLeftNavbarPengumumanTulisIndexRoute =
+  AppLeftNavbarPengumumanTulisIndexRouteImport.update({
+    id: '/pengumuman/tulis/',
+    path: '/pengumuman/tulis/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeInternshipAdminIndexRoute =
-  AppLeftNavbarHomeInternshipAdminIndexRouteImport.update({
-    id: '/home/internship/admin/',
-    path: '/home/internship/admin/',
+const AppLeftNavbarKelolaLiveFormIdIndexRoute =
+  AppLeftNavbarKelolaLiveFormIdIndexRouteImport.update({
+    id: '/kelola/live/$formId/',
+    path: '/kelola/live/$formId/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
-const AppLeftNavbarHomeInternshipAdminSubmissionIdRoute =
-  AppLeftNavbarHomeInternshipAdminSubmissionIdRouteImport.update({
-    id: '/home/internship/admin/$submissionId',
-    path: '/home/internship/admin/$submissionId',
-    getParentRoute: () => AppLeftNavbarRoute,
-  } as any)
-const AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRoute =
-  AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRouteImport.update({
-    id: '/home/rekomendasi/$rekomendasiId/',
-    path: '/home/rekomendasi/$rekomendasiId/',
-    getParentRoute: () => AppLeftNavbarRoute,
-  } as any)
-const AppLeftNavbarHomeTestimoniTypeIndexRoute =
-  AppLeftNavbarHomeTestimoniTypeIndexRouteImport.update({
+const AppLeftNavbarLayananTestiTypeIndexRoute =
+  AppLeftNavbarLayananTestiTypeIndexRouteImport.update({
     id: '/$type/',
     path: '/$type/',
-    getParentRoute: () => AppLeftNavbarHomeTestimoniRoute,
+    getParentRoute: () => AppLeftNavbarLayananTestiRoute,
   } as any)
-const AppLeftNavbarSettingsSettingsItemCoursesIndexRoute =
-  AppLeftNavbarSettingsSettingsItemCoursesIndexRouteImport.update({
-    id: '/courses/',
-    path: '/courses/',
-    getParentRoute: () => AppLeftNavbarSettingsSettingsItemRoute,
+const AppLeftNavbarProfilSettingsItemKreditIndexRoute =
+  AppLeftNavbarProfilSettingsItemKreditIndexRouteImport.update({
+    id: '/kredit/',
+    path: '/kredit/',
+    getParentRoute: () => AppLeftNavbarProfilSettingsItemRoute,
   } as any)
-const AppLeftNavbarSettingsSettingsItemCreditsIndexRoute =
-  AppLeftNavbarSettingsSettingsItemCreditsIndexRouteImport.update({
-    id: '/credits/',
-    path: '/credits/',
-    getParentRoute: () => AppLeftNavbarSettingsSettingsItemRoute,
+const AppLeftNavbarProfilSettingsItemMatkulIndexRoute =
+  AppLeftNavbarProfilSettingsItemMatkulIndexRouteImport.update({
+    id: '/matkul/',
+    path: '/matkul/',
+    getParentRoute: () => AppLeftNavbarProfilSettingsItemRoute,
   } as any)
-const AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRoute =
-  AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRouteImport.update({
-    id: '/subscriptions/',
-    path: '/subscriptions/',
-    getParentRoute: () => AppLeftNavbarSettingsSettingsItemRoute,
+const AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute =
+  AppLeftNavbarProfilSettingsItemNotifikasiIndexRouteImport.update({
+    id: '/notifikasi/',
+    path: '/notifikasi/',
+    getParentRoute: () => AppLeftNavbarProfilSettingsItemRoute,
   } as any)
-const AppLeftNavbarHomeAdminFormsFormIdIndexRoute =
-  AppLeftNavbarHomeAdminFormsFormIdIndexRouteImport.update({
-    id: '/home/admin/forms/$formId/',
-    path: '/home/admin/forms/$formId/',
-    getParentRoute: () => AppLeftNavbarRoute,
-  } as any)
-const AppLeftNavbarHomeTestimoniTypeSemesterIndexRoute =
-  AppLeftNavbarHomeTestimoniTypeSemesterIndexRouteImport.update({
+const AppLeftNavbarLayananTestiTypeSemesterIndexRoute =
+  AppLeftNavbarLayananTestiTypeSemesterIndexRouteImport.update({
     id: '/$type/$semester/',
     path: '/$type/$semester/',
-    getParentRoute: () => AppLeftNavbarHomeTestimoniRoute,
+    getParentRoute: () => AppLeftNavbarLayananTestiRoute,
   } as any)
-const AppLeftNavbarSettingsSettingsItemCoursesAddIndexRoute =
-  AppLeftNavbarSettingsSettingsItemCoursesAddIndexRouteImport.update({
-    id: '/courses/add/',
-    path: '/courses/add/',
-    getParentRoute: () => AppLeftNavbarSettingsSettingsItemRoute,
+const AppLeftNavbarProfilSettingsItemMatkulTambahIndexRoute =
+  AppLeftNavbarProfilSettingsItemMatkulTambahIndexRouteImport.update({
+    id: '/matkul/tambah/',
+    path: '/matkul/tambah/',
+    getParentRoute: () => AppLeftNavbarProfilSettingsItemRoute,
   } as any)
-const AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRoute =
-  AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRouteImport.update({
-    id: '/home/testimoni_/$type/$semester/$courseId/',
-    path: '/home/testimoni/$type/$semester/$courseId/',
+const AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute =
+  AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRouteImport.update({
+    id: '/layanan/testi_/$type/$semester/$courseId/',
+    path: '/layanan/testi/$type/$semester/$courseId/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/calendar': typeof AppCalendarRouteWithChildren
-  '/socket/': typeof SocketIndexRoute
-  '/login/': typeof LoginIndexLazyRoute
-  '/settings': typeof AppLeftNavbarSettingsRouteWithChildren
-  '/calendar/': typeof AppCalendarIndexRoute
-  '/home/testimoni': typeof AppLeftNavbarHomeTestimoniRouteWithChildren
-  '/add-announcement/': typeof AppLeftNavbarAddAnnouncementIndexRoute
-  '/home/': typeof AppLeftNavbarHomeIndexRoute
-  '/settings/': typeof AppLeftNavbarSettingsIndexRoute
-  '/timeline/': typeof AppLeftNavbarTimelineIndexRoute
-  '/home/form/$formId': typeof AppLeftNavbarHomeFormFormIdRoute
-  '/home/admin/': typeof AppLeftNavbarHomeAdminIndexRoute
-  '/home/competition/': typeof AppLeftNavbarHomeCompetitionIndexRoute
-  '/home/curhat/': typeof AppLeftNavbarHomeCurhatIndexRoute
-  '/home/dingdong/': typeof AppLeftNavbarHomeDingdongIndexRoute
-  '/home/form/': typeof AppLeftNavbarHomeFormIndexRoute
-  '/home/internship/': typeof AppLeftNavbarHomeInternshipIndexRoute
-  '/home/nim-finder/': typeof AppLeftNavbarHomeNimFinderIndexRoute
-  '/home/testimoni/': typeof AppLeftNavbarHomeTestimoniIndexRoute
-  '/timeline/$infoId/': typeof AppLeftNavbarTimelineInfoIdIndexRoute
-  '/home/internship/admin/$submissionId': typeof AppLeftNavbarHomeInternshipAdminSubmissionIdRoute
-  '/home/admin/forms/': typeof AppLeftNavbarHomeAdminFormsIndexRoute
-  '/home/internship/admin/': typeof AppLeftNavbarHomeInternshipAdminIndexRoute
-  '/home/rekomendasi/$rekomendasiId/': typeof AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRoute
-  '/home/testimoni/$type/': typeof AppLeftNavbarHomeTestimoniTypeIndexRoute
-  '/settings/courses/': typeof AppLeftNavbarSettingsSettingsItemCoursesIndexRoute
-  '/settings/credits/': typeof AppLeftNavbarSettingsSettingsItemCreditsIndexRoute
-  '/settings/subscriptions/': typeof AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRoute
-  '/home/admin/forms/$formId/': typeof AppLeftNavbarHomeAdminFormsFormIdIndexRoute
-  '/home/testimoni/$type/$semester/': typeof AppLeftNavbarHomeTestimoniTypeSemesterIndexRoute
-  '/settings/courses/add/': typeof AppLeftNavbarSettingsSettingsItemCoursesAddIndexRoute
-  '/home/testimoni/$type/$semester/$courseId/': typeof AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRoute
+  '/': typeof AppLeftNavbarIndexRoute
+  '/kalender': typeof AppKalenderRouteWithChildren
+  '/login/': typeof LoginIndexRoute
+  '/profil': typeof AppLeftNavbarProfilRouteWithChildren
+  '/kalender/': typeof AppKalenderIndexRoute
+  '/kelola/acara': typeof AppLeftNavbarKelolaAcaraRoute
+  '/kelola/lomba': typeof AppLeftNavbarKelolaLombaRoute
+  '/kelola/testi': typeof AppLeftNavbarKelolaTestiRoute
+  '/layanan/testi': typeof AppLeftNavbarLayananTestiRouteWithChildren
+  '/kelola/': typeof AppLeftNavbarKelolaIndexRoute
+  '/layanan/': typeof AppLeftNavbarLayananIndexRoute
+  '/pengumuman/': typeof AppLeftNavbarPengumumanIndexRoute
+  '/profil/': typeof AppLeftNavbarProfilIndexRoute
+  '/kelola/sparta/$submissionId': typeof AppLeftNavbarKelolaSpartaSubmissionIdRoute
+  '/layanan/curhat/$roomId': typeof AppLeftNavbarLayananCurhatRoomIdRoute
+  '/layanan/form/$formId': typeof AppLeftNavbarLayananFormFormIdRoute
+  '/kelola/live/': typeof AppLeftNavbarKelolaLiveIndexRoute
+  '/kelola/sparta/': typeof AppLeftNavbarKelolaSpartaIndexRoute
+  '/layanan/curhat/': typeof AppLeftNavbarLayananCurhatIndexRoute
+  '/layanan/dingdong/': typeof AppLeftNavbarLayananDingdongIndexRoute
+  '/layanan/form/': typeof AppLeftNavbarLayananFormIndexRoute
+  '/layanan/lomba/': typeof AppLeftNavbarLayananLombaIndexRoute
+  '/layanan/nim/': typeof AppLeftNavbarLayananNimIndexRoute
+  '/layanan/sparta/': typeof AppLeftNavbarLayananSpartaIndexRoute
+  '/layanan/testi/': typeof AppLeftNavbarLayananTestiIndexRoute
+  '/pengumuman/$id/': typeof AppLeftNavbarPengumumanIdIndexRoute
+  '/pengumuman/tulis/': typeof AppLeftNavbarPengumumanTulisIndexRoute
+  '/kelola/live/$formId/': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
+  '/layanan/testi/$type/': typeof AppLeftNavbarLayananTestiTypeIndexRoute
+  '/profil/kredit/': typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
+  '/profil/matkul/': typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
+  '/profil/notifikasi/': typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
+  '/layanan/testi/$type/$semester/': typeof AppLeftNavbarLayananTestiTypeSemesterIndexRoute
+  '/profil/matkul/tambah/': typeof AppLeftNavbarProfilSettingsItemMatkulTambahIndexRoute
+  '/layanan/testi/$type/$semester/$courseId/': typeof AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/socket': typeof SocketIndexRoute
-  '/login': typeof LoginIndexLazyRoute
-  '/calendar': typeof AppCalendarIndexRoute
-  '/settings': typeof AppLeftNavbarSettingsIndexRoute
-  '/add-announcement': typeof AppLeftNavbarAddAnnouncementIndexRoute
-  '/home': typeof AppLeftNavbarHomeIndexRoute
-  '/timeline': typeof AppLeftNavbarTimelineIndexRoute
-  '/home/form/$formId': typeof AppLeftNavbarHomeFormFormIdRoute
-  '/home/admin': typeof AppLeftNavbarHomeAdminIndexRoute
-  '/home/competition': typeof AppLeftNavbarHomeCompetitionIndexRoute
-  '/home/curhat': typeof AppLeftNavbarHomeCurhatIndexRoute
-  '/home/dingdong': typeof AppLeftNavbarHomeDingdongIndexRoute
-  '/home/form': typeof AppLeftNavbarHomeFormIndexRoute
-  '/home/internship': typeof AppLeftNavbarHomeInternshipIndexRoute
-  '/home/nim-finder': typeof AppLeftNavbarHomeNimFinderIndexRoute
-  '/home/testimoni': typeof AppLeftNavbarHomeTestimoniIndexRoute
-  '/timeline/$infoId': typeof AppLeftNavbarTimelineInfoIdIndexRoute
-  '/home/internship/admin/$submissionId': typeof AppLeftNavbarHomeInternshipAdminSubmissionIdRoute
-  '/home/admin/forms': typeof AppLeftNavbarHomeAdminFormsIndexRoute
-  '/home/internship/admin': typeof AppLeftNavbarHomeInternshipAdminIndexRoute
-  '/home/rekomendasi/$rekomendasiId': typeof AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRoute
-  '/home/testimoni/$type': typeof AppLeftNavbarHomeTestimoniTypeIndexRoute
-  '/settings/courses': typeof AppLeftNavbarSettingsSettingsItemCoursesIndexRoute
-  '/settings/credits': typeof AppLeftNavbarSettingsSettingsItemCreditsIndexRoute
-  '/settings/subscriptions': typeof AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRoute
-  '/home/admin/forms/$formId': typeof AppLeftNavbarHomeAdminFormsFormIdIndexRoute
-  '/home/testimoni/$type/$semester': typeof AppLeftNavbarHomeTestimoniTypeSemesterIndexRoute
-  '/settings/courses/add': typeof AppLeftNavbarSettingsSettingsItemCoursesAddIndexRoute
-  '/home/testimoni/$type/$semester/$courseId': typeof AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRoute
+  '/': typeof AppLeftNavbarIndexRoute
+  '/login': typeof LoginIndexRoute
+  '/kalender': typeof AppKalenderIndexRoute
+  '/kelola/acara': typeof AppLeftNavbarKelolaAcaraRoute
+  '/kelola/lomba': typeof AppLeftNavbarKelolaLombaRoute
+  '/kelola/testi': typeof AppLeftNavbarKelolaTestiRoute
+  '/profil': typeof AppLeftNavbarProfilIndexRoute
+  '/kelola': typeof AppLeftNavbarKelolaIndexRoute
+  '/layanan': typeof AppLeftNavbarLayananIndexRoute
+  '/pengumuman': typeof AppLeftNavbarPengumumanIndexRoute
+  '/kelola/sparta/$submissionId': typeof AppLeftNavbarKelolaSpartaSubmissionIdRoute
+  '/layanan/curhat/$roomId': typeof AppLeftNavbarLayananCurhatRoomIdRoute
+  '/layanan/form/$formId': typeof AppLeftNavbarLayananFormFormIdRoute
+  '/kelola/live': typeof AppLeftNavbarKelolaLiveIndexRoute
+  '/kelola/sparta': typeof AppLeftNavbarKelolaSpartaIndexRoute
+  '/layanan/curhat': typeof AppLeftNavbarLayananCurhatIndexRoute
+  '/layanan/dingdong': typeof AppLeftNavbarLayananDingdongIndexRoute
+  '/layanan/form': typeof AppLeftNavbarLayananFormIndexRoute
+  '/layanan/lomba': typeof AppLeftNavbarLayananLombaIndexRoute
+  '/layanan/nim': typeof AppLeftNavbarLayananNimIndexRoute
+  '/layanan/sparta': typeof AppLeftNavbarLayananSpartaIndexRoute
+  '/layanan/testi': typeof AppLeftNavbarLayananTestiIndexRoute
+  '/pengumuman/$id': typeof AppLeftNavbarPengumumanIdIndexRoute
+  '/pengumuman/tulis': typeof AppLeftNavbarPengumumanTulisIndexRoute
+  '/kelola/live/$formId': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
+  '/layanan/testi/$type': typeof AppLeftNavbarLayananTestiTypeIndexRoute
+  '/profil/kredit': typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
+  '/profil/matkul': typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
+  '/profil/notifikasi': typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
+  '/layanan/testi/$type/$semester': typeof AppLeftNavbarLayananTestiTypeSemesterIndexRoute
+  '/profil/matkul/tambah': typeof AppLeftNavbarProfilSettingsItemMatkulTambahIndexRoute
+  '/layanan/testi/$type/$semester/$courseId': typeof AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/_app/_left-navbar': typeof AppLeftNavbarRouteWithChildren
-  '/_app/calendar': typeof AppCalendarRouteWithChildren
-  '/socket/': typeof SocketIndexRoute
-  '/login/': typeof LoginIndexLazyRoute
-  '/_app/_left-navbar/settings': typeof AppLeftNavbarSettingsRouteWithChildren
-  '/_app/calendar/': typeof AppCalendarIndexRoute
-  '/_app/_left-navbar/home/testimoni': typeof AppLeftNavbarHomeTestimoniRouteWithChildren
-  '/_app/_left-navbar/settings/_settings-item': typeof AppLeftNavbarSettingsSettingsItemRouteWithChildren
-  '/_app/_left-navbar/add-announcement/': typeof AppLeftNavbarAddAnnouncementIndexRoute
-  '/_app/_left-navbar/home/': typeof AppLeftNavbarHomeIndexRoute
-  '/_app/_left-navbar/settings/': typeof AppLeftNavbarSettingsIndexRoute
-  '/_app/_left-navbar/timeline/': typeof AppLeftNavbarTimelineIndexRoute
-  '/_app/_left-navbar/home/form/$formId': typeof AppLeftNavbarHomeFormFormIdRoute
-  '/_app/_left-navbar/home/admin/': typeof AppLeftNavbarHomeAdminIndexRoute
-  '/_app/_left-navbar/home/competition/': typeof AppLeftNavbarHomeCompetitionIndexRoute
-  '/_app/_left-navbar/home/curhat/': typeof AppLeftNavbarHomeCurhatIndexRoute
-  '/_app/_left-navbar/home/dingdong/': typeof AppLeftNavbarHomeDingdongIndexRoute
-  '/_app/_left-navbar/home/form/': typeof AppLeftNavbarHomeFormIndexRoute
-  '/_app/_left-navbar/home/internship/': typeof AppLeftNavbarHomeInternshipIndexRoute
-  '/_app/_left-navbar/home/nim-finder/': typeof AppLeftNavbarHomeNimFinderIndexRoute
-  '/_app/_left-navbar/home/testimoni/': typeof AppLeftNavbarHomeTestimoniIndexRoute
-  '/_app/_left-navbar/timeline/$infoId/': typeof AppLeftNavbarTimelineInfoIdIndexRoute
-  '/_app/_left-navbar/home/internship/admin/$submissionId': typeof AppLeftNavbarHomeInternshipAdminSubmissionIdRoute
-  '/_app/_left-navbar/home/admin/forms/': typeof AppLeftNavbarHomeAdminFormsIndexRoute
-  '/_app/_left-navbar/home/internship/admin/': typeof AppLeftNavbarHomeInternshipAdminIndexRoute
-  '/_app/_left-navbar/home/rekomendasi/$rekomendasiId/': typeof AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRoute
-  '/_app/_left-navbar/home/testimoni/$type/': typeof AppLeftNavbarHomeTestimoniTypeIndexRoute
-  '/_app/_left-navbar/settings/_settings-item/courses/': typeof AppLeftNavbarSettingsSettingsItemCoursesIndexRoute
-  '/_app/_left-navbar/settings/_settings-item/credits/': typeof AppLeftNavbarSettingsSettingsItemCreditsIndexRoute
-  '/_app/_left-navbar/settings/_settings-item/subscriptions/': typeof AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRoute
-  '/_app/_left-navbar/home/admin/forms/$formId/': typeof AppLeftNavbarHomeAdminFormsFormIdIndexRoute
-  '/_app/_left-navbar/home/testimoni/$type/$semester/': typeof AppLeftNavbarHomeTestimoniTypeSemesterIndexRoute
-  '/_app/_left-navbar/settings/_settings-item/courses/add/': typeof AppLeftNavbarSettingsSettingsItemCoursesAddIndexRoute
-  '/_app/_left-navbar/home/testimoni_/$type/$semester/$courseId/': typeof AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRoute
+  '/_app/kalender': typeof AppKalenderRouteWithChildren
+  '/login/': typeof LoginIndexRoute
+  '/_app/_left-navbar/profil': typeof AppLeftNavbarProfilRouteWithChildren
+  '/_app/_left-navbar/': typeof AppLeftNavbarIndexRoute
+  '/_app/kalender/': typeof AppKalenderIndexRoute
+  '/_app/_left-navbar/kelola/acara': typeof AppLeftNavbarKelolaAcaraRoute
+  '/_app/_left-navbar/kelola/lomba': typeof AppLeftNavbarKelolaLombaRoute
+  '/_app/_left-navbar/kelola/testi': typeof AppLeftNavbarKelolaTestiRoute
+  '/_app/_left-navbar/layanan/testi': typeof AppLeftNavbarLayananTestiRouteWithChildren
+  '/_app/_left-navbar/profil/_settings-item': typeof AppLeftNavbarProfilSettingsItemRouteWithChildren
+  '/_app/_left-navbar/kelola/': typeof AppLeftNavbarKelolaIndexRoute
+  '/_app/_left-navbar/layanan/': typeof AppLeftNavbarLayananIndexRoute
+  '/_app/_left-navbar/pengumuman/': typeof AppLeftNavbarPengumumanIndexRoute
+  '/_app/_left-navbar/profil/': typeof AppLeftNavbarProfilIndexRoute
+  '/_app/_left-navbar/kelola/sparta/$submissionId': typeof AppLeftNavbarKelolaSpartaSubmissionIdRoute
+  '/_app/_left-navbar/layanan/curhat/$roomId': typeof AppLeftNavbarLayananCurhatRoomIdRoute
+  '/_app/_left-navbar/layanan/form/$formId': typeof AppLeftNavbarLayananFormFormIdRoute
+  '/_app/_left-navbar/kelola/live/': typeof AppLeftNavbarKelolaLiveIndexRoute
+  '/_app/_left-navbar/kelola/sparta/': typeof AppLeftNavbarKelolaSpartaIndexRoute
+  '/_app/_left-navbar/layanan/curhat/': typeof AppLeftNavbarLayananCurhatIndexRoute
+  '/_app/_left-navbar/layanan/dingdong/': typeof AppLeftNavbarLayananDingdongIndexRoute
+  '/_app/_left-navbar/layanan/form/': typeof AppLeftNavbarLayananFormIndexRoute
+  '/_app/_left-navbar/layanan/lomba/': typeof AppLeftNavbarLayananLombaIndexRoute
+  '/_app/_left-navbar/layanan/nim/': typeof AppLeftNavbarLayananNimIndexRoute
+  '/_app/_left-navbar/layanan/sparta/': typeof AppLeftNavbarLayananSpartaIndexRoute
+  '/_app/_left-navbar/layanan/testi/': typeof AppLeftNavbarLayananTestiIndexRoute
+  '/_app/_left-navbar/pengumuman/$id/': typeof AppLeftNavbarPengumumanIdIndexRoute
+  '/_app/_left-navbar/pengumuman/tulis/': typeof AppLeftNavbarPengumumanTulisIndexRoute
+  '/_app/_left-navbar/kelola/live/$formId/': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
+  '/_app/_left-navbar/layanan/testi/$type/': typeof AppLeftNavbarLayananTestiTypeIndexRoute
+  '/_app/_left-navbar/profil/_settings-item/kredit/': typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
+  '/_app/_left-navbar/profil/_settings-item/matkul/': typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
+  '/_app/_left-navbar/profil/_settings-item/notifikasi/': typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
+  '/_app/_left-navbar/layanan/testi/$type/$semester/': typeof AppLeftNavbarLayananTestiTypeSemesterIndexRoute
+  '/_app/_left-navbar/profil/_settings-item/matkul/tambah/': typeof AppLeftNavbarProfilSettingsItemMatkulTambahIndexRoute
+  '/_app/_left-navbar/layanan/testi_/$type/$semester/$courseId/': typeof AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/calendar'
-    | '/socket/'
+    | '/kalender'
     | '/login/'
-    | '/settings'
-    | '/calendar/'
-    | '/home/testimoni'
-    | '/add-announcement/'
-    | '/home/'
-    | '/settings/'
-    | '/timeline/'
-    | '/home/form/$formId'
-    | '/home/admin/'
-    | '/home/competition/'
-    | '/home/curhat/'
-    | '/home/dingdong/'
-    | '/home/form/'
-    | '/home/internship/'
-    | '/home/nim-finder/'
-    | '/home/testimoni/'
-    | '/timeline/$infoId/'
-    | '/home/internship/admin/$submissionId'
-    | '/home/admin/forms/'
-    | '/home/internship/admin/'
-    | '/home/rekomendasi/$rekomendasiId/'
-    | '/home/testimoni/$type/'
-    | '/settings/courses/'
-    | '/settings/credits/'
-    | '/settings/subscriptions/'
-    | '/home/admin/forms/$formId/'
-    | '/home/testimoni/$type/$semester/'
-    | '/settings/courses/add/'
-    | '/home/testimoni/$type/$semester/$courseId/'
+    | '/profil'
+    | '/kalender/'
+    | '/kelola/acara'
+    | '/kelola/lomba'
+    | '/kelola/testi'
+    | '/layanan/testi'
+    | '/kelola/'
+    | '/layanan/'
+    | '/pengumuman/'
+    | '/profil/'
+    | '/kelola/sparta/$submissionId'
+    | '/layanan/curhat/$roomId'
+    | '/layanan/form/$formId'
+    | '/kelola/live/'
+    | '/kelola/sparta/'
+    | '/layanan/curhat/'
+    | '/layanan/dingdong/'
+    | '/layanan/form/'
+    | '/layanan/lomba/'
+    | '/layanan/nim/'
+    | '/layanan/sparta/'
+    | '/layanan/testi/'
+    | '/pengumuman/$id/'
+    | '/pengumuman/tulis/'
+    | '/kelola/live/$formId/'
+    | '/layanan/testi/$type/'
+    | '/profil/kredit/'
+    | '/profil/matkul/'
+    | '/profil/notifikasi/'
+    | '/layanan/testi/$type/$semester/'
+    | '/profil/matkul/tambah/'
+    | '/layanan/testi/$type/$semester/$courseId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/socket'
     | '/login'
-    | '/calendar'
-    | '/settings'
-    | '/add-announcement'
-    | '/home'
-    | '/timeline'
-    | '/home/form/$formId'
-    | '/home/admin'
-    | '/home/competition'
-    | '/home/curhat'
-    | '/home/dingdong'
-    | '/home/form'
-    | '/home/internship'
-    | '/home/nim-finder'
-    | '/home/testimoni'
-    | '/timeline/$infoId'
-    | '/home/internship/admin/$submissionId'
-    | '/home/admin/forms'
-    | '/home/internship/admin'
-    | '/home/rekomendasi/$rekomendasiId'
-    | '/home/testimoni/$type'
-    | '/settings/courses'
-    | '/settings/credits'
-    | '/settings/subscriptions'
-    | '/home/admin/forms/$formId'
-    | '/home/testimoni/$type/$semester'
-    | '/settings/courses/add'
-    | '/home/testimoni/$type/$semester/$courseId'
+    | '/kalender'
+    | '/kelola/acara'
+    | '/kelola/lomba'
+    | '/kelola/testi'
+    | '/profil'
+    | '/kelola'
+    | '/layanan'
+    | '/pengumuman'
+    | '/kelola/sparta/$submissionId'
+    | '/layanan/curhat/$roomId'
+    | '/layanan/form/$formId'
+    | '/kelola/live'
+    | '/kelola/sparta'
+    | '/layanan/curhat'
+    | '/layanan/dingdong'
+    | '/layanan/form'
+    | '/layanan/lomba'
+    | '/layanan/nim'
+    | '/layanan/sparta'
+    | '/layanan/testi'
+    | '/pengumuman/$id'
+    | '/pengumuman/tulis'
+    | '/kelola/live/$formId'
+    | '/layanan/testi/$type'
+    | '/profil/kredit'
+    | '/profil/matkul'
+    | '/profil/notifikasi'
+    | '/layanan/testi/$type/$semester'
+    | '/profil/matkul/tambah'
+    | '/layanan/testi/$type/$semester/$courseId'
   id:
     | '__root__'
-    | '/'
     | '/_app'
     | '/_app/_left-navbar'
-    | '/_app/calendar'
-    | '/socket/'
+    | '/_app/kalender'
     | '/login/'
-    | '/_app/_left-navbar/settings'
-    | '/_app/calendar/'
-    | '/_app/_left-navbar/home/testimoni'
-    | '/_app/_left-navbar/settings/_settings-item'
-    | '/_app/_left-navbar/add-announcement/'
-    | '/_app/_left-navbar/home/'
-    | '/_app/_left-navbar/settings/'
-    | '/_app/_left-navbar/timeline/'
-    | '/_app/_left-navbar/home/form/$formId'
-    | '/_app/_left-navbar/home/admin/'
-    | '/_app/_left-navbar/home/competition/'
-    | '/_app/_left-navbar/home/curhat/'
-    | '/_app/_left-navbar/home/dingdong/'
-    | '/_app/_left-navbar/home/form/'
-    | '/_app/_left-navbar/home/internship/'
-    | '/_app/_left-navbar/home/nim-finder/'
-    | '/_app/_left-navbar/home/testimoni/'
-    | '/_app/_left-navbar/timeline/$infoId/'
-    | '/_app/_left-navbar/home/internship/admin/$submissionId'
-    | '/_app/_left-navbar/home/admin/forms/'
-    | '/_app/_left-navbar/home/internship/admin/'
-    | '/_app/_left-navbar/home/rekomendasi/$rekomendasiId/'
-    | '/_app/_left-navbar/home/testimoni/$type/'
-    | '/_app/_left-navbar/settings/_settings-item/courses/'
-    | '/_app/_left-navbar/settings/_settings-item/credits/'
-    | '/_app/_left-navbar/settings/_settings-item/subscriptions/'
-    | '/_app/_left-navbar/home/admin/forms/$formId/'
-    | '/_app/_left-navbar/home/testimoni/$type/$semester/'
-    | '/_app/_left-navbar/settings/_settings-item/courses/add/'
-    | '/_app/_left-navbar/home/testimoni_/$type/$semester/$courseId/'
+    | '/_app/_left-navbar/profil'
+    | '/_app/_left-navbar/'
+    | '/_app/kalender/'
+    | '/_app/_left-navbar/kelola/acara'
+    | '/_app/_left-navbar/kelola/lomba'
+    | '/_app/_left-navbar/kelola/testi'
+    | '/_app/_left-navbar/layanan/testi'
+    | '/_app/_left-navbar/profil/_settings-item'
+    | '/_app/_left-navbar/kelola/'
+    | '/_app/_left-navbar/layanan/'
+    | '/_app/_left-navbar/pengumuman/'
+    | '/_app/_left-navbar/profil/'
+    | '/_app/_left-navbar/kelola/sparta/$submissionId'
+    | '/_app/_left-navbar/layanan/curhat/$roomId'
+    | '/_app/_left-navbar/layanan/form/$formId'
+    | '/_app/_left-navbar/kelola/live/'
+    | '/_app/_left-navbar/kelola/sparta/'
+    | '/_app/_left-navbar/layanan/curhat/'
+    | '/_app/_left-navbar/layanan/dingdong/'
+    | '/_app/_left-navbar/layanan/form/'
+    | '/_app/_left-navbar/layanan/lomba/'
+    | '/_app/_left-navbar/layanan/nim/'
+    | '/_app/_left-navbar/layanan/sparta/'
+    | '/_app/_left-navbar/layanan/testi/'
+    | '/_app/_left-navbar/pengumuman/$id/'
+    | '/_app/_left-navbar/pengumuman/tulis/'
+    | '/_app/_left-navbar/kelola/live/$formId/'
+    | '/_app/_left-navbar/layanan/testi/$type/'
+    | '/_app/_left-navbar/profil/_settings-item/kredit/'
+    | '/_app/_left-navbar/profil/_settings-item/matkul/'
+    | '/_app/_left-navbar/profil/_settings-item/notifikasi/'
+    | '/_app/_left-navbar/layanan/testi/$type/$semester/'
+    | '/_app/_left-navbar/profil/_settings-item/matkul/tambah/'
+    | '/_app/_left-navbar/layanan/testi_/$type/$semester/$courseId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
-  SocketIndexRoute: typeof SocketIndexRoute
-  LoginIndexLazyRoute: typeof LoginIndexLazyRoute
+  LoginIndexRoute: typeof LoginIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -498,386 +514,409 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeftNavbarRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/calendar': {
-      id: '/_app/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof AppCalendarRouteImport
+    '/_app/kalender': {
+      id: '/_app/kalender'
+      path: '/kalender'
+      fullPath: '/kalender'
+      preLoaderRoute: typeof AppKalenderRouteImport
       parentRoute: typeof AppRoute
     }
     '/login/': {
       id: '/login/'
       path: '/login'
       fullPath: '/login/'
-      preLoaderRoute: typeof LoginIndexLazyRouteImport
+      preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/socket/': {
-      id: '/socket/'
-      path: '/socket'
-      fullPath: '/socket/'
-      preLoaderRoute: typeof SocketIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_app/_left-navbar/settings': {
-      id: '/_app/_left-navbar/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppLeftNavbarSettingsRouteImport
-      parentRoute: typeof AppLeftNavbarRoute
-    }
-    '/_app/calendar/': {
-      id: '/_app/calendar/'
+    '/_app/_left-navbar/': {
+      id: '/_app/_left-navbar/'
       path: '/'
-      fullPath: '/calendar/'
-      preLoaderRoute: typeof AppCalendarIndexRouteImport
-      parentRoute: typeof AppCalendarRoute
-    }
-    '/_app/_left-navbar/add-announcement/': {
-      id: '/_app/_left-navbar/add-announcement/'
-      path: '/add-announcement'
-      fullPath: '/add-announcement/'
-      preLoaderRoute: typeof AppLeftNavbarAddAnnouncementIndexRouteImport
+      fullPath: '/'
+      preLoaderRoute: typeof AppLeftNavbarIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/': {
-      id: '/_app/_left-navbar/home/'
-      path: '/home'
-      fullPath: '/home/'
-      preLoaderRoute: typeof AppLeftNavbarHomeIndexRouteImport
+    '/_app/_left-navbar/profil': {
+      id: '/_app/_left-navbar/profil'
+      path: '/profil'
+      fullPath: '/profil'
+      preLoaderRoute: typeof AppLeftNavbarProfilRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/testimoni': {
-      id: '/_app/_left-navbar/home/testimoni'
-      path: '/home/testimoni'
-      fullPath: '/home/testimoni'
-      preLoaderRoute: typeof AppLeftNavbarHomeTestimoniRouteImport
-      parentRoute: typeof AppLeftNavbarRoute
-    }
-    '/_app/_left-navbar/settings/': {
-      id: '/_app/_left-navbar/settings/'
+    '/_app/kalender/': {
+      id: '/_app/kalender/'
       path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof AppLeftNavbarSettingsIndexRouteImport
-      parentRoute: typeof AppLeftNavbarSettingsRoute
+      fullPath: '/kalender/'
+      preLoaderRoute: typeof AppKalenderIndexRouteImport
+      parentRoute: typeof AppKalenderRoute
     }
-    '/_app/_left-navbar/settings/_settings-item': {
-      id: '/_app/_left-navbar/settings/_settings-item'
+    '/_app/_left-navbar/kelola/': {
+      id: '/_app/_left-navbar/kelola/'
+      path: '/kelola'
+      fullPath: '/kelola/'
+      preLoaderRoute: typeof AppLeftNavbarKelolaIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/kelola/acara': {
+      id: '/_app/_left-navbar/kelola/acara'
+      path: '/kelola/acara'
+      fullPath: '/kelola/acara'
+      preLoaderRoute: typeof AppLeftNavbarKelolaAcaraRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/kelola/lomba': {
+      id: '/_app/_left-navbar/kelola/lomba'
+      path: '/kelola/lomba'
+      fullPath: '/kelola/lomba'
+      preLoaderRoute: typeof AppLeftNavbarKelolaLombaRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/kelola/testi': {
+      id: '/_app/_left-navbar/kelola/testi'
+      path: '/kelola/testi'
+      fullPath: '/kelola/testi'
+      preLoaderRoute: typeof AppLeftNavbarKelolaTestiRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/layanan/': {
+      id: '/_app/_left-navbar/layanan/'
+      path: '/layanan'
+      fullPath: '/layanan/'
+      preLoaderRoute: typeof AppLeftNavbarLayananIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/layanan/testi': {
+      id: '/_app/_left-navbar/layanan/testi'
+      path: '/layanan/testi'
+      fullPath: '/layanan/testi'
+      preLoaderRoute: typeof AppLeftNavbarLayananTestiRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/pengumuman/': {
+      id: '/_app/_left-navbar/pengumuman/'
+      path: '/pengumuman'
+      fullPath: '/pengumuman/'
+      preLoaderRoute: typeof AppLeftNavbarPengumumanIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/profil/': {
+      id: '/_app/_left-navbar/profil/'
+      path: '/'
+      fullPath: '/profil/'
+      preLoaderRoute: typeof AppLeftNavbarProfilIndexRouteImport
+      parentRoute: typeof AppLeftNavbarProfilRoute
+    }
+    '/_app/_left-navbar/profil/_settings-item': {
+      id: '/_app/_left-navbar/profil/_settings-item'
       path: ''
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppLeftNavbarSettingsSettingsItemRouteImport
-      parentRoute: typeof AppLeftNavbarSettingsRoute
+      fullPath: '/profil'
+      preLoaderRoute: typeof AppLeftNavbarProfilSettingsItemRouteImport
+      parentRoute: typeof AppLeftNavbarProfilRoute
     }
-    '/_app/_left-navbar/timeline/': {
-      id: '/_app/_left-navbar/timeline/'
-      path: '/timeline'
-      fullPath: '/timeline/'
-      preLoaderRoute: typeof AppLeftNavbarTimelineIndexRouteImport
+    '/_app/_left-navbar/kelola/live/': {
+      id: '/_app/_left-navbar/kelola/live/'
+      path: '/kelola/live'
+      fullPath: '/kelola/live/'
+      preLoaderRoute: typeof AppLeftNavbarKelolaLiveIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/admin/': {
-      id: '/_app/_left-navbar/home/admin/'
-      path: '/home/admin'
-      fullPath: '/home/admin/'
-      preLoaderRoute: typeof AppLeftNavbarHomeAdminIndexRouteImport
+    '/_app/_left-navbar/kelola/sparta/': {
+      id: '/_app/_left-navbar/kelola/sparta/'
+      path: '/kelola/sparta'
+      fullPath: '/kelola/sparta/'
+      preLoaderRoute: typeof AppLeftNavbarKelolaSpartaIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/competition/': {
-      id: '/_app/_left-navbar/home/competition/'
-      path: '/home/competition'
-      fullPath: '/home/competition/'
-      preLoaderRoute: typeof AppLeftNavbarHomeCompetitionIndexRouteImport
+    '/_app/_left-navbar/kelola/sparta/$submissionId': {
+      id: '/_app/_left-navbar/kelola/sparta/$submissionId'
+      path: '/kelola/sparta/$submissionId'
+      fullPath: '/kelola/sparta/$submissionId'
+      preLoaderRoute: typeof AppLeftNavbarKelolaSpartaSubmissionIdRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/curhat/': {
-      id: '/_app/_left-navbar/home/curhat/'
-      path: '/home/curhat'
-      fullPath: '/home/curhat/'
-      preLoaderRoute: typeof AppLeftNavbarHomeCurhatIndexRouteImport
+    '/_app/_left-navbar/layanan/curhat/': {
+      id: '/_app/_left-navbar/layanan/curhat/'
+      path: '/layanan/curhat'
+      fullPath: '/layanan/curhat/'
+      preLoaderRoute: typeof AppLeftNavbarLayananCurhatIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/dingdong/': {
-      id: '/_app/_left-navbar/home/dingdong/'
-      path: '/home/dingdong'
-      fullPath: '/home/dingdong/'
-      preLoaderRoute: typeof AppLeftNavbarHomeDingdongIndexRouteImport
+    '/_app/_left-navbar/layanan/curhat/$roomId': {
+      id: '/_app/_left-navbar/layanan/curhat/$roomId'
+      path: '/layanan/curhat/$roomId'
+      fullPath: '/layanan/curhat/$roomId'
+      preLoaderRoute: typeof AppLeftNavbarLayananCurhatRoomIdRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/form/': {
-      id: '/_app/_left-navbar/home/form/'
-      path: '/home/form'
-      fullPath: '/home/form/'
-      preLoaderRoute: typeof AppLeftNavbarHomeFormIndexRouteImport
+    '/_app/_left-navbar/layanan/dingdong/': {
+      id: '/_app/_left-navbar/layanan/dingdong/'
+      path: '/layanan/dingdong'
+      fullPath: '/layanan/dingdong/'
+      preLoaderRoute: typeof AppLeftNavbarLayananDingdongIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/form/$formId': {
-      id: '/_app/_left-navbar/home/form/$formId'
-      path: '/home/form/$formId'
-      fullPath: '/home/form/$formId'
-      preLoaderRoute: typeof AppLeftNavbarHomeFormFormIdRouteImport
+    '/_app/_left-navbar/layanan/form/': {
+      id: '/_app/_left-navbar/layanan/form/'
+      path: '/layanan/form'
+      fullPath: '/layanan/form/'
+      preLoaderRoute: typeof AppLeftNavbarLayananFormIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/internship/': {
-      id: '/_app/_left-navbar/home/internship/'
-      path: '/home/internship'
-      fullPath: '/home/internship/'
-      preLoaderRoute: typeof AppLeftNavbarHomeInternshipIndexRouteImport
+    '/_app/_left-navbar/layanan/form/$formId': {
+      id: '/_app/_left-navbar/layanan/form/$formId'
+      path: '/layanan/form/$formId'
+      fullPath: '/layanan/form/$formId'
+      preLoaderRoute: typeof AppLeftNavbarLayananFormFormIdRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/nim-finder/': {
-      id: '/_app/_left-navbar/home/nim-finder/'
-      path: '/home/nim-finder'
-      fullPath: '/home/nim-finder/'
-      preLoaderRoute: typeof AppLeftNavbarHomeNimFinderIndexRouteImport
+    '/_app/_left-navbar/layanan/lomba/': {
+      id: '/_app/_left-navbar/layanan/lomba/'
+      path: '/layanan/lomba'
+      fullPath: '/layanan/lomba/'
+      preLoaderRoute: typeof AppLeftNavbarLayananLombaIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/testimoni/': {
-      id: '/_app/_left-navbar/home/testimoni/'
+    '/_app/_left-navbar/layanan/nim/': {
+      id: '/_app/_left-navbar/layanan/nim/'
+      path: '/layanan/nim'
+      fullPath: '/layanan/nim/'
+      preLoaderRoute: typeof AppLeftNavbarLayananNimIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/layanan/sparta/': {
+      id: '/_app/_left-navbar/layanan/sparta/'
+      path: '/layanan/sparta'
+      fullPath: '/layanan/sparta/'
+      preLoaderRoute: typeof AppLeftNavbarLayananSpartaIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/layanan/testi/': {
+      id: '/_app/_left-navbar/layanan/testi/'
       path: '/'
-      fullPath: '/home/testimoni/'
-      preLoaderRoute: typeof AppLeftNavbarHomeTestimoniIndexRouteImport
-      parentRoute: typeof AppLeftNavbarHomeTestimoniRoute
+      fullPath: '/layanan/testi/'
+      preLoaderRoute: typeof AppLeftNavbarLayananTestiIndexRouteImport
+      parentRoute: typeof AppLeftNavbarLayananTestiRoute
     }
-    '/_app/_left-navbar/timeline/$infoId/': {
-      id: '/_app/_left-navbar/timeline/$infoId/'
-      path: '/timeline/$infoId'
-      fullPath: '/timeline/$infoId/'
-      preLoaderRoute: typeof AppLeftNavbarTimelineInfoIdIndexRouteImport
+    '/_app/_left-navbar/pengumuman/$id/': {
+      id: '/_app/_left-navbar/pengumuman/$id/'
+      path: '/pengumuman/$id'
+      fullPath: '/pengumuman/$id/'
+      preLoaderRoute: typeof AppLeftNavbarPengumumanIdIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/admin/forms/': {
-      id: '/_app/_left-navbar/home/admin/forms/'
-      path: '/home/admin/forms'
-      fullPath: '/home/admin/forms/'
-      preLoaderRoute: typeof AppLeftNavbarHomeAdminFormsIndexRouteImport
+    '/_app/_left-navbar/pengumuman/tulis/': {
+      id: '/_app/_left-navbar/pengumuman/tulis/'
+      path: '/pengumuman/tulis'
+      fullPath: '/pengumuman/tulis/'
+      preLoaderRoute: typeof AppLeftNavbarPengumumanTulisIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/internship/admin/': {
-      id: '/_app/_left-navbar/home/internship/admin/'
-      path: '/home/internship/admin'
-      fullPath: '/home/internship/admin/'
-      preLoaderRoute: typeof AppLeftNavbarHomeInternshipAdminIndexRouteImport
+    '/_app/_left-navbar/kelola/live/$formId/': {
+      id: '/_app/_left-navbar/kelola/live/$formId/'
+      path: '/kelola/live/$formId'
+      fullPath: '/kelola/live/$formId/'
+      preLoaderRoute: typeof AppLeftNavbarKelolaLiveFormIdIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
-    '/_app/_left-navbar/home/internship/admin/$submissionId': {
-      id: '/_app/_left-navbar/home/internship/admin/$submissionId'
-      path: '/home/internship/admin/$submissionId'
-      fullPath: '/home/internship/admin/$submissionId'
-      preLoaderRoute: typeof AppLeftNavbarHomeInternshipAdminSubmissionIdRouteImport
-      parentRoute: typeof AppLeftNavbarRoute
-    }
-    '/_app/_left-navbar/home/rekomendasi/$rekomendasiId/': {
-      id: '/_app/_left-navbar/home/rekomendasi/$rekomendasiId/'
-      path: '/home/rekomendasi/$rekomendasiId'
-      fullPath: '/home/rekomendasi/$rekomendasiId/'
-      preLoaderRoute: typeof AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRouteImport
-      parentRoute: typeof AppLeftNavbarRoute
-    }
-    '/_app/_left-navbar/home/testimoni/$type/': {
-      id: '/_app/_left-navbar/home/testimoni/$type/'
+    '/_app/_left-navbar/layanan/testi/$type/': {
+      id: '/_app/_left-navbar/layanan/testi/$type/'
       path: '/$type'
-      fullPath: '/home/testimoni/$type/'
-      preLoaderRoute: typeof AppLeftNavbarHomeTestimoniTypeIndexRouteImport
-      parentRoute: typeof AppLeftNavbarHomeTestimoniRoute
+      fullPath: '/layanan/testi/$type/'
+      preLoaderRoute: typeof AppLeftNavbarLayananTestiTypeIndexRouteImport
+      parentRoute: typeof AppLeftNavbarLayananTestiRoute
     }
-    '/_app/_left-navbar/settings/_settings-item/courses/': {
-      id: '/_app/_left-navbar/settings/_settings-item/courses/'
-      path: '/courses'
-      fullPath: '/settings/courses/'
-      preLoaderRoute: typeof AppLeftNavbarSettingsSettingsItemCoursesIndexRouteImport
-      parentRoute: typeof AppLeftNavbarSettingsSettingsItemRoute
+    '/_app/_left-navbar/profil/_settings-item/kredit/': {
+      id: '/_app/_left-navbar/profil/_settings-item/kredit/'
+      path: '/kredit'
+      fullPath: '/profil/kredit/'
+      preLoaderRoute: typeof AppLeftNavbarProfilSettingsItemKreditIndexRouteImport
+      parentRoute: typeof AppLeftNavbarProfilSettingsItemRoute
     }
-    '/_app/_left-navbar/settings/_settings-item/credits/': {
-      id: '/_app/_left-navbar/settings/_settings-item/credits/'
-      path: '/credits'
-      fullPath: '/settings/credits/'
-      preLoaderRoute: typeof AppLeftNavbarSettingsSettingsItemCreditsIndexRouteImport
-      parentRoute: typeof AppLeftNavbarSettingsSettingsItemRoute
+    '/_app/_left-navbar/profil/_settings-item/matkul/': {
+      id: '/_app/_left-navbar/profil/_settings-item/matkul/'
+      path: '/matkul'
+      fullPath: '/profil/matkul/'
+      preLoaderRoute: typeof AppLeftNavbarProfilSettingsItemMatkulIndexRouteImport
+      parentRoute: typeof AppLeftNavbarProfilSettingsItemRoute
     }
-    '/_app/_left-navbar/settings/_settings-item/subscriptions/': {
-      id: '/_app/_left-navbar/settings/_settings-item/subscriptions/'
-      path: '/subscriptions'
-      fullPath: '/settings/subscriptions/'
-      preLoaderRoute: typeof AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRouteImport
-      parentRoute: typeof AppLeftNavbarSettingsSettingsItemRoute
+    '/_app/_left-navbar/profil/_settings-item/notifikasi/': {
+      id: '/_app/_left-navbar/profil/_settings-item/notifikasi/'
+      path: '/notifikasi'
+      fullPath: '/profil/notifikasi/'
+      preLoaderRoute: typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRouteImport
+      parentRoute: typeof AppLeftNavbarProfilSettingsItemRoute
     }
-    '/_app/_left-navbar/home/admin/forms/$formId/': {
-      id: '/_app/_left-navbar/home/admin/forms/$formId/'
-      path: '/home/admin/forms/$formId'
-      fullPath: '/home/admin/forms/$formId/'
-      preLoaderRoute: typeof AppLeftNavbarHomeAdminFormsFormIdIndexRouteImport
-      parentRoute: typeof AppLeftNavbarRoute
-    }
-    '/_app/_left-navbar/home/testimoni/$type/$semester/': {
-      id: '/_app/_left-navbar/home/testimoni/$type/$semester/'
+    '/_app/_left-navbar/layanan/testi/$type/$semester/': {
+      id: '/_app/_left-navbar/layanan/testi/$type/$semester/'
       path: '/$type/$semester'
-      fullPath: '/home/testimoni/$type/$semester/'
-      preLoaderRoute: typeof AppLeftNavbarHomeTestimoniTypeSemesterIndexRouteImport
-      parentRoute: typeof AppLeftNavbarHomeTestimoniRoute
+      fullPath: '/layanan/testi/$type/$semester/'
+      preLoaderRoute: typeof AppLeftNavbarLayananTestiTypeSemesterIndexRouteImport
+      parentRoute: typeof AppLeftNavbarLayananTestiRoute
     }
-    '/_app/_left-navbar/settings/_settings-item/courses/add/': {
-      id: '/_app/_left-navbar/settings/_settings-item/courses/add/'
-      path: '/courses/add'
-      fullPath: '/settings/courses/add/'
-      preLoaderRoute: typeof AppLeftNavbarSettingsSettingsItemCoursesAddIndexRouteImport
-      parentRoute: typeof AppLeftNavbarSettingsSettingsItemRoute
+    '/_app/_left-navbar/profil/_settings-item/matkul/tambah/': {
+      id: '/_app/_left-navbar/profil/_settings-item/matkul/tambah/'
+      path: '/matkul/tambah'
+      fullPath: '/profil/matkul/tambah/'
+      preLoaderRoute: typeof AppLeftNavbarProfilSettingsItemMatkulTambahIndexRouteImport
+      parentRoute: typeof AppLeftNavbarProfilSettingsItemRoute
     }
-    '/_app/_left-navbar/home/testimoni_/$type/$semester/$courseId/': {
-      id: '/_app/_left-navbar/home/testimoni_/$type/$semester/$courseId/'
-      path: '/home/testimoni/$type/$semester/$courseId'
-      fullPath: '/home/testimoni/$type/$semester/$courseId/'
-      preLoaderRoute: typeof AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRouteImport
+    '/_app/_left-navbar/layanan/testi_/$type/$semester/$courseId/': {
+      id: '/_app/_left-navbar/layanan/testi_/$type/$semester/$courseId/'
+      path: '/layanan/testi/$type/$semester/$courseId'
+      fullPath: '/layanan/testi/$type/$semester/$courseId/'
+      preLoaderRoute: typeof AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
   }
 }
 
-interface AppLeftNavbarSettingsSettingsItemRouteChildren {
-  AppLeftNavbarSettingsSettingsItemCoursesIndexRoute: typeof AppLeftNavbarSettingsSettingsItemCoursesIndexRoute
-  AppLeftNavbarSettingsSettingsItemCreditsIndexRoute: typeof AppLeftNavbarSettingsSettingsItemCreditsIndexRoute
-  AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRoute: typeof AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRoute
-  AppLeftNavbarSettingsSettingsItemCoursesAddIndexRoute: typeof AppLeftNavbarSettingsSettingsItemCoursesAddIndexRoute
+interface AppLeftNavbarProfilSettingsItemRouteChildren {
+  AppLeftNavbarProfilSettingsItemKreditIndexRoute: typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
+  AppLeftNavbarProfilSettingsItemMatkulIndexRoute: typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
+  AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute: typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
+  AppLeftNavbarProfilSettingsItemMatkulTambahIndexRoute: typeof AppLeftNavbarProfilSettingsItemMatkulTambahIndexRoute
 }
 
-const AppLeftNavbarSettingsSettingsItemRouteChildren: AppLeftNavbarSettingsSettingsItemRouteChildren =
+const AppLeftNavbarProfilSettingsItemRouteChildren: AppLeftNavbarProfilSettingsItemRouteChildren =
   {
-    AppLeftNavbarSettingsSettingsItemCoursesIndexRoute:
-      AppLeftNavbarSettingsSettingsItemCoursesIndexRoute,
-    AppLeftNavbarSettingsSettingsItemCreditsIndexRoute:
-      AppLeftNavbarSettingsSettingsItemCreditsIndexRoute,
-    AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRoute:
-      AppLeftNavbarSettingsSettingsItemSubscriptionsIndexRoute,
-    AppLeftNavbarSettingsSettingsItemCoursesAddIndexRoute:
-      AppLeftNavbarSettingsSettingsItemCoursesAddIndexRoute,
+    AppLeftNavbarProfilSettingsItemKreditIndexRoute:
+      AppLeftNavbarProfilSettingsItemKreditIndexRoute,
+    AppLeftNavbarProfilSettingsItemMatkulIndexRoute:
+      AppLeftNavbarProfilSettingsItemMatkulIndexRoute,
+    AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute:
+      AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute,
+    AppLeftNavbarProfilSettingsItemMatkulTambahIndexRoute:
+      AppLeftNavbarProfilSettingsItemMatkulTambahIndexRoute,
   }
 
-const AppLeftNavbarSettingsSettingsItemRouteWithChildren =
-  AppLeftNavbarSettingsSettingsItemRoute._addFileChildren(
-    AppLeftNavbarSettingsSettingsItemRouteChildren,
+const AppLeftNavbarProfilSettingsItemRouteWithChildren =
+  AppLeftNavbarProfilSettingsItemRoute._addFileChildren(
+    AppLeftNavbarProfilSettingsItemRouteChildren,
   )
 
-interface AppLeftNavbarSettingsRouteChildren {
-  AppLeftNavbarSettingsSettingsItemRoute: typeof AppLeftNavbarSettingsSettingsItemRouteWithChildren
-  AppLeftNavbarSettingsIndexRoute: typeof AppLeftNavbarSettingsIndexRoute
+interface AppLeftNavbarProfilRouteChildren {
+  AppLeftNavbarProfilSettingsItemRoute: typeof AppLeftNavbarProfilSettingsItemRouteWithChildren
+  AppLeftNavbarProfilIndexRoute: typeof AppLeftNavbarProfilIndexRoute
 }
 
-const AppLeftNavbarSettingsRouteChildren: AppLeftNavbarSettingsRouteChildren = {
-  AppLeftNavbarSettingsSettingsItemRoute:
-    AppLeftNavbarSettingsSettingsItemRouteWithChildren,
-  AppLeftNavbarSettingsIndexRoute: AppLeftNavbarSettingsIndexRoute,
+const AppLeftNavbarProfilRouteChildren: AppLeftNavbarProfilRouteChildren = {
+  AppLeftNavbarProfilSettingsItemRoute:
+    AppLeftNavbarProfilSettingsItemRouteWithChildren,
+  AppLeftNavbarProfilIndexRoute: AppLeftNavbarProfilIndexRoute,
 }
 
-const AppLeftNavbarSettingsRouteWithChildren =
-  AppLeftNavbarSettingsRoute._addFileChildren(
-    AppLeftNavbarSettingsRouteChildren,
-  )
+const AppLeftNavbarProfilRouteWithChildren =
+  AppLeftNavbarProfilRoute._addFileChildren(AppLeftNavbarProfilRouteChildren)
 
-interface AppLeftNavbarHomeTestimoniRouteChildren {
-  AppLeftNavbarHomeTestimoniIndexRoute: typeof AppLeftNavbarHomeTestimoniIndexRoute
-  AppLeftNavbarHomeTestimoniTypeIndexRoute: typeof AppLeftNavbarHomeTestimoniTypeIndexRoute
-  AppLeftNavbarHomeTestimoniTypeSemesterIndexRoute: typeof AppLeftNavbarHomeTestimoniTypeSemesterIndexRoute
+interface AppLeftNavbarLayananTestiRouteChildren {
+  AppLeftNavbarLayananTestiIndexRoute: typeof AppLeftNavbarLayananTestiIndexRoute
+  AppLeftNavbarLayananTestiTypeIndexRoute: typeof AppLeftNavbarLayananTestiTypeIndexRoute
+  AppLeftNavbarLayananTestiTypeSemesterIndexRoute: typeof AppLeftNavbarLayananTestiTypeSemesterIndexRoute
 }
 
-const AppLeftNavbarHomeTestimoniRouteChildren: AppLeftNavbarHomeTestimoniRouteChildren =
+const AppLeftNavbarLayananTestiRouteChildren: AppLeftNavbarLayananTestiRouteChildren =
   {
-    AppLeftNavbarHomeTestimoniIndexRoute: AppLeftNavbarHomeTestimoniIndexRoute,
-    AppLeftNavbarHomeTestimoniTypeIndexRoute:
-      AppLeftNavbarHomeTestimoniTypeIndexRoute,
-    AppLeftNavbarHomeTestimoniTypeSemesterIndexRoute:
-      AppLeftNavbarHomeTestimoniTypeSemesterIndexRoute,
+    AppLeftNavbarLayananTestiIndexRoute: AppLeftNavbarLayananTestiIndexRoute,
+    AppLeftNavbarLayananTestiTypeIndexRoute:
+      AppLeftNavbarLayananTestiTypeIndexRoute,
+    AppLeftNavbarLayananTestiTypeSemesterIndexRoute:
+      AppLeftNavbarLayananTestiTypeSemesterIndexRoute,
   }
 
-const AppLeftNavbarHomeTestimoniRouteWithChildren =
-  AppLeftNavbarHomeTestimoniRoute._addFileChildren(
-    AppLeftNavbarHomeTestimoniRouteChildren,
+const AppLeftNavbarLayananTestiRouteWithChildren =
+  AppLeftNavbarLayananTestiRoute._addFileChildren(
+    AppLeftNavbarLayananTestiRouteChildren,
   )
 
 interface AppLeftNavbarRouteChildren {
-  AppLeftNavbarSettingsRoute: typeof AppLeftNavbarSettingsRouteWithChildren
-  AppLeftNavbarHomeTestimoniRoute: typeof AppLeftNavbarHomeTestimoniRouteWithChildren
-  AppLeftNavbarAddAnnouncementIndexRoute: typeof AppLeftNavbarAddAnnouncementIndexRoute
-  AppLeftNavbarHomeIndexRoute: typeof AppLeftNavbarHomeIndexRoute
-  AppLeftNavbarTimelineIndexRoute: typeof AppLeftNavbarTimelineIndexRoute
-  AppLeftNavbarHomeFormFormIdRoute: typeof AppLeftNavbarHomeFormFormIdRoute
-  AppLeftNavbarHomeAdminIndexRoute: typeof AppLeftNavbarHomeAdminIndexRoute
-  AppLeftNavbarHomeCompetitionIndexRoute: typeof AppLeftNavbarHomeCompetitionIndexRoute
-  AppLeftNavbarHomeCurhatIndexRoute: typeof AppLeftNavbarHomeCurhatIndexRoute
-  AppLeftNavbarHomeDingdongIndexRoute: typeof AppLeftNavbarHomeDingdongIndexRoute
-  AppLeftNavbarHomeFormIndexRoute: typeof AppLeftNavbarHomeFormIndexRoute
-  AppLeftNavbarHomeInternshipIndexRoute: typeof AppLeftNavbarHomeInternshipIndexRoute
-  AppLeftNavbarHomeNimFinderIndexRoute: typeof AppLeftNavbarHomeNimFinderIndexRoute
-  AppLeftNavbarTimelineInfoIdIndexRoute: typeof AppLeftNavbarTimelineInfoIdIndexRoute
-  AppLeftNavbarHomeInternshipAdminSubmissionIdRoute: typeof AppLeftNavbarHomeInternshipAdminSubmissionIdRoute
-  AppLeftNavbarHomeAdminFormsIndexRoute: typeof AppLeftNavbarHomeAdminFormsIndexRoute
-  AppLeftNavbarHomeInternshipAdminIndexRoute: typeof AppLeftNavbarHomeInternshipAdminIndexRoute
-  AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRoute: typeof AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRoute
-  AppLeftNavbarHomeAdminFormsFormIdIndexRoute: typeof AppLeftNavbarHomeAdminFormsFormIdIndexRoute
-  AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRoute: typeof AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRoute
+  AppLeftNavbarProfilRoute: typeof AppLeftNavbarProfilRouteWithChildren
+  AppLeftNavbarIndexRoute: typeof AppLeftNavbarIndexRoute
+  AppLeftNavbarKelolaAcaraRoute: typeof AppLeftNavbarKelolaAcaraRoute
+  AppLeftNavbarKelolaLombaRoute: typeof AppLeftNavbarKelolaLombaRoute
+  AppLeftNavbarKelolaTestiRoute: typeof AppLeftNavbarKelolaTestiRoute
+  AppLeftNavbarLayananTestiRoute: typeof AppLeftNavbarLayananTestiRouteWithChildren
+  AppLeftNavbarKelolaIndexRoute: typeof AppLeftNavbarKelolaIndexRoute
+  AppLeftNavbarLayananIndexRoute: typeof AppLeftNavbarLayananIndexRoute
+  AppLeftNavbarPengumumanIndexRoute: typeof AppLeftNavbarPengumumanIndexRoute
+  AppLeftNavbarKelolaSpartaSubmissionIdRoute: typeof AppLeftNavbarKelolaSpartaSubmissionIdRoute
+  AppLeftNavbarLayananCurhatRoomIdRoute: typeof AppLeftNavbarLayananCurhatRoomIdRoute
+  AppLeftNavbarLayananFormFormIdRoute: typeof AppLeftNavbarLayananFormFormIdRoute
+  AppLeftNavbarKelolaLiveIndexRoute: typeof AppLeftNavbarKelolaLiveIndexRoute
+  AppLeftNavbarKelolaSpartaIndexRoute: typeof AppLeftNavbarKelolaSpartaIndexRoute
+  AppLeftNavbarLayananCurhatIndexRoute: typeof AppLeftNavbarLayananCurhatIndexRoute
+  AppLeftNavbarLayananDingdongIndexRoute: typeof AppLeftNavbarLayananDingdongIndexRoute
+  AppLeftNavbarLayananFormIndexRoute: typeof AppLeftNavbarLayananFormIndexRoute
+  AppLeftNavbarLayananLombaIndexRoute: typeof AppLeftNavbarLayananLombaIndexRoute
+  AppLeftNavbarLayananNimIndexRoute: typeof AppLeftNavbarLayananNimIndexRoute
+  AppLeftNavbarLayananSpartaIndexRoute: typeof AppLeftNavbarLayananSpartaIndexRoute
+  AppLeftNavbarPengumumanIdIndexRoute: typeof AppLeftNavbarPengumumanIdIndexRoute
+  AppLeftNavbarPengumumanTulisIndexRoute: typeof AppLeftNavbarPengumumanTulisIndexRoute
+  AppLeftNavbarKelolaLiveFormIdIndexRoute: typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
+  AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute: typeof AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute
 }
 
 const AppLeftNavbarRouteChildren: AppLeftNavbarRouteChildren = {
-  AppLeftNavbarSettingsRoute: AppLeftNavbarSettingsRouteWithChildren,
-  AppLeftNavbarHomeTestimoniRoute: AppLeftNavbarHomeTestimoniRouteWithChildren,
-  AppLeftNavbarAddAnnouncementIndexRoute:
-    AppLeftNavbarAddAnnouncementIndexRoute,
-  AppLeftNavbarHomeIndexRoute: AppLeftNavbarHomeIndexRoute,
-  AppLeftNavbarTimelineIndexRoute: AppLeftNavbarTimelineIndexRoute,
-  AppLeftNavbarHomeFormFormIdRoute: AppLeftNavbarHomeFormFormIdRoute,
-  AppLeftNavbarHomeAdminIndexRoute: AppLeftNavbarHomeAdminIndexRoute,
-  AppLeftNavbarHomeCompetitionIndexRoute:
-    AppLeftNavbarHomeCompetitionIndexRoute,
-  AppLeftNavbarHomeCurhatIndexRoute: AppLeftNavbarHomeCurhatIndexRoute,
-  AppLeftNavbarHomeDingdongIndexRoute: AppLeftNavbarHomeDingdongIndexRoute,
-  AppLeftNavbarHomeFormIndexRoute: AppLeftNavbarHomeFormIndexRoute,
-  AppLeftNavbarHomeInternshipIndexRoute: AppLeftNavbarHomeInternshipIndexRoute,
-  AppLeftNavbarHomeNimFinderIndexRoute: AppLeftNavbarHomeNimFinderIndexRoute,
-  AppLeftNavbarTimelineInfoIdIndexRoute: AppLeftNavbarTimelineInfoIdIndexRoute,
-  AppLeftNavbarHomeInternshipAdminSubmissionIdRoute:
-    AppLeftNavbarHomeInternshipAdminSubmissionIdRoute,
-  AppLeftNavbarHomeAdminFormsIndexRoute: AppLeftNavbarHomeAdminFormsIndexRoute,
-  AppLeftNavbarHomeInternshipAdminIndexRoute:
-    AppLeftNavbarHomeInternshipAdminIndexRoute,
-  AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRoute:
-    AppLeftNavbarHomeRekomendasiRekomendasiIdIndexRoute,
-  AppLeftNavbarHomeAdminFormsFormIdIndexRoute:
-    AppLeftNavbarHomeAdminFormsFormIdIndexRoute,
-  AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRoute:
-    AppLeftNavbarHomeTestimoniTypeSemesterCourseIdIndexRoute,
+  AppLeftNavbarProfilRoute: AppLeftNavbarProfilRouteWithChildren,
+  AppLeftNavbarIndexRoute: AppLeftNavbarIndexRoute,
+  AppLeftNavbarKelolaAcaraRoute: AppLeftNavbarKelolaAcaraRoute,
+  AppLeftNavbarKelolaLombaRoute: AppLeftNavbarKelolaLombaRoute,
+  AppLeftNavbarKelolaTestiRoute: AppLeftNavbarKelolaTestiRoute,
+  AppLeftNavbarLayananTestiRoute: AppLeftNavbarLayananTestiRouteWithChildren,
+  AppLeftNavbarKelolaIndexRoute: AppLeftNavbarKelolaIndexRoute,
+  AppLeftNavbarLayananIndexRoute: AppLeftNavbarLayananIndexRoute,
+  AppLeftNavbarPengumumanIndexRoute: AppLeftNavbarPengumumanIndexRoute,
+  AppLeftNavbarKelolaSpartaSubmissionIdRoute:
+    AppLeftNavbarKelolaSpartaSubmissionIdRoute,
+  AppLeftNavbarLayananCurhatRoomIdRoute: AppLeftNavbarLayananCurhatRoomIdRoute,
+  AppLeftNavbarLayananFormFormIdRoute: AppLeftNavbarLayananFormFormIdRoute,
+  AppLeftNavbarKelolaLiveIndexRoute: AppLeftNavbarKelolaLiveIndexRoute,
+  AppLeftNavbarKelolaSpartaIndexRoute: AppLeftNavbarKelolaSpartaIndexRoute,
+  AppLeftNavbarLayananCurhatIndexRoute: AppLeftNavbarLayananCurhatIndexRoute,
+  AppLeftNavbarLayananDingdongIndexRoute:
+    AppLeftNavbarLayananDingdongIndexRoute,
+  AppLeftNavbarLayananFormIndexRoute: AppLeftNavbarLayananFormIndexRoute,
+  AppLeftNavbarLayananLombaIndexRoute: AppLeftNavbarLayananLombaIndexRoute,
+  AppLeftNavbarLayananNimIndexRoute: AppLeftNavbarLayananNimIndexRoute,
+  AppLeftNavbarLayananSpartaIndexRoute: AppLeftNavbarLayananSpartaIndexRoute,
+  AppLeftNavbarPengumumanIdIndexRoute: AppLeftNavbarPengumumanIdIndexRoute,
+  AppLeftNavbarPengumumanTulisIndexRoute:
+    AppLeftNavbarPengumumanTulisIndexRoute,
+  AppLeftNavbarKelolaLiveFormIdIndexRoute:
+    AppLeftNavbarKelolaLiveFormIdIndexRoute,
+  AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute:
+    AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute,
 }
 
 const AppLeftNavbarRouteWithChildren = AppLeftNavbarRoute._addFileChildren(
   AppLeftNavbarRouteChildren,
 )
 
-interface AppCalendarRouteChildren {
-  AppCalendarIndexRoute: typeof AppCalendarIndexRoute
+interface AppKalenderRouteChildren {
+  AppKalenderIndexRoute: typeof AppKalenderIndexRoute
 }
 
-const AppCalendarRouteChildren: AppCalendarRouteChildren = {
-  AppCalendarIndexRoute: AppCalendarIndexRoute,
+const AppKalenderRouteChildren: AppKalenderRouteChildren = {
+  AppKalenderIndexRoute: AppKalenderIndexRoute,
 }
 
-const AppCalendarRouteWithChildren = AppCalendarRoute._addFileChildren(
-  AppCalendarRouteChildren,
+const AppKalenderRouteWithChildren = AppKalenderRoute._addFileChildren(
+  AppKalenderRouteChildren,
 )
 
 interface AppRouteChildren {
   AppLeftNavbarRoute: typeof AppLeftNavbarRouteWithChildren
-  AppCalendarRoute: typeof AppCalendarRouteWithChildren
+  AppKalenderRoute: typeof AppKalenderRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppLeftNavbarRoute: AppLeftNavbarRouteWithChildren,
-  AppCalendarRoute: AppCalendarRouteWithChildren,
+  AppKalenderRoute: AppKalenderRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
-  SocketIndexRoute: SocketIndexRoute,
-  LoginIndexLazyRoute: LoginIndexLazyRoute,
+  LoginIndexRoute: LoginIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

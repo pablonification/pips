@@ -1,25 +1,35 @@
-import * as Sentry from '@sentry/react';
+/**
+ * Error monitoring. Without a DSN (VITE_SENTRY_DSN) it does nothing and loads nothing. With one, Sentry loads
+ * after the first render in its own chunk, so it never counts towards a route's first-render JS (SPEC
+ * "Performance architecture and budgets", "Third parties"). The settings are the ones the app had before.
+ */
+type Sentry = typeof import('@sentry/react');
 
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN,
-  integrations: [Sentry.browserProfilingIntegration()],
-  // Tracing
-  tracesSampleRate: 1.0, //  Capture 100% of the transactions
-  // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-  tracePropagationTargets: [
-    'localhost',
-    /^https:\/\/api\.app\.hmif\.dev\//,
-    /^https:\/\/api\.app-staging\.hmif\.dev\//,
-  ],
-  // Set profilesSampleRate to 1.0 to profile every transaction.
-  // Since profilesSampleRate is relative to tracesSampleRate,
-  // the final profiling rate can be computed as tracesSampleRate * profilesSampleRate
-  // For example, a tracesSampleRate of 0.5 and profilesSampleRate of 0.5 would
-  // results in 25% of transactions being profiled (0.5*0.5=0.25)
-  profilesSampleRate: 1.0,
-  // Session Replay
-  replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
-  replaysOnErrorSampleRate: 0.5, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
-});
+const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
+let sentry: Promise<Sentry> | null = null;
 
-export default Sentry;
+export function startMonitoring() {
+  if (!dsn || sentry) return;
+  sentry = import('@sentry/react').then((module) => {
+    const { init, browserProfilingIntegration } = module;
+    init({
+      dsn,
+      integrations: [browserProfilingIntegration()],
+      tracesSampleRate: 1.0,
+      tracePropagationTargets: [
+        'localhost',
+        /^https:\/\/api\.app\.hmif\.dev\//,
+        /^https:\/\/api\.app-staging\.hmif\.dev\//,
+      ],
+      profilesSampleRate: 1.0,
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 0.5,
+    });
+    return module;
+  });
+}
+
+/** Sends an error to Sentry once it has loaded; a no-op without a DSN. */
+export function reportError(error: unknown) {
+  void sentry?.then(({ captureException }) => captureException(error));
+}

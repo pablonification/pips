@@ -3,6 +3,26 @@ import { PushSubscription } from '~/api/generated';
 
 let _subs: PushSubscription | null = null;
 
+/**
+ * This device's existing push subscription, without ever asking for permission (no prompt at sign-out;
+ * SPEC "Removals"). Null when there is none, or no service worker is registered.
+ */
+export async function existingPushSubscription() {
+  if (
+    typeof Notification === 'undefined' ||
+    Notification.permission !== 'granted' ||
+    !('serviceWorker' in navigator)
+  ) {
+    return null;
+  }
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    return (await registration?.pushManager.getSubscription()) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function setupNotification() {
   if (typeof Notification !== 'undefined') {
     try {

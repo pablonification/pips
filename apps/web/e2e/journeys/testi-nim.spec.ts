@@ -5,7 +5,7 @@ import { expect, test } from '../support/test';
 test('Testi Matkul by browsing: program, semester, course, testimonials', async ({
   page,
 }, testInfo) => {
-  await page.goto('/home/testimoni');
+  await page.goto('/layanan/testi');
   await page
     .getByRole('link', { name: 'Teknik Informatika' })
     .locator('visible=true')
@@ -59,7 +59,7 @@ test('Testi Matkul by searching a course code', async ({ page }) => {
   // (routes/_app/_left-navbar/home/testimoni/$type/$semester/index.tsx), so a code never matches.
   // Kept as an expected failure; when the redesign fixes search, remove this line.
   test.fail(true, 'today’s app cannot find a course by its code');
-  await page.goto('/home/testimoni/teknik-informatika/3');
+  await page.goto('/layanan/testi/teknik-informatika/3');
   await expect(
     page.getByRole('link', { name: 'Sistem Operasi' }).locator('visible=true'),
   ).toBeVisible();
@@ -80,7 +80,7 @@ test('NIM Finder finds members by name and by NIM', async ({
   page,
   api,
 }, testInfo) => {
-  await page.goto('/home/nim-finder');
+  await page.goto('/layanan/nim');
   const box = page
     .getByPlaceholder('Ketik nama atau NIM')
     .locator('visible=true');

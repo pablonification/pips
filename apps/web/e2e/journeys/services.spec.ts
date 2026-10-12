@@ -5,7 +5,7 @@ import { expect, test } from '../support/test';
 test('Ding Dong lists this semester’s course folders', async ({
   page,
 }, testInfo) => {
-  await page.goto('/home/dingdong');
+  await page.goto('/layanan/dingdong');
   // The phone layout heads the list with the semester; desktop has only the page title.
   await expect(
     page
@@ -27,7 +27,7 @@ test('Ding Dong lists this semester’s course folders', async ({
 });
 
 test('Info Lomba lists open competitions', async ({ page }, testInfo) => {
-  await page.goto('/home/competition');
+  await page.goto('/layanan/lomba');
   await expect(
     page
       .getByRole('heading', { name: 'COMPFEST 18: Capture The Flag' })
@@ -42,7 +42,7 @@ test('Info Lomba lists open competitions', async ({ page }, testInfo) => {
 });
 
 test('external services keep their s.hmif.dev links', async ({ page }) => {
-  await page.goto('/home');
+  await page.goto('/');
   // Stand in for the external site, so the test never leaves this machine.
   await page.route('http://s.hmif.dev/**', (route) =>
     route.fulfill({

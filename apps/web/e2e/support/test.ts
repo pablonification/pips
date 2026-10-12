@@ -3,8 +3,8 @@
  * - `persona`: 'anggota' (Nadia Putri), 'pengurus' (Raka Pratama) or null (signed out). Default 'anggota'.
  * - `signedIn`: whether the persona starts signed in (default true). Signed out, the API answers 401 until a
  *   test sets `db.signedIn = true`.
- * - `installed`: whether the app runs as the installed PWA (default true). Today's production build shows an
- *   install tutorial instead of the app to a phone browser, so phone journeys pretend to be installed.
+ * - `installed`: whether the app runs as the installed PWA (default true). Until P0-B the production build
+ *   showed a phone browser an install tutorial instead of the app; `installed: false` now checks it doesn't.
  * - `now`: the fixed clock (default: Kamis, 8 Oktober 2026, 13.35 WIB); null leaves the real clock.
  * - `api`: the mock layer (mock.ts). Its guard fails the test after it ends if any request went unanswered.
  */

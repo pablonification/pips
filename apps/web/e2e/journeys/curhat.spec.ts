@@ -5,7 +5,7 @@ import { expect, test } from '../support/test';
 test('Curhat Yuk! lists Nadia’s rooms and opens one', async ({
   page,
 }, testInfo) => {
-  await page.goto('/home/curhat');
+  await page.goto('/layanan/curhat');
   await expect(
     page.getByRole('heading', { name: 'Messages' }).locator('visible=true'),
   ).toBeVisible();
@@ -34,7 +34,7 @@ test('sending a message and receiving Welfare’s reply over the socket', async 
   page,
   api,
 }, testInfo) => {
-  await page.goto('/home/curhat');
+  await page.goto('/layanan/curhat');
   await page.getByRole('heading', { name: 'Teal Koala' }).click();
   // Each room opens its own socket.io connection with the room id.
   await expect
@@ -84,7 +84,7 @@ test.describe('Raka, without rooms', () => {
   test.use({ persona: 'pengurus' });
 
   test('Raka has no rooms yet', async ({ page }, testInfo) => {
-    await page.goto('/home/curhat');
+    await page.goto('/layanan/curhat');
     await expect(
       page
         .getByRole('button', { name: 'create chatroom' })

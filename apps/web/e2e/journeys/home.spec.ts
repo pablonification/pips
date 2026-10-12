@@ -5,7 +5,7 @@ import { expect, test } from '../support/test';
 test('Home greets Nadia and shows today and the services', async ({
   page,
 }, testInfo) => {
-  await page.goto('/home');
+  await page.goto('/');
   await expect(visibleText(page, 'Hi, Nadia Putri!')).toBeVisible();
   await expect(visibleText(page, 'Good Afternoon')).toBeVisible();
   for (const service of [
@@ -37,7 +37,7 @@ test('Home greets Nadia and shows today and the services', async ({
 });
 
 test('choosing another day on Home shows that day', async ({ page }) => {
-  await page.goto('/home');
+  await page.goto('/');
   await page
     .getByRole('button', { name: '9 Fri' })
     .locator('visible=true')
@@ -47,12 +47,12 @@ test('choosing another day on Home shows that day', async ({ page }) => {
 });
 
 test('a service tile opens the service', async ({ page }) => {
-  await page.goto('/home');
+  await page.goto('/');
   await page
     .getByRole('button', { name: 'NIM Finder', exact: true })
     .locator('visible=true')
     .click();
-  await expect(page).toHaveURL(/\/home\/nim-finder$/);
+  await expect(page).toHaveURL(/\/layanan\/nim$/);
   await expect(page.getByRole('heading', { name: 'NIM Finder' })).toBeVisible();
 });
 
@@ -62,7 +62,7 @@ test.describe('Raka, pengurus', () => {
   test('Home shows Raka his courses and the Admin tile', async ({
     page,
   }, testInfo) => {
-    await page.goto('/home');
+    await page.goto('/');
     await expect(visibleText(page, 'Hi, Raka Pratama!')).toBeVisible();
     await expect(visibleText(page, 'Kuis 1')).toBeVisible();
     await expect(page.getByText('Kuis 2').locator('visible=true')).toHaveCount(

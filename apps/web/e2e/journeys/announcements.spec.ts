@@ -7,7 +7,7 @@ import * as writes from '../support/writes';
 test('the feed lists the posts Nadia may see, newest first', async ({
   page,
 }, testInfo) => {
-  await page.goto('/timeline');
+  await page.goto('/pengumuman');
   const titles = page
     .getByRole('heading', { level: 4 })
     .locator('visible=true');
@@ -30,13 +30,13 @@ test('opening a post marks it read and shows its comments', async ({
   db,
 }, testInfo) => {
   api.on('POST /api/info/:infoId/read', writes.markRead);
-  await page.goto('/timeline');
+  await page.goto('/pengumuman');
   await page
     .getByRole('link', { name: 'show more' })
     .locator('visible=true')
     .first()
     .click();
-  await expect(page).toHaveURL(/\/timeline\/p1$/);
+  await expect(page).toHaveURL(/\/pengumuman\/p1$/);
   await expect(
     page.getByRole('heading', {
       name: 'Jadwal UTS Ganjil 2026/2027 sudah keluar',
@@ -60,7 +60,7 @@ test('reacting to a post', async ({ page, api }) => {
   api
     .on('POST /api/info/:infoId/read', writes.markRead)
     .on('PUT /api/reaction', writes.react);
-  await page.goto('/timeline/p2');
+  await page.goto('/pengumuman/p2');
   await expect(
     page.getByRole('heading', {
       name: 'Cari tim Gemastik XIX? Isi form ini',
@@ -86,7 +86,7 @@ test('commenting on a post', async ({ page, api }) => {
   api
     .on('POST /api/info/:infoId/read', writes.markRead)
     .on('POST /api/comment', writes.comment);
-  await page.goto('/timeline/p7');
+  await page.goto('/pengumuman/p7');
   await page
     .getByPlaceholder('Share your thoughts with a reply')
     .locator('visible=true')
@@ -106,25 +106,25 @@ test('the announce button opens the composer over the feed, and closing it stays
   page,
 }) => {
   // Regression (T4): with TanStack Router 1.170 this button navigated from the /_app layout's path, which left the feed.
-  await page.goto('/timeline');
+  await page.goto('/pengumuman');
   await expect(timelineTitle(page)).toBeVisible();
   // The megaphone button has no name: it is the dialog trigger floating over the feed.
   const announce = page.locator('div.fixed > button[aria-haspopup="dialog"]');
   await expect(announce).toHaveCount(1);
   await announce.click();
-  await expect(page).toHaveURL(/\/timeline\?showAnnounce=true$/);
+  await expect(page).toHaveURL(/\/pengumuman\?showAnnounce=true$/);
   const dialog = page.getByRole('dialog');
   await expect(
     dialog.getByPlaceholder('What do you want announce?'),
   ).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
-  await expect(page).toHaveURL(/\/timeline$/);
+  await expect(page).toHaveURL(/\/pengumuman$/);
   await expect(timelineTitle(page)).toBeVisible();
 });
 
 test('searching the feed', async ({ page, api }) => {
-  await page.goto('/timeline');
+  await page.goto('/pengumuman');
   await page
     .getByPlaceholder('Search...')
     .locator('visible=true')
@@ -147,7 +147,7 @@ test('searching the feed', async ({ page, api }) => {
 
 test('an empty feed', async ({ page, api }, testInfo) => {
   api.on('GET /api/info', { infos: [] });
-  await page.goto('/timeline');
+  await page.goto('/pengumuman');
   await expect(timelineTitle(page)).toBeVisible();
   await expect.poll(() => api.calls('GET /api/info').length).toBeGreaterThan(0);
   await expect(page.getByRole('heading', { level: 4 })).toHaveCount(0);
@@ -159,12 +159,12 @@ test('the feed failing to load does not sign Nadia out', async ({
   api,
 }) => {
   api.on('GET /api/info', reply.status(503));
-  await page.goto('/timeline');
+  await page.goto('/pengumuman');
   await expect(timelineTitle(page)).toBeVisible();
   // The app retries three times, then gives up without signing out.
   await expect
     .poll(() => api.calls('GET /api/info').length, { timeout: 20_000 })
     .toBeGreaterThanOrEqual(4);
-  await expect(page).toHaveURL(/\/timeline$/);
+  await expect(page).toHaveURL(/\/pengumuman$/);
   await expect(page.getByRole('heading', { level: 4 })).toHaveCount(0);
 });

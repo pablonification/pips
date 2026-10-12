@@ -8,7 +8,7 @@ import { formField as field, pixelSections } from '../support/flows';
 test('the form list shows the PIXEL form as open', async ({
   page,
 }, testInfo) => {
-  await page.goto('/home/form');
+  await page.goto('/layanan/form');
   await expect(visibleText(page, 'Isi Sekarang')).toBeVisible();
   await expect(
     page.getByRole('heading', { name: 'Form Analisis Kondisi PIXEL' }),
@@ -17,7 +17,7 @@ test('the form list shows the PIXEL form as open', async ({
 });
 
 test('a required question blocks the next section', async ({ page }) => {
-  await page.goto('/home/form/pixel');
+  await page.goto('/layanan/form/pixel');
   await page.getByRole('button', { name: 'Selanjutnya' }).click();
   await expect(
     page.getByText('Pertanyaan ini wajib diisi').first(),
@@ -33,7 +33,7 @@ test('filling the PIXEL form section by section and sending it', async ({
   db,
 }, testInfo) => {
   api.on('POST /api/form/:formId/response', writes.submitForm);
-  await page.goto('/home/form/pixel');
+  await page.goto('/layanan/form/pixel');
   await expect(
     page.getByRole('heading', { name: 'Identitas', level: 2 }),
   ).toBeVisible();
@@ -126,7 +126,7 @@ test('filling the PIXEL form section by section and sending it', async ({
 });
 
 test('answers survive a reload as a draft on the device', async ({ page }) => {
-  await page.goto('/home/form/pixel');
+  await page.goto('/layanan/form/pixel');
   await field(page, 'Hai dengan siapa di sini?')
     .getByRole('textbox')
     .fill('Nadia Putri');
@@ -145,7 +145,7 @@ test.describe('Raka, angkatan 2024', () => {
   test.use({ persona: 'pengurus' });
 
   test('Raka has no form to fill', async ({ page }, testInfo) => {
-    await page.goto('/home/form');
+    await page.goto('/layanan/form');
     await expect(visibleText(page, 'Belum ada form untuk kamu')).toBeVisible();
     await checkGates(page, testInfo, 'form-empty');
   });

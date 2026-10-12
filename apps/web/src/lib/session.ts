@@ -1,6 +1,20 @@
 import { z } from 'zod';
-import { queryClient } from '~/api/client';
+import { api, queryClient } from '~/api/client';
+import { clearPersistedQueries } from '~/api/persister';
 import { User, UserWithRoles } from '~/api/generated';
+import { forgetMember } from './forget-member';
+import { isSignedOutError } from './session-policy';
+
+export { sessionRetry, sessionRetryDelay } from './session-policy';
+
+/** Signed out: nothing of the member stays on this device, in memory, in IndexedDB or in localStorage. */
+export function forgetMemberOnDevice() {
+  return forgetMember({
+    queryClient,
+    removePersisted: clearPersistedQueries,
+    storage: localStorage,
+  });
+}
 
 export function invalidateSession(user?: User | null) {
   if (user === undefined) {
@@ -57,4 +71,17 @@ export function tryToLoadUserLocalStorage() {
 
 export function saveUserCache(user: User | null) {
   localStorage.setItem('user', JSON.stringify(user));
+}
+
+/**
+ * The session check (`GET /api/me`): the user, or null when the server says the session is gone (401).
+ * Anything else (offline, a dropped request, a 5xx) throws, so the cached user stays and the check retries.
+ */
+export async function fetchSession(): Promise<UserWithRoles | null> {
+  try {
+    return await api.auth.getMe();
+  } catch (error) {
+    if (isSignedOutError(error)) return null;
+    throw error;
+  }
 }
