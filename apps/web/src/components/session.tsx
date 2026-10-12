@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { createContext, useEffect } from 'react';
 import { UserWithRoles } from '~/api/generated';
-import { clearPersistedQueries } from '~/api/persister';
 import { common } from '~/copy/common';
 import { loginSearch } from '~/lib/safe-redirect';
 import {
   fetchSession,
+  forgetMemberOnDevice,
   saveUserCache,
   sessionRetry,
   sessionRetryDelay,
@@ -33,6 +33,9 @@ export default function SessionProvider({
     queryFn: fetchSession,
     retry: sessionRetry,
     retryDelay: sessionRetryDelay,
+    // Once per visit, even when the cache restored from the device is under a minute old: a session revoked
+    // since then must not leave the previous member's data on screen.
+    refetchOnMount: 'always',
   });
 
   useEffect(() => {
@@ -42,7 +45,7 @@ export default function SessionProvider({
     // Signed out by the server: nothing of this user's stays on the device, and sign-in brings them back here.
     // Navigated once, from an effect: a <Navigate> with a fresh `search` object re-navigates on every render.
     if (data === null) {
-      void clearPersistedQueries();
+      void forgetMemberOnDevice();
       void router.navigate({
         to: '/login',
         search: loginSearch(router.state.location.href),

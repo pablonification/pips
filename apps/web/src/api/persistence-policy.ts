@@ -62,16 +62,33 @@ export function shouldPersistKey(key: Key, now: Date = new Date()): boolean {
   }
 }
 
-/** Only successful data, and never a signed-out `me` (null). */
+/**
+ * Any data the member has seen, whatever the last refresh did: during a server outage a query keeps its data
+ * but turns `error`, and dropping it then would open the next launch with nothing (SPEC story 135). Never a
+ * signed-out `me` (null), and never a query without data.
+ */
 export function shouldPersistQuery(query: {
   queryKey: Key;
-  state: { status: string; data: unknown };
+  state: { data: unknown };
 }): boolean {
   return (
-    query.state.status === 'success' &&
     query.state.data !== null &&
     query.state.data !== undefined &&
     shouldPersistKey(query.queryKey)
+  );
+}
+
+/**
+ * Whether a snapshot belongs to a signed-in member (it holds their `me`). Signed out, or before anyone has
+ * signed in, nothing is written to the device.
+ */
+export function isSignedInSnapshot(state: DehydratedState): boolean {
+  return state.queries.some(
+    (q) =>
+      q.queryKey[0] === ME_QUERY_KEY &&
+      q.queryKey.length === 1 &&
+      q.state.data !== null &&
+      q.state.data !== undefined,
   );
 }
 
@@ -82,21 +99,35 @@ const isInfinite = (data: unknown): data is InfiniteData =>
   Array.isArray((data as InfiniteData).pages) &&
   Array.isArray((data as InfiniteData).pageParams);
 
-/** Announcements keep only their first page on the device. */
+/**
+ * What is written to the device: announcements keep only their first page, and every query is stored as plain
+ * successful data, without the error or fetch state of its last refresh (an error can't always be stored, and
+ * restored data is refreshed on the next visit anyway).
+ */
 export function trimForDevice(state: DehydratedState): DehydratedState {
   return {
     ...state,
     queries: state.queries.map((q) => {
       const data = q.state.data;
-      if (q.queryKey[0] !== INFO_LIST_QUERY_KEY || !isInfinite(data)) return q;
+      const trimmed =
+        q.queryKey[0] === INFO_LIST_QUERY_KEY && isInfinite(data)
+          ? {
+              pages: data.pages.slice(0, 1),
+              pageParams: data.pageParams.slice(0, 1),
+            }
+          : data;
+      const query = { ...q };
+      delete query.promise;
       return {
-        ...q,
+        ...query,
         state: {
           ...q.state,
-          data: {
-            pages: data.pages.slice(0, 1),
-            pageParams: data.pageParams.slice(0, 1),
-          },
+          data: trimmed,
+          status: 'success',
+          fetchStatus: 'idle',
+          error: null,
+          fetchFailureCount: 0,
+          fetchFailureReason: null,
         },
       };
     }),

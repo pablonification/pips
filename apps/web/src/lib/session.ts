@@ -1,9 +1,20 @@
 import { z } from 'zod';
 import { api, queryClient } from '~/api/client';
+import { clearPersistedQueries } from '~/api/persister';
 import { User, UserWithRoles } from '~/api/generated';
+import { forgetMember } from './forget-member';
 import { isSignedOutError } from './session-policy';
 
 export { sessionRetry, sessionRetryDelay } from './session-policy';
+
+/** Signed out: nothing of the member stays on this device, in memory, in IndexedDB or in localStorage. */
+export function forgetMemberOnDevice() {
+  return forgetMember({
+    queryClient,
+    removePersisted: clearPersistedQueries,
+    storage: localStorage,
+  });
+}
 
 export function invalidateSession(user?: User | null) {
   if (user === undefined) {

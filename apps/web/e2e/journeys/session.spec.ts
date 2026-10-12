@@ -10,6 +10,69 @@ import { expect, test } from '../support/test';
 const greeting = (page: import('@playwright/test').Page) =>
   visibleText(page, 'Hi, Nadia Putri!');
 
+type Page = import('@playwright/test').Page;
+
+/** The persisted query cache as stored on the device, or null. */
+const storedCache = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<{
+        clientState: { queries: { queryKey: unknown[] }[] };
+      } | null>((resolve, reject) => {
+        const open = indexedDB.open('pips-query-cache');
+        // Read only: never create the database before the app does (it would have no store, and the app's
+        // writes would fail).
+        open.onupgradeneeded = () => open.transaction?.abort();
+        open.onerror = () =>
+          open.error?.name === 'AbortError'
+            ? resolve(null)
+            : reject(open.error);
+        open.onsuccess = () => {
+          const db = open.result;
+          if (!db.objectStoreNames.contains('cache')) return resolve(null);
+          const get = db
+            .transaction('cache')
+            .objectStore('cache')
+            .get('client');
+          get.onsuccess = () => {
+            resolve(get.result ?? null);
+            db.close();
+          };
+        };
+      }),
+  );
+
+/** What a member leaves in localStorage besides the signed-out marker (`user` = "null"). */
+const memberStorage = (page: Page) =>
+  page.evaluate(() => ({
+    userAcademic: localStorage.getItem('userAcademic'),
+    user: localStorage.getItem('user'),
+  }));
+
+/**
+ * Nothing of the previous member stays on the device, and nothing comes back: the persisted cache is written
+ * at most once a second, so a late write would land within that time. Sampled for 2.5 s, not read once.
+ */
+async function expectNothingKept(page: Page) {
+  const until = Date.now() + 2500;
+  do {
+    expect(await storedCache(page)).toBeNull();
+    const kept = await memberStorage(page);
+    expect(kept.userAcademic).toBeNull();
+    expect(kept.user === null || kept.user === 'null').toBe(true);
+    await page.waitForTimeout(250);
+  } while (Date.now() < until);
+}
+
+/** Waits until the persisted cache holds Nadia's data (written at most once a second). */
+async function expectCacheWritten(page: Page) {
+  await expect
+    .poll(
+      async () => (await storedCache(page))?.clientState.queries.length ?? 0,
+    )
+    .toBeGreaterThan(1);
+}
+
 test('a dropped session check keeps Nadia signed in, and it is retried', async ({
   page,
   api,
@@ -48,6 +111,24 @@ test('a 401 from the session check signs out, keeping the page to come back to',
   api.on('GET /api/me', reply.status(401, { error: 'Unauthorized' }));
   await page.goto('/layanan/dingdong');
   await expect(page).toHaveURL(/\/login\?redirect=%2Flayanan%2Fdingdong$/);
+});
+
+test('a 401 after a visit leaves nothing of Nadia on the device, not even a second later', async ({
+  page,
+  api,
+}) => {
+  // Regression (review B1): the cache was deleted, then written back a second later from memory.
+  await page.goto('/profil/matkul');
+  await expect
+    .poll(async () => (await memberStorage(page)).userAcademic)
+    .not.toBeNull();
+  await page.goto('/');
+  await expect(visibleText(page, 'Kuis 2')).toBeVisible();
+  await expectCacheWritten(page);
+  api.on('GET /api/me', reply.status(401, { error: 'Unauthorized' }));
+  await page.reload();
+  await expect(page).toHaveURL(/\/login(\?|$)/);
+  await expectNothingKept(page);
 });
 
 test('a 401 from another request (a role check) does not sign out', async ({
@@ -120,28 +201,12 @@ test('the first page of announcements and the agenda come back from the device w
   await page.goto('/');
   await expect(visibleText(page, 'Kuis 2')).toBeVisible();
   // The persisted cache is written at most once a second.
-  await page.waitForTimeout(1500);
+  await expectCacheWritten(page);
   api.on('GET /api/calendar/me', reply.hang());
   await page.reload();
   await expect(visibleText(page, 'Kuis 2')).toBeVisible();
-  const stored = await page.evaluate(
-    () =>
-      new Promise<string[]>((resolve, reject) => {
-        const open = indexedDB.open('pips-query-cache');
-        open.onerror = () => reject(open.error);
-        open.onsuccess = () => {
-          const get = open.result
-            .transaction('cache')
-            .objectStore('cache')
-            .get('client');
-          get.onsuccess = () =>
-            resolve(
-              (get.result?.clientState.queries ?? []).map(
-                (q: { queryKey: unknown[] }) => String(q.queryKey[0]),
-              ),
-            );
-        };
-      }),
+  const stored = ((await storedCache(page))?.clientState.queries ?? []).map(
+    (q) => String(q.queryKey[0]),
   );
   // Only what SPEC lists: no Curhat rooms, no forms, no search results.
   expect([...new Set(stored)].sort()).toEqual(
@@ -178,8 +243,13 @@ test('logging out never asks for notification permission, and clears what was ke
     db.signedIn = false;
     return {};
   });
+  // Regression (review B1): Nadia's courses, profile, calendar and feed were written back a second after sign-out.
+  await page.goto('/profil/matkul');
+  await expect
+    .poll(async () => (await memberStorage(page)).userAcademic)
+    .not.toBeNull();
+  await expectCacheWritten(page);
   await page.goto('/profil');
-  await page.waitForTimeout(1500); // let the persisted cache be written
   await page
     .getByRole('button', { name: 'Log out' })
     .locator('visible=true')
@@ -193,18 +263,5 @@ test('logging out never asks for notification permission, and clears what was ke
         (window as unknown as { __permissionAsks: number }).__permissionAsks,
     ),
   ).toBe(0);
-  const kept = await page.evaluate(
-    () =>
-      new Promise<unknown>((resolve) => {
-        const open = indexedDB.open('pips-query-cache');
-        open.onsuccess = () => {
-          const get = open.result
-            .transaction('cache')
-            .objectStore('cache')
-            .get('client');
-          get.onsuccess = () => resolve(get.result ?? null);
-        };
-      }),
-  );
-  expect(kept).toBeNull();
+  await expectNothingKept(page);
 });

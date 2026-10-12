@@ -1,11 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { api } from '~/api/client';
-import { clearPersistedQueries } from '~/api/persister';
 import { existingPushSubscription } from '~/lib/push';
-import { invalidateSession } from '~/lib/session';
+import { forgetMemberOnDevice } from '~/lib/session';
 
 export default function useLogout() {
-  const queryClient = useQueryClient();
   const logoutMutation = useMutation({
     mutationFn: async () => {
       // Unregister this device's push subscription if it has one; never ask for permission here.
@@ -17,10 +15,9 @@ export default function useLogout() {
       }
       await api.auth.logout();
     },
+    // Nothing of the member stays on the device; the session provider then sends them to sign-in.
     onSuccess() {
-      void clearPersistedQueries();
-      invalidateSession(null);
-      queryClient.invalidateQueries({ predicate: () => true });
+      void forgetMemberOnDevice();
     },
   });
 
