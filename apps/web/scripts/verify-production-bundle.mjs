@@ -28,4 +28,4 @@ if (hits.length) {
   console.error(`Production bundle contains development-only code:\n${hits.join('\n')}`);
   process.exit(1);
 }
-console.log(`ok: no test login and no Garis gallery in ${dir}`);
+console.log(`ok: no test login, no Garis gallery and no shell test page in ${dir}`);
