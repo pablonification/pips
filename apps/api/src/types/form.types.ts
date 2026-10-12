@@ -12,6 +12,8 @@ export const FormQuestionSchema = z
       .object({ questionId: z.string(), value: z.string() })
       .optional(),
     optional: z.boolean().optional(),
+    /** The app starts the answer with the member's own name or NIM; they may change it. */
+    prefill: z.enum(['fullName', 'nim']).optional(),
   })
   .openapi('FormQuestion');
 

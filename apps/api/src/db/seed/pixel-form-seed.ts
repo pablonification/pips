@@ -4,7 +4,7 @@ import { forms, type FormSection } from '../schema';
 
 export const PIXEL_FORM_SLUG = 'pixel-analisis-kondisi-2025';
 
-const pixelFormSections: FormSection[] = [
+export const pixelFormSections: FormSection[] = [
   {
     id: 'identitas',
     title: 'Identitas',
@@ -13,11 +13,13 @@ const pixelFormSections: FormSection[] = [
         id: 'q1',
         label: 'Hai dengan siapa di sini?',
         type: 'text',
+        prefill: 'fullName',
       },
       {
         id: 'q2',
         label: 'Mau tau nim kamu dong',
         type: 'text',
+        prefill: 'nim',
       },
       {
         id: 'q3',

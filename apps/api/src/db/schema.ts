@@ -1135,6 +1135,9 @@ export interface FormQuestion {
   // When true, this question is always shown but never required (e.g. an
   // optional free-text suggestion box).
   optional?: boolean;
+  // The app starts this answer with the member's own name or NIM (they can
+  // change it). Questions are JSON in `forms.sections`, so no migration.
+  prefill?: 'fullName' | 'nim';
 }
 
 export interface FormSection {
