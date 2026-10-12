@@ -50,9 +50,9 @@ import { getReactions } from './reaction.repo';
 import { getUserRoles } from './user-role.repo';
 import dayjs from 'dayjs';
 import { env } from '~/configs/env.config';
+import { canRenotify, DEFAULT_RENOTIFY_HOURS } from '~/lib/renotify';
 
 const INFOS_PER_PAGE = 10;
-const DEFAULT_RENOTIFY_DIFF_HOURS = 3;
 
 /**
  * Create an info.
@@ -618,13 +618,11 @@ function getInfoGroupQuery(db: Database, userRoles: UserRolesEnum[]) {
   );
 }
 
-/**
- * Checks whether the info can be renotified or not based on minimum difference threshold in hour.
- *
- * @param info Info to be checked
- * @returns True if the info can be renotified, false otherwise
- */
-function canNotify(info: Info): boolean {
-  const diffHours = env.RENOTIFY_DIFF_HOURS ?? DEFAULT_RENOTIFY_DIFF_HOURS;
-  return dayjs().diff(dayjs(info.lastNotifiedAt), 'hour') > diffHours;
+/** Whether the info's author may push it again now (src/lib/renotify.ts). */
+export function canNotify(info: Pick<Info, 'lastNotifiedAt'>): boolean {
+  return canRenotify(
+    info.lastNotifiedAt,
+    Date.now(),
+    env.RENOTIFY_DIFF_HOURS ?? DEFAULT_RENOTIFY_HOURS,
+  );
 }
