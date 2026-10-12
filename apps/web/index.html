@@ -1,39 +1,47 @@
 <!doctype html>
-<html lang="en" class="relative font-inter">
+<html lang="id" class="relative">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#FCFBF8" />
+    <!--
+      Theme before first paint (P0-A): the stored preference (system, light or dark; default system) sets the .dark
+      class, color-scheme and the theme colour. Same rules as src/lib/theme/theme-core.mjs; tests/garis-theme.test.mjs
+      runs this script and checks they agree.
+    -->
+    <script data-theme-prepaint>
+      (function () {
+        var pref = 'system';
+        try {
+          pref = localStorage.getItem('pips:theme') || 'system';
+        } catch (e) {}
+        var dark =
+          pref === 'dark' ||
+          (pref !== 'light' &&
+            matchMedia('(prefers-color-scheme: dark)').matches);
+        var root = document.documentElement;
+        root.classList.toggle('dark', dark);
+        root.style.colorScheme = dark ? 'dark' : 'light';
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', dark ? '#0A0907' : '#FCFBF8');
+      })();
+    </script>
+    <link
+      rel="preload"
+      href="/fonts/geist-latin-400-600.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-    <link
-      rel="preconnect"
-      crossorigin="anonymous"
-      href="https://fonts.googleapis.com"
-    />
-    <link
-      rel="preconnect"
-      crossorigin="anonymous"
-      href="https://fonts.gstatic.com"
-    />
-    <link
-      rel="stylesheet"
-      crossorigin="anonymous"
-      href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
-      crossorigin="anonymous"
-      rel="stylesheet"
-    />
     <meta name="msapplication-TileColor" content="#ffc40d" />
-    <meta name="theme-color" content="#ffffff" />
     <title>HMIF App</title>
   </head>
-  <body class="font-inter">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

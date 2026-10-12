@@ -1,5 +1,5 @@
 /** Taking a capture: a viewport screenshot once the page is still, plus its quality-gate measurements. */
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { audit, type Audit } from './audit';
@@ -15,6 +15,25 @@ export async function stableScreenshot(page: Page, tries = 6): Promise<Buffer> {
       animations: 'disabled',
       caret: 'hide',
     });
+    if (next.equals(last)) return next;
+    last = next;
+  }
+  return last;
+}
+
+/** The same for one element (the fidelity tool's element captures, such as the design-system gallery's cards). */
+export async function stableElementScreenshot(
+  page: Page,
+  target: Locator,
+  tries = 6,
+): Promise<Buffer> {
+  await settle(page);
+  const shot = () =>
+    target.screenshot({ animations: 'disabled', caret: 'hide' });
+  let last = await shot();
+  for (let i = 1; i < tries; i++) {
+    await page.waitForTimeout(150);
+    const next = await shot();
     if (next.equals(last)) return next;
     last = next;
   }

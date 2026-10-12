@@ -57,6 +57,8 @@ export default defineConfig(({ mode }) => {
         (mode === 'development' || mode === 'staging') &&
           env.VITE_ENABLE_TEST_LOGIN === 'true',
       ),
+      // The design-system gallery (/dev/garis) stays out of production builds; e2e/vite.e2e.config.ts turns it on.
+      __GARIS_GALLERY__: JSON.stringify(mode !== 'production'),
     },
     server: {
       host: '127.0.0.1',
