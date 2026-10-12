@@ -513,7 +513,6 @@ test('on touch layouts every small control has a 44 px hit area, and the gold ac
 }, testInfo) => {
   test.skip(!isPhone(testInfo), 'touch layouts only');
   await open(page);
-  const kit = page.getByTestId('garis-kit-light');
   const hit = async (sel: ReturnType<Page['locator']>) =>
     sel.evaluate((el) => {
       const r = el.getBoundingClientRect();
