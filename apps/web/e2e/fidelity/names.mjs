@@ -85,8 +85,11 @@ export function screenNames() {
  * (the prototype's #phone or #desktop element, under its 44 px prototype bar), the whole viewport (`page`, including
  * that bar), or one element of the design-system page. The project is `fidelity-<layout>-<theme>`, whose device
  * scale matches (phone 2, tablet and desk 1). e2e/fidelity/extras.ts maps them to the app.
+ * `protoBar` is the height of the prototype's own bar at the top of a 'page' capture: the app has no such bar, so
+ * the app is captured in the window below it and the report compares it with the locked screen minus that strip.
  * @typedef {{ name: string, layout: 'phone' | 'tablet' | 'desk', theme: 'light' | 'dark',
- *   viewport: { width: number, height: number }, capture: 'app' | 'page' | 'element', note?: string }} ExtraScreen
+ *   viewport: { width: number, height: number }, capture: 'app' | 'page' | 'element', note?: string,
+ *   protoBar?: number }} ExtraScreen
  */
 /** @type {(name: string, layout: ExtraScreen['layout'], width: number, height: number, capture: ExtraScreen['capture'], note?: string) => ExtraScreen} */
 const extra = (name, layout, width, height, capture, note) => ({
@@ -96,7 +99,10 @@ const extra = (name, layout, width, height, capture, note) => ({
   viewport: { width, height },
   capture,
   ...(note ? { note } : {}),
+  ...(capture === 'page' ? { protoBar: PROTO_BAR } : {}),
 });
+/** The prototype's bar ("Prototipe PIPS! · data contoh", `.proto-bar`), in CSS px. */
+export const PROTO_BAR = 44;
 const PHONE_APP = /** @type {const} */ ([390, 800]);
 const DESK_APP = /** @type {const} */ ([1440, 956]);
 

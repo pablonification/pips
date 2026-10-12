@@ -53,3 +53,23 @@ test('extras.ts maps the design-system captures to the gallery, each with an ele
     assert.match(entry, /target:/);
   }
 });
+
+test('page captures carry the prototype bar, which the report crops off the locked screen before comparing', async () => {
+  const { PROTO_BAR } = await import('../e2e/fidelity/names.mjs');
+  const { cropTop } = await import('../e2e/scripts/lib/image.mjs');
+  for (const e of EXTRA_SCREENS) assert.equal(e.protoBar, e.capture === 'page' ? PROTO_BAR : undefined, e.name);
+  assert.equal(PROTO_BAR, 44);
+  // A 2 × 3 image: the top row goes, the rest stays as it was.
+  const img = { width: 2, height: 3, data: Uint8Array.from({ length: 24 }, (_, i) => i) };
+  const out = cropTop(img, 1);
+  assert.equal(out.height, 2);
+  assert.deepEqual([...out.data], [...img.data.slice(8)]);
+  assert.equal(cropTop(img, 9).height, 0);
+});
+
+test('extras.ts maps the shell’s page captures to Beranda (P0-C), never the prototype’s own bar', () => {
+  const src = fs.readFileSync(path.join(appDir, 'e2e/fidelity/extras.ts'), 'utf8');
+  for (const name of EXTRA_SCREENS.filter((e) => e.name.startsWith('page-') || /^(narrow320|desk1024)-beranda$/.test(e.name)).map((e) => e.name))
+    assert.match(src, new RegExp(`'${name}': beranda,`), name);
+  for (const name of PROTOTYPE_ONLY) assert.doesNotMatch(src, new RegExp(`'${name}'`), name);
+});

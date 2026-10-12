@@ -11,14 +11,14 @@ command below, run one at a time, and use at most 3 workers (`E2E_WORKERS=3`).
 
 All from the repository root (or `pnpm run <script>` inside `apps/web`):
 
-| Command                                | What it does                                                                                                                                                                                       |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm --filter web e2e`                | The journeys (`e2e/journeys/`) at phone and desktop size, light and dark, plus the visual references (`e2e/visual/`, empty until the redesign).                                                    |
-| `pnpm --filter web e2e:before`         | Records the **before set** of today's interface to `ops/redesign/before-set/`: captures, `manifest.json` (with per-screen axe counts), `index.html` gallery. Refuses to overwrite an existing set. |
-| `pnpm --filter web e2e:compare-before` | Re-captures the same states and compares them with the before set. Writes `ops/redesign/compare/<timestamp>/` (report, side-by-side images, `index.html`). Exits 1 if any state changed.           |
+| Command                                | What it does                                                                                                                                                                                                                                                   |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm --filter web e2e`                | The journeys (`e2e/journeys/`) at phone and desktop size, light and dark, plus the visual references (`e2e/visual/`, empty until the redesign).                                                                                                                |
+| `pnpm --filter web e2e:before`         | Records the **before set** of today's interface to `ops/redesign/before-set/`: captures, `manifest.json` (with per-screen axe counts), `index.html` gallery. Refuses to overwrite an existing set.                                                             |
+| `pnpm --filter web e2e:compare-before` | Re-captures the same states and compares them with the before set. Writes `ops/redesign/compare/<timestamp>/` (report, side-by-side images, `index.html`). Exits 1 if any state changed.                                                                       |
 | `pnpm --filter web fidelity`           | Captures the screens mapped in `e2e/fidelity/screens.ts` at the locked prototype screens' sizes and pairs them with the 216 locked route screens and the 35 non-route ones in `e2e/fidelity/extras.ts`. Writes `ops/redesign/fidelity/<timestamp>/index.html`. |
-| `pnpm --filter web e2e:update`         | Records or updates the visual reference images (`toHaveScreenshot`).                                                                                                                               |
-| `pnpm --filter web test`               | The Node unit tests in `tests/` (including the harness's own image and naming logic).                                                                                                              |
+| `pnpm --filter web e2e:update`         | Records or updates the visual reference images (`toHaveScreenshot`).                                                                                                                                                                                           |
+| `pnpm --filter web test`               | The Node unit tests in `tests/` (including the harness's own image and naming logic).                                                                                                                                                                          |
 
 Arguments after the script name go to Playwright, e.g. `pnpm --filter web e2e --grep Curhat` or
 `pnpm --filter web e2e:before --grep form-step`.
@@ -172,6 +172,7 @@ makes strict the default.
   ```
 
   Use `layouts: ['phone']` when the entry only applies to some layouts.
+
 - **Screens that aren't routes** (the `i-*` interactions, the `page-*` sizes, `narrow320-beranda`,
   `desk1024-beranda`, and the design-system page's `system-kit` and `system-cards`): `names.mjs` lists the 35 an app
   task owns in `EXTRA_SCREENS`, each with its project (`fidelity-<layout>-<theme>`), the viewport it was taken at and

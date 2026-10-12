@@ -23,6 +23,16 @@ export function writePng(file, img) {
   writeFileSync(file, PNG.sync.write(png));
 }
 
+/** The image without its top `rows` pixel rows. @param {Img} img @param {number} rows @returns {Img} */
+export function cropTop(img, rows) {
+  const r = Math.max(0, Math.min(img.height, Math.round(rows)));
+  return {
+    width: img.width,
+    height: img.height - r,
+    data: img.data.slice(r * img.width * 4),
+  };
+}
+
 /** @param {number} width @param {number} height @param {[number, number, number]} rgb @returns {Img} */
 export function blank(width, height, rgb = [255, 255, 255]) {
   const data = new Uint8Array(width * height * 4);

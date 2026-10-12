@@ -57,7 +57,11 @@ for (const meta of EXTRA_SCREENS) {
   test.describe(meta.name, () => {
     test.use({
       persona: screen.persona === undefined ? 'anggota' : screen.persona,
-      viewport: meta.viewport,
+      // A 'page' capture: the window below the prototype's own bar (the report crops the bar off the locked one).
+      viewport: {
+        width: meta.viewport.width,
+        height: meta.viewport.height - (meta.protoBar ?? 0),
+      },
     });
     test(meta.name, async ({ page, api, context }, testInfo) => {
       if (!dir)

@@ -166,6 +166,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ? getComputedStyle(document.documentElement)
               .getPropertyValue('--bg-hero')
               .trim()
+              .toUpperCase()
           : THEME_COLORS[currentTheme()],
       );
     paint();

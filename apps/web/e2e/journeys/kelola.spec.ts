@@ -1,5 +1,5 @@
 import { checkGates } from '../support/audit';
-import { pageText, visibleText } from '../support/app';
+import { greeting, pageText, visibleText } from '../support/app';
 import { expect, test } from '../support/test';
 
 test.use({ persona: 'pengurus' });
@@ -88,7 +88,7 @@ test.describe('Nadia, anggota', () => {
 
   test('Nadia sees no Admin tile', async ({ page }) => {
     await page.goto('/');
-    await expect(visibleText(page, 'Hi, Nadia Putri!')).toBeVisible();
+    await expect(greeting(page)).toBeVisible();
     await expect(page.getByText('Admin', { exact: true })).toHaveCount(0);
   });
 });

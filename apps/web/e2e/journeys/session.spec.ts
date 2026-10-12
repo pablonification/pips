@@ -1,4 +1,4 @@
-import { navLink, visibleText } from '../support/app';
+import { greeting, inMain, navLink, visibleText } from '../support/app';
 import { reply } from '../support/mock';
 import { expect, test } from '../support/test';
 
@@ -6,9 +6,6 @@ import { expect, test } from '../support/test';
  * Session resilience (SPEC "Session, persistence and resilience"): only a 401 from the session check signs a
  * member out. Before P0-B any failure did (`getMe().catch(() => null)`); these are its regression journeys.
  */
-
-const greeting = (page: import('@playwright/test').Page) =>
-  visibleText(page, 'Hi, Nadia Putri!');
 
 type Page = import('@playwright/test').Page;
 
@@ -93,15 +90,15 @@ test('a 503 from the session check keeps Nadia signed in, and it is retried', as
 }) => {
   api.on('GET /api/me', reply.status(503));
   await page.goto('/pengumuman');
-  await expect(navLink(page, 'Timeline')).toBeVisible();
+  await expect(navLink(page, 'Pengumuman')).toBeVisible();
   await expect
     .poll(() => api.calls('GET /api/me').length, { timeout: 15_000 })
     .toBeGreaterThanOrEqual(3);
   await expect(page).toHaveURL(/\/pengumuman$/);
   // The cached user is still in use: Profil shows her.
-  await navLink(page, 'Settings').click();
+  await navLink(page, 'Profil').click();
   await expect(page).toHaveURL(/\/profil$/);
-  await expect(visibleText(page, 'Nadia Putri')).toBeVisible();
+  await expect(inMain(page, 'Nadia Putri')).toBeVisible();
 });
 
 test('a 401 from the session check signs out, keeping the page to come back to', async ({
@@ -140,7 +137,7 @@ test('a 401 from another request (a role check) does not sign out', async ({
   await page.goto('/pengumuman');
   await expect.poll(() => api.calls('GET /api/info').length).toBeGreaterThan(0);
   await expect(page).toHaveURL(/\/pengumuman$/);
-  await expect(navLink(page, 'Timeline')).toBeVisible();
+  await expect(navLink(page, 'Pengumuman')).toBeVisible();
 });
 
 test('offline, Nadia stays signed in and can move around; back online, the session is checked again', async ({
@@ -149,15 +146,15 @@ test('offline, Nadia stays signed in and can move around; back online, the sessi
 }) => {
   // Visit Profil once first: the harness blocks the service worker that keeps route code offline in the real app.
   await page.goto('/profil');
-  await expect(visibleText(page, 'Nadia Putri')).toBeVisible();
-  await navLink(page, 'Home').click();
+  await expect(inMain(page, 'Nadia Putri')).toBeVisible();
+  await navLink(page, 'Beranda').click();
   await expect(greeting(page)).toBeVisible();
   await expect.poll(() => api.calls('GET /api/me').length).toBeGreaterThan(0);
   await api.setOffline(true);
-  await navLink(page, 'Settings').click();
+  await navLink(page, 'Profil').click();
   await expect(page).toHaveURL(/\/profil$/);
-  await expect(visibleText(page, 'Nadia Putri')).toBeVisible();
-  await navLink(page, 'Home').click();
+  await expect(inMain(page, 'Nadia Putri')).toBeVisible();
+  await navLink(page, 'Beranda').click();
   await expect(greeting(page)).toBeVisible();
   const before = api.calls('GET /api/me').length;
   await api.setOffline(false);

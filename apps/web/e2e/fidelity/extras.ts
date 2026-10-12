@@ -23,7 +23,24 @@ export interface ExtraCapture extends FidelityScreen {
   target?: (page: import('@playwright/test').Page) => Locator;
 }
 
+/** P0-C: Beranda at other window sizes, for the shell's chrome (bars, rail, sidebar, gold header); P1-A fills it. */
+const beranda: ExtraCapture = {
+  path: '/',
+  ready: (p) => p.getByRole('heading', { name: 'Halo, Nadia' }),
+};
+
 export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
+  'page-phone-light': beranda,
+  'page-phone-dark': beranda,
+  'page-narrow320-light': beranda,
+  'page-tablet768-light': beranda,
+  'page-tablet768-dark': beranda,
+  'page-tablet1000-light': beranda,
+  'page-desktop-light': beranda,
+  'page-desktop-dark': beranda,
+  'page-desktop1024-light': beranda,
+  'narrow320-beranda': beranda,
+  'desk1024-beranda': beranda,
   // P0-A: the design-system gallery, against the prototype's design-system page.
   'system-cards': {
     path: '/dev/garis',

@@ -1,3 +1,4 @@
+import { navLink } from '../support/app';
 import { expect, test } from '../support/test';
 
 /*
@@ -90,12 +91,7 @@ for (const from of [
       .poll(() => new URL(page.url()).pathname)
       .not.toMatch(/^\/(timeline|calendar|home)/);
     await expect(page.locator('#root')).not.toBeEmpty();
-    await expect(
-      page
-        .getByRole('link', { name: 'Home', exact: true })
-        .locator('visible=true')
-        .first(),
-    ).toBeVisible();
+    await expect(navLink(page, 'Beranda')).toBeVisible();
     await expect(page.getByText('Halaman ini gagal dimuat.')).toHaveCount(0);
     await expect(page.getByText('Bagian ini gagal dimuat.')).toHaveCount(0);
   });

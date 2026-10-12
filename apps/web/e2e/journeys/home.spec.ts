@@ -1,12 +1,12 @@
 import { checkGates } from '../support/audit';
-import { navLink, visibleText } from '../support/app';
+import { greeting, navLink, visibleText } from '../support/app';
 import { expect, test } from '../support/test';
 
 test('Home greets Nadia and shows today and the services', async ({
   page,
 }, testInfo) => {
   await page.goto('/');
-  await expect(visibleText(page, 'Hi, Nadia Putri!')).toBeVisible();
+  await expect(greeting(page)).toBeVisible();
   await expect(visibleText(page, 'Good Afternoon')).toBeVisible();
   for (const service of [
     'Ding Dong',
@@ -32,7 +32,7 @@ test('Home greets Nadia and shows today and the services', async ({
   // Raka's Kuis 1 is for a course Nadia doesn't take.
   await expect(page.getByText('Pencarian dan heuristik.')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Admin' })).toHaveCount(0);
-  await expect(navLink(page, 'Home')).toBeVisible();
+  await expect(navLink(page, 'Beranda')).toBeVisible();
   await checkGates(page, testInfo, 'home');
 });
 
