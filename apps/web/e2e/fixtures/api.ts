@@ -210,7 +210,8 @@ function toInfo(post: ProtoPost, persona: PersonaKey): Info {
     reactions: reactionAggregate(post.reacts),
     creator,
     isRead: READ0[persona].includes(post.id),
-    canNotify: mine && Date.parse(NOW) - Date.parse(post.notified) > 3 * 36e5,
+    // Open once 3 hours have passed, as the API decides it (apps/api/src/lib/renotify.ts).
+    canNotify: mine && Date.parse(NOW) - Date.parse(post.notified) >= 3 * 36e5,
     isForAngkatan: post.aud.type === 'angkatan',
     isForGroups: post.aud.type === 'group',
   };
