@@ -1,5 +1,5 @@
 import * as RD from '@radix-ui/react-dialog';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { IconTutup } from '~/components/icons/tutup';
 import { cn } from '~/lib/utils';
 import { Button } from './Button';
@@ -56,6 +56,9 @@ function Shell({
   className,
   closeLabel = GARIS_STRINGS.close,
 }: OverlayProps & { kind: 'sheet' | 'dialog' }) {
+  // Radix returns focus only to its own Trigger; screens open overlays from their own buttons, so remember what had
+  // focus when it opened and go back there when it closes (SPEC: dialogs restore focus).
+  const returnTo = useRef<HTMLElement | null>(null);
   return (
     <RD.Root open={open} onOpenChange={onOpenChange}>
       <RD.Portal>
@@ -66,7 +69,22 @@ function Shell({
             className,
           )}
           role={role}
-          onOpenAutoFocus={onOpenAutoFocus}
+          onOpenAutoFocus={(e) => {
+            returnTo.current =
+              document.activeElement instanceof HTMLElement &&
+              document.activeElement !== document.body
+                ? document.activeElement
+                : null;
+            onOpenAutoFocus?.(e);
+          }}
+          onCloseAutoFocus={(e) => {
+            const el = returnTo.current;
+            returnTo.current = null;
+            if (el && el.isConnected) {
+              e.preventDefault();
+              el.focus();
+            }
+          }}
           {...(description ? {} : { 'aria-describedby': undefined })}
         >
           {kind === 'sheet' ? (
