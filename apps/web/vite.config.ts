@@ -3,9 +3,43 @@ import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { VitePluginRadar } from 'vite-plugin-radar';
+
+/**
+ * Writes dist/.vite/chunk-modules.json: for each JS chunk, the modules in it (npm packages by name, app files by
+ * path). The budget check (scripts/budgets.mjs) uses it to say which packages each route loads before its first
+ * render, e.g. that socket.io-client loads only with Curhat and Live Counting.
+ */
+function chunkModules(): Plugin {
+  return {
+    name: 'pips-chunk-modules',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      const root = path.resolve(import.meta.dirname);
+      const chunks: Record<string, string[]> = {};
+      for (const output of Object.values(bundle)) {
+        if (output.type !== 'chunk') continue;
+        const modules = new Set<string>();
+        for (const id of output.moduleIds) {
+          const file = id.replace(/\?.*$/, '').replace(/^\0/, '');
+          const pkg =
+            /node_modules\/(?:\.pnpm\/[^/]+\/node_modules\/)?((?:@[^/]+\/)?[^/]+)/.exec(
+              file,
+            );
+          modules.add(pkg ? `npm:${pkg[1]}` : path.relative(root, file));
+        }
+        chunks[output.fileName] = [...modules].sort();
+      }
+      this.emitFile({
+        type: 'asset',
+        fileName: '.vite/chunk-modules.json',
+        source: `${JSON.stringify(chunks, null, 1)}\n`,
+      });
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -98,6 +132,14 @@ export default defineConfig(({ mode }) => {
               label: 'Login page',
             },
           ],
+          start_url: '/',
+          scope: '/',
+          // Long-press shortcuts on the installed app's icon: the primary destinations' URLs.
+          shortcuts: [
+            { name: 'Pengumuman', url: '/pengumuman' },
+            { name: 'Kalender', url: '/kalender' },
+            { name: 'Layanan', url: '/layanan' },
+          ],
           theme_color: '#FFFFFF',
           background_color: '#2F754A',
           display: 'standalone',
@@ -118,56 +160,18 @@ export default defineConfig(({ mode }) => {
             },
           },
         },
-        workbox: {
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'google-fonts-cache',
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
-                },
-                cacheableResponse: {
-                  statuses: [0, 200],
-                },
-              },
-            },
-            {
-              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'gstatic-fonts-cache',
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
-                },
-                cacheableResponse: {
-                  statuses: [0, 200],
-                },
-              },
-            },
-            {
-              urlPattern: /^\/img\/.*\.svg$/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'icons-cache',
-                expiration: {
-                  maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
-                },
-                cacheableResponse: {
-                  statuses: [0, 299],
-                },
-              },
-            },
-          ],
+        // The service worker (src/sw.ts) caches only what this precaches plus same-origin images; see its header.
+        // Precache: the app shell and every route chunk, never the review prototypes or other review material.
+        injectManifest: {
+          globPatterns: ['**/*.{js,css,html,woff2}', 'logo/hmif.png'],
+          globIgnores: ['prototypes/**', '**/*.map'],
         },
       }),
-      // The router plugin must come before the React plugin. P0-B turns on automatic code splitting.
-      tanstackRouter({ target: 'react', autoCodeSplitting: false }),
+      // The router plugin must come before the React plugin. Every route's component loads on demand.
+      tanstackRouter({ target: 'react', autoCodeSplitting: true }),
       react(),
       tailwindcss(),
+      chunkModules(),
       sentryVitePlugin({
         authToken: env.SENTRY_AUTH_TOKEN,
         org: env.SENTRY_ORG || 'hmif',
@@ -178,6 +182,8 @@ export default defineConfig(({ mode }) => {
 
     build: {
       sourcemap: true,
+      // dist/.vite/manifest.json: chunks and their imports, read by the budget check (scripts/budgets.mjs).
+      manifest: true,
     },
   };
 });

@@ -1,16 +1,74 @@
 import { IDBPDatabase, openDB } from 'idb';
 import { clientsClaim } from 'workbox-core';
-import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
+import { ExpirationPlugin } from 'workbox-expiration';
+import {
+  cleanupOutdatedCaches,
+  createHandlerBoundToURL,
+  precacheAndRoute,
+} from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { CacheFirst } from 'workbox-strategies';
+import { legacyRedirectHref } from './lib/legacy-redirects';
 
 declare let self: ServiceWorkerGlobalScope;
+
+/*
+ * What this service worker keeps (SPEC "Service worker"):
+ * - the precache: the app shell and every route chunk (vite.config.ts `injectManifest`), never the review
+ *   prototypes; hashed file names, so an update downloads only the chunks that changed;
+ * - an app-shell fallback: any navigation in the app gets index.html, so the installed app opens offline;
+ * - a bounded cache for same-origin images only. Nothing else, so no catch-all asset cache grows forever.
+ */
+const IMAGE_CACHE = 'images-v1';
+// Caches earlier versions of this worker filled without a bound; deleted on activation.
+const RETIRED_CACHES = [
+  'assets-cache',
+  'icons-cache',
+  'google-fonts-cache',
+  'gstatic-fonts-cache',
+];
 
 if (import.meta.env.PROD) {
   cleanupOutdatedCaches();
   precacheAndRoute(self.__WB_MANIFEST);
 
+  registerRoute(
+    new NavigationRoute(createHandlerBoundToURL('/index.html'), {
+      // Not the app: the API, review material, the share target and anything that is a file.
+      denylist: [
+        /^\/api\//,
+        /^\/socket\.io\//,
+        /^\/prototypes\//,
+        /^\/swagger/,
+        /^\/doc$/,
+        /^\/share-file-handler/,
+        /\/[^/?]+\.[^/?]+$/,
+      ],
+    }),
+  );
+
   self.skipWaiting();
   clientsClaim();
 }
+
+registerRoute(
+  ({ request, url }) =>
+    request.destination === 'image' && url.origin === self.location.origin,
+  new CacheFirst({
+    cacheName: IMAGE_CACHE,
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 80,
+        maxAgeSeconds: 60 * 60 * 24 * 30,
+        purgeOnQuotaError: true,
+      }),
+    ],
+  }),
+);
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(Promise.all(RETIRED_CACHES.map((name) => caches.delete(name))));
+});
 
 self.addEventListener('push', (e) => {
   if (
@@ -36,11 +94,13 @@ self.addEventListener('push', (e) => {
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  const rootUrl = new URL('/', location.href);
+  // The API still sends today's paths (/timeline/<id>); open the new URL directly, so an open window on it is
+  // focused instead of a second one opening.
+  let url = new URL('/', location.href).href;
   if (e.notification.data && e.notification.data.url) {
-    rootUrl.pathname = e.notification.data.url;
+    const path = String(e.notification.data.url);
+    url = new URL(legacyRedirectHref(path) ?? path, location.href).href;
   }
-  const url = rootUrl.href;
   e.waitUntil(
     self.clients.matchAll().then((clients) => {
       for (const client of clients) {
@@ -57,27 +117,6 @@ self.addEventListener('notificationclick', (e) => {
     }),
   );
 });
-
-import { registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate } from 'workbox-strategies';
-
-const assetsExt = [
-  '.js',
-  '.css',
-  '.png',
-  '.jpg',
-  '.jpeg',
-  '.svg',
-  '.webp',
-  '.ico',
-];
-
-registerRoute(
-  ({ url }) => assetsExt.some((ext) => url.pathname.endsWith(ext)),
-  new StaleWhileRevalidate({
-    cacheName: 'assets-cache',
-  }),
-);
 
 let db: IDBPDatabase | null = null;
 
@@ -127,7 +166,7 @@ registerRoute(
       ),
     });
 
-    return Response.redirect('/add-announcement', 303);
+    return Response.redirect('/pengumuman/tulis', 303);
   },
   'POST',
 );
