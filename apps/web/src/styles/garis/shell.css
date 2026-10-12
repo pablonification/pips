@@ -296,12 +296,11 @@
     .g-tab {
       padding: 6px 0;
     }
-    .g-top {
+    /* The plain top bar joins the 720 px column. Beranda's gold bar and greeting don't: in the prototype the later
+       `.p-top.gold-bar` and `.hero` rules win over its column rule, so the locked tablet screens keep them 16 px and
+       18 px from the rail (review M1). Only the agenda slot and the body sit in the column. */
+    .g-top:not(.gold) {
       padding-inline: max(14px, calc((100% - 720px) / 2 + 14px));
-    }
-    .g-top.gold,
-    .g-hero {
-      padding-inline: max(18px, calc((100% - 720px) / 2 + 18px));
     }
     .g-body {
       width: 100%;
