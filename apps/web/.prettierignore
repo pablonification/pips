@@ -1,1 +1,4 @@
-src/api/generated/
+src/api/generated/e2e/.build/
+e2e/.results/
+e2e/.report/
+e2e/.out/

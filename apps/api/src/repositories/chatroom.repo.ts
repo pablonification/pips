@@ -186,6 +186,6 @@ export async function getChatroomParticipantIds(
   }
 
   return [chatroom.userId, ...adminUsers.map((u) => u.id)].filter(
-    (id) => id !== null,
+    (id): id is string => id !== null,
   );
 }

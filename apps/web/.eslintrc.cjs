@@ -13,6 +13,10 @@ module.exports = {
     '.eslintrc.cjs',
     'tailwind.config.js',
     'postcss.config.js',
+    'e2e/.build',
+    'e2e/.results',
+    'e2e/.report',
+    'e2e/.out',
   ],
   parser: '@typescript-eslint/parser',
   plugins: ['react-refresh'],
@@ -33,7 +37,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
+    project: ['./tsconfig.json', './tsconfig.node.json', './e2e/tsconfig.json'],
     tsconfigRootDir: __dirname,
   },
 };
