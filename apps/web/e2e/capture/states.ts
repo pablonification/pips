@@ -350,16 +350,14 @@ export const STATES: CaptureState[] = [
     path: '/home/form',
     ready: (p) => visibleText(p, 'Belum ada form untuk kamu'),
   },
-  ...[1, 2, 3, 4, 5].map(
-    (n): CaptureState => ({
-      id: `form-step-${n}`,
-      title: `PIXEL form, section ${n}`,
-      path: '/home/form/pixel',
-      act: async (p) => fillPixelUpTo(p, n - 1),
-      ready: (p) =>
-        p.getByRole('heading', { level: 2 }).locator('visible=true').first(),
-    }),
-  ),
+  ...[1, 2, 3, 4, 5].map((n): CaptureState => ({
+    id: `form-step-${n}`,
+    title: `PIXEL form, section ${n}`,
+    path: '/home/form/pixel',
+    act: async (p) => fillPixelUpTo(p, n - 1),
+    ready: (p) =>
+      p.getByRole('heading', { level: 2 }).locator('visible=true').first(),
+  })),
   {
     id: 'form-required',
     title: 'PIXEL form, required questions missing',

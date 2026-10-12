@@ -3,6 +3,7 @@ import { verify } from 'hono/jwt';
 import { Server } from 'socket.io';
 import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
+import { JWT_ALG } from '~/lib/jwt';
 import { sendNotificationToAll } from '~/lib/push-manager';
 import {
   getChatroomById,
@@ -107,7 +108,7 @@ async function isSocketAdmin(token: unknown): Promise<boolean> {
   if (typeof token !== 'string' || !token) return false;
 
   try {
-    const payload = await verify(token, env.JWT_SECRET);
+    const payload = await verify(token, env.JWT_SECRET, JWT_ALG);
     const userId = payload.id as string | undefined;
     if (!userId) return false;
 

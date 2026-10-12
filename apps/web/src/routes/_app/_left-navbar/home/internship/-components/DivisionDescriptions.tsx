@@ -12,17 +12,17 @@ function DivisionPill(props: Readonly<{ division: InternshipDivision }>) {
 
   return (
     <AccordionItem value={division.id} className="border-none">
-      <AccordionTrigger className="w-fit rounded-full border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs font-medium text-neutral-black hover:no-underline data-[state=open]:border-green-950 data-[state=open]:bg-green-950 data-[state=open]:text-white [&>svg]:data-[state=open]:rotate-180">
+      <AccordionTrigger className="w-fit rounded-full border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs font-medium text-neutral-black hover:no-underline data-[state=open]:border-green-950 data-[state=open]:bg-green-950 data-[state=open]:text-white data-[state=open]:[&>svg]:rotate-180">
         {division.name}
         <ChevronDown className="ml-1.5 size-3 shrink-0 transition-transform duration-200" />
       </AccordionTrigger>
       <AccordionContent className="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
         {division.description ? (
-          <p className="whitespace-pre-wrap text-sm text-neutral-black">
+          <p className="text-sm whitespace-pre-wrap text-neutral-black">
             {division.description}
           </p>
         ) : (
-          <p className="text-sm italic text-neutral-darker">
+          <p className="text-sm text-neutral-darker italic">
             Deskripsi belum tersedia untuk divisi ini.
           </p>
         )}
@@ -51,7 +51,7 @@ export default function DivisionDescriptions(props: Readonly<ComponentProps>) {
             value={dept.id}
             className="rounded-xl border border-gray-300 px-4"
           >
-            <AccordionTrigger className="py-3 text-sm font-semibold text-neutral-black hover:no-underline [&>svg]:data-[state=open]:rotate-180">
+            <AccordionTrigger className="py-3 text-sm font-semibold text-neutral-black hover:no-underline data-[state=open]:[&>svg]:rotate-180">
               {dept.name}
               <ChevronDown className="size-4 shrink-0 transition-transform duration-200" />
             </AccordionTrigger>

@@ -55,7 +55,7 @@ export function InfoPhotosCarousel({
               e.stopPropagation();
               api?.scrollPrev();
             }}
-            className="absolute left-2 top-1/2 z-10 aspect-square -translate-y-1/2 rotate-180 rounded-full bg-black/50 p-2"
+            className="absolute top-1/2 left-2 z-10 aspect-square -translate-y-1/2 rotate-180 rounded-full bg-black/50 p-2"
           >
             <img src={ArrowRightIcon} alt="Prev" className="size-14" />
           </Button>
@@ -79,7 +79,7 @@ export function InfoPhotosCarousel({
               e.stopPropagation();
               api?.scrollNext();
             }}
-            className="absolute right-2 top-1/2 z-10 aspect-square -translate-y-1/2 rounded-full bg-black/50 p-2"
+            className="absolute top-1/2 right-2 z-10 aspect-square -translate-y-1/2 rounded-full bg-black/50 p-2"
           >
             <img src={ArrowRightIcon} alt="Next" className="size-14" />
           </Button>

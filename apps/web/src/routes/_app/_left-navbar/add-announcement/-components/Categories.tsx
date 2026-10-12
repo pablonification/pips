@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { XIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type JSX } from 'react';
 import { UseFormReturn, useWatch } from 'react-hook-form';
 import { api } from '~/api/client';
 import HashIcon from '~/assets/icons/add-announcement/hash.svg';
@@ -102,7 +102,7 @@ export default function Categories({
       {categories.map((category, idx) => (
         <div
           key={idx}
-          className="-my-2 flex items-center gap-2 rounded-2xl bg-[#305138] pb-[5px] pl-3 pr-2 pt-1.5"
+          className="-my-2 flex items-center gap-2 rounded-2xl bg-green-300 pt-1.5 pr-2 pb-[5px] pl-3"
         >
           <p className="text-[10px] text-white">{category.title}</p>
           <Button
@@ -157,10 +157,10 @@ export default function Categories({
                         ? 'bg-[#E7613E]'
                         : cat.type === 'GROUP'
                           ? 'bg-[#E5B52B]'
-                          : 'bg-[#305138]',
+                          : 'bg-green-300',
                     )}
                   >
-                    <p className="text-[10px] uppercase text-white">
+                    <p className="text-[10px] text-white uppercase">
                       {cat.type}
                     </p>
                   </div>

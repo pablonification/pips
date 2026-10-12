@@ -6,8 +6,7 @@ import AlertIcon from '~/assets/icons/textfield/alert.svg';
 import CheckIcon from '~/assets/icons/textfield/check.svg';
 import WarningIcon from '~/assets/icons/textfield/warning.svg';
 
-export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: string;
   success?: boolean;
   inputClassName?: string;
@@ -45,14 +44,14 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       <div className={cn('flex flex-col gap-2 font-inter', className)}>
         <div
           className={cn(
-            props.disabled && '!border-[#E2E8F0]',
+            props.disabled && 'border-[#E2E8F0]!',
             'relative',
             inputContainerClassName,
           )}
         >
           <textarea
             className={cn(
-              'flex min-h-[80px] w-full rounded-lg border border-[#E2E8F0] bg-background px-4 py-3 text-sm text-[#020617]  ring-offset-background placeholder:text-[#64748B] hover:border-[#CBD5E1] focus-visible:border-[#94A3B8] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+              'flex min-h-[80px] w-full rounded-lg border border-[#E2E8F0] bg-background px-4 py-3 text-sm text-[#020617] ring-offset-background placeholder:text-[#64748B] hover:border-[#CBD5E1] focus-visible:border-[#94A3B8] focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
               inputClassName,
               className,
             )}
@@ -66,7 +65,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                 props.disabled ? WarningIcon : success ? CheckIcon : AlertIcon
               }
               className={cn(
-                'pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2',
+                'pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2',
                 iconClassName,
               )}
             />

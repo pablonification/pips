@@ -111,7 +111,7 @@ function UserInfo({ info }: { info: Info }) {
             imageURL={info.creator.picture}
             email={info.creator.email}
             className="mb-5"
-            avatarClassName="size-[3.25rem]"
+            avatarClassName="size-13"
           />
 
           <CardPopover
@@ -187,11 +187,11 @@ function TextSection({
   return (
     <div>
       {title && (
-        <h4 className="mb-2 whitespace-pre-line text-[20px] font-semibold">
+        <h4 className="mb-2 text-[20px] font-semibold whitespace-pre-line">
           {title}
         </h4>
       )}
-      <div className="whitespace-pre-line break-words text-base">
+      <div className="text-base wrap-break-word whitespace-pre-line">
         {/* Render text as normal, but if link make it into anchor tag, split it on space and newline */}
         {renderInfoContent(infoId, content, urls, true)}
       </div>

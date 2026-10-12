@@ -86,7 +86,7 @@ const CommentComponent = ({
           />
         )}
       </div>
-      <p className="break-words">{commentData.content}</p>
+      <p className="wrap-break-word">{commentData.content}</p>
       <div className="flex items-center space-x-1">
         {/* wait for reactions backend */}
         <Reaction

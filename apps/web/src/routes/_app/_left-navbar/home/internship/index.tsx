@@ -130,7 +130,7 @@ function InternshipPage() {
   if (!isEligible) {
     return (
       <div className="flex size-full h-screen flex-col overflow-hidden bg-green-50">
-        <div className="relative mx-auto flex max-h-screen w-full flex-col items-center lg:max-w-screen-lg lg:px-8">
+        <div className="relative mx-auto flex max-h-screen w-full flex-col items-center lg:max-w-(--breakpoint-lg) lg:px-8">
           <Button
             variant="link"
             className="my-6 hidden w-full justify-start gap-8 p-0 text-3xl font-medium lg:flex"
@@ -139,7 +139,7 @@ function InternshipPage() {
             <ChevronLeft className="size-8" />
             <span>Back</span>
           </Button>
-          <main className="flex w-full flex-col items-center justify-center gap-4 bg-[url(/img/login/login-bg.jpg)] bg-no-repeat px-8 py-24 md:bg-[url(/img/login/login-bg-desktop.jpg)] lg:max-w-screen-lg lg:rounded-t-2xl lg:px-[82px]">
+          <main className="flex w-full flex-col items-center justify-center gap-4 bg-[url(/img/login/login-bg.jpg)] bg-no-repeat px-8 py-24 md:bg-[url(/img/login/login-bg-desktop.jpg)] lg:max-w-(--breakpoint-lg) lg:rounded-t-2xl lg:px-[82px]">
             <h1 className="text-center text-3xl font-bold text-white">
               SPARTA HMIF
             </h1>
@@ -160,7 +160,7 @@ function InternshipPage() {
 
   return (
     <div className="flex size-full h-screen flex-col overflow-hidden bg-green-50">
-      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center lg:max-w-screen-lg lg:px-8">
+      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center lg:max-w-(--breakpoint-lg) lg:px-8">
         <Button
           variant="link"
           className="my-6 hidden w-full justify-start gap-8 p-0 text-3xl font-medium lg:flex"
@@ -170,7 +170,7 @@ function InternshipPage() {
           <span>Back</span>
         </Button>
 
-        <main className="flex max-h-screen w-full flex-col items-center gap-4 overflow-auto bg-[url(/img/login/login-bg.jpg)] bg-no-repeat px-6 pb-28 pt-[50px] md:bg-[url(/img/login/login-bg-desktop.jpg)] lg:mt-8 lg:max-w-screen-lg lg:rounded-t-2xl lg:px-[82px] lg:pb-6 lg:pt-8">
+        <main className="flex max-h-screen w-full flex-col items-center gap-4 overflow-auto bg-[url(/img/login/login-bg.jpg)] bg-no-repeat px-6 pt-[50px] pb-28 md:bg-[url(/img/login/login-bg-desktop.jpg)] lg:mt-8 lg:max-w-(--breakpoint-lg) lg:rounded-t-2xl lg:px-[82px] lg:pt-8 lg:pb-6">
           <div className="flex w-full items-center justify-between">
             <h1 className="text-left text-3xl font-bold text-white lg:text-5xl">
               Pilihan Magang SPARTA

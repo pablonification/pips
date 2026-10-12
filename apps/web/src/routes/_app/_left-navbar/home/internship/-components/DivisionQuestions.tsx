@@ -156,7 +156,7 @@ export default function DivisionQuestions(props: Readonly<ComponentProps>) {
                     )}
                   </Button>
                   {openRaw[choice.divisionId] && (
-                    <p className="mt-2 whitespace-pre-wrap text-xs text-neutral-darker">
+                    <p className="mt-2 text-xs whitespace-pre-wrap text-neutral-darker">
                       {found.division.questionsRaw}
                     </p>
                   )}

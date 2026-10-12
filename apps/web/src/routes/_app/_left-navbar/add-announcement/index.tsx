@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { XIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { api } from '~/api/client';
@@ -85,6 +85,7 @@ export function AddAnnouncementPage({
   const mobileHandleSuccess = () => navigate({ to: '/timeline' });
   const desktopHandleSuccess = () =>
     navigate({
+      to: '.',
       search: (prev: { showAnnounce?: boolean }) => ({
         ...prev,
         showAnnounce: undefined,
@@ -159,20 +160,22 @@ export function AddAnnouncementPage({
   };
 
   const deleteById = (images: boolean, idx: number) => {
-    images
-      ? setImages((prev) => {
-          return prev.filter((image, index) => index !== idx);
-        })
-      : setFiles((prev) => {
-          return prev.filter((file, index) => index !== idx);
-        });
+    if (images) {
+      setImages((prev) => {
+        return prev.filter((image, index) => index !== idx);
+      });
+    } else {
+      setFiles((prev) => {
+        return prev.filter((file, index) => index !== idx);
+      });
+    }
   };
 
   return (
     <main
       className={cn(
         'relative h-full font-inter',
-        isDesktop ? 'pb-2 pt-7' : 'py-9',
+        isDesktop ? 'pt-7 pb-2' : 'py-9',
       )}
     >
       <Form {...form}>
@@ -213,7 +216,7 @@ export function AddAnnouncementPage({
                       />
                     </a>
                     <button
-                      className="absolute right-2.5 top-2.5 rounded-full border-2 border-black bg-gray-300"
+                      className="absolute top-2.5 right-2.5 rounded-full border-2 border-black bg-gray-300"
                       onClick={() => deleteById(true, idx)}
                     >
                       <XIcon className="size-5 rounded-full" />
@@ -238,7 +241,7 @@ export function AddAnnouncementPage({
                       {file.file.webkitRelativePath}
                     </a>
                     <button
-                      className="absolute right-5 top-5 rounded-full"
+                      className="absolute top-5 right-5 rounded-full"
                       onClick={() => deleteById(false, idx)}
                     >
                       <XIcon className="size-6 rounded-full border-black hover:border-2" />

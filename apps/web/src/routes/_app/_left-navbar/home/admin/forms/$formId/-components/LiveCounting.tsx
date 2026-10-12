@@ -43,7 +43,7 @@ export default function LiveCounting(props: Readonly<ComponentProps>) {
             {latestEvents.map((e, idx) => (
               <li
                 key={`${e.nim}-${e.submittedAt}-${idx}`}
-                className="flex items-center justify-between gap-2 break-words text-xs text-green-900"
+                className="flex items-center justify-between gap-2 text-xs wrap-break-word text-green-900"
               >
                 <span>
                   {e.fullName} ({e.nim})

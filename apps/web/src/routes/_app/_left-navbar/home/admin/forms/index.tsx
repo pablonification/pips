@@ -38,7 +38,7 @@ function FormAdminListPage() {
 
   return (
     <div className="flex size-full h-screen flex-col overflow-hidden bg-green-50">
-      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center overflow-auto lg:max-w-screen-lg lg:px-8">
+      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center overflow-auto lg:max-w-(--breakpoint-lg) lg:px-8">
         <Button
           variant="link"
           className="my-6 w-full justify-start gap-8 p-0 text-2xl font-medium lg:text-3xl"
@@ -49,7 +49,9 @@ function FormAdminListPage() {
         </Button>
 
         <div className="flex w-full flex-col gap-4 px-4 pb-24 lg:px-0">
-          <h1 className="break-words text-2xl font-bold lg:text-3xl">Form</h1>
+          <h1 className="text-2xl font-bold wrap-break-word lg:text-3xl">
+            Form
+          </h1>
 
           {isLoading && (
             <p className="text-sm text-neutral-darker">Memuat data...</p>
@@ -67,11 +69,11 @@ function FormAdminListPage() {
                 key={form.id}
                 to="/home/admin/forms/$formId"
                 params={{ formId: form.id }}
-                className="flex w-full flex-col gap-2 break-words rounded-xl bg-white p-4"
+                className="flex w-full flex-col gap-2 rounded-xl bg-white p-4 wrap-break-word"
               >
-                <h2 className="break-words font-semibold">{form.title}</h2>
+                <h2 className="font-semibold wrap-break-word">{form.title}</h2>
                 {form.description && (
-                  <p className="line-clamp-2 break-words text-xs text-neutral-darker">
+                  <p className="line-clamp-2 text-xs wrap-break-word text-neutral-darker">
                     {form.description}
                   </p>
                 )}

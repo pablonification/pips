@@ -95,7 +95,8 @@ const ChatList: React.FC<ChatListProps> = ({
       toast.success('Chatroom updated successfully', { id: TOAST_ID_PIN });
     },
     onError: () => {
-      toast.error('Failed to update chatroom'), { id: TOAST_ID_PIN };
+      // The toast id was never passed (a misplaced parenthesis); kept as it behaves today.
+      toast.error('Failed to update chatroom');
     },
   });
 
@@ -161,7 +162,7 @@ const ChatList: React.FC<ChatListProps> = ({
                   <img
                     src={PinIconYellow}
                     alt="Pin"
-                    className="absolute bottom-0 right-0 size-[15px]"
+                    className="absolute right-0 bottom-0 size-[15px]"
                   />
                 )}
                 <img src={ProfileIcon} alt="Profile" className="size-9" />
@@ -186,7 +187,7 @@ const ChatList: React.FC<ChatListProps> = ({
                   <img src={HamburgerIcon} className="size-5" alt="" />
                 </PopoverTrigger>
 
-                <PopoverContent className="w-fit py-2 pl-2 pr-3" align="end">
+                <PopoverContent className="w-fit py-2 pr-3 pl-2" align="end">
                   <ul className="flex flex-col gap-2">
                     <li className="flex flex-col gap-3 leading-none">
                       {user?.roles.includes('curhatadmin') && (
@@ -236,7 +237,7 @@ const ChatList: React.FC<ChatListProps> = ({
         Object.keys(chats).length < 3 && (
           <Button
             size="icon-md"
-            className="absolute bottom-24 right-4 size-[74px] rounded-full border border-green-300 bg-yellow-75"
+            className="absolute right-4 bottom-24 size-[74px] rounded-full border border-green-300 bg-yellow-75"
             onClick={handleCreate}
           >
             <img src={MessageIcon} alt="create chatroom" className="size-10" />

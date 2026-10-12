@@ -26,7 +26,7 @@ export default function CourseCard({ courseData }: CourseCardProps) {
           <div className="flex items-center gap-4 px-5 py-4">
             <div className="flex items-center gap-4">
               <img src="/img/home/folder.svg" className="size-6" alt="Folder" />
-              <p className="line-clamp-1 w-full text-body-md font-bold leading-5 lg:text-base">
+              <p className="line-clamp-1 w-full text-body-md leading-5 font-bold lg:text-base">
                 {courseData?.code} {courseData?.name}
               </p>
             </div>

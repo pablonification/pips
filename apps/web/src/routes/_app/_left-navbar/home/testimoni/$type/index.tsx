@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import TestiListMain from '../-components/TestiListMain';
 import TestiListItem from '../-components/TestiListItem';

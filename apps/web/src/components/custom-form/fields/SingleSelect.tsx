@@ -20,8 +20,10 @@ type SingleSelectOption = {
   title: string;
 };
 
-interface SingleSelectProps<TFV extends FieldValues>
-  extends Pick<FormProps<TFV>, 'form'> {
+interface SingleSelectProps<TFV extends FieldValues> extends Pick<
+  FormProps<TFV>,
+  'form'
+> {
   name: FieldPath<TFV>;
   options: SingleSelectOption[];
   placeholder: string;
@@ -79,7 +81,7 @@ export default function SingleSelect<T extends FieldValues>(
                         value={opt.id}
                         key={opt.id}
                         // eslint-disable-next-line
-                          onSelect={() => form.setValue(name, opt.id as any)}
+                        onSelect={() => form.setValue(name, opt.id as any)}
                         keywords={[opt.title]}
                         className="cursor-pointer"
                       >

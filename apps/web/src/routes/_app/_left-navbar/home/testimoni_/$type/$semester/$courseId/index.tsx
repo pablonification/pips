@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -13,7 +14,7 @@ const testiSearchSchema = z.object({
 });
 
 export const Route = createFileRoute(
-  '/_app/_left-navbar/home/testimoni/$type/$semester/$courseId/',
+  '/_app/_left-navbar/home/testimoni_/$type/$semester/$courseId/',
 )({
   component: TestimoniListPage,
   validateSearch: (search) => testiSearchSchema.parse(search),
@@ -57,7 +58,12 @@ function TestimoniListPage(): JSX.Element {
   return (
     <main className="h-screen w-full overflow-auto bg-[url('/images/courses/gradient.png')] p-8 pb-40">
       <header className="text-white">
-        <Link from={Route.fullPath} to="..">
+        {/* Router 1.170's types count this route's trailing slash as a segment, so ".." no longer type-checks; this is where ".." led. */}
+        <Link
+          from={Route.fullPath}
+          to="/home/testimoni/$type/$semester"
+          params={true}
+        >
           <Button
             variant="link"
             size="icon-md"
@@ -130,6 +136,7 @@ function TestimoniListPage(): JSX.Element {
 
       <div className="mt-10 flex w-full items-center justify-between">
         <Link
+          from={Route.fullPath}
           search={(prev: { page?: number }) => ({
             ...prev,
             page: currentPage > 1 ? currentPage - 1 : currentPage,
@@ -158,6 +165,7 @@ function TestimoniListPage(): JSX.Element {
             ) : (
               <Link
                 key={idx}
+                from={Route.fullPath}
                 search={{
                   page: page !== '...' ? parseInt(page) : currentPage,
                 }}
@@ -169,7 +177,9 @@ function TestimoniListPage(): JSX.Element {
                     'flex size-10 items-center justify-center rounded-md',
                     currentPage === parseInt(page)
                       ? 'bg-[#E2C66F] text-black'
-                      : 'bg-none!',
+                      : // Was 'bg-none!': tailwind-merge 2 took it for a background colour and dropped the button's
+                        // black; tailwind-merge 3 reads it as background-image, so say what it did.
+                        'bg-transparent',
                   )}
                 >
                   {page}
@@ -180,6 +190,7 @@ function TestimoniListPage(): JSX.Element {
         </div>
 
         <Link
+          from={Route.fullPath}
           search={(prev: { page?: number }) => ({
             ...prev,
             page: currentPage < testiLength ? currentPage + 1 : currentPage,

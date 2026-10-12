@@ -30,13 +30,13 @@ export default function AddButtons(props: Readonly<ComponentProps>) {
 
   return (
     <>
-      <div className="fixed bottom-24 right-5 z-20 flex flex-col gap-3">
+      <div className="fixed right-5 bottom-24 z-20 flex flex-col gap-3">
         <motion.div
           {...btnAnimProps(
             roles?.includes('akademik') && roles?.includes('ring1') ? 3 : 2,
             isOpen,
           )}
-          className="z-[22]"
+          className="z-22"
         >
           <Button
             onClick={() => setOpen(true)}
@@ -47,7 +47,7 @@ export default function AddButtons(props: Readonly<ComponentProps>) {
         </motion.div>
         {roles.includes('akademik') && roles.includes('ring1') ? (
           <>
-            <motion.div {...btnAnimProps(2, isOpen)} className="z-[21]">
+            <motion.div {...btnAnimProps(2, isOpen)} className="z-21">
               <Button
                 onClick={() => {
                   setAddEventOpen(true);
@@ -59,7 +59,7 @@ export default function AddButtons(props: Readonly<ComponentProps>) {
                 <img src={BookIcon} className="size-[50px]" alt="" />
               </Button>
             </motion.div>
-            <motion.div {...btnAnimProps(1, isOpen)} className="z-[21]">
+            <motion.div {...btnAnimProps(1, isOpen)} className="z-21">
               <Button
                 onClick={() => {
                   setAddEventOpen(true);
@@ -73,7 +73,7 @@ export default function AddButtons(props: Readonly<ComponentProps>) {
             </motion.div>
           </>
         ) : roles.includes('akademik') ? (
-          <motion.div {...btnAnimProps(1, isOpen)} className="z-[21]">
+          <motion.div {...btnAnimProps(1, isOpen)} className="z-21">
             <Button
               onClick={() => {
                 setAddEventOpen(true);
@@ -86,7 +86,7 @@ export default function AddButtons(props: Readonly<ComponentProps>) {
             </Button>
           </motion.div>
         ) : (
-          <motion.div {...btnAnimProps(1, isOpen)} className="z-[21]">
+          <motion.div {...btnAnimProps(1, isOpen)} className="z-21">
             <Button
               onClick={() => {
                 setAddEventOpen(true);

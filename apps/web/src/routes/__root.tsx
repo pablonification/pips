@@ -1,11 +1,7 @@
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import {
-  Outlet,
-  ScrollRestoration,
-  createRootRoute,
-} from '@tanstack/react-router';
+import { Outlet, createRootRoute } from '@tanstack/react-router';
 import { Toaster } from 'react-hot-toast';
 import { queryClient } from '~/api/client';
 import Sentry from '~/instrument';
@@ -24,7 +20,6 @@ function RootComponent() {
     <>
       <QueryClientProvider client={queryClient}>
         <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-          <ScrollRestoration getKey={(location) => location.pathname} />
           <Sentry.ErrorBoundary fallback={<div>Something went wrong</div>}>
             <>
               <Toaster />

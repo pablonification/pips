@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { extractUrls } from '~/lib/url-parser';
 import { renderInfoContent } from '~/routes/_app/_left-navbar/timeline/$infoId/-helper';
 
@@ -12,8 +13,8 @@ export default function TestiContent({
 }: ComponentProps): JSX.Element {
   return (
     <div className="flex flex-col gap-1">
-      <h2 className="whitespace-pre-line text-sm font-bold">{title}</h2>
-      <p className="whitespace-pre-line break-words text-sm">
+      <h2 className="text-sm font-bold whitespace-pre-line">{title}</h2>
+      <p className="text-sm wrap-break-word whitespace-pre-line">
         {renderInfoContent('', content, extractUrls(content))}
       </p>
     </div>

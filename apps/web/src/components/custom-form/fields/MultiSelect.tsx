@@ -21,8 +21,10 @@ type MultiSelectOption = {
   title: string;
 };
 
-interface MultiSelectProps<TFV extends FieldValues>
-  extends Pick<FormProps<TFV>, 'form'> {
+interface MultiSelectProps<TFV extends FieldValues> extends Pick<
+  FormProps<TFV>,
+  'form'
+> {
   name: FieldPath<TFV>;
   options: MultiSelectOption[];
   placeholder: string;
@@ -74,7 +76,7 @@ export default function MultiSelect<T extends FieldValues>(
           <div
             key={idx}
             className={clsx(
-              'flex items-center gap-2 rounded-2xl bg-gray-300 px-2 pb-[5px] pt-1.5',
+              'flex items-center gap-2 rounded-2xl bg-gray-300 px-2 pt-1.5 pb-[5px]',
               selectedClassName,
             )}
           >
@@ -121,7 +123,7 @@ export default function MultiSelect<T extends FieldValues>(
                             ...form.getValues(name),
                             opt,
                             // eslint-disable-next-line
-                      ] as any);
+                          ] as any);
                       }}
                       className="gap-2"
                       key={idx}

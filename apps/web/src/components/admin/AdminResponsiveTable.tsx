@@ -45,7 +45,7 @@ export default function AdminResponsiveTable<T>(
                 {columns.map((c) => (
                   <td
                     key={c.key}
-                    className={cn('break-words p-3', c.className)}
+                    className={cn('p-3 wrap-break-word', c.className)}
                   >
                     {c.render(row)}
                   </td>
@@ -80,7 +80,9 @@ export default function AdminResponsiveTable<T>(
                 <span className="shrink-0 font-medium text-neutral-darker">
                   {c.header}
                 </span>
-                <span className="break-words text-right">{c.render(row)}</span>
+                <span className="text-right wrap-break-word">
+                  {c.render(row)}
+                </span>
               </div>
             ))}
           </div>

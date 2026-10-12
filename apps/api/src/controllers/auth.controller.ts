@@ -5,6 +5,7 @@ import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
 import { angkatan, users } from '~/db/schema';
 import { isDevLoginEnabled, verifyDevPassword } from '~/lib/dev-login';
+import { JWT_ALG } from '~/lib/jwt';
 import {
   findUserByEmail,
   getUserAndUpdatePicture,
@@ -40,6 +41,7 @@ const generateJWT = async (payload: object) => {
       exp: now.valueOf() / 1000 + parseInt(env.TOKEN_EXPIRATION),
     },
     env.JWT_SECRET,
+    JWT_ALG,
   );
 };
 
@@ -103,7 +105,8 @@ loginRouter.openapi(loginAccessTokenRoute, async (c) => {
   } catch (err) {
     return c.json(
       {
-        error: err,
+        // Sent as caught, as before; the response schema's string type doesn't describe it.
+        error: err as string,
       },
       500,
     );

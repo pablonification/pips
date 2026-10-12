@@ -40,7 +40,7 @@ export default function Options({
             <h2 className="text-base font-semibold capitalize">
               {isCategory ? 'category' : header}
             </h2>
-            <Separator className="mb-3 mt-1 bg-gray-500" />
+            <Separator className="mt-1 mb-3 bg-gray-500" />
 
             <FormControl>
               {isCategory ? (
@@ -74,10 +74,10 @@ export default function Options({
                         key={idx}
                         className="relative cursor-pointer space-y-0 rounded-[265.71px] border border-green-950"
                       >
-                        <FormControl className="absolute left-2 top-1/2 -translate-y-1/2">
+                        <FormControl className="absolute top-1/2 left-2 -translate-y-1/2">
                           <RadioGroupItem className="shrink-0" value={choice} />
                         </FormControl>
-                        <FormLabel className="block size-full cursor-pointer py-1 pl-8 pr-3 text-sm font-medium">
+                        <FormLabel className="block size-full cursor-pointer py-1 pr-3 pl-8 text-sm font-medium">
                           {choice}
                         </FormLabel>
                       </FormItem>

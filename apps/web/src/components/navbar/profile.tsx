@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 function Profile() {
   const user = useSession();
   return (
-    <section className="flex w-full max-w-screen-md items-center justify-between px-4 pt-4 lg:max-w-full">
+    <section className="flex w-full max-w-(--breakpoint-md) items-center justify-between px-4 pt-4 lg:max-w-full">
       <div className="flex items-center gap-4">
         <Avatar src={user.picture!} alt="User Profile" className="size-11" />
 

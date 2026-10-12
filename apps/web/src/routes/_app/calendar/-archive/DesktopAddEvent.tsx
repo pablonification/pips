@@ -80,7 +80,7 @@ export default function DesktopAddEvent(props: Readonly<ComponentProps>) {
     onSuccess: () => {
       toast.success('Event Added!', { id: TOAST_ID });
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-      onSubmitSuccess && onSubmitSuccess();
+      onSubmitSuccess?.();
     },
     onError: () => toast.error('Failed to add event', { id: TOAST_ID }),
   });
@@ -138,7 +138,7 @@ export default function DesktopAddEvent(props: Readonly<ComponentProps>) {
                     form.formState.errors.title?.message &&
                     "Title can't be empty"
                   }
-                  inputClassName="!border-b-2 px-0 text-3xl font-medium border-0 rounded-none"
+                  inputClassName="border-b-2! px-0 text-3xl font-medium border-0 rounded-none"
                   success={form.formState.isSubmitSuccessful}
                   {...field}
                 />
@@ -377,7 +377,7 @@ export default function DesktopAddEvent(props: Readonly<ComponentProps>) {
               size="sm"
               type="submit"
               variant="solid"
-              className="bg-[#305138]"
+              className="bg-green-300"
             >
               Save
             </Button>

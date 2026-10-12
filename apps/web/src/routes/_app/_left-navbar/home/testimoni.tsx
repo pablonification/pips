@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import UserInfo from '~/components/user/user-info';
 import useSession from '~/hooks/auth/useSession';

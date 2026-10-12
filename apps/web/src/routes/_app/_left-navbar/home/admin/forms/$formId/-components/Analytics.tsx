@@ -59,7 +59,7 @@ export default function Analytics(props: Readonly<ComponentProps>) {
               key={q.questionId}
               className="flex flex-col gap-2 rounded-xl border border-gray-300 bg-white p-4"
             >
-              <p className="break-words text-sm font-semibold">{q.label}</p>
+              <p className="text-sm font-semibold wrap-break-word">{q.label}</p>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>

@@ -66,15 +66,15 @@ export default function CourseCard({
         )}
       >
         <div className="flex items-center gap-4 py-3">
-          <div className="flex h-min flex-col items-center gap-1 rounded-md bg-[#305138] px-3 py-2">
+          <div className="flex h-min flex-col items-center gap-1 rounded-md bg-green-300 px-3 py-2">
             <p className="text-xs text-white">SKS</p>
-            <p className="text-heading-sm font-medium leading-6 text-white">
+            <p className="text-heading-sm leading-6 font-medium text-white">
               {courseData.course?.credits}
             </p>
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex flex-col">
-              <p className="font-bold leading-5">{courseData.course?.code}</p>
+              <p className="leading-5 font-bold">{courseData.course?.code}</p>
               <p className="leading-5">{courseData.course?.name}</p>
             </div>
             <p className="text-xs text-[#6A6B6A]">

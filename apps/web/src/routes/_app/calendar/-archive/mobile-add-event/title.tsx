@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import {
   FormField,
   FormControl,
@@ -20,7 +21,7 @@ export default function Title({ form }: ComponentProps): JSX.Element {
                 type="text"
                 id="title"
                 placeholder="Add title"
-                className="rounded-none border-none px-4 py-6 text-[20px] outline-none"
+                className="rounded-none border-none px-4 py-6 text-[20px] outline-hidden"
                 {...field}
               />
             </FormControl>

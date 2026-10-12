@@ -11,11 +11,7 @@ export default function SettingsMobile() {
   return (
     <div className="flex h-full flex-col bg-[#30764B] lg:hidden lg:bg-transparent">
       <div className="flex flex-col items-center py-6">
-        <Avatar
-          alt={user.fullName}
-          src={user.picture}
-          className="size-[5.25rem]"
-        />
+        <Avatar alt={user.fullName} src={user.picture} className="size-21" />
         <h3 className="mt-4 text-heading-sm font-bold text-white">
           {user.fullName}
         </h3>

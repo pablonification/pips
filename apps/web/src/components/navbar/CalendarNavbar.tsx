@@ -132,21 +132,21 @@ export default function CalendarNavbar() {
           to="/home"
           className={`flex w-full items-center gap-8 border-l-8 border-green-300 bg-yellow-75 px-4 py-2 pl-8 font-bold text-green-300 hover:bg-yellow-75 [&>svg]:fill-green-300 [&>svg]:stroke-neutral-light`}
         >
-          <HomeFilledIcon className="size-[2.625rem] fill-transparent stroke-black transition-colors duration-200" />
+          <HomeFilledIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
           <span>Home</span>
         </Link>
         <Link
           to="/timeline"
-          className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-[status]:border-green-300`}
+          className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-status:border-green-300`}
         >
-          <QuestionMarkIcon className="size-[2.625rem] fill-transparent stroke-black transition-colors duration-200" />
+          <QuestionMarkIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
           <span>Timeline</span>
         </Link>
         <Link
           to="/settings"
-          className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-[status]:border-green-300`}
+          className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-status:border-green-300`}
         >
-          <SettingsIcon className="size-[2.625rem] fill-transparent stroke-black transition-colors duration-200" />
+          <SettingsIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
           <span>Settings</span>
         </Link>
       </section>

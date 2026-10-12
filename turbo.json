@@ -1,0 +1,51 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "env": [
+        "VITE_*",
+        "SENTRY_*"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "check": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ]
+    },
+    "test": {
+      "env": [
+        "VITE_*"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ]
+    },
+    "e2e": {
+      "cache": false,
+      "env": [
+        "VITE_*",
+        "PLAYWRIGHT_*"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

@@ -30,11 +30,11 @@ function Schedule({
       <div className="relative">
         <div
           className={cn(
-            'absolute left-0 top-2 size-[1.125rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#245236]',
+            'absolute top-2 left-0 size-4.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#245236]',
             isLastIndex && 'bg-[#B0B3B0]',
           )}
         ></div>
-        <div className="absolute -left-0 top-2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D9D9D9]"></div>
+        <div className="absolute top-2 left-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D9D9D9]"></div>
         <Separator
           orientation="vertical"
           className={cn(
@@ -66,7 +66,7 @@ function Schedule({
               event.category === 'Himpunan' ? 'bg-green-300' : 'bg-yellow-300',
             )}
           ></div>
-          <p className="text-xs capitalize text-black">{event.category}</p>
+          <p className="text-xs text-black capitalize">{event.category}</p>
         </div>
       </div>
     </div>

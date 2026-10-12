@@ -1,5 +1,5 @@
 import { Chatroom, ChatroomLabel } from '~/api/generated';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type JSX } from 'react';
 import { Button } from '~/components/ui/button';
 import {
   Command,

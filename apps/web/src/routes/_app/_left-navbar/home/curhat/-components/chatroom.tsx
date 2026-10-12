@@ -124,11 +124,11 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, onBack, socket }) => {
             <img
               src={PinIcon}
               alt="Pin"
-              className="absolute bottom-0 right-0 size-[15px]"
+              className="absolute right-0 bottom-0 size-[15px]"
             />
           )}
         </div>
-        <h2 className="ml-3 capitalize text-white">{chat.title}</h2>
+        <h2 className="ml-3 text-white capitalize">{chat.title}</h2>
       </div>
 
       {/* Chat messages */}
@@ -139,7 +139,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, onBack, socket }) => {
         })}
       >
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 ">
+          <div className="flex flex-col items-center justify-center gap-3">
             <p className="text-5xl font-bold text-black">Chat Now!</p>
             <h2 className="text-lg font-medium text-black">
               Start Anonymous chat with Welfare!!

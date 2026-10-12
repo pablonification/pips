@@ -52,7 +52,7 @@ function InternshipAdminDetailPage() {
 
   return (
     <div className="flex size-full h-screen flex-col overflow-hidden bg-green-50">
-      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center overflow-auto lg:max-w-screen-lg lg:px-8">
+      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center overflow-auto lg:max-w-(--breakpoint-lg) lg:px-8">
         <Button
           variant="link"
           className="my-6 w-full justify-start gap-8 p-0 text-2xl font-medium lg:text-3xl"
@@ -92,7 +92,7 @@ function InternshipAdminDetailPage() {
             {submission.pengalamanOrganisasi && (
               <div>
                 <p className="font-semibold">Pengalaman Organisasi</p>
-                <p className="whitespace-pre-wrap text-sm text-neutral-darker">
+                <p className="text-sm whitespace-pre-wrap text-neutral-darker">
                   {submission.pengalamanOrganisasi}
                 </p>
               </div>
@@ -140,7 +140,7 @@ function InternshipAdminDetailPage() {
                         return (
                           <div key={q.id}>
                             <p className="text-sm font-medium">{q.label}</p>
-                            <p className="whitespace-pre-wrap text-sm text-neutral-darker">
+                            <p className="text-sm whitespace-pre-wrap text-neutral-darker">
                               {answer?.answer || '-'}
                             </p>
                           </div>

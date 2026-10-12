@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem } from '~/components/ui/form';
 import { TextField } from '~/components/ui/textfield';
@@ -32,11 +33,11 @@ export default function Headline({
                 errorClassName="absolute top-0.5 left-4 text-xs"
                 error={form.formState.errors.headline?.message}
                 success={form.formState.isSubmitSuccessful}
-                iconClassName="!size-3 !top-auto bottom-0.5 !translate-y-0 !right-12"
+                iconClassName="size-3! top-auto! bottom-0.5 translate-y-0! right-12!"
                 {...field}
               />
             </FormControl>
-            <p className="absolute bottom-0 right-4 text-xs text-[#6A6B6A]">
+            <p className="absolute right-4 bottom-0 text-xs text-[#6A6B6A]">
               {field.value.length}/100
             </p>
           </div>
