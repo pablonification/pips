@@ -41,7 +41,7 @@ export const FormListItemSchema = createSelectSchema(forms, {
   eligibleAngkatan: z.array(z.number()),
   sections: z.array(FormSectionSchema),
   opensAt: z.union([z.string(), z.date()]),
-  closesAt: z.union([z.string(), z.date()]).nullable(),
+  closesAt: z.date().nullable(),
   createdAt: z.union([z.string(), z.date()]),
 })
   .omit({ sections: true })
@@ -56,7 +56,7 @@ export const AdminFormListItemSchema = createSelectSchema(forms, {
   eligibleAngkatan: z.array(z.number()),
   sections: z.array(FormSectionSchema),
   opensAt: z.union([z.string(), z.date()]),
-  closesAt: z.union([z.string(), z.date()]).nullable(),
+  closesAt: z.date().nullable(),
   createdAt: z.union([z.string(), z.date()]),
 })
   .omit({ sections: true })
@@ -70,7 +70,7 @@ export const FormDetailSchema = createSelectSchema(forms, {
   eligibleAngkatan: z.array(z.number()),
   sections: z.array(FormSectionSchema).nullable(),
   opensAt: z.union([z.string(), z.date()]),
-  closesAt: z.union([z.string(), z.date()]).nullable(),
+  closesAt: z.date().nullable(),
   createdAt: z.union([z.string(), z.date()]),
 })
   .extend({ status: FormStatusSchema })

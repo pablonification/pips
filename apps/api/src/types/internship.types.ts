@@ -156,8 +156,8 @@ export const DraftInternshipSubmissionSchema = z
 /** SPARTA's window for the signed-in member. */
 export const InternshipWindowSchema = z
   .object({
-    opensAt: z.union([z.string(), z.date()]).nullable(),
-    closesAt: z.union([z.string(), z.date()]).nullable(),
+    opensAt: z.date().nullable(),
+    closesAt: z.date().nullable(),
     status: z.enum(['not_opened', 'open', 'closed']),
     eligible: z.boolean(),
   })
