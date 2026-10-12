@@ -1,4 +1,4 @@
-import { and, eq, inArray, InferInsertModel, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { Database } from '~/db/drizzle';
 import {
   chatroomMessageReads,
@@ -8,8 +8,10 @@ import {
   Chatroom,
   ChatroomMessage,
   UserPinnedChatrooms,
+  users,
 } from '~/db/schema';
 import { TChatroom } from '~/types/curhat.types';
+import { canCreateChatroom } from '~/lib/curhat';
 import { getUsersByRole } from './user-role.repo';
 
 type ChatroomWithMessages = Chatroom & {
@@ -79,15 +81,6 @@ export async function getWelfareChatrooms(db: Database, userId: string) {
   return processChatrooms(crms, pinned);
 }
 
-export async function createChatroom(
-  db: Database,
-  data: InferInsertModel<typeof chatrooms>,
-) {
-  return await db.transaction(async (tx) => {
-    return await tx.insert(chatrooms).values(data).returning();
-  });
-}
-
 export async function saveMessage(
   db: Database,
   userId: string,
@@ -133,12 +126,33 @@ export async function getOwnedChatroomIds(db: Database, userId: string) {
   return rows.map((r) => r.id);
 }
 
-export async function countUserChatrooms(db: Database, userId: string) {
-  const [row] = await db
-    .select({ count: sql<number>`cast(count(*) as int)` })
-    .from(chatrooms)
-    .where(eq(chatrooms.userId, userId));
-  return Number(row?.count ?? 0);
+/**
+ * Locks the member's row until the transaction ends, so two room creates for the same member run one after the
+ * other: the second waits, then counts the first one's room.
+ */
+export function lockMemberQuery(userId: string) {
+  return sql`select ${users.id} from ${users} where ${users.id} = ${userId} for update`;
+}
+
+/**
+ * Creates a room for `data.userId` unless they already have the most rooms allowed; answers `null` then. The
+ * count and the insert run in one transaction behind a lock on the member's row, so parallel requests can't all
+ * see the same count and slip past the limit (C4).
+ */
+export async function createChatroomWithinLimit(
+  db: Database,
+  data: { title: string; userId: string },
+) {
+  return await db.transaction(async (tx) => {
+    await tx.execute(lockMemberQuery(data.userId));
+    const [row] = await tx
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(chatrooms)
+      .where(eq(chatrooms.userId, data.userId));
+    if (!canCreateChatroom(Number(row?.count ?? 0))) return null;
+    const [room] = await tx.insert(chatrooms).values(data).returning();
+    return room;
+  });
 }
 
 export async function getChatroomMessageById(db: Database, messageId: string) {

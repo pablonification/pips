@@ -167,6 +167,7 @@ interface World {
   rooms: Array<TChatroom & { isPinned?: boolean }>;
   reads: Array<{ userId: string; messageId: string }>;
   created: Array<{ title: string; userId: string }>;
+  locks: Record<string, Promise<void>>;
 }
 
 function fakeDeps(world: World): CurhatDeps {
@@ -178,10 +179,22 @@ function fakeDeps(world: World): CurhatDeps {
     getUserRoles: async (id) => world.roles[id] ?? [],
     getUserChatrooms: async (id) => owned(id),
     getWelfareChatrooms: async () => new Map(world.rooms.map((r) => [r.id, r])),
-    countUserChatrooms: async (id) => owned(id).size,
-    createChatroom: async (data) => {
-      world.created.push(data);
-      return { id: `new-${world.created.length}`, ...data };
+    // Like the database: one create per member at a time (the row lock), counting rooms made just before.
+    createChatroomWithinLimit: async (data) => {
+      const previous = world.locks[data.userId] ?? Promise.resolve();
+      let release!: () => void;
+      world.locks[data.userId] = new Promise<void>((r) => (release = r));
+      await previous;
+      try {
+        await new Promise((r) => setImmediate(r));
+        if (!canCreateChatroom(owned(data.userId).size)) return null;
+        world.created.push(data);
+        const created = { id: `new-${world.created.length}`, ...data };
+        world.rooms.push({ ...created, messages: [] });
+        return created;
+      } finally {
+        release();
+      }
     },
     getChatroomOwner: async (id) => {
       const r = world.rooms.find((x) => x.id === id);
@@ -225,6 +238,7 @@ function newWorld(): World {
     ],
     reads: [],
     created: [],
+    locks: {},
   };
 }
 
@@ -274,10 +288,37 @@ test('a fourth room is refused with 400; a third is still allowed', async () => 
   assert.equal(third.status, 201);
   assert.equal(world.created.length, 1);
 
-  world.rooms.push(room('r3', nadia.id, []));
   const fourth = await call(world, nadia, 'POST', '/curhat/chatroom');
   assert.equal(fourth.status, 400);
   assert.equal(world.created.length, 1, 'no fourth room was created');
+});
+
+// Regression (review M1): the route counted, then created in a separate step, so creates sent together all
+// passed. The route now has one locked step to call; the real lock is tested against PostgreSQL in tests/db/.
+test('five creates sent together make one room and refuse the rest', async () => {
+  const world = newWorld();
+  const results = await Promise.all(
+    Array.from({ length: 5 }, () =>
+      call(world, nadia, 'POST', '/curhat/chatroom'),
+    ),
+  );
+  assert.deepEqual(
+    results.map((r) => r.status).sort(),
+    [201, 400, 400, 400, 400],
+  );
+  assert.equal(world.created.length, 1);
+  assert.equal(world.rooms.filter((r) => r.userId === nadia.id).length, 3);
+});
+
+test('the room create locks the member row, then counts and inserts in the same transaction', async () => {
+  usePlaceholderEnv();
+  const { lockMemberQuery } = await import('../src/repositories/chatroom.repo');
+  const query = new PgDialect().sqlToQuery(lockMemberQuery(nadia.id));
+  assert.equal(
+    query.sql.replace(/\s+/g, ' '),
+    'select "users"."id" from "users" where "users"."id" = $1 for update',
+  );
+  assert.deepEqual(query.params, [nadia.id]);
 });
 
 test('a new room comes back without its owner id, named by the server', async () => {

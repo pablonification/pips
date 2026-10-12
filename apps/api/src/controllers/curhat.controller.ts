@@ -8,8 +8,7 @@ import {
 } from '~/routes/curhat.route';
 import { createAuthRouter } from './router-factory';
 import {
-  countUserChatrooms,
-  createChatroom,
+  createChatroomWithinLimit,
   deleteChatroom,
   getChatroomOwner,
   getReadMessageIds,
@@ -27,7 +26,6 @@ import { TChatroom } from '~/types/curhat.types';
 import {
   CURHAT_ADMIN_ROLE,
   canAccessChatroom,
-  canCreateChatroom,
   countUnread,
   toChatroomResponse,
 } from '~/lib/curhat';
@@ -37,11 +35,11 @@ export interface CurhatDeps {
   getUserRoles: (userId: string) => Promise<string[]>;
   getUserChatrooms: (userId: string) => Promise<Map<string, TChatroom>>;
   getWelfareChatrooms: (userId: string) => Promise<Map<string, TChatroom>>;
-  countUserChatrooms: (userId: string) => Promise<number>;
-  createChatroom: (data: {
+  /** Counts the member's rooms and creates one in a single locked step; `null` when they're at the limit. */
+  createChatroomWithinLimit: (data: {
     title: string;
     userId: string;
-  }) => Promise<Chatroom>;
+  }) => Promise<Chatroom | null>;
   getChatroomOwner: (
     chatroomId: string,
   ) => Promise<{ id: string; userId: string | null } | undefined>;
@@ -62,8 +60,8 @@ const databaseDeps: CurhatDeps = {
   getUserRoles: async (userId) => await getUserRoles(db, userId),
   getUserChatrooms: async (userId) => await getUserChatrooms(db, userId),
   getWelfareChatrooms: async (userId) => await getWelfareChatrooms(db, userId),
-  countUserChatrooms: async (userId) => await countUserChatrooms(db, userId),
-  createChatroom: async (data) => (await createChatroom(db, data))[0],
+  createChatroomWithinLimit: async (data) =>
+    await createChatroomWithinLimit(db, data),
   getChatroomOwner: async (chatroomId) =>
     await getChatroomOwner(db, chatroomId),
   deleteChatroom: async (chatroomId) => {
@@ -93,7 +91,14 @@ export function createCurhatRouter(deps: CurhatDeps = databaseDeps) {
 
   curhatRouter.openapi(createChatroomRoute, async (c) => {
     const { id: userId } = c.var.user;
-    if (!canCreateChatroom(await deps.countUserChatrooms(userId))) {
+    const newChatroom = await deps.createChatroomWithinLimit({
+      title: uniqueNamesGenerator({
+        dictionaries: [colors, animals],
+        separator: ' ',
+      }),
+      userId,
+    });
+    if (!newChatroom) {
       return c.json(
         {
           error: 'You have reached the maximum chatrooms limit',
@@ -101,14 +106,6 @@ export function createCurhatRouter(deps: CurhatDeps = databaseDeps) {
         400,
       );
     }
-
-    const newChatroom = await deps.createChatroom({
-      title: uniqueNamesGenerator({
-        dictionaries: [colors, animals],
-        separator: ' ',
-      }),
-      userId,
-    });
     return c.json(
       toChatroomResponse({ ...newChatroom, messages: [] }, userId),
       201,

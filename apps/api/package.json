@@ -13,6 +13,7 @@
     "codecheck": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
+    "test:db": "tsx --test tests/db/*.test.ts",
     "openapi": "tsx scripts/openapi.ts"
   },
   "dependencies": {
