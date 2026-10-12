@@ -60,10 +60,23 @@ export function isWindowOpenFor(
   return windowStatus(window, now) === 'open' && isEligibleFor(window, user);
 }
 
-/** Where a window leads: an app path (`/layanan/sparta`) or an `https://` address. */
+const APP_ORIGIN = 'https://app.invalid';
+
+/**
+ * Where a window leads: an app path (`/layanan/sparta`) or an `https://` address. Control characters are refused
+ * (browsers drop tabs and newlines, turning `/\t/evil.com` into `//evil.com`), and an app path must stay on the
+ * app's origin once parsed.
+ */
 export function isValidWindowRoute(route: string): boolean {
+  // eslint-disable-next-line no-control-regex
+  if (/[\u0000-\u001f\u007f]/.test(route)) return false;
   if (route.startsWith('/')) {
-    return !route.startsWith('//') && !route.includes('\\');
+    if (route.startsWith('//') || route.includes('\\')) return false;
+    try {
+      return new URL(route, APP_ORIGIN).origin === APP_ORIGIN;
+    } catch {
+      return false;
+    }
   }
   try {
     const url = new URL(route);

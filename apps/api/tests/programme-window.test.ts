@@ -116,3 +116,21 @@ test('a route is an app path or an https address', () => {
   ])
     assert.equal(isValidWindowRoute(bad), false, bad);
 });
+
+// Regression (review minor 2): browsers drop tabs and newlines when parsing a URL, so "/\t/evil.com" became
+// "//evil.com", another site.
+test('a route with a control character is refused', () => {
+  for (const bad of [
+    '/\t/evil.com',
+    '/\n/evil.com',
+    '/\r/evil.com',
+    '/layanan\u0000/sparta',
+    '/layanan/sparta\u007f',
+    'https://hmif.dev/\n',
+  ])
+    assert.equal(isValidWindowRoute(bad), false, JSON.stringify(bad));
+  // What the browser makes of each: none may leave the app's origin.
+  for (const bad of ['/\t/evil.com', '/\n/evil.com']) {
+    assert.equal(new URL(bad, 'https://app.hmif.dev').host, 'evil.com');
+  }
+});
