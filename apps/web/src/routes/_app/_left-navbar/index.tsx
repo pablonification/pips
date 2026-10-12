@@ -1,4 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { queryClient } from '~/api/client';
+import { calendarEventsQuery, monthsAround } from '~/api/queries';
 import DesktopView from './-home/desktop-view';
 import MobileView from './-home/mobile-view';
 
@@ -15,5 +17,11 @@ function MainDashboard() {
 }
 
 export const Route = createFileRoute('/_app/_left-navbar/')({
+  // Today's agenda: the months the strip of today ±3 days touches, fetched while the page's code downloads.
+  loader: () => {
+    for (const m of monthsAround(new Date(), 3, 3)) {
+      void queryClient.prefetchQuery(calendarEventsQuery(m));
+    }
+  },
   component: MainDashboard,
 });

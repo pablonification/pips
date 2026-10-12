@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
-import { api } from '~/api/client';
+import { calendarEventsQuery } from '~/api/queries';
 
 export function useCalendarEvents(
   {
@@ -16,10 +16,7 @@ export function useCalendarEvents(
   },
 ) {
   return useQuery({
-    queryKey: ['calendar-events', { month, year }],
-    queryFn() {
-      return api.calendar.getPersonalCalendar({ month, year });
-    },
+    ...calendarEventsQuery({ month, year }),
     ...options,
   });
 }

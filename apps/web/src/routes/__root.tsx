@@ -1,8 +1,14 @@
-import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Outlet, createRootRoute, redirect } from '@tanstack/react-router';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { Toaster } from 'react-hot-toast';
 import { queryClient } from '~/api/client';
+import {
+  PERSIST_BUSTER,
+  PERSIST_MAX_AGE,
+  shouldPersistQuery,
+} from '~/api/persistence-policy';
+import { persister } from '~/api/persister';
 import { RootErrorFallback } from '~/components/error-fallback';
 import { legacyRedirect } from '~/lib/legacy-redirects';
 
@@ -24,10 +30,20 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <QueryClientProvider client={queryClient}>
+    // The profile, nearby calendar events, the feed's first page and the courses stay on the device for up
+    // to 7 days, so the app opens with them, offline too (SPEC story 135).
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister,
+        maxAge: PERSIST_MAX_AGE,
+        buster: PERSIST_BUSTER,
+        dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
+      }}
+    >
       <Toaster />
       <Outlet />
       <ReactQueryDevtools />
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }

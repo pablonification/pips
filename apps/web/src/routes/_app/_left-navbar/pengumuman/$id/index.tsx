@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { api } from '~/api/client';
-import { INFO_QUERY_KEY } from '~/api/constants';
+import { api, queryClient } from '~/api/client';
+import { infoCommentsQuery, infoDetailQuery } from '~/api/queries';
 import { preloadImages } from '~/lib/image';
 import CommentForm from './-components/comment-form';
 import Comments from './-components/comments';
@@ -17,20 +17,20 @@ export const Route = createFileRoute('/_app/_left-navbar/pengumuman/$id/')({
   beforeLoad() {
     preloadImages(Object.values(emojiImages));
   },
+  // Starts the post and its comments while the page's code downloads; the page picks up the same requests.
+  loader: ({ params }) => {
+    void queryClient.prefetchQuery(infoDetailQuery(params.id));
+    void queryClient.prefetchQuery(infoCommentsQuery(params.id));
+  },
 });
 
 function InfoDetail() {
   const { id: infoId } = Route.useParams();
   const { data: info } = useQuery({
-    queryKey: [INFO_QUERY_KEY, 'detail', infoId],
-    queryFn: () => api.info.getInfoById({ infoId }),
+    ...infoDetailQuery(infoId),
   });
   const { data: comments } = useQuery({
-    queryKey: [INFO_QUERY_KEY, 'comments', infoId],
-    queryFn: () =>
-      api.comment
-        .getCommentsList({ infoId, sort: 'oldest' })
-        .then((res) => res.comment),
+    ...infoCommentsQuery(infoId),
   });
 
   useQuery({

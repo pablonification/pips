@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Navigate, useLocation } from '@tanstack/react-router';
 import { createContext, useEffect } from 'react';
 import { UserWithRoles } from '~/api/generated';
+import { clearPersistedQueries } from '~/api/persister';
 import { common } from '~/copy/common';
 import { loginSearch } from '~/lib/safe-redirect';
 import {
@@ -38,6 +39,8 @@ export default function SessionProvider({
     if (data !== undefined) {
       saveUserCache(data);
     }
+    // Signed out by the server: nothing of this user's stays on the device.
+    if (data === null) void clearPersistedQueries();
   }, [data]);
 
   if (data === null) {

@@ -1,4 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { queryClient } from '~/api/client';
+import { chatroomsQuery } from '~/api/queries';
 import React, { useEffect, useState } from 'react';
 import ChatList from './-components/chatlist'; // Ensure the correct path to your ChatList component
 import ChatRoom from './-components/chatroom'; // Ensure the correct path to your ChatRoom component
@@ -91,5 +93,7 @@ const Curhat: React.FC = () => {
 
 // Now create the route
 export const Route = createFileRoute('/_app/_left-navbar/layanan/curhat/')({
+  // Fetched while the page's code downloads; the page picks up the same request.
+  loader: () => void queryClient.prefetchQuery(chatroomsQuery()),
   component: Curhat,
 });
