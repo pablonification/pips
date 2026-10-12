@@ -66,6 +66,7 @@ import { currentTheme, subscribe as onThemeChange } from '~/lib/theme/theme';
 import { THEME_COLORS } from '~/lib/theme/theme-core.mjs';
 import { cn } from '~/lib/utils';
 import { useNavBadges, type NavBadges } from './nav-badges';
+import { focusPageTitle } from './focus';
 import { LegacyScreen, OwnTitle, TopBarSlot } from './page';
 import { openPalette, usePaletteOpen } from './palette/palette-store';
 import {
@@ -119,20 +120,6 @@ function useShellRoute(): ShellRoute {
     index: (location.state as { __TSR_index?: number }).__TSR_index ?? 0,
     titles,
   };
-}
-
-/** The page's own title after a navigation, else the main landmark (SPEC "Route changes move focus to the h1"). */
-function focusPageTitle() {
-  const active = document.activeElement;
-  if (active?.closest('[role="dialog"]')) return;
-  const visible = (el: HTMLElement) =>
-    typeof el.checkVisibility === 'function'
-      ? el.checkVisibility()
-      : el.offsetParent !== null;
-  const title = [
-    ...document.querySelectorAll<HTMLElement>('[data-page-title]'),
-  ].find(visible);
-  (title ?? document.getElementById('isi'))?.focus({ preventScroll: true });
 }
 
 export function AppShell({ children }: { children: ReactNode }) {

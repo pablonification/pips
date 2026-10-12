@@ -11,7 +11,7 @@ import { IconCari } from '~/components/icons/cari';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
 import { paletteResults, type PaletteItem } from '~/lib/shell/palette';
-import { closePalette } from './palette-store';
+import { closePalette, closePaletteAfterRun } from './palette-store';
 import { usePaletteItems } from './sources';
 
 const t = common.palette;
@@ -33,7 +33,7 @@ export default function Palette() {
   }
 
   const run = (item: PaletteItem) => {
-    closePalette(false);
+    closePaletteAfterRun();
     item.run();
   };
 
