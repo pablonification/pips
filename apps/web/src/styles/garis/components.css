@@ -165,7 +165,7 @@
     background: var(--bg-inverse);
     color: var(--text-on-inverse);
   }
-  .g-tag.outline {
+  .g-tag.outlined {
     background: transparent;
     box-shadow: inset 0 0 0 1px var(--border);
   }

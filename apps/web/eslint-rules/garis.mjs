@@ -99,10 +99,23 @@ const noTransitionAll = {
     schema: [],
   },
   create(context) {
-    return onStrings(context, (node, text) => {
-      if (/(?:^|[\s:])transition-all(?!\S)|transition(?:-property)?\s*:\s*all\b/.test(text))
-        context.report({ node, messageId: 'all' });
-    });
+    return {
+      ...onStrings(context, (node, text) => {
+        if (/(?:^|[\s:])transition-all(?!\S)|transition(?:-property)?\s*:\s*all\b/.test(text))
+          context.report({ node, messageId: 'all' });
+      }),
+      // style={{ transition: 'all 100ms' }}
+      Property(node) {
+        const key = node.key.type === 'Identifier' ? node.key.name : node.key.value;
+        if (
+          (key === 'transition' || key === 'transitionProperty') &&
+          node.value.type === 'Literal' &&
+          typeof node.value.value === 'string' &&
+          /^\s*all\b/.test(node.value.value)
+        )
+          context.report({ node, messageId: 'all' });
+      },
+    };
   },
 };
 
