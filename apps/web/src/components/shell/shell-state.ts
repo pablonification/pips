@@ -1,7 +1,10 @@
 /**
  * What the shell remembers between pages, outside React: titles screens gave themselves, the history entries this
- * visit has seen (for back's label and whether history leads to a page of the app) and the last tab you were on (Profil's back target on phones). Kept in sessionStorage, so a reload in the
- * middle of a visit keeps them; nothing here is about the member.
+ * visit has seen (for back's label and whether history leads to a page of the app) and the last tab you were on
+ * (Profil's back target on phones). Kept in sessionStorage, so a reload in the middle of a visit keeps them.
+ * Titles from data can be the member's (a Curhat room, a form), so `forgetShell()` clears all of it whenever the
+ * member's data goes: at sign-out, on a 401 and when someone signs in (src/lib/forget-member.ts, review M5). Signing
+ * in also starts back's history afresh, so back never follows an entry from before.
  */
 import { useSyncExternalStore } from 'react';
 import { DESTINATIONS, type Destination } from '~/lib/shell/routes';
@@ -55,6 +58,19 @@ function save() {
   }, 200);
 }
 
+/** Forgets every title, the history entries and the last tab, in memory and in the tab's storage. */
+export function forgetShell() {
+  if (writeTimer) clearTimeout(writeTimer);
+  writeTimer = null;
+  state = { titles: {}, entries: {}, lastRoot: 'beranda' };
+  try {
+    sessionStorage.removeItem(KEY);
+  } catch {
+    /* storage blocked: nothing was kept there */
+  }
+  listeners.forEach((l) => l());
+}
+
 function change(update: (s: Saved) => Saved) {
   state = update(get());
   save();
@@ -75,13 +91,12 @@ export function setTitleFor(pathname: string, title: string) {
   change((s) => ({ ...s, titles: { ...s.titles, [pathname]: title } }));
 }
 
+/** The titles screens gave pages, as `useTitles` sees them. */
+export const titlesSnapshot = () => get().titles;
+
 /** Re-renders when a screen sets a title. */
 export function useTitles(): Record<string, string> {
-  return useSyncExternalStore(
-    subscribe,
-    () => get().titles,
-    () => ({}),
-  );
+  return useSyncExternalStore(subscribe, titlesSnapshot, () => ({}));
 }
 
 export function recordEntry(index: number, pathname: string, title: string) {
