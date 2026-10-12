@@ -61,11 +61,16 @@ const SERVER: Record<Capability, () => string[]> = {
     return ['ring1'];
   },
   respondCurhat: () => {
+    // The role is one constant (P0-D), used by the Welfare list, pins and the room access rule.
+    const role = /CURHAT_ADMIN_ROLE\s*=\s*'([a-z0-9]+)'/.exec(
+      api('lib/curhat.ts'),
+    )![1];
     assert.match(
       api('controllers/curhat.controller.ts'),
-      /roles\.includes\('curhatadmin'\)/,
+      /roles\.includes\(CURHAT_ADMIN_ROLE\)/,
     );
-    return ['curhatadmin'];
+    assert.match(api('lib/curhat.ts'), /roles\.includes\(CURHAT_ADMIN_ROLE\)/);
+    return [role];
   },
 };
 
