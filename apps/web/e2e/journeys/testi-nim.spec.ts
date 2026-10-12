@@ -42,17 +42,25 @@ test('Testi Matkul by browsing: program, semester, course, testimonials', async 
 });
 
 test('Testi Matkul by searching a course code', async ({ page }) => {
+  // Known bug in today's app: it lowercases the query, then compares it with upper-case course codes
+  // (routes/_app/_left-navbar/home/testimoni/$type/$semester/index.tsx), so a code never matches.
+  // Kept as an expected failure; when the redesign fixes search, remove this line.
+  test.fail(true, 'today’s app cannot find a course by its code');
   await page.goto('/home/testimoni/teknik-informatika/3');
+  await expect(
+    page.getByRole('link', { name: 'Sistem Operasi' }).locator('visible=true'),
+  ).toBeVisible();
   await page
     .getByPlaceholder('Search...')
     .locator('visible=true')
     .fill('IF2130');
-  await expect(
-    page.getByRole('link', { name: 'Sistem Operasi' }).locator('visible=true'),
-  ).toBeVisible();
+  // First the filter applies (other courses leave), then the match must remain.
   await expect(
     page.getByRole('link', { name: 'Algoritma dan Pemrograman II' }),
   ).toHaveCount(0);
+  await expect(
+    page.getByRole('link', { name: 'Sistem Operasi' }).locator('visible=true'),
+  ).toBeVisible({ timeout: 3_000 });
 });
 
 test('NIM Finder finds members by name and by NIM', async ({

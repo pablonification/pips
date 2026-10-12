@@ -27,7 +27,7 @@ test('Set Courses lists this semester’s courses and SKS', async ({
     .locator('visible=true')
     .click();
   await expect(
-    page.getByRole('heading', { name: 'Your Courses' }).locator('visible=true'),
+    page.getByRole('heading', { name: 'Your Courses' }).locator('visible=true').first(),
   ).toBeVisible();
   await expect(visibleText(page, 'Algoritma dan Pemrograman II')).toBeVisible();
   await expect.poll(() => pageText(page)).toMatch(/Jumlah SKS ?18/);
@@ -40,7 +40,7 @@ test('adding a course searches the catalogue', async ({
 }, testInfo) => {
   await page.goto('/settings/courses/add');
   await expect(
-    page.getByRole('heading', { name: 'Add Courses' }).locator('visible=true'),
+    page.getByRole('heading', { name: 'Add Courses' }).locator('visible=true').first(),
   ).toBeVisible();
   await page
     .getByPlaceholder('Search...')
@@ -56,7 +56,7 @@ test('notification switches, with required categories locked', async ({
 }, testInfo) => {
   await page.goto('/settings/subscriptions');
   await expect(
-    page.getByRole('heading', { name: 'Notification' }).locator('visible=true'),
+    page.getByRole('heading', { name: 'Notification' }).locator('visible=true').first(),
   ).toBeVisible();
   const switches = page.getByRole('switch').locator('visible=true');
   await expect(switches).toHaveCount(6);
