@@ -7,6 +7,7 @@ import type { Page } from '@playwright/test';
 import { layoutOf, navLink } from '../support/app';
 import { reply } from '../support/mock';
 import { expect, test } from '../support/test';
+import * as writes from '../support/writes';
 
 const scroller = (page: Page) =>
   page.locator('[data-scroll-restoration-id="isi"]');
@@ -49,6 +50,25 @@ test.describe('a screen’s own title', () => {
     ).toBeFocused();
   });
 
+  test('on a slow device too, Back moves focus to the screen’s own title', async ({
+    page,
+  }) => {
+    // Regression: under load the router's onRendered event sometimes reported no path change on Back, so focus
+    // stayed on the link clicked before (seen in the full suite; 1 in 9 runs at 20× CPU slowdown before the fix).
+    await page.goto('/dev/shell');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+    await navLink(page, 'Layanan').click();
+    await expect(page).toHaveURL(/\/layanan$/);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 20 });
+    await page.goBack();
+    await expect(page).toHaveURL(/\/dev\/shell$/);
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Halaman uji shell' }),
+    ).toBeFocused();
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  });
+
   test('a title from data names the page in the top bar, the breadcrumbs and the document title', async ({
     page,
   }, testInfo) => {
@@ -63,7 +83,9 @@ test.describe('a screen’s own title', () => {
 
   test('a split page has no breadcrumbs on desktop (the post beside the feed) @desktop-only', async ({
     page,
+    api,
   }) => {
+    api.on('POST /api/info/:infoId/read', writes.markRead);
     await page.goto('/pengumuman/p1');
     await expect(page.getByRole('main')).toBeVisible();
     await expect(page).toHaveTitle('Pengumuman · PIPS!');

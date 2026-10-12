@@ -23,12 +23,15 @@ import {
   useContext,
   useEffect,
   useLayoutEffect,
+  useRef,
   type HTMLAttributes,
   type ReactNode,
+  type Ref,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from '@tanstack/react-router';
 import { cn } from '~/lib/utils';
+import { titleAppeared } from './focus';
 import { setTitleFor } from './shell-state';
 
 /** Gives the current page a title from its data (see above). */
@@ -42,7 +45,10 @@ export function usePageTitle(title: string | null | undefined) {
 /** The shell counts the screen's own titles on the page, so the top bar knows whether its title is the heading. */
 export const OwnTitle = createContext<((delta: 1 | -1) => void) | null>(null);
 
-function Heading({ className, ...rest }: HTMLAttributes<HTMLHeadingElement>) {
+function Heading({
+  className,
+  ...rest
+}: HTMLAttributes<HTMLHeadingElement> & { ref?: Ref<HTMLHeadingElement> }) {
   return (
     <h1
       data-page-title=""
@@ -55,13 +61,16 @@ function Heading({ className, ...rest }: HTMLAttributes<HTMLHeadingElement>) {
 
 export function PageTitle(props: HTMLAttributes<HTMLHeadingElement>) {
   const register = useContext(OwnTitle);
-  // Before paint, so the top bar never shows a second h1, and focus after navigation finds this one.
+  const ref = useRef<HTMLHeadingElement>(null);
+  // Before paint, so the top bar never shows a second h1, and focus after navigation finds this one, also when it
+  // appears after the shell moved focus (focus.ts).
   useLayoutEffect(() => {
+    if (ref.current) titleAppeared(ref.current);
     if (!register) return;
     register(1);
     return () => register(-1);
   }, [register]);
-  return <Heading {...props} />;
+  return <Heading ref={ref} {...props} />;
 }
 
 export function DeskHead({
