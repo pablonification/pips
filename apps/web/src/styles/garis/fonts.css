@@ -1,0 +1,48 @@
+/*
+  Self-hosted fonts (SPEC "Typography"). No third-party font request: both files are served from /fonts/.
+  - Geist, variable 400–600, Latin and Latin Extended, preloaded by index.html.
+  - Archivo Expanded 700: one static instance (width 125), Latin, for page titles, the greeting and brand marks.
+  Built by scripts/fonts/build-fonts.py from the `geist` and `@fontsource-variable/archivo` packages (SIL OFL 1.1).
+  The fallback faces are Arial scaled to each font's metrics (numbers from that script), so the swap doesn't move
+  the layout.
+*/
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/geist-latin-400-600.woff2') format('woff2');
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Archivo Expanded';
+  src: url('/fonts/archivo-expanded-700-latin.woff2') format('woff2');
+  font-weight: 700;
+  font-stretch: 125%;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Fallback';
+  src: local('Arial'), local('ArialMT'), local('Helvetica'), local('Roboto');
+  size-adjust: 103.82%;
+  ascent-override: 96.8%;
+  descent-override: 28.42%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Archivo Expanded Fallback';
+  src:
+    local('Arial Bold'), local('Arial-BoldMT'), local('Helvetica Bold'),
+    local('Roboto Bold');
+  font-weight: 700;
+  size-adjust: 132.99%;
+  ascent-override: 66.02%;
+  descent-override: 15.79%;
+  line-gap-override: 0%;
+}
+
+:root {
+  --font-text: 'Geist', 'Geist Fallback', system-ui, sans-serif;
+  --font-display:
+    'Archivo Expanded', 'Archivo Expanded Fallback', 'Geist', sans-serif;
+}
