@@ -1159,6 +1159,8 @@ export const forms = pgTable('forms', {
     .default([]),
   sections: json('sections').$type<FormSection[]>().notNull().default([]),
   opensAt: timestamp('opens_at', { withTimezone: true }).notNull(),
+  // When answers stop being accepted; null keeps the form open until it's switched off (isActive).
+  closesAt: timestamp('closes_at', { withTimezone: true }),
   isActive: boolean('is_active').notNull().default(true),
   order: integer('order').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true })

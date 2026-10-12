@@ -56,7 +56,7 @@ export const getFormRoute = createRoute({
   responses: {
     200: {
       description:
-        'Form detail. `sections` is null if the form has not opened yet.',
+        'Form detail with your `status`. `sections` is null until the form opens; a closed form still has them, for a read-only view.',
       content: { 'application/json': { schema: FormDetailSchema } },
     },
     401: errorResponse,
@@ -107,7 +107,11 @@ export const submitFormResponseRoute = createRoute({
       },
     },
     401: errorResponse,
-    403: errorResponse,
+    403: {
+      description:
+        'Not for your angkatan, not open yet, or closed (switched off or past closesAt)',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
     404: errorResponse,
     409: {
       description: 'Already submitted a response for this form',
