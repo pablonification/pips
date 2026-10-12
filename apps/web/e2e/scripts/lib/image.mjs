@@ -30,7 +30,10 @@ export function blank(width, height, rgb = [255, 255, 255]) {
   return { width, height, data };
 }
 
-/** Area-average resize (good for downscaling, fine for small upscales). @param {Img} img @returns {Img} */
+/**
+ * Area-average resize (good for downscaling, fine for small upscales).
+ * @param {Img} img @param {number} width @param {number} height @returns {Img}
+ */
 export function resize(img, width, height) {
   if (img.width === width && img.height === height) return img;
   const out = new Uint8Array(width * height * 4);
@@ -61,6 +64,10 @@ export function resize(img, width, height) {
 }
 
 /** Pads or crops to the given size from the top left, so images of different heights can be compared. */
+/**
+ * @param {Img} img @param {number} width @param {number} height
+ * @param {[number, number, number]} [rgb]
+ */
 export function fit(img, width, height, rgb = [255, 255, 255]) {
   if (img.width === width && img.height === height) return img;
   const out = blank(width, height, rgb);

@@ -60,6 +60,7 @@ if (code !== 0)
   );
 process.exit(code);
 
+/** @param {any[]} records @param {boolean} complete @param {any} resumedFrom */
 function buildManifest(records, complete, resumedFrom) {
   const states = new Map();
   for (const r of records) {
@@ -78,7 +79,7 @@ function buildManifest(records, complete, resumedFrom) {
         total: r.audit.axe.total,
         ...r.audit.axe.byImpact,
         rules: r.audit.axe.violations.map(
-          (v) => `${v.id} (${v.impact}, ${v.nodes})`,
+          (/** @type {any} */ v) => `${v.id} (${v.impact}, ${v.nodes})`,
         ),
       },
       overflowX: r.audit.metrics.overflowX,
@@ -89,8 +90,13 @@ function buildManifest(records, complete, resumedFrom) {
     states.set(r.id, s);
   }
   const all = [...states.values()];
+  /** @param {string} key */
   const sum = (key) =>
-    records.reduce((n, r) => n + (r.audit.axe.byImpact[key] ?? 0), 0);
+    records.reduce(
+      (/** @type {number} */ n, /** @type {any} */ r) =>
+        n + (r.audit.axe.byImpact[key] ?? 0),
+      0,
+    );
   return {
     kind: 'pips-before-set',
     complete,
@@ -114,10 +120,11 @@ function buildManifest(records, complete, resumedFrom) {
   };
 }
 
+/** @param {any} m */
 function gallery(m) {
   const review = reviewCaptures();
   const cards = m.states
-    .flatMap((s) =>
+    .flatMap((/** @type {any} */ s) =>
       VARIANTS.filter((v) => s.variants[v]).map((v) => {
         const c = s.variants[v];
         const serious = c.axe.critical + c.axe.serious;
@@ -139,10 +146,10 @@ function gallery(m) {
 <p>${t.captures} captures of ${t.states} states at phone (390 × 844 @2x) and desktop (1440 × 900), light and dark. Today's app has no dark theme: the dark captures show that it ignores the setting.
 Axe in total: ${t.axeViolations.critical} critical, ${t.axeViolations.serious} serious, ${t.axeViolations.moderate} moderate, ${t.axeViolations.minor} minor rule violations (one per rule per capture). Details in <a href="manifest.json">manifest.json</a>.</p>
 ${review}
-<div class="filters">${filterSelect('variant', 'Size and theme', VARIANTS)}${filterSelect('persona', 'Persona', [...new Set(m.states.map((s) => s.persona))])}${filterSelect(
+<div class="filters">${filterSelect('variant', 'Size and theme', VARIANTS)}${filterSelect('persona', 'Persona', [...new Set(m.states.map((/** @type {any} */ s) => s.persona))])}${filterSelect(
     'state',
     'State',
-    m.states.map((s) => s.id),
+    m.states.map((/** @type {any} */ s) => s.id),
   )}<span class="muted"><span id="count"></span> shown</span></div>
 <div class="grid">${cards}</div>`;
   return page('PIPS! before set', body, FILTER_SCRIPT);

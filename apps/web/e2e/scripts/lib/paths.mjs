@@ -22,6 +22,7 @@ export function redesignDir() {
 }
 
 /** A record folder: `ops/redesign/<name>` in the workspace, else `e2e/.out/<name>`. */
+/** @param {string} name */
 export function recordDir(name) {
   const base = redesignDir();
   return base ? path.join(base, name) : path.join(appDir, 'e2e', '.out', name);

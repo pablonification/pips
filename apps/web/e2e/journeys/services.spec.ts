@@ -7,7 +7,12 @@ test('Ding Dong lists this semester’s course folders', async ({
 }, testInfo) => {
   await page.goto('/home/dingdong');
   // The phone layout heads the list with the semester; desktop has only the page title.
-  await expect(page.getByRole('heading', { name: 'Dingdong' }).locator('visible=true').first()).toBeVisible();
+  await expect(
+    page
+      .getByRole('heading', { name: 'Dingdong' })
+      .locator('visible=true')
+      .first(),
+  ).toBeVisible();
   const folder = page
     .getByRole('link', { name: 'Folder IF2110 Algoritma dan Pemrograman II' })
     .locator('visible=true');

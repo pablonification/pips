@@ -1,6 +1,7 @@
 // A shared page shell for the harness's HTML reports: plain, readable, no external resources.
 import { esc } from './run.mjs';
 
+/** @param {string} title @param {string} body */
 export function page(title, body, script = '') {
   return `<!doctype html>
 <html lang="en">

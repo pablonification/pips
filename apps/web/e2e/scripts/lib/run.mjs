@@ -35,6 +35,7 @@ export function gitHead() {
 }
 
 /** Capture records written by e2e/support/capture.ts. @returns {any[]} */
+/** @param {string} dir */
 export function readRecords(dir) {
   const recordsDir = path.join(dir, 'records');
   if (!existsSync(recordsDir)) return [];

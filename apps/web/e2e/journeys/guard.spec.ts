@@ -6,7 +6,7 @@ import { reply } from '../support/mock';
 import { expect, test } from '../support/test';
 
 /** Runs in the page: the response status, or 'network error' when the request was aborted. */
-const fetchStatus = ([path, init]: [string, RequestInit?]) =>
+const fetchStatus = ({ path, init }: { path: string; init?: RequestInit }) =>
   fetch(path, init).then(
     (r) => r.status,
     () => 'network error',
@@ -17,9 +17,9 @@ test('a request with no handler is aborted and fails the test with its method an
   api,
 }) => {
   await page.goto('/home');
-  const status = await page.evaluate(fetchStatus, [
-    '/api/not-a-real-endpoint?x=1',
-  ]);
+  const status = await page.evaluate(fetchStatus, {
+    path: '/api/not-a-real-endpoint?x=1',
+  });
   expect(status).toBe('network error');
   expect(api.problems).toEqual([
     'GET /api/not-a-real-endpoint?x=1: no handler',
@@ -32,10 +32,10 @@ test('a write is aborted unless the test registered a handler for it', async ({
   api,
 }) => {
   await page.goto('/home');
-  const status = await page.evaluate(fetchStatus, [
-    '/api/info',
-    { method: 'POST', body: '{}' },
-  ]);
+  const status = await page.evaluate(fetchStatus, {
+    path: '/api/info',
+    init: { method: 'POST', body: '{}' },
+  });
   expect(status).toBe('network error');
   expect(api.problems).toHaveLength(1);
   expect(api.problems[0]).toMatch(/^POST \/api\/info: a write with no handler/);
@@ -45,10 +45,10 @@ test('a write is aborted unless the test registered a handler for it', async ({
   api.problems.length = 0;
 
   api.on('POST /api/info', reply.json({ id: 'new' }, 201));
-  const ok = await page.evaluate(fetchStatus, [
-    '/api/info',
-    { method: 'POST', body: '{}' },
-  ]);
+  const ok = await page.evaluate(fetchStatus, {
+    path: '/api/info',
+    init: { method: 'POST', body: '{}' },
+  });
   expect(ok).toBe(201);
   expect(api.problems).toEqual([]);
 });
@@ -58,10 +58,10 @@ test('defaults never answer writes, even where a GET default exists', async ({
   api,
 }) => {
   await page.goto('/home');
-  const status = await page.evaluate(fetchStatus, [
-    '/api/me',
-    { method: 'DELETE' },
-  ]);
+  const status = await page.evaluate(fetchStatus, {
+    path: '/api/me',
+    init: { method: 'DELETE' },
+  });
   expect(status).toBe('network error');
   expect(api.problems).toHaveLength(1);
   api.problems.length = 0;
@@ -72,9 +72,9 @@ test('third-party requests are blocked and recorded, not sent', async ({
   api,
 }) => {
   await page.goto('/home');
-  const status = await page.evaluate(fetchStatus, [
-    'https://www.google-analytics.com/collect?v=2',
-  ]);
+  const status = await page.evaluate(fetchStatus, {
+    path: 'https://www.google-analytics.com/collect?v=2',
+  });
   expect(status).toBe('network error');
   expect(api.blocked.map((r) => r.path)).toContain(
     'https://www.google-analytics.com/collect',
@@ -92,7 +92,9 @@ test('overrides answer with errors, delays and empty lists', async ({
     .on('GET /api/form', { forms: [] });
   await page.goto('/home');
   expect(
-    await page.evaluate(fetchStatus, ['/api/calendar/me?month=10&year=2026']),
+    await page.evaluate(fetchStatus, {
+      path: '/api/calendar/me?month=10&year=2026',
+    }),
   ).toBe(503);
   const started = Date.now();
   expect(
@@ -110,8 +112,10 @@ test('the browser can be taken offline', async ({ page, api }) => {
   await page.goto('/home');
   await api.setOffline(true);
   expect(await page.evaluate(() => navigator.onLine)).toBe(false);
-  expect(await page.evaluate(fetchStatus, ['/api/me'])).toBe('network error');
+  expect(await page.evaluate(fetchStatus, { path: '/api/me' })).toBe(
+    'network error',
+  );
   await api.setOffline(false);
-  expect(await page.evaluate(fetchStatus, ['/api/me'])).toBe(200);
+  expect(await page.evaluate(fetchStatus, { path: '/api/me' })).toBe(200);
   expect(api.problems).toEqual([]);
 });

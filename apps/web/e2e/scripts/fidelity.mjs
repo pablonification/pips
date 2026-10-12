@@ -92,6 +92,7 @@ const unexpected = [...lockedFiles].filter(
   (f) => !names.some((n) => `${n.name}.png` === f),
 );
 
+/** @param {string} st */
 const count = (st) => rows.filter((r) => r.status === st).length;
 const report = {
   kind: 'pips-fidelity',
@@ -122,9 +123,10 @@ if (unexpected.length)
 console.log(`Report: ${path.join(out, 'index.html')}`);
 process.exit(code);
 
+/** @param {any} r */
 function html(r) {
   const cards = r.screens
-    .map((row) => {
+    .map((/** @type {any} */ row) => {
       const cls =
         row.status === 'close'
           ? 'ok'

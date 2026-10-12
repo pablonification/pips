@@ -43,6 +43,7 @@ const after = new Map(
   readRecords(afterDir).map((r) => [`${r.variant}/${r.id}`, r]),
 );
 
+/** @type {any[]} */
 const rows = [];
 for (const state of manifest.states) {
   for (const variant of VARIANTS) {
@@ -93,7 +94,7 @@ for (const state of manifest.states) {
 }
 // States captured now that the before set doesn't have are reported, not failed: they are new.
 const known = new Set(
-  manifest.states.flatMap((s) =>
+  manifest.states.flatMap((/** @type {any} */ s) =>
     Object.keys(s.variants).map((v) => `${v}/${s.id}`),
   ),
 );
@@ -135,8 +136,11 @@ for (const r of changed)
 console.log(`Report: ${path.join(out, 'index.html')}`);
 process.exit(changed.length || code !== 0 ? 1 : 0);
 
+/** @param {any} r */
 function html(r) {
+  /** @param {number} x */
   const pct = (x) => `${(x * 100).toFixed(3)} %`;
+  /** @param {any} x */
   const axe = (x) =>
     x ? `${x.critical}/${x.serious}/${x.moderate}/${x.minor}` : '–';
   const sorted = [...r.states].sort((a, b) => b.ratio - a.ratio);

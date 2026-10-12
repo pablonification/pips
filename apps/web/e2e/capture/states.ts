@@ -65,7 +65,9 @@ export const STATES: CaptureState[] = [
     title: 'App loading the session',
     path: '/home',
     // Shown only before the member is cached on the device, while /api/me is pending.
-    prepare: (p) => p.addInitScript(() => localStorage.removeItem('user')),
+    prepare: async (p) => {
+      await p.addInitScript(() => localStorage.removeItem('user'));
+    },
     mock: (api) => api.on('GET /api/me', reply.hang()),
     ready: (p) => p.getByText('Loading...'),
   },
@@ -185,7 +187,9 @@ export const STATES: CaptureState[] = [
       // The menu button of the first post's card (on desktop the composer also opens a dialog).
       await p
         .locator('div')
-        .filter({ has: heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4) })
+        .filter({
+          has: heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4),
+        })
         .filter({ has: p.locator('button[aria-haspopup="dialog"]') })
         .last()
         .locator('button[aria-haspopup="dialog"]')
@@ -395,7 +399,12 @@ export const STATES: CaptureState[] = [
     id: 'settings',
     title: 'Settings',
     path: '/settings',
-    ready: (p) => p.getByRole('listitem').filter({ hasText: '13525045' }).locator('visible=true').first(),
+    ready: (p) =>
+      p
+        .getByRole('listitem')
+        .filter({ hasText: '13525045' })
+        .locator('visible=true')
+        .first(),
   },
   {
     id: 'settings-courses',
@@ -449,7 +458,10 @@ export const STATES: CaptureState[] = [
     title: 'Data SPARTA Magang table',
     persona: 'pengurus',
     path: '/home/internship/admin',
-    ready: (p) => p.locator('a[href="/home/internship/admin/sub-13525071"]').locator('visible=true'),
+    ready: (p) =>
+      p
+        .locator('a[href="/home/internship/admin/sub-13525071"]')
+        .locator('visible=true'),
   },
   {
     id: 'sparta-submission',

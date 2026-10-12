@@ -377,9 +377,16 @@ export const pixelForm: FormDetail = {
   createdAt: wib(9, 1),
 };
 
+/** A form without its questions, as the list endpoints return it. */
+function formSummary(form: FormDetail): Omit<FormDetail, 'sections'> {
+  const summary: Partial<FormDetail> = { ...form };
+  delete summary.sections;
+  return summary as Omit<FormDetail, 'sections'>;
+}
+
 function formList(persona: PersonaKey, responded: boolean): FormListItem[] {
   if (!PIXEL_FORM.angkatan.includes(PERSONAS[persona].angkatan)) return [];
-  const { sections: _sections, ...rest } = pixelForm;
+  const rest = formSummary(pixelForm);
   return [
     {
       ...rest,
@@ -690,9 +697,7 @@ export function buildDb(persona: PersonaKey | null): Db {
     forms: persona ? formList(persona, false) : [],
     formDetails: { [pixelForm.id]: pixelForm },
     myResponses: {},
-    adminForms: isAdmin
-      ? [(({ sections: _s, ...rest }) => rest)(pixelForm)]
-      : [],
+    adminForms: isAdmin ? [formSummary(pixelForm)] : [],
     adminResponses: { [pixelForm.id]: adminResponses() },
     formAnalytics: { [pixelForm.id]: formAnalytics },
     competitions: toCompetitions(),
