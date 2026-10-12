@@ -1,12 +1,18 @@
-import type { JSX } from 'react';
+import { lazy, Suspense, type JSX } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import MegaphoneIcon from '~/assets/icons/megaphone-fill.svg';
 import { deleteSharedData } from '~/lib/share-db';
-import { AddAnnouncementPage } from '~/routes/_app/_left-navbar/pengumuman/tulis';
 import { Button } from '~/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '~/components/ui/dialog';
 
 const routeApi = getRouteApi('/_app');
+
+// The composer (form, camera, uploads) loads when the dialog opens, not with the feed (P0-B).
+const AddAnnouncementPage = lazy(() =>
+  import('~/routes/_app/_left-navbar/pengumuman/tulis/-components/AddAnnouncementPage').then(
+    (m) => ({ default: m.AddAnnouncementPage }),
+  ),
+);
 
 export default function Announce(): JSX.Element {
   // Plain useNavigate: since router 1.170 the route API's navigate resolves from `/_app`'s path (`/`), which would leave the page.
@@ -52,7 +58,9 @@ export default function Announce(): JSX.Element {
           hideCloseButton
           className="w-[62vw] max-w-none overflow-hidden rounded-3xl! p-0"
         >
-          <AddAnnouncementPage isDesktop />
+          <Suspense fallback={null}>
+            <AddAnnouncementPage isDesktop />
+          </Suspense>
         </DialogContent>
       </Dialog>
     </div>

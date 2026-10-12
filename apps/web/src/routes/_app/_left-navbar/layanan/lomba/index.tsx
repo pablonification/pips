@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { lazy, Suspense, useRef, useState } from 'react';
 import { InView } from 'react-intersection-observer';
 import { api } from '~/api/client';
 import PlusCircle from '~/assets/icons/competition/plus-circle.svg';
@@ -9,8 +9,15 @@ import PlusIcon from '~/assets/icons/plus.svg';
 import { Button } from '~/components/ui/button';
 import useSession from '~/hooks/auth/useSession';
 import { isInRoles } from '~/lib/roles';
-import AddCompetitionDialog from './-components/AddCompetitionDialog';
-import { AddCompetitionDrawer } from './-components/AddCompetitionDrawer';
+// The add-competition dialog and drawer (forms, drawer, combobox) load after the page, not before it (P0-B).
+const AddCompetitionDialog = lazy(
+  () => import('./-components/AddCompetitionDialog'),
+);
+const AddCompetitionDrawer = lazy(() =>
+  import('./-components/AddCompetitionDrawer').then((m) => ({
+    default: m.AddCompetitionDrawer,
+  })),
+);
 import CompetitionCard from './-components/CompetitionCard';
 
 export const Route = createFileRoute('/_app/_left-navbar/layanan/lomba/')({
@@ -80,11 +87,13 @@ function CompetitionPage() {
         </Button>
 
         <main className="flex max-h-screen w-full flex-col items-center gap-3 overflow-hidden bg-[url(/img/login/login-bg.jpg)] bg-no-repeat px-8 md:bg-[url(/img/login/login-bg-desktop.jpg)] lg:max-w-(--breakpoint-lg) lg:rounded-t-2xl lg:px-[82px]">
-          <AddCompetitionDialog
-            isOpen={dialogOpen}
-            setOpen={setDialogOpen}
-            constraintRef={constraintRef}
-          />
+          <Suspense fallback={null}>
+            <AddCompetitionDialog
+              isOpen={dialogOpen}
+              setOpen={setDialogOpen}
+              constraintRef={constraintRef}
+            />
+          </Suspense>
 
           <div className="mt-[50px] flex w-full items-center justify-between lg:mt-8">
             <h1 className="text-left text-4xl font-bold text-white lg:text-5xl">
@@ -127,7 +136,9 @@ function CompetitionPage() {
             <img src={PlusIcon} className="size-8" alt="" />
           </Button>
 
-          <AddCompetitionDrawer isOpen={drawerOpen} setOpen={setDrawerOpen} />
+          <Suspense fallback={null}>
+            <AddCompetitionDrawer isOpen={drawerOpen} setOpen={setDrawerOpen} />
+          </Suspense>
         </main>
       </div>
     </div>

@@ -24,7 +24,8 @@ export const Route = createFileRoute('/_app')({
       throw redirect({ to: '/login', search: loginSearch(location.href) });
     }
     if (user && queryClient.getQueryData(['me']) === undefined) {
-      queryClient.setQueryData(['me'], user);
+      // Seeded as already stale, so the session check still runs once the layout mounts.
+      queryClient.setQueryData(['me'], user, { updatedAt: 0 });
     }
   },
 });

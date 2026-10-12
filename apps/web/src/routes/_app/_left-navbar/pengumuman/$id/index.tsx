@@ -88,5 +88,3 @@ function InfoDetail() {
     </div>
   );
 }
-
-export default InfoDetail;

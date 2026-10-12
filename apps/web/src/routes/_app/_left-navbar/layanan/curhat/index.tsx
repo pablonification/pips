@@ -93,5 +93,3 @@ const Curhat: React.FC = () => {
 export const Route = createFileRoute('/_app/_left-navbar/layanan/curhat/')({
   component: Curhat,
 });
-
-export default Curhat;

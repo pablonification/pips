@@ -1,35 +1,17 @@
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
-import {
-  createContext,
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useState,
-} from 'react';
+import { useContext, useState } from 'react';
 import { api } from '~/api/client';
 import { Button } from '~/components/ui/button';
 import { useUserAcademic } from '~/hooks/useUserAcademic';
 import CardList from './-components/cardlist';
+import { CourseContext, type TakeCourseBody } from './-context';
 import CourseSearchBar from './-components/coursesearchbar';
 
 export const Route = createFileRoute(
   '/_app/_left-navbar/profil/_settings-item/matkul/tambah/',
 )({
   component: AddCourse,
-});
-
-export interface TakeCourseBody {
-  courseId: string;
-  class: number;
-}
-
-export const CourseContext = createContext<{
-  selectedCourses: TakeCourseBody[];
-  setSelectedCourses: Dispatch<SetStateAction<TakeCourseBody[]>>;
-}>({
-  selectedCourses: [],
-  setSelectedCourses: (() => {}) as Dispatch<SetStateAction<TakeCourseBody[]>>,
 });
 
 function AddCourse() {

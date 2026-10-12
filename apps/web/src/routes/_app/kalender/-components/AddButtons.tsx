@@ -2,8 +2,10 @@ import PlusIcon from '~/assets/icons/plus.svg';
 import BookIcon from '~/assets/icons/calendar/book-white.svg';
 import { Button } from '~/components/ui/button';
 import { motion, Variants } from 'framer-motion';
-import { useState } from 'react';
-import AddEventDrawer from './AddEventDrawer';
+import { lazy, Suspense, useState } from 'react';
+
+// The add-event drawer's form loads after the page, not before it (P0-B).
+const AddEventDrawer = lazy(() => import('./AddEventDrawer'));
 import { CalendarCategory } from '~/api/generated';
 
 type ComponentProps = {
@@ -109,11 +111,13 @@ export default function AddButtons(props: Readonly<ComponentProps>) {
         </motion.div>
       </div>
 
-      <AddEventDrawer
-        isOpen={addEventOpen}
-        setOpen={setAddEventOpen}
-        category={category as CalendarCategory}
-      />
+      <Suspense fallback={null}>
+        <AddEventDrawer
+          isOpen={addEventOpen}
+          setOpen={setAddEventOpen}
+          category={category as CalendarCategory}
+        />
+      </Suspense>
     </>
   );
 }

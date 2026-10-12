@@ -2,7 +2,7 @@ import { getRouteApi } from '@tanstack/react-router';
 import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
 import { CirclePlus } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useMemo, useRef, useState } from 'react';
 import { CalendarEvent } from '~/api/generated';
 import { Button } from '~/components/ui/button';
 import {
@@ -15,7 +15,9 @@ import { useThreeMonthCalendarEvents } from '~/hooks/calendar';
 import { generateDate } from '~/lib/calendar';
 import { isInRoles } from '~/lib/roles';
 import { CalendarCategory } from '../-archive/DesktopAddEvent';
-import AddEventDialog from './AddEventDialog';
+
+// The add-event dialog's form loads when it opens, not before the page (P0-B).
+const AddEventDialog = lazy(() => import('./AddEventDialog'));
 import CalendarDay from './calendar-day';
 
 interface EventsByDate {
@@ -82,12 +84,14 @@ function DesktopView({
   return (
     <div className="relative hidden h-screen w-full flex-col lg:flex">
       {category && (
-        <AddEventDialog
-          isOpen={showAddEventModal}
-          setOpen={setShowAddEventModal}
-          constraintRef={mainRef}
-          category={category}
-        />
+        <Suspense fallback={null}>
+          <AddEventDialog
+            isOpen={showAddEventModal}
+            setOpen={setShowAddEventModal}
+            constraintRef={mainRef}
+            category={category}
+          />
+        </Suspense>
       )}
 
       <motion.div ref={mainRef} className="flex h-full flex-auto flex-col">

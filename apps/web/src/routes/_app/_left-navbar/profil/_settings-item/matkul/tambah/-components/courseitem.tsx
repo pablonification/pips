@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import MinusIcon from '~/assets/icons/course/Minus.svg';
 import PlusIcon from '~/assets/icons/course/Plus.svg';
-import { CourseContext, TakeCourseBody } from '..';
+import { CourseContext, TakeCourseBody } from '../-context';
 import { SelectedClassContext } from './coursecard';
 
 export default function CourseItem({

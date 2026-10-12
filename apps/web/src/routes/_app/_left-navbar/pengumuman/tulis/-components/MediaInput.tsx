@@ -1,13 +1,16 @@
-import { useRef, useState, type JSX } from 'react';
+import { lazy, Suspense, useRef, useState, type JSX } from 'react';
 import { Button } from '~/components/ui/button';
 import CameraIcon from '~/assets/icons/add-announcement/camera.svg';
 import GalleryIcon from '~/assets/icons/add-announcement/gallery.svg';
 import ClipIcon from '~/assets/icons/add-announcement/clip.svg';
-import { FileUpload } from '..';
+import { FileUpload } from './AddAnnouncementPage';
 import { Dialog, DialogContent, DialogTrigger } from '~/components/ui/dialog';
-import Webcam from 'react-webcam';
+import type Webcam from 'react-webcam';
 import dataURLtoFile from '~/lib/dataURLtoFile';
 import { cn } from '~/lib/utils';
+
+// The camera loads only when its dialog opens (P0-B).
+const LazyWebcam = lazy(() => import('react-webcam'));
 
 type ComponentProps = {
   images: FileUpload[];
@@ -45,12 +48,14 @@ export default function MediaInput({
             </Button>
           </DialogTrigger>
           <DialogContent className="flex max-w-[85vw] flex-col items-center gap-4 rounded-3xl pt-10">
-            <Webcam
-              audio={false}
-              ref={webcamRef}
-              screenshotFormat="image/jpeg"
-              className="z-10 overflow-hidden rounded-2xl"
-            />
+            <Suspense fallback={null}>
+              <LazyWebcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                className="z-10 overflow-hidden rounded-2xl"
+              />
+            </Suspense>
             <Button
               size="icon-md"
               variant="outlined"

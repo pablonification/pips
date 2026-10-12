@@ -7,7 +7,7 @@ import { useMutation } from '@tanstack/react-query';
 import { api, queryClient } from '~/api/client';
 import toast from 'react-hot-toast';
 import { CompetitionCategories, PresignedURL } from '~/api/generated';
-import { FileUpload } from '../../pengumuman/tulis';
+import { FileUpload } from '../../pengumuman/tulis/-components/AddAnnouncementPage';
 
 const TOAST_ID = 'add-competition-toast';
 
