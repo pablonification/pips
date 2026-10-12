@@ -40,8 +40,21 @@ export async function settle(page: Page): Promise<void> {
             }),
         ),
     );
-    await new Promise((resolve) =>
-      requestAnimationFrame(() => requestAnimationFrame(resolve)),
-    );
+    const frames = () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
+    await frames();
+    // Paint every image again now that it is decoded. Chromium sometimes draws an image before its decode has
+    // finished and keeps that raster; an SVG at a fractional position (Timeline's clear button) then lands half a
+    // pixel apart from one run to the next.
+    const images = [...document.images].map((img) => ({
+      img,
+      visibility: img.style.visibility,
+    }));
+    for (const { img } of images) img.style.visibility = 'hidden';
+    await frames();
+    for (const { img, visibility } of images) img.style.visibility = visibility;
+    await frames();
   });
 }

@@ -386,10 +386,12 @@ export const STATES: CaptureState[] = [
       await fillPixelUpTo(p, 5);
       await p.getByRole('button', { name: 'Kirim Jawaban' }).click();
       await p.getByRole('button', { name: 'Ya, Kirim' }).click();
-      // Let the success toast leave so the capture shows the page itself.
-      await p
-        .getByText('Form berhasil dikirim!')
-        .waitFor({ state: 'hidden', timeout: 10_000 });
+      // Let the success toast leave so the capture shows the page itself. Wait for it to appear first: waiting
+      // only for "hidden" passed at once while the request was still running, and the toast then showed up in
+      // some captures and not in others.
+      const toast = p.getByText('Form berhasil dikirim!');
+      await toast.waitFor({ state: 'visible', timeout: 10_000 });
+      await toast.waitFor({ state: 'hidden', timeout: 10_000 });
     },
     ready: (p) => visibleText(p, 'Terima kasih sudah mengisi!'),
   },
