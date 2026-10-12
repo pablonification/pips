@@ -13,6 +13,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 export type { AdminFormListItem } from './models/AdminFormListItem';
 export type { AdminFormResponseItem } from './models/AdminFormResponseItem';
 export type { Angkatan } from './models/Angkatan';
+export type { Author } from './models/Author';
 export type { CalendarCategory } from './models/CalendarCategory';
 export type { CalendarEvent } from './models/CalendarEvent';
 export type { Category } from './models/Category';

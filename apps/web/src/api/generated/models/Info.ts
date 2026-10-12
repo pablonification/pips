@@ -3,10 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { Angkatan } from './Angkatan';
+import type { Author } from './Author';
 import type { Category } from './Category';
 import type { Course } from './Course';
 import type { ReactionAggregate } from './ReactionAggregate';
-import type { User } from './User';
 import type { UserGroup } from './UserGroup';
 export type Info = {
   id: string;
@@ -47,7 +47,7 @@ export type Info = {
   infoGroups?: Array<UserGroup>;
   comments: number;
   reactions: ReactionAggregate;
-  creator: User;
+  creator: Author;
   isRead?: boolean;
   canNotify?: boolean;
   isForAngkatan?: boolean;
