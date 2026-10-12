@@ -95,6 +95,10 @@ fixtures follow the API, as listed here.
   its OpenAPI type (`FormResponse`) leaves the null out. The default handler follows the API.
 - **Status** comes from the clock: the form opened Sabtu, 12 September 2026, 13.00 WIB, so it is `open` for
   Nadia. Raka (angkatan 2024) gets no forms.
+- Since P0-D, as the API: `closesAt: null` (set it to close the form), `sectionCount` on list items, `status` on
+  `GET /api/form/:id` (`formStatusFor`: already responded, closed, not opened except early access, open), no
+  `sections` until the form opens (kept once it closes), and `prefill` on q1 (`fullName`) and q2 (`nim`), as the
+  seed marks them. `writes.submitForm` answers 403 for a closed or switched-off form, or one not open yet.
 
 ## Admin
 
@@ -103,6 +107,11 @@ fixtures follow the API, as listed here.
   prototype's numbers.
 - **SPARTA Magang** isn't in the prototype's data at all. The fixtures invent two departments, three divisions
   and three submissions (Bima, Tasya, Nadia), enough for the admin table and the detail page.
+- **SPARTA for members** (since P0-D, as the API): `GET /api/internship/window` answers SPARTA's window
+  (`db.spartaWindow`: closed since Minggu, 23 Agustus 2026, 23.59 WIB) and `eligible` (angkatan 2025 or the three
+  listed NIMs: Nadia yes, Raka no). `GET /api/internship/submission` is `200 null` without a submission and 401
+  for a member SPARTA isn't for. `writes.saveSpartaDraft` (partial drafts) and `writes.submitSparta` (everything,
+  then locked) answer 403 while the window is closed: open it with `db.spartaWindow`.
 
 ## Credits
 

@@ -6,6 +6,7 @@
  * support/handlers.ts read from it, and a test's own write handlers may change it.
  */
 import type {
+  AdminFormListItem,
   AdminFormResponseItem,
   Angkatan,
   CalendarEvent,
@@ -359,6 +360,9 @@ const formQuestion = (
     ? { dependsOn: { questionId: q.dependsOn[0], value: q.dependsOn[1] } }
     : {}),
   ...(q.optional ? { optional: true } : {}),
+  // As the API's PIXEL seed marks them (apps/api/src/db/seed/pixel-form-seed.ts).
+  ...(q.id === 'q1' ? { prefill: 'fullName' as const } : {}),
+  ...(q.id === 'q2' ? { prefill: 'nim' as const } : {}),
 });
 
 export const pixelForm: FormDetail = {
@@ -373,29 +377,90 @@ export const pixelForm: FormDetail = {
     questions: s.qs.map(formQuestion),
   })),
   opensAt: PIXEL_FORM.opensAt,
+  closesAt: null,
   isActive: true,
   order: 1,
   createdAt: wib(9, 1),
+  // Per member; GET /api/form/:formId works it out with formStatusFor().
+  status: 'open',
 };
 
-/** A form without its questions, as the list endpoints return it. */
-function formSummary(form: FormDetail): Omit<FormDetail, 'sections'> {
+/** The NIMs the API lets fill a form before it opens (apps/api/src/lib/form-status.ts). */
+export const EARLY_ACCESS_NIMS = ['18225020', '13525006'];
+
+/**
+ * A member's status for a form, as the API's formStatus works it out: already responded, then closed (switched
+ * off or past closesAt), then not opened (except early access), then open.
+ */
+export function formStatusFor(
+  form: Pick<FormDetail, 'opensAt' | 'closesAt' | 'isActive'>,
+  {
+    responded,
+    nim,
+    now = NOW,
+  }: { responded: boolean; nim: string; now?: string },
+): FormListItem['status'] {
+  if (responded) return 'already_responded';
+  const t = Date.parse(now);
+  if (!form.isActive) return 'closed';
+  if (form.closesAt && t >= Date.parse(form.closesAt)) return 'closed';
+  if (t < Date.parse(form.opensAt) && !EARLY_ACCESS_NIMS.includes(nim))
+    return 'not_opened';
+  return 'open';
+}
+
+/** Magang SPARTA's audience and window, as the API has them (apps/api/src/lib/sparta-window.ts). */
+export const SPARTA_ELIGIBLE_ANGKATAN = [2025];
+export const SPARTA_ELIGIBLE_NIMS = ['13524108', '18224053', '18224112'];
+/** Closed Minggu, 23 Agustus 2026, 23.59 WIB; no known opening. Tests open it by changing `db.spartaWindow`. */
+export const SPARTA_WINDOW = {
+  opensAt: null as string | null,
+  closesAt: '2026-08-23T16:59:00.000Z' as string | null,
+};
+
+export function isSpartaEligible(user: { angkatan: number; nim: string }) {
+  return (
+    SPARTA_ELIGIBLE_ANGKATAN.includes(user.angkatan) ||
+    SPARTA_ELIGIBLE_NIMS.includes(user.nim)
+  );
+}
+
+/** GET /api/internship/window for the signed-in member. */
+export function spartaWindowFor(db: Pick<Db, 'me' | 'spartaWindow'>) {
+  const { opensAt, closesAt } = db.spartaWindow;
+  const now = Date.parse(NOW);
+  const status: 'not_opened' | 'open' | 'closed' =
+    closesAt && now >= Date.parse(closesAt)
+      ? 'closed'
+      : opensAt && now < Date.parse(opensAt)
+        ? 'not_opened'
+        : 'open';
+  return {
+    opensAt,
+    closesAt,
+    status,
+    eligible: !!db.me && isSpartaEligible(db.me),
+  };
+}
+
+/** A form without its questions or a member's status, as the admin list returns it. */
+function formSummary(form: FormDetail): AdminFormListItem {
   const summary: Partial<FormDetail> = { ...form };
   delete summary.sections;
-  return summary as Omit<FormDetail, 'sections'>;
+  delete summary.status;
+  return summary as AdminFormListItem;
 }
 
 function formList(persona: PersonaKey, responded: boolean): FormListItem[] {
   if (!PIXEL_FORM.angkatan.includes(PERSONAS[persona].angkatan)) return [];
-  const rest = formSummary(pixelForm);
   return [
     {
-      ...rest,
-      status: responded
-        ? 'already_responded'
-        : Date.parse(NOW) < Date.parse(pixelForm.opensAt)
-          ? 'not_opened'
-          : 'open',
+      ...formSummary(pixelForm),
+      status: formStatusFor(pixelForm, {
+        responded,
+        nim: PERSONAS[persona].nim,
+      }),
+      sectionCount: pixelForm.sections?.length ?? 0,
     },
   ];
 }
@@ -622,7 +687,7 @@ export interface Db {
   forms: FormListItem[];
   formDetails: Record<string, FormDetail>;
   myResponses: Record<string, FormResponse>;
-  adminForms: Omit<FormDetail, 'sections'>[];
+  adminForms: AdminFormListItem[];
   adminResponses: Record<string, AdminFormResponseItem[]>;
   formAnalytics: Record<string, typeof formAnalytics>;
   competitions: Competition[];
@@ -630,6 +695,8 @@ export interface Db {
   members: User[];
   internshipDepartments: InternshipDepartment[];
   internshipSubmissions: InternshipSubmission[];
+  /** SPARTA's window (`SPARTA_WINDOW`, closed); a test may open it. */
+  spartaWindow: { opensAt: string | null; closesAt: string | null };
   credits: Markdown;
 }
 
@@ -731,6 +798,7 @@ export function buildDb(persona: PersonaKey | null): Db {
     }),
     internshipDepartments,
     internshipSubmissions: internshipSubmissions(),
+    spartaWindow: { ...SPARTA_WINDOW },
     credits,
   };
   return structuredClone(db);

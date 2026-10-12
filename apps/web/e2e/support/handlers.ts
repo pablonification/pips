@@ -22,7 +22,12 @@ import type {
   UserFinderService,
   UserProfileService,
 } from '../../src/api/generated';
-import { NOW } from '../fixtures/api';
+import {
+  NOW,
+  formStatusFor,
+  isSpartaEligible,
+  spartaWindowFor,
+} from '../fixtures/api';
 import { reply, type Handler } from './mock';
 
 const PAGE = 10;
@@ -321,14 +326,25 @@ export const defaultHandlers: Record<string, Handler> = {
       ? ok<R<FormService['listAllForms']>>({ forms: db.adminForms })
       : reply.status(403),
   ),
-  'GET /api/form/:formId': signedIn(
-    ({ db, params }) =>
-      ok<R<FormService['getForm']> | undefined>(
-        Object.values(db.formDetails).find(
-          (f) => f.id === params.formId || f.slug === params.formId,
-        ),
-      ) ?? notFound('form'),
-  ),
+  // As the API answers: the member's status, and no questions until the form opens (kept once it closes).
+  'GET /api/form/:formId': signedIn(({ db, params }) => {
+    const form = Object.values(db.formDetails).find(
+      (f) => f.id === params.formId || f.slug === params.formId,
+    );
+    if (!form) return notFound('form');
+    const nim = db.me!.nim;
+    const status = formStatusFor(form, {
+      responded: !!db.myResponses[form.id],
+      nim,
+    });
+    const opened =
+      formStatusFor(form, { responded: false, nim }) !== 'not_opened';
+    return ok<R<FormService['getForm']>>({
+      ...form,
+      sections: opened ? form.sections : null,
+      status,
+    });
+  }),
   'GET /api/form/:formId/my-response': signedIn(
     (
       { db, params }, // The API answers 200 with null when you haven't responded; its OpenAPI type omits the null (NOTES.md).
@@ -372,11 +388,18 @@ export const defaultHandlers: Record<string, Handler> = {
       departments: db.internshipDepartments,
     }),
   ),
-  'GET /api/internship/submission': signedIn(
-    ({ db }) =>
-      ok<R<InternshipService['getMyInternshipSubmission']> | undefined>(
-        db.internshipSubmissions.find((s) => s.userId === db.me!.id),
-      ) ?? notFound('submission'),
+  // As the API answers: 401 for a member SPARTA isn't for, 200 null when there's no submission yet.
+  'GET /api/internship/submission': signedIn(({ db }) =>
+    !isSpartaEligible(db.me!)
+      ? reply.status(401, {
+          error: 'You are not eligible to access SPARTA internship form',
+        })
+      : ok<R<InternshipService['getMyInternshipSubmission']> | null>(
+          db.internshipSubmissions.find((s) => s.userId === db.me!.id) ?? null,
+        ),
+  ),
+  'GET /api/internship/window': signedIn(({ db }) =>
+    ok<R<InternshipService['getInternshipWindow']>>(spartaWindowFor(db)),
   ),
   'GET /api/internship/submissions': signedIn(({ db, query }) => {
     const locked = query.get('locked');
