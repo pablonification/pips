@@ -273,6 +273,37 @@ test.describe('focused flows', () => {
   });
 });
 
+test.describe('today’s screens inside the shell', () => {
+  // Regression: today's screens fill "the screen" (h-screen), built for a navbar that floated over them. Inside
+  // the shell they ran under the tab bar: Curhat's new-room button was half hidden and the page scrolled twice.
+  test('a screen that fills the window fits between the bars, its own scrolling intact', async ({
+    page,
+  }) => {
+    await page.goto('/layanan/form');
+    await expect(
+      page.getByRole('main').getByText('Form Analisis Kondisi PIXEL').first(),
+    ).toBeVisible();
+    const overflow = await page
+      .locator('[data-scroll-restoration-id="isi"]')
+      .evaluate((el) => el.scrollHeight - el.clientHeight);
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
+
+  test('Curhat’s new-room button sits above the tab bar @phone-only', async ({
+    page,
+  }) => {
+    await page.goto('/layanan/curhat');
+    const button = page.getByRole('button', { name: 'create chatroom' });
+    await expect(button).toBeVisible();
+    const b = (await button.boundingBox())!;
+    const bar = (await page.locator('.g-tabbar').boundingBox())!;
+    const vp = page.viewportSize()!;
+    // Phones: above the bottom bar. Tablets: the rail is at the side, so above the window's bottom.
+    const limit = bar.y > 0 ? bar.y : vp.height;
+    expect(b.y + b.height).toBeLessThanOrEqual(limit);
+  });
+});
+
 test.describe('Beranda’s gold header', () => {
   test('search and your avatar in a gold bar that stays at the top; the browser bar turns gold @phone-only', async ({
     page,

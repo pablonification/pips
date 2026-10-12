@@ -606,3 +606,19 @@
     }
   }
 }
+
+/*
+  Today's screens were built to fill the window (Tailwind's h-screen, max-h-screen, min-h-screen), under a navbar
+  that floated over them. Inside the shell their space is the page area between the bars, which the shell measures
+  into --g-page-h. Unlayered, so they win over the utilities; fixed overlays keep the whole window. C1 deletes these
+  with the old screens.
+*/
+.g-legacy .h-screen:not(.fixed) {
+  height: var(--g-page-h, 100vh);
+}
+.g-legacy .max-h-screen:not(.fixed) {
+  max-height: var(--g-page-h, 100vh);
+}
+.g-legacy .min-h-screen:not(.fixed) {
+  min-height: var(--g-page-h, 100vh);
+}

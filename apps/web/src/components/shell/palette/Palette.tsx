@@ -49,7 +49,6 @@ export default function Palette() {
         >
           <D.Title className="sr-only">{common.shell.pencarianGlobal}</D.Title>
           <Command
-            label={common.shell.pencarianGlobal}
             shouldFilter={false}
             value={chosen}
             onValueChange={setChosen}
@@ -66,7 +65,7 @@ export default function Palette() {
               />
               <D.Close className="g-pal-close">{common.actions.tutup}</D.Close>
             </div>
-            <Command.List className="g-pal-res">
+            <Command.List className="g-pal-res" label={t.hasil}>
               {groups.map((g) => (
                 <Command.Group
                   key={g.heading}

@@ -46,6 +46,8 @@ export const common = {
     tindakan: 'Tindakan',
     layanan: 'Layanan',
     pintasan: 'Pintasan',
+    // The results list's name for screen readers (not in the prototype: new copy).
+    hasil: 'Hasil pencarian',
     situsLuar: 'Situs luar',
     tampilan: 'Tampilan',
     keTerang: 'Ganti ke tampilan terang',

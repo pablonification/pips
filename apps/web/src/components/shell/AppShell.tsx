@@ -213,6 +213,38 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * The page area's height (the scrolling area below the top bar or the breadcrumbs) as --g-page-h on `root`, so
+ * today's screens that fill "the screen" fill the space between the bars instead (shell.css).
+ */
+function usePageHeight(root: HTMLElement | null, pathname: string) {
+  useEffect(() => {
+    if (!root) return;
+    const scroller = root.querySelector<HTMLElement>(
+      '[data-scroll-restoration-id="isi"]',
+    );
+    if (!scroller) return;
+    const measure = () => {
+      const page = scroller.querySelector<HTMLElement>('.g-page');
+      if (!page) return;
+      const top =
+        page.getBoundingClientRect().top -
+        scroller.getBoundingClientRect().top +
+        scroller.scrollTop;
+      root.style.setProperty(
+        '--g-page-h',
+        `${Math.max(0, scroller.clientHeight - top)}px`,
+      );
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(scroller);
+    for (const el of scroller.querySelectorAll('.g-top, .g-crumbs'))
+      ro.observe(el);
+    return () => ro.disconnect();
+  }, [root, pathname]);
+}
+
 function SkipLink() {
   return (
     <a className="g-skip" href="#isi">
@@ -267,6 +299,8 @@ function TouchShell({
   const lastRoot = useLastRoot();
   const badges = useNavBadges();
   const [slot, setSlot] = useState<HTMLElement | null>(null);
+  const [shellEl, setShellEl] = useState<HTMLElement | null>(null);
+  usePageHeight(shellEl, route.pathname);
   const beranda = route.path === '/';
   const root = route.path ? isRootPage(route.path) : false;
   const active = route.path ? activeItem(route.path, 'touch', lastRoot) : null;
@@ -305,7 +339,7 @@ function TouchShell({
   }
 
   return (
-    <div className="g-shell">
+    <div className="g-shell" ref={setShellEl}>
       <SkipLink />
       <div className="g-scroll" data-scroll-restoration-id="isi">
         <header className={cn('g-top', beranda && 'gold')}>{bar}</header>
@@ -426,9 +460,11 @@ function DeskShell({
   const kelola = servicesByGroup(user).some((g) => g.group === 'Kelola');
   const trail = route.path ? trailOf(route.path, route.params) : [];
   const mod = modKeyLabel(navigator.platform);
+  const [root, setRoot] = useState<HTMLElement | null>(null);
+  usePageHeight(root, route.pathname);
 
   return (
-    <div className="g-desk">
+    <div className="g-desk" ref={setRoot}>
       <SkipLink />
       <div className="g-side">
         <div className="g-side-brand">
@@ -528,8 +564,10 @@ function Crumbs({
         return (
           <span key={c.path} className="contents">
             {c.href ? (
-              // A concrete URL (its params filled in) from the route table.
-              <Link to={c.href as '/'}>{title}</Link>
+              // A concrete URL (its params filled in) from the route table; lit only by the router's exact match.
+              <Link to={c.href as '/'} activeOptions={{ exact: true }}>
+                {title}
+              </Link>
             ) : (
               <span>{title}</span>
             )}
