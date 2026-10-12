@@ -19,12 +19,9 @@ export const GARIS_FILES = [
   'src/lib/theme/**/*.{ts,tsx}',
   'src/routes/dev/**/*.{ts,tsx}',
   'src/dev/**/*.{ts,tsx}',
-];
-/** Files in those folders from before the redesign; C1 deletes them. */
-const GARIS_LEGACY = [
-  'src/components/icons/home-filled.tsx',
-  'src/components/icons/question-mark.tsx',
-  'src/components/icons/settings.tsx',
+  // P0-C: the app shell.
+  'src/components/shell/**/*.{ts,tsx}',
+  'src/lib/shell/**/*.{ts,tsx}',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
@@ -76,7 +73,6 @@ export default defineConfig([
   },
   {
     files: GARIS_FILES,
-    ignores: GARIS_LEGACY,
     plugins: { garis },
     rules: {
       'garis/no-raw-colour': 'error',
@@ -117,6 +113,8 @@ export default defineConfig([
             's16|s20|s24|glyph|f|gf|pp|k|o|w|r|c|l|b',
             'gold|paper|ghost|danger|danger-ghost|sm|lg|md|square|wide|round|in-text|full|radio|box|center|on|n',
             'accent|success|inverse|outlined|error|dialog|handle|rule|hint|dis-ic|msg|t-ic|act|sq|bars',
+            // The shell's parts (src/styles/garis/shell.css) and the theme scopes.
+            'cap|sub|s|lap|label|c2|theme-light|theme-dark',
           ],
         },
       ],

@@ -1,17 +1,22 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { calendarEventsQuery, monthsAround, prefetch } from '~/api/queries';
+import { BerandaHome } from '~/components/shell/BerandaHome';
+import { LegacyScreen } from '~/components/shell/page';
 import DesktopView from './-home/desktop-view';
 import MobileView from './-home/mobile-view';
 
 function MainDashboard() {
   return (
-    <>
-      {/* Show mobile view if the window size <= lg */}
-      <MobileView />
+    // The shell's Beranda frame (P0-C) around today's Home, on its old surface, until P1-A replaces it.
+    <BerandaHome>
+      <LegacyScreen className="flex-1">
+        {/* Show mobile view if the window size <= lg */}
+        <MobileView />
 
-      {/* Show desktop view if the window size > lg */}
-      <DesktopView />
-    </>
+        {/* Show desktop view if the window size > lg */}
+        <DesktopView />
+      </LegacyScreen>
+    </BerandaHome>
   );
 }
 

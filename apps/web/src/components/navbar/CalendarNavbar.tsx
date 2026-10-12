@@ -1,14 +1,12 @@
-import { getRouteApi, Link } from '@tanstack/react-router';
+import { getRouteApi } from '@tanstack/react-router';
 import dayjs from 'dayjs';
 import { useState } from 'react';
-import HomeFilledIcon from '~/components/icons/home-filled';
-import QuestionMarkIcon from '~/components/icons/question-mark';
-import SettingsIcon from '~/components/icons/settings';
 import Calendar from '~/components/new-calendar';
 import SidebarEvents from './sidebar-events';
 
 const routeApi = getRouteApi('/_app/kalender/');
 
+/** Today's desktop calendar column: the month and the chosen day's events. The shell (P0-C) owns navigation. */
 export default function CalendarNavbar() {
   const [currentDate] = useState(dayjs().date());
   const [currentMonth] = useState(dayjs().month());
@@ -126,33 +124,6 @@ export default function CalendarNavbar() {
           />
         </div>
       </div>
-
-      <section
-        className={`mb-4 flex w-full flex-col items-center gap-2 bg-white`}
-      >
-        <Link
-          to="/"
-          activeOptions={{ exact: true }}
-          className={`flex w-full items-center gap-8 border-l-8 border-green-300 bg-yellow-75 px-4 py-2 pl-8 font-bold text-green-300 hover:bg-yellow-75 [&>svg]:fill-green-300 [&>svg]:stroke-neutral-light`}
-        >
-          <HomeFilledIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
-          <span>Home</span>
-        </Link>
-        <Link
-          to="/pengumuman"
-          className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-status:border-green-300`}
-        >
-          <QuestionMarkIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
-          <span>Timeline</span>
-        </Link>
-        <Link
-          to="/profil"
-          className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-status:border-green-300`}
-        >
-          <SettingsIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
-          <span>Settings</span>
-        </Link>
-      </section>
     </section>
   );
 }
