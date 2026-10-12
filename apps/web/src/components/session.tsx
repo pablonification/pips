@@ -28,7 +28,7 @@ export default function SessionProvider({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { data, failureCount, refetch, isFetching } = useQuery({
+  const { data, failureCount, refetch } = useQuery({
     queryKey: ['me'],
     queryFn: fetchSession,
     retry: sessionRetry,
@@ -61,11 +61,7 @@ export default function SessionProvider({
           className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center"
         >
           <p>{common.errors.sesi}</p>
-          <Button
-            type="button"
-            disabled={isFetching}
-            onClick={() => void refetch()}
-          >
+          <Button type="button" onClick={() => void refetch()}>
             {common.actions.cobaLagi}
           </Button>
         </main>

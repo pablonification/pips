@@ -52,8 +52,8 @@ goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
   - `persona`: `'anggota'` (Nadia Putri, IF 2025 PIXEL; default) or `'pengurus'` (Raka Pratama, IF 2024, with
     `akademik` and `admin`), or `null` for nobody.
   - `signedIn` (default `true`): signed out, the API answers 401 until the test sets `db.signedIn = true`.
-  - `installed` (default `true`): runs as the installed PWA. Today's production build shows phone browsers an
-    install tutorial instead of the app.
+  - `installed` (default `true`): runs as the installed PWA. Until P0-B removed it, the production build showed
+    phone browsers an install tutorial instead of the app; `installed: false` checks it is gone.
   - `now`: another fixed time (ISO string), or `null` for the real clock.
 - **Fixtures:** `db` is this test's own copy of the persona's data (`fixtures/api.ts`); `api` is the mock layer.
 
@@ -176,7 +176,7 @@ makes strict the default.
 - The report pairs each screen with its locked image: a perceptual similarity (SSIM on luminance; "close" at
   ≥ 0.95), the changed-pixel ratio, and a side-by-side image (prototype | app | difference). Unmapped screens
   show as "not built yet". Filter by layout, theme, persona and status.
-- Today's entries point at today's equivalents (`/home`, `/timeline`, …), so they show as "different".
+- Today's entries point at today's screens at their new URLs (`/`, `/pengumuman`, …; P0-B), so they show as "different".
 
 ## Visual references
 

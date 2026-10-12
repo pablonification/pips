@@ -28,43 +28,43 @@ type Key = `anggota-${string}` | `pengurus-${string}`;
 
 export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
   // Today's app (before the redesign).
-  'anggota-beranda': { path: '/home', ready: (p) => visibleText(p, 'Kuis 2') },
+  'anggota-beranda': { path: '/', ready: (p) => visibleText(p, 'Kuis 2') },
   'anggota-pengumuman': {
-    path: '/timeline',
+    path: '/pengumuman',
     ready: (p) => visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar'),
   },
   'anggota-post': {
-    path: '/timeline/p1',
+    path: '/pengumuman/p1',
     mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
     ready: (p) => visibleText(p, 'Kak, IF2123 K01 sama K02 ruangnya beda ya?'),
   },
   'anggota-kalender': {
-    path: '/calendar',
+    path: '/kalender',
     ready: (p) => visibleText(p, 'Sharing Session: Magang di Startup'),
   },
   'anggota-dingdong': {
-    path: '/home/dingdong',
+    path: '/layanan/dingdong',
     ready: (p) => visibleText(p, 'IF2110 Algoritma dan Pemrograman II'),
   },
   'anggota-nim': {
-    path: '/home/nim-finder',
+    path: '/layanan/nim',
     ready: (p) =>
       p.getByPlaceholder('Ketik nama atau NIM').locator('visible=true'),
   },
   'anggota-lomba': {
-    path: '/home/competition',
+    path: '/layanan/lomba',
     ready: (p) => visibleText(p, 'Find IT! 2026'),
   },
   'anggota-curhat': {
-    path: '/home/curhat',
+    path: '/layanan/curhat',
     ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
   },
   'anggota-form': {
-    path: '/home/form',
+    path: '/layanan/form',
     ready: (p) => visibleText(p, 'Form Analisis Kondisi PIXEL'),
   },
   'anggota-profil': {
-    path: '/settings',
+    path: '/profil',
     ready: (p) =>
       p
         .getByRole('listitem')
@@ -73,23 +73,23 @@ export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
         .first(),
   },
   'anggota-matkul': {
-    path: '/settings/courses',
+    path: '/profil/matkul',
     ready: (p) => p.getByText('Jumlah SKS').locator('visible=true').first(),
   },
   'anggota-notif': {
-    path: '/settings/subscriptions',
+    path: '/profil/notifikasi',
     ready: (p) => p.getByRole('switch').locator('visible=true').last(),
   },
   'pengurus-kelola': {
-    path: '/home/admin',
+    path: '/kelola',
     ready: (p) => p.getByRole('link', { name: /Data SPARTA Magang/ }),
   },
   'pengurus-live': {
-    path: '/home/admin/forms/pixel',
+    path: '/kelola/live/pixel',
     ready: (p) => visibleText(p, 'Halaman 1 dari 8'),
   },
   'pengurus-form-empty': {
-    path: '/home/form',
+    path: '/layanan/form',
     ready: (p) => visibleText(p, 'Belum ada form untuk kamu'),
   },
 };

@@ -57,13 +57,15 @@ export const STATES: CaptureState[] = [
     title: 'Install tutorial in a phone browser',
     installed: false,
     only: 'phone',
-    path: '/home',
-    ready: (p) => p.getByText(/install/i).first(),
+    path: '/',
+    // P0-B removed the install gate (SPEC "Removals"): a phone browser now opens the app. The state keeps its id
+    // so compare-before shows the before (tutorial) next to the after (Home).
+    ready: (p) => visibleText(p, 'Hi, Nadia Putri!'),
   },
   {
     id: 'app-loading',
     title: 'App loading the session',
-    path: '/home',
+    path: '/',
     // Shown only before the member is cached on the device, while /api/me is pending.
     prepare: async (p) => {
       await p.addInitScript(() => localStorage.removeItem('user'));
@@ -76,20 +78,20 @@ export const STATES: CaptureState[] = [
   {
     id: 'home',
     title: 'Home',
-    path: '/home',
+    path: '/',
     ready: (p) => visibleText(p, 'Kuis 2'),
   },
   {
     id: 'home-schedule-loading',
     title: 'Home, schedule loading',
-    path: '/home',
+    path: '/',
     mock: (api) => api.on('GET /api/calendar/me', reply.hang()),
     ready: (p) => visibleText(p, 'Hi, Nadia Putri!'),
   },
   {
     id: 'home-other-day',
     title: 'Home, Friday chosen on the week strip',
-    path: '/home',
+    path: '/',
     act: async (p) =>
       p.getByRole('button', { name: '9 Fri' }).locator('visible=true').click(),
     ready: (p) => visibleText(p, 'Deadline Tugas Besar 1'),
@@ -98,7 +100,7 @@ export const STATES: CaptureState[] = [
     id: 'home-pengurus',
     title: 'Home for Raka (Admin tile)',
     persona: 'pengurus',
-    path: '/home',
+    path: '/',
     ready: (p) => visibleText(p, 'Kuis 1'),
   },
 
@@ -106,20 +108,20 @@ export const STATES: CaptureState[] = [
   {
     id: 'timeline',
     title: 'Timeline',
-    path: '/timeline',
+    path: '/pengumuman',
     ready: (p) => heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4),
   },
   {
     id: 'timeline-loading',
     title: 'Timeline loading',
-    path: '/timeline',
+    path: '/pengumuman',
     mock: (api) => api.on('GET /api/info', reply.hang()),
     ready: timelineTitle,
   },
   {
     id: 'timeline-error',
     title: 'Timeline, the API failing (503)',
-    path: '/timeline',
+    path: '/pengumuman',
     mock: (api) => api.on('GET /api/info', reply.status(503)),
     // The app retries a failing request three times before giving up.
     act: async (_p, { api }) => {
@@ -131,14 +133,14 @@ export const STATES: CaptureState[] = [
   {
     id: 'timeline-empty',
     title: 'Timeline with no posts',
-    path: '/timeline',
+    path: '/pengumuman',
     mock: (api) => api.on('GET /api/info', { infos: [] }),
     ready: timelineTitle,
   },
   {
     id: 'timeline-offline',
     title: 'Timeline opened while offline',
-    path: '/home',
+    path: '/',
     act: async (p, { api }) => {
       await visibleText(p, 'Kuis 2').waitFor();
       await api.setOffline(true);
@@ -151,7 +153,7 @@ export const STATES: CaptureState[] = [
     // Today's desktop timeline has no unread toggle or filter drawer.
     only: 'phone',
     title: 'Timeline, unread only',
-    path: '/timeline',
+    path: '/pengumuman',
     act: async (p) => {
       await heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4).waitFor();
       await p
@@ -167,7 +169,7 @@ export const STATES: CaptureState[] = [
     // Today's desktop timeline has no unread toggle or filter drawer.
     only: 'phone',
     title: 'Timeline filter open',
-    path: '/timeline',
+    path: '/pengumuman',
     act: async (p) => {
       await heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4).waitFor();
       await p
@@ -181,7 +183,7 @@ export const STATES: CaptureState[] = [
   {
     id: 'timeline-card-menu',
     title: 'Timeline, a post’s menu open',
-    path: '/timeline',
+    path: '/pengumuman',
     act: async (p) => {
       await heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4).waitFor();
       // The menu button of the first post's card (on desktop the composer also opens a dialog).
@@ -201,14 +203,14 @@ export const STATES: CaptureState[] = [
   {
     id: 'post',
     title: 'Post with comments',
-    path: '/timeline/p1',
+    path: '/pengumuman/p1',
     mock: readPosts,
     ready: (p) => visibleText(p, 'Kak, IF2123 K01 sama K02 ruangnya beda ya?'),
   },
   {
     id: 'post-reactions',
     title: 'Post, reaction picker open',
-    path: '/timeline/p2',
+    path: '/pengumuman/p2',
     mock: readPosts,
     act: async (p) => {
       await heading(p, 'Cari tim Gemastik XIX? Isi form ini', 1).waitFor();
@@ -219,14 +221,14 @@ export const STATES: CaptureState[] = [
   {
     id: 'composer',
     title: 'New announcement',
-    path: '/add-announcement',
+    path: '/pengumuman/tulis',
     ready: (p) =>
       p.getByPlaceholder('What do you want announce?').locator('visible=true'),
   },
   {
     id: 'composer-categories',
     title: 'New announcement, categories open',
-    path: '/add-announcement',
+    path: '/pengumuman/tulis',
     act: async (p) =>
       p
         .getByRole('button', { name: 'Enter Categories' })
@@ -239,14 +241,14 @@ export const STATES: CaptureState[] = [
   {
     id: 'calendar',
     title: 'Calendar',
-    path: '/calendar',
+    path: '/kalender',
     ready: (p) => visibleText(p, 'Sharing Session: Magang di Startup'),
   },
   {
     id: 'calendar-pengurus',
     title: 'Calendar for Raka (can add events)',
     persona: 'pengurus',
-    path: '/calendar',
+    path: '/kalender',
     ready: (p) => visibleText(p, 'Kuis 1'),
   },
   {
@@ -254,7 +256,7 @@ export const STATES: CaptureState[] = [
     title: 'Add event dialog (Raka)',
     persona: 'pengurus',
     only: 'desktop',
-    path: '/calendar',
+    path: '/kalender',
     act: async (p) => p.getByRole('button', { name: 'Add event' }).click(),
     ready: (p) => p.getByRole('dialog'),
   },
@@ -263,38 +265,38 @@ export const STATES: CaptureState[] = [
   {
     id: 'dingdong',
     title: 'Ding Dong',
-    path: '/home/dingdong',
+    path: '/layanan/dingdong',
     ready: (p) => visibleText(p, 'IF2110 Algoritma dan Pemrograman II'),
   },
   {
     id: 'testi-programs',
     title: 'Testi Matkul: programs',
-    path: '/home/testimoni',
+    path: '/layanan/testi',
     ready: (p) => visibleText(p, 'Teknik Informatika'),
   },
   {
     id: 'testi-courses',
     title: 'Testi Matkul: IF semester 3',
-    path: '/home/testimoni/teknik-informatika/3',
+    path: '/layanan/testi/teknik-informatika/3',
     ready: (p) => visibleText(p, 'Sistem Operasi'),
   },
   {
     id: 'testi-course',
     title: 'Testi Matkul: IF2110',
-    path: '/home/testimoni/teknik-informatika/3/course-IF2110',
+    path: '/layanan/testi/teknik-informatika/3/course-IF2110',
     ready: (p) => visibleText(p, /Lanjutan Dasar Pemrograman/),
   },
   {
     id: 'nim-finder',
     title: 'NIM Finder',
-    path: '/home/nim-finder',
+    path: '/layanan/nim',
     ready: (p) =>
       p.getByPlaceholder('Ketik nama atau NIM').locator('visible=true'),
   },
   {
     id: 'nim-finder-results',
     title: 'NIM Finder, results for “Rak”',
-    path: '/home/nim-finder',
+    path: '/layanan/nim',
     act: async (p) =>
       p
         .getByPlaceholder('Ketik nama atau NIM')
@@ -305,19 +307,19 @@ export const STATES: CaptureState[] = [
   {
     id: 'competition',
     title: 'Info Lomba',
-    path: '/home/competition',
+    path: '/layanan/lomba',
     ready: (p) => visibleText(p, 'Find IT! 2026'),
   },
   {
     id: 'curhat',
     title: 'Curhat Yuk! rooms',
-    path: '/home/curhat',
+    path: '/layanan/curhat',
     ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
   },
   {
     id: 'curhat-room',
     title: 'Curhat Yuk! room',
-    path: '/home/curhat',
+    path: '/layanan/curhat',
     act: async (p) => p.getByRole('heading', { name: 'Teal Koala' }).click(),
     ready: (p) =>
       visibleText(
@@ -329,7 +331,7 @@ export const STATES: CaptureState[] = [
     id: 'curhat-empty',
     title: 'Curhat Yuk! with no rooms (Raka)',
     persona: 'pengurus',
-    path: '/home/curhat',
+    path: '/layanan/curhat',
     ready: (p) =>
       p
         .getByRole('button', { name: 'create chatroom' })
@@ -340,20 +342,20 @@ export const STATES: CaptureState[] = [
   {
     id: 'form-list',
     title: 'Form list',
-    path: '/home/form',
+    path: '/layanan/form',
     ready: (p) => heading(p, 'Form Analisis Kondisi PIXEL', 2),
   },
   {
     id: 'form-empty',
     title: 'Form list, nothing to fill (Raka)',
     persona: 'pengurus',
-    path: '/home/form',
+    path: '/layanan/form',
     ready: (p) => visibleText(p, 'Belum ada form untuk kamu'),
   },
   ...[1, 2, 3, 4, 5].map((n): CaptureState => ({
     id: `form-step-${n}`,
     title: `PIXEL form, section ${n}`,
-    path: '/home/form/pixel',
+    path: '/layanan/form/pixel',
     act: async (p) => fillPixelUpTo(p, n - 1),
     ready: (p) =>
       p.getByRole('heading', { level: 2 }).locator('visible=true').first(),
@@ -361,14 +363,14 @@ export const STATES: CaptureState[] = [
   {
     id: 'form-required',
     title: 'PIXEL form, required questions missing',
-    path: '/home/form/pixel',
+    path: '/layanan/form/pixel',
     act: async (p) => p.getByRole('button', { name: 'Selanjutnya' }).click(),
     ready: (p) => p.getByText('Pertanyaan ini wajib diisi').first(),
   },
   {
     id: 'form-confirm',
     title: 'PIXEL form, confirm sending',
-    path: '/home/form/pixel',
+    path: '/layanan/form/pixel',
     act: async (p) => {
       await fillPixelUpTo(p, 5);
       await p.getByRole('button', { name: 'Kirim Jawaban' }).click();
@@ -378,7 +380,7 @@ export const STATES: CaptureState[] = [
   {
     id: 'form-done',
     title: 'PIXEL form, sent',
-    path: '/home/form/pixel',
+    path: '/layanan/form/pixel',
     mock: (api) => api.on('POST /api/form/:formId/response', writes.submitForm),
     act: async (p) => {
       await fillPixelUpTo(p, 5);
@@ -398,7 +400,7 @@ export const STATES: CaptureState[] = [
   {
     id: 'settings',
     title: 'Settings',
-    path: '/settings',
+    path: '/profil',
     ready: (p) =>
       p
         .getByRole('listitem')
@@ -409,25 +411,25 @@ export const STATES: CaptureState[] = [
   {
     id: 'settings-courses',
     title: 'Set Courses',
-    path: '/settings/courses',
+    path: '/profil/matkul',
     ready: (p) => p.getByText('Jumlah SKS').locator('visible=true').first(),
   },
   {
     id: 'settings-courses-add',
     title: 'Add courses',
-    path: '/settings/courses/add',
+    path: '/profil/matkul/tambah',
     ready: (p) => visibleText(p, 'Strategi Algoritma'),
   },
   {
     id: 'settings-notifications',
     title: 'Notification',
-    path: '/settings/subscriptions',
+    path: '/profil/notifikasi',
     ready: (p) => p.getByRole('switch').locator('visible=true').last(),
   },
   {
     id: 'settings-credits',
     title: 'Credits',
-    path: '/settings/credits',
+    path: '/profil/kredit',
     ready: (p) => visibleText(p, 'PIPS! dibuat dan dirawat oleh HMIF ITB.'),
   },
 
@@ -436,38 +438,38 @@ export const STATES: CaptureState[] = [
     id: 'admin',
     title: 'Admin hub',
     persona: 'pengurus',
-    path: '/home/admin',
+    path: '/kelola',
     ready: (p) => p.getByRole('link', { name: /Data SPARTA Magang/ }),
   },
   {
     id: 'admin-forms',
     title: 'Admin: forms',
     persona: 'pengurus',
-    path: '/home/admin/forms',
+    path: '/kelola/live',
     ready: (p) => heading(p, 'Form Analisis Kondisi PIXEL', 2),
   },
   {
     id: 'admin-live',
     title: 'Live Counting & Rekap Form',
     persona: 'pengurus',
-    path: '/home/admin/forms/pixel',
+    path: '/kelola/live/pixel',
     ready: (p) => visibleText(p, 'Halaman 1 dari 8'),
   },
   {
     id: 'sparta-table',
     title: 'Data SPARTA Magang table',
     persona: 'pengurus',
-    path: '/home/internship/admin',
+    path: '/kelola/sparta',
     ready: (p) =>
       p
-        .locator('a[href="/home/internship/admin/sub-13525071"]')
+        .locator('a[href="/kelola/sparta/sub-13525071"]')
         .locator('visible=true'),
   },
   {
     id: 'sparta-submission',
     title: 'SPARTA submission detail',
     persona: 'pengurus',
-    path: '/home/internship/admin/sub-13525071',
+    path: '/kelola/sparta/sub-13525071',
     ready: (p) => visibleText(p, 'Prioritas 1: Akademik'),
   },
 ];

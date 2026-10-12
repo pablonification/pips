@@ -16,7 +16,7 @@ test('a request with no handler is aborted and fails the test with its method an
   page,
   api,
 }) => {
-  await page.goto('/home');
+  await page.goto('/');
   const status = await page.evaluate(fetchStatus, {
     path: '/api/not-a-real-endpoint?x=1',
   });
@@ -31,7 +31,7 @@ test('a write is aborted unless the test registered a handler for it', async ({
   page,
   api,
 }) => {
-  await page.goto('/home');
+  await page.goto('/');
   const status = await page.evaluate(fetchStatus, {
     path: '/api/info',
     init: { method: 'POST', body: '{}' },
@@ -57,7 +57,7 @@ test('defaults never answer writes, even where a GET default exists', async ({
   page,
   api,
 }) => {
-  await page.goto('/home');
+  await page.goto('/');
   const status = await page.evaluate(fetchStatus, {
     path: '/api/me',
     init: { method: 'DELETE' },
@@ -71,7 +71,7 @@ test('third-party requests are blocked and recorded, not sent', async ({
   page,
   api,
 }) => {
-  await page.goto('/home');
+  await page.goto('/');
   const status = await page.evaluate(fetchStatus, {
     path: 'https://www.google-analytics.com/collect?v=2',
   });
@@ -90,7 +90,7 @@ test('overrides answer with errors, delays and empty lists', async ({
     .on('GET /api/calendar/me', reply.status(503))
     .on('GET /api/user/nim', reply.delay(300, []))
     .on('GET /api/form', { forms: [] });
-  await page.goto('/home');
+  await page.goto('/');
   expect(
     await page.evaluate(fetchStatus, {
       path: '/api/calendar/me?month=10&year=2026',
@@ -109,7 +109,7 @@ test('overrides answer with errors, delays and empty lists', async ({
 });
 
 test('the browser can be taken offline', async ({ page, api }) => {
-  await page.goto('/home');
+  await page.goto('/');
   await api.setOffline(true);
   expect(await page.evaluate(() => navigator.onLine)).toBe(false);
   expect(await page.evaluate(fetchStatus, { path: '/api/me' })).toBe(
