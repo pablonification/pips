@@ -1,0 +1,34 @@
+/*
+  Global base styles from the prototype (garis/garis.css): Geist for all text, smoothing, the focus ring and reduced
+  motion. They apply to today's screens too (P0-A report lists what changed). The page background stays the old
+  screens' until each is replaced: the redesign's shell paints --bg-app itself (P0-C).
+*/
+@layer base {
+  html {
+    font-family: var(--font-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    font-family: var(--font-text);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  [tabindex='-1']:focus {
+    outline: none;
+  }
+}
+
+/* Reduced motion removes all motion, everywhere (SPEC story 127). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after,
+  ::backdrop {
+    animation: none !important;
+    transition: none !important;
+  }
+}

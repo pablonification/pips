@@ -1,5 +1,7 @@
-/* The Garis design system: tokens (light and dark), self-hosted fonts, type styles and component styles. */
+/* The Garis design system: tokens (light and dark), self-hosted fonts, type styles, component styles and the global
+   base (fonts, focus ring, reduced motion). */
 @import './tokens.css';
 @import './fonts.css';
 @import './type.css';
 @import './components.css';
+@import './base.css';
