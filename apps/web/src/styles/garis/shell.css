@@ -266,9 +266,13 @@
     translate: none;
   }
 
-  /* Touch layouts: the tab and the avatar link keep their look and get a 44 px hit area. */
+  /* Touch layouts: the tab, the avatar link and search's Tutup keep their look and get a 44 px hit area. */
   @media (max-width: 1023.98px) {
-    a.g-avatar::before {
+    .g-pal-close {
+      position: relative;
+    }
+    a.g-avatar::before,
+    .g-pal-close::before {
       content: '';
       position: absolute;
       top: min(0px, calc((100% - 44px) / 2));
