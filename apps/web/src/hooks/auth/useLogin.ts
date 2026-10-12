@@ -3,16 +3,22 @@ import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { api } from '~/api/client';
 import { ApiError, User } from '~/api/generated';
-import { invalidateSession } from '~/lib/session';
+import { forgetMemberOnDevice, invalidateSession } from '~/lib/session';
 
-export default function useLogin() {
+/** Sign-in with Google (and, on staging, test login). Afterwards goes to `redirectTo`, a path already checked by `safeRedirect`. */
+export default function useLogin(redirectTo = '/') {
   const navigate = useNavigate();
+  // A new session starts clean: nothing cached for whoever used this device before.
+  const start = (user: User) => {
+    void forgetMemberOnDevice();
+    invalidateSession(user);
+    void navigate({ href: redirectTo, replace: true });
+  };
 
   const loginCallbackMutation = useMutation({
     mutationFn: api.auth.loginAccessToken.bind(api.auth),
     onSuccess(data: User) {
-      invalidateSession(data);
-      navigate({ to: '/home' });
+      start(data);
     },
     onError(error) {
       if (error instanceof ApiError && error.status === 401) {
@@ -32,8 +38,7 @@ export default function useLogin() {
     // Production builds set __TEST_LOGIN_ENABLED__ to false, so the request below is compiled out of them.
     mutationFn: __TEST_LOGIN_ENABLED__ ? requestDevLogin : testLoginUnavailable,
     onSuccess(data) {
-      invalidateSession(data);
-      navigate({ to: '/home' });
+      start(data);
     },
   });
 

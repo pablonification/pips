@@ -6,7 +6,7 @@ test('the calendar opens on today with today’s events', async ({
   page,
   api,
 }, testInfo) => {
-  await page.goto('/calendar');
+  await page.goto('/kalender');
   await expect(
     page.getByRole('heading', { name: 'October 2026' }).locator('visible=true'),
   ).toBeVisible();
@@ -25,7 +25,7 @@ test('the calendar opens on today with today’s events', async ({
 });
 
 test('choosing a day shows its events @phone-only', async ({ page }) => {
-  await page.goto('/calendar');
+  await page.goto('/kalender');
   await page
     .getByText('19', { exact: true })
     .locator('visible=true')
@@ -39,7 +39,7 @@ test('choosing a day shows its events @phone-only', async ({ page }) => {
 test('the month grid lists the events of each day @desktop-only', async ({
   page,
 }) => {
-  await page.goto('/calendar');
+  await page.goto('/kalender');
   await expect(
     page.getByText('Deadline Tugas Besar 1').locator('visible=true').first(),
   ).toBeVisible();
@@ -52,9 +52,22 @@ test.describe('Raka, akademik', () => {
   test.use({ persona: 'pengurus' });
 
   test('Raka can add an event @desktop-only', async ({ page }, testInfo) => {
-    await page.goto('/calendar');
+    await page.goto('/kalender');
     await page.getByRole('button', { name: 'Add event' }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await checkGates(page, testInfo, 'calendar-add-event');
   });
+});
+
+test('opening Kalender adds no history entry of its own: Back leaves it', async ({
+  page,
+}) => {
+  // Regression: the desktop calendar reports its first day on mount, and the navbar pushed that into history
+  // (`?selectedDate=…`), so Back from Kalender landed on Kalender again. Its first sync now replaces the entry.
+  await page.goto('/kalender');
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get('selectedDate'))
+    .toBe('8');
+  await page.waitForTimeout(500);
+  expect(await page.evaluate(() => history.length)).toBe(2);
 });

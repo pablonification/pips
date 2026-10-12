@@ -3,7 +3,7 @@ import { pageText, visibleText } from '../support/app';
 import { expect, test } from '../support/test';
 
 test('Settings shows Nadia’s profile', async ({ page }, testInfo) => {
-  await page.goto('/settings');
+  await page.goto('/profil');
   await expect(
     page.getByRole('heading', { name: 'Nadia Putri' }).locator('visible=true'),
   ).toBeVisible();
@@ -21,7 +21,7 @@ test('Settings shows Nadia’s profile', async ({ page }, testInfo) => {
 test('Set Courses lists this semester’s courses and SKS', async ({
   page,
 }, testInfo) => {
-  await page.goto('/settings');
+  await page.goto('/profil');
   await page
     .getByRole('link', { name: 'Set Courses' })
     .locator('visible=true')
@@ -41,7 +41,7 @@ test('adding a course searches the catalogue', async ({
   page,
   api,
 }, testInfo) => {
-  await page.goto('/settings/courses/add');
+  await page.goto('/profil/matkul/tambah');
   await expect(
     page
       .getByRole('heading', { name: 'Add Courses' })
@@ -60,7 +60,7 @@ test('adding a course searches the catalogue', async ({
 test('notification switches, with required categories locked', async ({
   page,
 }, testInfo) => {
-  await page.goto('/settings/subscriptions');
+  await page.goto('/profil/notifikasi');
   await expect(
     page
       .getByRole('heading', { name: 'Notification' })
@@ -75,7 +75,7 @@ test('notification switches, with required categories locked', async ({
 });
 
 test('credits', async ({ page }) => {
-  await page.goto('/settings/credits');
+  await page.goto('/profil/kredit');
   await expect(
     visibleText(page, 'PIPS! dibuat dan dirawat oleh HMIF ITB.'),
   ).toBeVisible();

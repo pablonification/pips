@@ -170,6 +170,7 @@ export class InfoService {
       },
       errors: {
         400: `Bad request`,
+        403: `Only the author or a moderator can delete this info`,
         404: `Id not found`,
       },
     });

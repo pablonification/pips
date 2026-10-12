@@ -7,7 +7,7 @@ import SettingsIcon from '~/components/icons/settings';
 import Calendar from '~/components/new-calendar';
 import SidebarEvents from './sidebar-events';
 
-const routeApi = getRouteApi('/_app/calendar/');
+const routeApi = getRouteApi('/_app/kalender/');
 
 export default function CalendarNavbar() {
   const [currentDate] = useState(dayjs().date());
@@ -99,6 +99,7 @@ export default function CalendarNavbar() {
           currentMonth={currentMonth}
           currentYear={currentYear}
           onMonthChange={handleMonthChange}
+          // The calendar reports its first day on mount: that sync replaces the entry, so Back leaves Kalender.
           onChange={(date) =>
             navigate({
               search: {
@@ -106,6 +107,7 @@ export default function CalendarNavbar() {
                 selectedMonth: date.getMonth(),
                 selectedYear: date.getFullYear(),
               },
+              replace: !isQueryParamSet,
             })
           }
           defaultDate={
@@ -129,21 +131,22 @@ export default function CalendarNavbar() {
         className={`mb-4 flex w-full flex-col items-center gap-2 bg-white`}
       >
         <Link
-          to="/home"
+          to="/"
+          activeOptions={{ exact: true }}
           className={`flex w-full items-center gap-8 border-l-8 border-green-300 bg-yellow-75 px-4 py-2 pl-8 font-bold text-green-300 hover:bg-yellow-75 [&>svg]:fill-green-300 [&>svg]:stroke-neutral-light`}
         >
           <HomeFilledIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
           <span>Home</span>
         </Link>
         <Link
-          to="/timeline"
+          to="/pengumuman"
           className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-status:border-green-300`}
         >
           <QuestionMarkIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />
           <span>Timeline</span>
         </Link>
         <Link
-          to="/settings"
+          to="/profil"
           className={`flex w-full items-center gap-8 border-l-8 border-transparent px-4 py-2 pl-8 hover:bg-yellow-75 data-status:border-green-300`}
         >
           <SettingsIcon className="size-10.5 fill-transparent stroke-black transition-colors duration-200" />

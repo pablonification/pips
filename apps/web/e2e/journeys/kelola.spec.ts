@@ -5,10 +5,10 @@ import { expect, test } from '../support/test';
 test.use({ persona: 'pengurus' });
 
 test('the Admin hub lists what Raka manages', async ({ page }, testInfo) => {
-  await page.goto('/home');
+  await page.goto('/');
   await expect(visibleText(page, 'Admin')).toBeVisible();
   // The phone tile is an unnamed icon button, so the hub is opened by its URL.
-  await page.goto('/home/admin');
+  await page.goto('/kelola');
   await expect(
     page.getByRole('link', { name: /Live Counting & Rekap Form/ }),
   ).toBeVisible();
@@ -23,9 +23,9 @@ test('Live Counting shows the count, the latest submitters and a live update', a
   api,
   db,
 }, testInfo) => {
-  await page.goto('/home/admin/forms');
+  await page.goto('/kelola/live');
   await page.getByRole('link', { name: /Form Analisis Kondisi PIXEL/ }).click();
-  await expect(page).toHaveURL(/\/home\/admin\/forms\/pixel$/);
+  await expect(page).toHaveURL(/\/kelola\/live\/pixel$/);
   await expect(visibleText(page, '142')).toBeVisible();
   await expect
     .poll(() => pageText(page))
@@ -63,7 +63,7 @@ test('Live Counting shows the count, the latest submitters and a live update', a
 test('the SPARTA Magang admin table and a submission', async ({
   page,
 }, testInfo) => {
-  await page.goto('/home/admin');
+  await page.goto('/kelola');
   await page.getByRole('link', { name: /Data SPARTA Magang/ }).click();
   await expect(
     page.getByRole('heading', { name: 'Data Pilihan Magang SPARTA' }),
@@ -74,7 +74,7 @@ test('the SPARTA Magang admin table and a submission', async ({
     .toMatch(/Nadia Putri.*13525045.*Draft/);
   await checkGates(page, testInfo, 'sparta-table');
   await page
-    .locator('a[href="/home/internship/admin/sub-13525071"]')
+    .locator('a[href="/kelola/sparta/sub-13525071"]')
     .locator('visible=true')
     .click();
   await expect(
@@ -87,7 +87,7 @@ test.describe('Nadia, anggota', () => {
   test.use({ persona: 'anggota' });
 
   test('Nadia sees no Admin tile', async ({ page }) => {
-    await page.goto('/home');
+    await page.goto('/');
     await expect(visibleText(page, 'Hi, Nadia Putri!')).toBeVisible();
     await expect(page.getByText('Admin', { exact: true })).toHaveCount(0);
   });
