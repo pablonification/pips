@@ -78,6 +78,7 @@ const room = (
     content: 'rahasia',
     createdAt: wib(at),
     isSender,
+    fromOwner: isSender,
   })),
 });
 

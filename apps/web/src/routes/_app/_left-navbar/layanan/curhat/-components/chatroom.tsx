@@ -74,6 +74,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, onBack, socket }) => {
         chatroomId: chat.id,
         replyId: replyMessage?.id || null,
         isSender: true,
+        // Only Welfare used this screen: what it sends is never the room owner's.
+        fromOwner: false,
         clientMessageId: null,
       },
       ...prev,

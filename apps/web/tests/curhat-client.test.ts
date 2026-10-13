@@ -57,6 +57,7 @@ const saved = (over: Partial<ChatroomMessage> = {}): ChatroomMessage => ({
   content: 'Mau kak, makasih!',
   createdAt: NOW.toISOString(),
   isSender: true,
+  fromOwner: true,
   clientMessageId: 'id-1',
   ...over,
 });

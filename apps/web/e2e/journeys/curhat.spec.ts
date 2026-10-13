@@ -76,6 +76,7 @@ function saved(data: unknown, id = 'e2e-message-by-hand'): CurhatSocketMessage {
     content: d.message,
     createdAt: NOW,
     isSender: true,
+    fromOwner: true,
     clientMessageId: d.clientMessageId ?? null,
   };
 }
@@ -667,6 +668,7 @@ test.describe('delivery under a dropped connection', () => {
           content: OLDER,
           createdAt: '2026-10-08T06:30:00.000Z',
           isSender: false,
+          fromOwner: false,
           clientMessageId: null,
         },
         ...older.r1.messages!,
@@ -1131,6 +1133,7 @@ test.describe('gates at every size', () => {
           content: LONG,
           createdAt: NOW,
           isSender: false,
+          fromOwner: false,
           clientMessageId: null,
         },
         ...db.chatrooms.r1.messages!,
