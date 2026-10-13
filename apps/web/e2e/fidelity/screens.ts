@@ -15,6 +15,8 @@ import * as writes from '../support/writes';
 
 export interface FidelityScreen {
   path: string;
+  /** Another URL for some layouts (the desktop split shows a post at `/pengumuman`, without opening it). */
+  paths?: Partial<Record<'phone' | 'tablet' | 'desk', string>>;
   layouts?: ('phone' | 'tablet' | 'desk')[];
   mock?: (api: ApiMock) => void;
   act?: (

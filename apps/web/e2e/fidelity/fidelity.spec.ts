@@ -36,7 +36,8 @@ for (const [persona, routes] of [
         if (screen.layouts && !screen.layouts.includes(layout as 'phone'))
           return;
         screen.mock?.(api);
-        await page.goto(screen.path);
+        const url = screen.paths?.[layout as 'phone'] ?? screen.path;
+        await page.goto(url);
         await screen.act?.(page, { api, context });
         await expect(screen.ready(page)).toBeVisible({ timeout: 15_000 });
         const name = `${layout}-${persona}-${route}-${theme}`;
@@ -47,7 +48,7 @@ for (const [persona, routes] of [
         );
         writeFileSync(
           path.join(dir, `${name}.json`),
-          JSON.stringify({ name, url: page.url(), path: screen.path }, null, 2),
+          JSON.stringify({ name, url: page.url(), path: url }, null, 2),
         );
       });
     });
