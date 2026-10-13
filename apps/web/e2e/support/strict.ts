@@ -134,7 +134,7 @@ export async function expectLit(page: Page, testInfo: TestInfo, name: Lit) {
 /** No overflow and no clipped control at the brief's widths, then at 200 % zoom; restores the window after. */
 export async function expectFitsEverywhere(page: Page) {
   const original = page.viewportSize()!;
-  const check = async (label: string) => {
+  const check = async () => {
     const problems = await page.evaluate(() => {
       const doc = document.documentElement;
       const out: string[] = [];
@@ -153,22 +153,38 @@ export async function expectFitsEverywhere(page: Page) {
       }
       return out;
     });
-    expect(problems, `fits at ${label}`).toEqual([]);
+    return problems;
   };
+  // After a resize the page needs the new width and a render or two before it is measured (the shell switches its
+  // layout from a media query in React). Measured once a frame later, a busy machine sometimes caught the desktop
+  // layout still laid out in a 320 px window. A real overflow stays, so the check still fails after the wait.
+  const settle = async (width: number) => {
+    await page.waitForFunction((w) => window.innerWidth === w, width);
+    await page.evaluate(
+      () =>
+        new Promise((r) =>
+          requestAnimationFrame(() => requestAnimationFrame(r)),
+        ),
+    );
+  };
+  const expectFits = (label: string) =>
+    expect
+      .poll(() => check(), { message: `fits at ${label}`, timeout: 3_000 })
+      .toEqual([]);
   for (const width of [320, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: original.height });
-    await page.evaluate(() => new Promise(requestAnimationFrame));
-    await check(`${width}px`);
+    await settle(width);
+    await expectFits(`${width}px`);
   }
   // 200 % zoom on a 1440 px window is a 720 px CSS viewport.
   await page.setViewportSize({
     width: 720,
     height: Math.round(original.height / 2),
   });
-  await page.evaluate(() => new Promise(requestAnimationFrame));
-  await check('200% zoom');
+  await settle(720);
+  await expectFits('200% zoom');
   await page.setViewportSize(original);
-  await page.evaluate(() => new Promise(requestAnimationFrame));
+  await settle(original.width);
 }
 
 /** Every strict gate for a screen: the audit, focus at each Tab stop, the lit item, and the widths. */
