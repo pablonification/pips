@@ -1,6 +1,7 @@
 import type { FileRouteTypes } from '~/routeTree.gen';
 import { common } from '~/copy/common';
 import { serviceById } from '~/lib/services';
+import { listOfSlug, majorOfSlug, testiTitle } from '~/features/testi/rules';
 
 /*
  * What the shell needs to know about every page (SPEC "Information architecture and shell"; the prototype's
@@ -37,8 +38,14 @@ export interface RouteMeta {
   title: string | ((params: Record<string, string>) => string);
   /** One of the four tabs: the page is that tab's root. */
   root?: Destination;
-  /** The page above it, for back without history and for the breadcrumbs. */
-  parent?: ShellPath | typeof LAST_ROOT;
+  /**
+   * The page above it, for back without history and for the breadcrumbs. A function when it depends on the URL's
+   * params (P2-B: Mata Kuliah Umum's list skips the semester step, so it sits right below Testi Matkul).
+   */
+  parent?:
+    | ShellPath
+    | typeof LAST_ROOT
+    | ((params: Record<string, string>) => ShellPath);
   /**
    * On desktop the page is a sidebar item of its own (Kelola, Profil): the breadcrumbs start here and the sidebar
    * lights it. On phones and tablets it is still reached from `parent`.
@@ -78,10 +85,9 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   '/layanan/dingdong': {
     title: svc('dingdong'),
     parent: '/layanan',
-    legacy: true,
   },
-  '/layanan/nim': { title: svc('nim'), parent: '/layanan', legacy: true },
-  '/layanan/lomba': { title: svc('lomba'), parent: '/layanan', legacy: true },
+  '/layanan/nim': { title: svc('nim'), parent: '/layanan' },
+  '/layanan/lomba': { title: svc('lomba'), parent: '/layanan' },
   '/layanan/curhat': {
     title: svc('curhat'),
     parent: '/layanan',
@@ -105,21 +111,28 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     parent: '/layanan',
     legacy: true,
   },
-  '/layanan/testi': { title: svc('testi'), parent: '/layanan', legacy: true },
+  // P2-B: Testi Matkul's levels are titled as the prototype's `testiTitle` ("Teknik Informatika", "IF · Semester
+  // 3", "Mata Kuliah Umum"); the course page sets its code with usePageTitle. Mata Kuliah Umum has no semester step.
+  '/layanan/testi': { title: svc('testi'), parent: '/layanan' },
   '/layanan/testi/$type': {
-    title: svc('testi'),
+    title: (p) =>
+      testiTitle({ major: majorOfSlug(p.type ?? '') }) ?? svc('testi'),
     parent: '/layanan/testi',
-    legacy: true,
   },
   '/layanan/testi/$type/$semester': {
-    title: svc('testi'),
-    parent: '/layanan/testi/$type',
-    legacy: true,
+    title: (p) =>
+      testiTitle({
+        major: majorOfSlug(p.type ?? ''),
+        list: listOfSlug(p.semester ?? ''),
+      }) ?? svc('testi'),
+    parent: (p) =>
+      majorOfSlug(p.type ?? '') === 'OTHER'
+        ? '/layanan/testi'
+        : '/layanan/testi/$type',
   },
   '/layanan/testi/$type/$semester/$courseId': {
     title: svc('testi'),
     parent: '/layanan/testi/$type/$semester',
-    legacy: true,
   },
   // Kelola: last in Layanan on phones and tablets, its own sidebar item on desktop (as the locked prototype has it).
   '/kelola': {
@@ -214,9 +227,11 @@ export function fillPath(
 export function parentOf(
   path: ShellPath,
   lastRoot: Destination = 'beranda',
+  params: Record<string, string> = {},
 ): ShellPath | null {
   const p = ROUTE_META[path].parent;
   if (!p) return null;
+  if (typeof p === 'function') return p(params);
   return p === LAST_ROOT ? DESTINATION_PATH[lastRoot] : p;
 }
 
@@ -237,7 +252,7 @@ export function activeItem(
     if (layout === 'desk' && meta.deskRoot) return meta.deskRoot;
     if (meta.root) return meta.root;
     if (meta.parent === LAST_ROOT) return lastRoot;
-    p = meta.parent ?? null;
+    p = parentOf(p, lastRoot);
   }
   return lastRoot;
 }
@@ -263,7 +278,7 @@ export function trailOf(
     const meta: RouteMeta = ROUTE_META[p];
     if (meta.root || meta.deskRoot || !meta.parent || meta.parent === LAST_ROOT)
       break;
-    p = meta.parent;
+    p = parentOf(p, undefined, params);
   }
   return out;
 }

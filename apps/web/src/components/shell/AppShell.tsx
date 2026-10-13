@@ -419,7 +419,9 @@ function BackButton({
 }) {
   const router = useRouter();
   const prev = route.index > 0 ? entryAt(route.index - 1) : undefined;
-  const parent = route.path ? parentOf(route.path, lastRoot) : '/';
+  const parent = route.path
+    ? parentOf(route.path, lastRoot, route.params)
+    : '/';
   const parentHref = (parent && fillPath(parent, route.params)) ?? '/';
   const parentTitle =
     route.titles[parentHref] ??
