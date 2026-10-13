@@ -57,7 +57,11 @@ const googleError = (status: number) =>
 
 function setup(
   roles: UserRolesEnum[],
-  opts: { event?: StoredEvent; googleDelete?: () => Promise<void> } = {},
+  opts: {
+    event?: StoredEvent;
+    googleDelete?: () => Promise<void>;
+    calendarReachable?: boolean;
+  } = {},
 ) {
   const calls: string[] = [];
   const deleted: string[] = [];
@@ -104,6 +108,10 @@ function setup(
       },
       update: async () => {
         calls.push('update');
+      },
+      getCalendar: async () => {
+        calls.push('calendar');
+        if (opts.calendarReachable === false) throw googleError(404);
       },
       remove:
         opts.googleDelete ??
@@ -254,23 +262,42 @@ test('DELETE /calendar/event/{id}: an unknown event is 404', async () => {
   assert.equal(res.status, 404);
 });
 
-for (const status of [404, 410]) {
-  test(`regression (C6): when Google already removed the event (${status}), the row is deleted too`, async () => {
-    const { router, deleted } = setup(['akademik'], {
-      googleDelete: async () => {
-        throw googleError(status);
-      },
-    });
-    const res = await callRouter(
-      router,
-      raka,
-      'DELETE',
-      '/calendar/event/ev-1',
-    );
-    assert.equal(res.status, 204);
-    assert.deepEqual(deleted, ['ev-1']);
+test('regression (C6): when Google already removed the event (410 Gone), the row is deleted too', async () => {
+  const { router, calls, deleted } = setup(['akademik'], {
+    googleDelete: async () => {
+      throw googleError(410);
+    },
   });
-}
+  const res = await callRouter(router, raka, 'DELETE', '/calendar/event/ev-1');
+  assert.equal(res.status, 204);
+  assert.deepEqual(calls, []);
+  assert.deepEqual(deleted, ['ev-1']);
+});
+
+test('DELETE /calendar/event/{id}: Google answers 404 and the calendar is reachable, so the event is gone and the row is deleted', async () => {
+  const { router, calls, deleted } = setup(['akademik'], {
+    googleDelete: async () => {
+      throw googleError(404);
+    },
+  });
+  const res = await callRouter(router, raka, 'DELETE', '/calendar/event/ev-1');
+  assert.equal(res.status, 204);
+  assert.deepEqual(calls, ['calendar']);
+  assert.deepEqual(deleted, ['ev-1']);
+});
+
+test('regression (review m6): Google answers 404 and the calendar is not reachable, so the row stays and the delete fails', async () => {
+  const { router, calls, deleted } = setup(['akademik'], {
+    googleDelete: async () => {
+      throw googleError(404);
+    },
+    calendarReachable: false,
+  });
+  const res = await callRouter(router, raka, 'DELETE', '/calendar/event/ev-1');
+  assert.equal(res.status, 400);
+  assert.deepEqual(calls, ['calendar']);
+  assert.deepEqual(deleted, []);
+});
 
 test('DELETE /calendar/event/{id}: any other Google failure keeps the row, so the two calendars stay the same', async () => {
   const { router, deleted } = setup(['akademik'], {

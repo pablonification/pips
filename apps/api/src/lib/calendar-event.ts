@@ -10,12 +10,29 @@ export function endsBeforeStart(start: Date, end: Date): boolean {
 
 export const ENDS_BEFORE_START = 'An event cannot end before it starts';
 
+/** Google's HTTP status for a refused call, or undefined for anything that isn't Google's error. */
+export function googleStatus(error: unknown): number | undefined {
+  if (!(error instanceof GaxiosError)) return undefined;
+  return error.status ?? error.response?.status;
+}
+
 /**
- * Google Calendar no longer has the event (404 Not Found, 410 Gone: deleted there already). Deleting it in PIPS!
- * then only needs the row removed; any other failure keeps the row, so the two calendars stay the same.
+ * Whether deleting an event in PIPS! may remove its row after Google refused to delete it (C6). 410 (Gone): Google
+ * deleted it already. 404 means either that or a calendar the service account can't reach, so the calendar is
+ * checked first: reachable, the event is gone; not reachable, the row stays (review m6). Any other failure keeps the
+ * row, so the two calendars stay the same.
  */
-export function googleEventGone(error: unknown): boolean {
-  if (!(error instanceof GaxiosError)) return false;
-  const status = error.status ?? error.response?.status;
-  return status === 404 || status === 410;
+export async function googleEventGone(
+  error: unknown,
+  calendarReachable: () => Promise<void>,
+): Promise<boolean> {
+  const status = googleStatus(error);
+  if (status === 410) return true;
+  if (status !== 404) return false;
+  try {
+    await calendarReachable();
+    return true;
+  } catch {
+    return false;
+  }
 }

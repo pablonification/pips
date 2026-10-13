@@ -49,6 +49,8 @@ export interface GoogleCalendarApi {
     event: calendar_v3.Schema$Event,
   ) => Promise<void>;
   remove: (calendarId: string, eventId: string) => Promise<void>;
+  /** Resolves when the service account can reach the calendar (`calendars.get`). */
+  getCalendar: (calendarId: string) => Promise<void>;
 }
 
 /** What the calendar routes need from storage and Google, passed in so the route tests run without either. */
@@ -92,6 +94,9 @@ const googleCalendar: GoogleCalendarApi = {
       calendarId,
       eventId,
     });
+  },
+  getCalendar: async (calendarId) => {
+    await calendar('v3').calendars.get({ auth: googleAuth, calendarId });
   },
 };
 
@@ -354,14 +359,15 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
         }
       }
 
+      const calendarId = eventDB.calendarGroup.googleCalendarUrl;
       try {
-        await deps.google.remove(
-          eventDB.calendarGroup.googleCalendarUrl,
-          eventDB.googleCalendarId,
-        );
+        await deps.google.remove(calendarId, eventDB.googleCalendarId);
       } catch (error) {
         // Already removed in Google Calendar: remove the row too, or the event could never be deleted (C6).
-        if (!googleEventGone(error)) throw error;
+        const gone = await googleEventGone(error, () =>
+          deps.google.getCalendar(calendarId),
+        );
+        if (!gone) throw error;
       }
       const event = await deps.deleteCalendarEvent(eventId);
       if (!event) {
