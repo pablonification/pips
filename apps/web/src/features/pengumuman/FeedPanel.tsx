@@ -275,6 +275,16 @@ function FeedList({
       void feed.fetchNextPage();
   }, [atEnd, feed, pages]);
 
+  // Offline with nothing kept from before: say so instead of loading forever.
+  if (loading && feed.fetchStatus === 'paused')
+    return (
+      <ErrorState
+        title={t.feed.gagal}
+        text={common.errors.sesi}
+        onRetry={() => void feed.refetch()}
+      />
+    );
+
   if (loading)
     return showSkeleton ? (
       <Skeleton label={t.feed.memuat}>
