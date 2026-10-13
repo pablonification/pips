@@ -7,8 +7,11 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { registerSW } from 'virtual:pwa-register';
 import { RootErrorFallback } from './components/error-fallback';
 import './index.css';
-// Features that title their pages from the URL register those rules with the shell (src/lib/shell/routes.ts).
+// Features register with the shell at start, so it imports no feature code: Testi Matkul titles its pages from
+// the URL (src/lib/shell/routes.ts), and Pengumuman counts its unread posts for the navigation badge
+// (src/components/shell/nav-badges.ts).
 import './features/testi/shell';
+import './features/pengumuman/shell';
 
 // Import the generated route tree
 import { router } from './router';

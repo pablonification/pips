@@ -70,7 +70,6 @@ const CommentComponent = ({
       <div className="flex items-start justify-between gap-2">
         <UserInfo
           name={commentData.creator.fullName}
-          email={commentData.creator.email}
           imageURL={commentData.creator.picture}
           avatarClassName="size-9"
         />

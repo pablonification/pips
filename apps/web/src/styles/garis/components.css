@@ -389,7 +389,11 @@
   .g-ruled-list .g-row-btn:hover {
     background: var(--bg-hover);
   }
-  .g-ruled-list .g-row-btn[aria-current='true'] {
+  /* Selected, or (a row that is a link) the page it opens is the current one. TanStack's Link marks a link to a
+     parent path "page" too (fuzzy matching by default), so a row that links gives its Link
+     activeOptions={{ exact: true }} (P1-B review minor 7). */
+  .g-ruled-list .g-row-btn[aria-current='true'],
+  .g-ruled-list .g-row-btn[aria-current='page'] {
     background: var(--bg-accent-subtle);
     box-shadow: inset 3px 0 0 var(--mark);
   }

@@ -6,7 +6,8 @@
  *   A request with no handler is aborted and fails the test. A write (POST, PUT, PATCH, DELETE) is only ever
  *   answered by a handler the test registered itself with `api.on(...)`; otherwise it is aborted and fails the test.
  * - `/socket.io/` is answered by the fake socket.io server (socketio.ts).
- * - `/__e2e__/` serves generated avatars, posters and photos (media.ts).
+ * - `/__e2e__/` serves generated avatars, posters and photos (media.ts), and takes photo uploads: a `PUT` to
+ *   `/__e2e__/upload/<name>` (the `presignedUrl` writes.presign hands out), with `api.uploads` for a delay or a failure.
  * - Other same-origin requests (the built app's files) go to the `vite preview` server.
  * - Requests to any other origin (Google, Sentry, analytics, web fonts) are blocked and recorded, never sent.
  */
@@ -116,6 +117,7 @@ export interface RecordedRequest {
     | 'blocked'
     | 'socket'
     | 'media'
+    | 'upload'
     | 'app'
     | 'offline';
   status?: number;
@@ -147,6 +149,11 @@ export class ApiMock {
   readonly requests: RecordedRequest[] = [];
   readonly problems: string[] = [];
   readonly socket: FakeSocketServer;
+  /**
+   * Photo uploads (`PUT /__e2e__/upload/**`): answered after `delayMs`; the next `failNext` uploads get a 500.
+   * A test changes these for itself.
+   */
+  readonly uploads = { delayMs: 0, failNext: 0 };
   private handlers: Registered[] = [];
   private closed = false;
   private offline = false;
@@ -293,6 +300,22 @@ export class ApiMock {
         outcome: 'socket',
       });
       return this.socket.handle(route);
+    }
+    if (url.pathname.startsWith('/__e2e__/upload/') && method === 'PUT') {
+      const record: RecordedRequest = {
+        method,
+        path: url.pathname,
+        query: url.search,
+        body: undefined,
+        outcome: 'upload',
+      };
+      this.record(record);
+      const fail = this.uploads.failNext > 0;
+      if (fail) this.uploads.failNext -= 1;
+      if (this.uploads.delayMs)
+        await new Promise((res) => setTimeout(res, this.uploads.delayMs));
+      record.status = fail ? 500 : 200;
+      return route.fulfill({ status: record.status, body: '' });
     }
     if (url.pathname.startsWith('/__e2e__/')) {
       this.record({

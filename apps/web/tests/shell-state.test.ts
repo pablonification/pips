@@ -17,6 +17,12 @@ Object.defineProperty(globalThis, 'sessionStorage', {
   },
 });
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+// The page, for its pagehide event.
+const page = new EventTarget();
+Object.defineProperty(globalThis, 'window', {
+  configurable: true,
+  value: page,
+});
 
 const shell = await import('../src/components/shell/shell-state');
 
@@ -33,7 +39,8 @@ test('forgetShell: no title, no back history, nothing in the tab, and nothing wr
   assert.equal(shell.titleFor('/layanan/curhat/r1'), undefined);
   assert.equal(shell.titleFor('/layanan/form/pixel'), undefined);
   assert.equal(shell.entryAt(3), undefined);
-  assert.equal(shell.lastRoot(), 'beranda');
+  // No tab this visit until the member opens one: Profil then lights none (Dev 1's decision, P1-C round 2).
+  assert.equal(shell.lastRoot(), null);
   assert.equal(map.has('pips:shell'), false);
   await wait(300);
   assert.equal(map.has('pips:shell'), false);
@@ -54,4 +61,16 @@ test('components subscribed to titles see them cleared', () => {
   shell.forgetShell();
   assert.notEqual(shell.titlesSnapshot(), before);
   assert.deepEqual(shell.titlesSnapshot(), {});
+});
+
+test('a change is written before the page goes away, not lost to a reload within 200 ms (P1-B, found by the shell journey)', async () => {
+  shell.forgetShell();
+  shell.setLastRoot('layanan');
+  assert.equal(map.has('pips:shell'), false, 'still waiting');
+  page.dispatchEvent(new Event('pagehide'));
+  assert.match(map.get('pips:shell') ?? '', /"lastRoot":"layanan"/);
+  // Nothing written twice later.
+  map.delete('pips:shell');
+  await wait(300);
+  assert.equal(map.has('pips:shell'), false);
 });

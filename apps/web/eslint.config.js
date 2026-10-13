@@ -24,6 +24,14 @@ export const GARIS_FILES = [
   'src/lib/shell/**/*.{ts,tsx}',
   // P1-C: push, Profil, Layanan, sign-in and first run.
   'src/components/push/**/*.{ts,tsx}',
+  'src/features/**/*.{ts,tsx}',
+  // P1-B: Pengumuman, and the shared date words.
+  'src/features/pengumuman/**/*.{ts,tsx}',
+  'src/lib/dates.ts',
+  'src/routes/_app/_left-navbar/pengumuman/route.tsx',
+  'src/routes/_app/_left-navbar/pengumuman/index.tsx',
+  'src/routes/_app/_left-navbar/pengumuman/$id/index.tsx',
+  'src/routes/_app/_left-navbar/pengumuman/tulis/index.tsx',
   // P2-A: Form and Magang SPARTA.
   'src/components/form/**/*.{ts,tsx}',
   'src/lib/form/**/*.{ts,tsx}',
@@ -126,6 +134,8 @@ export default defineConfig([
             'accent|success|inverse|outlined|error|dialog|handle|rule|hint|dis-ic|msg|t-ic|act|sq|bars',
             // The shell's parts (src/styles/garis/shell.css) and the theme scopes.
             'cap|sub|s|lap|label|c2|theme-light|theme-dark',
+            // Pengumuman's parts (src/features/pengumuman/pengumuman.css).
+            'who|meta|z|end|many|host|ttl|lbl|in|state|bar|del|opt|body|read|unread|lead|desk|failed',
           ],
         },
       ],

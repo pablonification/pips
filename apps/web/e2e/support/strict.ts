@@ -75,44 +75,101 @@ export async function strictAudit(
   expect(failures, `quality gates on ${name}`).toEqual([]);
 }
 
-/** Tabs through the page (at most `max` stops); every focused element must show a focus indicator. */
+/**
+ * Tabs through the page (at most `max` stops); every focused element must show a focus indicator.
+ *
+ * The indicator is found by comparing the same control focused and blurred (review m7): Garis buttons, chips,
+ * fields and switches carry a shadow at rest, so "has an outline or a shadow" passed controls with no focus style
+ * at all. At each stop the gate reads the outline, shadow, border and background of the control, its ::before and
+ * ::after, and its three nearest ancestors (Seg, the rating and the search box draw the ring on a wrapper that
+ * `:has(:focus-visible)` or is `:focus-within`), blurs the control, reads them again, and focuses it again. Nothing
+ * changed means no visible focus. Transitions are switched off meanwhile, so neither reading catches one midway.
+ */
 export async function expectVisibleFocus(page: Page, max = 30) {
   await page.evaluate(() => {
     (document.activeElement as HTMLElement | null)?.blur();
     window.scrollTo(0, 0);
+    const still = document.createElement('style');
+    still.id = 'e2e-focus-still';
+    still.textContent =
+      '*, *::before, *::after { transition: none !important; animation: none !important; }';
+    document.head.append(still);
   });
   const seen = new Set<string>();
-  for (let i = 0; i < max; i++) {
-    await page.keyboard.press('Tab');
-    const info = await page.evaluate(() => {
-      const el = document.activeElement as HTMLElement | null;
-      if (!el || el === document.body) return null;
-      const s = getComputedStyle(el);
-      const ring =
-        (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0) ||
-        (s.boxShadow && s.boxShadow !== 'none');
-      // Some controls draw their ring on a wrapper (Seg's label) or a pseudo-element: accept a ring on the parent
-      // that :has(:focus-visible).
-      const parent = el.closest('label, .g-seg, .g-searchbox, .g-rating');
-      const ps = parent ? getComputedStyle(parent) : null;
-      const parentRing =
-        !!ps &&
-        ((ps.outlineStyle !== 'none' && parseFloat(ps.outlineWidth) > 0) ||
-          (ps.boxShadow !== 'none' && ps.boxShadow !== ''));
-      const id = `${el.tagName}|${el.getAttribute('aria-label') ?? ''}|${(el.textContent ?? '').trim().slice(0, 30)}|${el.getBoundingClientRect().top}`;
-      return { id, ok: !!ring || parentRing, name: id };
-    });
-    if (!info) continue;
-    if (seen.has(info.id)) break;
-    seen.add(info.id);
-    expect(info.ok, `focus indicator on ${info.name}`).toBe(true);
+  try {
+    for (let i = 0; i < max; i++) {
+      await page.keyboard.press('Tab');
+      const info = await page.evaluate(() => {
+        const el = document.activeElement as HTMLElement | null;
+        if (!el || el === document.body) return null;
+        // What can show focus, as drawn: an outline or a border only when it is there (an outline's offset or a
+        // border's colour changes nothing on screen while its style is none or its width 0).
+        const look = (s: CSSStyleDeclaration) => {
+          const outline =
+            s.outlineStyle === 'none' || parseFloat(s.outlineWidth) === 0
+              ? 'none'
+              : `${s.outlineStyle} ${s.outlineWidth} ${s.outlineColor} ${s.outlineOffset}`;
+          const border = ['top', 'right', 'bottom', 'left']
+            .map((side) => {
+              const v = (p: string) =>
+                s.getPropertyValue(`border-${side}-${p}`);
+              return v('style') === 'none' || parseFloat(v('width')) === 0
+                ? 'none'
+                : `${v('width')} ${v('color')}`;
+            })
+            .join(' ');
+          return [
+            outline,
+            border,
+            s.boxShadow,
+            s.backgroundColor,
+            s.color,
+            s.textDecorationLine,
+            s.translate,
+          ].join('|');
+        };
+        const nodes: [Element, string | null][] = [
+          [el, null],
+          [el, '::before'],
+          [el, '::after'],
+        ];
+        for (
+          let a = el.parentElement, n = 0;
+          a && n < 3;
+          a = a.parentElement, n++
+        )
+          nodes.push([a, null]);
+        const read = () =>
+          nodes.map(([node, pseudo]) => look(getComputedStyle(node, pseudo)));
+        const focused = read();
+        el.blur();
+        const blurred = read();
+        el.focus({ preventScroll: true });
+        const role = el.getAttribute('role');
+        const id = `${el.tagName}${role ? `[${role}]` : ''}|${el.getAttribute('aria-label') ?? ''}|${(el.textContent ?? '').trim().slice(0, 30)}|${el.getBoundingClientRect().top}`;
+        return {
+          id,
+          ok: focused.some((v, k) => v !== blurred[k]),
+          name: id,
+        };
+      });
+      if (!info) continue;
+      if (seen.has(info.id)) break;
+      seen.add(info.id);
+      expect(info.ok, `focus indicator on ${info.name}`).toBe(true);
+    }
+  } finally {
+    await page.evaluate(() =>
+      document.getElementById('e2e-focus-still')?.remove(),
+    );
   }
   expect(seen.size, 'Tab reaches something').toBeGreaterThan(0);
 }
 
 /**
  * The navigation lights exactly the item for this route. Profil has no tab: on phones and tablets the tab you came
- * from stays lit (one item), on desktop your name at the sidebar's foot is the current page.
+ * from stays lit, and none when Profil was opened directly (Dev 1's decision, as the locked screens show); on
+ * desktop your name at the sidebar's foot is the current page.
  */
 export async function expectLit(page: Page, testInfo: TestInfo, name: Lit) {
   const lit = page
@@ -124,7 +181,43 @@ export async function expectLit(page: Page, testInfo: TestInfo, name: Lit) {
       await expect(
         page.getByRole('link', { name: / Profil$/ }),
       ).toHaveAttribute('aria-current', 'page');
-    } else await expect(lit).toHaveCount(1);
+      return;
+    }
+    // The shell's memory of the last tab this visit (src/components/shell/shell-state.ts, saved a moment after a
+    // change), against the tabs lit: none, or exactly that one.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            let cameFrom: string | null = null;
+            try {
+              cameFrom =
+                (
+                  JSON.parse(sessionStorage.getItem('pips:shell') ?? '{}') as {
+                    lastRoot?: string | null;
+                  }
+                ).lastRoot ?? null;
+            } catch {
+              // nothing remembered
+            }
+            const lit = [
+              ...document.querySelectorAll(
+                'nav[aria-label="Navigasi utama"] [aria-current="page"]',
+              ),
+            ]
+              .filter((el) => (el as HTMLElement).checkVisibility())
+              .map((el) => el.textContent?.trim() ?? '');
+            const want = cameFrom
+              ? [`${cameFrom[0].toUpperCase()}${cameFrom.slice(1)}`]
+              : [];
+            return lit.length === want.length &&
+              lit.every((t, i) => t.startsWith(want[i]))
+              ? 'ok'
+              : `lit ${JSON.stringify(lit)}, expected ${JSON.stringify(want)}`;
+          }),
+        { message: 'the tab lit on Profil' },
+      )
+      .toBe('ok');
     return;
   }
   await expect(lit).toHaveCount(1);

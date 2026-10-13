@@ -54,3 +54,8 @@ export const querySearchSchema = z.object({
 export const testiSearchSchema = z.object({
   page: z.number().optional().catch(undefined),
 });
+
+/** Tambah mata kuliah (P1-C): `dari=mulai` when it opened from first run, so Tambahkan goes back there. */
+export const matkulTambahSearchSchema = z.object({
+  dari: z.literal('mulai').optional().catch(undefined),
+});
