@@ -24,6 +24,7 @@ import { IconFoto } from '~/components/icons/foto';
 import { IconPengumuman } from '~/components/icons/pengumuman';
 import { IconPeringatan } from '~/components/icons/peringatan';
 import { IconTutup } from '~/components/icons/tutup';
+import { keepFocusOnNavigationTo } from '~/components/shell/focus';
 import { entryAt } from '~/components/shell/shell-state';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
@@ -162,6 +163,10 @@ export function ComposeForm({
         resetComposer();
         void deleteSharedData().catch(() => undefined);
         if (desk) {
+          // The dialog closes onto the new post, selected in the list; its row takes focus, not the page's title.
+          keepFocusOnNavigationTo(
+            `/pengumuman/${encodeURIComponent(created.id)}`,
+          );
           void navigate({
             to: '/pengumuman/$id',
             params: { id: created.id },

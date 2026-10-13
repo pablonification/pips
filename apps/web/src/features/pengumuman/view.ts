@@ -71,11 +71,40 @@ export const takeWantComment = (id: string) => {
   return want;
 };
 
-/** After the shell has moved focus to the page's title (its next frame), put it where the action wants it. */
-export function focusSoon(find: () => HTMLElement | null | undefined) {
-  requestAnimationFrame(() =>
-    requestAnimationFrame(() => {
-      find()?.focus();
-    }),
-  );
+/**
+ * After the shell has moved focus to the page's title (its next frame), put it where the action wants it. The
+ * element may render a little later (the list refetching after a post), or be replaced as it re-renders, dropping
+ * focus to the page: for a short while it keeps trying, until the member taps or types.
+ */
+export function focusSoon(
+  find: () => HTMLElement | null | undefined,
+  within = FOCUS_WINDOW_MS,
+) {
+  const until = performance.now() + within;
+  let acted = false;
+  let placed = false;
+  const stop = () => {
+    acted = true;
+  };
+  window.addEventListener('pointerdown', stop, true);
+  window.addEventListener('keydown', stop, true);
+  const done = () => {
+    window.removeEventListener('pointerdown', stop, true);
+    window.removeEventListener('keydown', stop, true);
+  };
+  const tick = () => {
+    if (acted || performance.now() > until) return done();
+    const el = find();
+    const active = document.activeElement;
+    const lost = !active || active === document.body;
+    if (el && active !== el && (!placed || lost)) {
+      el.focus();
+      placed ||= document.activeElement === el;
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(() => requestAnimationFrame(tick));
 }
+
+/** How long focusSoon keeps an element in focus while the page settles. */
+export const FOCUS_WINDOW_MS = 1500;
