@@ -5,7 +5,7 @@
  * 4), except for what the share target hands over.
  */
 import { useNavigate, useRouter } from '@tanstack/react-router';
-import { useEffect, useId, useRef, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import {
   Avatar,
   Button,
@@ -100,6 +100,9 @@ export function ComposeForm({
   const { data: groups } = useGroups();
   const create = useCreateInfo();
   const navigate = useNavigate();
+  // Sending failed: said inside the form, with Coba lagi beside it (a toast sits outside the desktop dialog, where
+  // the keyboard can't reach it and pressing it would close the dialog).
+  const [sendFailed, setSendFailed] = useState(false);
   const body = useRef<HTMLTextAreaElement>(null);
   const catGroup = useRef<HTMLDivElement>(null);
   const audGroup = useRef<HTMLDivElement>(null);
@@ -152,6 +155,7 @@ export function ComposeForm({
       });
       return;
     }
+    setSendFailed(false);
     create.mutate(composeBody(full), {
       onSuccess: (created) => {
         toast.success(t.tulis.diumumkan);
@@ -178,10 +182,7 @@ export function ComposeForm({
           );
         }
       },
-      onError: () =>
-        toast.error(t.tulis.gagal, {
-          action: { label: common.actions.cobaLagi, onClick: () => submit() },
-        }),
+      onError: () => setSendFailed(true),
     });
   };
 
@@ -394,6 +395,17 @@ export function ComposeForm({
           <IconPeringatan size={16} />
           {blocked}
         </p>
+      ) : null}
+      {sendFailed && !create.isPending ? (
+        <div className="g-send-err" role="alert">
+          <p className="g-err t-cap">
+            <IconPeringatan size={16} />
+            {t.tulis.gagal}
+          </p>
+          <Button variant="paper" size="sm" onClick={() => submit()}>
+            {common.actions.cobaLagi}
+          </Button>
+        </div>
       ) : null}
       <div className="g-ov-foot">
         <Button variant="paper" onClick={onCancel}>
