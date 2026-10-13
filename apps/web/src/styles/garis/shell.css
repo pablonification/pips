@@ -637,16 +637,17 @@
 }
 .g-legacy .min-h-screen:not(.fixed) {
   min-height: var(--g-page-h, 100vh);
+}
 
-  /* The wrapper around today's screens (routes/_app/_left-navbar.tsx). It clips sideways without becoming a second
-     scrolling box (`hidden` would make overflow-y auto), so sticky bars inside a page stick to the shell's scroller
-     (P2-C). Browsers without `clip` (Safari before 16) keep the old `hidden` (review minor 6). */
+/* The wrapper around the app's screens (routes/_app/_left-navbar.tsx). It clips sideways without becoming a second
+   scrolling box (`hidden` would make overflow-y auto), so sticky bars inside a page stick to the shell's scroller
+   (P2-C). Browsers without `clip` (Safari before 16) keep the old `hidden` (review minor 6). Top level: nested in the
+   rule above, it never matched (P3-C round 2). */
+.g-page-wrap {
+  overflow-x: clip;
+}
+@supports not (overflow-x: clip) {
   .g-page-wrap {
-    overflow-x: clip;
-  }
-  @supports not (overflow-x: clip) {
-    .g-page-wrap {
-      overflow-x: hidden;
-    }
+    overflow-x: hidden;
   }
 }

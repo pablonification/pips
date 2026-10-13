@@ -339,6 +339,16 @@ test.describe('today’s screens inside the shell', () => {
     expect(own).toBeGreaterThan(1000);
   });
 
+  // Found in P3-C round 2: P2-C's clip rules sat nested inside another rule and never applied to the wrapper.
+  test('regression: the page wrapper clips sideways without becoming a scrolling box', async ({
+    page,
+  }) => {
+    await page.goto('/layanan');
+    const wrap = page.locator('.g-page-wrap');
+    await expect(wrap).toHaveCSS('overflow-x', 'clip');
+    await expect(wrap).toHaveCSS('overflow-y', 'visible');
+  });
+
   test('Curhat’s new-room button sits above the tab bar @phone-only', async ({
     page,
   }) => {
