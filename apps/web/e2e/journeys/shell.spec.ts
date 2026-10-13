@@ -246,8 +246,10 @@ test.describe('back', () => {
 test.describe('focused flows', () => {
   for (const [path, title] of [
     ['/pengumuman/tulis', 'Buat pengumuman'],
-    ['/layanan/form/pixel', 'Form'],
+    // P2-A: the form's own title, as the prototype's phone top bar shows it (usePageTitle).
+    ['/layanan/form/pixel', 'Form Analisis Kondisi PIXEL'],
     ['/layanan/curhat/r1', 'Ruang'],
+    ['/layanan/sparta', 'Magang SPARTA'],
   ] as const) {
     test(`${path} hides the tab bar and rail and keeps back @phone-only`, async ({
       page,
