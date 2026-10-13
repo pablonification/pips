@@ -20,6 +20,7 @@
     "e2e:before": "node e2e/scripts/before.mjs",
     "e2e:compare-before": "node e2e/scripts/compare-before.mjs",
     "fidelity": "node e2e/scripts/fidelity.mjs",
+    "review": "node e2e/scripts/review.mjs",
     "e2e:update": "playwright test -c e2e --project=visual-phone-light --project=visual-phone-dark --project=visual-desktop-light --project=visual-desktop-dark --update-snapshots --pass-with-no-tests"
   },
   "dependencies": {
