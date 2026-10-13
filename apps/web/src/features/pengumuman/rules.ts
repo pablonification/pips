@@ -476,22 +476,35 @@ export const uploadedUrls = (uploads: readonly UploadState[]) =>
 
 export type LinkKind = 'gform' | 'sheet' | 'web';
 
-/** A link's card: Google Forms open inside PIPS!, Sheets get the sheet tile, others the link tile. */
+/**
+ * A link's card: Google Forms open inside PIPS!, Sheets get the sheet tile, others the link tile. Decided by the
+ * link's own host and path only (and the address the preview was fetched for), never by what its page says about
+ * itself, so no other site opens inside PIPS! (review minor 5).
+ */
 export function linkKind(
   url: string,
-  og?: { ogTitle?: string; ogDescription?: string; requestUrl?: string } | null,
+  og?: { requestUrl?: string } | null,
 ): LinkKind {
-  const u = url.toLowerCase();
-  // Today's `isGoogleForm` (pengumuman/$id/-helper.tsx), plus forms.gle short links.
-  const form =
-    u.includes('docs.google.com/forms') ||
-    u.includes('forms.gle/') ||
-    og?.ogTitle?.toLowerCase().includes('google forms') ||
-    og?.ogDescription?.toLowerCase().includes('google forms') ||
-    og?.requestUrl?.toLowerCase().includes('docs.google.com/forms');
+  const at = [url, og?.requestUrl].flatMap((u) => (u ? [placeOf(u)] : []));
+  const form = at.some(
+    (p) =>
+      p.host === 'forms.gle' ||
+      (p.host === 'docs.google.com' && p.path.startsWith('/forms/')),
+  );
   if (form) return 'gform';
-  if (u.includes('docs.google.com/spreadsheets')) return 'sheet';
-  return 'web';
+  const sheet = at.some(
+    (p) => p.host === 'docs.google.com' && p.path.startsWith('/spreadsheets/'),
+  );
+  return sheet ? 'sheet' : 'web';
+}
+
+function placeOf(url: string) {
+  try {
+    const u = new URL(absoluteUrl(url.trim()));
+    return { host: u.hostname.toLowerCase(), path: u.pathname };
+  } catch {
+    return { host: '', path: '' };
+  }
 }
 
 export const absoluteUrl = (url: string) =>

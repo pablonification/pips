@@ -466,8 +466,24 @@ test('link kinds: Google Forms open in PIPS!, Sheets get the sheet tile, others 
     'gform',
   );
   assert.equal(linkKind('https://forms.gle/abc'), 'gform');
+  // By the address only: a page that calls itself Google Forms, or mentions the address, isn't one (review minor 5).
   assert.equal(
-    linkKind('https://example.org/x', { ogTitle: 'Google Forms: Sign-in' }),
+    linkKind('https://example.org/x', {
+      ogTitle: 'Google Forms: Sign-in',
+      ogDescription: 'Google Forms',
+    } as never),
+    'web',
+  );
+  assert.equal(
+    linkKind('https://example.org/?next=docs.google.com/forms/d/x'),
+    'web',
+  );
+  assert.equal(linkKind('https://docs.google.com.evil.id/forms/d/x'), 'web');
+  assert.equal(linkKind('docs.google.com/forms/d/e/x/viewform'), 'gform');
+  assert.equal(
+    linkKind('https://s.id/x', {
+      requestUrl: 'https://docs.google.com/forms/d/e/x/viewform',
+    }),
     'gform',
   );
   assert.equal(
