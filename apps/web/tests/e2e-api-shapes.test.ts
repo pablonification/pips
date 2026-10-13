@@ -238,3 +238,36 @@ test('form detail: questions for the angkatan and for an admin, not for other me
   assert.equal(outside.sections, null);
   assert.equal(outside.title, raka.formDetails.pixel.title);
 });
+
+// Harness bug (P3-A): the admin list answered 403 and the other admin endpoints checked no role at all; the API's
+// roleMiddleware answers 401 { error: 'Unauthorized' } for a missing role.
+test('admin endpoints answer 401 without the role, as roleMiddleware', () => {
+  const nadia = buildDb('anggota');
+  const raka = buildDb('pengurus');
+  const people = buildDb('pengurus', { only: ['peoplemanage'] });
+  const form = { params: { formId: 'pixel' } };
+  const sub = { params: { id: raka.internshipSubmissions[0].id } };
+  const formAdmin = [
+    ['/api/form/admin/list', {}],
+    ['/api/form/:formId/responses', form],
+    ['/api/form/:formId/responses/count', form],
+    ['/api/form/:formId/analytics', form],
+  ] as const;
+  const spartaAdmin = [
+    ['/api/internship/submissions', {}],
+    ['/api/internship/submissions/:id', sub],
+  ] as const;
+  for (const [route, opts] of formAdmin) {
+    for (const db of [nadia, people]) {
+      const res = call(get(route), db, opts);
+      assert.equal(res.status, 401, `${route} for ${db.me!.roles}`);
+      assert.deepEqual(res.body, { error: 'Unauthorized' });
+    }
+    assert.equal(call(get(route), raka, opts).status, undefined, route);
+  }
+  for (const [route, opts] of spartaAdmin) {
+    assert.equal(call(get(route), nadia, opts).status, 401, route);
+    assert.equal(call(get(route), raka, opts).status, undefined, route);
+    assert.equal(call(get(route), people, opts).status, undefined, route);
+  }
+});
