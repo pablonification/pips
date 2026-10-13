@@ -32,7 +32,7 @@
   .g-scroll::-webkit-scrollbar {
     display: none;
   }
-  /* The page itself. A flex item, so today's screens that fill the height (h-full) still can. */
+  /* The page itself. A flex item, so a screen can fill the height (h-full). */
   .g-main {
     position: relative;
     flex: 1 0 auto;
@@ -443,7 +443,7 @@
     flex-direction: column;
     min-height: 0;
     overflow-y: auto;
-    /* A themed scrollbar instead of today's green one (index.css), which would sit on dark pages. */
+    /* A themed scrollbar, which follows the theme on dark pages. */
     scrollbar-color: var(--border-strong) transparent;
   }
   .g-crumbs {
