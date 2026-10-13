@@ -18,6 +18,14 @@ export interface TestimoniDeps {
   getTestimoniByCourseId: WithoutDb<typeof getTestimoniByCourseId>;
 }
 
+/** A testimonial as members see it: without its author's user id (review m7). */
+function withoutAuthor<T extends { userId: string | null }>({
+  userId: _userId,
+  ...testimonial
+}: T) {
+  return testimonial;
+}
+
 const databaseDeps: TestimoniDeps = {
   getUserRoles: withDb(getUserRoles),
   createTestimoni: withDb(createTestimoni),
@@ -34,13 +42,13 @@ export function createTestimoniRouter(deps: TestimoniDeps = databaseDeps) {
   testimoniRoute.openapi(postTestimoniRoute, async (c) => {
     const data = c.req.valid('json');
     const res = await deps.createTestimoni(data, c.var.user.id);
-    return c.json(res, 200);
+    return c.json(withoutAuthor(res), 200);
   });
 
   testimoniRoute.openapi(getTestimoniByCourseIdRoute, async (c) => {
     const { courseId } = c.req.valid('param');
     const testi = await deps.getTestimoniByCourseId(courseId);
-    return c.json(testi, 200);
+    return c.json(testi.map(withoutAuthor), 200);
   });
 
   return testimoniRoute;
