@@ -5,7 +5,7 @@
  * Nobody else sees them; the server checks the role too. The dialog's code loads only when it opens.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { lazy, Suspense, useRef, useState } from 'react';
+import { lazy, Suspense, useRef, useState, type ReactNode } from 'react';
 import { api } from '~/api/client';
 import type { Competition } from '~/api/generated';
 import {
@@ -52,32 +52,37 @@ function useAfterSave() {
   };
 }
 
-export function TambahLomba() {
+/**
+ * Tambah lomba: the button, and its one dialog. The screen puts the button in the desktop head and the top bar, and
+ * the dialog once outside both, so turning a tablet across 1024 px (the button moving between them) keeps the dialog
+ * and what was typed (review m3).
+ */
+export function useTambahLomba(): { button: ReactNode; dialog: ReactNode } {
   const user = useSession();
   const [open, setOpen] = useState(false);
   const after = useAfterSave();
-  if (!can(user, 'createCompetition')) return null;
-  return (
-    <>
+  if (!can(user, 'createCompetition')) return { button: null, dialog: null };
+  return {
+    button: (
       <Button variant="gold" size="sm" onClick={() => setOpen(true)}>
         <IconTambah size={16} />
         {t.tambah}
       </Button>
-      {open ? (
-        <Suspense fallback={null}>
-          <LombaDialog
-            onOpenChange={setOpen}
-            onSaved={() => {
-              after.done(t.ditambahkan);
-              setOpen(false);
-            }}
-            onFailed={(e) => reportWriteFailure(e, after.qc)}
-            onCloseAutoFocus={after.onCloseAutoFocus}
-          />
-        </Suspense>
-      ) : null}
-    </>
-  );
+    ),
+    dialog: open ? (
+      <Suspense fallback={null}>
+        <LombaDialog
+          onOpenChange={setOpen}
+          onSaved={() => {
+            after.done(t.ditambahkan);
+            setOpen(false);
+          }}
+          onFailed={(e) => reportWriteFailure(e, after.qc)}
+          onCloseAutoFocus={after.onCloseAutoFocus}
+        />
+      </Suspense>
+    ) : null,
+  };
 }
 
 /** For `cnc`: "Opsi untuk {name}" at the card's top right, with Ubah lomba and Hapus lomba (danger). */

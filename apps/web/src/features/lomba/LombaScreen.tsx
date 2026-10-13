@@ -21,7 +21,7 @@ import { lomba as copy } from '~/copy/lomba';
 import { serviceById } from '~/lib/services';
 import { cn } from '~/lib/utils';
 import { NewTab, useOnline } from '~/features/layanan-svc/parts';
-import { LombaOptions, TambahLomba } from '~/features/kelola-lomba/Manage';
+import { LombaOptions, useTambahLomba } from '~/features/kelola-lomba/Manage';
 import { offlineUpdatedAt } from '~/features/layanan-svc/updated';
 import { deadlineLine, isOpen, isUrgent, rupiah, withScheme } from './rules';
 import { competitionsQuery } from './queries';
@@ -104,6 +104,7 @@ function LombaCard({ c, now }: { c: Competition; now: number }) {
  */
 export function LombaScreen() {
   const online = useOnline();
+  const tambah = useTambahLomba();
   const list = useInfiniteQuery(competitionsQuery);
   const { ref: endRef, inView } = useInView();
   const now = Date.now();
@@ -214,13 +215,12 @@ export function LombaScreen() {
 
   return (
     <>
-      <DeskHead title={serviceById('lomba').label} actions={<TambahLomba />} />
-      <TopBarActions>
-        <TambahLomba />
-      </TopBarActions>
+      <DeskHead title={serviceById('lomba').label} actions={tambah.button} />
+      <TopBarActions>{tambah.button}</TopBarActions>
       <PageBody id={bodyId} className="gap-2.5">
         {content}
       </PageBody>
+      {tambah.dialog}
     </>
   );
 }
