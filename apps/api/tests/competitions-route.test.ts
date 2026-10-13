@@ -38,6 +38,8 @@ function setup(roles: UserRolesEnum[]) {
       return { ...competition, ...data } as never;
     },
     updateCompetition: async (id, data) => {
+      // As Drizzle's set({}) does in competitions.repo.ts.
+      if (Object.keys(data).length === 0) throw new Error('No values to set');
       writes.push({ op: 'update', data });
       return { ...competition, ...data, id } as never;
     },
@@ -86,6 +88,19 @@ test('PUT /competitions/{id}: the other rules stay (name and organiser at least 
     name: 'AB',
   });
   assert.equal(res.status, 400);
+  assert.deepEqual(writes, []);
+});
+
+test('regression (M1): PUT /competitions/{id} with an empty body answers 400, not 500, and writes nothing', async () => {
+  const { router, writes } = setup(['cnc']);
+  const res = await callRouter(
+    router,
+    member,
+    'PUT',
+    '/competitions/lomba-1',
+    {},
+  );
+  assert.equal(res.status, 400, JSON.stringify(res.body));
   assert.deepEqual(writes, []);
 });
 

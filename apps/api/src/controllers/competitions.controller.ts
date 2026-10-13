@@ -68,13 +68,16 @@ export function createCompetitionsRouter(
   competitionsRouter.openapi(updateCompetitionRoute, async (c) => {
     try {
       const { id } = c.req.valid('param');
+      const data = c.req.valid('json');
+      // Nothing to change: Drizzle's set({}) would throw and answer 500.
+      if (Object.keys(data).length === 0)
+        return c.json({ error: 'Nothing to update' }, 400);
 
       // Check if competition exists
       const existingCompetition = await deps.getCompetitionById(id);
       if (!existingCompetition)
         return c.json({ error: 'Competition not found' }, 404);
 
-      const data = c.req.valid('json');
       const competition = await deps.updateCompetition(id, data, c.var.user.id);
       return c.json(competition, 200);
     } catch (err) {
