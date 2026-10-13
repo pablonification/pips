@@ -88,9 +88,12 @@ function useLeave() {
 export function ComposeForm({
   desk,
   onCancel,
+  onSent,
 }: {
   desk: boolean;
   onCancel: () => void;
+  /** Sent: the dialog closes onto the new post, which takes focus (not the Buat link that opened it). */
+  onSent?: () => void;
 }) {
   const me = useSession();
   const { draft, photos, errors } = useCompose();
@@ -164,6 +167,7 @@ export function ComposeForm({
         void deleteSharedData().catch(() => undefined);
         if (desk) {
           // The dialog closes onto the new post, selected in the list; its row takes focus, not the page's title.
+          onSent?.();
           keepFocusOnNavigationTo(
             `/pengumuman/${encodeURIComponent(created.id)}`,
           );
@@ -439,10 +443,16 @@ export function ComposePage() {
 /** The desktop dialog over the split: Tutup, Batal, Escape and the backdrop return to the feed. */
 export function ComposeDialog() {
   const leave = useLeave();
+  // After a post the new row has focus; the dialog's own return to Buat would take it back as the dialog unmounts,
+  // which on a slow device comes after the row was focused (CI on #9).
+  const sent = useRef(false);
   return (
     <Dialog
       open
       onOpenChange={(o) => !o && leave()}
+      onCloseAutoFocus={(e) => {
+        if (sent.current) e.preventDefault();
+      }}
       title={t.tulis.judul}
       onOpenAutoFocus={(e) => {
         e.preventDefault();
@@ -451,7 +461,13 @@ export function ComposeDialog() {
           ?.focus();
       }}
     >
-      <ComposeForm desk onCancel={leave} />
+      <ComposeForm
+        desk
+        onCancel={leave}
+        onSent={() => {
+          sent.current = true;
+        }}
+      />
     </Dialog>
   );
 }

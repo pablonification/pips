@@ -214,6 +214,46 @@ test.describe('Nadia', () => {
     }
   });
 
+  test('desktop, on a slow device: after posting, focus stays on the new row (regression: the closing dialog took it back to Buat) @desktop-only', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api
+      .on('POST /api/info', writes.createInfo)
+      .on('POST /api/info/:infoId/read', writes.markRead);
+    // CI's runners are about this much slower than the Mac; there the dialog unmounted after the row had focus,
+    // and its return to Buat took focus back.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    const c = await openComposer(page, testInfo);
+    await c
+      .getByRole('textbox', { name: 'Isi pengumuman' })
+      .fill('Ada yang mau bareng ke Jatinangor Sabtu pagi?');
+    await c
+      .getByRole('group', { name: 'Kategori' })
+      .getByRole('checkbox', { name: 'Umum' })
+      .click();
+    await c.getByRole('button', { name: 'Umumkan' }).click();
+    await expect(
+      page.getByRole('dialog', { name: 'Buat pengumuman' }),
+    ).toHaveCount(0);
+    await expect(page).toHaveURL(/\/pengumuman\/e2e-info-7$/);
+    const row = page.locator('[data-post-row="e2e-info-7"]');
+    await expectFocused(row);
+    // Still there once the closing dialog's last task has run (it returns focus on a timer after unmounting).
+    await page.evaluate(
+      () =>
+        new Promise((r) =>
+          setTimeout(() => requestAnimationFrame(() => setTimeout(r, 0)), 0),
+        ),
+    );
+    await expectFocused(row);
+    await expect(
+      page.getByRole('link', { name: 'Buat pengumuman' }),
+    ).not.toBeFocused();
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  });
+
   test('Batal and Escape leave the composer; the next one starts fresh', async ({
     page,
   }, testInfo) => {
