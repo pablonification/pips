@@ -73,7 +73,7 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     focused: true,
     legacy: true,
   },
-  '/kalender': { title: nav.kalender, root: 'kalender', legacy: true },
+  '/kalender': { title: nav.kalender, root: 'kalender' },
   '/layanan': { title: nav.layanan, root: 'layanan', legacy: true },
   '/layanan/dingdong': {
     title: svc('dingdong'),

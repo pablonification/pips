@@ -1,0 +1,322 @@
+/*
+  Beranda (P1-A): the agenda card, the service tiles, the cards under the hairline headings, the follow-up rows, the
+  Kelola card and desktop's two columns. Ported from the prototype's garis/garis.css (`.home-body`, `.agenda`,
+  `.ag-*`, `.tiles`, `.tile-btn`, `.home-card`, `.att`, `.item.brief`, `.svc-grid`, `.svc`, `.live`, `.d-grid`,
+  `.stack`, the `draw` keyframes, and the tablet and 340 px rules) with the `g-` prefix, values unchanged. Tokens only;
+  loaded with Beranda. tests/beranda-css.test.mjs checks it.
+*/
+@layer components {
+  /* ============ Phones and tablets: the body under the gold header ============ */
+  /* The agenda slot's own bottom padding gives way to the body's 28 px gap (the prototype's one `.home-body`). */
+  .g-body.g-home-agenda {
+    padding-bottom: 0;
+  }
+  .g-body.g-home-body {
+    padding-top: 28px;
+    gap: 28px;
+  }
+
+  /* ============ The agenda card: eight days over the chosen day's events ============ */
+  .g-agenda {
+    position: relative;
+    z-index: 1;
+    border-radius: 16px;
+    background: var(--bg-raised);
+    box-shadow: var(--shadow-raised);
+  }
+  .g-ag-strip {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    padding: 8px;
+  }
+  .g-ag-day {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 3px;
+    min-width: 0;
+    min-height: 72px;
+    padding: 10px 0 8px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    transition: background-color 100ms ease-out;
+  }
+  .g-ag-day:hover {
+    background: var(--bg-hover);
+  }
+  .g-ag-day .wd {
+    font-size: 12px;
+    line-height: 1.25;
+    font-weight: 500;
+    color: var(--text-3);
+  }
+  .g-ag-day .dn {
+    font-size: 17px;
+    line-height: 1.25;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .g-ag-day .g-mbars {
+    width: min(22px, 66%);
+    margin-top: 4px;
+  }
+  .g-ag-day.today .dn {
+    color: var(--text-accent);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  .g-ag-day[aria-pressed='true'] {
+    background: var(--bg-selected);
+  }
+  .g-ag-day[aria-pressed='true'] :is(.wd, .dn) {
+    color: var(--text-on-selected);
+    text-decoration: none;
+  }
+  .g-ag-day[aria-pressed='true'] .g-mbars i {
+    background: var(--text-on-selected);
+    box-shadow: none;
+  }
+  .g-ag-list {
+    padding: 0 16px 2px;
+    border-top: 1px solid var(--border);
+  }
+  .g-ag-empty {
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text-2);
+  }
+  .g-ag-state {
+    border-top: 1px solid var(--border);
+  }
+  .g-ag-state .g-day-skel {
+    padding: 0 16px;
+  }
+
+  /* The bars draw in once per session, 55 ms apart; never under reduced motion. */
+  @keyframes g-draw {
+    from {
+      scale: 0 1;
+    }
+  }
+  .g-agenda.draw .g-ag-day .g-mbars i {
+    transform-origin: left center;
+    animation: g-draw 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 55ms + 120ms);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .g-agenda.draw .g-ag-day .g-mbars i {
+      animation: none;
+    }
+  }
+
+  /* ============ Service tiles: seven services and Lainnya ============ */
+  .g-tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px 8px;
+  }
+  .g-tile-btn {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1.25;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    text-wrap: balance;
+  }
+  .g-tile-btn .key {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: var(--bg-surface);
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 1px 0 1px var(--border);
+    transition-property: scale, background-color;
+    transition-duration: 100ms;
+    transition-timing-function: ease-out;
+  }
+  .g-tile-btn:hover .key {
+    background: var(--bg-hover);
+  }
+  .g-tile-btn:active .key {
+    scale: 0.96;
+  }
+  .g-tile-btn:focus-visible {
+    outline: none;
+  }
+  .g-tile-btn:focus-visible .key {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .g-ext-mark {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-2);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+
+  /* ============ Cards under the hairline headings ============ */
+  .g-home-card {
+    padding: 0 16px;
+    border-radius: 12px;
+    background: var(--bg-surface);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .g-home-card > .g-empty-line {
+    padding: 14px 0;
+  }
+  .g-empty-line {
+    padding: 8px 0;
+  }
+  .g-home-card > .g-sec-error {
+    padding: 16px 0;
+  }
+  .g-att .grow {
+    flex: 1;
+    min-width: 0;
+  }
+  .g-att .grow > .block + .block {
+    margin-top: 2px;
+  }
+  .g-item.brief {
+    padding: 12px 0;
+  }
+  .g-item.brief .grow {
+    flex: 1;
+    min-width: 0;
+  }
+  .g-clamp2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  /* ============ Kelola's Live Counting card ============ */
+  .g-row-btn.g-kelola {
+    display: block;
+    padding: 14px 16px;
+    text-decoration: none;
+  }
+  .g-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .g-kelola-title {
+    margin-top: 6px;
+  }
+  .g-kelola-n {
+    text-align: right;
+  }
+  .g-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .g-live i {
+    width: 8px;
+    height: 8px;
+    background: currentColor;
+    flex: none;
+  }
+
+  /* ============ Desktop: two columns, Pintasan ============ */
+  .g-d-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 32px;
+    padding: 0 36px 36px;
+    align-items: start;
+    max-width: 1180px;
+  }
+  .g-d-stack {
+    display: grid;
+    gap: 30px;
+    align-content: start;
+    min-width: 0;
+  }
+  .g-svc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .g-svc {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    justify-items: start;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--bg-surface);
+    box-shadow: 0 0 0 1px var(--border);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1.25;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    color: var(--text);
+    transition: background-color 100ms ease-out;
+  }
+  .g-svc:hover {
+    background: var(--bg-hover);
+  }
+  .g-svc .ext {
+    display: inline-block;
+    vertical-align: -2px;
+    color: var(--text-3);
+  }
+
+  /* ============ Tablet: the tiles in one row of eight beside the rail ============ */
+  @media (min-width: 640px) {
+    .g-tiles {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+  }
+
+  /* ============ The narrowest phones: a follow-up's button goes under its text ============ */
+  @media (max-width: 340px) {
+    .g-att {
+      flex-wrap: wrap;
+    }
+    .g-att > .grow {
+      flex-basis: calc(100% - 50px);
+    }
+    .g-att > .g-btn {
+      margin-left: 50px;
+    }
+  }
+}

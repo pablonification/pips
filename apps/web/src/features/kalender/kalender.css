@@ -1,0 +1,337 @@
+/*
+  Kalender (P1-A) and the calendar marks Beranda's agenda card shares: ported from the prototype's garis/garis.css
+  (`.mbars`, `.agenda-item`, `.kbar`, `.legend`, `.month`, `.mday`, `.cal-head`, `.dmonth`, `.dcell`, `.dchip`,
+  `.dmore`, `.cal-split`, `.cal-side`, `.ev-info`, the 340 px phone rule) with the `g-` prefix, values unchanged.
+  Tokens only; loaded with Beranda and Kalender. tests/kalender-css.test.mjs checks it.
+*/
+@layer components {
+  /* ============ A day's bars (the strip, the phone month) ============ */
+  .g-mbars {
+    display: grid;
+    gap: 2px;
+    width: 22px;
+  }
+  .g-mbars i {
+    display: block;
+    height: 3px;
+    background: var(--text);
+  }
+  .g-mbars i.himpunan {
+    background: var(--hatch);
+    box-shadow: inset 0 0 0 1px var(--mark);
+    height: 4px;
+  }
+  .g-mbars i.point {
+    width: 9px;
+    justify-self: center;
+  }
+
+  /* ============ One event row ============ */
+  .g-agenda-item {
+    display: grid;
+    grid-template-columns: 52px 6px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px 0;
+  }
+  .g-agenda-item .time {
+    text-align: right;
+  }
+  .g-ended {
+    font-weight: 500;
+  }
+  .g-kbar {
+    width: 6px;
+    border-radius: 1px;
+    background: var(--text);
+  }
+  .g-kbar.himpunan {
+    background: var(--hatch);
+    box-shadow: inset 0 0 0 1.5px var(--mark);
+  }
+  .g-kbar.point {
+    background: none;
+    box-shadow: inset 0 0 0 1.5px var(--text);
+  }
+  .g-kbar.past {
+    opacity: 0.4;
+  }
+
+  /* ============ The legend ============ */
+  .g-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .g-legend > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .g-legend i {
+    width: 14px;
+    height: 8px;
+    display: inline-block;
+    background: var(--text);
+  }
+  .g-legend i.h {
+    background: var(--hatch);
+    box-shadow: inset 0 0 0 1.5px var(--mark);
+  }
+  .g-legend i.d {
+    width: 8px;
+    background: none;
+    box-shadow: inset 0 0 0 1.5px var(--text);
+    rotate: 45deg;
+    scale: 0.8;
+  }
+
+  /* ============ Phones and tablets: the month ============ */
+  .g-kal-page {
+    gap: 14px;
+  }
+  .g-kal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .g-cal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .g-month-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .g-month-nav .prev svg {
+    rotate: 180deg;
+  }
+  .g-month {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+  .g-month .wd {
+    padding: 0 0 6px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-3);
+  }
+  .g-mday {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 5px;
+    height: 54px;
+    padding: 7px 0 0;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    cursor: pointer;
+    color: var(--text);
+    font: inherit;
+  }
+  .g-mday:hover {
+    background: var(--bg-muted);
+  }
+  .g-mday .dn {
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .g-mday.out .dn {
+    color: var(--text-3);
+    font-weight: 400;
+  }
+  .g-mday.today .dn {
+    color: var(--text-accent);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  .g-mday[aria-pressed='true'] {
+    background: var(--bg-selected);
+    color: var(--text-on-selected);
+  }
+  .g-mday[aria-pressed='true'] .dn {
+    color: var(--text-on-selected);
+  }
+  .g-mday[aria-pressed='true'] .g-mbars i {
+    background: var(--text-on-selected);
+    box-shadow: none;
+  }
+  .g-day-list {
+    display: grid;
+    gap: 4px;
+  }
+  .g-day-empty {
+    padding: 10px 0 4px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text-2);
+  }
+
+  /* ============ Desktop: the bordered month beside the day's column ============ */
+  .g-cal-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    flex: 1;
+    min-height: 0;
+  }
+  .g-cal-main {
+    min-width: 0;
+  }
+  .g-cal-main > .g-d-pad {
+    display: grid;
+    gap: 14px;
+    padding: 0 36px 36px;
+  }
+  .g-cal-main .g-d-head {
+    padding-bottom: 16px;
+  }
+  .g-cal-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .g-cal-side {
+    border-left: 1px solid var(--border);
+    padding: 28px 20px;
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .g-cal-side .g-ev-card {
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+    margin-top: 6px;
+  }
+  .g-dmonth {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+  }
+  .g-dmonth .wd {
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-3);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-surface);
+  }
+  .g-dcell {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 3px;
+    min-width: 0;
+    min-height: 104px;
+    padding: 6px;
+    border: 0;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-surface);
+    text-align: left;
+    cursor: pointer;
+    color: var(--text);
+    font: inherit;
+  }
+  .g-dcell:hover {
+    background: var(--bg-hover);
+  }
+  .g-dcell .dn {
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 600;
+    padding: 3px 4px 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .g-dcell.out {
+    background: var(--bg-muted);
+  }
+  .g-dcell.out .dn {
+    color: var(--text-3);
+    font-weight: 400;
+  }
+  .g-dcell.today .dn {
+    color: var(--text-accent);
+  }
+  .g-dcell[aria-pressed='true'] {
+    box-shadow: inset 0 0 0 2px var(--text);
+  }
+  .g-dchip {
+    display: block;
+    padding: 3px 6px 4px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.3;
+    background: var(--bg-event);
+    color: var(--text-on-event);
+    min-width: 0;
+  }
+  .g-dchip.himpunan {
+    background: var(--gold);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  .g-dchip.point {
+    background: var(--bg-surface);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+  }
+  .g-dchip .tm {
+    display: block;
+    font-size: 12px;
+    line-height: 1.3;
+    opacity: 0.9;
+    white-space: nowrap;
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
+  }
+  .g-dchip .ttl {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-weight: 600;
+  }
+  .g-dmore {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--text-3);
+    padding: 0 4px;
+  }
+
+  /* ============ The event detail ============ */
+  .g-ev-info {
+    display: grid;
+    gap: 14px;
+  }
+  .g-ev-title {
+    margin-top: 2px;
+  }
+  .g-ev-desc {
+    padding-top: 5px;
+  }
+  .g-day-error {
+    padding-block: 16px;
+  }
+
+  /* ============ The narrowest phones (the prototype's `@container phone (max-width: 340px)`) ============ */
+  @media (max-width: 340px) {
+    .g-month {
+      margin-inline: -12px; /* seven 44 px days fit on a 320 px phone */
+    }
+  }
+}
