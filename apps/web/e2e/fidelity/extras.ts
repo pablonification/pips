@@ -344,6 +344,49 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
         .getByRole('main')
         .getByRole('link', { name: /^IF2110 .* 3 testimoni$/ }),
   },
+  // P3-B: Raka adds Kuis 2 for IF3170 from Kalender (garis-check.mjs's desktop block). The locked i-desk-addev still
+  // shows the prototype's persona-switch toast ("Melihat sebagai Raka…"); the app has none (a known difference).
+  'i-desk-addev': {
+    persona: 'pengurus',
+    path: '/kalender',
+    act: (p) => addKuis2(p, false),
+    ready: (p) =>
+      p
+        .getByRole('dialog', { name: 'Tambah acara Akademik' })
+        .getByText('Tulis judul acara, misalnya Kuis 2.'),
+  },
+  'i-desk-kalender-after': {
+    persona: 'pengurus',
+    path: '/kalender',
+    mock: (api) => api.on('POST /api/calendar/event', writes.createEvent),
+    act: (p) => addKuis2(p, true),
+    ready: (p) =>
+      p
+        .getByRole('region', { name: 'Acara hari terpilih' })
+        .getByRole('heading', { name: 'Kuis 2' }),
+  },
 };
+
+/** P3-B: the prototype's check: Tambah acara, Tambahkan with nothing typed, "Kuis 2" and IF3170; then 13 Oktober. */
+async function addKuis2(p: Page, send: boolean) {
+  await p
+    .getByRole('main')
+    .getByRole('button', { name: 'Tambah acara' })
+    .click();
+  const d = p.getByRole('dialog', { name: 'Tambah acara Akademik' });
+  await d.getByLabel('Mata kuliah').waitFor();
+  await d.getByRole('button', { name: 'Tambahkan' }).click();
+  await d.getByLabel('Judul', { exact: true }).fill('Kuis 2');
+  await d.getByLabel('Mata kuliah').selectOption('course-IF3170');
+  if (!send) return;
+  await d.getByLabel('Tanggal', { exact: true }).fill('2026-10-13');
+  await d.getByRole('button', { name: 'Tambahkan' }).click();
+  await p
+    .locator('.g-toast-region')
+    .getByText(
+      'Acara ditambahkan ke kalender anggota IF3170 dan Google Calendar-nya.',
+    )
+    .waitFor();
+}
 
 const P1_TITLE = 'Jadwal UTS Ganjil 2026/2027 sudah keluar';

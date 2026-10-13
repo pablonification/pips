@@ -305,4 +305,13 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       },
       ready: (p) => p.getByRole('menu'),
     },
+
+    // P3-B: Tambah acara Akademik over Raka's Kalender on today, once its courses have loaded.
+    'pengurus-ov-addev': {
+      path: '/kalender?tambah=acara',
+      ready: (p) =>
+        p
+          .getByRole('dialog', { name: 'Tambah acara Akademik' })
+          .getByLabel('Mata kuliah'),
+    },
   };
