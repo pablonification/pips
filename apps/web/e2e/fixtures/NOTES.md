@@ -114,6 +114,10 @@ fixtures follow the API, as listed here.
   listed NIMs: Nadia yes, Raka no). `GET /api/internship/submission` is `200 null` without a submission and 401
   for a member SPARTA isn't for. `writes.saveSpartaDraft` (partial drafts) and `writes.submitSparta` (everything,
   then locked) answer 403 while the window is closed: open it with `db.spartaWindow`.
+- **Roles per test** (P3-A): the `roles` option in `support/test.ts`. `roles: ['peoplemanage']` adds a role to the
+  persona, `roles: { only: ['peoplemanage'] }` replaces them. `buildDb(persona, roles)` applies it before anything
+  is derived, so `GET /api/me`, the seeded session, `groups`, `postableCategories`, group audiences and
+  `adminForms` agree (`tests/e2e-roles.test.ts`).
 
 ## Credits
 
