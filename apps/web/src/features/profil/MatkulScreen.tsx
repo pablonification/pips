@@ -61,9 +61,10 @@ export function MatkulScreen() {
   const remove = (row: UserCourse) => {
     const before = qc.getQueryData<UserCourse[]>([CURRENT_COURSES_QUERY_KEY]);
     const at = list.findIndex((c) => c.courseId === row.courseId);
-    const next = list[at + 1] ?? list[at - 1];
+    const next = list[at + 1];
     const code = row.course?.code ?? '';
-    // The row goes at once; focus moves to the next remove button, or to Tambah mata kuliah.
+    // The row goes at once; focus moves to the next row's remove button, else to Tambah mata kuliah (the
+    // prototype's `rm-course`; review m1).
     flushSync(() =>
       qc.setQueryData<UserCourse[]>([CURRENT_COURSES_QUERY_KEY], (cs) =>
         cs?.filter((c) => c.courseId !== row.courseId),

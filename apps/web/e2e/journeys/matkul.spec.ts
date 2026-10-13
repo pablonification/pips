@@ -63,8 +63,10 @@ test.describe('Mata kuliahku', () => {
     await removeBtn(page, 'IF2180').click();
     await expect.poll(() => codes(page)).not.toContain('IF2180');
     expect(await sks(page)).toBe('16');
-    // Focus moves to the next remove button (IF2180 was last: the one before it).
-    await expect(removeBtn(page, 'IF2150')).toBeFocused();
+    // IF2180 was the last row: focus moves to Tambah mata kuliah, as the prototype's `rm-course` (review m1).
+    await expect(
+      main(page).getByRole('link', { name: 'Tambah mata kuliah' }),
+    ).toBeFocused();
     const toast = toastText(page, 'IF2180 dihapus dari mata kuliahmu.');
     await expect(toast).toBeVisible();
     expect(api.calls('DELETE /api/course/take/batch')[0].body).toEqual({
