@@ -152,6 +152,8 @@ export interface ConfirmProps extends Omit<
   onConfirm: () => void;
   /** A destructive action gets the danger button. */
   danger?: boolean;
+  /** The action's request is running: the button says so (`aria-disabled`) and a second press does nothing. */
+  busy?: boolean;
 }
 
 /** A confirmation (role alertdialog): Cancel first, then the action; the cancel button has focus. */
@@ -160,6 +162,7 @@ export function ConfirmDialog({
   cancelLabel,
   onConfirm,
   danger = false,
+  busy = false,
   children,
   ...rest
 }: ConfirmProps) {
@@ -175,7 +178,13 @@ export function ConfirmDialog({
               {cancelLabel}
             </Button>
           </RD.Close>
-          <Button variant={danger ? 'danger' : 'gold'} onClick={onConfirm}>
+          <Button
+            variant={danger ? 'danger' : 'gold'}
+            aria-disabled={busy || undefined}
+            onClick={() => {
+              if (!busy) onConfirm();
+            }}
+          >
             {confirmLabel}
           </Button>
         </>
