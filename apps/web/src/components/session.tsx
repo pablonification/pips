@@ -10,6 +10,7 @@ import {
   saveUserCache,
   sessionRetry,
   sessionRetryDelay,
+  takeChosenSignOut,
 } from '~/lib/session';
 import { Button } from './ui/button';
 
@@ -48,7 +49,10 @@ export default function SessionProvider({
       void forgetMemberOnDevice();
       void router.navigate({
         to: '/login',
-        search: loginSearch(router.state.location.href),
+        // Keluar goes to plain sign-in: the next member starts on Beranda, not on this page.
+        search: takeChosenSignOut()
+          ? {}
+          : loginSearch(router.state.location.href),
         replace: true,
       });
     }

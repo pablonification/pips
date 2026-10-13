@@ -9,6 +9,21 @@ import { isSignedOutError } from './session-policy';
 export { sessionRetry, sessionRetryDelay } from './session-policy';
 
 /** Signed out: nothing of the member stays on this device, in memory, in IndexedDB, localStorage or the tab. */
+/*
+ * A sign-out the member chose (Keluar) goes to plain sign-in; a session the server ended comes back to the page
+ * afterwards. Without this, the next person to sign in on the device would land on the previous member's page.
+ */
+let chosenSignOut = false;
+export function markChosenSignOut() {
+  chosenSignOut = true;
+}
+/** True once after `markChosenSignOut()`. */
+export function takeChosenSignOut() {
+  const chosen = chosenSignOut;
+  chosenSignOut = false;
+  return chosen;
+}
+
 export function forgetMemberOnDevice() {
   return forgetMember({
     queryClient,
