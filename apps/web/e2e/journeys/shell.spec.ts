@@ -281,10 +281,10 @@ test.describe('today’s screens inside the shell', () => {
   test('a screen that fills the window fits between the bars, its own scrolling intact', async ({
     page,
   }) => {
-    // Info Lomba is still today's screen (h-screen); Form was until P2-A replaced it.
-    await page.goto('/layanan/lomba');
+    // Curhat is still today's screen (h-screen) until P2-C; Form was until P2-A replaced it, Info Lomba until P2-B.
+    await page.goto('/layanan/curhat');
     await expect(
-      page.getByRole('main').getByText('Find IT! 2026').first(),
+      page.getByRole('main').getByRole('heading', { name: 'Amber Heron' }),
     ).toBeVisible();
     const overflow = await page
       .locator('[data-scroll-restoration-id="isi"]')
