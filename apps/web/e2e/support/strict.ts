@@ -45,26 +45,7 @@ export async function strictAudit(
   };
   const failures = gateFailures(a);
   if (layoutOf(testInfo) !== 'desktop') {
-    const small = await page.evaluate(() =>
-      [
-        ...document.querySelectorAll<HTMLInputElement>(
-          'input, textarea, select',
-        ),
-      ]
-        .filter(
-          (el) =>
-            el.checkVisibility() &&
-            el.type !== 'radio' &&
-            el.type !== 'checkbox',
-        )
-        .filter((el) => parseFloat(getComputedStyle(el).fontSize) < 16)
-        .map(
-          (el) =>
-            el.getAttribute('aria-label') ??
-            el.getAttribute('placeholder') ??
-            el.tagName,
-        ),
-    );
+    const small = await touchInputsUnder16(page);
     if (small.length)
       failures.push(`inputs under 16px on touch: ${small.join(', ')}`);
   }
@@ -73,6 +54,30 @@ export async function strictAudit(
     contentType: 'application/json',
   });
   expect(failures, `quality gates on ${name}`).toEqual([]);
+}
+
+/**
+ * Visible fields under 16 px, which a phone zooms into on focus. Radios, checkboxes and file inputs take no typed
+ * text and never zoom, so they don't count (F1: Buat pengumuman's visually hidden photo input was counted).
+ */
+export async function touchInputsUnder16(page: Page): Promise<string[]> {
+  return page.evaluate(() =>
+    [...document.querySelectorAll<HTMLInputElement>('input, textarea, select')]
+      .filter(
+        (el) =>
+          el.checkVisibility() &&
+          el.type !== 'radio' &&
+          el.type !== 'checkbox' &&
+          el.type !== 'file',
+      )
+      .filter((el) => parseFloat(getComputedStyle(el).fontSize) < 16)
+      .map(
+        (el) =>
+          el.getAttribute('aria-label') ??
+          el.getAttribute('placeholder') ??
+          el.tagName,
+      ),
+  );
 }
 
 /**
