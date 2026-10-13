@@ -10,6 +10,7 @@
 import type { Locator, Page, TestInfo } from '@playwright/test';
 import type { CurhatSocketMessage } from '../../src/api/generated';
 import { layoutOf } from '../support/app';
+import { fakeGoogle, googleRequests } from '../support/google';
 import { NOW } from '../fixtures/api';
 import { reply, type ApiMock } from '../support/mock';
 import { strictGates, toastText } from '../support/pengumuman';
@@ -1056,35 +1057,18 @@ test.describe('signed out', () => {
   test('a link to a room leads to sign-in, then into the room', async ({
     page,
     api,
-    db,
   }) => {
-    await page.route('https://accounts.google.com/gsi/client', (route) =>
-      route.fulfill({
-        contentType: 'text/javascript',
-        body: `window.google = { accounts: {
-          id: { initialize() {}, prompt() {}, renderButton() {}, disableAutoSelect() {}, cancel() {} },
-          oauth2: {
-            initTokenClient(config) { return { requestAccessToken() {
-              setTimeout(() => config.callback({ access_token: 'e2e-google-token', token_type: 'Bearer', expires_in: 3599, scope: config.scope }), 0);
-            } }; },
-            initCodeClient() { return { requestCode() {} }; },
-            hasGrantedAllScopes() { return true; },
-          },
-        } };`,
-      }),
-    );
+    // P1-C's sign-in, with the harness's fake Google script.
+    await fakeGoogle(page.context());
     canRead(api);
     await page.goto('/layanan/curhat/r1');
     await expect(page).toHaveURL(/\/login\?redirect=%2Flayanan%2Fcurhat%2Fr1$/);
     expect(api.calls('GET /api/curhat/chatrooms')).toHaveLength(0);
-    api.on('POST /api/auth/login/accesstoken', () => {
-      db.signedIn = true;
-      return db.me;
-    });
-    await page
-      .getByRole('button', { name: 'Log in with Google' })
-      .locator('visible=true')
-      .click();
+    api.on('POST /api/auth/login/accesstoken', writes.loginAccessToken);
+    await expect
+      .poll(async () => (await googleRequests(page)).clients.length)
+      .toBe(1);
+    await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
     await expect(page).toHaveURL(/\/layanan\/curhat\/r1$/);
     await expect(log(page)).toBeVisible();
   });
