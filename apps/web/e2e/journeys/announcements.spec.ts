@@ -838,6 +838,62 @@ test.describe('states', () => {
     await strictGates(page, testInfo, 'feed-offline');
     await api.setOffline(false);
   });
+
+  test('offline with nothing kept: an error with Coba lagi, not endless loading (regression)', async ({
+    page,
+    api,
+  }, testInfo) => {
+    // Signed in on another page, so the feed has never loaded on this device.
+    await page.goto('/layanan');
+    await expect(navLink(page, 'Pengumuman')).toBeVisible();
+    // Members have Pengumuman's code from the service worker's precache, which the harness blocks: load it the way
+    // the router preloads on intent (focusing the link), without rendering the feed, and wait for the scripts.
+    const loading = new Set<import('@playwright/test').Request>();
+    let scripts = 0;
+    page.on('request', (r) => {
+      if (r.resourceType() !== 'script') return;
+      scripts += 1;
+      loading.add(r);
+    });
+    page.on('requestfinished', (r) => loading.delete(r));
+    page.on('requestfailed', (r) => loading.delete(r));
+    await navLink(page, 'Pengumuman').focus();
+    await expect.poll(() => scripts > 0 && loading.size === 0).toBe(true);
+    expect(
+      api.calls('GET /api/info').filter((c) => !c.query.includes('unread')),
+      'the feed itself never loaded',
+    ).toHaveLength(0);
+    await api.setOffline(true);
+    await page.evaluate(() => window.dispatchEvent(new Event('offline')));
+    expect(await page.evaluate(() => navigator.onLine)).toBe(false);
+    await navLink(page, 'Pengumuman').click();
+    await expect(page).toHaveURL(/\/pengumuman$/);
+    await expect(page.getByText('Pengumuman gagal dimuat.')).toBeVisible();
+    await expect(
+      page.getByText(
+        'PIPS! belum bisa terhubung. Periksa koneksimu, lalu coba lagi.',
+      ),
+    ).toBeVisible();
+    // A second later: still the error, never a skeleton (they show after 300 ms; on desktop the post pane too) or a
+    // blank page. Coba lagi while still offline keeps it.
+    await page.clock.runFor(1000);
+    await expect(
+      page.getByRole('status', { name: 'Memuat pengumuman…' }),
+    ).toHaveCount(0);
+    await expect(page.getByText('Pengumuman gagal dimuat.')).toBeVisible();
+    await strictGates(page, testInfo, 'feed-offline-empty');
+    await page.getByRole('button', { name: 'Coba lagi' }).click();
+    await page.clock.runFor(1000);
+    await expect(
+      page.getByRole('status', { name: 'Memuat pengumuman…' }),
+    ).toHaveCount(0);
+    await expect(page.getByText('Pengumuman gagal dimuat.')).toBeVisible();
+    // Back online, the waiting request goes out by itself and the feed replaces the error.
+    await api.setOffline(false);
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    await expect(postInList(page, testInfo, 'p1')).toBeVisible();
+    await expect(page.getByText('Pengumuman gagal dimuat.')).toHaveCount(0);
+  });
 });
 
 test.describe('share', () => {
