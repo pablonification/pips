@@ -114,11 +114,20 @@ function SpartaCheck({
 }) {
   const divisions = allDivisions(departments);
   const byId = new Map(divisions.map((d) => [d.id, d]));
-  const row = (label: string, value: string, key: string) => (
+  const row = (label: string, value: string, key: string, file = false) => (
     <div key={key}>
       <dt>{label}</dt>
       <dd className={value.trim() ? undefined : 'none'}>
-        {value.trim() || formCopy.periksa.tidakDiisi}
+        {!value.trim() ? (
+          formCopy.periksa.tidakDiisi
+        ) : file ? (
+          // A file answer is its URL: a link to it, not the address.
+          <a className="g-link" href={value} target="_blank" rel="noreferrer">
+            {copy.pertanyaan.lihatFile}
+          </a>
+        ) : (
+          value.trim()
+        )}
       </dd>
     </div>
   );
@@ -189,7 +198,12 @@ function SpartaCheck({
           }),
           3,
           division.questions.map((q) =>
-            row(q.label, draft.answers[id]?.[q.id] ?? '', q.id),
+            row(
+              q.label,
+              draft.answers[id]?.[q.id] ?? '',
+              q.id,
+              q.type === 'file',
+            ),
           ),
           `q-${id}`,
         );
@@ -419,7 +433,7 @@ function Steps({
     else
       document
         .querySelector<HTMLElement>(
-          `[data-sk="${focus.sk}"] input, [data-sk="${focus.sk}"] textarea, [data-sk="${focus.sk}"] select`,
+          `[data-sk="${focus.sk}"] :is(input:not([hidden]), textarea, select, [data-focus])`,
         )
         ?.focus();
   }, [focus]);

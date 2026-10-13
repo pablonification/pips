@@ -1,7 +1,16 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { InternshipQuestion } from '~/api/generated';
-import { Checkbox, Input, Radio, Select, Textarea } from '~/components/garis';
+import {
+  Button,
+  Checkbox,
+  Input,
+  Radio,
+  Select,
+  Textarea,
+} from '~/components/garis';
 import { IconPeringatan } from '~/components/icons/peringatan';
+import { IconTambah } from '~/components/icons/tambah';
+import { fill } from '~/copy/fill';
 import { form as formCopy } from '~/copy/form';
 import { sparta as copy } from '~/copy/sparta';
 import { CHECKBOX_SEPARATOR, checkboxValues } from '~/lib/form/sparta';
@@ -83,26 +92,34 @@ export function TextField({
   );
 }
 
-/** A file answer: upload, then a link to what was uploaded (today's `FileAnswerInput`). */
+/**
+ * A file answer (today's `FileAnswerInput`): a paper button "Unggah file" over a hidden file input, "Mengunggah…"
+ * while it uploads, then a link to what was uploaded. The browser's own file control isn't shown: its words follow
+ * the browser's language.
+ */
 function FileField({
   id,
+  question,
   value,
   onChange,
   invalid,
 }: {
   id: string;
+  question: string;
   value: string;
   onChange: (v: string) => void;
   invalid: Record<string, unknown>;
 }) {
   const [state, setState] = useState<'idle' | 'busy' | 'failed'>('idle');
+  const input = useRef<HTMLInputElement>(null);
+  const busy = state === 'busy';
   return (
     <>
       <input
+        ref={input}
         id={id}
         type="file"
-        className="g-field"
-        aria-busy={state === 'busy' || undefined}
+        hidden
         onChange={async (e) => {
           const file = e.target.files?.[0];
           e.target.value = '';
@@ -115,9 +132,26 @@ function FileField({
             setState('failed');
           }
         }}
-        {...invalid}
       />
-      {state === 'busy' ? (
+      <div>
+        <Button
+          variant="paper"
+          size="sm"
+          data-focus
+          aria-label={fill(copy.pertanyaan.unggahUntuk, {
+            pertanyaan: question,
+          })}
+          aria-disabled={busy || undefined}
+          onClick={() => {
+            if (!busy) input.current?.click();
+          }}
+          {...invalid}
+        >
+          <IconTambah size={16} />
+          {copy.pertanyaan.unggah}
+        </Button>
+      </div>
+      {busy ? (
         <p className="t-cap text-fg-2" role="status">
           {copy.pertanyaan.mengunggah}
         </p>
@@ -128,7 +162,7 @@ function FileField({
           {copy.pertanyaan.gagalUnggah}
         </p>
       ) : null}
-      {value && state !== 'busy' ? (
+      {value && !busy ? (
         <a
           className="g-link t-sm"
           href={value}
@@ -179,35 +213,44 @@ export function DivisionQuestion({
       />
     );
 
-  if (q.type === 'select' || q.type === 'file')
+  if (q.type === 'file')
+    return (
+      <div className="g-qblock" data-sk={sk}>
+        <p className="g-q-label">
+          {q.label}
+          {optional}
+        </p>
+        <FileField
+          id={id}
+          question={q.label}
+          value={value}
+          onChange={onChange}
+          invalid={invalid}
+        />
+        {missing ? <FieldError id={errId} /> : null}
+      </div>
+    );
+
+  if (q.type === 'select')
     return (
       <div className="g-qblock" data-sk={sk}>
         <label className="g-q-label" htmlFor={id}>
           {q.label}
           {optional}
         </label>
-        {q.type === 'select' ? (
-          <Select
-            id={id}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            {...invalid}
-          >
-            <option value="">{copy.pertanyaan.pilihJawaban}</option>
-            {(q.options ?? []).map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
-            ))}
-          </Select>
-        ) : (
-          <FileField
-            id={id}
-            value={value}
-            onChange={onChange}
-            invalid={invalid}
-          />
-        )}
+        <Select
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          {...invalid}
+        >
+          <option value="">{copy.pertanyaan.pilihJawaban}</option>
+          {(q.options ?? []).map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
+        </Select>
         {missing ? <FieldError id={errId} /> : null}
       </div>
     );

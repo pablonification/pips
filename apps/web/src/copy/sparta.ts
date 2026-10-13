@@ -59,6 +59,7 @@ export const sparta = {
     pilihanKe: 'Pilihan {nomor}: {divisi}',
     pilihJawaban: 'Pilih jawaban',
     unggah: 'Unggah file',
+    unggahUntuk: 'Unggah file untuk {pertanyaan}',
     mengunggah: 'Mengunggah…',
     lihatFile: 'Lihat file yang terunggah',
     gagalUnggah: 'File gagal diunggah. Coba lagi.',

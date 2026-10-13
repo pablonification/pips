@@ -73,6 +73,12 @@ function openSeason(db: Db, { keepDraft = false } = {}) {
           options: ['Jarang', 'Sering'],
           required: false,
         },
+        {
+          id: 'mq3',
+          label: 'Portofolio desainmu',
+          type: 'file',
+          required: false,
+        },
       ],
       questionsRaw: 'Ceritakan karya terbaikmu.\nBoleh lampirkan tautan.',
       description: 'Mengelola media sosial HMIF.',
@@ -133,6 +139,34 @@ async function toReview(page: Page) {
   await lanjut(page).click();
   await expect(heading(page, 'Periksa pilihanmu')).toBeFocused();
 }
+
+/** The storage upload, held until `release()`: `POST /api/media/upload` presigns a same-origin URL the mock answers. */
+function holdUpload(api: {
+  on: (spec: string, handler: () => unknown) => void;
+}) {
+  let release!: () => void;
+  const held = new Promise<void>((r) => (release = r));
+  api.on('POST /api/media/upload', () => ({
+    presignedUrl: '/api/e2e-storage/portofolio',
+    mediaUrl: '/__e2e__/media/portofolio.svg',
+  }));
+  api.on('PUT /api/e2e-storage/:name', async () => {
+    await held;
+    return reply.text('');
+  });
+  return release;
+}
+
+const lastPut = (api: { calls: (s: string) => { body: unknown }[] }) =>
+  api.calls('PUT /api/internship/submission').at(-1)?.body as
+    | {
+        kelas: string;
+        choices: {
+          divisionId: string;
+          answers: { questionId: string; answer: string }[];
+        }[];
+      }
+    | undefined;
 
 test('closed: the closing time, Nadia’s draft read-only, nothing to send', async ({
   page,
@@ -590,4 +624,65 @@ test('a 400 the screen can’t place: the error toast with Coba lagi, nothing lo
   api.on('POST /api/internship/submission/submit', writes.submitSparta);
   await toast.getByRole('button', { name: 'Coba lagi' }).click();
   await expect(main(page).getByText('Sudah dikirim')).toBeVisible();
+});
+
+test('a file answer: Unggah file, Mengunggah…, then a link to the file, saved at once', async ({
+  page,
+  api,
+  db,
+}, testInfo) => {
+  openSeason(db);
+  api.on('PUT /api/internship/submission', writes.saveSpartaDraft);
+  const release = holdUpload(api);
+  await page.goto('/layanan/sparta');
+  await toQuestions(page);
+  await gates(page, testInfo, 'sparta-step-4-file');
+  const chooser = page.waitForEvent('filechooser');
+  await page
+    .getByRole('button', { name: 'Unggah file untuk Portofolio desainmu' })
+    .click();
+  await (
+    await chooser
+  ).setFiles({
+    name: 'portofolio.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4'),
+  });
+  await expect(
+    main(page).getByRole('status').filter({ hasText: 'Mengunggah…' }),
+  ).toBeVisible();
+  expect(api.calls('POST /api/media/upload')[0].body).toEqual({
+    fileName: 'portofolio',
+    fileType: 'pdf',
+  });
+  release();
+  await expect(
+    main(page).getByRole('link', { name: 'Lihat file yang terunggah' }),
+  ).toHaveAttribute('href', '/__e2e__/media/portofolio.svg');
+  await expect
+    .poll(
+      () =>
+        lastPut(api)?.choices.find((c) => c.divisionId === 'div-medkom')
+          ?.answers,
+    )
+    .toEqual([{ questionId: 'mq3', answer: '/__e2e__/media/portofolio.svg' }]);
+  await gates(page, testInfo, 'sparta-step-4-file-uploaded');
+  // The check page links to the file instead of showing its address.
+  await page.getByRole('checkbox', { name: 'Figma' }).check();
+  await page
+    .getByLabel('Ceritakan pengalamanmu mendengarkan teman.')
+    .fill('Teman sekamar');
+  await page
+    .getByLabel('Kenapa kamu tertarik di Akademik?')
+    .fill('Suka mengajar');
+  await page.getByLabel('Lomba apa yang pernah kamu ikuti?').fill('Gemastik');
+  await lanjut(page).click();
+  await expect(heading(page, 'Periksa pilihanmu')).toBeFocused();
+  await expect(
+    main(page).getByRole('link', { name: 'Lihat file yang terunggah' }),
+  ).toHaveAttribute('href', '/__e2e__/media/portofolio.svg');
+  await expect(
+    main(page).getByText('/__e2e__/media/portofolio.svg'),
+  ).toHaveCount(0);
+  await gates(page, testInfo, 'sparta-review-file');
 });
