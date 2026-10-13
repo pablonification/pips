@@ -116,6 +116,9 @@ export const PROPER_NOUNS = [
   'Tambahkan',
   'Layar',
   'Utama',
+  'Tambah',
+  // The student email format members sign in with (the prototype's sign-out confirmation).
+  'NIM@std.stei.itb.ac.id',
   // The day-before reminder, as the prototype writes it ("pengingat H-1").
   'H-1',
 ] as const;
