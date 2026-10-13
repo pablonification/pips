@@ -1,0 +1,72 @@
+import {
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { useSyncExternalStore } from 'react';
+import { api } from '~/api/client';
+import { FORM_QUERY_KEY } from '~/api/constants';
+import { ApiError, type FormResponse } from '~/api/generated';
+import type { AnswerValue } from '~/lib/form/rules';
+
+/** One form, with the member's status; `sections` stay null until it opens (GET /form/{formId}). */
+export const formDetailQuery = (formId: string) =>
+  queryOptions({
+    queryKey: [FORM_QUERY_KEY, formId],
+    queryFn: () => api.form.getForm({ formId }),
+  });
+
+/** The member's response, or null (the API answers 200 null when there is none). */
+export const myResponseQuery = (formId: string) =>
+  queryOptions({
+    queryKey: [FORM_QUERY_KEY, formId, 'my-response'],
+    queryFn: async () =>
+      ((await api.form.getMyFormResponse({ formId })) ??
+        null) as FormResponse | null,
+  });
+
+/** How a send ended, for the screen to act on (SPEC "Send failures keep everything"). */
+export type SendOutcome =
+  | 'sent'
+  | 'already' // 409: sent before (another tab, a lost answer): the thank-you
+  | 'closed' // 403: closed or not open: the closed view
+  | 'incomplete' // 400: the server found a missing answer: back to that section
+  | 'failed'; // offline, network or 5xx: keep everything, Coba lagi
+
+export function sendOutcome(error: unknown): SendOutcome {
+  if (error instanceof ApiError) {
+    if (error.status === 409) return 'already';
+    if (error.status === 403) return 'closed';
+    if (error.status === 400) return 'incomplete';
+  }
+  return 'failed';
+}
+
+export function useSendForm(formId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (answers: { questionId: string; answer: AnswerValue }[]) =>
+      api.form.submitFormResponse({ formId, requestBody: { answers } }),
+    // Refresh the list (Beranda's row goes) and this form, whatever happened: a 409 or 403 changes them too.
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: [FORM_QUERY_KEY] }),
+  });
+}
+
+function subscribeOnline(onChange: () => void) {
+  window.addEventListener('online', onChange);
+  window.addEventListener('offline', onChange);
+  return () => {
+    window.removeEventListener('online', onChange);
+    window.removeEventListener('offline', onChange);
+  };
+}
+
+/** Whether the device says it is online. */
+export function useOnline(): boolean {
+  return useSyncExternalStore(
+    subscribeOnline,
+    () => navigator.onLine,
+    () => true,
+  );
+}
