@@ -1,33 +1,35 @@
-# HMIF App Frontend
+# PIPS! web
 
-## How to run
+The HMIF ITB members app: a React PWA built with Vite, TanStack Router and Query, and the Garis design system
+(`src/styles/garis/`, `src/components/garis/`, `src/components/icons/`). It lives in the `pips` monorepo next to the
+API (`apps/api`).
 
-1. Install PNPM
+## Run it
 
-```bash
-npm install -g pnpm
-```
-
-2. Install dependencies
+From the repository root, with Node 22 or later and pnpm (`corepack enable` picks the pinned version):
 
 ```bash
 pnpm install
+pnpm --filter web dev
 ```
 
-3. Copy `.env.example` to `.env` and fill the required environment variables
+`.env.development` holds the public development values; put your own (API URL, Google client ID, push key) in
+`.env.local`, which Git ignores.
 
-4. Run the app
+The dev server sends `/api` to `DEV_API_ORIGIN` (default `http://127.0.0.1:5000`).
+
+## Check it
 
 ```bash
-pnpm dev
+pnpm --filter web check     # type check and lint (the Garis rules cover all of src)
+pnpm --filter web test      # unit tests
+pnpm --filter web build     # production build
+pnpm --filter web budgets   # performance budgets on the build (strict; BUDGETS_STRICT=0 only warns)
+node scripts/verify-production-bundle.mjs dist   # nothing that must not ship
+pnpm --filter web e2e       # browser journeys and visual references (see e2e/README.md)
 ```
 
-## To update backend API services
+## The API client
 
-Run the following command:
-
-```bash
-pnpm api-staging
-```
-
-It will update the backend API services to the staging environment in `src/api/generated` folder.
+`src/api/generated` is generated; never edit it by hand. `pnpm --filter web api` rebuilds it from the API in this
+repository (no server or database needed); `pnpm --filter web api-staging` reads staging's.

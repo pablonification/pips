@@ -112,7 +112,7 @@ export const useDeleteRoom = () =>
 
 /* ================= The connection ================= */
 
-/** The area's connection, from the Curhat layout; null for Welfare (today's screen opens its own). */
+/** The area's connection, from the members' Curhat layout or Welfare's inbox (curhat-inbox/Area.tsx); null elsewhere. */
 export const CurhatClientContext = createContext<CurhatClient | null>(null);
 
 export const useCurhatClient = () => useContext(CurhatClientContext);

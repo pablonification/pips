@@ -30,6 +30,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from '@tanstack/react-router';
+import { DESKTOP_QUERY, useMediaQuery } from '~/components/garis/useMediaQuery';
 import { cn } from '~/lib/utils';
 import { titleAppeared } from './focus';
 import { setTitleFor } from './shell-state';
@@ -86,7 +87,11 @@ export function DeskHead({
   title: ReactNode;
   actions?: ReactNode;
 }) {
-  // Hidden below 1024 px, where the top bar has the title: so it doesn't count as the screen's own title there.
+  // Shown from 1024 px; below it the top bar has the title and the actions (TopBarActions). A head with actions stays
+  // mounted, hidden by CSS, because an action may own an open dialog that must survive a tablet turning across
+  // 1024 px (P3-B). A title alone holds nothing, so phones and tablets don't carry it as hidden DOM (C1, SPEC).
+  const desk = useMediaQuery(DESKTOP_QUERY);
+  if (!desk && !actions) return null;
   return (
     <div className="g-d-head">
       <Heading className="t-display-l">{title}</Heading>
@@ -108,21 +113,4 @@ export const TopBarSlot = createContext<HTMLElement | null>(null);
 export function TopBarActions({ children }: { children: ReactNode }) {
   const slot = useContext(TopBarSlot);
   return slot ? createPortal(children, slot) : null;
-}
-
-/**
- * Today's screen on its old light surface, inside the new shell, until its redesign replaces it. The shell wraps
- * every route the table marks `legacy`; use this only for old parts inside a redesigned page (Beranda until P1-A).
- */
-export function LegacyScreen({
-  className,
-  ...rest
-}: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn('g-legacy theme-light', className)}
-      data-legacy=""
-      {...rest}
-    />
-  );
 }

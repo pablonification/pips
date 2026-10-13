@@ -1,10 +1,10 @@
 /**
  * Visual regression: screenshots compared with committed reference images (`toHaveScreenshot`).
  *
- * Today's app has none; the redesign adds a state to VISUAL_STATES for each screen it finishes, then records
- * the references with `pnpm --filter web e2e:update` and commits them (in e2e/visual/visual.spec.ts-snapshots/).
- * References change only through that command, and their diffs are reviewed in the pull request. Produce them in
- * the CI container (the e2e job uploads its results), so font rendering matches where they are checked.
+ * Each redesign task added a state to VISUAL_STATES for the screens it finished and recorded the references with
+ * `pnpm --filter web e2e:update` (in e2e/visual/visual.spec.ts-snapshots/). References change only through that
+ * command, and their diffs are reviewed in the pull request. They are per platform: the macOS ones come from this
+ * command, the Linux ones from the `visual references` workflow in CI's container.
  */
 import { expect, test } from '../support/test';
 import { STATES, type CaptureState } from '../capture/states';

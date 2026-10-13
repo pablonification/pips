@@ -17,6 +17,14 @@ export const P4_TEXT = 'Info beasiswa bulan Oktober sudah diperbarui';
 export const P5 = 'Rapat koordinasi divisi Akademik';
 export const P7 = 'Ketinggalan jaket abu-abu di GKU Timur';
 
+/**
+ * A post's title in the feed, whatever the layout: a card on phones and tablets, a row on desktop, where the same
+ * title is also the open post's heading beside it (so the feed's list scopes it). Not exact: an unread row adds
+ * "belum dibaca" for screen readers.
+ */
+export const inFeed = (page: Page, title: string) =>
+  page.getByRole('listitem').getByText(title);
+
 export const isDesk = (t: TestInfo) => layoutOf(t) === 'desktop';
 
 /** SPEC's gates, strict: zero serious or critical axe findings, no sideways scroll, no text under 12 px, lang id. */

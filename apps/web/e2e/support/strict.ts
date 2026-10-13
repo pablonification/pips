@@ -1,6 +1,6 @@
 /**
  * Strict quality gates for redesigned screens (P1-C brief, "Gates on every journey"), whatever E2E_GATES says:
- * - zero serious or critical axe violations (today's screens inside, `[data-legacy]`, left out), text ≥ 12 px,
+ * - zero serious or critical axe violations on the whole page, text ≥ 12 px,
  *   `lang="id"`, no horizontal overflow (audit.ts);
  * - inputs at 16 px or more on touch layouts (no zoom on focus);
  * - a visible focus indicator at every Tab stop in the page;
@@ -24,7 +24,6 @@ export async function strictAudit(
 ) {
   const result = await new AxeBuilder({ page })
     .withTags(AXE_TAGS)
-    .exclude('[data-legacy]')
     .setLegacyMode(true)
     .analyze();
   const byImpact = { critical: 0, serious: 0, moderate: 0, minor: 0 };

@@ -3,8 +3,9 @@
  * - `persona`: 'anggota' (Nadia Putri), 'pengurus' (Raka Pratama) or null (signed out). Default 'anggota'.
  * - `signedIn`: whether the persona starts signed in (default true). Signed out, the API answers 401 until a
  *   test sets `db.signedIn = true`.
- * - `installed`: whether the app runs as the installed PWA (default true). Until P0-B the production build
- *   showed a phone browser an install tutorial instead of the app; `installed: false` now checks it doesn't.
+ * - `installed`: whether the app runs as the installed PWA (`display-mode: standalone`, default true). The app reads
+ *   it (lib/platform.ts) for Pasang PIPS! and the iOS push step; `installed: false` runs as a phone browser, which
+ *   also checks the install tutorial P0-B removed stays gone.
  * - `now`: the fixed clock (default: Kamis, 8 Oktober 2026, 13.35 WIB); null leaves the real clock.
  * - `platform`: what `navigator.platform` reports ('MacIntel', 'Linux x86_64'); null leaves the browser's own. The
  *   app names the search shortcut by platform (⌘K on Apple, Ctrl K elsewhere), so fidelity captures run as Linux,

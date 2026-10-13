@@ -1,14 +1,18 @@
 /**
- * The states the "before" set records and `e2e:compare-before` re-captures: each destination's main view, the
- * empty, loading, error and offline states today's app has, open overlays, the form steps and the admin tables.
+ * The states the "before" set recorded from today's app and `e2e:compare-before` re-captures in the redesigned one:
+ * each destination's main view, the empty, loading, error and offline states, open overlays, the form steps and the
+ * Kelola tables. Each state's path and steps reach the same state in the new app (C1), so F1 can show before next
+ * to after; a state the new app no longer has carries a `removed` reason.
  *
  * Each state is captured at phone and desktop size in light and dark. Add a state by appending to STATES; ids
- * are file names, so never rename one that is already in a before set.
+ * are file names (today's names: home, timeline, settings, admin), so never rename one that is already in a before
+ * set.
  */
 import type { BrowserContext, Locator, Page } from '@playwright/test';
 import type { PersonaKey } from '../fixtures/api';
-import { navLink, visibleText } from '../support/app';
+import { navLink } from '../support/app';
 import { fillPixelUpTo } from '../support/flows';
+import { inFeed, P1 } from '../support/pengumuman';
 import { reply, type ApiMock } from '../support/mock';
 import * as writes from '../support/writes';
 
@@ -33,6 +37,11 @@ export interface CaptureState {
   ) => Promise<void>;
   /** Visible when the state is ready to capture. */
   ready: (page: Page) => Locator;
+  /**
+   * Why the redesigned app no longer has this state. The state is still captured at its path, showing what opens
+   * there now, and compare-before lists it as removed instead of changed (C1).
+   */
+  removed?: string;
 }
 
 /** P1-A: Beranda with every section's data (agenda, follow-ups, unread). */
@@ -62,9 +71,11 @@ export const STATES: CaptureState[] = [
     installed: false,
     only: 'phone',
     path: '/',
-    // P0-B removed the install gate (SPEC "Removals"): a phone browser now opens the app. The state keeps its id
-    // so compare-before shows the before (tutorial) next to the after (Home). P1-A: Beranda greets with "Halo, Nadia".
+    // The state keeps its id and path, so compare-before shows the before (tutorial) next to what a phone browser
+    // opens now: Beranda.
     ready: (p) => berandaReady(p),
+    removed:
+      'P0-B removed the install gate (SPEC "Removals"): a phone browser opens the app.',
   },
   {
     id: 'app-loading',
@@ -78,23 +89,23 @@ export const STATES: CaptureState[] = [
     ready: (p) => p.getByText('Loading...'),
   },
 
-  // Home (P1-A: the same states on the redesigned Beranda)
+  // Beranda (P1-A reaches today's Home states on it)
   {
     id: 'home',
-    title: 'Home',
+    title: 'Beranda',
     path: '/',
     ready: (p) => berandaReady(p),
   },
   {
     id: 'home-schedule-loading',
-    title: 'Home, schedule loading',
+    title: 'Beranda, agenda loading',
     path: '/',
     mock: (api) => api.on('GET /api/calendar/me', reply.hang()),
     ready: (p) => p.getByRole('status', { name: 'Memuat acara…' }),
   },
   {
     id: 'home-other-day',
-    title: 'Home, Friday chosen on the week strip',
+    title: 'Beranda, Friday chosen on the day strip',
     path: '/',
     act: async (p) => {
       await berandaReady(p).waitFor();
@@ -107,7 +118,7 @@ export const STATES: CaptureState[] = [
   },
   {
     id: 'home-pengurus',
-    title: 'Home for Raka (Admin tile)',
+    title: 'Beranda for Raka (Kelola)',
     persona: 'pengurus',
     path: '/',
     ready: (p) =>
@@ -118,23 +129,23 @@ export const STATES: CaptureState[] = [
         .filter({ has: p.getByText('142', { exact: true }) }),
   },
 
-  // Timeline (announcements). Since P1-B these reach the same states in the redesigned Pengumuman.
+  // Pengumuman (P1-B reaches today's Timeline states on it)
   {
     id: 'timeline',
-    title: 'Timeline',
+    title: 'Pengumuman',
     path: '/pengumuman',
-    ready: (p) => visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar'),
+    ready: (p) => inFeed(p, P1),
   },
   {
     id: 'timeline-loading',
-    title: 'Timeline loading',
+    title: 'Pengumuman loading',
     path: '/pengumuman',
     mock: (api) => api.on('GET /api/info', reply.hang()),
     ready: (p) => p.getByRole('status', { name: 'Memuat pengumuman…' }).first(),
   },
   {
     id: 'timeline-error',
-    title: 'Timeline, the API failing (503)',
+    title: 'Pengumuman, the API failing (503)',
     path: '/pengumuman',
     mock: (api) => api.on('GET /api/info', reply.status(503)),
     // The app retries a failing request three times before giving up.
@@ -142,21 +153,21 @@ export const STATES: CaptureState[] = [
       for (let i = 0; i < 100 && api.calls('GET /api/info').length < 4; i++)
         await new Promise((r) => setTimeout(r, 200));
     },
-    ready: (p) => visibleText(p, 'Pengumuman gagal dimuat.'),
+    ready: (p) => p.getByText('Pengumuman gagal dimuat.'),
   },
   {
     id: 'timeline-empty',
-    title: 'Timeline with no posts',
+    title: 'Pengumuman with no posts',
     path: '/pengumuman',
     mock: (api) => api.on('GET /api/info', { infos: [] }),
-    ready: (p) => visibleText(p, 'Tidak ada yang ditampilkan'),
+    ready: (p) => p.getByText('Tidak ada yang ditampilkan'),
   },
   {
     id: 'timeline-offline',
-    title: 'Timeline opened while offline',
+    title: 'Pengumuman opened while offline',
     path: '/',
     act: async (p, { api }) => {
-      await visibleText(p, 'Kuis 2').waitFor();
+      await p.getByText('Kuis 2').waitFor();
       // Since P0-B each route's code is its own file, which the installed app's service worker precaches. The
       // harness blocks service workers, so load the Timeline's code first (focusing its link preloads it), as
       // the precache would have it, then go offline. Its data is not loaded: the screen is the same as before.
@@ -173,42 +184,33 @@ export const STATES: CaptureState[] = [
     id: 'timeline-unread',
     // Today's desktop timeline has no unread toggle or filter drawer.
     only: 'phone',
-    title: 'Timeline, unread only',
+    title: 'Pengumuman, unread only',
     path: '/pengumuman',
     act: async (p) => {
-      await visibleText(
-        p,
-        'Jadwal UTS Ganjil 2026/2027 sudah keluar',
-      ).waitFor();
+      await inFeed(p, P1).waitFor();
       await p.getByRole('button', { name: /^Belum dibaca/ }).click();
       await p.waitForURL(/unread=true/);
     },
-    ready: (p) => visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar'),
+    ready: (p) => inFeed(p, P1),
   },
   {
     id: 'timeline-filter',
     // Today's desktop timeline has no unread toggle or filter drawer.
     only: 'phone',
-    title: 'Timeline filter open',
+    title: 'Pengumuman filter open',
     path: '/pengumuman',
     act: async (p) => {
-      await visibleText(
-        p,
-        'Jadwal UTS Ganjil 2026/2027 sudah keluar',
-      ).waitFor();
+      await inFeed(p, P1).waitFor();
       await p.getByRole('button', { name: /^Kategori/ }).click();
     },
     ready: (p) => p.getByRole('dialog', { name: 'Kategori yang ditampilkan' }),
   },
   {
     id: 'timeline-card-menu',
-    title: 'Timeline, a post’s menu open',
+    title: 'Pengumuman, a post’s menu open',
     path: '/pengumuman',
     act: async (p) => {
-      await visibleText(
-        p,
-        'Jadwal UTS Ganjil 2026/2027 sudah keluar',
-      ).waitFor();
+      await inFeed(p, P1).waitFor();
       await p
         .getByRole('button', {
           name: 'Opsi untuk Jadwal UTS Ganjil 2026/2027 sudah keluar',
@@ -223,7 +225,7 @@ export const STATES: CaptureState[] = [
     title: 'Post with comments',
     path: '/pengumuman/p1',
     mock: readPosts,
-    ready: (p) => visibleText(p, 'Kak, IF2123 K01 sama K02 ruangnya beda ya?'),
+    ready: (p) => p.getByText('Kak, IF2123 K01 sama K02 ruangnya beda ya?'),
   },
   {
     id: 'post-reactions',
@@ -231,7 +233,7 @@ export const STATES: CaptureState[] = [
     path: '/pengumuman/p2',
     mock: readPosts,
     act: async (p) => {
-      await visibleText(p, 'Cari tim Gemastik XIX? Isi form ini').waitFor();
+      await p.getByText('Cari tim Gemastik XIX? Isi form ini').waitFor();
       await p.getByRole('button', { name: 'Beri reaksi', exact: true }).click();
     },
     ready: (p) => p.getByRole('group', { name: 'Pilih reaksi' }),
@@ -254,16 +256,19 @@ export const STATES: CaptureState[] = [
   // Calendar
   {
     id: 'calendar',
-    title: 'Calendar',
+    title: 'Kalender',
     path: '/kalender',
-    ready: (p) => visibleText(p, 'Sharing Session: Magang di Startup'),
+    ready: (p) =>
+      p.getByRole('button', {
+        name: /^19\.00 21\.00 Sharing Session: Magang di Startup/,
+      }),
   },
   {
     id: 'calendar-pengurus',
-    title: 'Calendar for Raka (can add events)',
+    title: 'Kalender for Raka (can add events)',
     persona: 'pengurus',
     path: '/kalender',
-    ready: (p) => visibleText(p, 'Kuis 1'),
+    ready: (p) => p.getByRole('button', { name: /\d\d\.\d\d Kuis 1/ }),
   },
   {
     id: 'calendar-add-event',
@@ -291,7 +296,7 @@ export const STATES: CaptureState[] = [
     id: 'testi-programs',
     title: 'Testi Matkul: programs',
     path: '/layanan/testi',
-    ready: (p) => visibleText(p, 'Teknik Informatika'),
+    ready: (p) => p.getByText('Teknik Informatika'),
   },
   {
     id: 'testi-courses',
@@ -307,7 +312,7 @@ export const STATES: CaptureState[] = [
     id: 'testi-course',
     title: 'Testi Matkul: IF2110',
     path: '/layanan/testi/teknik-informatika/3/course-IF2110',
-    ready: (p) => visibleText(p, /Lanjutan Dasar Pemrograman/),
+    ready: (p) => p.getByText(/Lanjutan Dasar Pemrograman/),
   },
   {
     id: 'nim-finder',
@@ -325,13 +330,13 @@ export const STATES: CaptureState[] = [
         .getByPlaceholder('Ketik nama atau NIM')
         .locator('visible=true')
         .fill('Rak'),
-    ready: (p) => visibleText(p, 'Rakai Prasetyo'),
+    ready: (p) => p.getByText('Rakai Prasetyo'),
   },
   {
     id: 'competition',
     title: 'Info Lomba',
     path: '/layanan/lomba',
-    ready: (p) => visibleText(p, 'Find IT! 2026'),
+    ready: (p) => p.getByRole('heading', { name: 'Find IT! 2026' }),
   },
   // P2-C: the redesigned member screens (rows are links; the room reads its unread message on opening).
   {
@@ -378,7 +383,7 @@ export const STATES: CaptureState[] = [
     title: 'Form list, nothing to fill (Raka)',
     persona: 'pengurus',
     path: '/layanan/form',
-    ready: (p) => visibleText(p, 'Belum ada form untukmu'),
+    ready: (p) => p.getByText('Belum ada form untukmu'),
   },
   ...[1, 2, 3, 4, 5].map((n): CaptureState => ({
     id: `form-step-${n}`,
@@ -422,13 +427,13 @@ export const STATES: CaptureState[] = [
       await toast.waitFor({ state: 'visible', timeout: 10_000 });
       await toast.waitFor({ state: 'hidden', timeout: 10_000 });
     },
-    ready: (p) => visibleText(p, 'Terima kasih sudah mengisi!'),
+    ready: (p) => p.getByText('Terima kasih sudah mengisi!'),
   },
 
-  // Settings (profile)
+  // Profil (P1-C reaches today's Settings states on it)
   {
     id: 'settings',
-    title: 'Settings',
+    title: 'Profil',
     path: '/profil',
     // P1-C replaced today's settings (a list item with the NIM): Profil once its counts have loaded.
     ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 18 SKS'),
@@ -443,7 +448,7 @@ export const STATES: CaptureState[] = [
     id: 'settings-courses-add',
     title: 'Add courses',
     path: '/profil/matkul/tambah',
-    ready: (p) => visibleText(p, 'Strategi Algoritma'),
+    ready: (p) => p.getByText('Strategi Algoritma'),
   },
   {
     id: 'settings-notifications',
@@ -455,20 +460,20 @@ export const STATES: CaptureState[] = [
     id: 'settings-credits',
     title: 'Credits',
     path: '/profil/kredit',
-    ready: (p) => visibleText(p, 'PIPS! dibuat dan dirawat oleh HMIF ITB.'),
+    ready: (p) => p.getByText('PIPS! dibuat dan dirawat oleh HMIF ITB.'),
   },
 
-  // Admin (Raka)
+  // Kelola (Raka; P3-A reaches today's Admin states on it)
   {
     id: 'admin',
-    title: 'Admin hub',
+    title: 'Kelola hub',
     persona: 'pengurus',
     path: '/kelola',
     ready: (p) => p.getByRole('link', { name: /Data SPARTA Magang/ }),
   },
   {
     id: 'admin-forms',
-    title: 'Admin: forms',
+    title: 'Kelola: Live Counting',
     persona: 'pengurus',
     path: '/kelola/live',
     // P3-A: one active form, so the forms entry forwards to its live page.
@@ -497,7 +502,7 @@ export const STATES: CaptureState[] = [
     title: 'SPARTA submission detail',
     persona: 'pengurus',
     path: '/kelola/sparta/sub-13525071',
-    ready: (p) => visibleText(p, 'Prioritas 1: Akademik'),
+    ready: (p) => p.getByText('Prioritas 1: Akademik'),
   },
   // P2-B: the redesigned services' finished states (for VISUAL_STATES once recorded in the CI container).
   {

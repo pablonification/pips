@@ -16,9 +16,9 @@
  */
 import type { Locator, Page } from '@playwright/test';
 import { pixelSections } from '../support/flows';
-import { visibleText } from '../support/app';
 import * as writes from '../support/writes';
 import { liveAsLocked, type FidelityScreen } from './screens';
+import { inFeed } from '../support/pengumuman';
 
 export interface ExtraCapture extends FidelityScreen {
   persona?: 'anggota' | 'pengurus' | null;
@@ -214,7 +214,7 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
     path: '/pengumuman',
     mock: (api) => api.on('PUT /api/reaction', writes.react),
     act: async (p) => {
-      await visibleText(p, P1_TITLE).waitFor();
+      await inFeed(p, P1_TITLE).waitFor();
       const card = p.getByRole('article', {
         name: new RegExp(`^${P1_TITLE}`),
       });
@@ -258,7 +258,7 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
   'i-filter-sheet': {
     path: '/pengumuman',
     act: async (p) => {
-      await visibleText(p, P1_TITLE).waitFor();
+      await inFeed(p, P1_TITLE).waitFor();
       await p.getByRole('button', { name: /^Kategori/ }).click();
       await p
         .getByRole('dialog', { name: 'Kategori yang ditampilkan' })

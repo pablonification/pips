@@ -12,7 +12,7 @@ import {
   sessionRetryDelay,
   takeChosenSignOut,
 } from '~/lib/session';
-import { Button } from './ui/button';
+import { Button } from './garis/Button';
 
 export const SessionContext = createContext<UserWithRoles>(
   null as unknown as UserWithRoles,
@@ -68,7 +68,7 @@ export default function SessionProvider({
           className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center"
         >
           <p>{common.errors.sesi}</p>
-          <Button type="button" onClick={() => void refetch()}>
+          <Button variant="gold" onClick={() => void refetch()}>
             {common.actions.cobaLagi}
           </Button>
         </main>

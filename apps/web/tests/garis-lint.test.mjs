@@ -1,5 +1,5 @@
 // The design-system lint rules (eslint-rules/garis.mjs), run through the app's real ESLint config, so the test also
-// covers which folders they apply to (GARIS_FILES in eslint.config.js): new code yes, today's screens no.
+// covers where they apply (GARIS_FILES in eslint.config.js): all of src since C1, the generated API client aside.
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
@@ -8,7 +8,8 @@ import { ESLint } from 'eslint';
 const appDir = path.resolve(import.meta.dirname, '..');
 const eslint = new ESLint({ cwd: appDir });
 const NEW = 'src/components/garis/__lint-sample.tsx';
-const OLD = 'src/routes/_app/__lint-sample.tsx';
+// A file outside the folders the rules covered before C1 (today's route folders, components, hooks, lib).
+const OUTSIDE = 'src/routes/_app/__lint-sample.tsx';
 
 async function rules(code, file = NEW) {
   const [res] = await eslint.lintText(code, { filePath: path.join(appDir, file) });
@@ -83,14 +84,20 @@ test('monospace is rejected', async () => {
   assert.deepEqual(await rules(wrap(`<p style={{ fontFamily: 'Geist Mono, monospace' }} />`)), ['garis/no-monospace']);
 });
 
-test('the rules leave today’s screens alone until C1, and cover the other new folders', async () => {
-  assert.deepEqual(await rules(wrap(`<div className="bg-white text-[13px] transition-all font-mono uppercase" />`), OLD), []);
-  for (const f of ['src/components/icons/__x.tsx', 'src/lib/theme/__x.tsx', 'src/dev/garis/__x.tsx', 'src/routes/dev/__x.tsx'])
-    assert.deepEqual(await rules(wrap(`<div className="bg-white" />`), f), ['garis/no-raw-colour'], f);
+test('since C1 the rules cover all of src, files outside the old new-code folders included', async () => {
+  const bad = wrap(`<div className="bg-white text-[13px] transition-all font-mono uppercase" />`);
+  for (const f of [OUTSIDE, 'src/components/__x.tsx', 'src/hooks/__x.tsx', 'src/lib/__x.tsx', 'src/routes/__x.tsx', 'src/components/icons/__x.tsx', 'src/dev/garis/__x.tsx']) {
+    const found = await rules(bad, f);
+    for (const rule of ['garis/no-raw-colour', 'garis/no-arbitrary-text-size', 'garis/no-transition-all', 'garis/no-monospace', 'garis/no-added-capitals'])
+      assert.ok(found.includes(rule), `${f}: ${rule}`);
+  }
+  assert.deepEqual(await rules(`import { Home } from 'lucide-react';\nexport const X = Home;\n`, OUTSIDE), ['garis/no-icon-library']);
+  // The generated API client is the one exception.
+  assert.deepEqual(await rules(bad, 'src/api/generated/__x.tsx'), []);
 });
 
-test('the new folders pass their own rules', async () => {
-  const results = await eslint.lintFiles(['src/components/garis', 'src/components/icons', 'src/lib/theme', 'src/dev', 'src/routes/dev']);
-  const errors = results.flatMap((r) => r.messages.filter((m) => m.severity === 2).map((m) => `${r.filePath}:${m.line} ${m.ruleId}`));
+test('all of src passes the rules, with no unused variables left', async () => {
+  const results = await eslint.lintFiles(['src']);
+  const errors = results.flatMap((r) => r.messages.filter((m) => m.severity === 2 || m.ruleId === '@typescript-eslint/no-unused-vars').map((m) => `${r.filePath}:${m.line} ${m.ruleId}`));
   assert.deepEqual(errors, []);
 });

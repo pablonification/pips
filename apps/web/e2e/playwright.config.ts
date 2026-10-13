@@ -4,7 +4,7 @@
  * Projects:
  * - journeys:  phone-light, phone-dark, tablet-light, tablet-dark, desktop-light, desktop-dark (e2e/journeys)
  * - captures:  capture-phone-light … capture-desktop-dark (e2e/capture; used by e2e:before and e2e:compare-before)
- * - visual:    visual-phone-light … visual-desktop-dark (e2e/visual; reference screenshots, empty until the redesign)
+ * - visual:    visual-phone-light … visual-desktop-dark (e2e/visual; reference screenshots)
  * - fidelity:  fidelity-<phone|tablet|desk>-<light|dark> (e2e/fidelity), at the locked prototype screens' sizes
  * - review (F1, run only by `pnpm --filter web review`, never by `e2e` or CI): review-<phone|tablet|desktop>-<theme>
  *   and review-narrow320-light (the recorded flows, e2e/review/flows), review-stills-<layout>-<theme>,
@@ -31,7 +31,7 @@ export const PHONE = {
   hasTouch: true,
   userAgent: devices['Pixel 7'].userAgent,
 };
-/** The tablet layout (P0-C): 834 × 1112, touch, device scale 2. Today's screens show their phone layout here. */
+/** The tablet layout (P0-C): 834 × 1112, touch, device scale 2: the rail beside one column. */
 export const TABLET = {
   viewport: { width: 834, height: 1112 },
   deviceScaleFactor: 2,
@@ -72,7 +72,7 @@ const projects: Project[] = [
       name: `${size}-${theme}`,
       testDir: './journeys',
       // Tag a journey @phone-only or @desktop-only when only one layout has the feature. Tablets are touch layouts
-      // below 1024 px, where today's screens show their phone layout, so they run the @phone-only journeys too.
+      // below 1024 px, so they run the @phone-only journeys too.
       grepInvert: size === 'desktop' ? /@phone-only/ : /@desktop-only/,
       use: { ...JOURNEY_SIZES[size], colorScheme: theme },
     })),
@@ -224,7 +224,7 @@ const config: PlaywrightTestConfig = defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  // Two workers by default (CI too); on the shared Mac use at most E2E_WORKERS=3.
+  // Two workers by default (CI too), the most the shared Mac allows (WORKER-RULES.md).
   workers: Number(process.env.E2E_WORKERS ?? 2),
   reporter: [['list'], ['html', { outputFolder: './.report', open: 'never' }]],
   use: {

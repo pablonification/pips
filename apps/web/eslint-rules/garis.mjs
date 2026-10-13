@@ -1,5 +1,5 @@
 // The design-system rules for the redesign's code (SPEC story 150): new folders use only the Garis tokens, type
-// styles and icons. eslint.config.js applies them to the folders in GARIS_FILES; C1 makes them global.
+// styles and icons. eslint.config.js applies them to all of src (GARIS_FILES) since C1.
 // tests/garis-lint.test.mjs checks each rule on good and bad samples.
 
 const COLOUR_UTILITY =

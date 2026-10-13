@@ -75,7 +75,7 @@ export function loadUserCache() {
     const user = localStorage.getItem('user');
     if (!user) return undefined;
     return userSchema.parse(JSON.parse(user)) as UserWithRoles;
-  } catch (error) {
+  } catch {
     return undefined;
   }
 }

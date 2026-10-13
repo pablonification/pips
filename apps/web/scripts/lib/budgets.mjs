@@ -6,11 +6,36 @@ import zlib from 'node:zlib';
 
 export const KIB = 1024;
 export const BUDGETS = {
-  /** First-party JS loaded before a route's first render, gzip. Stretch goal 120 KiB. */
+  /** First-party JS loaded before a route's first render, gzip. */
   routeInitialJsGzip: 150 * KIB,
+  /** The stretch goal for the same, reported but not enforced. */
+  routeInitialJsGzipStretch: 120 * KIB,
   /** Everything the service worker precaches, uncompressed. */
   precache: 1.5 * KIB * KIB,
+  /** Exactly two font files: Geist and Archivo Expanded, each subset (scripts/fonts). */
+  fontFiles: 2,
+  geist: 50 * KIB,
+  archivo: 30 * KIB,
 };
+
+/** The font files in a build (outside the review prototypes), with their sizes. */
+export function fontFiles(dist) {
+  const walk = (dir) =>
+    fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory())
+        return e.name === 'prototypes' && dir === dist ? [] : walk(p);
+      return /\.(woff2?|ttf|otf|eot)$/.test(e.name)
+        ? [
+            {
+              file: path.relative(dist, p).split(path.sep).join('/'),
+              bytes: fs.statSync(p).size,
+            },
+          ]
+        : [];
+    });
+  return walk(dist).sort((a, b) => a.file.localeCompare(b.file));
+}
 
 /** Every chunk `key` pulls in before it runs: itself and its static imports, transitively (not dynamic ones). */
 export function staticClosure(manifest, keys) {
@@ -142,6 +167,7 @@ export function measureBuild(dist) {
     routes,
     precache,
     precacheBytes: precache.reduce((s, p) => s + p.bytes, 0),
+    fonts: fontFiles(dist),
   };
 }
 
@@ -157,6 +183,27 @@ export function overBudget(result, budgets = BUDGETS) {
     problems.push(
       `precache: ${(result.precacheBytes / KIB).toFixed(1)} KiB (budget ${budgets.precache / KIB} KiB)`,
     );
+  }
+  if (result.fonts) {
+    if (result.fonts.length !== budgets.fontFiles)
+      problems.push(
+        `fonts: ${result.fonts.length} files (${result.fonts.map((f) => f.file).join(', ')}), budget exactly ${budgets.fontFiles}`,
+      );
+    for (const [face, limit] of [
+      ['geist', budgets.geist],
+      ['archivo', budgets.archivo],
+    ]) {
+      const font = result.fonts.filter((f) =>
+        f.file.toLowerCase().includes(face),
+      );
+      if (font.length !== 1)
+        problems.push(`fonts: ${font.length} ${face} files, budget exactly 1`);
+      for (const f of font)
+        if (f.bytes > limit)
+          problems.push(
+            `fonts: ${f.file} ${(f.bytes / KIB).toFixed(1)} KiB (budget ${limit / KIB} KiB)`,
+          );
+    }
   }
   return problems;
 }

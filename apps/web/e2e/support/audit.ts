@@ -1,10 +1,10 @@
 /**
  * Quality gates measured on a page: axe, horizontal overflow, text size, the document language.
  *
- * Today's app fails many of them, so journeys run in `record` mode: the results are attached to the test and
- * written to the before set, and nothing fails. The redesign switches to `strict` (E2E_GATES=strict, or
- * `test.use({ gates: 'strict' })` once it exists in a journey file), which fails on SPEC's thresholds:
- * no serious or critical axe violation, no document overflow, no text under 12 px, `lang="id"`.
+ * Journeys run them `strict` by default (since C1): a page fails on SPEC's thresholds, no serious or critical
+ * axe violation, no document overflow, no text under 12 px, `lang="id"`. `record` (E2E_GATES=record) only attaches
+ * the results and fails nothing; the capture scripts (`e2e:before`, `e2e:compare-before`) use it, because the
+ * before set records the app as it was before the redesign.
  */
 import AxeBuilder from '@axe-core/playwright';
 import type { Page, TestInfo } from '@playwright/test';
@@ -19,7 +19,7 @@ export const AXE_TAGS = [
 ];
 export type GatesMode = 'record' | 'strict';
 export const gatesMode = (): GatesMode =>
-  process.env.E2E_GATES === 'strict' ? 'strict' : 'record';
+  process.env.E2E_GATES === 'record' ? 'record' : 'strict';
 
 export interface AxeSummary {
   total: number;

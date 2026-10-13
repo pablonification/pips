@@ -52,6 +52,7 @@ for (const state of STATES) {
         width: use.viewport!.width,
         height: use.viewport!.height,
         deviceScaleFactor: use.deviceScaleFactor ?? 1,
+        removed: state.removed,
       });
     });
   });
