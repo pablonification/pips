@@ -39,12 +39,23 @@ export const pengumumanSearchSchema = z.object({
   sort: z.string().optional().catch(undefined),
 });
 
-/** NIM Finder and other searches: the query (`q`). */
+/**
+ * NIM Finder and other searches: the query (`q`). The router reads `?q=13524087` in a link as a number, and a NIM or
+ * a course number is a query too, so a number is kept as its text (P2-B round 2); anything else unreadable is dropped.
+ */
 export const querySearchSchema = z.object({
-  q: z.string().optional().catch(undefined),
+  q: z
+    .union([z.string(), z.number().transform(String)])
+    .optional()
+    .catch(undefined),
 });
 
 /** Testi Matkul's testimonial pages: today's 1-based `page`. Programme, semester and course are path params. */
 export const testiSearchSchema = z.object({
   page: z.number().optional().catch(undefined),
+});
+
+/** Tambah mata kuliah (P1-C): `dari=mulai` when it opened from first run, so Tambahkan goes back there. */
+export const matkulTambahSearchSchema = z.object({
+  dari: z.literal('mulai').optional().catch(undefined),
 });

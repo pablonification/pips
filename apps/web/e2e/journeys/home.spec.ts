@@ -56,9 +56,16 @@ test('a service tile opens the service', async ({ page }) => {
     .locator('visible=true')
     .click();
   await expect(page).toHaveURL(/\/layanan\/nim$/);
-  // The page's own heading (on phones and tablets the shell's top bar names it too).
+  // The page's h1. P2-B's NIM Finder has no heading of its own inside the page, as in the locked prototype: the
+  // shell's top bar is the h1 on phones and tablets, the desktop head on desktop.
   await expect(
-    page.getByRole('main').getByRole('heading', { name: 'NIM Finder' }),
+    page.getByRole('heading', { level: 1, name: 'NIM Finder' }),
+  ).toBeVisible();
+  // And the page's body rendered, not only the shell's top bar (as strong as the check before P2-B).
+  await expect(
+    page
+      .getByRole('main')
+      .getByRole('searchbox', { name: 'Cari nama atau NIM' }),
   ).toBeVisible();
 });
 

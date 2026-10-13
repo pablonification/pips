@@ -49,35 +49,18 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       path: '/kalender',
       ready: (p) => visibleText(p, 'Sharing Session: Magang di Startup'),
     },
-    'anggota-dingdong': {
-      path: '/layanan/dingdong',
-      ready: (p) => visibleText(p, 'IF2110 Algoritma dan Pemrograman II'),
-    },
-    'anggota-nim': {
-      path: '/layanan/nim',
-      ready: (p) =>
-        p.getByPlaceholder('Ketik nama atau NIM').locator('visible=true'),
-    },
-    'anggota-lomba': {
-      path: '/layanan/lomba',
-      ready: (p) => visibleText(p, 'Find IT! 2026'),
-    },
+    // P1-C: Profil, Mata kuliahku and Notifikasi, redesigned in place.
     'anggota-profil': {
       path: '/profil',
-      ready: (p) =>
-        p
-          .getByRole('listitem')
-          .filter({ hasText: '13525045' })
-          .locator('visible=true')
-          .first(),
+      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 18 SKS'),
     },
     'anggota-matkul': {
       path: '/profil/matkul',
-      ready: (p) => p.getByText('Jumlah SKS').locator('visible=true').first(),
+      ready: (p) => p.getByRole('main').getByText('Jumlah SKS'),
     },
     'anggota-notif': {
       path: '/profil/notifikasi',
-      ready: (p) => p.getByRole('switch').locator('visible=true').last(),
+      ready: (p) => p.getByRole('main').getByRole('switch', { name: 'Lomba' }),
     },
     'pengurus-kelola': {
       path: '/kelola',
@@ -113,7 +96,82 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
         },
         ready: (p) => p.getByRole('alertdialog', { name: 'Kirim jawaban?' }),
       },
+      // P1-C: Keluar's confirmation on phones and tablets.
+      {
+        path: '/profil',
+        layouts: ['phone', 'tablet'],
+        act: async (p) => {
+          await p
+            .getByRole('main')
+            .getByText('6 mata kuliah · 18 SKS')
+            .waitFor();
+          // Clicked in place, as the prototype's capture: the page stays at its top behind the sheet.
+          await p
+            .getByRole('main')
+            .getByRole('button', { name: 'Keluar' })
+            .evaluate((b: HTMLElement) => b.click());
+        },
+        ready: (p) =>
+          p.getByRole('alertdialog', { name: 'Keluar dari PIPS!?' }),
+      },
     ],
+    // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba (the states garis-check.mjs ROUTES gives them).
+    'anggota-dingdong': {
+      path: '/layanan/dingdong',
+      ready: (p) => p.getByRole('link', { name: /^IF2180 Socio-informatika/ }),
+    },
+    'anggota-testi-list': {
+      path: '/layanan/testi/teknik-informatika/3',
+      // Every row's count has arrived.
+      ready: (p) =>
+        p
+          .getByRole('main')
+          .getByRole('link', { name: /^IF2150 .* 1 testimoni$/ }),
+    },
+    'anggota-testi-course': {
+      path: '/layanan/testi/teknik-informatika/3/course-IF2110',
+      ready: (p) => p.getByRole('article', { name: 'Testimoni 1 dari 3' }),
+    },
+    'anggota-nim': {
+      path: '/layanan/nim',
+      ready: (p) =>
+        p.getByRole('status').filter({ hasText: 'Ketik minimal 3 huruf' }),
+    },
+    'anggota-lomba': {
+      path: '/layanan/lomba',
+      ready: (p) => p.getByRole('heading', { name: 'Find IT! 2026' }),
+    },
+    // P1-C: Raka's Profil, Tambah mata kuliah, the push prompt and Layanan.
+    'pengurus-profil': {
+      path: '/profil',
+      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 19 SKS'),
+    },
+    'anggota-matkul-add': {
+      path: '/profil/matkul/tambah',
+      ready: (p) => p.getByRole('main').getByText('Strategi Algoritma'),
+    },
+    'anggota-ov-push': {
+      path: '/profil/notifikasi',
+      act: async (p) => {
+        await p
+          .getByRole('main')
+          .getByRole('switch', { name: 'Lomba' })
+          .waitFor();
+        await p
+          .getByRole('main')
+          .getByRole('button', { name: 'Nyalakan notifikasi' })
+          .click();
+      },
+      ready: (p) => p.getByRole('dialog', { name: 'Nyalakan notifikasi?' }),
+    },
+    'anggota-layanan': {
+      path: '/layanan',
+      ready: (p) => p.getByRole('main').getByText('1 belum diisi'),
+    },
+    'pengurus-layanan': {
+      path: '/layanan',
+      ready: (p) => p.getByRole('main').getByText('Tambah acara Akademik'),
+    },
 
     // P2-C: Curhat Yuk! for members. A pengurus without rooms sees the member side, empty (not the Welfare inbox).
     'anggota-curhat': {

@@ -24,6 +24,7 @@ export const GARIS_FILES = [
   'src/lib/shell/**/*.{ts,tsx}',
   // P1-C: push, Profil, Layanan, sign-in and first run.
   'src/components/push/**/*.{ts,tsx}',
+  'src/features/**/*.{ts,tsx}',
   // P1-B: Pengumuman, and the shared date words.
   'src/features/pengumuman/**/*.{ts,tsx}',
   'src/lib/dates.ts',
@@ -37,8 +38,9 @@ export const GARIS_FILES = [
   'src/routes/_app/_left-navbar/layanan/form/index.tsx',
   'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
   'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
+  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba (every feature folder, Curhat's too).
+  'src/features/**/*.{ts,tsx}',
   // P2-C: Curhat Yuk! for members.
-  'src/features/curhat/**/*.{ts,tsx}',
   'src/routes/_app/_left-navbar/layanan/curhat/route.tsx',
   'src/routes/_app/_left-navbar/layanan/curhat/index.tsx',
   'src/routes/_app/_left-navbar/layanan/curhat/$roomId.tsx',
@@ -100,11 +102,12 @@ export default defineConfig([
       'garis/no-transition-all': 'error',
       'garis/no-img-icon': [
         'error',
-        // The logo is only ever the official image; Media is the one way to show a picture.
+        // The logo is only ever the official image; Media shows a picture, Avatar a person's photo.
         {
           allow: [
             'src/components/garis/HmifLogo.tsx',
             'src/components/garis/Surface.tsx',
+            'src/components/garis/Avatar.tsx',
           ],
         },
       ],

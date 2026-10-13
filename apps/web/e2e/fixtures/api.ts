@@ -729,6 +729,11 @@ export interface Db {
   /** SPARTA's window (`SPARTA_WINDOW`, closed); a test may open it. */
   spartaWindow: { opensAt: string | null; closesAt: string | null };
   credits: Markdown;
+  /** P1-C: the push subscriptions the API holds for this member (`POST /api/push/register`); none at first. */
+  pushSubscriptions: Array<{
+    endpoint: string;
+    keys: { p256dh: string; auth: string };
+  }>;
 }
 
 /** A fresh copy of one persona's data, or of a signed-out visitor's (`null`). */
@@ -832,6 +837,7 @@ export function buildDb(persona: PersonaKey | null): Db {
     windows: [],
     spartaWindow: { ...SPARTA_WINDOW },
     credits,
+    pushSubscriptions: [],
   };
   return structuredClone(db);
 }

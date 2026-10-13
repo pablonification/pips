@@ -76,8 +76,8 @@ export function ErrorState({
 }
 
 export interface OfflineBannerProps {
-  /** When the data on screen was last updated, as "07.45" (WIB, the app's time format). */
-  updatedAt: string;
+  /** When the data on screen was last updated, as "07.45" (WIB, the app's time format); left out when unknown. */
+  updatedAt?: string;
   className?: string;
 }
 
@@ -86,7 +86,11 @@ export function OfflineBanner({ updatedAt, className }: OfflineBannerProps) {
   return (
     <div className={cn('g-offline', className)} role="status">
       <IconPeringatan size={16} />
-      <span>{fill(common.offline.banner, { waktu: updatedAt })}</span>
+      <span>
+        {updatedAt
+          ? fill(common.offline.banner, { waktu: updatedAt })
+          : common.offline.bannerTanpaWaktu}
+      </span>
     </div>
   );
 }

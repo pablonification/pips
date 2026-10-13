@@ -340,7 +340,11 @@ function Frame({
       </div>
       {desk || route.meta.focused ? null : (
         <TabBar
-          active={route.path ? activeItem(route.path, 'touch', lastRoot) : null}
+          active={
+            route.path
+              ? activeItem(route.path, 'touch', lastRoot, route.params)
+              : null
+          }
           badges={badges}
         />
       )}
@@ -359,7 +363,7 @@ function TopBar({
   onSlot,
 }: {
   route: ShellRoute;
-  lastRoot: Destination;
+  lastRoot: Destination | null;
   me: { name: string; initials: string };
   /** The screen shows its own title (`PageTitle`): this one is plain text, hidden from screen readers. */
   ownTitle: boolean;
@@ -415,11 +419,13 @@ function BackButton({
   lastRoot,
 }: {
   route: ShellRoute;
-  lastRoot: Destination;
+  lastRoot: Destination | null;
 }) {
   const router = useRouter();
   const prev = route.index > 0 ? entryAt(route.index - 1) : undefined;
-  const parent = route.path ? parentOf(route.path, lastRoot) : '/';
+  const parent = route.path
+    ? parentOf(route.path, lastRoot, route.params)
+    : '/';
   const parentHref = (parent && fillPath(parent, route.params)) ?? '/';
   const parentTitle =
     route.titles[parentHref] ??
@@ -507,12 +513,14 @@ function Sidebar({
   badges,
 }: {
   route: ShellRoute;
-  lastRoot: Destination;
+  lastRoot: Destination | null;
   badges: NavBadges;
 }) {
   const me = useMe();
   const user = useSession();
-  const active = route.path ? activeItem(route.path, 'desk', lastRoot) : null;
+  const active = route.path
+    ? activeItem(route.path, 'desk', lastRoot, route.params)
+    : null;
   const kelola = servicesByGroup(user).some((g) => g.group === 'Kelola');
   const mod = modKeyLabel(navigator.platform);
 
