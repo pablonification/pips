@@ -35,11 +35,6 @@ export interface CaptureState {
   ready: (page: Page) => Locator;
 }
 
-const heading = (page: Page, name: string, level?: number) =>
-  page
-    .getByRole('heading', { name, exact: true, level })
-    .locator('visible=true')
-    .first();
 const readPosts = (api: ApiMock) =>
   api.on('POST /api/info/:infoId/read', writes.markRead);
 
