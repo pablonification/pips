@@ -37,6 +37,11 @@ export const GARIS_FILES = [
   'src/routes/_app/_left-navbar/layanan/form/index.tsx',
   'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
   'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
+  // P2-C: Curhat Yuk! for members.
+  'src/features/curhat/**/*.{ts,tsx}',
+  'src/routes/_app/_left-navbar/layanan/curhat/route.tsx',
+  'src/routes/_app/_left-navbar/layanan/curhat/index.tsx',
+  'src/routes/_app/_left-navbar/layanan/curhat/$roomId.tsx',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
@@ -132,6 +137,8 @@ export default defineConfig([
             'cap|sub|s|lap|label|c2|theme-light|theme-dark',
             // Pengumuman's parts (src/features/pengumuman/pengumuman.css).
             'who|meta|z|end|many|host|ttl|lbl|in|state|bar|del|opt|body|read|unread|lead|desk|failed',
+            // Curhat's parts (src/features/curhat/curhat.css): a bubble's side, time line and quote.
+            'me|them|tm|quote',
           ],
         },
       ],
