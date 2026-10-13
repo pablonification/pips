@@ -65,7 +65,7 @@ import {
 import { currentTheme, subscribe as onThemeChange } from '~/lib/theme/theme';
 import { THEME_COLORS } from '~/lib/theme/theme-core.mjs';
 import { cn } from '~/lib/utils';
-import { useNavBadges, type NavBadges } from './nav-badges';
+import { badgeText, useNavBadges, type NavBadges } from './nav-badges';
 import { focusAfterNavigation } from './focus';
 import { LegacyScreen, OwnTitle, TopBarSlot } from './page';
 import { openPalette, usePaletteOpen } from './palette/palette-store';
@@ -480,14 +480,14 @@ function TabBar({
             </span>
             {n > 0 ? (
               <span className="g-badge-n" aria-hidden="true">
-                {n}
+                {badgeText(n)}
               </span>
             ) : null}
             <span>
               {common.nav[d]}
               {n > 0 ? (
                 <span className="sr-only">
-                  {`, ${fill(common.shell.belumDibaca, { jumlah: n })}`}
+                  {`, ${fill(common.shell.belumDibaca, { jumlah: badgeText(n) })}`}
                 </span>
               ) : null}
             </span>
@@ -546,9 +546,9 @@ function Sidebar({
               <span>{common.nav[d]}</span>
               {n > 0 ? (
                 <span className="n">
-                  <span aria-hidden="true">{n}</span>
+                  <span aria-hidden="true">{badgeText(n)}</span>
                   <span className="sr-only">
-                    {fill(common.shell.belumDibaca, { jumlah: n })}
+                    {fill(common.shell.belumDibaca, { jumlah: badgeText(n) })}
                   </span>
                 </span>
               ) : null}

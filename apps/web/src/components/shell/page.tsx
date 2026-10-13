@@ -45,21 +45,27 @@ export function usePageTitle(title: string | null | undefined) {
 /** The shell counts the screen's own titles on the page, so the top bar knows whether its title is the heading. */
 export const OwnTitle = createContext<((delta: 1 | -1) => void) | null>(null);
 
+type HeadingProps = HTMLAttributes<HTMLHeadingElement> & {
+  /** false: the screen's own type style instead of the page title's Archivo (a post's title, P1-B). */
+  display?: boolean;
+};
+
 function Heading({
   className,
+  display = true,
   ...rest
-}: HTMLAttributes<HTMLHeadingElement> & { ref?: Ref<HTMLHeadingElement> }) {
+}: HeadingProps & { ref?: Ref<HTMLHeadingElement> }) {
   return (
     <h1
       data-page-title=""
       tabIndex={-1}
-      className={cn('t-display', className)}
+      className={cn(display && 't-display', className)}
       {...rest}
     />
   );
 }
 
-export function PageTitle(props: HTMLAttributes<HTMLHeadingElement>) {
+export function PageTitle(props: HeadingProps) {
   const register = useContext(OwnTitle);
   const ref = useRef<HTMLHeadingElement>(null);
   // Before paint, so the top bar never shows a second h1, and focus after navigation finds this one, also when it
