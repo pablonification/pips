@@ -87,10 +87,11 @@ export function DeskHead({
   title: ReactNode;
   actions?: ReactNode;
 }) {
-  // Desktop only: below 1024 px the top bar has the title and the actions (TopBarActions). Rendered only there, not
-  // hidden by CSS, so phones and tablets carry no second copy of the title and the actions (C1, SPEC hidden DOM).
+  // Shown from 1024 px; below it the top bar has the title and the actions (TopBarActions). A head with actions stays
+  // mounted, hidden by CSS, because an action may own an open dialog that must survive a tablet turning across
+  // 1024 px (P3-B). A title alone holds nothing, so phones and tablets don't carry it as hidden DOM (C1, SPEC).
   const desk = useMediaQuery(DESKTOP_QUERY);
-  if (!desk) return null;
+  if (!desk && !actions) return null;
   return (
     <div className="g-d-head">
       <Heading className="t-display-l">{title}</Heading>
