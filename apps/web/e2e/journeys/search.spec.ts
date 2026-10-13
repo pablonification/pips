@@ -8,6 +8,7 @@ import type { CalendarEvent } from '../../src/api/generated';
 import { layoutOf } from '../support/app';
 import { defaultHandlers } from '../support/handlers';
 import { reply } from '../support/mock';
+import * as writes from '../support/writes';
 import { strictGates } from '../support/p1a';
 import { expect, test } from '../support/test';
 
@@ -198,6 +199,50 @@ test('while people are on their way, search never says nothing was found', async
   await expect(
     palette(page).getByText('Tidak ada hasil untuk “zzzz”.'),
   ).toBeVisible();
+});
+
+test('results that arrive from the API take the highlight while you haven’t moved it: Enter opens the first', async ({
+  page,
+  api,
+}) => {
+  const posts = defaultHandlers['GET /api/info'];
+  api.on('GET /api/info', (ctx) => reply.delay(800, posts(ctx)));
+  api.on('POST /api/info/:infoId/read', writes.markRead);
+  await openSearch(page);
+  await field(page).fill('uts');
+  // The device's own results first: an event, highlighted.
+  await expect(options(page).first()).toContainText('UTS');
+  await expect(options(page).first()).toHaveAttribute('aria-selected', 'true');
+  // The announcement arrives and ranks above it (Pengumuman before Kalender): it takes the highlight.
+  const post = options(page).filter({
+    hasText: 'Jadwal UTS Ganjil 2026/2027 sudah keluar',
+  });
+  await expect(post).toHaveAttribute('aria-selected', 'true');
+  expect(await groups(page)).toEqual(
+    expect.arrayContaining(['Pengumuman', 'Kalender']),
+  );
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/pengumuman\/p1$/);
+});
+
+test('once you move the highlight, arriving results leave it where you put it', async ({
+  page,
+  api,
+}) => {
+  const posts = defaultHandlers['GET /api/info'];
+  api.on('GET /api/info', (ctx) => reply.delay(800, posts(ctx)));
+  await openSearch(page);
+  await field(page).fill('uts');
+  await expect(options(page).first()).toContainText('UTS');
+  await page.keyboard.press('ArrowDown');
+  const chosen = palette(page).locator('[role="option"][aria-selected="true"]');
+  const label = await chosen.textContent();
+  await expect(
+    options(page).filter({
+      hasText: 'Jadwal UTS Ganjil 2026/2027 sudah keluar',
+    }),
+  ).toBeVisible();
+  await expect(chosen).toHaveText(label!);
 });
 
 test('a course opens its Ding Dong folder in a new tab', async ({ page }) => {

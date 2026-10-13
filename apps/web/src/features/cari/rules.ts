@@ -32,6 +32,17 @@ export function remotePending(
   return query.trim() !== settled.trim() || fetching.some(Boolean);
 }
 
+/**
+ * The highlighted result (P1-A round 2): the first, until the member moves the highlight; then theirs while it is
+ * still listed. Results that arrive later and rank first take the highlight, as Enter runs the first (`app.js`).
+ */
+export function chosenResult(
+  moved: string | null,
+  ids: readonly string[],
+): string {
+  return moved !== null && ids.includes(moved) ? moved : (ids[0] ?? '');
+}
+
 /** Upcoming events within 21 days, by start (the prototype's `up`). */
 export function upcomingEvents(
   events: readonly CalEvent[],

@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import type { CalendarEvent } from '../src/api/generated';
 import {
   asksApi,
+  chosenResult,
   eventHint,
   personHint,
   postLabel,
@@ -147,4 +148,19 @@ test('the API’s results are pending until typing pauses and every request is b
   assert.equal(remotePending('nadia', 'nadia', [false, true]), true);
   assert.equal(remotePending('nadia ', 'nadia', [false, false]), false);
   assert.equal(remotePending('nadia', 'nadia', [false, false]), false);
+});
+
+test('the highlight is the first result until moved; a moved one stays while listed', () => {
+  assert.equal(chosenResult(null, []), '');
+  assert.equal(chosenResult(null, ['kalender:a1']), 'kalender:a1');
+  // A post arrives and ranks first: it takes the highlight.
+  assert.equal(
+    chosenResult(null, ['pengumuman:p1', 'kalender:a1']),
+    'pengumuman:p1',
+  );
+  assert.equal(
+    chosenResult('kalender:a1', ['pengumuman:p1', 'kalender:a1']),
+    'kalender:a1',
+  );
+  assert.equal(chosenResult('orang:1', ['kalender:a1']), 'kalender:a1');
 });
