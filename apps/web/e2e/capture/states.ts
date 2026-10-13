@@ -162,7 +162,10 @@ export const STATES: CaptureState[] = [
     title: 'Timeline, unread only',
     path: '/pengumuman',
     act: async (p) => {
-      await visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar').waitFor();
+      await visibleText(
+        p,
+        'Jadwal UTS Ganjil 2026/2027 sudah keluar',
+      ).waitFor();
       await p.getByRole('button', { name: /^Belum dibaca/ }).click();
       await p.waitForURL(/unread=true/);
     },
@@ -175,7 +178,10 @@ export const STATES: CaptureState[] = [
     title: 'Timeline filter open',
     path: '/pengumuman',
     act: async (p) => {
-      await visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar').waitFor();
+      await visibleText(
+        p,
+        'Jadwal UTS Ganjil 2026/2027 sudah keluar',
+      ).waitFor();
       await p.getByRole('button', { name: /^Kategori/ }).click();
     },
     ready: (p) => p.getByRole('dialog', { name: 'Kategori yang ditampilkan' }),
@@ -185,7 +191,10 @@ export const STATES: CaptureState[] = [
     title: 'Timeline, a post’s menu open',
     path: '/pengumuman',
     act: async (p) => {
-      await visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar').waitFor();
+      await visibleText(
+        p,
+        'Jadwal UTS Ganjil 2026/2027 sudah keluar',
+      ).waitFor();
       await p
         .getByRole('button', {
           name: 'Opsi untuk Jadwal UTS Ganjil 2026/2027 sudah keluar',
@@ -224,8 +233,7 @@ export const STATES: CaptureState[] = [
     title: 'New announcement, categories open',
     path: '/pengumuman/tulis',
     // The redesign shows the categories as chips; an empty submit shows what is missing.
-    act: async (p) =>
-      p.getByRole('button', { name: 'Umumkan' }).click(),
+    act: async (p) => p.getByRole('button', { name: 'Umumkan' }).click(),
     ready: (p) => p.getByText('Pilih minimal satu kategori.'),
   },
 

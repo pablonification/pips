@@ -480,9 +480,14 @@ test('link kinds: Google Forms open in PIPS!, Sheets get the sheet tile, others 
 
 test('a link alone on the last lines folds into its card; links inside the text stay', () => {
   const p1 = info(nadia, 'p1').content;
-  assert.ok(p1.endsWith('https://docs.google.com/spreadsheets/d/e2e-jadwal-uts'));
+  assert.ok(
+    p1.endsWith('https://docs.google.com/spreadsheets/d/e2e-jadwal-uts'),
+  );
   assert.ok(displayText(p1).endsWith('untuk mata kuliah yang kamu atur.'));
-  assert.equal(displayText('Lihat s.hmif.dev/MadingBeasiswa ya'), 'Lihat s.hmif.dev/MadingBeasiswa ya');
+  assert.equal(
+    displayText('Lihat s.hmif.dev/MadingBeasiswa ya'),
+    'Lihat s.hmif.dev/MadingBeasiswa ya',
+  );
   assert.equal(displayText('https://forms.gle/x'), 'https://forms.gle/x'); // nothing else to show
   assert.equal(displayText('Halo\n\nhttps://a.id/x\nwww.b.id \n'), 'Halo');
 });

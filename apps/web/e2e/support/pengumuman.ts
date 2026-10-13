@@ -2,7 +2,12 @@
  * Helpers for the Pengumuman journeys (P1-B): where a post opens in each layout, the unread count in its three
  * places, and the strict quality gates every state is checked against.
  */
-import { expect, type Locator, type Page, type TestInfo } from '@playwright/test';
+import {
+  expect,
+  type Locator,
+  type Page,
+  type TestInfo,
+} from '@playwright/test';
 import { audit, gateFailures } from './audit';
 import { layoutOf } from './app';
 
@@ -15,7 +20,11 @@ export const P7 = 'Ketinggalan jaket abu-abu di GKU Timur';
 export const isDesk = (t: TestInfo) => layoutOf(t) === 'desktop';
 
 /** SPEC's gates, strict: zero serious or critical axe findings, no sideways scroll, no text under 12 px, lang id. */
-export async function strictGates(page: Page, testInfo: TestInfo, name: string) {
+export async function strictGates(
+  page: Page,
+  testInfo: TestInfo,
+  name: string,
+) {
   const a = await audit(page);
   const failures = gateFailures(a);
   await testInfo.attach(`gates-${name}.json`, {
@@ -45,7 +54,10 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 /** The unread count on the "Belum dibaca" chip and in the navigation (tab, rail or sidebar); none at 0. */
 export async function expectUnread(page: Page, n: number) {
   const chip = page.getByRole('button', { name: /^Belum dibaca/ });
-  if (await chip.count()) await expect(chip).toHaveAccessibleName(n ? `Belum dibaca ${n}` : 'Belum dibaca');
+  if (await chip.count())
+    await expect(chip).toHaveAccessibleName(
+      n ? `Belum dibaca ${n}` : 'Belum dibaca',
+    );
   const nav = page
     .getByRole('navigation', { name: 'Navigasi utama' })
     .getByRole('link', { name: /^Pengumuman/ });
