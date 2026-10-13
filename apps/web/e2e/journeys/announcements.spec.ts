@@ -3,7 +3,7 @@
  * desktop size in light and dark, with strict gates. Every write's body is checked as the API received it.
  * The composer is in compose.spec.ts.
  */
-import { layoutOf } from '../support/app';
+import { layoutOf, navLink } from '../support/app';
 import { reply } from '../support/mock';
 import {
   P1,
@@ -490,6 +490,49 @@ test.describe('filter and search', () => {
     );
     // The automatic selection isn't marked read.
     expect(api.calls('POST /api/info/p2/read')).toHaveLength(0);
+  });
+
+  test('desktop: a post opened after the view changed stays open (regression: the feed’s first post replaced it) @desktop-only', async ({
+    page,
+    db,
+    api,
+  }) => {
+    api.on('POST /api/info/:infoId/read', writes.markRead);
+    // More posts than the list ever loads on its own (5 pages), so x65 is never in it.
+    const base = db.infos[0];
+    db.infos = Array.from({ length: 70 }, (_, i) => ({
+      ...base,
+      id: `x${i}`,
+      title: `Pengumuman uji ${i + 1}`,
+      createdAt: new Date(Date.parse(base.createdAt) - i * 60e3).toISOString(),
+      isRead: true,
+    }));
+    const heading = detail(page).getByRole('heading', {
+      name: 'Pengumuman uji 66',
+    });
+    await page.goto('/pengumuman/x65');
+    await expect(heading).toBeVisible();
+    // Inside the app: to the feed, change the view, change it back.
+    await navLink(page, 'Pengumuman').click();
+    await expect(page).toHaveURL(/\/pengumuman$/);
+    const search = page.getByRole('searchbox');
+    await search.fill('uji 1');
+    await expect(page).toHaveURL(/search=uji/);
+    await search.fill('');
+    await expect(page).toHaveURL(/\/pengumuman$/);
+    // Then the post again, still inside the app (as a push or Beranda would open it).
+    await page.goBack();
+    await expect(page).toHaveURL(/\/pengumuman\/x65$/);
+    // The list is back (from the cache, nothing to fetch) and its effects have run.
+    await expect(page.locator('[data-post-row="x0"]')).toBeVisible();
+    await page.evaluate(
+      () =>
+        new Promise((r) =>
+          requestAnimationFrame(() => requestAnimationFrame(r)),
+        ),
+    );
+    await expect(page).toHaveURL(/\/pengumuman\/x65$/);
+    await expect(heading).toBeVisible();
   });
 });
 

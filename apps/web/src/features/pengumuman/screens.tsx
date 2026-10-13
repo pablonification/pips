@@ -29,13 +29,8 @@ import { FeedPanel } from './FeedPanel';
 import { useDelayed } from './parts';
 import { PostDetail } from './PostDetail';
 import { ComposeDialog, ComposePage } from './Composer';
-import { hiddenByFilter, type FeedView } from './rules';
-import {
-  focusSoon,
-  takeViewChanged,
-  takeWantComment,
-  useFeedView,
-} from './view';
+import { canonicalView, hiddenByFilter, type FeedView } from './rules';
+import { focusSoon, takeWantComment, useFeedView } from './view';
 import './pengumuman.css';
 
 const POST_ROUTE = '/_app/_left-navbar/pengumuman/$id/' as const;
@@ -142,17 +137,35 @@ export function PostScreen() {
       );
   }, [info.data, id]);
 
-  // Desktop: the view changed and this post left the list, so the first visible post takes its place.
+  // Desktop: the member changed the view while this post was open and it left the list, so the first visible post
+  // takes its place. Only a change since the list last settled counts: a post opened later (a push, Beranda, search)
+  // stays even when it is beyond the pages loaded so far (review M1).
   const posts = useMemo(() => feed.data?.pages.flat() ?? [], [feed.data]);
+  const viewKey = JSON.stringify(canonicalView(view));
+  const settledKey = useRef<string | null>(null);
   useEffect(() => {
-    if (!desk || feed.isFetching || !feed.data) return;
+    if (!desk || feed.isFetching || feed.isPlaceholderData || !feed.data)
+      return;
+    const before = settledKey.current;
+    settledKey.current = viewKey;
+    if (before === null || before === viewKey) return;
     const hidden = view.excludeCategories ?? [];
     const gone =
       !posts.some((p) => p.id === id) ||
       (info.data && hiddenByFilter(info.data, hidden));
-    if (gone && takeViewChanged())
-      void navigate({ to: '/pengumuman', search: view, replace: true });
-  }, [desk, feed.isFetching, feed.data, posts, id, info.data, view, navigate]);
+    if (gone) void navigate({ to: '/pengumuman', search: view, replace: true });
+  }, [
+    desk,
+    feed.isFetching,
+    feed.isPlaceholderData,
+    feed.data,
+    viewKey,
+    posts,
+    id,
+    info.data,
+    view,
+    navigate,
+  ]);
 
   if (info.data)
     return <PostDetail info={info.data} desk={desk} search={view} />;

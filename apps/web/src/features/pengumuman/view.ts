@@ -1,7 +1,7 @@
 /**
  * The feed's view lives in the URL (P0-B's `pengumumanSearchSchema`, today's names), on the `/pengumuman` layout
  * route, so the post and the composer keep it and a reload restores it. Also the little memory the screens share
- * across a navigation: which card to give focus back to, and whether the desktop view just changed.
+ * across a navigation: which card to give focus back to, and whether the comment field wants focus.
  */
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useCallback } from 'react';
@@ -21,7 +21,6 @@ export function useSetView() {
   const navigate = useNavigate();
   return useCallback(
     (patch: Partial<FeedView> | null) => {
-      viewChanged = true;
       void navigate({
         to: '.',
         search: (prev: FeedView) => {
@@ -40,14 +39,6 @@ export function useSetView() {
     [navigate],
   );
 }
-
-/** Set when the member changes the view; the desktop pane then moves to the first post if its own left the list. */
-let viewChanged = false;
-export const takeViewChanged = () => {
-  const v = viewChanged;
-  viewChanged = false;
-  return v;
-};
 
 /** Back from a post on phones and tablets gives focus to its card's link (the prototype's `back`). */
 let returnTo: string | null = null;
