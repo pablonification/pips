@@ -79,3 +79,11 @@ export const spartaDataSearchSchema = z.object({
     .catch(undefined),
   status: z.enum(['terkunci', 'draf']).optional().catch(undefined),
 });
+
+/**
+ * Curhat Yuk!'s inbox for Welfare (P3-C): the search (`q`; a number is kept as its text, as `querySearchSchema`) and
+ * the Belum dibaca toggle (`unread`, the name Pengumuman uses).
+ */
+export const inboxSearchSchema = querySearchSchema.extend({
+  unread: z.boolean().optional().catch(undefined),
+});
