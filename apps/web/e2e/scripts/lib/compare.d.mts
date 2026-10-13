@@ -6,3 +6,10 @@ export function captureStatus(c: {
   ratio?: number;
   threshold: number;
 }): 'removed' | 'missing' | 'changed' | 'unchanged';
+export function summarize(rows: { status: string }[]): {
+  compared: number;
+  unchanged: number;
+  changed: number;
+  missing: number;
+  removed: number;
+};

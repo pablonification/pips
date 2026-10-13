@@ -19,7 +19,7 @@ import {
   sideBySide,
   writePng,
 } from './lib/image.mjs';
-import { captureStatus } from './lib/compare.mjs';
+import { captureStatus, summarize } from './lib/compare.mjs';
 import { recordDir, stamp } from './lib/paths.mjs';
 import {
   CAPTURE_PROJECTS,
@@ -142,11 +142,7 @@ const report = {
   },
   threshold: { changedPixelRatio: threshold, pixelmatchColourTolerance: 0.1 },
   summary: {
-    compared: rows.length,
-    unchanged: rows.length - changed.length,
-    changed: changed.filter((r) => r.status === 'changed').length,
-    missing: changed.filter((r) => r.status === 'missing').length,
-    removed: rows.filter((r) => r.status === 'removed').length,
+    ...summarize(rows),
     newStates: added.length,
   },
   captureExitCode: code,

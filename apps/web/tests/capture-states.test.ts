@@ -3,7 +3,7 @@
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { STATES } from '../e2e/capture/states';
-import { captureStatus } from '../e2e/scripts/lib/compare.mjs';
+import { captureStatus, summarize } from '../e2e/scripts/lib/compare.mjs';
 
 test('the install tutorial is removed, keeps its path and still captures what a phone browser opens', () => {
   const install = STATES.find((s) => s.id === 'install-prompt');
@@ -51,4 +51,22 @@ test('compare-before: removed wins over the pixels; otherwise missing, changed o
     captureStatus({ captured: true, ratio: 0.00001, threshold }),
     'unchanged',
   );
+});
+
+test('regression: the summary counts removed states as removed, not unchanged', () => {
+  const rows = [
+    'unchanged',
+    'changed',
+    'changed',
+    'missing',
+    'removed',
+    'removed',
+  ].map((status) => ({ status }));
+  assert.deepEqual(summarize(rows), {
+    compared: 6,
+    unchanged: 1,
+    changed: 2,
+    missing: 1,
+    removed: 2,
+  });
 });

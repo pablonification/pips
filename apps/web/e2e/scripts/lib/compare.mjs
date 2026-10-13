@@ -19,3 +19,20 @@ export function captureStatus({
   if (sizeDiffers || ratio > threshold) return 'changed';
   return 'unchanged';
 }
+
+/**
+ * The report's counts by status. Removed states are neither unchanged nor changed (C1's first version counted
+ * them as unchanged).
+ * @param {{ status: string }[]} rows
+ */
+export function summarize(rows) {
+  const count = (/** @type {string} */ s) =>
+    rows.filter((r) => r.status === s).length;
+  return {
+    compared: rows.length,
+    unchanged: count('unchanged'),
+    changed: count('changed'),
+    missing: count('missing'),
+    removed: count('removed'),
+  };
+}
