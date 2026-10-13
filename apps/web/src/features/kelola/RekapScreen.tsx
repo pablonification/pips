@@ -84,6 +84,17 @@ export function RekapScreen({
   );
 
   const pages = page.data ? pageCount(page.data.total) : 1;
+  // A page past the last (an old link, or fewer responses after a search) goes to the last page, replacing the entry.
+  const pastEnd = Boolean(page.data) && halaman > pages;
+  useEffect(() => {
+    if (!pastEnd) return;
+    void navigate({
+      to: '/kelola/live/$formId/rekap',
+      params: { formId },
+      search: { q: q || undefined, halaman: pages > 1 ? pages : undefined },
+      replace: true,
+    });
+  }, [pastEnd, pages, q, formId, navigate]);
 
   return (
     <>
@@ -96,11 +107,13 @@ export function RekapScreen({
           onChange={(e) => setText(e.target.value)}
         />
         <p className="t-cap text-fg-3" role="status">
-          {page.data ? fill(copy.rekap.hasil, { jumlah: page.data.total }) : ''}
+          {page.data && !pastEnd
+            ? fill(copy.rekap.hasil, { jumlah: page.data.total })
+            : ''}
         </p>
         <div>
           <SectionHead title={form.data?.title ?? ''} />
-          {page.isPending ? (
+          {page.isPending || pastEnd ? (
             <Skeleton label={copy.rekap.memuat}>
               {[0, 1, 2, 3, 4].map((i) => (
                 <SkeletonRow key={i} lines={['70%']} />
@@ -122,7 +135,7 @@ export function RekapScreen({
             </RuledList>
           )}
         </div>
-        {pages > 1 ? (
+        {pages > 1 && !pastEnd ? (
           <div className="g-pager">
             <Button
               variant="paper"
