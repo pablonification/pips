@@ -71,9 +71,14 @@
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
-  /* Data SPARTA Magang's labels ("Welfare and Academics · Akademik") are longer than an answer's. */
+  /* Data SPARTA Magang's labels ("Welfare and Academics · Akademik") are longer than an answer's: above the bar on
+     phones, a 220 px column from 640 px. */
   .g-hbars.wide .g-hbar {
-    grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 40px;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    row-gap: 6px;
+  }
+  .g-hbars.wide .g-hbar > span:first-child {
+    grid-column: 1 / -1;
   }
 
   .g-live-actions {
@@ -200,6 +205,12 @@
   }
 
   @media (min-width: 640px) {
+    .g-hbars.wide .g-hbar {
+      grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 40px;
+    }
+    .g-hbars.wide .g-hbar > span:first-child {
+      grid-column: auto;
+    }
     .g-sparta-filters {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
