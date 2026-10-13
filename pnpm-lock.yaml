@@ -255,9 +255,6 @@ importers:
       idb:
         specifier: ^8.0.0
         version: 8.0.4
-      lucide-react:
-        specifier: ^0.368.0
-        version: 0.368.0(react@19.3.0)
       markdown-to-jsx:
         specifier: ^7.5.0
         version: 7.7.17(react@19.3.0)
@@ -5230,11 +5227,6 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
-
-  lucide-react@0.368.0:
-    resolution: {integrity: sha512-soryVrCjheZs8rbXKdINw9B8iPi5OajBJZMJ1HORig89ljcOcEokKKAgGbg3QWxSXel7JwHOfDFUdDHAKyUAMw==}
-    peerDependencies:
-      react: ^16.5.1 || ^17.0.0 || ^18.0.0
 
   luxon@3.5.0:
     resolution: {integrity: sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==}
@@ -11789,10 +11781,6 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
-
-  lucide-react@0.368.0(react@19.3.0):
-    dependencies:
-      react: 19.3.0
 
   luxon@3.5.0: {}
 
