@@ -5,7 +5,7 @@
  * "@phone-only" journeys run on phones and tablets (the touch layouts), "@desktop-only" ones on desktop.
  */
 import AxeBuilder from '@axe-core/playwright';
-import type { Page, TestInfo } from '@playwright/test';
+import type { Locator, Page, TestInfo } from '@playwright/test';
 import { greeting, layoutOf } from '../support/app';
 import { AXE_TAGS } from '../support/audit';
 import { expect, test } from '../support/test';
@@ -74,6 +74,16 @@ async function expectFits(page: Page, where: string) {
   expect(m, where).toEqual({ doc: 0, scroller: 0, small: [] });
 }
 
+/** The navigation's destinations in order, by name; Pengumuman may add its unread count (P1-B). */
+async function expectDestinations(nav: Locator, names: string[]) {
+  const links = nav.getByRole('link');
+  await expect(links).toHaveCount(names.length);
+  for (const [i, name] of names.entries())
+    await expect(links.nth(i)).toHaveAccessibleName(
+      name === 'Pengumuman' ? /^Pengumuman(,? \d+\+? belum dibaca)?$/ : name,
+    );
+}
+
 test.describe('navigation', () => {
   test('the four destinations, the one you are on lit, in the layout’s own navigation', async ({
     page,
@@ -83,7 +93,8 @@ test.describe('navigation', () => {
     const layout = layoutOf(testInfo);
     const nav = mainNav(page);
     await expect(nav).toHaveCount(1);
-    await expect(nav.getByRole('link')).toHaveText([
+    // By name: since P1-B, Pengumuman carries the unread count ("Pengumuman, 4 belum dibaca").
+    await expectDestinations(nav, [
       'Beranda',
       'Pengumuman',
       'Kalender',
@@ -560,7 +571,7 @@ test.describe('Kelola', () => {
   }) => {
     await page.goto('/');
     await expect(greeting(page, 'Raka')).toBeVisible();
-    await expect(mainNav(page).getByRole('link')).toHaveText([
+    await expectDestinations(mainNav(page), [
       'Beranda',
       'Pengumuman',
       'Kalender',
