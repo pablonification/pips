@@ -21,6 +21,7 @@ import {
   listTime,
   MAX_ROOMS,
   outboxReducer,
+  settleOutbox,
   previewOf,
   quoteText,
   roomInitials,
@@ -49,6 +50,7 @@ const msg = (
   content: `pesan ${id}`,
   createdAt,
   isSender,
+  clientMessageId: null,
   ...extra,
 });
 const room = (id: string, messages: ChatroomMessage[]): Chatroom => ({
@@ -207,8 +209,10 @@ test('a quote of a long message is cut; a quote of a message not in the list use
   assert.equal(items[2].quote, 'dari API');
 });
 
+const CLIENT_ID = '7f3c2a10-5b1e-4c8d-9a6f-0e2b4d6c8a11';
 const entry = (over: Partial<OutboxEntry> = {}): OutboxEntry => ({
   localId: 'local-1',
+  clientMessageId: CLIENT_ID,
   chatroomId: 'r1',
   text: 'Mau kak, makasih!',
   replyId: 'm4',
@@ -243,22 +247,103 @@ test('delivery: Mengirim, then Terkirim once acknowledged; pending and failed me
   assert.equal(pending.quote, rooms().r1.messages![0].content);
   assert.equal(canReply(pending), false);
 
-  // Acknowledged: the server's copy joins the room and the pending one leaves.
+  // Acknowledged: the server's copy takes the pending one's place, whether the rooms cache holds it yet or not.
   const saved = msg('e2e-message-1', NOW, true, {
     chatroomId: 'r1',
     replyId: 'm4',
     content: 'Mau kak, makasih!',
+    clientMessageId: CLIENT_ID,
   });
-  outbox = outboxReducer(outbox, { type: 'delivered', localId: 'local-1' });
-  items = messages(
-    buildThread(withMessage(rooms().r1.messages, saved), outbox, now),
+  outbox = outboxReducer(outbox, {
+    type: 'delivered',
+    localId: 'local-1',
+    message: saved,
+  });
+  assert.equal(outbox[0].status, 'delivered');
+  for (const list of [
+    rooms().r1.messages,
+    withMessage(rooms().r1.messages, saved),
+  ]) {
+    items = messages(buildThread(list, outbox, now));
+    const sent = items.at(-1)!;
+    assert.equal(sent.id, 'e2e-message-1');
+    assert.equal(sent.delivery, 'delivered');
+    assert.equal(sent.newestDelivered, true);
+    assert.equal(canReply(sent), true);
+    assert.equal(items.filter((m) => m.newestDelivered).length, 1);
+    assert.equal(items.filter((m) => m.text === 'Mau kak, makasih!').length, 1);
+  }
+});
+
+// Review M2 (OPEN-QUESTIONS A11): saved by the server, its acknowledgement lost (Gagal). Once the rooms are fetched
+// again, the server's copy with the same device id is the one shown, delivered, and the Gagal copy is gone.
+test('delivery: a message saved whose acknowledgement was lost shows once, delivered, when the rooms hold it', () => {
+  let outbox = outboxReducer([], { type: 'send', entry: entry() });
+  outbox = outboxReducer(outbox, { type: 'failed', localId: 'local-1' });
+  const saved = msg('e2e-message-1', NOW, true, {
+    chatroomId: 'r1',
+    replyId: 'm4',
+    content: 'Mau kak, makasih!',
+    clientMessageId: CLIENT_ID,
+  });
+  const list = withMessage(rooms().r1.messages, saved);
+  const items = messages(buildThread(list, outbox, now));
+  const copies = items.filter((m) => m.text === 'Mau kak, makasih!');
+  assert.equal(copies.length, 1);
+  assert.equal(copies[0].delivery, 'delivered');
+  assert.equal(copies[0].newestDelivered, true);
+  assert.deepEqual(settleOutbox(outbox, { r1: { messages: list } }), {
+    settled: ['local-1'],
+    restore: [],
+  });
+  // Another message of yours with the same text but another id is not it.
+  const other = { ...saved, id: 'm-lain', clientMessageId: 'lain' };
+  assert.deepEqual(
+    settleOutbox(outbox, {
+      r1: { messages: withMessage(rooms().r1.messages, other) },
+    }),
+    { settled: [], restore: [] },
   );
-  const sent = items.at(-1)!;
-  assert.equal(sent.id, 'e2e-message-1');
-  assert.equal(sent.delivery, 'delivered');
-  assert.equal(sent.newestDelivered, true);
-  assert.equal(canReply(sent), true);
-  assert.equal(items.filter((m) => m.newestDelivered).length, 1);
+});
+
+// Review minor 1: a refetch that started before the save lands with an older list and drops a delivered message.
+test('settling: a delivered message the rooms lost is put back; one they hold is settled; unknown rooms wait', () => {
+  const saved = msg('e2e-message-1', NOW, true, {
+    chatroomId: 'r1',
+    clientMessageId: CLIENT_ID,
+  });
+  let outbox = outboxReducer([], { type: 'send', entry: entry() });
+  outbox = outboxReducer(outbox, {
+    type: 'delivered',
+    localId: 'local-1',
+    message: saved,
+  });
+  assert.deepEqual(settleOutbox(outbox, { r1: room('r1', []) }), {
+    settled: [],
+    restore: [saved],
+  });
+  assert.deepEqual(settleOutbox(outbox, { r1: room('r1', [saved]) }), {
+    settled: ['local-1'],
+    restore: [],
+  });
+  assert.deepEqual(settleOutbox(outbox, undefined), {
+    settled: [],
+    restore: [],
+  });
+  assert.deepEqual(settleOutbox(outbox, { r2: room('r2', []) }), {
+    settled: [],
+    restore: [],
+  });
+  // A pending or failed message the rooms don't hold stays as it is.
+  const waiting = outboxReducer([], { type: 'send', entry: entry() });
+  assert.deepEqual(settleOutbox(waiting, { r1: room('r1', []) }), {
+    settled: [],
+    restore: [],
+  });
+  assert.deepEqual(
+    outboxReducer(outbox, { type: 'settled', localIds: ['local-1'] }),
+    [],
+  );
 });
 
 test('delivery: Gagal on failure, Kirim ulang sends it again; a deleted room takes its messages', () => {
@@ -298,7 +383,9 @@ test('acknowledgements: only { ok: true, message } is delivered', () => {
   });
   assert.deepEqual(ackOutcome({ ok: false, error: 'forbidden' }), {
     ok: false,
+    error: 'forbidden',
   });
+  assert.deepEqual(ackOutcome({ ok: false, error: 'other' }), { ok: false });
   assert.deepEqual(ackOutcome({ ok: true }), { ok: false });
   assert.deepEqual(ackOutcome(undefined), { ok: false });
   assert.equal(ACK_TIMEOUT_MS, 10_000);

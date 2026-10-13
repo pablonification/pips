@@ -3,10 +3,11 @@
  * room and closes when you leave (SPEC "Connection and delivery"). Welfare (`curhatadmin`) keeps today's screen until
  * P3-C's inbox, which opens its own sockets, so no connection is made for them here.
  */
-import { useQueryClient } from '@tanstack/react-query';
+import { hashKey, useQueryClient } from '@tanstack/react-query';
 import { Outlet } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import useSession from '~/hooks/auth/useSession';
+import type { ListChatroom } from '~/api/generated';
 import { can } from '~/lib/capabilities';
 import { CurhatClient, DeferredSocket, type SocketLike } from './client';
 import {
@@ -19,6 +20,9 @@ import {
 import './curhat.css';
 
 /** Welfare's view until P3-C: today's screen (layanan/curhat/-components). */
+/** The session check's key (components/session.tsx). */
+const ME_KEY = ['me'];
+
 export const isWelfare = (user: Parameters<typeof can>[0]) =>
   can(user, 'respondCurhat');
 
@@ -53,9 +57,38 @@ function MemberArea() {
       onDelivered: (_entry, message) => {
         putMessage(qc, message);
       },
+      // Refusals Kirim ulang can't get past: a room deleted elsewhere shows "Ruang tidak ditemukan" once the rooms
+      // are fetched again; a session gone sends you to sign-in (SessionProvider).
+      onRefused: (error) => {
+        if (error === 'forbidden')
+          void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
+        else void qc.invalidateQueries({ queryKey: ME_KEY });
+      },
+      // The server cut the connection (its session expired): check the session; still signed in (a new cookie),
+      // connect again; signed out, SessionProvider takes you to sign-in.
+      onSessionEnded: () => {
+        void qc.invalidateQueries({ queryKey: ME_KEY }).then(() => {
+          if (qc.getQueryData(ME_KEY)) c.reconnect();
+        });
+      },
+    });
+    // What you sent settles against the rooms cache whenever it changes, once no refetch is running: one that started
+    // before a save would land with an older list (a delivered message the cache lost is put back), and the server's
+    // copy of a message whose acknowledgement was lost retires its Gagal entry (OPEN-QUESTIONS A11).
+    const rooms = hashKey(ROOMS_KEY);
+    const settle = () => {
+      if (qc.isFetching({ queryKey: ROOMS_KEY, exact: true })) return;
+      for (const message of c.settle(qc.getQueryData<ListChatroom>(ROOMS_KEY)))
+        putMessage(qc, message);
+    };
+    const unsubscribe = qc.getQueryCache().subscribe((event) => {
+      if (event.type === 'updated' && event.query.queryHash === rooms) settle();
     });
     setClient(c);
-    return () => c.close();
+    return () => {
+      unsubscribe();
+      c.close();
+    };
   }, [qc]);
 
   return (

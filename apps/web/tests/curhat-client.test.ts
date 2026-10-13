@@ -57,7 +57,12 @@ const saved = (over: Partial<ChatroomMessage> = {}): ChatroomMessage => ({
   content: 'Mau kak, makasih!',
   createdAt: NOW.toISOString(),
   isSender: true,
+  clientMessageId: 'id-1',
   ...over,
+});
+/** The rooms cache with r1 holding `messages`. */
+const holding = (...messages: ChatroomMessage[]) => ({
+  r1: { id: 'r1', title: 'teal koala', messages },
 });
 
 function setup() {
@@ -70,9 +75,12 @@ function setup() {
       onReconnect: () => log.push('reconnect'),
       onDelivered: (e, m) => log.push(`delivered ${e.localId} ${m.id}`),
       onFailed: (e) => log.push(`failed ${e.localId}`),
+      onRefused: (error) => log.push(`refused ${error}`),
+      onSessionEnded: () => log.push('session ended'),
     },
-    { now: () => NOW },
+    { now: () => NOW, newId: () => `id-${++ids}` },
   );
+  let ids = 0;
   return { socket, client, log };
 }
 
@@ -107,18 +115,113 @@ test('sending: the exact payload with a 10 s acknowledgement; Mengirim, then del
     chatroomId: 'r1',
     message: 'Mau kak, makasih!',
     replyId: 'm4',
+    clientMessageId: 'id-1',
   });
   assert.equal('userId' in (socket.emits[0].data as object), false);
   socket.emits[0].ack(null, { ok: true, message: saved() });
-  assert.deepEqual(client.snapshot.outbox, []);
+  assert.equal(client.snapshot.outbox[0].status, 'delivered');
   assert.deepEqual(log, [`delivered ${e.localId} e2e-message-1`]);
+  // It leaves once the rooms cache holds the server's copy.
+  assert.deepEqual(client.settle(holding(saved())), []);
+  assert.deepEqual(client.snapshot.outbox, []);
+});
+
+test('each message gets its own device id, a UUID by default', () => {
+  const socket = new FakeSocket();
+  const client = new CurhatClient(socket);
+  socket.connect();
+  client.send('r1', 'a', null);
+  client.send('r1', 'b', null);
+  const [a, b] = client.snapshot.outbox.map((e) => e.clientMessageId);
+  const uuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+  assert.match(a, uuid);
+  assert.match(b, uuid);
+  assert.notEqual(a, b);
+  assert.equal(
+    (socket.emits[0].data as { clientMessageId: string }).clientMessageId,
+    a,
+  );
+});
+
+// Review M2 (OPEN-QUESTIONS A11): the connection drops after the server saved the message, before its answer.
+test('saved, its acknowledgement lost: Gagal, then settled once the rooms hold its device id; no second send', () => {
+  const { socket, client, log } = setup();
+  socket.connect();
+  client.send('r1', 'Mau kak, makasih!', 'm4');
+  socket.drop();
+  socket.emits[0].ack(new Error('socket has been disconnected'));
+  assert.equal(client.snapshot.outbox[0].status, 'failed');
+  socket.connect();
+  assert.deepEqual(
+    client.settle(holding(saved({ clientMessageId: 'id-1' }))),
+    [],
+  );
+  assert.deepEqual(client.snapshot.outbox, []);
+  assert.equal(socket.emits.length, 1);
+  assert.deepEqual(log, ['failed local-1', 'reconnect']);
+});
+
+// Review minor 1: a rooms refetch that started before the save lands without the delivered message.
+test('a delivered message the rooms cache lost is given back to put again, then settles', () => {
+  const { socket, client } = setup();
+  socket.connect();
+  client.send('r1', 'Mau kak, makasih!', 'm4');
+  socket.emits[0].ack(null, { ok: true, message: saved() });
+  assert.deepEqual(client.settle(holding()), [saved()]);
+  assert.equal(client.snapshot.outbox.length, 1);
+  assert.deepEqual(client.settle(holding(saved())), []);
+  assert.deepEqual(client.snapshot.outbox, []);
+});
+
+// Review minor 2: refusals Kirim ulang can't get past are reported, so the screen can catch up.
+test('unauthorized and forbidden are reported; invalid, server and no answer are not', () => {
+  const { socket, client, log } = setup();
+  socket.connect();
+  for (const answer of [
+    { ok: false, error: 'unauthorized' },
+    { ok: false, error: 'forbidden' },
+    { ok: false, error: 'server' },
+    { ok: false, error: 'invalid' },
+  ]) {
+    client.send('r1', 'halo', null);
+    socket.emits.at(-1)!.ack(null, answer);
+  }
+  client.send('r1', 'halo', null);
+  socket.emits.at(-1)!.ack(new Error('operation has timed out'));
+  assert.deepEqual(
+    log.filter((l) => l.startsWith('refused')),
+    ['refused unauthorized', 'refused forbidden'],
+  );
+  assert.ok(client.snapshot.outbox.every((e) => e.status === 'failed'));
+});
+
+// Review minor 3: at session expiry the API ends the connection itself, and socket.io won't reconnect.
+test('the server ending the connection is reported; reconnect() connects again; a network drop is not', () => {
+  const { socket, client, log } = setup();
+  socket.connect();
+  socket.drop();
+  assert.deepEqual(log, []);
+  socket.connect();
+  socket.connected = false;
+  socket.fire('disconnect', 'io server disconnect');
+  assert.equal(client.snapshot.status, 'down');
+  assert.deepEqual(log, ['reconnect', 'session ended']);
+  client.reconnect();
+  assert.equal(client.snapshot.status, 'connected');
+  // Connected already: nothing to do.
+  client.reconnect();
+  client.close();
+  socket.connected = false;
+  socket.fire('disconnect', 'io server disconnect');
+  assert.equal(log.filter((l) => l === 'session ended').length, 1);
 });
 
 test('Gagal on { ok: false }', () => {
   const { socket, client, log } = setup();
   socket.connect();
   client.send('r1', 'halo', null);
-  socket.emits[0].ack(null, { ok: false, error: 'forbidden' });
+  socket.emits[0].ack(null, { ok: false, error: 'server' });
   assert.equal(client.snapshot.outbox[0].status, 'failed');
   assert.deepEqual(log, ['failed local-1']);
 });
@@ -149,7 +252,7 @@ test('Gagal at once when the connection is down: nothing is emitted, so nothing 
   );
 });
 
-test('Kirim ulang sends the same text and reply again, and can deliver', () => {
+test('Kirim ulang sends the same text, reply and device id again, and can deliver', () => {
   const { socket, client, log } = setup();
   socket.connect();
   const e = client.send('r1', 'Mau kak, makasih!', 'm4');
@@ -158,8 +261,12 @@ test('Kirim ulang sends the same text and reply again, and can deliver', () => {
   assert.equal(client.snapshot.outbox[0].status, 'pending');
   assert.equal(socket.emits.length, 2);
   assert.deepEqual(socket.emits[1].data, socket.emits[0].data);
+  assert.equal(
+    (socket.emits[1].data as { clientMessageId: string }).clientMessageId,
+    'id-1',
+  );
   socket.emits[1].ack(null, { ok: true, message: saved() });
-  assert.deepEqual(client.snapshot.outbox, []);
+  assert.equal(client.snapshot.outbox[0].status, 'delivered');
   assert.equal(log.at(-1), `delivered ${e.localId} e2e-message-1`);
   // Retrying something that isn't failed does nothing.
   client.retry(e.localId);

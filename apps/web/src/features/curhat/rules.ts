@@ -91,27 +91,35 @@ export function quoteText(text: string): string {
 
 /* ================= Sending ================= */
 
-/** A message you sent that the server hasn't acknowledged yet (`pending`), or that failed (`failed`). */
+/**
+ * A message you sent: not acknowledged yet (`pending`), failed (`failed`), or acknowledged (`delivered`, with the
+ * server's copy) but not yet in the rooms cache. `clientMessageId` is the device's id for it (a UUID), sent with
+ * every attempt: the server saves it once, and its copy in the rooms cache settles the entry.
+ */
 export interface OutboxEntry {
   localId: string;
+  clientMessageId: string;
   chatroomId: string;
   text: string;
   replyId: string | null;
-  status: 'pending' | 'failed';
+  status: 'pending' | 'failed' | 'delivered';
   /** When it was (last) sent, ISO. */
   at: string;
+  /** The server's copy, once delivered. */
+  message?: ChatroomMessage;
 }
 
 export type OutboxAction =
   | { type: 'send'; entry: OutboxEntry }
-  | { type: 'delivered'; localId: string }
+  | { type: 'delivered'; localId: string; message: ChatroomMessage }
   | { type: 'failed'; localId: string }
   | { type: 'retry'; localId: string; at: string }
-  | { type: 'dropRoom'; chatroomId: string };
+  | { type: 'dropRoom'; chatroomId: string }
+  | { type: 'settled'; localIds: string[] };
 
 /**
- * What you sent and the server hasn't confirmed. Delivered messages leave it (the server's copy takes their place in
- * the room); failed ones stay until Kirim ulang delivers them or the room is deleted.
+ * What you sent that the rooms cache doesn't hold yet. Failed messages stay until Kirim ulang delivers them, the
+ * server's copy turns up (`settleOutbox`), or the room is deleted.
  */
 export function outboxReducer(
   state: OutboxEntry[],
@@ -121,7 +129,11 @@ export function outboxReducer(
     case 'send':
       return [...state, action.entry];
     case 'delivered':
-      return state.filter((e) => e.localId !== action.localId);
+      return state.map((e) =>
+        e.localId === action.localId
+          ? { ...e, status: 'delivered', message: action.message }
+          : e,
+      );
     case 'failed':
       return state.map((e) =>
         e.localId === action.localId && e.status === 'pending'
@@ -136,13 +148,59 @@ export function outboxReducer(
       );
     case 'dropRoom':
       return state.filter((e) => e.chatroomId !== action.chatroomId);
+    case 'settled':
+      return state.filter((e) => !action.localIds.includes(e.localId));
   }
 }
 
-/** What the server answered a `message` with (or didn't): delivered, or failed. */
+/** Whether `messages` (a room's, from the server) hold the entry: by its device id, or by the delivered copy's id. */
+function serverHolds(
+  messages: ChatroomMessage[] | undefined,
+  entry: OutboxEntry,
+): boolean {
+  return (messages ?? []).some(
+    (m) =>
+      m.clientMessageId === entry.clientMessageId ||
+      (entry.message !== undefined && m.id === entry.message.id),
+  );
+}
+
+/**
+ * Matches what you sent to the rooms cache (P2-C round 2, OPEN-QUESTIONS A11), after the cache changes and while no
+ * refetch is running (a refetch that started before a save would overwrite it with an older list):
+ * - an entry whose copy the cache holds is settled, whatever its state: a message saved whose acknowledgement was
+ *   lost (Gagal) is then shown once, delivered;
+ * - a delivered entry the cache lost is put back (`restore`); its next settle removes it.
+ */
+export function settleOutbox(
+  outbox: OutboxEntry[],
+  rooms: Record<string, { messages?: ChatroomMessage[] }> | undefined,
+): { settled: string[]; restore: ChatroomMessage[] } {
+  const settled: string[] = [];
+  const restore: ChatroomMessage[] = [];
+  if (!rooms) return { settled, restore };
+  for (const e of outbox) {
+    const room = rooms[e.chatroomId];
+    if (!room) continue;
+    if (serverHolds(room.messages, e)) settled.push(e.localId);
+    else if (e.status === 'delivered' && e.message) restore.push(e.message);
+  }
+  return { settled, restore };
+}
+
+/** Why the server refused a message (P0-D's `CurhatSocketError`). */
+export type Refusal = 'unauthorized' | 'forbidden' | 'invalid' | 'server';
+const REFUSALS: readonly string[] = [
+  'unauthorized',
+  'forbidden',
+  'invalid',
+  'server',
+];
+
+/** What the server answered a `message` with (or didn't): delivered, or failed, with the server's reason if it gave one. */
 export function ackOutcome(
   ack: unknown,
-): { ok: true; message: ChatroomMessage } | { ok: false } {
+): { ok: true; message: ChatroomMessage } | { ok: false; error?: Refusal } {
   if (
     ack &&
     typeof ack === 'object' &&
@@ -150,7 +208,10 @@ export function ackOutcome(
     (ack as { message?: unknown }).message
   )
     return { ok: true, message: (ack as { message: ChatroomMessage }).message };
-  return { ok: false };
+  const error = (ack as { error?: unknown } | null | undefined)?.error;
+  return typeof error === 'string' && REFUSALS.includes(error)
+    ? { ok: false, error: error as Refusal }
+    : { ok: false };
 }
 
 /** Puts a message into a room's list (newest first, as the API sends them), once: a repeat with its id is ignored. */
@@ -189,6 +250,13 @@ export interface ThreadDay {
 }
 export type ThreadItem = ThreadMessage | ThreadDay;
 
+/**
+ * A message's key in the thread: your own by their device id, so the bubble you sent stays the same element from
+ * Mengirim to Terkirim (screen readers hear it added once); others by the server's id.
+ */
+const keyOf = (m: ChatroomMessage) =>
+  m.isSender && m.clientMessageId ? `c-${m.clientMessageId}` : m.id;
+
 const dayKey = (at: string) => {
   const w = wib(at);
   return `${w.year}-${w.month}-${w.day}`;
@@ -203,7 +271,18 @@ export function buildThread(
   outbox: OutboxEntry[],
   now: Date | number,
 ): ThreadItem[] {
-  const server = [...(messages ?? [])].sort((a, b) => time(a) - time(b));
+  const known = messages ?? [];
+  // Delivered, but not in the rooms cache yet: shown as the server's copy. Pending or failed, and already in the
+  // cache (saved, its acknowledgement lost): shown once, as the cache has it.
+  const deliveredOnly = outbox.flatMap((e) =>
+    e.status === 'delivered' && e.message && !serverHolds(known, e)
+      ? [e.message]
+      : [],
+  );
+  const unsent = outbox.filter(
+    (e) => e.status !== 'delivered' && !serverHolds(known, e),
+  );
+  const server = [...known, ...deliveredOnly].sort((a, b) => time(a) - time(b));
   const byId = new Map(server.map((m) => [m.id, m]));
   const quoteOf = (m: {
     replyId: string | null;
@@ -232,7 +311,7 @@ export function buildThread(
     day(m.createdAt);
     items.push({
       kind: 'message',
-      key: m.id,
+      key: keyOf(m),
       id: m.id,
       mine: m.isSender === true,
       text: m.content,
@@ -242,18 +321,18 @@ export function buildThread(
       newestDelivered: m.id === newest,
     });
   }
-  for (const e of outbox) {
+  for (const e of unsent) {
     day(e.at);
     items.push({
       kind: 'message',
-      key: e.localId,
+      key: `c-${e.clientMessageId}`,
       id: null,
       localId: e.localId,
       mine: true,
       text: e.text,
       at: e.at,
       quote: quoteOf({ replyId: e.replyId }),
-      delivery: e.status,
+      delivery: e.status === 'failed' ? 'failed' : 'pending',
       newestDelivered: false,
     });
   }

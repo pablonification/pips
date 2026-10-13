@@ -9,14 +9,20 @@
  * does, or when the connection is down at the moment you send. It is only ever emitted while connected, so socket.io
  * never buffers it to send later, maybe twice. Failed messages stay until Kirim ulang delivers them.
  *
+ * Every message carries the device's id for it (`clientMessageId`, a UUID), and Kirim ulang sends the same id, so
+ * the server saves it once and answers a repeat with the copy it saved (OPEN-QUESTIONS A11). When the server's copy
+ * reaches the rooms cache, `settle()` retires the entry: a message saved whose acknowledgement was lost shows once.
+ *
  * Pure of React and of socket.io's module (the socket is passed in), so tests/curhat-client.test.ts drives it with a
  * fake socket.
  */
-import type { ChatroomMessage } from '~/api/generated';
+import type { ChatroomMessage, ListChatroom } from '~/api/generated';
 import {
   ACK_TIMEOUT_MS,
   ackOutcome,
   outboxReducer,
+  type Refusal,
+  settleOutbox,
   type OutboxAction,
   type OutboxEntry,
 } from './rules';
@@ -25,6 +31,8 @@ import {
 export interface SocketLike {
   readonly connected: boolean;
   on(event: string, listener: (...args: never[]) => void): unknown;
+  /** Connect again after the server ended the connection (socket.io doesn't by itself). */
+  connect(): unknown;
   timeout(ms: number): {
     emit(
       event: string,
@@ -47,6 +55,16 @@ export interface CurhatClientEvents {
   onDelivered?: (entry: OutboxEntry, message: ChatroomMessage) => void;
   /** What you sent failed. */
   onFailed?: (entry: OutboxEntry) => void;
+  /**
+   * The server refused it for a reason Kirim ulang can't fix by itself: `unauthorized` (the session is gone) or
+   * `forbidden` (the room is gone, deleted on another device).
+   */
+  onRefused?: (error: Extract<Refusal, 'unauthorized' | 'forbidden'>) => void;
+  /**
+   * The server ended the connection (`io server disconnect`: the session expired). socket.io won't reconnect by
+   * itself; check the session, then `reconnect()`.
+   */
+  onSessionEnded?: () => void;
 }
 
 export interface CurhatClientState {
@@ -69,6 +87,8 @@ export class CurhatClient {
     private readonly options: {
       now?: () => Date;
       timeoutMs?: number;
+      /** The device's id for a new message; a random UUID. */
+      newId?: () => string;
     } = {},
   ) {
     socket.on('connect', () => {
@@ -82,7 +102,11 @@ export class CurhatClient {
       this.wasDown = true;
       this.set({ status: 'down' });
     };
-    socket.on('disconnect', down);
+    socket.on('disconnect', ((reason?: string) => {
+      down();
+      if (!this.closed && reason === 'io server disconnect')
+        this.events.onSessionEnded?.();
+    }) as never);
     socket.on('connect_error', down);
     socket.on('reply', ((message: ChatroomMessage) => {
       if (message && typeof message === 'object' && message.chatroomId)
@@ -120,6 +144,7 @@ export class CurhatClient {
   send(chatroomId: string, text: string, replyId: string | null): OutboxEntry {
     const entry: OutboxEntry = {
       localId: `local-${++this.seq}`,
+      clientMessageId: this.options.newId?.() ?? crypto.randomUUID(),
       chatroomId,
       text,
       replyId,
@@ -131,7 +156,7 @@ export class CurhatClient {
     return entry;
   }
 
-  /** Kirim ulang: the same text and reply again. */
+  /** Kirim ulang: the same text, reply and device id again, so a copy the server already saved isn't saved twice. */
   retry(localId: string) {
     const entry = this.state.outbox.find(
       (e) => e.localId === localId && e.status === 'failed',
@@ -142,6 +167,16 @@ export class CurhatClient {
     this.emit({ ...entry, status: 'pending', at });
   }
 
+  /**
+   * Match what you sent to the rooms cache (`settleOutbox`): entries the cache holds leave; delivered ones it lost
+   * are returned for the caller to put back. Call it when the cache changes and no refetch of it is running.
+   */
+  settle(rooms: ListChatroom | undefined): ChatroomMessage[] {
+    const { settled, restore } = settleOutbox(this.state.outbox, rooms);
+    if (settled.length) this.dispatch({ type: 'settled', localIds: settled });
+    return restore;
+  }
+
   /** A deleted room takes its unsent messages with it. */
   dropRoom(chatroomId: string) {
     this.dispatch({ type: 'dropRoom', chatroomId });
@@ -149,7 +184,8 @@ export class CurhatClient {
 
   private emit(entry: OutboxEntry) {
     const fail = () => {
-      if (!this.state.outbox.some((e) => e.localId === entry.localId)) return;
+      const now = this.state.outbox.find((e) => e.localId === entry.localId);
+      if (now?.status !== 'pending') return;
       this.dispatch({ type: 'failed', localId: entry.localId });
       this.events.onFailed?.(entry);
     };
@@ -165,16 +201,27 @@ export class CurhatClient {
         chatroomId: entry.chatroomId,
         message: entry.text,
         replyId: entry.replyId,
+        clientMessageId: entry.clientMessageId,
       },
       (err, answer) => {
         if (settled) return;
         settled = true;
         // `err`: no answer in time, or the connection dropped first.
         const outcome = err ? { ok: false as const } : ackOutcome(answer);
-        if (!outcome.ok) return fail();
+        if (!outcome.ok) {
+          fail();
+          if (outcome.error === 'unauthorized' || outcome.error === 'forbidden')
+            this.events.onRefused?.(outcome.error);
+          return;
+        }
         if (!this.state.outbox.some((e) => e.localId === entry.localId)) return;
+        // Kept, with the server's copy, until the rooms cache holds it (`settle`).
+        this.dispatch({
+          type: 'delivered',
+          localId: entry.localId,
+          message: outcome.message,
+        });
         this.events.onDelivered?.(entry, outcome.message);
-        this.dispatch({ type: 'delivered', localId: entry.localId });
       },
     );
   }
@@ -191,6 +238,11 @@ export class CurhatClient {
           ),
         );
     });
+  }
+
+  /** Connect again after the server ended the connection, once the session is known to be good. */
+  reconnect() {
+    if (!this.closed && !this.socket.connected) this.socket.connect();
   }
 
   /** Leaving the area: the socket closes. */
@@ -261,6 +313,11 @@ export class DeferredSocket implements SocketLike {
         ack: (err: Error | null) => void,
       ) => ack(new Error('not connected')),
     };
+  }
+
+  connect() {
+    this.real?.connect();
+    return this;
   }
 
   disconnect() {
