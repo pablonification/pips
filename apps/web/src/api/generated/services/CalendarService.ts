@@ -137,6 +137,8 @@ export class CalendarService {
       },
       errors: {
         400: `Bad request`,
+        403: `Error`,
+        404: `Error`,
       },
     });
   }

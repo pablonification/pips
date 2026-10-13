@@ -60,6 +60,11 @@ export interface MenuItemProps {
    * calls onSelect, so the screen can explain why (the prototype shows a toast).
    */
   disabled?: boolean;
+  /**
+   * No icon of its own, but its label lines up with the items that have one: the icon's column is kept empty, as in
+   * the prototype's `menuList`, where every item has an icon.
+   */
+  inset?: boolean;
 }
 
 export function MenuItem({
@@ -69,6 +74,7 @@ export function MenuItem({
   hint,
   danger = false,
   disabled = false,
+  inset = false,
 }: MenuItemProps) {
   return (
     <DM.Item
@@ -80,7 +86,8 @@ export function MenuItem({
         onSelect?.();
       }}
     >
-      {icon}
+      {icon ??
+        (inset ? <span aria-hidden="true" className="w-5 shrink-0" /> : null)}
       <span>
         {children}
         {hint ? <span className="hint">{hint}</span> : null}

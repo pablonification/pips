@@ -42,6 +42,8 @@ import {
   type Month,
 } from '~/lib/days';
 import { cn } from '~/lib/utils';
+import { AddEventHost } from '~/features/kelola-acara/AddEvent';
+import { EventManageHost } from '~/features/kelola-acara/EventOptions';
 import { AddEventButton } from './AddEventButton';
 import {
   useCourses,
@@ -51,6 +53,7 @@ import {
   useNow,
   useOnline,
 } from './data';
+import { DeskPickContext } from './desk-pick';
 import { EventSheet } from './EventSheet';
 import { useOpenEvent } from './open';
 import { DayBars, DayListState, EventInfo, EventRows, Legend } from './parts';
@@ -77,9 +80,11 @@ const dayNumber = (k: DayKey) => Number(k.slice(8));
 export interface KalenderSearch {
   hari?: string;
   acara?: string;
+  /** P3-B: the add-event dialog is open (`tambah=acara`). */
+  tambah?: 'acara';
 }
 
-export function KalenderScreen({ hari, acara }: KalenderSearch) {
+export function KalenderScreen({ hari, acara, tambah }: KalenderSearch) {
   const now = useNow();
   const today = dayKeyOf(now);
   const chosen = hari ?? today;
@@ -246,46 +251,43 @@ export function KalenderScreen({ hari, acara }: KalenderSearch) {
     onKeyDown: onGridKey,
   };
 
-  if (desk)
-    return (
-      <div className="g-cal-split">
-        <div className="g-cal-main">
-          <DeskHead
-            title={monthTitle(view)}
-            actions={
-              <div className="g-cal-actions">
-                {monthNav}
-                <AddEventButton />
-              </div>
-            }
-          />
-          <div className="g-d-pad">
-            {offlineBanner}
-            <DeskMonth {...gridProps} />
-            <Legend />
-          </div>
+  const body = desk ? (
+    <div className="g-cal-split">
+      <div className="g-cal-main">
+        <DeskHead
+          title={monthTitle(view)}
+          actions={
+            <div className="g-cal-actions">
+              {monthNav}
+              <AddEventButton />
+            </div>
+          }
+        />
+        <div className="g-d-pad">
+          {offlineBanner}
+          <DeskMonth {...gridProps} />
+          <Legend />
         </div>
-        <section className="g-cal-side" aria-label={t.acaraHariTerpilih}>
-          {dayHeading}
-          {listState}
-          {rows}
-          {deskEvent ? (
-            <Card className="g-ev-card">
-              <EventInfo
-                event={deskEvent}
-                course={courseFor(deskEvent, courses.byId)}
-                now={now}
-                pushOn={pushOn}
-              />
-            </Card>
-          ) : day.ready ? (
-            <p className="t-cap text-fg-3">{t.pilihAcara}</p>
-          ) : null}
-        </section>
       </div>
-    );
-
-  return (
+      <section className="g-cal-side" aria-label={t.acaraHariTerpilih}>
+        {dayHeading}
+        {listState}
+        {rows}
+        {deskEvent ? (
+          <Card className="g-ev-card">
+            <EventInfo
+              event={deskEvent}
+              course={courseFor(deskEvent, courses.byId)}
+              now={now}
+              pushOn={pushOn}
+            />
+          </Card>
+        ) : day.ready ? (
+          <p className="t-cap text-fg-3">{t.pilihAcara}</p>
+        ) : null}
+      </section>
+    </div>
+  ) : (
     <PageBody className="g-kal-page">
       <div className="g-kal-head">
         <PageTitle>{t.judul}</PageTitle>
@@ -313,6 +315,18 @@ export function KalenderScreen({ hari, acara }: KalenderSearch) {
         pushOn={pushOn}
       />
     </PageBody>
+  );
+
+  // P3-B: the add-event dialog over Kalender, the event options' dialogs, and the side column's choice after adding
+  // or deleting. They sit beside the layout, not inside it, so crossing 1024 px (a tablet turned), which swaps the
+  // layout, keeps an open dialog and what was typed (review m3).
+  return (
+    <DeskPickContext.Provider value={setPick}>
+      <EventManageHost>
+        {body}
+        <AddEventHost open={tambah === 'acara'} day={chosen} />
+      </EventManageHost>
+    </DeskPickContext.Provider>
   );
 }
 

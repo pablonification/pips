@@ -103,3 +103,34 @@ export function monthsOf(keys: readonly DayKey[]): Month[] {
 export function daysBetween(a: DayKey, b: DayKey): number {
   return Math.round((dayStart(b) - dayStart(a)) / DAY_MS);
 }
+
+/* P3-B: times typed in WIB (a native date and a time input) to and from the API's ISO strings. */
+
+/** A typed time, `HH:MM` (24 hours). */
+export type TimeKey = string;
+
+const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The instant a WIB day and time name, as ISO: `"2026-10-13"` + `"13:00"` → `2026-10-13T06:00:00.000Z`. */
+export function wibToIso(day: DayKey, time: TimeKey): string | null {
+  const t = TIME_RE.exec(time);
+  if (!DAY_RE.test(day) || !t) return null;
+  const { year, month, day: d } = partsOf(day);
+  const ms =
+    Date.UTC(year, month - 1, d, Number(t[1]), Number(t[2])) - WIB_OFFSET_MS;
+  // `2026-02-31` rolls over in Date.UTC: refuse a day that isn't on the calendar.
+  return dayKeyOf(ms) === day ? new Date(ms).toISOString() : null;
+}
+
+/** The WIB day and time of an instant, as the date and time inputs take them. */
+export function wibOf(d: Date | string | number): {
+  day: DayKey;
+  time: TimeKey;
+} {
+  const w = wib(d);
+  return {
+    day: `${w.year}-${pad(w.month + 1)}-${pad(w.day)}`,
+    time: `${pad(w.hours)}:${pad(w.minutes)}`,
+  };
+}

@@ -24,6 +24,7 @@ import {
 import { IconFolder } from '~/components/icons/folder';
 import { IconLanjut } from '~/components/icons/lanjut';
 import { DeskHead, PageBody, usePageTitle } from '~/components/shell/page';
+import { TambahTestimoni } from '~/features/kelola-testi/Manage';
 import { fill } from '~/copy/fill';
 import { testi as copy } from '~/copy/testi';
 import { DEBOUNCE_TIME } from '~/lib/constants';
@@ -72,15 +73,18 @@ const SERVICE = () => serviceById('testi').label;
 function Page({
   title,
   gap = 'gap-4',
+  actions,
   children,
 }: {
   title: string;
   gap?: string;
+  /** Desktop's header actions (P3-B's Tambah testimoni). */
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <>
-      <DeskHead title={title} />
+      <DeskHead title={title} actions={actions} />
       <PageBody className={gap}>{children}</PageBody>
     </>
   );
@@ -460,10 +464,19 @@ export function TestiCourseScreen() {
   }
 
   return (
-    <Page title={testiTitle({ code: course.code }) ?? SERVICE()}>
-      <div>
-        <p className="t-cap text-fg-2 num">{codeLine(course)}</p>
-        <h2 className="mt-0.5 t-title">{course.name}</h2>
+    <Page
+      title={testiTitle({ code: course.code }) ?? SERVICE()}
+      actions={<TambahTestimoni course={course} />}
+    >
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="t-cap text-fg-2 num">{codeLine(course)}</p>
+          <h2 className="mt-0.5 t-title">{course.name}</h2>
+        </div>
+        {/* P3-B: phones and tablets put Tambah testimoni at the end of the course's header row. */}
+        <div className="lg:hidden">
+          <TambahTestimoni course={course} />
+        </div>
       </div>
       <Testimonials course={course} />
       <DingdongLink course={course} />

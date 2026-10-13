@@ -171,6 +171,8 @@ export const deleteCalendarEventRoute = createRoute({
         },
       },
     },
+    403: errorResponse,
+    404: errorResponse,
   },
 });
 

@@ -232,13 +232,14 @@ export const SERVICES = [
   {
     // Deviation (report, round 2): the prototype shows it to `akademik` and `ring1` alike, but its form adds a
     // course's Akademik event, which the server allows `akademik` only (calendar.controller.ts); `ring1` adds
-    // Himpunan events from Kalender's "Tambah acara" (canCreateEvent). P3-B opens its dialog from Kalender.
+    // Himpunan events from Kalender's "Tambah acara" (canCreateEvent). P3-B: /kelola/acara forwards to
+    // /kalender?tambah=acara, the dialog over Kalender (a destination is a typed path, without a query).
     id: 'acara',
     label: 'Tambah acara Akademik',
     description: 'Kuis, UTS, dan tenggat per mata kuliah',
     group: 'Kelola',
     kind: 'internal',
-    destination: '/kalender',
+    destination: '/kelola/acara',
     owner: 'akademik',
     capability: 'createAkademikEvent',
     synonyms: ['acara', 'kalender', 'tambah'],

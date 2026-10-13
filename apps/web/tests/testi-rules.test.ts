@@ -166,7 +166,6 @@ test('row and header lines', () => {
 
 const t = (over: Partial<Testimoni>): Testimoni => ({
   id: 't',
-  userId: null,
   courseId: 'c',
   userName: null,
   impressions: null,

@@ -340,7 +340,6 @@ function toTestimonials(): Testimoni[] {
     list.map((t, i) => {
       const base = {
         id: `testi-${code}-${i + 1}`,
-        userId: null,
         courseId: courseByCode(code).id,
         // The prototype's "Anonim" is how the redesign shows an unnamed author; the API stores no name.
         userName: t.by === 'Anonim' ? null : t.by,

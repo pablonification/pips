@@ -1,0 +1,46 @@
+/**
+ * P3-B: adding, changing and deleting competitions in Info Lomba, for cnc. The prototype has no design for any of
+ * it, so every string is new copy (proposals, listed in the P3-B report).
+ */
+export const kelolaLomba = {
+  tambah: 'Tambah lomba',
+  ubahJudul: 'Ubah lomba',
+  nama: 'Nama lomba',
+  penyelenggara: 'Penyelenggara',
+  kategori: 'Kategori',
+  dibuka: 'Pendaftaran dibuka',
+  ditutup: 'Pendaftaran ditutup',
+  tanggalDibuka: 'Tanggal pendaftaran dibuka',
+  jamDibuka: 'Jam pendaftaran dibuka',
+  tanggalDitutup: 'Tanggal pendaftaran ditutup',
+  jamDitutup: 'Jam pendaftaran ditutup',
+  biaya: 'Biaya',
+  opsional: '(opsional)',
+  biayaCatatan: 'Kosongkan kalau gratis.',
+  tautanDaftar: 'Tautan pendaftaran',
+  tautanSumber: 'Tautan sumber',
+  batal: 'Batal',
+  tambahkan: 'Tambahkan',
+  simpan: 'Simpan',
+  galat: {
+    pendek: 'Tulis minimal 3 huruf.',
+    waktu: 'Isi tanggal dan jamnya.',
+    urutan: 'Penutupan harus setelah pembukaan.',
+    lewat: 'Pendaftaran yang sudah tutup tidak akan tampil.',
+    tautan: 'Tulis tautan yang lengkap, misalnya https://….',
+    biaya: 'Tulis angka saja, misalnya 150000.',
+  },
+  ditambahkan: 'Lomba ditambahkan.',
+  diperbarui: 'Lomba diperbarui.',
+  dihapus: 'Lomba dihapus.',
+  opsi: 'Opsi untuk {nama}',
+  ubah: 'Ubah lomba',
+  hapus: 'Hapus lomba',
+  hapusJudul: 'Hapus lomba ini?',
+  hapusIsi:
+    '{nama} hilang dari Info Lomba untuk semua anggota. Ini tidak bisa diurungkan.',
+  hapusTombol: 'Hapus',
+  kategoriGagal: 'Kategori lomba gagal dimuat.',
+  periksaKoneksi: 'Periksa koneksimu, lalu coba lagi.',
+  memuatKategori: 'Memuat kategori…',
+} as const;
