@@ -19,8 +19,9 @@ import {
   testUser,
 } from './support/session';
 
-// A real socket.io server with storage faked, on P0-D's port range (4470–4479).
-const PORT = 4471;
+// A real socket.io server with storage faked, on P0-D's port range (4470–4479) unless another worker's range is
+// given (`API_SOCKET_TEST_PORT`), so two workers' API tests can run at once.
+const PORT = Number(process.env.API_SOCKET_TEST_PORT ?? 4471);
 const URL = `http://127.0.0.1:${PORT}`;
 
 const nadia = testUser('u-nadia');
