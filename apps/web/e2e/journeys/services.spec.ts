@@ -41,20 +41,5 @@ test('Info Lomba lists open competitions', async ({ page }, testInfo) => {
   await checkGates(page, testInfo, 'competition');
 });
 
-test('external services keep their s.hmif.dev links', async ({ page }) => {
-  await page.goto('/');
-  // Stand in for the external site, so the test never leaves this machine.
-  await page.route('http://s.hmif.dev/**', (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'text/html',
-      body: '<title>Mading Beasiswa</title>',
-    }),
-  );
-  await page
-    .getByRole('button', { name: 'Mading Beasiswa' })
-    .locator('visible=true')
-    .click();
-  // Today's app opens it in the same tab, over plain http.
-  await expect(page).toHaveURL('http://s.hmif.dev/MadingBeasiswa');
-});
+// The external services (https, a new tab, named "situs luar, tab baru") are checked in layanan.spec.ts, which
+// replaced today's same-tab, plain-http assertion here (P1-C).
