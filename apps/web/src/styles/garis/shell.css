@@ -623,26 +623,10 @@
   }
 }
 
-/*
-  Today's screens were built to fill the window (Tailwind's h-screen, max-h-screen, min-h-screen), under a navbar
-  that floated over them. Inside the shell their space is the page area between the bars, which the shell measures
-  into --g-page-h. Unlayered, so they win over the utilities; fixed overlays keep the whole window. C1 deletes these
-  with the old screens.
-*/
-.g-legacy .h-screen:not(.fixed) {
-  height: var(--g-page-h, 100vh);
-}
-.g-legacy .max-h-screen:not(.fixed) {
-  max-height: var(--g-page-h, 100vh);
-}
-.g-legacy .min-h-screen:not(.fixed) {
-  min-height: var(--g-page-h, 100vh);
-}
-
 /* The wrapper around the app's screens (routes/_app/_left-navbar.tsx). It clips sideways without becoming a second
    scrolling box (`hidden` would make overflow-y auto), so sticky bars inside a page stick to the shell's scroller
-   (P2-C). Browsers without `clip` (Safari before 16) keep the old `hidden` (review minor 6). Top level: nested in the
-   rule above, it never matched (P3-C round 2). */
+   (P2-C). Browsers without `clip` (Safari before 16) keep the old `hidden` (review minor 6). Top level: nested in another
+   rule, it never matched (P3-C round 2). */
 .g-page-wrap {
   overflow-x: clip;
 }

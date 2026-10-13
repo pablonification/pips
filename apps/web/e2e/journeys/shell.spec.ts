@@ -314,31 +314,6 @@ test.describe('focused flows', () => {
 });
 
 test.describe('today’s screens inside the shell', () => {
-  // Regression: today's screens fill "the screen" (h-screen), built for a navbar that floated over them. Inside
-  // the shell they ran under the tab bar: Curhat's new-room button was half hidden and the page scrolled twice.
-  test('a screen that fills the window fits between the bars, its own scrolling intact', async ({
-    page,
-  }) => {
-    // Welfare's Curhat was the last of today's screens that fill the window (h-screen), until P3-C retired it
-    // (members' Curhat was until P2-C, Form until P2-A, Info Lomba until P2-B). The shell's rule for them stays until
-    // C1, so a page still on today's surface gets such a screen: a pane of the window's height with its own scroll.
-    await page.goto('/kelola/acara');
-    const legacy = page.locator('.g-legacy');
-    await expect(legacy).toBeVisible();
-    await legacy.evaluate((el) => {
-      el.innerHTML =
-        '<div class="h-screen" style="overflow:auto" data-e2e-fill><div style="height:3000px"></div></div>';
-    });
-    const overflow = await page
-      .locator('[data-scroll-restoration-id="isi"]')
-      .evaluate((el) => el.scrollHeight - el.clientHeight);
-    expect(overflow).toBeLessThanOrEqual(1);
-    const own = await page
-      .locator('[data-e2e-fill]')
-      .evaluate((el) => el.scrollHeight - el.clientHeight);
-    expect(own).toBeGreaterThan(1000);
-  });
-
   // Found in P3-C round 2: P2-C's clip rules sat nested inside another rule and never applied to the wrapper.
   test('regression: the page wrapper clips sideways without becoming a scrolling box', async ({
     page,
