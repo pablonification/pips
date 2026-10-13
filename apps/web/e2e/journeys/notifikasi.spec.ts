@@ -210,6 +210,28 @@ test.describe('the device card', () => {
       ]);
       expect((await pushDevice(page)).asks).toBe(0);
     });
+
+    test('regression: the prompt opened from elsewhere (Beranda, search) offers Pasang PIPS!, not only Tutup', async ({
+      page,
+    }) => {
+      // The shell's test page opens the prompt as Beranda's row and search do (P1-A).
+      await page.goto('/dev/shell');
+      await page
+        .getByRole('button', { name: 'Buka prompt notifikasi' })
+        .click();
+      const prompt = page.getByRole('dialog', { name: 'Nyalakan notifikasi?' });
+      await expect(prompt).toContainText(
+        'Di iPhone, notifikasi hanya sampai lewat PIPS! yang terpasang di layar utama.',
+      );
+      await expect(
+        prompt.getByRole('button', { name: 'Nyalakan' }),
+      ).toHaveCount(0);
+      await prompt.getByRole('button', { name: 'Pasang PIPS!' }).click();
+      await expect(prompt).toHaveCount(0);
+      const sheet = page.getByRole('dialog', { name: 'Pasang PIPS!' });
+      await expect(sheet.getByRole('listitem')).toHaveCount(3);
+      expect((await pushDevice(page)).asks).toBe(0);
+    });
   });
 
   test.describe('a browser without web push', () => {
