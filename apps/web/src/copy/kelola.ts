@@ -73,7 +73,8 @@ export const kelola = {
     perDepartemen: 'Per departemen',
     perDivisi: 'Per divisi',
     pilihanPertama: 'Pilihan 1 saja',
-    semuaPilihanStat: 'Semua pilihan',
+    // Not "Semua pilihan": that's the Pilihan filter's "any priority" on the same screen (review P3-A m4).
+    semuaPilihanStat: 'Pilihan 1–4',
     kelompok: 'Kelompokkan',
     hitung: 'Hitung',
     statistikKosong: 'Belum ada data pilihan untuk ditampilkan.',

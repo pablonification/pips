@@ -108,7 +108,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
-    align-items: end;
+    align-items: start;
   }
   .g-sparta-count {
     display: flex;
@@ -123,9 +123,8 @@
     gap: 8px 12px;
   }
 
-  /* The table from 1024 px, labelled rows below: one tree, CSS picks. */
+  /* The table from 1024 px, labelled rows below: one tree, picked by the screen (DESKTOP_QUERY). */
   .g-sparta-table {
-    display: none;
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
@@ -216,14 +215,6 @@
     }
     .g-facts-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  @media (min-width: 1024px) {
-    .g-sparta-table {
-      display: table;
-    }
-    .g-sparta-rows {
-      display: none;
     }
   }
 }

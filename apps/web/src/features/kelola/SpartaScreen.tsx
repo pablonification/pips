@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useMemo, useState } from 'react';
+import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import type { InternshipDivision } from '~/api/generated';
 import { spartaDepartmentsQuery } from '~/components/form/sparta-data';
 import {
   Button,
+  DESKTOP_QUERY,
   EmptyState,
   ErrorState,
   Field,
@@ -18,6 +19,7 @@ import {
   Skeleton,
   SkeletonBlock,
   SkeletonRow,
+  useMediaQuery,
 } from '~/components/garis';
 import { DeskHead, PageBody } from '~/components/shell/page';
 import { fill } from '~/copy/fill';
@@ -64,9 +66,18 @@ export function SpartaScreen({ filters }: { filters: SpartaFilters }) {
     () => new Map(divisions.map((d) => [d.id, d])),
     [divisions],
   );
+  // The search follows each keystroke, so the list filters from the deferred query: typing stays responsive while a
+  // long list re-renders behind it. Every result is memoised on the data and the filters' values.
+  const q = useDeferredValue(filters.q);
+  const { divisi, pilihan, status } = filters;
   const shown = useMemo(
-    () => filterSubmissions(submissions.data ?? [], filters),
-    [submissions.data, filters],
+    () =>
+      filterSubmissions(submissions.data ?? [], { q, divisi, pilihan, status }),
+    [submissions.data, q, divisi, pilihan, status],
+  );
+  const byStatus = useMemo(
+    () => (submissions.data ?? []).filter((x) => matchesStatus(x, status)),
+    [submissions.data, status],
   );
 
   const setFilters = (next: Partial<SpartaFilters>) =>
@@ -126,6 +137,9 @@ export function SpartaScreen({ filters }: { filters: SpartaFilters }) {
               <SkeletonRow key={i} lines={['50%', '80%']} />
             ))}
           </Skeleton>
+        ) : submissions.data.length === 0 ? (
+          // Nobody yet: one message, no toolbar or statistics with nothing to act on.
+          <EmptyState title={s.kosong} text={s.kosongIsi} />
         ) : (
           <>
             <Toolbar
@@ -135,15 +149,8 @@ export function SpartaScreen({ filters }: { filters: SpartaFilters }) {
               count={shown.length}
               exporter={exporter}
             />
-            <Stats
-              submissions={submissions.data.filter((x) =>
-                matchesStatus(x, filters.status),
-              )}
-              divisions={divisions}
-            />
-            {submissions.data.length === 0 ? (
-              <EmptyState title={s.kosong} text={s.kosongIsi} />
-            ) : shown.length === 0 ? (
+            <Stats submissions={byStatus} divisions={divisions} />
+            {shown.length === 0 ? (
               <EmptyState
                 title={s.tidakCocok}
                 text={s.tidakCocokIsi}
@@ -187,8 +194,11 @@ function Toolbar({
   count: number;
   exporter: ReturnType<typeof useCsvExport>;
 }) {
-  // The field keeps what is typed; the URL follows it (replace), so reload and Back keep the search.
-  const [text, setText] = useState(filters.q ?? '');
+  // The field keeps what is typed; the URL follows it (replace), so reload and Back keep the search. When the URL's
+  // query changes from elsewhere (Hapus filter, Back), the field follows it.
+  const q = filters.q ?? '';
+  const [text, setText] = useState(q);
+  useEffect(() => setText((t) => (t.trim() === q ? t : q)), [q]);
   return (
     <div className="g-sparta-tools">
       <Searchbox
@@ -272,7 +282,7 @@ function Toolbar({
 }
 
 /** Statistik pilihan: today's charts as CSS bars, counting what matches the status filter. */
-function Stats({
+const Stats = memo(function Stats({
   submissions,
   divisions,
 }: {
@@ -281,8 +291,11 @@ function Stats({
 }) {
   const [groupBy, setGroupBy] = useState<'departemen' | 'divisi'>('departemen');
   const [metric, setMetric] = useState<'pertama' | 'semua'>('pertama');
-  const rows = spartaStats(submissions, divisions, groupBy, metric);
-  const max = Math.max(0, ...rows.map((r) => r.count));
+  const rows = useMemo(
+    () => spartaStats(submissions, divisions, groupBy, metric),
+    [submissions, divisions, groupBy, metric],
+  );
+  const max = rows.reduce((m, r) => Math.max(m, r.count), 0);
   return (
     <div className="grid gap-3">
       <SectionHead title={s.statistik} />
@@ -320,96 +333,109 @@ function Stats({
       )}
     </div>
   );
-}
+});
 
-function SubmissionsList({
-  rows,
-  divisionById,
-}: {
+type ListProps = {
   rows: ReturnType<typeof filterSubmissions>;
   divisionById: ReadonlyMap<string, ReturnType<typeof divisionsOf>[number]>;
-}) {
+};
+
+/** One tree (SPEC "responsive single trees"): the table from 1024 px, labelled rows below. Re-renders only when the
+ * rows shown change, not on every keystroke in the search box. */
+const SubmissionsList = memo(function SubmissionsList(props: ListProps) {
+  const desktop = useMediaQuery(DESKTOP_QUERY);
+  return desktop ? (
+    <SubmissionsTable {...props} />
+  ) : (
+    <SubmissionsRows {...props} />
+  );
+});
+
+function SubmissionsTable({ rows, divisionById }: ListProps) {
   return (
-    <div>
-      <table className="g-sparta-table">
-        <caption className="sr-only">{s.tabel}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{s.nama}</th>
-            <th scope="col">{s.nim}</th>
-            <th scope="col">{s.jurusan}</th>
-            <th scope="col">{s.kelas}</th>
-            <th scope="col">{s.status}</th>
-            {PRIORITIES.map((p) => (
-              <th scope="col" key={p}>
-                {fill(s.pilihanKe, { nomor: p })}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.id}>
-              <td>
-                <Link
-                  to="/kelola/sparta/$submissionId"
-                  params={{ submissionId: r.id }}
-                >
-                  {r.fullName}
-                </Link>
-              </td>
-              <td className="num">{r.nim}</td>
-              <td>{orDash(r.jurusan)}</td>
-              <td>{orDash(r.kelas)}</td>
-              <td>
-                <SpartaStatusTag locked={r.isLocked} />
-              </td>
-              {PRIORITIES.map((p) => (
-                <td key={p}>{priorityName(r, p, divisionById)}</td>
-              ))}
-            </tr>
+    <table className="g-sparta-table">
+      <caption className="sr-only">{s.tabel}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{s.nama}</th>
+          <th scope="col">{s.nim}</th>
+          <th scope="col">{s.jurusan}</th>
+          <th scope="col">{s.kelas}</th>
+          <th scope="col">{s.status}</th>
+          {PRIORITIES.map((p) => (
+            <th scope="col" key={p}>
+              {fill(s.pilihanKe, { nomor: p })}
+            </th>
           ))}
-        </tbody>
-      </table>
-      <RuledList className="g-sparta-rows">
+        </tr>
+      </thead>
+      <tbody>
         {rows.map((r) => (
-          <li key={r.id}>
-            <RowButton asChild>
+          <tr key={r.id}>
+            <td>
               <Link
                 to="/kelola/sparta/$submissionId"
                 params={{ submissionId: r.id }}
-                className="g-sparta-row"
               >
-                <span className="top">
-                  <span className="t-sub">{r.fullName}</span>
-                  <SpartaStatusTag locked={r.isLocked} />
-                </span>
-                <dl className="g-facts-grid">
-                  {(
-                    [
-                      [s.nim, r.nim],
-                      [s.jurusan, orDash(r.jurusan)],
-                      [s.kelas, orDash(r.kelas)],
-                      ...PRIORITIES.map(
-                        (p) =>
-                          [
-                            fill(s.pilihanKe, { nomor: p }),
-                            priorityName(r, p, divisionById),
-                          ] as const,
-                      ),
-                    ] as const
-                  ).map(([label, value]) => (
-                    <div key={label}>
-                      <dt className="t-cap text-fg-3">{label}</dt>
-                      <dd className="t-sm">{value}</dd>
-                    </div>
-                  ))}
-                </dl>
+                {r.fullName}
               </Link>
-            </RowButton>
-          </li>
+            </td>
+            <td className="num">{r.nim}</td>
+            <td>{orDash(r.jurusan)}</td>
+            <td>{orDash(r.kelas)}</td>
+            <td>
+              <SpartaStatusTag locked={r.isLocked} />
+            </td>
+            {PRIORITIES.map((p) => (
+              <td key={p}>{priorityName(r, p, divisionById)}</td>
+            ))}
+          </tr>
         ))}
-      </RuledList>
-    </div>
+      </tbody>
+    </table>
+  );
+}
+
+function SubmissionsRows({ rows, divisionById }: ListProps) {
+  return (
+    <RuledList className="g-sparta-rows">
+      {rows.map((r) => (
+        <li key={r.id}>
+          <RowButton asChild>
+            <Link
+              to="/kelola/sparta/$submissionId"
+              params={{ submissionId: r.id }}
+              className="g-sparta-row"
+            >
+              <span className="top">
+                <span className="t-sub">{r.fullName}</span>
+                <SpartaStatusTag locked={r.isLocked} />
+              </span>
+              <dl className="g-facts-grid">
+                {(
+                  [
+                    [s.nim, r.nim],
+                    [s.jurusan, orDash(r.jurusan)],
+                    [s.kelas, orDash(r.kelas)],
+                    ...PRIORITIES.map(
+                      (p) =>
+                        [
+                          fill(s.pilihanKe, { nomor: p }),
+                          priorityName(r, p, divisionById),
+                        ] as const,
+                    ),
+                  ] as const
+                ).map(([label, value]) => (
+                  <div key={label}>
+                    <dt className="t-cap text-fg-3">{label}</dt>
+                    <dd className="t-sm">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Link>
+          </RowButton>
+        </li>
+      ))}
+    </RuledList>
   );
 }
