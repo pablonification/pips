@@ -95,7 +95,7 @@ function OptionsButton({ event }: { event: CalendarEvent }) {
         </IconButton>
       }
     >
-      <MenuItem onSelect={() => open({ kind: 'ubah', event })}>
+      <MenuItem inset onSelect={() => open({ kind: 'ubah', event })}>
         {t.ubah}
       </MenuItem>
       <MenuItem
