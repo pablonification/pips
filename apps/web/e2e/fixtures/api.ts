@@ -160,13 +160,17 @@ function reactionAggregate(
   };
 }
 
-function canSee(post: ProtoPost, persona: PersonaKey): boolean {
+function canSee(
+  post: ProtoPost,
+  persona: PersonaKey,
+  roles: readonly string[],
+): boolean {
   const me = PERSONAS[persona];
   if (post.by === PERSON_OF[persona]) return true;
   if (post.aud.type === 'angkatan')
     return post.aud.values.includes(me.angkatan);
   if (post.aud.type === 'group')
-    return post.aud.values.some((r) => me.roles.includes(r));
+    return post.aud.values.some((r) => roles.includes(r));
   return true;
 }
 
@@ -733,9 +737,32 @@ export interface Db {
   }>;
 }
 
+/**
+ * P3-A: the harness's `roles` option. A list adds roles to the persona's own; `{ only }` replaces them. Applied
+ * when the db is built, so `GET /api/me`, the seeded session, groups, postable categories, audiences and the admin
+ * form list all agree.
+ */
+export type RolesOption = readonly string[] | { only: readonly string[] };
+
+/** The persona's roles after the `roles` option, without duplicates, in a stable order. */
+export function applyRoles(
+  own: readonly string[],
+  option: RolesOption | null | undefined,
+): UserWithRoles['roles'] {
+  if (!option) return [...own] as UserWithRoles['roles'];
+  const next = 'only' in option ? option.only : [...own, ...option];
+  return [...new Set(next)] as UserWithRoles['roles'];
+}
+
 /** A fresh copy of one persona's data, or of a signed-out visitor's (`null`). */
-export function buildDb(persona: PersonaKey | null): Db {
-  const me = persona ? personaUser(persona) : null;
+export function buildDb(
+  persona: PersonaKey | null,
+  rolesOption?: RolesOption | null,
+): Db {
+  const base = persona ? personaUser(persona) : null;
+  const me = base
+    ? { ...base, roles: applyRoles(base.roles, rolesOption) }
+    : null;
   const roles = me?.roles ?? [];
   const isAdmin = roles.includes('admin');
   const myCodes = persona ? MY_COURSES[persona].map(([code]) => code) : [];
@@ -761,7 +788,9 @@ export function buildDb(persona: PersonaKey | null): Db {
     ).map((c) => categories.find((x) => x.id === c.id)!),
     mutedCategoryIds: [],
     infos: persona
-      ? POSTS.filter((p) => canSee(p, persona)).map((p) => toInfo(p, persona))
+      ? POSTS.filter((p) => canSee(p, persona, roles)).map((p) =>
+          toInfo(p, persona),
+        )
       : [],
     comments: Object.fromEntries(POSTS.map((p) => [p.id, toComments(p)])),
     events: EVENTS.filter(
