@@ -9,11 +9,12 @@ export const Route = createFileRoute('/_app/kalender')({
 
 function CalendarLayout() {
   return (
-    <>
+    // Today's calendar keeps its desktop side column (month and events) beside the page, as before P0-C.
+    <div className="flex size-full flex-col lg:flex-row">
       <CalendarNavbar />
       <div className="flex h-full flex-1 flex-col lg:block">
         <Outlet />
       </div>
-    </>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '~/lib/utils';
-import { GARIS_STRINGS } from './strings';
+import { common } from '~/copy/common';
 
 /**
  * A deadline line (garis.css `.due`): gold-brown, tabular figures; `urgent` (due today or overdue) turns it red. The
@@ -45,7 +45,7 @@ export function SksMark({
   return (
     <span className={cn('g-sks', className)} aria-hidden="true">
       <b>{sks}</b>
-      <span>{GARIS_STRINGS.sks}</span>
+      <span>{common.komponen.sks}</span>
     </span>
   );
 }

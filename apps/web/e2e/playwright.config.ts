@@ -2,7 +2,7 @@
  * PIPS! browser harness. See e2e/README.md.
  *
  * Projects:
- * - journeys:  phone-light, phone-dark, desktop-light, desktop-dark (e2e/journeys)
+ * - journeys:  phone-light, phone-dark, tablet-light, tablet-dark, desktop-light, desktop-dark (e2e/journeys)
  * - captures:  capture-phone-light … capture-desktop-dark (e2e/capture; used by e2e:before and e2e:compare-before)
  * - visual:    visual-phone-light … visual-desktop-dark (e2e/visual; reference screenshots, empty until the redesign)
  * - fidelity:  fidelity-<phone|tablet|desk>-<light|dark> (e2e/fidelity), at the locked prototype screens' sizes
@@ -27,6 +27,14 @@ export const PHONE = {
   isMobile: true,
   hasTouch: true,
   userAgent: devices['Pixel 7'].userAgent,
+};
+/** The tablet layout (P0-C): 834 × 1112, touch, device scale 2. Today's screens show their phone layout here. */
+export const TABLET = {
+  viewport: { width: 834, height: 1112 },
+  deviceScaleFactor: 2,
+  isMobile: true,
+  hasTouch: true,
+  userAgent: devices['Galaxy Tab S4'].userAgent,
 };
 export const DESKTOP = {
   viewport: { width: 1440, height: 900 },
@@ -53,14 +61,17 @@ export const FIDELITY = {
 };
 const THEMES = ['light', 'dark'] as const;
 
+const JOURNEY_SIZES = { phone: PHONE, tablet: TABLET, desktop: DESKTOP };
+
 const projects: Project[] = [
-  ...(['phone', 'desktop'] as const).flatMap((size) =>
+  ...(['phone', 'tablet', 'desktop'] as const).flatMap((size) =>
     THEMES.map((theme) => ({
       name: `${size}-${theme}`,
       testDir: './journeys',
-      // Tag a journey @phone-only or @desktop-only when only one layout has the feature.
-      grepInvert: size === 'phone' ? /@desktop-only/ : /@phone-only/,
-      use: { ...(size === 'phone' ? PHONE : DESKTOP), colorScheme: theme },
+      // Tag a journey @phone-only or @desktop-only when only one layout has the feature. Tablets are touch layouts
+      // below 1024 px, where today's screens show their phone layout, so they run the @phone-only journeys too.
+      grepInvert: size === 'desktop' ? /@phone-only/ : /@desktop-only/,
+      use: { ...JOURNEY_SIZES[size], colorScheme: theme },
     })),
   ),
   ...(['phone', 'desktop'] as const).flatMap((size) =>

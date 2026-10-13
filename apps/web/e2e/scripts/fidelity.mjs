@@ -25,6 +25,7 @@ import {
 } from '../fidelity/names.mjs';
 import { FILTER_SCRIPT, filterSelect, page } from './lib/html.mjs';
 import {
+  cropTop,
   fit,
   pixelDiff,
   readPng,
@@ -65,7 +66,11 @@ const names = [
     persona: 'none',
     route: e.name,
     kind: 'extra',
-    note: e.note ?? '',
+    note: e.protoBar
+      ? `${e.note ?? ''}; compared without that bar (the app has none)`
+      : (e.note ?? ''),
+    protoBar: e.protoBar ?? 0,
+    viewportWidth: e.viewport.width,
   })),
 ];
 const lockedFiles = new Set(
@@ -83,7 +88,12 @@ const rows = names.map((s) => {
   const meta = JSON.parse(
     readFileSync(path.join(appDir, `${s.name}.json`), 'utf8'),
   );
-  const proto = readPng(lockedFile);
+  const lockedPng = readPng(lockedFile);
+  // A 'page' screen: the prototype's own bar is cropped off (its device scale from the width).
+  const proto =
+    'protoBar' in s && s.protoBar
+      ? cropTop(lockedPng, (s.protoBar * lockedPng.width) / s.viewportWidth)
+      : lockedPng;
   const app = readPng(appFile);
   const score = ssim(proto, app);
   const d = pixelDiff(proto, fit(app, proto.width, proto.height));

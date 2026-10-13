@@ -1,7 +1,7 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router';
 import { queryClient } from '~/api/client';
-import Navbar from '~/components/navbar/navbar';
 import SessionProvider from '~/components/session';
+import { AppShell } from '~/components/shell/AppShell';
 import { initialLoadUserAcademic } from '~/hooks/useUserAcademic';
 import { loginSearch } from '~/lib/safe-redirect';
 import { appSearchSchema } from '~/lib/search-params';
@@ -29,10 +29,9 @@ export const Route = createFileRoute('/_app')({
 function AppLayout() {
   return (
     <SessionProvider>
-      <main className="mx-auto size-full max-w-(--breakpoint-md) overflow-x-hidden overflow-y-auto lg:flex lg:max-w-none">
+      <AppShell>
         <Outlet />
-      </main>
-      <Navbar />
+      </AppShell>
     </SessionProvider>
   );
 }

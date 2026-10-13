@@ -3,7 +3,8 @@ import { IconPeringatan } from '~/components/icons/peringatan';
 import { IconUlang } from '~/components/icons/ulang';
 import { cn } from '~/lib/utils';
 import { Button } from './Button';
-import { GARIS_STRINGS } from './strings';
+import { common } from '~/copy/common';
+import { fill } from '~/copy/fill';
 
 export interface EmptyStateProps {
   /** What will appear here ("Belum ada form untukmu"). */
@@ -44,7 +45,7 @@ export interface ErrorStateProps {
 
 /** A failed load, next to where the content would be: what happened, then Coba lagi (SPEC "Patterns"). */
 export function ErrorState({
-  title = GARIS_STRINGS.errorTitle,
+  title = common.errors.bagian,
   text,
   onRetry,
   retrying = false,
@@ -68,7 +69,7 @@ export function ErrorState({
         aria-disabled={retrying || undefined}
       >
         <IconUlang size={16} />
-        {GARIS_STRINGS.retry}
+        {common.actions.cobaLagi}
       </Button>
     </div>
   );
@@ -85,7 +86,7 @@ export function OfflineBanner({ updatedAt, className }: OfflineBannerProps) {
   return (
     <div className={cn('g-offline', className)} role="status">
       <IconPeringatan size={16} />
-      <span>{GARIS_STRINGS.offline(updatedAt)}</span>
+      <span>{fill(common.offline.banner, { waktu: updatedAt })}</span>
     </div>
   );
 }
@@ -99,7 +100,7 @@ export interface SkeletonProps {
 
 /** A loading placeholder shaped like the layout it stands for; screen readers hear its label once. */
 export function Skeleton({
-  label = GARIS_STRINGS.loading,
+  label = common.komponen.memuat,
   className,
   children,
 }: SkeletonProps) {

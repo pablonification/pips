@@ -12,6 +12,10 @@ import { SCREENS } from './screens';
 
 const dir = process.env.E2E_FIDELITY_DIR;
 
+// The locked screens were rendered on Linux, so the prototype named the search shortcut "Ctrl K" (its `MOD`, ui.js).
+// The app names it by platform the same way; capture it as Linux too, so the comparison is like for like.
+test.use({ platform: 'Linux x86_64' });
+
 for (const [persona, routes] of [
   ['anggota', ROUTES],
   ['pengurus', PENGURUS_ROUTES],
@@ -57,7 +61,11 @@ for (const meta of EXTRA_SCREENS) {
   test.describe(meta.name, () => {
     test.use({
       persona: screen.persona === undefined ? 'anggota' : screen.persona,
-      viewport: meta.viewport,
+      // A 'page' capture: the window below the prototype's own bar (the report crops the bar off the locked one).
+      viewport: {
+        width: meta.viewport.width,
+        height: meta.viewport.height - (meta.protoBar ?? 0),
+      },
     });
     test(meta.name, async ({ page, api, context }, testInfo) => {
       if (!dir)

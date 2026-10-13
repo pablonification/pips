@@ -1,5 +1,5 @@
 // Fails if a production build in dist/ still contains the development test login, or the Garis gallery
-// (/dev/garis, development only). Run after `pnpm build` (CI does). Staging-mode builds include both on purpose, so
+// (/dev/garis, development only) or the shell's test page (/dev/shell). Run after `pnpm build` (CI does). Staging-mode builds include both on purpose, so
 // don't run this on them.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -9,6 +9,8 @@ const forbidden = [
   '/api/auth/login/dev',
   // A sentence only the gallery has (src/dev/garis/).
   'Sistem desain Garis · PIPS!',
+  // A sentence only the shell's test page has (src/dev/shell/).
+  'Halaman uji shell',
 ];
 const hits = [];
 const walk = (d) => {
@@ -26,4 +28,4 @@ if (hits.length) {
   console.error(`Production bundle contains development-only code:\n${hits.join('\n')}`);
   process.exit(1);
 }
-console.log(`ok: no test login and no Garis gallery in ${dir}`);
+console.log(`ok: no test login, no Garis gallery and no shell test page in ${dir}`);

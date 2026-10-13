@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { checkGates } from '../support/audit';
-import { visibleText } from '../support/app';
+import { greeting, visibleText } from '../support/app';
 import { expect, test } from '../support/test';
 import * as writes from '../support/writes';
 
@@ -84,7 +84,7 @@ test.describe('signed out', () => {
       .locator('visible=true')
       .click();
     await expect(page).toHaveURL(/^http:\/\/[^/]+\/$/);
-    await expect(visibleText(page, 'Hi, Nadia Putri!')).toBeVisible();
+    await expect(greeting(page)).toBeVisible();
     expect(api.blocked.some((b) => b.path.includes('evil.example'))).toBe(
       false,
     );
@@ -140,7 +140,7 @@ test.describe('not installed', () => {
     page,
   }, testInfo) => {
     await page.goto('/');
-    await expect(visibleText(page, 'Hi, Nadia Putri!')).toBeVisible();
+    await expect(greeting(page)).toBeVisible();
     await expect(page.getByText(/install/i)).toHaveCount(0);
     await checkGates(page, testInfo, 'not-installed');
   });
@@ -149,6 +149,6 @@ test.describe('not installed', () => {
     page,
   }) => {
     await page.goto('/');
-    await expect(visibleText(page, 'Hi, Nadia Putri!')).toBeVisible();
+    await expect(greeting(page)).toBeVisible();
   });
 });

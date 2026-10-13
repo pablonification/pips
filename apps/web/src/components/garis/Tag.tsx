@@ -3,7 +3,7 @@ import { IconCentang } from '~/components/icons/centang';
 import { IconForm } from '~/components/icons/form';
 import { IconJam } from '~/components/icons/jam';
 import { cn } from '~/lib/utils';
-import { GARIS_STRINGS } from './strings';
+import { common } from '~/copy/common';
 
 export type TagTone =
   'default' | 'accent' | 'success' | 'danger' | 'inverse' | 'outlined';
@@ -50,18 +50,18 @@ export function StatusTag({
         icon={<IconCentang size={16} />}
         className={className}
       >
-        {GARIS_STRINGS.statusDone}
+        {common.komponen.statusSudahDiisi}
       </Tag>
     );
   if (status === 'soon')
     return (
       <Tag icon={<IconJam size={16} />} className={className}>
-        {GARIS_STRINGS.statusSoon}
+        {common.komponen.statusBelumDibuka}
       </Tag>
     );
   return (
     <Tag tone="accent" icon={<IconForm size={16} />} className={className}>
-      {GARIS_STRINGS.statusOpen}
+      {common.komponen.statusIsi}
     </Tag>
   );
 }

@@ -146,12 +146,12 @@ export const STATES: CaptureState[] = [
       // Since P0-B each route's code is its own file, which the installed app's service worker precaches. The
       // harness blocks service workers, so load the Timeline's code first (focusing its link preloads it), as
       // the precache would have it, then go offline. Its data is not loaded: the screen is the same as before.
-      await navLink(p, 'Timeline').focus();
+      await navLink(p, 'Pengumuman').focus();
       await p.waitForLoadState('networkidle');
       // A keyboard focus ring would show in the capture; the member taps, which draws none.
-      await navLink(p, 'Timeline').blur();
+      await navLink(p, 'Pengumuman').blur();
       await api.setOffline(true);
-      await navLink(p, 'Timeline').click();
+      await navLink(p, 'Pengumuman').click();
     },
     ready: timelineTitle,
   },

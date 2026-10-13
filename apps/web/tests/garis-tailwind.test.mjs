@@ -61,7 +61,7 @@ test('the type styles compile exactly as garis.css sets them', async () => {
   for (const cls of ['t-display-l', 't-display', 'disp']) assert.match(rule(out, cls), /font-family: var\(--font-display\)/);
   assert.match(rule(out, 'num'), /tabular-nums/);
   // Nothing under 12 px anywhere in the design system's CSS.
-  const all = ['type.css', 'components.css'].map((f) => fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8')).join('\n');
+  const all = ['type.css', 'components.css', 'shell.css'].map((f) => fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8')).join('\n');
   const sizes = [...all.matchAll(/font-size: (\d+)px/g)].map((m) => +m[1]);
   assert.ok(sizes.length > 10 && sizes.every((s) => s >= 12), sizes.join(','));
   assert.doesNotMatch(all, /font-family:[^;]*(?:monospace|Mono)/);
@@ -71,7 +71,8 @@ test('the type styles compile exactly as garis.css sets them', async () => {
 // "Kelas 02" tag in the gallery. The components put these modifier classes next to their g-* class; none may be a
 // Tailwind utility.
 test('no component modifier class is also a Tailwind utility', async () => {
-  const components = fs.readFileSync(path.join(appDir, 'src/styles/garis/components.css'), 'utf8');
+  // The components and the shell (P0-C).
+  const components = ['components.css', 'shell.css'].map((f) => fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8')).join('\n');
   const modifiers = new Set([...components.matchAll(/\.g-[\w-]+((?:\.[\w-]+)+)/g)].flatMap((m) => m[1].split('.').filter(Boolean)));
   for (const part of ['s16', 's20', 's24', 'f', 'gf', 'pp', 'k', 'o', 'w', 'r', 'c', 'l', 'b', 'n', 'box', 'handle', 'rule', 'hint', 'dis-ic', 'msg', 't-ic', 'act', 'sq', 'bars', 'glyph', 'radio'])
     modifiers.add(part);
@@ -86,7 +87,7 @@ test('no component modifier class is also a Tailwind utility', async () => {
 });
 
 test('reduced motion removes all motion; nothing uses transition: all', () => {
-  const comp = fs.readFileSync(path.join(appDir, 'src/styles/garis/components.css'), 'utf8');
+  const comp = ['components.css', 'shell.css'].map((f) => fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8')).join('\n');
   assert.doesNotMatch(comp, /transition:\s*all|transition-property:\s*all/);
   assert.match(comp, /prefers-reduced-motion: reduce/);
 });

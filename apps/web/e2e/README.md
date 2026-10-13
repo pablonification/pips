@@ -11,14 +11,14 @@ command below, run one at a time, and use at most 3 workers (`E2E_WORKERS=3`).
 
 All from the repository root (or `pnpm run <script>` inside `apps/web`):
 
-| Command                                | What it does                                                                                                                                                                                       |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm --filter web e2e`                | The journeys (`e2e/journeys/`) at phone and desktop size, light and dark, plus the visual references (`e2e/visual/`, empty until the redesign).                                                    |
-| `pnpm --filter web e2e:before`         | Records the **before set** of today's interface to `ops/redesign/before-set/`: captures, `manifest.json` (with per-screen axe counts), `index.html` gallery. Refuses to overwrite an existing set. |
-| `pnpm --filter web e2e:compare-before` | Re-captures the same states and compares them with the before set. Writes `ops/redesign/compare/<timestamp>/` (report, side-by-side images, `index.html`). Exits 1 if any state changed.           |
+| Command                                | What it does                                                                                                                                                                                                                                                   |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm --filter web e2e`                | The journeys (`e2e/journeys/`) at phone and desktop size, light and dark, plus the visual references (`e2e/visual/`, empty until the redesign).                                                                                                                |
+| `pnpm --filter web e2e:before`         | Records the **before set** of today's interface to `ops/redesign/before-set/`: captures, `manifest.json` (with per-screen axe counts), `index.html` gallery. Refuses to overwrite an existing set.                                                             |
+| `pnpm --filter web e2e:compare-before` | Re-captures the same states and compares them with the before set. Writes `ops/redesign/compare/<timestamp>/` (report, side-by-side images, `index.html`). Exits 1 if any state changed.                                                                       |
 | `pnpm --filter web fidelity`           | Captures the screens mapped in `e2e/fidelity/screens.ts` at the locked prototype screens' sizes and pairs them with the 216 locked route screens and the 35 non-route ones in `e2e/fidelity/extras.ts`. Writes `ops/redesign/fidelity/<timestamp>/index.html`. |
-| `pnpm --filter web e2e:update`         | Records or updates the visual reference images (`toHaveScreenshot`).                                                                                                                               |
-| `pnpm --filter web test`               | The Node unit tests in `tests/` (including the harness's own image and naming logic).                                                                                                              |
+| `pnpm --filter web e2e:update`         | Records or updates the visual reference images (`toHaveScreenshot`).                                                                                                                                                                                           |
+| `pnpm --filter web test`               | The Node unit tests in `tests/` (including the harness's own image and naming logic).                                                                                                                                                                          |
 
 Arguments after the script name go to Playwright, e.g. `pnpm --filter web e2e --grep Curhat` or
 `pnpm --filter web e2e:before --grep form-step`.
@@ -43,8 +43,20 @@ goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
 `support/test.ts` extends Playwright's `test`. Import `test` and `expect` from there:
 
 - **Projects** (`playwright.config.ts`): `phone-light`, `phone-dark` (390 × 844, touch, device scale 2, a phone
-  user agent) and `desktop-light`, `desktop-dark` (1440 × 900). Tag a test `@phone-only` or `@desktop-only`
-  when only one layout has the feature; the other projects leave it out.
+  user agent), `tablet-light`, `tablet-dark` (834 × 1112, touch, device scale 2, a tablet user agent; P0-C) and
+  `desktop-light`, `desktop-dark` (1440 × 900). Tag a test `@phone-only` or `@desktop-only` when only one layout
+  has the feature; the other projects leave it out. Tablets are touch layouts below 1024 px, where today's screens
+  show their phone layout, so they run `@phone-only` tests too. `support/app.ts` has `layoutOf(testInfo)` ('phone',
+  'tablet' or 'desktop', the shell's three layouts) and `isPhone(testInfo)` (phone or tablet).
+- **The shell** (P0-C): `navLink(page, 'Beranda' | 'Pengumuman' | 'Kalender' | 'Layanan' | 'Profil')` finds a
+  destination in whichever navigation the layout shows (Profil: your avatar, or your name in the sidebar);
+  `greeting(page, 'Nadia')` is Beranda's "Halo, Nadia"; `inMain(page, text)` finds text in the page, not the
+  shell. On phones and tablets a drill-down page's title is also the top bar's `h1` (unless the screen shows its own
+  `PageTitle`; then the top bar's title is hidden from screen readers), so look for a screen's own headings inside
+  `page.getByRole('main')`.
+- **The shell's test page** `/dev/shell` (`src/dev/shell/`, development, staging and the harness's build only): a
+  page below Layanan with its own title, top-bar actions, a field and 30 buttons; `?judul=…` gives it a title from
+  data. `journeys/shell-page.spec.ts` checks the shell's slots on it until real screens use them.
 - **Defaults:** time zone `Asia/Jakarta`, locale `id-ID`, service workers blocked, reduced motion, CSS
   animations and transitions off, and a fixed clock: **Kamis, 8 Oktober 2026, 13.35 WIB** (the prototype's
   "now"; see `fixtures/NOTES.md`). Time then runs normally from there.
@@ -55,6 +67,9 @@ goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
   - `installed` (default `true`): runs as the installed PWA. Until P0-B removed it, the production build showed
     phone browsers an install tutorial instead of the app; `installed: false` checks it is gone.
   - `now`: another fixed time (ISO string), or `null` for the real clock.
+  - `platform`: what `navigator.platform` reports (`'MacIntel'`, `'Linux x86_64'`), or `null` (default) for the
+    browser's own. The app names the search shortcut by platform (⌘K on Apple, Ctrl K elsewhere); the fidelity
+    captures run as `'Linux x86_64'`, where the locked screens were rendered.
 - **Fixtures:** `db` is this test's own copy of the persona's data (`fixtures/api.ts`); `api` is the mock layer.
 
 ## Fixtures
@@ -172,10 +187,13 @@ makes strict the default.
   ```
 
   Use `layouts: ['phone']` when the entry only applies to some layouts.
+
 - **Screens that aren't routes** (the `i-*` interactions, the `page-*` sizes, `narrow320-beranda`,
   `desk1024-beranda`, and the design-system page's `system-kit` and `system-cards`): `names.mjs` lists the 35 an app
   task owns in `EXTRA_SCREENS`, each with its project (`fidelity-<layout>-<theme>`), the viewport it was taken at and
-  what it shows (`app` area, whole `page` including the prototype's 44 px bar, or one `element`). Map one in
+  what it shows (`app` area, whole `page` including the prototype's 44 px bar, or one `element`). A `page` capture
+  has `protoBar: 44`: the app (which has no such bar) is captured in the window below it, and the report crops the
+  bar off the locked image before comparing (P0-C). Map one in
   `fidelity/extras.ts` with the same fields as `screens.ts`, plus `persona` (null for signed out) and, for an element
   capture, `target`. The 11 `PROTOTYPE_ONLY` screens (the prototype's own bar, forced layouts and notes page) are
   never mapped.

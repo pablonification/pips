@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { IconCentang } from '~/components/icons/centang';
 import { cn } from '~/lib/utils';
-import { GARIS_STRINGS } from './strings';
+import { common } from '~/copy/common';
 
 type DivProps = HTMLAttributes<HTMLDivElement>;
 
@@ -104,7 +104,7 @@ export function NoteBox({
 
 /** State shown compactly instead of explained: "Draf tersimpan" with a check (garis.css `.saved`). */
 export function Saved({
-  children = GARIS_STRINGS.saved,
+  children = common.komponen.drafTersimpan,
   className,
 }: {
   children?: ReactNode;

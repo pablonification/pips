@@ -259,6 +259,14 @@ export const BERANDA_TILES = [
   'kas',
 ] as const satisfies readonly ServiceId[];
 
+/** Pintasan: global search's start and desktop Beranda's shortcuts (`garis/data.js` PINS). */
+export const PINNED_SERVICES = [
+  'dingdong',
+  'testi',
+  'nim',
+  'kas',
+] as const satisfies readonly ServiceId[];
+
 export function serviceById(id: ServiceId): Service {
   return SERVICES.find((s) => s.id === id)!;
 }

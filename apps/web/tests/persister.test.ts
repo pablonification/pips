@@ -118,10 +118,12 @@ test('signing out leaves nothing of the member, and nothing comes back later', a
     userAcademic: '{"semester":3}',
   });
 
+  let shellForgotten = 0;
   await forgetMember({
     queryClient,
     removePersisted: () => store.delete(),
     storage,
+    forgetShell: () => void shellForgotten++,
   });
   // A write was also waiting when she signed out.
   await tick(THROTTLE * 5);
@@ -137,6 +139,8 @@ test('signing out leaves nothing of the member, and nothing comes back later', a
   );
   assert.equal(storage.map.get('userAcademic'), undefined);
   assert.equal(storage.map.get('user'), 'null');
+  // Review M5: the shell's page titles and back history go too.
+  assert.equal(shellForgotten, 1);
   unsubscribe();
 });
 

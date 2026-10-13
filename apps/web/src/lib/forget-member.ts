@@ -9,16 +9,19 @@ export const MEMBER_STORAGE_KEYS = ['userAcademic'] as const;
  * someone signs in. In this order, so nothing is written back:
  * 1. the persisted cache is removed, with any write still waiting;
  * 2. `me` becomes null, so the persister writes nothing more (it keeps only a signed-in member's cache);
- * 3. every other query and mutation leaves memory, and the member's localStorage keys go.
+ * 3. every other query and mutation leaves memory, and the member's localStorage keys go;
+ * 4. the shell forgets the page titles screens gave (a Curhat room's, a form's) and back's history (P0-C).
  */
 export function forgetMember({
   queryClient,
   removePersisted,
   storage,
+  forgetShell,
 }: {
   queryClient: QueryClient;
   removePersisted: () => PromiseLike<void> | void;
   storage: Pick<Storage, 'removeItem' | 'setItem'>;
+  forgetShell: () => void;
 }): Promise<void> {
   const removed = removePersisted();
   queryClient.setQueryData([ME_QUERY_KEY], null);
@@ -28,5 +31,6 @@ export function forgetMember({
   queryClient.getMutationCache().clear();
   storage.setItem('user', 'null');
   for (const key of MEMBER_STORAGE_KEYS) storage.removeItem(key);
+  forgetShell();
   return Promise.resolve(removed);
 }

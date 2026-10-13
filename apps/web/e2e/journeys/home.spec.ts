@@ -1,13 +1,16 @@
 import { checkGates } from '../support/audit';
-import { navLink, visibleText } from '../support/app';
+import { greeting, isPhone, navLink, visibleText } from '../support/app';
 import { expect, test } from '../support/test';
 
 test('Home greets Nadia and shows today and the services', async ({
   page,
 }, testInfo) => {
   await page.goto('/');
-  await expect(visibleText(page, 'Hi, Nadia Putri!')).toBeVisible();
-  await expect(visibleText(page, 'Good Afternoon')).toBeVisible();
+  await expect(greeting(page)).toBeVisible();
+  // Today's time-of-day line lives in today's phone Home; on desktop it was in the old sidebar, which the shell
+  // (P0-C) replaced with its own greeting above.
+  if (isPhone(testInfo))
+    await expect(visibleText(page, 'Good Afternoon')).toBeVisible();
   for (const service of [
     'Ding Dong',
     'Calendar',
@@ -32,7 +35,7 @@ test('Home greets Nadia and shows today and the services', async ({
   // Raka's Kuis 1 is for a course Nadia doesn't take.
   await expect(page.getByText('Pencarian dan heuristik.')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Admin' })).toHaveCount(0);
-  await expect(navLink(page, 'Home')).toBeVisible();
+  await expect(navLink(page, 'Beranda')).toBeVisible();
   await checkGates(page, testInfo, 'home');
 });
 
@@ -53,7 +56,10 @@ test('a service tile opens the service', async ({ page }) => {
     .locator('visible=true')
     .click();
   await expect(page).toHaveURL(/\/layanan\/nim$/);
-  await expect(page.getByRole('heading', { name: 'NIM Finder' })).toBeVisible();
+  // The page's own heading (on phones and tablets the shell's top bar names it too).
+  await expect(
+    page.getByRole('main').getByRole('heading', { name: 'NIM Finder' }),
+  ).toBeVisible();
 });
 
 test.describe('Raka, pengurus', () => {
@@ -63,7 +69,9 @@ test.describe('Raka, pengurus', () => {
     page,
   }, testInfo) => {
     await page.goto('/');
-    await expect(visibleText(page, 'Hi, Raka Pratama!')).toBeVisible();
+    await expect(greeting(page, 'Raka')).toBeVisible();
+    if (isPhone(testInfo))
+      await expect(visibleText(page, 'Hi, Raka Pratama!')).toBeVisible();
     await expect(visibleText(page, 'Kuis 1')).toBeVisible();
     await expect(page.getByText('Kuis 2').locator('visible=true')).toHaveCount(
       0,
