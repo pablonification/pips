@@ -114,7 +114,10 @@ export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
       p
         .getByRole('main')
         .filter({ has: p.getByText('IF2123 Aljabar Linier dan Geometri') })
-        .filter({ has: p.getByText('UTS').first() }),
+        .filter({
+          // The month's bars are in: 19 Oktober has its UTS.
+          has: p.getByRole('button', { name: /^Senin, 19 Oktober, 1 acara/ }),
+        }),
   },
   'pengurus-kalender': {
     path: '/kalender',
@@ -122,7 +125,10 @@ export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
       p
         .getByRole('main')
         .filter({ has: p.getByText('IF3170 Inteligensi Buatan') })
-        .filter({ has: p.getByText('UTS').first() }),
+        .filter({
+          // The month's bars are in: 19 Oktober has its UTS.
+          has: p.getByRole('button', { name: /^Senin, 19 Oktober, 1 acara/ }),
+        }),
   },
   // Kuis 2's sheet over Kalender on phones and tablets; desktop's locked capture is the plain Kalender.
   'anggota-ov-event': {

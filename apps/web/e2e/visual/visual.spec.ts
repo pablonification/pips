@@ -31,7 +31,9 @@ export const VISUAL_STATES: CaptureState[] = [
       p
         .getByRole('main')
         .filter({ has: p.getByText('IF2123 Aljabar Linier dan Geometri') })
-        .filter({ has: p.getByText('UTS').first() }),
+        .filter({
+          has: p.getByRole('button', { name: /^Senin, 19 Oktober, 1 acara/ }),
+        }),
   },
   {
     id: 'kalender-event-sheet',
