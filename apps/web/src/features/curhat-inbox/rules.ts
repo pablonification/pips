@@ -150,23 +150,29 @@ export interface FailedReply {
 /**
  * Sending what's in the composer: the same text and quote as the reply that failed go again with its device id
  * (`CurhatClient.retry`), so a reply saved whose acknowledgement was lost is saved once (OPEN-QUESTIONS A11);
- * anything changed is a new message.
+ * anything changed is a new message. If the failed entry has left the outbox (a rooms fetch brought the server's
+ * copy and settled it, as after a reconnect) or was delivered meanwhile, the server has it: `saved`, send nothing.
  */
 export function sendPlan(
   failed: FailedReply | null,
   text: string,
   replyId: string | null,
   outbox: readonly Pick<OutboxEntry, 'localId' | 'status'>[],
-): { kind: 'retry'; localId: string } | { kind: 'send' } {
-  if (
-    failed &&
-    failed.text === text &&
-    failed.replyId === replyId &&
-    outbox.some((e) => e.localId === failed.localId && e.status === 'failed')
-  )
+): { kind: 'retry'; localId: string } | { kind: 'saved' } | { kind: 'send' } {
+  if (!failed || failed.text !== text || failed.replyId !== replyId)
+    return { kind: 'send' };
+  const entry = outbox.find((e) => e.localId === failed.localId);
+  if (entry?.status === 'failed')
     return { kind: 'retry', localId: failed.localId };
-  return { kind: 'send' };
+  return { kind: 'saved' };
 }
+
+/** A failed reply whose outbox entry has settled or been delivered: the server saved it after all. */
+export const failedWasSaved = (
+  failed: FailedReply,
+  outbox: readonly Pick<OutboxEntry, 'localId' | 'status'>[],
+) =>
+  !outbox.some((e) => e.localId === failed.localId && e.status !== 'delivered');
 
 /**
  * The inbox draws only what the server saved (SPEC's corrections: no delivery states for Welfare): delivered

@@ -17,6 +17,7 @@ import {
 } from '../src/features/curhat/rules';
 import {
   deliveredOnly,
+  failedWasSaved,
   inboxPreview,
   inboxSpeakerSr,
   inboxTimeLine,
@@ -310,12 +311,40 @@ test('sending again unchanged reuses the failed reply’s device id; changed tex
     sendPlan(failed, 'Siap, aku kirim jadwalnya ya.', null, outbox),
     { kind: 'send' },
   );
-  // The failed entry has gone (the server's copy settled it): a new message.
+  assert.deepEqual(sendPlan(null, 'x', null, outbox), { kind: 'send' });
+});
+
+// Review M1 (round 2): round 1 expected `send` here, which saved the reply twice after a reconnect's catch-up fetch.
+test('a failed reply whose entry has settled or been delivered is saved: sending it unchanged sends nothing', () => {
+  const failed = {
+    localId: 'local-1',
+    text: 'Siap, aku kirim jadwalnya ya.',
+    replyId: 'm3',
+  };
+  // The failed entry has gone (the server's copy settled it).
   assert.deepEqual(
     sendPlan(failed, 'Siap, aku kirim jadwalnya ya.', 'm3', []),
+    { kind: 'saved' },
+  );
+  assert.deepEqual(
+    sendPlan(failed, 'Siap, aku kirim jadwalnya ya.', 'm3', [
+      entry('local-1', 'delivered'),
+    ]),
+    { kind: 'saved' },
+  );
+  // Changed text or quote is still a new message.
+  assert.deepEqual(sendPlan(failed, 'Siap, aku kirim ya.', 'm3', []), {
+    kind: 'send',
+  });
+  assert.deepEqual(
+    sendPlan(failed, 'Siap, aku kirim jadwalnya ya.', null, []),
     { kind: 'send' },
   );
-  assert.deepEqual(sendPlan(null, 'x', null, outbox), { kind: 'send' });
+  assert.equal(failedWasSaved(failed, []), true);
+  assert.equal(failedWasSaved(failed, [entry('local-1', 'delivered')]), true);
+  assert.equal(failedWasSaved(failed, [entry('local-1', 'failed')]), false);
+  assert.equal(failedWasSaved(failed, [entry('local-1', 'pending')]), false);
+  assert.equal(failedWasSaved(failed, [entry('local-2', 'failed')]), true);
 });
 
 test('the inbox draws only delivered replies: no Mengirim or Gagal bubble', () => {

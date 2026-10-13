@@ -753,6 +753,46 @@ test.describe('a room', () => {
     await expect(bubble(page, REPLY)).toHaveCount(1);
   });
 
+  // Review M1 (round 2): the drop-then-reconnect case, the most common way to lose an acknowledgement. The catch-up
+  // fetch brings the server's copy, which settles the failed entry; sending "again" must not save a second copy.
+  test('regression (M1): saved, its acknowledgement lost, then a drop and a reconnect: one bubble, the composer cleared, nothing sent again', async ({
+    page,
+    api,
+    db,
+  }) => {
+    await openR1(page, api);
+    api.socket.saveWithoutAnswer();
+    await log(page).getByRole('button', { name: 'Balas' }).nth(2).click();
+    await composer(page).fill(REPLY);
+    await sendButton(page).click();
+    await page.clock.fastForward(10_500);
+    await expect(toastText(page, FAILED)).toBeVisible();
+    await expect(composer(page)).toHaveValue(REPLY);
+    await expect(bubble(page, REPLY)).toHaveCount(0);
+
+    api.socket.drop();
+    api.socket.restore();
+    await page.clock.fastForward(6_000);
+    await socketReady(api);
+    // The catch-up fetch brought the server's copy: shown once, and the reply is done.
+    await expect(bubble(page, REPLY)).toHaveCount(1);
+    await expect(composer(page)).toHaveValue('');
+    await expect(page.locator('.g-reply-chip')).toHaveCount(0);
+    expect(
+      db.chatrooms.r1.messages!.filter((m) => m.content === REPLY),
+    ).toHaveLength(1);
+
+    // Pressing send now sends nothing: no second copy.
+    api.socket.answerAsApi('message');
+    await sendButton(page).click();
+    await page.clock.fastForward(1_000);
+    expect(api.socket.emitted('message')).toHaveLength(1);
+    expect(
+      db.chatrooms.r1.messages!.filter((m) => m.content === REPLY),
+    ).toHaveLength(1);
+    await expect(bubble(page, REPLY)).toHaveCount(1);
+  });
+
   test('changed text after a failure is a new message with a new id', async ({
     page,
     api,

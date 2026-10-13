@@ -6,8 +6,10 @@
  * No delivery states (SPEC's corrections): a reply is drawn once the server acknowledges it, and the send button is
  * busy meanwhile. If it fails (refused as invalid or server, no answer in 10 s, or the connection down) a toast says
  * so and the text stays; sending it again unchanged reuses its device id (`CurhatClient.retry`), so a reply saved
- * whose acknowledgement was lost is saved once (A11). `forbidden` and `unauthorized` give no toast: the connection
- * refetches the rooms and re-checks the session (`useCurhatConnection`). No delete: only the member may.
+ * whose acknowledgement was lost is saved once (A11). If a rooms fetch brings the server's copy first (the catch-up
+ * after a reconnect), the reply counts as delivered and the composer lets go of it. `forbidden` and `unauthorized`
+ * give no toast: the connection refetches the rooms and re-checks the session (`useCurhatConnection`). No delete:
+ * only the member may.
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -49,6 +51,7 @@ import {
 import { PinMenu } from './PinMenu';
 import {
   deliveredOnly,
+  failedWasSaved,
   inboxSpeakerSr,
   inboxTimeLine,
   onWelfareSide,
@@ -168,6 +171,17 @@ function Thread({ room }: { room: Chatroom }) {
       toast.error(t.ruang.gagal);
   }, [outbox, sending]);
 
+  // A failed reply the server saved after all (review M1): a rooms fetch, such as the catch-up after a reconnect,
+  // brings its copy and settles the entry. It is delivered: the composer lets go of it, so sending "again" can't save
+  // a second copy.
+  useEffect(() => {
+    if (!failed || !failedWasSaved(failed, outbox)) return;
+    setFailed(null);
+    if (text.trim() !== failed.text) return;
+    setText('');
+    setReplyTo(null);
+  }, [outbox, failed, text]);
+
   const quoted =
     replyTo === null
       ? null
@@ -184,6 +198,12 @@ function Thread({ room }: { room: Chatroom }) {
     if (sending) return;
     const replyId = quoted === null ? null : replyTo;
     const plan = sendPlan(failed, body, replyId, outbox);
+    if (plan.kind === 'saved') {
+      setFailed(null);
+      setText('');
+      setReplyTo(null);
+      return;
+    }
     stick.current = true;
     let localId: string;
     if (plan.kind === 'retry') {
