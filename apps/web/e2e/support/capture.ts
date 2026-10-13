@@ -53,6 +53,8 @@ export interface CaptureRecord {
   width: number;
   height: number;
   deviceScaleFactor: number;
+  /** Why the app no longer has this state (states.ts `removed`); compare-before lists it as removed. */
+  removed?: string;
   audit: Audit;
 }
 

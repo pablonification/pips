@@ -32,7 +32,7 @@
   .g-scroll::-webkit-scrollbar {
     display: none;
   }
-  /* The page itself. A flex item, so today's screens that fill the height (h-full) still can. */
+  /* The page itself. A flex item, so a screen can fill the height (h-full). */
   .g-main {
     position: relative;
     flex: 1 0 auto;
@@ -242,13 +242,6 @@
     display: none;
   }
 
-  /* Old screens keep their own light surface inside the new shell until their redesign replaces them. */
-  .g-legacy {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    color-scheme: light;
-  }
-
   /* The skip link: hidden until it gets keyboard focus. */
   .g-skip {
     position: fixed;
@@ -450,7 +443,7 @@
     flex-direction: column;
     min-height: 0;
     overflow-y: auto;
-    /* A themed scrollbar instead of today's green one (index.css), which would sit on dark pages. */
+    /* A themed scrollbar, which follows the theme on dark pages. */
     scrollbar-color: var(--border-strong) transparent;
   }
   .g-crumbs {

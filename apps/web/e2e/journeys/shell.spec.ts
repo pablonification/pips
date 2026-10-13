@@ -1,7 +1,7 @@
 /**
  * The app shell (P0-C): the tab bar on phones, the rail on tablets, the sidebar on desktop, the top bar and back,
- * the desktop breadcrumbs, Beranda's gold header, focused flows, global search, and their accessibility. The
- * pages inside are today's screens until their redesign tasks; these journeys check the shell around them.
+ * the desktop breadcrumbs, Beranda's gold header, focused flows, global search, and their accessibility. Each
+ * screen's own journeys check the pages inside.
  * "@phone-only" journeys run on phones and tablets (the touch layouts), "@desktop-only" ones on desktop.
  */
 import AxeBuilder from '@axe-core/playwright';
@@ -31,11 +31,10 @@ async function expectLit(page: Page, name: string) {
   await expect(lit).toHaveAccessibleName(new RegExp(`^${name}`));
 }
 
-/** No serious or critical axe violation in the shell; today's screens inside (`data-legacy`) are left out. */
+/** No serious or critical axe violation on the page, the shell and the screen inside it. */
 async function expectShellAccessible(page: Page, where: string) {
   const result = await new AxeBuilder({ page })
     .withTags(AXE_TAGS)
-    .exclude('[data-legacy]')
     .setLegacyMode(true)
     .analyze();
   const bad = result.violations
@@ -58,7 +57,7 @@ async function expectFits(page: Page, where: string) {
     for (const el of document.querySelectorAll<HTMLElement>(
       '.g-shell *, .g-desk *',
     )) {
-      if (el.closest('[data-legacy]') || !el.childNodes.length) continue;
+      if (!el.childNodes.length) continue;
       const own = [...el.childNodes].some(
         (n) => n.nodeType === 3 && n.textContent?.trim(),
       );

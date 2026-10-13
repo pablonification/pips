@@ -174,7 +174,7 @@ test('the thread: oldest first from the API’s newest-first list, day lines in 
       'm4',
     ],
   );
-  const [m1, m2, m3, m4] = messages(items);
+  const [m1, m2, , m4] = messages(items);
   assert.equal(m1.mine, true);
   assert.equal(m2.mine, false);
   assert.equal(

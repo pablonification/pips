@@ -13,8 +13,8 @@ const rule = (sel) => {
   return body.slice(at, body.indexOf('}', at));
 };
 
-test('no raw colours: tokens only (today’s screens keep their own old surface variable)', () => {
-  const raw = [...body.matchAll(/#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\((?!var\(--background\)|var\(--foreground\))/gi)].map((m) => m[0]);
+test('no raw colours: tokens only', () => {
+  const raw = [...body.matchAll(/#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(/gi)].map((m) => m[0]);
   assert.deepEqual(raw, []);
 });
 

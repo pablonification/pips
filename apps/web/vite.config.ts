@@ -2,6 +2,7 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
+import { rmSync } from 'node:fs';
 import path from 'path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -37,6 +38,25 @@ function chunkModules(): Plugin {
         fileName: '.vite/chunk-modules.json',
         source: `${JSON.stringify(chunks, null, 1)}\n`,
       });
+    },
+  };
+}
+
+/**
+ * Leaves the review prototypes (public/prototypes/, copied in by setup.sh, not in Git) out of production builds.
+ * The dev server still serves them (staging and the owner's review); scripts/verify-production-bundle.mjs fails
+ * a build that has them.
+ */
+function noPrototypes(): Plugin {
+  let outDir = '';
+  return {
+    name: 'pips-no-prototypes',
+    apply: 'build',
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    closeBundle() {
+      rmSync(path.join(outDir, 'prototypes'), { recursive: true, force: true });
     },
   };
 }
@@ -188,6 +208,7 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       chunkModules(),
+      noPrototypes(),
       sentryVitePlugin({
         authToken: env.SENTRY_AUTH_TOKEN,
         org: env.SENTRY_ORG || 'hmif',

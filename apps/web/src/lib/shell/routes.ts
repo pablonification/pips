@@ -60,8 +60,6 @@ export interface RouteMeta {
   crumbs?: false;
   /** Filling a form, writing an announcement, a Curhat room: no tab bar or rail, back stays (SPEC story 19). */
   focused?: boolean;
-  /** Today's screen, not yet redesigned: the shell keeps it on its old light surface (P0-C report). */
-  legacy?: boolean;
 }
 
 const nav = common.nav;
@@ -90,7 +88,6 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   },
   '/layanan/nim': { title: svc('nim'), parent: '/layanan' },
   '/layanan/lomba': { title: svc('lomba'), parent: '/layanan' },
-  // P2-C: redesigned; Welfare's screen (until P3-C) wraps itself in LegacyScreen.
   '/layanan/curhat': {
     title: svc('curhat'),
     parent: '/layanan',
@@ -160,9 +157,9 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     parent: '/kelola/curhat',
     focused: true,
   },
-  '/kelola/acara': { title: nav.kelola, parent: '/kelola', legacy: true },
-  '/kelola/lomba': { title: nav.kelola, parent: '/kelola', legacy: true },
-  '/kelola/testi': { title: nav.kelola, parent: '/kelola', legacy: true },
+  '/kelola/acara': { title: nav.kelola, parent: '/kelola' },
+  '/kelola/lomba': { title: nav.kelola, parent: '/kelola' },
+  '/kelola/testi': { title: nav.kelola, parent: '/kelola' },
   // Profil: from the avatar on phones and tablets (back returns where you were), the sidebar's foot on desktop.
   '/profil': {
     title: nav.profil,

@@ -68,7 +68,7 @@ import { THEME_COLORS } from '~/lib/theme/theme-core.mjs';
 import { cn } from '~/lib/utils';
 import { badgeText, useNavBadges, type NavBadges } from './nav-badges';
 import { focusAfterNavigation } from './focus';
-import { LegacyScreen, OwnTitle, TopBarSlot } from './page';
+import { OwnTitle, TopBarSlot } from './page';
 import { openPalette, usePaletteOpen } from './palette/palette-store';
 import {
   entryAt,
@@ -206,9 +206,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 /**
- * The page area's height (the scrolling area below the top bar or the breadcrumbs) as --g-page-h on `root`, so
- * today's screens that fill "the screen" fill the space between the bars instead (shell.css). Also the sticky top
- * bar's height as --g-top-h, which the scrolling area keeps clear when it brings a focused control into view.
+ * The page area's height (the scrolling area below the top bar or the breadcrumbs) as --g-page-h on `root`, which
+ * Pengumuman's split view fills on desktop (pengumuman.css). Also the sticky top bar's height as --g-top-h, which
+ * the scrolling area keeps clear when it brings a focused control into view (shell.css).
  */
 function usePageHeight(
   root: HTMLElement | null,
@@ -252,13 +252,9 @@ function SkipLink() {
   );
 }
 
-/** The page itself; today's screens sit on their old light surface until their redesign replaces them. */
-function Page({ meta, children }: { meta: RouteMeta; children: ReactNode }) {
-  return meta.legacy ? (
-    <LegacyScreen className="g-page">{children}</LegacyScreen>
-  ) : (
-    <div className="g-page">{children}</div>
-  );
+/** The page itself. */
+function Page({ children }: { children: ReactNode }) {
+  return <div className="g-page">{children}</div>;
 }
 
 const searchProps = {
@@ -339,7 +335,7 @@ function Frame({
           {trail.length ? <Crumbs route={route} trail={trail} /> : null}
           <OwnTitle.Provider value={registerTitle}>
             <TopBarSlot.Provider value={desk ? null : slot}>
-              <Page meta={route.meta}>{children}</Page>
+              <Page>{children}</Page>
             </TopBarSlot.Provider>
           </OwnTitle.Provider>
         </main>
