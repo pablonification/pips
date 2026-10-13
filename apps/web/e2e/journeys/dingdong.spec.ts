@@ -162,4 +162,20 @@ test.describe('Ding Dong', () => {
     await api.setOffline(false);
     await expect(main(page).getByText(/^Offline/)).toHaveCount(0);
   });
+
+  test('regression: offline with a list from an earlier day, the banner gives the day too', async ({
+    page,
+    api,
+  }) => {
+    // P2-B review, finding 2: the list is kept for up to 7 days, and "Offline · diperbarui 13.35" read as today.
+    await page.goto('/layanan/dingdong');
+    await expect(folders(page)).toHaveCount(6);
+    await page.waitForLoadState('networkidle');
+    await page.clock.fastForward('24:00:00');
+    await api.setOffline(true);
+    await expect(
+      main(page).getByText(/^Offline · diperbarui Kam 8 Okt, 13\.3\d$/),
+    ).toBeVisible();
+    await api.setOffline(false);
+  });
 });

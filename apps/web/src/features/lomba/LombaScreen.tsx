@@ -18,10 +18,10 @@ import { IconTenggat } from '~/components/icons/tenggat';
 import { DeskHead, PageBody } from '~/components/shell/page';
 import { fill } from '~/copy/fill';
 import { lomba as copy } from '~/copy/lomba';
-import { hm } from '~/lib/dates';
 import { serviceById } from '~/lib/services';
 import { cn } from '~/lib/utils';
 import { NewTab, useOnline } from '~/features/layanan-svc/parts';
+import { offlineUpdatedAt } from '~/features/layanan-svc/updated';
 import { deadlineLine, isOpen, isUrgent, rupiah, withScheme } from './rules';
 import { competitionsQuery } from './queries';
 
@@ -132,7 +132,9 @@ export function LombaScreen() {
     content = (
       <>
         {online ? null : (
-          <OfflineBanner updatedAt={hm(list.dataUpdatedAt || now)} />
+          <OfflineBanner
+            updatedAt={offlineUpdatedAt(list.dataUpdatedAt || now, now)}
+          />
         )}
         {shown.length ? (
           <RuledList>

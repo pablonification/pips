@@ -15,7 +15,7 @@ import { ErrorState, OfflineBanner } from '~/components/garis';
 import { IconLanjut } from '~/components/icons/lanjut';
 import { IconLuar } from '~/components/icons/luar';
 import { common } from '~/copy/common';
-import { hm } from '~/lib/dates';
+import { offlineUpdatedAt } from './updated';
 
 const subscribe = (l: () => void) => {
   window.addEventListener('online', l);
@@ -122,7 +122,12 @@ export function Loaded<T>({
     return (
       <>
         {online ? null : (
-          <OfflineBanner updatedAt={hm(query.dataUpdatedAt || Date.now())} />
+          <OfflineBanner
+            updatedAt={offlineUpdatedAt(
+              query.dataUpdatedAt || Date.now(),
+              Date.now(),
+            )}
+          />
         )}
         {children(query.data)}
       </>
