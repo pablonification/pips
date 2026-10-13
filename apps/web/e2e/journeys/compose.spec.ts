@@ -47,8 +47,8 @@ test.describe('Nadia', () => {
     const c = await openComposer(page, testInfo);
     const nav = page.getByRole('navigation', { name: 'Navigasi utama' });
     if (isDesk(testInfo)) {
-      // The sidebar stays; the split is behind the dialog.
-      await expect(nav).toBeVisible();
+      // The sidebar stays in sight; the split is behind the dialog (both inert while it is open).
+      await expect(page.locator('.g-side')).toBeVisible();
       await expect(page.locator('.g-split')).toBeAttached();
     } else {
       // A focused flow: no tab bar or rail, back in the top bar.
@@ -139,7 +139,9 @@ test.describe('Nadia', () => {
       'aria-disabled',
       'true',
     );
-    await c.getByRole('button', { name: 'Umumkan' }).click();
+    // Playwright waits for an aria-disabled button to be enabled; force presses it while it is blocked.
+    await c.getByRole('button', { name: 'Umumkan' }).click({ force: true });
+    await expect(c.getByText('Tunggu fotonya selesai diunggah.')).toBeVisible();
     expect(api.calls('POST /api/info')).toHaveLength(0);
     await expect(c.locator('[data-photo="done"]')).toHaveCount(2, {
       timeout: 10_000,
@@ -147,7 +149,7 @@ test.describe('Nadia', () => {
     api.uploads.delayMs = 0;
     api.uploads.failNext = 1;
     await c.locator('input[type="file"]').setInputFiles([photo('c.png')]);
-    await expect(c.getByText('Gagal diunggah')).toBeVisible();
+    await expect(c.getByText('Gagal diunggah', { exact: true })).toBeVisible();
     await expect(
       c.getByText(
         'Ada foto yang gagal diunggah. Coba lagi atau hapus fotonya.',
@@ -199,7 +201,7 @@ test.describe('Nadia', () => {
       ).toHaveCount(0);
       await expect(page).toHaveURL(/\/pengumuman\/e2e-info-7$/);
       const row = page.locator('[data-post-row="e2e-info-7"]');
-      await expect(row).toHaveAttribute('aria-current', 'true');
+      await expect(row).toHaveAttribute('aria-current', 'page');
       await expectFocused(row);
     } else {
       await expect(page).toHaveURL(/\/pengumuman$/);
@@ -247,18 +249,23 @@ test.describe('Nadia', () => {
       .getByRole('checkbox', { name: 'Umum' })
       .click();
     await c.getByRole('button', { name: 'Umumkan' }).click();
-    await expect(
-      page.getByText('Pengumuman belum terkirim. Semua isianmu masih ada.'),
-    ).toBeVisible();
+    // The error is in the form, with Coba lagi beside it (reachable inside the desktop dialog).
+    await expect(c.getByRole('alert')).toHaveText(
+      /Pengumuman belum terkirim\. Semua isianmu masih ada\./,
+    );
+    await strictGates(page, testInfo, 'compose-send-failed');
     await expect(
       c.getByRole('textbox', { name: 'Isi pengumuman' }),
     ).toHaveValue('Kuis 2 dimajukan.');
     fail = false;
-    await page
-      .locator('.g-toast-region')
+    await c
+      .getByRole('alert')
       .getByRole('button', { name: 'Coba lagi' })
       .click();
     await expect.poll(() => api.calls('POST /api/info').length).toBe(2);
+    expect(api.calls('POST /api/info')[1].body).toEqual(
+      api.calls('POST /api/info')[0].body,
+    );
     await expect(
       toastText(page, 'Diumumkan. Notifikasi sedang dikirim.'),
     ).toBeVisible();

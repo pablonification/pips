@@ -69,9 +69,10 @@ test.describe('catching up (Nadia)', () => {
     if (isDesk(testInfo)) {
       // The row keeps focus; the list stays.
       await expectFocused(postInList(page, testInfo, 'p1'));
+      // Its URL is now the page's ("true" while it was only the default selection).
       await expect(postInList(page, testInfo, 'p1')).toHaveAttribute(
         'aria-current',
-        'true',
+        'page',
       );
     } else {
       // The post is the page: its title is the h1, and focus is on it.
@@ -154,7 +155,13 @@ test.describe('catching up (Nadia)', () => {
     });
 
     // Picking yours again removes it.
-    await changed.click();
+    const changedAgain = desk
+      ? changed
+      : card(page, P1).getByRole('button', {
+          name: 'Reaksimu Rayakan. 25 reaksi. Ganti reaksi',
+        });
+    await expectFocused(changedAgain);
+    await changedAgain.click();
     await picker.getByRole('button', { name: 'Rayakan' }).click();
     await expect
       .poll(() => api.calls('DELETE /api/reaction/info/p1').length)
@@ -480,7 +487,8 @@ test.describe('the author (Raka, admin)', () => {
     );
     await expect(locked).toHaveAttribute('aria-disabled', 'true');
     await strictGates(page, testInfo, 'menu-own');
-    await locked.click();
+    // Focusable while locked, and pressing it says why (Playwright waits for aria-disabled items, so force).
+    await locked.click({ force: true });
     await expect(
       toastText(
         page,
@@ -620,12 +628,29 @@ test.describe('deep links', () => {
     page,
   }, testInfo) => {
     await page.goto('/pengumuman/hilang');
-    await expect(page.getByText('Pengumuman tidak ditemukan')).toBeVisible();
+    // On phones and tablets the screen's own title (hidden: the top bar says Pengumuman); on desktop the list keeps
+    // the page's h1. Then the empty state.
+    if (!isDesk(testInfo))
+      await expect(
+        page.getByRole('heading', {
+          level: 1,
+          name: 'Pengumuman tidak ditemukan',
+        }),
+      ).toBeAttached();
+    await expect(
+      page
+        .getByRole('main')
+        .locator('p', { hasText: /^Pengumuman tidak ditemukan$/ }),
+    ).toBeVisible();
     await expect(
       page.getByText('Pengumuman ini sudah dihapus, atau bukan untukmu.'),
     ).toBeVisible();
     await strictGates(page, testInfo, 'not-found');
-    await page.getByRole('button', { name: 'Kembali ke Pengumuman' }).click();
+    // The empty state's button (phones and tablets also have the top bar's back, an icon with the same name).
+    await page
+      .getByRole('button', { name: 'Kembali ke Pengumuman' })
+      .filter({ hasText: 'Kembali ke Pengumuman' })
+      .click();
     await expect(page).toHaveURL(/\/pengumuman$/);
     await expect(postInList(page, testInfo, 'p1')).toBeVisible();
   });
@@ -702,7 +727,7 @@ test.describe('states', () => {
     db,
     api,
   }, testInfo) => {
-    const base = db.infos[6];
+    const base = db.infos[0];
     db.infos = Array.from({ length: 23 }, (_, i) => ({
       ...base,
       id: `x${i}`,
