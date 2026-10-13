@@ -246,6 +246,12 @@ test('no way in while closed: not in search; the old address still lands here', 
   page,
 }) => {
   await page.goto('/layanan/form');
+  // The shortcut works once the app has drawn the page; the load event can come first (as shell.spec.ts waits).
+  await expect(
+    page
+      .getByRole('heading', { level: 1, name: 'Form' })
+      .locator('visible=true'),
+  ).toBeVisible();
   await page.keyboard.press('ControlOrMeta+k');
   const palette = page.getByRole('dialog', { name: 'Pencarian global' });
   await palette.getByRole('combobox').fill('sparta');
