@@ -207,6 +207,8 @@ export function PostRow({
           to="/pengumuman/$id"
           params={{ id: info.id }}
           search={search}
+          // Current only on its own post (the row's highlight follows aria-current="page").
+          activeOptions={{ exact: true }}
           data-post-row={info.id}
           onClick={() => onOpen(info.id)}
         >
