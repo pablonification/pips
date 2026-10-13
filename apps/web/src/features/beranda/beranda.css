@@ -250,6 +250,9 @@
     height: 8px;
     background: currentColor;
     flex: none;
+    /* The prototype's `.live i` blinks four times (garis.css), Dev 1's decision over the brief's rule 8 (review m8).
+       Reduced motion stops it, as every animation (base.css). */
+    animation: g-blink 1s step-end 4;
   }
 
   /* ============ Desktop: two columns, Pintasan ============ */

@@ -126,3 +126,16 @@ test('tablets: the tiles in one row of eight; the narrowest phones: seven 44 px 
     /@media \(max-width: 340px\)[\s\S]*\.g-att > \.g-btn\s*\{\s*margin-left:\s*50px;/,
   );
 });
+
+// Review m8, Dev 1's decision: the Live Counting mark blinks four times like the prototype's `.live i`
+// (garis.css: `animation: blink 1s step-end 4`), and reduced motion stops it with every other animation.
+test('beranda: the Live Counting mark blinks four times, as the prototype', () => {
+  const rule = FILES.beranda.match(/\.g-live i \{([^}]*)\}/);
+  assert.ok(rule, '.g-live i exists');
+  assert.match(rule[1], /animation:\s*g-blink 1s step-end 4;/);
+  const base = read('src/styles/garis/base.css');
+  assert.match(
+    base,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*?animation: none !important/,
+  );
+});
