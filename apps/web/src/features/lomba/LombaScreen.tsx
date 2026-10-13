@@ -21,7 +21,7 @@ import { lomba as copy } from '~/copy/lomba';
 import { serviceById } from '~/lib/services';
 import { cn } from '~/lib/utils';
 import { NewTab, useOnline } from '~/features/layanan-svc/parts';
-import { TambahLomba } from '~/features/kelola-lomba/Manage';
+import { LombaOptions, TambahLomba } from '~/features/kelola-lomba/Manage';
 import { offlineUpdatedAt } from '~/features/layanan-svc/updated';
 import { deadlineLine, isOpen, isUrgent, rupiah, withScheme } from './rules';
 import { competitionsQuery } from './queries';
@@ -32,9 +32,12 @@ function LombaCard({ c, now }: { c: Competition; now: number }) {
   return (
     <li className="g-lomba">
       {/* Focusable from code: after Muat lagi, focus moves to the first competition that arrived. */}
-      <h2 className="t-sub" tabIndex={-1}>
-        {c.name}
-      </h2>
+      <div className="g-lomba-head">
+        <h2 className="t-sub" tabIndex={-1}>
+          {c.name}
+        </h2>
+        <LombaOptions competition={c} />
+      </div>
       <p className="t-cap text-fg-2">{c.organizer}</p>
       {c.categories.length ? (
         <div className="g-lomba-cats">

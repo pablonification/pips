@@ -1,14 +1,26 @@
 /**
  * Info Lomba's management for `cnc` (a proposal; FEATURES.md gap 3): Tambah lomba in P2-B's page-header slot, a
- * gold small button like `addEvBtn`. After adding, the list is fetched again (P2-B's `competitions` key), the toast
- * shows and focus goes to the page title. Nobody else sees it; the server checks the role too. The dialog's code
- * loads only when it opens.
+ * gold small button like `addEvBtn`; Ubah lomba and Hapus lomba in a `menuBtn`-style button on each card. After a
+ * change, the list is fetched again (P2-B's `competitions` key), the toast shows and focus goes to the page title.
+ * Nobody else sees them; the server checks the role too. The dialog's code loads only when it opens.
  */
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useRef, useState } from 'react';
-import { Button, toast } from '~/components/garis';
+import { api } from '~/api/client';
+import type { Competition } from '~/api/generated';
+import {
+  Button,
+  ConfirmDialog,
+  IconButton,
+  Menu,
+  MenuItem,
+  toast,
+} from '~/components/garis';
+import { IconHapus } from '~/components/icons/hapus';
+import { IconLainnya } from '~/components/icons/lainnya';
 import { IconTambah } from '~/components/icons/tambah';
 import { focusPageTitle } from '~/components/shell/focus';
+import { fill } from '~/copy/fill';
 import { kelolaLomba as t } from '~/copy/kelola-lomba';
 import useSession from '~/hooks/auth/useSession';
 import { can } from '~/lib/capabilities';
@@ -64,6 +76,82 @@ export function TambahLomba() {
           />
         </Suspense>
       ) : null}
+    </>
+  );
+}
+
+/** For `cnc`: "Opsi untuk {name}" at the card's top right, with Ubah lomba and Hapus lomba (danger). */
+export function LombaOptions({ competition }: { competition: Competition }) {
+  const user = useSession();
+  if (!can(user, 'manageCompetition')) return null;
+  return <Options c={competition} />;
+}
+
+function Options({ c }: { c: Competition }) {
+  const [open, setOpen] = useState<'ubah' | 'hapus' | null>(null);
+  const after = useAfterSave();
+  const remove = useMutation({
+    mutationFn: () =>
+      api.competitions.deleteCompetition({ competitionId: c.id }),
+  });
+
+  return (
+    <>
+      <Menu
+        trigger={
+          <IconButton label={fill(t.opsi, { nama: c.name })} size="sm">
+            <IconLainnya size={20} />
+          </IconButton>
+        }
+      >
+        <MenuItem onSelect={() => setOpen('ubah')}>{t.ubah}</MenuItem>
+        <MenuItem
+          danger
+          icon={<IconHapus size={20} />}
+          onSelect={() => setOpen('hapus')}
+        >
+          {t.hapus}
+        </MenuItem>
+      </Menu>
+      {open === 'ubah' ? (
+        <Suspense fallback={null}>
+          <LombaDialog
+            competition={c}
+            onOpenChange={(o) => {
+              if (!o) setOpen(null);
+            }}
+            onSaved={() => {
+              after.done(t.diperbarui);
+              setOpen(null);
+            }}
+            onFailed={(e) => reportWriteFailure(e, after.qc)}
+            onCloseAutoFocus={after.onCloseAutoFocus}
+          />
+        </Suspense>
+      ) : null}
+      <ConfirmDialog
+        open={open === 'hapus'}
+        onOpenChange={(o) => {
+          if (!o && !remove.isPending) setOpen(null);
+        }}
+        title={t.hapusJudul}
+        cancelLabel={t.batal}
+        confirmLabel={t.hapusTombol}
+        danger
+        onConfirm={() => {
+          if (remove.isPending) return;
+          remove.mutate(undefined, {
+            onSuccess: () => {
+              after.done(t.dihapus);
+              setOpen(null);
+            },
+            onError: (e) => reportWriteFailure(e, after.qc),
+          });
+        }}
+        onCloseAutoFocus={after.onCloseAutoFocus}
+      >
+        {fill(t.hapusIsi, { nama: c.name })}
+      </ConfirmDialog>
     </>
   );
 }

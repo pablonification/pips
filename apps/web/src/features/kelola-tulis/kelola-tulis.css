@@ -13,4 +13,14 @@
     grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: 14px;
   }
+  /* Info Lomba's card for cnc: its options button at the top right, beside the name. */
+  .g-lomba-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .g-lomba-head > h2 {
+    flex: 1;
+    min-width: 0;
+  }
 }
