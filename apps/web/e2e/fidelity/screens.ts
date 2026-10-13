@@ -28,7 +28,6 @@ type Key = `anggota-${string}` | `pengurus-${string}`;
 
 export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
   // Today's app (before the redesign).
-  'anggota-beranda': { path: '/', ready: (p) => visibleText(p, 'Kuis 2') },
   'anggota-pengumuman': {
     path: '/pengumuman',
     ready: (p) => visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar'),
@@ -37,10 +36,6 @@ export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
     path: '/pengumuman/p1',
     mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
     ready: (p) => visibleText(p, 'Kak, IF2123 K01 sama K02 ruangnya beda ya?'),
-  },
-  'anggota-kalender': {
-    path: '/kalender',
-    ready: (p) => visibleText(p, 'Sharing Session: Magang di Startup'),
   },
   'anggota-dingdong': {
     path: '/layanan/dingdong',
@@ -91,5 +86,61 @@ export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
   'pengurus-form-empty': {
     path: '/layanan/form',
     ready: (p) => visibleText(p, 'Belum ada form untuk kamu'),
+  },
+
+  // P1-A: Beranda and Kalender, ready once every section has its data.
+  'anggota-beranda': {
+    path: '/',
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .filter({ has: p.getByText('IF2123 Aljabar Linier dan Geometri') })
+        .filter({ has: p.getByText('Notifikasi belum menyala') })
+        .filter({ has: p.getByText('PIXEL, isi Form Analisis Kondisi ya!') }),
+  },
+  'pengurus-beranda': {
+    path: '/',
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .filter({ has: p.getByText('IF3170 Inteligensi Buatan') })
+        .filter({ has: p.getByText('Deadline Tugas Besar 1 · IF3110') })
+        .filter({ has: p.getByText('Cari tim Gemastik XIX? Isi form ini') })
+        .filter({ has: p.getByText('142', { exact: true }) }),
+  },
+  'anggota-kalender': {
+    path: '/kalender',
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .filter({ has: p.getByText('IF2123 Aljabar Linier dan Geometri') })
+        .filter({ has: p.getByText('UTS').first() }),
+  },
+  'pengurus-kalender': {
+    path: '/kalender',
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .filter({ has: p.getByText('IF3170 Inteligensi Buatan') })
+        .filter({ has: p.getByText('UTS').first() }),
+  },
+  // Kuis 2's sheet over Kalender on phones and tablets; desktop's locked capture is the plain Kalender.
+  'anggota-ov-event': {
+    path: '/kalender',
+    act: async (page) => {
+      if (page.viewportSize()!.width >= 1024) return;
+      await page
+        .getByRole('main')
+        .getByRole('button', { name: /^15\.00.*Kuis 2/ })
+        .click();
+    },
+    ready: (p) =>
+      p.viewportSize()!.width >= 1024
+        ? p
+            .getByRole('main')
+            .filter({ has: p.getByText('Determinan dan balikan matriks.') })
+        : p
+            .getByRole('dialog', { name: 'Detail acara' })
+            .filter({ has: p.getByText('Determinan dan balikan matriks.') }),
   },
 };

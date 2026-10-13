@@ -10,7 +10,56 @@ import { expect, test } from '../support/test';
 import type { CaptureState } from '../capture/states';
 
 /** States with committed references. Same shape as capture/states.ts. */
-export const VISUAL_STATES: CaptureState[] = [];
+export const VISUAL_STATES: CaptureState[] = [
+  // P1-A: Beranda's and Kalender's main views, the event sheet and search.
+  {
+    id: 'beranda',
+    title: 'Beranda',
+    path: '/',
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .filter({ has: p.getByText('IF2123 Aljabar Linier dan Geometri') })
+        .filter({ has: p.getByText('Notifikasi belum menyala') })
+        .filter({ has: p.getByText('PIXEL, isi Form Analisis Kondisi ya!') }),
+  },
+  {
+    id: 'kalender',
+    title: 'Kalender',
+    path: '/kalender',
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .filter({ has: p.getByText('IF2123 Aljabar Linier dan Geometri') })
+        .filter({ has: p.getByText('UTS').first() }),
+  },
+  {
+    id: 'kalender-event-sheet',
+    title: 'Kalender, Deadline Tugas Besar 1 open',
+    only: 'phone',
+    path: '/kalender?hari=2026-10-09&acara=a3',
+    ready: (p) =>
+      p.getByRole('dialog', { name: 'Detail acara' }).filter({
+        has: p.getByText('Kumpulkan di Edunex. Satu kelompok tiga orang.'),
+      }),
+  },
+  {
+    id: 'search-start',
+    title: 'Global search, nothing typed',
+    path: '/',
+    act: async (page) => {
+      await page
+        .getByRole('main')
+        .filter({ has: page.getByText('PIXEL, isi Form Analisis Kondisi ya!') })
+        .waitFor();
+      await page.keyboard.press('ControlOrMeta+k');
+    },
+    ready: (p) =>
+      p
+        .getByRole('dialog', { name: 'Pencarian global' })
+        .filter({ has: p.getByRole('option', { name: /^Bayar Kas!/ }) }),
+  },
+];
 
 for (const state of VISUAL_STATES) {
   test.describe(state.id, () => {
