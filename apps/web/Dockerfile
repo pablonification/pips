@@ -15,9 +15,12 @@ COPY --from=prune /repo/out/full/ .
 ARG VITE_API_URL
 ARG VITE_GOOGLE_CLIENT_ID
 ARG VITE_VAPID_KEY
+# The API's R2_PUBLIC_URL: only files there become links in Data SPARTA Magang. Optional.
+ARG VITE_MEDIA_URL
 ENV VITE_API_URL=$VITE_API_URL \
     VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID \
-    VITE_VAPID_KEY=$VITE_VAPID_KEY
+    VITE_VAPID_KEY=$VITE_VAPID_KEY \
+    VITE_MEDIA_URL=$VITE_MEDIA_URL
 RUN turbo run build --filter=web
 
 FROM caddy:2-alpine

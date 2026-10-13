@@ -17,6 +17,7 @@ import { DeskHead, PageBody, usePageTitle } from '~/components/shell/page';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
 import { kelola as copy } from '~/copy/kelola';
+import { fileHref, MEDIA_BASE } from '~/lib/file-link';
 import { useRoleLoss } from './KelolaGate';
 import { SpartaStatusTag } from './parts';
 import { spartaSubmissionByIdQuery } from './queries';
@@ -151,14 +152,17 @@ export function SpartaDetail({ submissionId }: { submissionId: string }) {
                       const answer = choice.answers.find(
                         (a) => a.questionId === q.id,
                       )?.answer;
+                      // A member typed this; only a safe http(s) address in the app's storage becomes a link.
+                      const href =
+                        q.type === 'file' ? fileHref(answer, MEDIA_BASE) : null;
                       return (
                         <div key={q.id} className="grid gap-1">
                           <dt className="t-label">{q.label}</dt>
                           <dd className="g-pre t-sm text-fg-2">
-                            {q.type === 'file' && answer ? (
+                            {href ? (
                               <a
                                 className="g-link in-text"
-                                href={answer}
+                                href={href}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
