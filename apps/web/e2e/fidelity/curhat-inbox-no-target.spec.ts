@@ -121,9 +121,5 @@ test('the pin menu', async ({ page }) => {
 
 test('Layanan for a Welfare member (open question 6)', async ({ page }) => {
   await page.goto('/layanan');
-  await shot(
-    page,
-    'layanan',
-    main(page).locator('a[href="/kelola/curhat"]'),
-  );
+  await shot(page, 'layanan', main(page).locator('a[href="/kelola/curhat"]'));
 });
