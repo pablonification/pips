@@ -1,92 +1,9 @@
-import {
-  Link,
-  Outlet,
-  createFileRoute,
-  useRouter,
-  useRouterState,
-} from '@tanstack/react-router';
-import { ChevronLeft } from 'lucide-react';
-import { Button } from '~/components/ui/button';
-import useLogout from '~/hooks/auth/useLogout';
-import {
-  desktopSettingsOptions,
-  settingsOptions,
-} from './profil/-config/settings-options';
+import { Outlet, createFileRoute } from '@tanstack/react-router';
 
+/*
+ * Profil's pages are the redesign's (P1-C) and lay themselves out inside the shell. Today's settings layout and its
+ * pieces (-components/settings-*, -config) are left for C1 to delete.
+ */
 export const Route = createFileRoute('/_app/_left-navbar/profil')({
-  component: SettingsLayout,
+  component: Outlet,
 });
-
-/** Profil pages already redesigned (P1-C): they render on their own, without today's settings layout. */
-export const REDESIGNED_PROFIL = ['/profil/notifikasi'];
-
-function SettingsLayout() {
-  const routerState = useRouterState();
-  if (REDESIGNED_PROFIL.includes(routerState.location.pathname))
-    return <Outlet />;
-  return <TodaySettingsLayout />;
-}
-
-function TodaySettingsLayout() {
-  const router = useRouter();
-  const routerState = useRouterState();
-  const selectedSettings = settingsOptions.find((option) =>
-    routerState.location.pathname.startsWith(option.href),
-  );
-  const { logout } = useLogout();
-  return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <div className="flex-1 overflow-hidden bg-green-50">
-        <div className="mx-auto mb-10 flex h-full max-w-(--breakpoint-lg) flex-col lg:px-8">
-          <h1 className="my-6 hidden items-center space-x-12 text-heading-lg font-bold lg:flex">
-            {selectedSettings && (
-              <button
-                onClick={() => {
-                  router.history.back();
-                }}
-              >
-                <ChevronLeft className="size-8" />
-              </button>
-            )}
-            <span>{selectedSettings?.title ?? 'Profile'}</span>
-          </h1>
-          <div className="flex flex-1 overflow-hidden lg:rounded-xl lg:bg-white lg:shadow-lg">
-            <div className="hidden w-72 flex-col border-r border-neutral-normal-active py-9 lg:flex">
-              {desktopSettingsOptions.map((option) => (
-                <Link
-                  to={option.href}
-                  className="flex items-center gap-9 p-3 pl-6 text-body-lg font-bold"
-                  activeProps={{
-                    className: 'bg-green-50',
-                  }}
-                  activeOptions={{
-                    exact: option.href === '/profil',
-                  }}
-                  key={option.title}
-                >
-                  <img
-                    src={option.icon}
-                    alt={option.title}
-                    aria-hidden="true"
-                  />
-                  <span>{option.title}</span>
-                </Link>
-              ))}
-              <div className="flex-1" />
-              <Button
-                variant={'link'}
-                className="w-full text-[#FF3B30]"
-                onClick={() => logout()}
-              >
-                Log out
-              </Button>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <Outlet />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}

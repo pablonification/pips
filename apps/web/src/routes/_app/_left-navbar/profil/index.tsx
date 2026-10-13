@@ -1,16 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import SettingsDekstop from './-components/settings-desktop';
-import SettingsMobile from './-components/settings-mobile';
+import { ProfilScreen } from '~/features/profil/ProfilScreen';
 
 export const Route = createFileRoute('/_app/_left-navbar/profil/')({
-  component: SettingsIndex,
+  component: ProfilScreen,
 });
-
-function SettingsIndex() {
-  return (
-    <>
-      <SettingsMobile />
-      <SettingsDekstop />
-    </>
-  );
-}
