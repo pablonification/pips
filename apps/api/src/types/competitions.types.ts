@@ -69,7 +69,7 @@ export const UpdateCompetitionBodySchema = createInsertSchema(competitions, {
   registrationUrl: z.string().openapi({
     example: 'https://example.com',
   }),
-  price: z.string().min(3, { message: 'Price must be at least 3 characters' }),
+  // The same price as create: a string or null, so a free competition ("0" or null) can be edited too (C5).
   categories: CompetitionCategoriesSchema,
 })
   .extend({
