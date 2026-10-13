@@ -120,6 +120,12 @@ export const PROPER_NOUNS = [
   'H-1',
 ] as const;
 
+/**
+ * Other products' names that contain a banned word (P1-A: the event detail's "Google Calendar" button, as the
+ * prototype's `evInfo` words it). The phrase as a whole is allowed; the banned word alone still isn't.
+ */
+export const PRODUCT_NAMES = ['Google Calendar'] as const;
+
 /** All-capitals words the app may show. Anything else in capitals is capitals the app added itself. */
 export const ACRONYMS = [
   'PIPS',
