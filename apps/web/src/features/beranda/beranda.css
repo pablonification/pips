@@ -3,7 +3,7 @@
   Kelola card and desktop's two columns. Ported from the prototype's garis/garis.css (`.home-body`, `.agenda`,
   `.ag-*`, `.tiles`, `.tile-btn`, `.home-card`, `.att`, `.item.brief`, `.svc-grid`, `.svc`, `.live`, `.d-grid`,
   `.stack`, the `draw` keyframes, and the tablet and 340 px rules) with the `g-` prefix, values unchanged. Tokens only;
-  loaded with Beranda. tests/beranda-css.test.mjs checks it.
+  part of the app's one stylesheet (vite.config.ts). tests/beranda-kalender-css.test.mjs checks it.
 */
 @layer components {
   /* ============ Phones and tablets: the body under the gold header ============ */

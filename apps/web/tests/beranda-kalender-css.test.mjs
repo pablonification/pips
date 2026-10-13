@@ -11,6 +11,26 @@ const read = (rel) =>
   fs
     .readFileSync(path.resolve(import.meta.dirname, '..', rel), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '');
+// Review m10: a header named a test file that doesn't exist. Every `tests/…` a header names must be there.
+test('the styles’ headers name test files that exist', () => {
+  for (const rel of [
+    'src/features/beranda/beranda.css',
+    'src/features/kalender/kalender.css',
+  ]) {
+    const raw = fs.readFileSync(
+      path.resolve(import.meta.dirname, '..', rel),
+      'utf8',
+    );
+    const named = [...raw.matchAll(/\btests\/[\w.-]+/g)].map((m) => m[0]);
+    assert.ok(named.length > 0, `${rel} names its test`);
+    for (const t of named)
+      assert.ok(
+        fs.existsSync(path.resolve(import.meta.dirname, '..', t)),
+        `${rel} names ${t}`,
+      );
+  }
+});
+
 const FILES = {
   beranda: read('src/features/beranda/beranda.css'),
   kalender: read('src/features/kalender/kalender.css'),

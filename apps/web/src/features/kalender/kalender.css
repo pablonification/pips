@@ -2,7 +2,7 @@
   Kalender (P1-A) and the calendar marks Beranda's agenda card shares: ported from the prototype's garis/garis.css
   (`.mbars`, `.agenda-item`, `.kbar`, `.legend`, `.month`, `.mday`, `.cal-head`, `.dmonth`, `.dcell`, `.dchip`,
   `.dmore`, `.cal-split`, `.cal-side`, `.ev-info`, the 340 px phone rule) with the `g-` prefix, values unchanged.
-  Tokens only; loaded with Beranda and Kalender. tests/kalender-css.test.mjs checks it.
+  Tokens only; part of the app's one stylesheet (vite.config.ts). tests/beranda-kalender-css.test.mjs checks it.
 */
 @layer components {
   /* ============ A day's bars (the strip, the phone month) ============ */
