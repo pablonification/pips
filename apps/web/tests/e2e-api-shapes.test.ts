@@ -271,3 +271,28 @@ test('admin endpoints answer 401 without the role, as roleMiddleware', () => {
     assert.equal(call(get(route), people, opts).status, undefined, route);
   }
 });
+
+// Harness bug (P3-A): SPARTA's submissions came 50 a page; the API pages by 20 (SUBMISSIONS_PER_PAGE), oldest first.
+test('SPARTA submissions page by 20, as the API', () => {
+  const db = buildDb('pengurus');
+  const base = db.internshipSubmissions[0];
+  db.internshipSubmissions = Array.from({ length: 25 }, (_, i) => ({
+    ...base,
+    id: `sub-${i}`,
+  }));
+  const page = (offset: number) =>
+    (
+      call(get('/api/internship/submissions'), db, {
+        query: `offset=${offset}`,
+      }) as unknown as { submissions: { id: string }[] }
+    ).submissions.map((s) => s.id);
+  assert.equal(page(0).length, 20);
+  assert.deepEqual(page(20), [
+    'sub-20',
+    'sub-21',
+    'sub-22',
+    'sub-23',
+    'sub-24',
+  ]);
+  assert.deepEqual(page(40), []);
+});

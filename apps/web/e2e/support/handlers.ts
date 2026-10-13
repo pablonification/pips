@@ -439,7 +439,7 @@ export const defaultHandlers: Record<string, Handler> = {
     );
     const offset = Number(query.get('offset') ?? 0);
     return ok<R<InternshipService['listInternshipSubmissions']>>({
-      submissions: list.slice(offset, offset + 50),
+      submissions: list.slice(offset, offset + SUBMISSIONS_PER_PAGE),
     });
   }),
   'GET /api/internship/submissions/:id': withRole(
