@@ -168,17 +168,76 @@ test.describe('Info Lomba', () => {
       await expect.poll(async () => (await names(page)).length).toBe(10);
       expect(offsets(api)).toEqual(['0']);
       const more = main(page).getByRole('button', { name: 'Muat lagi' });
-      // Scrolling the list's end into view loads more by itself; the button does the same when pressed.
+      // Scrolling the list's end into view loads more by itself; the button does the same, from the keyboard.
       if (how === 'scroll') await more.scrollIntoViewIfNeeded();
-      else await more.click();
+      else {
+        await more.focus();
+        await page.keyboard.press('Enter');
+      }
       await expect.poll(async () => (await names(page)).length).toBe(12);
       expect(offsets(api)).toEqual(['0', '10']);
       // The second page was short: no more to ask for.
       await expect(more).toHaveCount(0);
+      // Regression (P2-B review, finding 1): the button went away with focus on it, dropping keyboard users to the
+      // page's start. Focus moves to the first competition that just arrived.
+      if (how === 'Muat lagi')
+        await expect(
+          main(page).getByRole('heading', { level: 2, name: 'Lomba 11' }),
+        ).toBeFocused();
       await page.waitForTimeout(500);
       expect(offsets(api)).toEqual(['0', '10']);
     });
   }
+
+  test('regression: when the next page fails, focus moves from Muat lagi to Coba lagi, then to what arrives', async ({
+    page,
+    api,
+    db,
+    context,
+  }) => {
+    await context.addInitScript(() => {
+      window.IntersectionObserver = class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
+          return [];
+        }
+      } as unknown as typeof IntersectionObserver;
+    });
+    const base = db.competitions[0];
+    const all = Array.from({ length: 12 }, (_, i) =>
+      competition(
+        base,
+        `m${i + 1}`,
+        `Lomba ${String(i + 1).padStart(2, '0')}`,
+        `2026-11-${String(i + 1).padStart(2, '0')}T16:59:00Z`,
+      ),
+    );
+    let fail = true;
+    api.on('GET /api/competitions', ({ query }) => {
+      const offset = Number(query.get('offset') ?? 0);
+      if (offset > 0 && fail) return reply.status(503);
+      return { competitions: all.slice(offset, offset + 10) };
+    });
+    await page.goto('/layanan/lomba');
+    await expect.poll(async () => (await names(page)).length).toBe(10);
+    await main(page).getByRole('button', { name: 'Muat lagi' }).focus();
+    await page.keyboard.press('Enter');
+    const retry = main(page).getByRole('button', { name: 'Coba lagi' });
+    await expect(
+      main(page).getByText('Lomba berikutnya gagal dimuat.'),
+    ).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(retry).toBeFocused();
+    fail = false;
+    await page.keyboard.press('Enter');
+    await expect.poll(async () => (await names(page)).length).toBe(12);
+    await expect(
+      main(page).getByRole('heading', { level: 2, name: 'Lomba 11' }),
+    ).toBeFocused();
+  });
 
   test('nothing open: says so', async ({ page, db }, testInfo) => {
     db.competitions = [];

@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
 import type { Competition } from '~/api/generated';
 import {
@@ -30,7 +30,10 @@ function LombaCard({ c, now }: { c: Competition; now: number }) {
   const deadline = c.registrationDeadline || null;
   return (
     <li className="g-lomba">
-      <h2 className="t-sub">{c.name}</h2>
+      {/* Focusable from code: after Muat lagi, focus moves to the first competition that arrived. */}
+      <h2 className="t-sub" tabIndex={-1}>
+        {c.name}
+      </h2>
       <p className="t-cap text-fg-2">{c.organizer}</p>
       {c.categories.length ? (
         <div className="g-lomba-cats">
@@ -111,6 +114,40 @@ export function LombaScreen() {
     .flat()
     .filter((c) => isOpen(c.registrationDeadline, now));
 
+  // Keyboard users keep their place (P2-B review, finding 1): when a load started by Muat lagi (or the next page's
+  // Coba lagi) ends and the button that had focus is gone, focus goes to the first competition that arrived, to
+  // Coba lagi when it failed, or back to Muat lagi when more remain. Loads started by scrolling move nothing.
+  const bodyId = useId();
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const pressedAt = useRef<number | null>(null);
+  const loadMore = () => {
+    pressedAt.current ??= shown.length;
+    void fetchNextPage();
+  };
+  const { isFetchingNextPage, isFetchNextPageError } = list;
+  useEffect(() => {
+    const from = pressedAt.current;
+    if (from === null || isFetchingNextPage) return;
+    const lost =
+      !document.activeElement || document.activeElement === document.body;
+    const body = document.getElementById(bodyId);
+    if (isFetchNextPageError) {
+      if (lost)
+        body
+          ?.querySelector<HTMLButtonElement>('[role="alert"] button')
+          ?.focus();
+      return;
+    }
+    pressedAt.current = null;
+    if (!lost) return;
+    if (hasNextPage) {
+      moreRef.current?.focus();
+      return;
+    }
+    const titles = body?.querySelectorAll<HTMLElement>('.g-lomba h2') ?? [];
+    (titles[from] ?? titles[titles.length - 1])?.focus();
+  }, [bodyId, isFetchingNextPage, isFetchNextPageError, hasNextPage]);
+
   let content;
   if (!pages) {
     content =
@@ -149,17 +186,18 @@ export function LombaScreen() {
           <ErrorState
             title={copy.gagalBerikutnya}
             text={online ? undefined : copy.periksaKoneksi}
-            onRetry={() => void fetchNextPage()}
+            onRetry={loadMore}
             retrying={online && list.isFetchingNextPage}
           />
         ) : hasNextPage ? (
           <div ref={endRef} className="flex justify-center">
             <Button
+              ref={moreRef}
               variant="paper"
               size="sm"
               aria-disabled={list.isFetchingNextPage || undefined}
               onClick={() => {
-                if (!list.isFetchingNextPage) void fetchNextPage();
+                if (!list.isFetchingNextPage) loadMore();
               }}
             >
               {copy.muatLagi}
@@ -173,7 +211,9 @@ export function LombaScreen() {
   return (
     <>
       <DeskHead title={serviceById('lomba').label} />
-      <PageBody className="gap-2.5">{content}</PageBody>
+      <PageBody id={bodyId} className="gap-2.5">
+        {content}
+      </PageBody>
     </>
   );
 }
