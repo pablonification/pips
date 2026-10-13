@@ -349,6 +349,19 @@
     height: 40px;
     font-size: 13px;
   }
+  /* A photo over the initials: they show while it loads and stay if it fails. */
+  .g-avatar:has(> .g-avatar-photo) {
+    position: relative;
+    overflow: hidden;
+  }
+  .g-avatar-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+  }
 
   /* ============ Lists and surfaces ============ */
   .g-ruled-list > li + li {

@@ -83,11 +83,12 @@ export default defineConfig([
       'garis/no-transition-all': 'error',
       'garis/no-img-icon': [
         'error',
-        // The logo is only ever the official image; Media is the one way to show a picture.
+        // The logo is only ever the official image; Media shows a picture, Avatar a person's photo.
         {
           allow: [
             'src/components/garis/HmifLogo.tsx',
             'src/components/garis/Surface.tsx',
+            'src/components/garis/Avatar.tsx',
           ],
         },
       ],

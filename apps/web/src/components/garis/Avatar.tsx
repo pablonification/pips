@@ -1,9 +1,11 @@
-import type { ButtonHTMLAttributes, Ref } from 'react';
+import { useState, type ButtonHTMLAttributes, type Ref } from 'react';
 import { cn } from '~/lib/utils';
 
 export interface AvatarProps {
   /** One or two letters. */
   initials: string;
+  /** The person's photo, when they have one: it covers the initials once it loads, and they stay if it fails. */
+  picture?: string | null;
   /** round: other people (muted); square: you (gold keycap, as in the top bar and sidebar). */
   shape?: 'round' | 'square';
   size?: 'sm' | 'md' | 'lg';
@@ -23,16 +25,33 @@ const classes = (
     className,
   );
 
-/** A person's initials (garis.css `.avatar`). Decorative: the name is always written next to it. */
+/**
+ * A person's initials (garis.css `.avatar`), or their photo when there is one and it loads. Decorative: the name is
+ * always written next to it.
+ */
 export function Avatar({
   initials,
+  picture,
   shape = 'round',
   size = 'md',
   className,
 }: AvatarProps) {
+  const [failed, setFailed] = useState<string | null>(null);
+  const photo = picture && picture !== failed ? picture : null;
   return (
     <span className={classes(shape, size, className)} aria-hidden="true">
       {initials}
+      {photo ? (
+        <img
+          className="g-avatar-photo"
+          src={photo}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(photo)}
+        />
+      ) : null}
     </span>
   );
 }

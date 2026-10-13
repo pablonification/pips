@@ -6,6 +6,7 @@
  */
 import type { Page, TestInfo } from '@playwright/test';
 import type { NimFinderResult } from '../../src/api/generated';
+import { avatarUrl } from '../fixtures/api';
 import { layoutOf } from '../support/app';
 import { reply } from '../support/mock';
 import { strictAudit, strictGates } from '../support/strict';
@@ -379,6 +380,45 @@ test.describe('NIM Finder', () => {
     ]);
     await expect(page).toHaveURL(/\/layanan\/nim\?q=rak$/);
     await strictGates(page, testInfo, 'nim', 'Layanan');
+  });
+
+  test('a row shows the member’s photo when it loads, and their initials otherwise', async ({
+    page,
+    api,
+  }, testInfo) => {
+    // Dev 1's decision (P2-B round 2): the photo through the Garis Avatar, initials when there's none or it fails.
+    api.on('GET /api/user/nim', () => [
+      {
+        fullName: 'Raka Pratama',
+        nim: '13524087',
+        major: 'IF',
+        picture: avatarUrl('13524087'),
+      },
+      {
+        fullName: 'Rakai Prasetyo',
+        nim: '18225019',
+        major: 'STI',
+        picture: '/__e2e__/avatar/hilang.png',
+      },
+      { fullName: 'Raka Wijaya', nim: '13523001', major: 'IF', picture: null },
+    ]);
+    await page.goto('/layanan/nim?q=rak');
+    const row = (nim: string) =>
+      main(page).getByRole('button', {
+        name: new RegExp(`^Salin NIM ${nim},`),
+      });
+    const photo = row('13524087').locator('img');
+    await expect(photo).toBeVisible();
+    await expect
+      .poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth))
+      .toBeGreaterThan(0);
+    await expect(photo).toHaveAttribute('alt', '');
+    // A photo that fails to load leaves the initials; no photo at all shows them too.
+    await expect(row('18225019').locator('img')).toHaveCount(0);
+    await expect(row('18225019')).toContainText('RP');
+    await expect(row('13523001').locator('img')).toHaveCount(0);
+    await expect(row('13523001')).toContainText('RW');
+    await strictAudit(page, testInfo, 'nim-photos');
   });
 
   test('a row copies its NIM and says so', async ({ page, context }) => {

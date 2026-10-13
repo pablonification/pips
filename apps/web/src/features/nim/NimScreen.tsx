@@ -43,7 +43,7 @@ function MemberRow({ m }: { m: NimFinderResult }) {
         onClick={() => void copyNim(m)}
       >
         <span className="g-svc-row">
-          <Avatar initials={initialsOf(m.fullName)} />
+          <Avatar initials={initialsOf(m.fullName)} picture={m.picture} />
           <span className="min-w-0 flex-1">
             <span className="block t-sub">{m.fullName}</span>
             <span className="block t-cap text-fg-2">
