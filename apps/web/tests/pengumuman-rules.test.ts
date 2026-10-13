@@ -145,10 +145,14 @@ test('the filter hides a post when any of its categories is hidden, by name', ()
 });
 
 test('visibility is the server’s: no rule here looks at angkatan or groups', () => {
-  const src = fs.readFileSync(
-    path.resolve(import.meta.dirname, '../src/features/pengumuman/rules.ts'),
-    'utf8',
-  );
+  const src = ['rules.ts', 'unread.ts']
+    .map((f) =>
+      fs.readFileSync(
+        path.resolve(import.meta.dirname, '../src/features/pengumuman', f),
+        'utf8',
+      ),
+    )
+    .join('\n');
   const code = src.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
   for (const fn of ['feedRequest', 'hiddenByFilter', 'pageUnreadIds']) {
     const body = code.slice(
@@ -456,6 +460,36 @@ test('composer: Umumkan is blocked while a photo uploads or has failed; finished
     ]),
     ['a', 'b'],
   );
+});
+
+test('the shell’s first code loads only Pengumuman’s small modules (the badge, the composer’s store), not its rules (review minor 6)', () => {
+  const read = (f: string) =>
+    fs.readFileSync(path.resolve(import.meta.dirname, '../src', f), 'utf8');
+  const imports = (src: string) =>
+    [...src.matchAll(/^import[\s\S]*?from '([^']+)';/gm)].map((m) => m[1]);
+  assert.deepEqual(imports(read('components/shell/nav-badges.ts')), [
+    '~/features/pengumuman/unread',
+    '~/features/pengumuman/unread-query',
+    '~/lib/shell/routes',
+  ]);
+  assert.deepEqual(imports(read('features/pengumuman/unread.ts')), [
+    '~/api/constants',
+  ]);
+  assert.deepEqual(imports(read('features/pengumuman/unread-query.ts')), [
+    '@tanstack/react-query',
+    '~/api/client',
+    './unread',
+  ]);
+  // The composer route's enter and leave hooks load its store with the app's first code: no rules, data or copy
+  // (types only, which leave no code).
+  const store = read('features/pengumuman/compose-store.ts');
+  assert.deepEqual(
+    [...store.matchAll(/^import (?!type )[\s\S]*?from '([^']+)';/gm)].map(
+      (m) => m[1],
+    ),
+    ['react', '~/lib/constants', '~/lib/share-db', './draft'],
+  );
+  assert.deepEqual(imports(read('features/pengumuman/draft.ts')), []);
 });
 
 /* ================= Links ================= */

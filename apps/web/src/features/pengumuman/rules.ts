@@ -26,8 +26,16 @@ import {
 } from '~/lib/constants';
 import { hm } from '~/lib/dates';
 import { extractUrls } from '~/lib/url-parser';
+import type { AudienceKind, Draft } from './draft';
+import {
+  PAGE_SIZE,
+  pageUnreadIds,
+  unreadLabel,
+  UNREAD_PAGES,
+  UNREAD_SHOWN_MAX,
+} from './unread';
 
-export const PAGE_SIZE = 10;
+export { PAGE_SIZE };
 /** Paging loads by itself up to this many pages; after that only Muat lagi does (SPEC "Pengumuman"). */
 export const AUTO_PAGES = 5;
 /** Umumkan ulang opens again this many hours after the last notification (apps/api `RENOTIFY_DIFF_HOURS`). */
@@ -127,31 +135,8 @@ export function emptyReason(view: FeedView): string | null {
 
 /* ================= The unread count ================= */
 
-/** Open question 2: no count endpoint, so the count pages `GET /api/info?unread=true` in the background. */
-export const UNREAD_PAGES = 10;
-export const UNREAD_SHOWN_MAX = 99;
-
-/** The count as the badges and the chip show it: hidden at 0, "99+" past the cap. */
-export function unreadLabel(n: number) {
-  if (n <= 0) return null;
-  return n > UNREAD_SHOWN_MAX ? t.feed.banyak : String(n);
-}
-
-/**
- * Pages the unread ids: `fetchPage(offset)` until a short page or `UNREAD_PAGES` pages. The count ignores the
- * feed's search and filter (`unreadN` counts every visible unread post).
- */
-export async function pageUnreadIds(
-  fetchPage: (offset: number) => Promise<Pick<Info, 'id'>[]>,
-) {
-  const ids: string[] = [];
-  for (let page = 0; page < UNREAD_PAGES; page++) {
-    const infos = await fetchPage(page * PAGE_SIZE);
-    for (const i of infos) if (!ids.includes(i.id)) ids.push(i.id);
-    if (infos.length < PAGE_SIZE) break;
-  }
-  return ids;
-}
+// The count itself is in ./unread.ts, which the shell's badge loads without these rules.
+export { pageUnreadIds, unreadLabel, UNREAD_PAGES, UNREAD_SHOWN_MAX };
 
 /** The unread ids after marking one read or unread. */
 export function withReadState(
@@ -341,28 +326,7 @@ export const audienceWords = (
 
 /* ================= Composer ================= */
 
-export type AudienceKind = 'all' | 'angkatan' | 'group';
-
-export interface Draft {
-  title: string;
-  body: string;
-  /** Category ids. */
-  cats: string[];
-  audType: AudienceKind;
-  /** Angkatan ids (`forAngkatan`) or roles (`forGroups`). */
-  aud: string[];
-  /** Photos' uploaded URLs, in order (only finished uploads). */
-  mediaUrls: string[];
-}
-
-export const freshDraft = (): Draft => ({
-  title: '',
-  body: '',
-  cats: [],
-  audType: 'all',
-  aud: [],
-  mediaUrls: [],
-});
+export { freshDraft, type AudienceKind, type Draft } from './draft';
 
 export interface DraftErrors {
   body?: string;

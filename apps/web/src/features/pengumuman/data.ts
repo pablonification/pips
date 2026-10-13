@@ -30,10 +30,10 @@ import {
   feedKey,
   feedRequest,
   nextOffset,
-  pageUnreadIds,
   withReadState,
   type FeedView,
 } from './rules';
+import { UNREAD_KEY } from './unread';
 
 export const statusOf = (e: unknown) =>
   e instanceof ApiError ? e.status : undefined;
@@ -97,21 +97,6 @@ export const useGroups = () =>
   useQuery({
     queryKey: ['user-groups'],
     queryFn: () => api.auth.getUserGroups(),
-  });
-
-const UNREAD_KEY = [INFO_LIST_QUERY_KEY, 'unread-ids'] as const;
-
-/** The unread posts' ids (open question 2: paged in the background, capped). Feeds the count everywhere. */
-export const useUnreadIds = (enabled = true) =>
-  useQuery({
-    queryKey: UNREAD_KEY,
-    queryFn: () =>
-      pageUnreadIds((offset) =>
-        api.info
-          .getListInfo(feedRequest({ unread: true }, offset))
-          .then((r) => r.infos),
-      ),
-    enabled,
   });
 
 /* ================= Cache updates ================= */

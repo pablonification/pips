@@ -3,16 +3,13 @@
  * was typed and the photos uploading. Small on purpose: the composer route's enter and leave hooks import it.
  */
 import { useSyncExternalStore } from 'react';
-import { getSharedData } from '~/lib/share-db';
-import { uploadPhoto } from './data';
 import {
-  freshDraft,
-  MAX_BODY,
-  MAX_TITLE,
-  type Draft,
-  type DraftErrors,
-  type UploadState,
-} from './rules';
+  MAX_INFO_ANNOUNCEMENT_LENGTH as MAX_BODY,
+  MAX_INFO_TITLE_LENGTH as MAX_TITLE,
+} from '~/lib/constants';
+import { getSharedData } from '~/lib/share-db';
+import { freshDraft, type Draft } from './draft';
+import type { DraftErrors, UploadState } from './rules';
 
 export interface Photo {
   key: string;
@@ -74,15 +71,19 @@ let seq = 0;
 export function startUpload(photo: Photo) {
   const abort = new AbortController();
   patchPhoto(photo.key, { state: { status: 'uploading', progress: 0 }, abort });
-  uploadPhoto(
-    photo.file,
-    (progress) => {
-      const cur = state.photos.find((p) => p.key === photo.key);
-      if (cur?.state.status === 'uploading')
-        patchPhoto(photo.key, { state: { status: 'uploading', progress } });
-    },
-    abort.signal,
-  )
+  // The upload code comes with the composer's screen, already loaded by the time a photo is added.
+  import('./data')
+    .then(({ uploadPhoto }) =>
+      uploadPhoto(
+        photo.file,
+        (progress) => {
+          const cur = state.photos.find((p) => p.key === photo.key);
+          if (cur?.state.status === 'uploading')
+            patchPhoto(photo.key, { state: { status: 'uploading', progress } });
+        },
+        abort.signal,
+      ),
+    )
     .then((url) =>
       patchPhoto(photo.key, {
         state: { status: 'done', url },

@@ -34,7 +34,6 @@ export const pengumuman = {
     memuat: 'Memuat pengumuman…',
     gagal: 'Pengumuman gagal dimuat.',
     // The badge past the cap (open question 2: no count endpoint).
-    banyak: '99+',
   },
   post: {
     dari: 'Pengumuman dari {nama}',

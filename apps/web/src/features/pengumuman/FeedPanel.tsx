@@ -28,7 +28,8 @@ import { fill } from '~/copy/fill';
 import { pengumuman as t } from '~/copy/pengumuman';
 import { DEBOUNCE_TIME } from '~/lib/constants';
 import { hm } from '~/lib/dates';
-import { useCategories, useFeed, useUnreadIds } from './data';
+import { useCategories, useFeed } from './data';
+import { useUnreadIds } from './unread-query';
 import { useDelayed, useElementInView, useOnline } from './parts';
 import { PostCard, PostRow } from './PostCard';
 import {

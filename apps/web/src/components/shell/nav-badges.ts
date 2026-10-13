@@ -3,8 +3,9 @@
  * on the phone tab, the tablet rail and the desktop sidebar; hidden at 0. P1-B fills this in from its unread
  * count; the shell renders whatever it returns (`aria-hidden` badge, the words for screen readers).
  */
-import { useUnreadIds } from '~/features/pengumuman/data';
-import { unreadLabel } from '~/features/pengumuman/rules';
+// Only the count's own small module: the badge shows on every page (P1-B review minor 6).
+import { unreadLabel } from '~/features/pengumuman/unread';
+import { useUnreadIds } from '~/features/pengumuman/unread-query';
 import type { Destination } from '~/lib/shell/routes';
 
 export type NavBadges = Partial<Record<Destination, number>>;
