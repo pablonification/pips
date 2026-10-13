@@ -141,4 +141,6 @@ export const ACRONYMS = [
   'IT',
   // P1-C: the LINE app, whose in-app browser can't install PIPS!.
   'LINE',
+  // P2-A: Magang SPARTA asks for your ID LINE, as today's screen does.
+  'ID',
 ] as const;

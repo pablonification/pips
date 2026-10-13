@@ -24,6 +24,12 @@ export const GARIS_FILES = [
   'src/lib/shell/**/*.{ts,tsx}',
   // P1-C: push, Profil, Layanan, sign-in and first run.
   'src/components/push/**/*.{ts,tsx}',
+  // P2-A: Form and Magang SPARTA.
+  'src/components/form/**/*.{ts,tsx}',
+  'src/lib/form/**/*.{ts,tsx}',
+  'src/routes/_app/_left-navbar/layanan/form/index.tsx',
+  'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
+  'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
