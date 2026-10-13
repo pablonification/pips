@@ -4,16 +4,11 @@
  * Beranda's "Balasan baru dari Welfare" (P1-A) and Layanan's count (P1-C) read. None of it is written to the
  * device: CHATROOMS_QUERY_KEY isn't on the persisted list (src/api/persistence-policy.ts; tests/curhat-rules.test.ts).
  */
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  type QueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useSyncExternalStore } from 'react';
 import { api } from '~/api/client';
 import type { Chatroom, ChatroomMessage, ListChatroom } from '~/api/generated';
-import { chatroomsQuery } from '~/api/queries';
+import { chatroomsQuery, curhatUnreadQuery } from '~/api/queries';
 import type { CurhatClient, CurhatClientState } from './client';
 import { ROOMS_KEY, UNREAD_KEY } from './keys';
 import {
@@ -26,13 +21,6 @@ import {
 } from './rules';
 
 export { ROOMS_KEY, UNREAD_KEY };
-
-/** Unread Welfare messages per room (`GET /curhat/chatrooms/unread`). */
-export const curhatUnreadQuery = () =>
-  queryOptions({
-    queryKey: UNREAD_KEY,
-    queryFn: () => api.curhat.unreadCountChatroomMessages(),
-  });
 
 export const useRooms = () => useQuery(chatroomsQuery());
 

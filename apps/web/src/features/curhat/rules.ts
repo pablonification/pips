@@ -8,6 +8,7 @@
 import type { Chatroom, ChatroomMessage } from '~/api/generated';
 import { curhat as t } from '~/copy/curhat';
 import { fill } from '~/copy/fill';
+import { totalUnread, unreadByRoom, type UnreadRow } from '~/lib/curhat-unread';
 import { dayDiff, dLong, dShort, hm, wib } from '~/lib/dates';
 
 /** At most three rooms per member; the server refuses a fourth with 400 (state.js `MAX_ROOMS`). */
@@ -362,24 +363,7 @@ export function enterAction(e: {
 
 /* ================= Unread ================= */
 
-export interface UnreadRow {
-  chatroomId: string;
-  unreadCount: number;
-}
-
-/** Unread Welfare messages per room (`GET /curhat/chatrooms/unread`; rooms without any are left out). */
-export function unreadByRoom(
-  rows: UnreadRow[] | undefined,
-): Record<string, number> {
-  const out: Record<string, number> = {};
-  for (const r of rows ?? [])
-    if (r.unreadCount > 0) out[r.chatroomId] = r.unreadCount;
-  return out;
-}
-
-export function totalUnread(rows: UnreadRow[] | undefined): number {
-  return (rows ?? []).reduce((n, r) => n + Math.max(0, r.unreadCount), 0);
-}
+export { totalUnread, unreadByRoom, type UnreadRow };
 
 /** One more unread message in a room (a Welfare reply arrived while the room wasn't open). */
 export function addUnread(

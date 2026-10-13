@@ -60,6 +60,16 @@ export const formListQuery = () =>
     queryFn: () => api.form.listForms(),
   });
 
+/** Unread Curhat messages per room. Under the chatrooms key, so Curhat's own refreshes renew it too. */
+export const CURHAT_UNREAD_KEY = [CHATROOMS_QUERY_KEY, 'unread'] as const;
+
+/** One definition for Curhat's list, Layanan's count and Beranda's row (review of P2-C, minor 7). */
+export const curhatUnreadQuery = () =>
+  queryOptions({
+    queryKey: CURHAT_UNREAD_KEY,
+    queryFn: () => api.curhat.unreadCountChatroomMessages(),
+  });
+
 export const chatroomsQuery = () =>
   queryOptions({
     queryKey: [CHATROOMS_QUERY_KEY],
