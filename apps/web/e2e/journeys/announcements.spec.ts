@@ -226,7 +226,7 @@ test.describe('catching up (Nadia)', () => {
     await strictGates(page, testInfo, 'reaction-error');
   });
 
-  test('a sent comment keeps the focused field in view (regression: it slid below the window)', async ({
+  test('a sent comment keeps the whole comment form in view (regression: it slid below the window)', async ({
     page,
     api,
   }) => {
@@ -235,14 +235,57 @@ test.describe('catching up (Nadia)', () => {
       .on('POST /api/comment', writes.comment);
     await page.goto('/pengumuman/p1');
     const field = page.getByRole('textbox', { name: 'Tulis komentar' });
+    const send = page.getByRole('button', { name: 'Kirim komentar' });
+    // The pixels of the form (the field and Kirim) hidden by its scrolling container, at most 1 for sub-pixel
+    // rounding; and the shell's bars (top bar, tab bar) over none of it. The toast "Komentar terkirim." may sit over
+    // part of it for a moment, where the prototype puts every toast.
+    const expectFormInView = async () => {
+      const hidden = await field.evaluate((el) => {
+        const f = el.closest('form')!.getBoundingClientRect();
+        let s: Element | null = el.parentElement;
+        while (s && !/(auto|scroll)/.test(getComputedStyle(s).overflowY))
+          s = s.parentElement;
+        const v = s
+          ? s.getBoundingClientRect()
+          : { top: 0, bottom: innerHeight };
+        const bars = [
+          ...document.querySelectorAll('[role="banner"], header, nav'),
+        ]
+          .map((b) => b.getBoundingClientRect())
+          .filter(
+            (b) =>
+              b.width > 0 &&
+              b.left < f.right &&
+              b.right > f.left &&
+              b.top < f.bottom &&
+              b.bottom > f.top,
+          )
+          .map((b) => Math.min(f.bottom, b.bottom) - Math.max(f.top, b.top));
+        return Math.max(0, f.bottom - v.bottom, v.top - f.top, ...bars);
+      });
+      expect(
+        hidden,
+        'pixels of the comment form out of view or under a bar',
+      ).toBeLessThanOrEqual(1);
+    };
+    // With the keyboard: Enter sends and focus never leaves the field (before the fix it ended below the window).
     await field.fill('Kak, IF2120 K02 di ruang mana?');
-    await page.getByRole('button', { name: 'Kirim komentar' }).click();
+    await field.press('Enter');
     await expect(
       detail(page).getByText('Kak, IF2120 K02 di ruang mana?'),
     ).toBeVisible();
+    await expect(field).toHaveValue('');
     await expectFocused(field);
-    // In view: before the fix it was entirely below the window; scrolling leaves a sub-pixel sliver clipped.
-    await expect(field).toBeInViewport({ ratio: 0.95 });
+    await expectFormInView();
+    // With Kirim.
+    await field.fill('Sudah ketemu, terima kasih.');
+    await send.click();
+    await expect(
+      detail(page).getByText('Sudah ketemu, terima kasih.'),
+    ).toBeVisible();
+    await expect(field).toHaveValue('');
+    await expectFocused(field);
+    await expectFormInView();
   });
 
   test('commenting, then deleting your own comment through the confirmation', async ({
