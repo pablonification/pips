@@ -95,6 +95,8 @@ test('document titles: the live page is "Live Counting & Rekap Form" in the brow
 
 test('focused flows are the form, the composer, a Curhat room and Magang SPARTA (SPEC story 19; P2-A brief), and first run (P1-C)', () => {
   assert.deepEqual(PATHS.filter((p) => ROUTE_META[p].focused).sort(), [
+    // P3-C: a room in Welfare's inbox, as the member's.
+    '/kelola/curhat/$roomId',
     '/layanan/curhat/$roomId',
     '/layanan/form/$formId',
     '/layanan/sparta',
@@ -164,6 +166,12 @@ test('the desktop breadcrumbs start at the sidebar item and end at the page', ()
     '/kelola',
     '/kelola/live/pixel',
     '/kelola/live/pixel/rekap',
+  ]);
+  // P3-C: Kelola › Curhat Yuk! › the room.
+  assert.deepEqual(trail('/kelola/curhat/$roomId', { roomId: 'r1' }), [
+    '/kelola',
+    '/kelola/curhat',
+    '/kelola/curhat/r1',
   ]);
   assert.deepEqual(trail('/profil/matkul/tambah'), [
     '/profil',

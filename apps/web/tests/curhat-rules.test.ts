@@ -50,6 +50,7 @@ const msg = (
   content: `pesan ${id}`,
   createdAt,
   isSender,
+  fromOwner: isSender,
   clientMessageId: null,
   ...extra,
 });

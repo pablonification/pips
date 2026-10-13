@@ -23,3 +23,22 @@ test('the page wrapper clips with clip, and with hidden where clip is unsupporte
     /@supports not \(overflow-x: clip\)\s*\{\s*\.g-page-wrap\s*\{\s*overflow-x:\s*hidden;\s*\}\s*\}/,
   );
 });
+
+// Found in P3-C round 2: the two rules were nested inside `.g-legacy .min-h-screen:not(.fixed)` (CSS nesting), so
+// they matched only a wrapper inside a legacy full-window screen, never the real one, and the text checks above
+// still passed. They must sit at the top level of the file.
+test('the page wrapper rules are not nested in another rule', () => {
+  const depthAt = (index) => {
+    let depth = 0;
+    for (let i = 0; i < index; i++) {
+      if (css[i] === '{') depth++;
+      else if (css[i] === '}') depth--;
+    }
+    return depth;
+  };
+  const clip = css.search(/\.g-page-wrap\s*\{\s*overflow-x:\s*clip;/);
+  const fallback = css.indexOf('@supports not (overflow-x: clip)');
+  assert.ok(clip >= 0 && fallback >= 0);
+  assert.equal(depthAt(clip), 0, '.g-page-wrap { overflow-x: clip }');
+  assert.equal(depthAt(fallback), 0, '@supports not (overflow-x: clip)');
+});

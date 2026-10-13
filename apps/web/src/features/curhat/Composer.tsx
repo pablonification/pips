@@ -39,6 +39,9 @@ export function Composer({
   onCancelReply,
   field,
   banner,
+  placeholder = t.ruang.tulis,
+  label = t.ruang.tulisLabel,
+  busy = false,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -49,6 +52,11 @@ export function Composer({
   field: RefObject<HTMLTextAreaElement | null>;
   /** Above the reply chip, in the bar that stays at the bottom: the lost-connection banner, where you send. */
   banner?: ReactNode;
+  /** The field's words; Welfare's inbox answers ("Tulis balasan…", P3-C). */
+  placeholder?: string;
+  label?: string;
+  /** Sending and waiting for the server's answer (Welfare's inbox): the button says so and nothing else is sent. */
+  busy?: boolean;
 }) {
   const own = useRef<HTMLTextAreaElement | null>(null);
   const setRef: Ref<HTMLTextAreaElement> = (el) => {
@@ -64,7 +72,7 @@ export function Composer({
       className="g-chat-bar"
       onSubmit={(e) => {
         e.preventDefault();
-        onSend();
+        if (!busy) onSend();
       }}
     >
       {banner}
@@ -88,8 +96,8 @@ export function Composer({
           className="g-field"
           name="msg"
           rows={1}
-          placeholder={t.ruang.tulis}
-          aria-label={t.ruang.tulisLabel}
+          placeholder={placeholder}
+          aria-label={label}
           autoComplete="off"
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -102,11 +110,18 @@ export function Composer({
             });
             if (action === 'send') {
               e.preventDefault();
-              onSend();
+              if (!busy) onSend();
             }
           }}
         />
-        <Button variant="gold" square type="submit" aria-label={t.ruang.kirim}>
+        <Button
+          variant="gold"
+          square
+          type="submit"
+          aria-label={t.ruang.kirim}
+          aria-busy={busy || undefined}
+          aria-disabled={busy || undefined}
+        >
           <IconKirim size={16} />
         </Button>
       </div>

@@ -10,6 +10,7 @@ export type ChatroomMessage = {
   createdAt: string;
   clientMessageId: string | null;
   isSender?: boolean;
+  fromOwner: boolean;
   reply?: {
     id: string;
     chatroomId: string;

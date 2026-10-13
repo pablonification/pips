@@ -287,6 +287,8 @@ function toChatrooms(persona: PersonaKey): ListChatroom {
       .map((m) => ({
         ...plain(m.id),
         isSender: m.me,
+        // The room's owner wrote it (P3-C): the member's own messages.
+        fromOwner: m.me,
         // Sample history carries no device id (sent before P2-C's round 2, or by Welfare).
         clientMessageId: null,
         ...(m.reply ? { reply: plain(m.reply) } : {}),
@@ -304,6 +306,34 @@ function toChatrooms(persona: PersonaKey): ListChatroom {
   }
   return rooms;
 }
+
+/**
+ * Welfare's view of Curhat (P3-C; `GET /curhat/chatrooms` for a `curhatadmin`): every member's room, none of them
+ * yours to delete. The member's messages are `fromOwner` and not yours; the prototype's Welfare messages count as
+ * the signed-in Welfare member's (`isSender`). A teammate's message is added by override where a test needs it.
+ */
+function toWelfareChatrooms(): ListChatroom {
+  const rooms: ListChatroom = {};
+  for (const persona of Object.keys(ROOMS) as PersonaKey[]) {
+    for (const [id, room] of Object.entries(toChatrooms(persona))) {
+      rooms[id] = {
+        ...room,
+        canDelete: false,
+        messages: room.messages?.map((m) => ({
+          ...m,
+          isSender: !m.fromOwner,
+        })),
+      };
+    }
+  }
+  return rooms;
+}
+
+/**
+ * Welfare's read marks (P3-C): Teal Koala's m1 and m3 are unread (it shows 2), Amber Heron's m5 is read (it shows
+ * none), so Belum dibaca keeps only Teal Koala.
+ */
+export const WELFARE_READS = ['m5'];
 
 function toTestimonials(): Testimoni[] {
   return Object.entries(TESTI).flatMap(([code, list]) =>
@@ -874,12 +904,18 @@ export function buildDb(
           course: courseByCode(code),
         }))
       : [],
-    chatrooms: persona ? toChatrooms(persona) : {},
-    chatroomReads: persona
-      ? ROOMS[persona].flatMap((r) =>
-          r.msgs.filter((m) => !m.me && !m.unread).map((m) => m.id),
-        )
-      : [],
+    chatrooms: !persona
+      ? {}
+      : roles.includes('curhatadmin')
+        ? toWelfareChatrooms()
+        : toChatrooms(persona),
+    chatroomReads: !persona
+      ? []
+      : roles.includes('curhatadmin')
+        ? [...WELFARE_READS]
+        : ROOMS[persona].flatMap((r) =>
+            r.msgs.filter((m) => !m.me && !m.unread).map((m) => m.id),
+          ),
     forms: persona ? formList(persona, false) : [],
     formDetails: { [pixelForm.id]: pixelForm },
     myResponses: {},

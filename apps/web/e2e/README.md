@@ -124,10 +124,10 @@ test('…', async ({ page, api, db }) => {
 
 ### Sockets
 
-Members' Curhat opens one socket.io connection for the whole area (`auth: { curhat: true }`, P2-C); Welfare's
-screen (until P3-C) opens one per room (`auth.chatroomId`), and Live Counting one with `auth.formAdminId`. The fake
-speaks P0-D's protocol: the handshake joins your rooms (`FakeSocket.rooms`), `curhat:join` adds one, and `message`
-is acknowledged as the API does. It records what the app emits, and lets a test push events and steer answers:
+Members' Curhat opens one socket.io connection for the whole area (`auth: { curhat: true }`, P2-C); so does
+Welfare's inbox at /kelola/curhat (P3-C), whose handshake joins every room and the `curhat:welfare` group room.
+Live Counting opens one with `auth.formAdminId`. The fake speaks P0-D's protocol: the handshake joins your rooms
+(`FakeSocket.rooms`), `curhat:join` adds one, and `message` is acknowledged as the API does. It records what the app emits, and lets a test push events and steer answers:
 
 ```ts
 expect(api.socket.emitted('message').map((e) => e.data)).toEqual([...]);

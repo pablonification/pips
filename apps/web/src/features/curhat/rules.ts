@@ -108,12 +108,14 @@ export interface OutboxEntry {
   at: string;
   /** The server's copy, once delivered. */
   message?: ChatroomMessage;
+  /** Why the server refused it, when it said (P3-C: the inbox toasts every failure but these two). */
+  refusal?: Refusal;
 }
 
 export type OutboxAction =
   | { type: 'send'; entry: OutboxEntry }
   | { type: 'delivered'; localId: string; message: ChatroomMessage }
-  | { type: 'failed'; localId: string }
+  | { type: 'failed'; localId: string; refusal?: Refusal }
   | { type: 'retry'; localId: string; at: string }
   | { type: 'dropRoom'; chatroomId: string }
   | { type: 'settled'; localIds: string[] };
@@ -138,7 +140,7 @@ export function outboxReducer(
     case 'failed':
       return state.map((e) =>
         e.localId === action.localId && e.status === 'pending'
-          ? { ...e, status: 'failed' }
+          ? { ...e, status: 'failed', refusal: action.refusal }
           : e,
       );
     case 'retry':
@@ -236,6 +238,8 @@ export interface ThreadMessage {
   id: string | null;
   localId?: string;
   mine: boolean;
+  /** The room's owner wrote it (the server's `fromOwner`): Welfare's inbox draws it on the member's side (P3-C). */
+  fromOwner?: boolean;
   text: string;
   at: string;
   /** The quoted message's text, cut to 90 characters. */
@@ -315,6 +319,7 @@ export function buildThread(
       key: keyOf(m),
       id: m.id,
       mine: m.isSender === true,
+      fromOwner: m.fromOwner,
       text: m.content,
       at: m.createdAt,
       quote: quoteOf(m),

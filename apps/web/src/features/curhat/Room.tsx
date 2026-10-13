@@ -5,12 +5,7 @@
  * What you send shows at once and settles into Terkirim or Gagal with Kirim ulang (SPEC story 96; OPEN-QUESTIONS D7).
  */
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  Navigate,
-  useNavigate,
-  useParams,
-  useRouter,
-} from '@tanstack/react-router';
+import { useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import {
   Fragment,
   useEffect,
@@ -45,10 +40,8 @@ import {
 import { entryAt } from '~/components/shell/shell-state';
 import { curhat as t } from '~/copy/curhat';
 import { fill } from '~/copy/fill';
-import useSession from '~/hooks/auth/useSession';
 import { hm } from '~/lib/dates';
 import { cn } from '~/lib/utils';
-import { isWelfare } from './Area';
 import { Composer } from './Composer';
 import {
   markRoomRead,
@@ -65,13 +58,8 @@ import { buildThread, canReply, roomName, type ThreadMessage } from './rules';
 
 const ROOM_ROUTE = '/_app/_left-navbar/layanan/curhat/$roomId' as const;
 
+/** A member's room. Welfare never gets here: the area's layout sends them to the same room in the inbox (P3-C). */
 export function RoomScreen() {
-  const me = useSession();
-  if (isWelfare(me)) return <Navigate to="/layanan/curhat" replace />;
-  return <MemberRoom />;
-}
-
-function MemberRoom() {
   const { roomId } = useParams({ from: ROOM_ROUTE });
   const rooms = useRooms();
   const [gone, setGone] = useState(false);
@@ -96,7 +84,7 @@ function MemberRoom() {
   return <RoomSkeleton />;
 }
 
-function RoomSkeleton() {
+export function RoomSkeleton() {
   const [late, setLate] = useState(false);
   useEffect(() => {
     const id = setTimeout(() => setLate(true), 300);
@@ -185,41 +173,9 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
 
   // Opening a room shows its newest message; a new room from Mulai ruang baru focuses the composer.
   useLayoutEffect(() => {
-    scrollToEnd();
-    const id = requestAnimationFrame(scrollToEnd);
     if (takeComposerFocus()) field.current?.focus({ preventScroll: true });
-    return () => cancelAnimationFrame(id);
   }, []);
-
-  // Sending, or receiving while at the newest message, keeps you there.
-  const nearEnd = useRef(true);
-  const stick = useRef(false);
-  useEffect(() => {
-    const el = scroller();
-    if (!el) return;
-    const onScroll = () => (nearEnd.current = atEnd(el));
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
-  }, []);
-  // The bar grows (the reply chip, a longer draft) over the end of the thread: at the end, stay there, so it never
-  // covers the newest message or its Balas and Kirim ulang.
-  useEffect(() => {
-    const bar = document.querySelector<HTMLElement>('.g-chat-bar');
-    if (!bar || typeof ResizeObserver === 'undefined') return;
-    let last = bar.offsetHeight;
-    const ro = new ResizeObserver(() => {
-      const h = bar.offsetHeight;
-      if (h > last && nearEnd.current) scrollToEnd();
-      last = h;
-    });
-    ro.observe(bar);
-    return () => ro.disconnect();
-  }, []);
-  // On every change of the thread, not just its length: a delivered message grows (Terkirim, then Balas).
-  useLayoutEffect(() => {
-    if (stick.current || nearEnd.current) scrollToEnd();
-    stick.current = false;
-  }, [items]);
+  const stick = useFollowNewest(items);
 
   const quoted =
     replyTo === null
@@ -344,6 +300,49 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
       </ConfirmDialog>
     </>
   );
+}
+
+/**
+ * A room opens at its newest message; sending (set the returned ref first), or receiving while at the newest
+ * message, keeps you there, and so does the chat bar growing over the end of the thread. Shared with Welfare's
+ * inbox (P3-C).
+ */
+export function useFollowNewest(items: unknown) {
+  useLayoutEffect(() => {
+    scrollToEnd();
+    const id = requestAnimationFrame(scrollToEnd);
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  const nearEnd = useRef(true);
+  const stick = useRef(false);
+  useEffect(() => {
+    const el = scroller();
+    if (!el) return;
+    const onScroll = () => (nearEnd.current = atEnd(el));
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+  // The bar grows (the reply chip, a longer draft) over the end of the thread: at the end, stay there, so it never
+  // covers the newest message or its Balas and Kirim ulang.
+  useEffect(() => {
+    const bar = document.querySelector<HTMLElement>('.g-chat-bar');
+    if (!bar || typeof ResizeObserver === 'undefined') return;
+    let last = bar.offsetHeight;
+    const ro = new ResizeObserver(() => {
+      const h = bar.offsetHeight;
+      if (h > last && nearEnd.current) scrollToEnd();
+      last = h;
+    });
+    ro.observe(bar);
+    return () => ro.disconnect();
+  }, []);
+  // On every change of the thread, not just its length: a delivered message grows (Terkirim, then Balas).
+  useLayoutEffect(() => {
+    if (stick.current || nearEnd.current) scrollToEnd();
+    stick.current = false;
+  }, [items]);
+  return stick;
 }
 
 function TimeLine({ m }: { m: ThreadMessage }) {

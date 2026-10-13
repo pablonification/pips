@@ -263,9 +263,18 @@ export class FakeSocketServer {
     return this.db?.signedIn ? Object.keys(this.db.chatrooms) : [];
   }
 
+  /** Welfare (`curhatadmin`, P3-C): `db.chatrooms` holds every room, and the session joins Welfare's group room. */
+  private isWelfare(): boolean {
+    return !!this.db?.signedIn && !!this.db.me?.roles.includes('curhatadmin');
+  }
+
   private joinOnConnect(session: FakeSocket) {
     const mine = this.myRooms();
     if (session.auth.curhat === true) mine.forEach((r) => session.rooms.add(r));
+    // P3-C: as the API, a Welfare `curhat` handshake joins every room (all of `db.chatrooms`) and the group room
+    // through which a room started later is joined (`curhat:welfare`).
+    if (session.auth.curhat === true && this.isWelfare())
+      session.rooms.add('curhat:welfare');
     const room = session.auth.chatroomId;
     if (typeof room === 'string' && mine.includes(room))
       session.rooms.add(room);
@@ -328,6 +337,8 @@ export class FakeSocketServer {
       content: message,
       createdAt: NOW,
       isSender: true,
+      // The owner's own room is the one they may delete (P3-C); Welfare's answers are never the owner's.
+      fromOwner: room.canDelete === true,
       clientMessageId:
         typeof clientMessageId === 'string' ? clientMessageId : null,
       ...(quoted

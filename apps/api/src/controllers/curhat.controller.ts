@@ -25,9 +25,11 @@ import type { Chatroom } from '~/db/schema';
 import { TChatroom } from '~/types/curhat.types';
 import {
   CURHAT_ADMIN_ROLE,
+  CURHAT_WELFARE_ROOM,
   canAccessChatroom,
   toChatroomResponse,
 } from '~/lib/curhat';
+import { getIo } from '~/websocket/setup';
 
 /** What the Curhat routes need from storage, passed in so the route tests run without a database. */
 export interface CurhatDeps {
@@ -54,6 +56,11 @@ export interface CurhatDeps {
     userId: string,
     isPinned: boolean,
   ) => Promise<void>;
+  /**
+   * A member started a room: every connected Welfare socket of the Curhat area joins it (P3-C), so its first message
+   * reaches Welfare live. The socket's per-receiver check still drops a socket whose role was taken away.
+   */
+  welfareJoin: (chatroomId: string) => void;
 }
 
 const databaseDeps: CurhatDeps = {
@@ -74,6 +81,9 @@ const databaseDeps: CurhatDeps = {
   },
   pinChatroom: async (chatroomId, userId, isPinned) => {
     await pinChatroom(db, chatroomId, userId, isPinned);
+  },
+  welfareJoin: (chatroomId) => {
+    getIo().in(CURHAT_WELFARE_ROOM).socketsJoin(chatroomId);
   },
 };
 
@@ -105,6 +115,11 @@ export function createCurhatRouter(deps: CurhatDeps = databaseDeps) {
         },
         400,
       );
+    }
+    try {
+      deps.welfareJoin(newChatroom.id);
+    } catch {
+      // No socket server (it isn't set up): nobody is connected to join it. The room is made either way.
     }
     return c.json(
       toChatroomResponse({ ...newChatroom, messages: [] }, userId),

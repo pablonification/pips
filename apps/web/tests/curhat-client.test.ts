@@ -57,6 +57,7 @@ const saved = (over: Partial<ChatroomMessage> = {}): ChatroomMessage => ({
   content: 'Mau kak, makasih!',
   createdAt: NOW.toISOString(),
   isSender: true,
+  fromOwner: true,
   clientMessageId: 'id-1',
   ...over,
 });
@@ -194,6 +195,28 @@ test('unauthorized and forbidden are reported; invalid, server and no answer are
     ['refused unauthorized', 'refused forbidden'],
   );
   assert.ok(client.snapshot.outbox.every((e) => e.status === 'failed'));
+});
+
+// P3-C: Welfare's inbox toasts every failure except these two refusals, so a failed entry keeps the server's reason.
+test('a failed entry keeps the reason the server refused it; no answer or a drop has none', () => {
+  const { socket, client } = setup();
+  socket.connect();
+  for (const error of ['forbidden', 'unauthorized', 'invalid', 'server']) {
+    client.send('r1', 'halo', null);
+    socket.emits.at(-1)!.ack(null, { ok: false, error });
+  }
+  client.send('r1', 'halo', null);
+  socket.emits.at(-1)!.ack(new Error('operation has timed out'));
+  assert.deepEqual(
+    client.snapshot.outbox.map((e) => [e.status, e.refusal]),
+    [
+      ['failed', 'forbidden'],
+      ['failed', 'unauthorized'],
+      ['failed', 'invalid'],
+      ['failed', 'server'],
+      ['failed', undefined],
+    ],
+  );
 });
 
 // Review minor 3: at session expiry the API ends the connection itself, and socket.io won't reconnect.

@@ -280,13 +280,82 @@ export async function expectFitsEverywhere(page: Page) {
   await settle(original.width);
 }
 
-/** Every strict gate for a screen: the audit, focus at each Tab stop, the lit item, and the widths. */
+/**
+ * The top bar is sticky and see-through (the owner's locked design keeps it so: P3-C review, Dev 1's decision,
+ * 2026-10-14), so a scrolled page passes under it. Where a scroll stops with a control straddling the bar's lower
+ * edge, axe's `target-size` reads that one still frame and counts the control and the bar's button as overlapping
+ * targets, although the half under the bar is hidden and can't be tapped. This only moves the scroll up by the amount
+ * a control straddles the edge (after the page has stopped scrolling by itself), so the audit measures the screen's
+ * own targets; nothing else changes and no gate is loosened. A page without a visible sticky `.g-top` is untouched.
+ */
+export async function clearTopBarEdge(page: Page) {
+  const sticky = await page.evaluate(() => {
+    const bar = document.querySelector<HTMLElement>(
+      '[data-scroll-restoration-id="isi"] .g-top',
+    );
+    return (
+      !!bar &&
+      bar.checkVisibility() &&
+      getComputedStyle(bar).position === 'sticky'
+    );
+  });
+  if (!sticky) return;
+  // First let the page finish any scroll of its own (a room following its newest message, a bar that grows).
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const el = document.querySelector<HTMLElement>(
+          '[data-scroll-restoration-id="isi"]',
+        );
+        let last = -1;
+        let same = 0;
+        const tick = () => {
+          const top = el?.scrollTop ?? 0;
+          same = top === last ? same + 1 : 0;
+          last = top;
+          if (same >= 5) resolve();
+          else requestAnimationFrame(tick);
+        };
+        tick();
+      }),
+  );
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const scroller = document.querySelector<HTMLElement>(
+          '[data-scroll-restoration-id="isi"]',
+        );
+        const bar = scroller?.querySelector<HTMLElement>('.g-top');
+        if (!scroller || !bar) return 0;
+        const edge = bar.getBoundingClientRect().bottom;
+        let shift = 0;
+        for (const el of document.querySelectorAll<HTMLElement>(
+          'main a, main button',
+        )) {
+          const r = el.getBoundingClientRect();
+          if (r.top < edge && r.bottom > edge)
+            shift = Math.max(shift, edge - r.top);
+        }
+        const before = scroller.scrollTop;
+        scroller.scrollTop -= Math.ceil(shift);
+        // At the top already: nothing can pass under the bar any further.
+        return scroller.scrollTop === before ? 0 : shift;
+      }),
+    )
+    .toBe(0);
+}
+
+/**
+ * Every strict gate for a screen: the audit, focus at each Tab stop, the lit item, and the widths. Before the audit,
+ * a control left straddling the sticky top bar's edge by the scroll is cleared of it (`clearTopBarEdge`).
+ */
 export async function strictGates(
   page: Page,
   testInfo: TestInfo,
   name: string,
   lit: Lit | null,
 ) {
+  await clearTopBarEdge(page);
   await strictAudit(page, testInfo, name);
   if (lit) await expectLit(page, testInfo, lit);
   await expectVisibleFocus(page);

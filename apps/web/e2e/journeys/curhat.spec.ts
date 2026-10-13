@@ -1,11 +1,11 @@
 /**
  * Curhat Yuk! for members (P2-C): the list, starting a room, a room, replying and sending with delivery states,
  * a dropped connection, Welfare's replies, deleting, the Enter key, the loading, error and offline states, and
- * Welfare keeping today's screen. On P0-D's socket protocol, which the fake socket.io server speaks: the handshake
+ * Welfare being sent to its inbox (P3-C). On P0-D's socket protocol, which the fake socket.io server speaks: the handshake
  * `auth: { curhat: true }`, `curhat:join`, and `message` acknowledged `{ ok: true, message }` or `{ ok: false }`.
  *
  * It replaces T3's journey of today's screen (`/home/curhat`, one socket per room, "Messages", no acknowledgement):
- * members no longer see that screen. Welfare still does until P3-C, checked at the end.
+ * members no longer see that screen. Welfare is sent to its inbox (P3-C), checked at the end.
  */
 import type { Locator, Page, TestInfo } from '@playwright/test';
 import type { CurhatSocketMessage } from '../../src/api/generated';
@@ -76,6 +76,7 @@ function saved(data: unknown, id = 'e2e-message-by-hand'): CurhatSocketMessage {
     content: d.message,
     createdAt: NOW,
     isSender: true,
+    fromOwner: true,
     clientMessageId: d.clientMessageId ?? null,
   };
 }
@@ -667,6 +668,7 @@ test.describe('delivery under a dropped connection', () => {
           content: OLDER,
           createdAt: '2026-10-08T06:30:00.000Z',
           isSender: false,
+          fromOwner: false,
           clientMessageId: null,
         },
         ...older.r1.messages!,
@@ -1074,41 +1076,36 @@ test.describe('signed out', () => {
   });
 });
 
+// P3-C replaces P2-C's "keeps today's screen until P3-C" journey: that screen is retired. Welfare answers in the
+// inbox at /kelola/curhat (journeys/curhat-inbox.spec.ts), and the member area sends them there.
 test.describe('Welfare', () => {
-  test('keeps today’s screen until P3-C, with its sockets; a room link goes to it', async ({
+  test.use({ persona: 'pengurus', roles: ['curhatadmin'] });
+
+  test('the member area sends Welfare to the inbox, a room to the same room, replacing the entry', async ({
     page,
     api,
-    db,
   }) => {
-    db.me!.roles = [...(db.me!.roles ?? []), 'curhatadmin'];
+    canRead(api);
+    await page.goto('/layanan');
     await page.goto('/layanan/curhat');
-    await expect(
-      page.getByRole('heading', { name: 'Messages' }).locator('visible=true'),
-    ).toBeVisible();
-    await expect(
-      page.getByRole('heading', { name: 'Teal Koala' }),
-    ).toBeVisible();
+    await expect(page).toHaveURL(/\/kelola\/curhat$/);
     await expect(newRoom(page)).toHaveCount(0);
-    // Today's screen: one socket per room, each checked by the server.
-    await expect
-      .poll(() =>
-        [...api.socket.sessions.values()]
-          .filter((s) => s.connected)
-          .map((s) => s.auth.chatroomId)
-          .sort(),
-      )
-      .toEqual(['r1', 'r2']);
-    await page.getByRole('heading', { name: 'Teal Koala' }).click();
-    const box = page.getByRole('textbox').locator('visible=true').last();
-    await box.fill('Dari Welfare');
-    await box.press('Enter');
-    await expect
-      .poll(() => api.socket.emitted('message').map((e) => e.data))
-      .toEqual([
-        expect.objectContaining({ message: 'Dari Welfare', chatroomId: 'r1' }),
-      ]);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/layanan$/);
     await page.goto('/layanan/curhat/r1');
-    await expect(page).toHaveURL(/\/layanan\/curhat$/);
+    await expect(page).toHaveURL(/\/kelola\/curhat\/r1$/);
+    await expect(log(page)).toBeVisible();
+    // No member connection: only the inbox's, which joins every room (each page load opened one; the fake doesn't
+    // notice a page that went away).
+    await expect
+      .poll(() => [
+        ...new Set(
+          [...api.socket.sessions.values()]
+            .filter((s) => s.connected)
+            .map((s) => [...s.rooms].sort().join(' ')),
+        ),
+      ])
+      .toEqual(['curhat:welfare r1 r2']);
   });
 });
 
@@ -1131,6 +1128,7 @@ test.describe('gates at every size', () => {
           content: LONG,
           createdAt: NOW,
           isSender: false,
+          fromOwner: false,
           clientMessageId: null,
         },
         ...db.chatrooms.r1.messages!,

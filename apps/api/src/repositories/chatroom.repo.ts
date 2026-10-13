@@ -150,6 +150,12 @@ export async function getOwnedChatroomIds(db: Database, userId: string) {
   return rows.map((r) => r.id);
 }
 
+/** Every room's id, for a Welfare socket of the Curhat area (P3-C). */
+export async function getAllChatroomIds(db: Database) {
+  const rows = await db.select({ id: chatrooms.id }).from(chatrooms);
+  return rows.map((r) => r.id);
+}
+
 /**
  * Locks the member's row until the transaction ends, so two room creates for the same member run one after the
  * other: the second waits, then counts the first one's room.

@@ -153,6 +153,13 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: svc('sparta-data'),
     parent: '/kelola/sparta',
   },
+  // P3-C: Welfare's Curhat inbox; a room is a focused flow, as the member's (breadcrumbs Kelola › Curhat Yuk! › room).
+  '/kelola/curhat': { title: svc('curhat'), parent: '/kelola' },
+  '/kelola/curhat/$roomId': {
+    title: common.shell.ruang,
+    parent: '/kelola/curhat',
+    focused: true,
+  },
   '/kelola/acara': { title: nav.kelola, parent: '/kelola', legacy: true },
   '/kelola/lomba': { title: nav.kelola, parent: '/kelola', legacy: true },
   '/kelola/testi': { title: nav.kelola, parent: '/kelola', legacy: true },

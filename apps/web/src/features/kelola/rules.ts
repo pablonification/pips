@@ -18,7 +18,7 @@ type WithRoles = { roles?: readonly string[] | null } | null | undefined;
 
 // ---------- Who gets in ----------
 
-export type KelolaPage = 'hub' | 'live' | 'sparta';
+export type KelolaPage = 'hub' | 'live' | 'sparta' | 'curhat';
 
 /** The Kelola rows this member has, in the registry's order (the hub and Layanan's Kelola group). */
 export function kelolaServices(user: WithRoles, now = new Date()): Service[] {
@@ -40,7 +40,10 @@ export function kelolaAccess(
       ? hasKelola
       : page === 'live'
         ? can(user, 'liveCounting')
-        : can(user, 'spartaData');
+        : page === 'curhat'
+          ? // P3-C: Welfare's Curhat inbox.
+            can(user, 'respondCurhat')
+          : can(user, 'spartaData');
   if (allowed) return { allowed: true };
   return {
     allowed: false,

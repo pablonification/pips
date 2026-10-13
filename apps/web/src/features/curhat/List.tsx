@@ -70,7 +70,7 @@ export function useOnline(): boolean {
   );
 }
 
-function useDelayed(active: boolean, ms = SKELETON_DELAY_MS) {
+export function useDelayed(active: boolean, ms = SKELETON_DELAY_MS) {
   const [late, setLate] = useState(false);
   useEffect(() => {
     if (!active) return setLate(false);

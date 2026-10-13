@@ -9,6 +9,7 @@ export type CurhatReplyEvent = {
   content: string;
   createdAt: string;
   isSender: boolean;
+  fromOwner: boolean;
   clientMessageId: string | null;
 };
 

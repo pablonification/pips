@@ -245,6 +245,19 @@ export const SERVICES = [
     synonyms: ['acara', 'kalender', 'tambah'],
     icon: 'kalender',
   },
+  // P3-C: Welfare's inbox (a proposal, OPEN-QUESTIONS D9); the description is new copy.
+  {
+    id: 'curhat-inbox',
+    label: 'Curhat Yuk!',
+    description: 'Balas ruang curhat anggota',
+    group: 'Kelola',
+    kind: 'internal',
+    destination: '/kelola/curhat',
+    owner: 'welfare',
+    capability: 'respondCurhat',
+    synonyms: ['curhat', 'welfare', 'balas'],
+    icon: 'curhat',
+  },
 ] as const satisfies readonly Service[];
 
 export type ServiceId = (typeof SERVICES)[number]['id'];
@@ -293,6 +306,28 @@ export function visibleServices(
   );
 }
 
+/**
+ * A member service global search leaves out for whoever sees the Kelola row that replaces it (P3-C review, deviation
+ * 5): for Welfare, "Curhat Yuk!" leads to the inbox, which the Kelola row "Balas ruang curhat anggota" already finds,
+ * so search shows it once. Layanan and Beranda keep the member row.
+ */
+const SEARCH_REPLACED_BY: Partial<Record<ServiceId, ServiceId>> = {
+  curhat: 'curhat-inbox',
+};
+
+/** What global search lists for `user` at `now`: `visibleServices` without the rows a Kelola row replaces. */
+export function searchableServices(
+  user: WithRoles,
+  now: Date = new Date(),
+): Service[] {
+  const visible = visibleServices(user, now);
+  const ids = new Set<string>(visible.map((s) => s.id));
+  return visible.filter((s) => {
+    const by = SEARCH_REPLACED_BY[s.id as ServiceId];
+    return !by || !ids.has(by);
+  });
+}
+
 /** `visibleServices` grouped in SPEC's order; groups with nothing visible are left out (Kelola for members). */
 export function servicesByGroup(user: WithRoles, now: Date = new Date()) {
   const visible = visibleServices(user, now);
@@ -315,7 +350,7 @@ export function searchServices(
       .toLowerCase();
   const terms = fold(query).split(/\s+/).filter(Boolean);
   if (terms.length === 0) return [];
-  return visibleServices(user, now).filter((s) => {
+  return searchableServices(user, now).filter((s) => {
     const haystack = fold([s.label, s.description, ...s.synonyms].join(' '));
     return terms.every((t) => haystack.includes(t));
   });

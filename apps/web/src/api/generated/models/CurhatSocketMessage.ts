@@ -9,6 +9,7 @@ export type CurhatSocketMessage = {
   content: string;
   createdAt: string;
   isSender: boolean;
+  fromOwner: boolean;
   clientMessageId: string | null;
   reply?: {
     id: string;

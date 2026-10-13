@@ -1,0 +1,17 @@
+/*
+  Welfare's inbox (P3-C): a room's row ends with its options button (`menuBtn`) beside the row's link, so the link
+  gives up the space the button takes. Everything else is the member side's (features/curhat/curhat.css). Tokens only.
+*/
+@layer components {
+  .g-inbox-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .g-ruled-list .g-inbox-row > .g-row-btn {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    margin-right: 0;
+  }
+}

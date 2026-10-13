@@ -1,11 +1,12 @@
 /**
  * The Curhat area's layout (`/layanan/curhat`): it owns the one connection, so it stays open between the list and a
- * room and closes when you leave (SPEC "Connection and delivery"). Welfare (`curhatadmin`) keeps today's screen until
- * P3-C's inbox, which opens its own sockets, so no connection is made for them here.
+ * room and closes when you leave (SPEC "Connection and delivery"). Welfare (`curhatadmin`) answers rooms in the
+ * inbox at /kelola/curhat (P3-C), which opens its own connection the same way (`useCurhatConnection`); they are sent
+ * there, room and all, with `replace`.
  */
 import { hashKey, useQueryClient } from '@tanstack/react-query';
-import { Outlet } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { Navigate, Outlet, useParams } from '@tanstack/react-router';
+import { useEffect, useRef, useState } from 'react';
 import useSession from '~/hooks/auth/useSession';
 import type { ListChatroom } from '~/api/generated';
 import { can } from '~/lib/capabilities';
@@ -19,7 +20,6 @@ import {
 } from './data';
 import './curhat.css';
 
-/** Welfare's view until P3-C: today's screen (layanan/curhat/-components). */
 /** The session check's key (components/session.tsx). */
 const ME_KEY = ['me'];
 
@@ -28,11 +28,25 @@ export const isWelfare = (user: Parameters<typeof can>[0]) =>
 
 export function CurhatArea() {
   const me = useSession();
-  if (isWelfare(me)) return <Outlet />;
+  if (isWelfare(me)) return <ToInbox />;
   return <MemberArea />;
 }
 
-function openSocket(): Promise<SocketLike> {
+/**
+ * Welfare never had the member side (P3-C): Layanan's row, Beranda's tile, search and the Welfare push
+ * (`/home/curhat`, through P0-B's redirect) land in the inbox, a room in the same room there.
+ */
+function ToInbox() {
+  const { roomId } = useParams({ strict: false });
+  return roomId ? (
+    <Navigate to="/kelola/curhat/$roomId" params={{ roomId }} replace />
+  ) : (
+    <Navigate to="/kelola/curhat" replace />
+  );
+}
+
+/** The area's socket: socket.io-client loads on demand, and the handshake carries the session cookie. */
+export function openSocket(): Promise<SocketLike> {
   return import('socket.io-client').then(({ io }) =>
     io(import.meta.env.VITE_API_URL, {
       // The API reads the session from the cookie on the handshake (another origin in production).
@@ -43,8 +57,26 @@ function openSocket(): Promise<SocketLike> {
 }
 
 function MemberArea() {
+  const client = useCurhatConnection();
+  return (
+    <CurhatClientContext.Provider value={client}>
+      <Outlet />
+    </CurhatClientContext.Provider>
+  );
+}
+
+/**
+ * The area's one connection, for members' Curhat and Welfare's inbox (P3-C): replies into the rooms cache, a catch-up
+ * after a reconnect, delivered messages put into their room, refusals, the server ending the session, and what you
+ * sent settled against the rooms cache. `welfare`: a `forbidden` refusal also re-checks the session, since for
+ * Welfare it can mean the role was taken away (the gate then sends them on).
+ */
+export function useCurhatConnection(
+  options: { welfare?: boolean } = {},
+): CurhatClient | null {
   const qc = useQueryClient();
   const [client, setClient] = useState<CurhatClient | null>(null);
+  const welfare = useRef(options.welfare === true);
 
   useEffect(() => {
     const c: CurhatClient = new CurhatClient(new DeferredSocket(openSocket), {
@@ -60,9 +92,10 @@ function MemberArea() {
       // Refusals Kirim ulang can't get past: a room deleted elsewhere shows "Ruang tidak ditemukan" once the rooms
       // are fetched again; a session gone sends you to sign-in (SessionProvider).
       onRefused: (error) => {
-        if (error === 'forbidden')
+        if (error === 'forbidden') {
           void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
-        else void qc.invalidateQueries({ queryKey: ME_KEY });
+          if (welfare.current) void qc.invalidateQueries({ queryKey: ME_KEY });
+        } else void qc.invalidateQueries({ queryKey: ME_KEY });
       },
       // The server cut the connection (its session expired): check the session; still signed in (a new cookie),
       // connect again; signed out, SessionProvider takes you to sign-in.
@@ -91,9 +124,5 @@ function MemberArea() {
     };
   }, [qc]);
 
-  return (
-    <CurhatClientContext.Provider value={client}>
-      <Outlet />
-    </CurhatClientContext.Provider>
-  );
+  return client;
 }
