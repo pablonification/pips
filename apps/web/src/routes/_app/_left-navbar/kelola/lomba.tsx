@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { RoutePlaceholder } from '~/components/route-placeholder';
-import { common } from '~/copy/common';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
+// P3-B: competitions are managed on Info Lomba itself, for cnc.
 export const Route = createFileRoute('/_app/_left-navbar/kelola/lomba')({
-  component: () => <RoutePlaceholder title={common.nav.kelola} />,
+  beforeLoad: () => {
+    throw redirect({ to: '/layanan/lomba', replace: true });
+  },
 });

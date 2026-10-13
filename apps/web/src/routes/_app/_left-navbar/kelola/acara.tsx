@@ -1,7 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { RoutePlaceholder } from '~/components/route-placeholder';
-import { common } from '~/copy/common';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
+// P3-B: Tambah acara opens over Kalender, where its result shows (the registry's Kelola row points here).
 export const Route = createFileRoute('/_app/_left-navbar/kelola/acara')({
-  component: () => <RoutePlaceholder title={common.nav.kelola} />,
+  beforeLoad: () => {
+    throw redirect({
+      to: '/kalender',
+      search: { tambah: 'acara' },
+      replace: true,
+    });
+  },
 });
