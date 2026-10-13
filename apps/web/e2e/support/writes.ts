@@ -7,6 +7,7 @@ import type {
   CommentWithReactions,
   DraftInternshipSubmission,
   FormAnswer,
+  Info,
   InternshipSubmission,
   ReactionAggregate,
 } from '../../src/api/generated';
@@ -222,3 +223,130 @@ export const saveSpartaDraft: Handler = ({ db, body }) =>
 /** POST /api/internship/submission/submit — send and lock (all of it required); 403 outside the window. */
 export const submitSparta: Handler = ({ db, body }) =>
   saveSparta(db, body, true);
+
+// Pengumuman (P1-B), as `apps/api/src/controllers/{info,comment,reaction,media}.controller.ts`.
+
+const isModerator = (db: Db) => db.me!.roles.includes('admin');
+const allComments = (db: Db) => Object.values(db.comments).flat();
+
+/** POST /api/info — post as the signed-in member; 403 for a category closed to them, 400 for an unknown one. */
+export const createInfo: Handler = ({ db, body }) => {
+  const b = body as {
+    title: string;
+    content: string;
+    forCategories: string[];
+    forAngkatan?: string[];
+    forGroups?: string[];
+    mediaUrls?: string[];
+  };
+  const cats = b.forCategories.map((id) => db.categories.find((c) => c.id === id));
+  if (cats.some((c) => !c)) return reply.status(400, { error: 'Unknown category' });
+  if (cats.some((c) => !db.postableCategories.some((p) => p.id === c!.id)))
+    return reply.status(403, { error: 'You may not post in this category' });
+  const me = db.me!;
+  const id = `e2e-info-${db.infos.length + 1}`;
+  const info: Info = {
+    id,
+    creatorId: me.id,
+    title: b.title,
+    content: b.content,
+    createdAt: NOW,
+    lastNotifiedAt: NOW,
+    infoMedias: (b.mediaUrls ?? []).map((url, i) => ({
+      infoId: id,
+      mediaId: `${id}-media-${i}`,
+      order: i,
+      media: {
+        id: `${id}-media-${i}`,
+        creatorId: me.id,
+        name: url.split('/').pop() ?? url,
+        type: 'image/svg+xml',
+        url,
+        createdAt: NOW,
+      },
+    })),
+    infoCategories: cats.map((c) => ({ infoId: id, categoryId: c!.id, category: c! })),
+    infoCourses: [],
+    infoAngkatan: (b.forAngkatan ?? []).map((angkatanId) => ({
+      infoId: id,
+      angkatanId,
+      angkatan: db.angkatan.find((a) => a.id === angkatanId)!,
+    })),
+    infoGroups: (b.forGroups ?? []).map((role) => ({
+      role,
+      group: db.groups.find((g) => g.role === role)?.group ?? role,
+    })),
+    comments: 0,
+    reactions: { totalReactions: 0, reactionsCount: [] },
+    creator: authorOf(me),
+    // The API doesn't mark a new post read for its author; the app does (POST …/read).
+    isRead: false,
+    canNotify: false,
+    isForAngkatan: !!b.forAngkatan?.length,
+    isForGroups: !!b.forGroups?.length,
+  };
+  db.infos.unshift(info);
+  db.comments[id] = [];
+  const { creator: _c, comments: _n, reactions: _r, ...created } = info;
+  return created;
+};
+
+/** DELETE /api/info/:infoId — the author or `admin`; others 403; 404 when it's gone. */
+export const deleteInfo: Handler = ({ db, params }) => {
+  const info = db.infos.find((i) => i.id === params.infoId);
+  if (!info) return reply.status(404, { error: 'Info not found' });
+  if (info.creatorId !== db.me!.id && !isModerator(db))
+    return reply.status(403, { error: 'Forbidden' });
+  db.infos = db.infos.filter((i) => i.id !== params.infoId);
+  return {};
+};
+
+/** POST /api/info/:infoId/renotify — the author only; 400 until 3 hours after the last notification. */
+export const renotify: Handler = ({ db, params }) => {
+  const info = db.infos.find((i) => i.id === params.infoId);
+  if (!info) return reply.status(404, { error: 'Info not found' });
+  if (info.creatorId !== db.me!.id) return reply.status(403, { error: 'Forbidden' });
+  if (Date.parse(NOW) - Date.parse(info.lastNotifiedAt) < 3 * 36e5)
+    return reply.status(400, { error: 'Info was notified less than 3 hours ago' });
+  info.lastNotifiedAt = NOW;
+  info.canNotify = false;
+  return {};
+};
+
+/** DELETE /api/comment/:commentId — the author or `admin`; 404 when it's gone. */
+export const deleteComment: Handler = ({ db, params }) => {
+  const c = allComments(db).find((x) => x.id === params.commentId);
+  if (!c) return reply.status(404, { error: 'Comment not found' });
+  if (c.creatorId !== db.me!.id && !isModerator(db))
+    return reply.status(403, { error: 'Forbidden' });
+  db.comments[c.repliedInfoId] = db.comments[c.repliedInfoId].filter((x) => x.id !== c.id);
+  const info = db.infos.find((i) => i.id === c.repliedInfoId);
+  if (info) info.comments = Math.max(0, info.comments - 1);
+  return c;
+};
+
+/** DELETE /api/reaction/info/:infoId and /api/reaction/comment/:commentId — remove your reaction. */
+export const unreact: Handler = ({ db, params }) => {
+  const target = params.commentId
+    ? allComments(db).find((c) => c.id === params.commentId)
+    : db.infos.find((i) => i.id === params.infoId);
+  if (!target?.reactions.userReaction) return reply.status(404, { error: 'Reaction not found' });
+  target.reactions = setReaction(target.reactions, null);
+  return {};
+};
+
+let uploads = 0;
+/**
+ * POST /api/media/upload — an upload address on the mock's own `/__e2e__/upload/` (support/mock.ts answers the PUT,
+ * with `api.uploads` for a delay or a failure) and the photo's address once uploaded.
+ */
+export const presign: Handler = ({ body }) => {
+  const { fileName } = body as { fileName: string; fileType: string };
+  const n = ++uploads;
+  const name = `upload-${n}-${fileName.replace(/[^\w.-]/g, '_')}`;
+  return {
+    presignedUrl: `/__e2e__/upload/${name}`,
+    mediaUrl: `/__e2e__/media/${name.replace(/\.[^.]+$/, '')}.svg`,
+    expiresIn: 60,
+  };
+};
