@@ -118,6 +118,9 @@ export const PROPER_NOUNS = [
   'Utama',
   // The day-before reminder, as the prototype writes it ("pengingat H-1").
   'H-1',
+  // P2-B: Testi Matkul's "Review Dosen" section and its "Mata Kuliah Pilihan" list.
+  'Dosen',
+  'Pilihan',
 ] as const;
 
 /** All-capitals words the app may show. Anything else in capitals is capitals the app added itself. */
