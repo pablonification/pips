@@ -241,7 +241,8 @@ test.describe('catching up (Nadia)', () => {
       detail(page).getByText('Kak, IF2120 K02 di ruang mana?'),
     ).toBeVisible();
     await expectFocused(field);
-    await expect(field).toBeInViewport({ ratio: 1 });
+    // In view: before the fix it was entirely below the window; scrolling leaves a sub-pixel sliver clipped.
+    await expect(field).toBeInViewport({ ratio: 0.95 });
   });
 
   test('commenting, then deleting your own comment through the confirmation', async ({
