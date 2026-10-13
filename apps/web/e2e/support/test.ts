@@ -9,11 +9,15 @@
  * - `platform`: what `navigator.platform` reports ('MacIntel', 'Linux x86_64'); null leaves the browser's own. The
  *   app names the search shortcut by platform (⌘K on Apple, Ctrl K elsewhere), so fidelity captures run as Linux,
  *   where the locked screens were rendered.
+ * - `push` (P1-C): this device's notifications, `'off'` (permission default, not subscribed), `'on'` (granted and
+ *   subscribed) or `'blocked'` (denied); null (default) follows the persona as the prototype does: off for Nadia, on
+ *   for Raka. See push.ts for the stub and its helpers (`answerPermission`, `pushDevice`).
  * - `api`: the mock layer (mock.ts). Its guard fails the test after it ends if any request went unanswered.
  */
 import { test as base, expect } from '@playwright/test';
 import { buildDb, NOW, type Db, type PersonaKey } from '../fixtures/api';
 import { ApiMock } from './mock';
+import { installPushStub, type PushMode } from './push';
 
 export interface HarnessOptions {
   persona: PersonaKey | null;
@@ -21,6 +25,7 @@ export interface HarnessOptions {
   installed: boolean;
   now: string | null;
   platform: string | null;
+  push: PushMode | null;
 }
 
 /** Freezes motion: no CSS animations or transitions, no smooth scrolling, no blinking caret. */
@@ -33,6 +38,7 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
   installed: [true, { option: true }],
   now: [NOW, { option: true }],
   platform: [null, { option: true }],
+  push: [null, { option: true }],
 
   /** This test's own copy of the persona's fixture data; the default handlers answer from it. */
   db: async ({ persona, signedIn }, use) => {
@@ -41,8 +47,15 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
     await use(db);
   },
 
-  context: async ({ context, db, installed, now, platform }, use) => {
+  context: async (
+    { context, db, installed, now, platform, push, persona },
+    use,
+  ) => {
     if (now) await context.clock.install({ time: new Date(now) });
+    await installPushStub(
+      context,
+      push ?? (persona === 'pengurus' ? 'on' : 'off'),
+    );
     if (platform)
       await context.addInitScript((p) => {
         Object.defineProperty(Navigator.prototype, 'platform', {
