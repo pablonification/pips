@@ -24,6 +24,14 @@ export const GARIS_FILES = [
   'src/lib/shell/**/*.{ts,tsx}',
   // P1-C: push, Profil, Layanan, sign-in and first run.
   'src/components/push/**/*.{ts,tsx}',
+  // P1-A: Beranda, Kalender, search's sources, and the shared WIB days.
+  'src/features/beranda/**/*.{ts,tsx}',
+  'src/features/kalender/**/*.{ts,tsx}',
+  'src/features/cari/**/*.{ts,tsx}',
+  'src/lib/days.ts',
+  'src/routes/_app/_left-navbar/index.tsx',
+  'src/routes/_app/kalender.tsx',
+  'src/routes/_app/kalender/index.tsx',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
@@ -117,6 +125,8 @@ export default defineConfig([
             'accent|success|inverse|outlined|error|dialog|handle|rule|hint|dis-ic|msg|t-ic|act|sq|bars',
             // The shell's parts (src/styles/garis/shell.css) and the theme scopes.
             'cap|sub|s|lap|label|c2|theme-light|theme-dark',
+            // P1-A: Beranda's and Kalender's parts (src/features/beranda/beranda.css, kalender/kalender.css).
+            'time|wd|dn|key|out|today|akademik|himpunan|point|past|h|d|tm|ttl|draw|two|grow|brief|prev|ext',
           ],
         },
       ],
