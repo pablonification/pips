@@ -41,6 +41,30 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
   'page-desktop1024-light': beranda,
   'narrow320-beranda': beranda,
   'desk1024-beranda': beranda,
+  // P1-C: "IF2211" typed and K2 picked. i-push-dialog waits for P1-A's Beranda (the prompt over it); until then the
+  // ov-push captures compare the prompt over Notifikasi.
+  'i-matkul-add': {
+    path: '/profil/matkul/tambah',
+    act: async (p) => {
+      const main = p.getByRole('main');
+      await main.getByText('Strategi Algoritma').waitFor();
+      await main
+        .getByRole('searchbox', { name: 'Cari mata kuliah' })
+        .fill('IF2211');
+      await main
+        .getByRole('radiogroup', { name: 'Kelas IF2211' })
+        .getByRole('radio', { name: 'K2' })
+        .click();
+      // The prototype's capture shows no focus ring: the search field and chip were used by pointer.
+      await p.evaluate(() =>
+        (document.activeElement as HTMLElement | null)?.blur(),
+      );
+    },
+    ready: (p) =>
+      p
+        .getByRole('button', { name: /^Tambahkan \(1\)/ })
+        .locator('visible=true'),
+  },
   // P0-A: the design-system gallery, against the prototype's design-system page.
   'system-cards': {
     path: '/dev/garis',

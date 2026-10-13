@@ -70,23 +70,6 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       path: '/layanan/form',
       ready: (p) => visibleText(p, 'Form Analisis Kondisi PIXEL'),
     },
-    'anggota-profil': {
-      path: '/profil',
-      ready: (p) =>
-        p
-          .getByRole('listitem')
-          .filter({ hasText: '13525045' })
-          .locator('visible=true')
-          .first(),
-    },
-    'anggota-matkul': {
-      path: '/profil/matkul',
-      ready: (p) => p.getByText('Jumlah SKS').locator('visible=true').first(),
-    },
-    'anggota-notif': {
-      path: '/profil/notifikasi',
-      ready: (p) => p.getByRole('switch').locator('visible=true').last(),
-    },
     'pengurus-kelola': {
       path: '/kelola',
       ready: (p) => p.getByRole('link', { name: /Data SPARTA Magang/ }),
@@ -94,6 +77,68 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
     'pengurus-live': {
       path: '/kelola/live/pixel',
       ready: (p) => visibleText(p, 'Halaman 1 dari 8'),
+    },
+    // P1-C: Profil, Mata kuliahku, Tambah mata kuliah, Notifikasi, the push prompt, Keluar and Layanan.
+    'anggota-profil': {
+      path: '/profil',
+      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 18 SKS'),
+    },
+    'pengurus-profil': {
+      path: '/profil',
+      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 19 SKS'),
+    },
+    'anggota-matkul': {
+      path: '/profil/matkul',
+      ready: (p) => p.getByRole('main').getByText('Jumlah SKS'),
+    },
+    'anggota-matkul-add': {
+      path: '/profil/matkul/tambah',
+      ready: (p) => p.getByRole('main').getByText('Strategi Algoritma'),
+    },
+    'anggota-notif': {
+      path: '/profil/notifikasi',
+      ready: (p) => p.getByRole('main').getByRole('switch', { name: 'Lomba' }),
+    },
+    'anggota-ov-push': {
+      path: '/profil/notifikasi',
+      act: async (p) => {
+        await p
+          .getByRole('main')
+          .getByRole('switch', { name: 'Lomba' })
+          .waitFor();
+        await p
+          .getByRole('main')
+          .getByRole('button', { name: 'Nyalakan notifikasi' })
+          .click();
+      },
+      ready: (p) => p.getByRole('dialog', { name: 'Nyalakan notifikasi?' }),
+    },
+    'anggota-ov-confirm': [
+      {
+        // Keluar's confirmation; on desktop this key is P2-A's send-form dialog.
+        path: '/profil',
+        layouts: ['phone', 'tablet'],
+        act: async (p) => {
+          await p
+            .getByRole('main')
+            .getByText('6 mata kuliah · 18 SKS')
+            .waitFor();
+          await p
+            .getByRole('main')
+            .getByRole('button', { name: 'Keluar' })
+            .click();
+        },
+        ready: (p) =>
+          p.getByRole('alertdialog', { name: 'Keluar dari PIPS!?' }),
+      },
+    ],
+    'anggota-layanan': {
+      path: '/layanan',
+      ready: (p) => p.getByRole('main').getByText('1 belum diisi'),
+    },
+    'pengurus-layanan': {
+      path: '/layanan',
+      ready: (p) => p.getByRole('main').getByText('Tambah acara Akademik'),
     },
     'pengurus-form-empty': {
       path: '/layanan/form',
