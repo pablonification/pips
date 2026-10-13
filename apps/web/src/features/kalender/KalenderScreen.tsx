@@ -124,10 +124,13 @@ export function KalenderScreen({ hari, acara }: KalenderSearch) {
   useEffect(() => {
     const k = focusNext.current;
     if (!k) return;
+    // The cell may not be drawn yet (Hari ini from another month): try again after the next render.
+    const cell = document.querySelector<HTMLElement>(
+      `[data-day="${k}"][data-grid]`,
+    );
+    if (!cell) return;
     focusNext.current = null;
-    document
-      .querySelector<HTMLElement>(`[data-day="${k}"][data-grid]`)
-      ?.focus();
+    cell.focus();
   });
 
   const onGridKey = (e: KeyboardEvent) => {
