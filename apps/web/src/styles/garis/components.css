@@ -863,6 +863,14 @@
   .g-field[aria-invalid='true'] {
     box-shadow: inset 0 0 0 1.5px var(--text-danger);
   }
+  /* P3-B fix: a field with an error kept its red edge but lost the focus ring (the rule above came later with the
+     same weight, in the prototype too), so focus was invisible there. Both now show. */
+  .g-field[aria-invalid='true']:focus-visible {
+    box-shadow:
+      inset 0 0 0 1.5px var(--text-danger),
+      0 0 0 2px var(--bg-app),
+      0 0 0 4px var(--focus);
+  }
   .g-err {
     color: var(--text-danger);
     display: flex;
