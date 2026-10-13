@@ -50,6 +50,43 @@ export const profil = {
     // New: a mute or unmute failed and the switch went back.
     gagal: 'Notifikasi {nama} gagal diubah. Periksa koneksimu, lalu coba lagi.',
   },
+  matkul: {
+    semester: 'Semester {semester} · {label}',
+    dipakai: 'Dipakai untuk apa?',
+    dipakaiIsi:
+      'Mata kuliah menentukan isi Ding Dong, acara Akademik di Kalender beserta pengingat H-1, dan pengumuman kelas yang kamu terima. Atur ulang tiap semester.',
+    kelas: 'Kelas {kelas}',
+    hapus: 'Hapus {kode} {nama} dari daftar',
+    jumlahSks: 'Jumlah SKS',
+    tambah: 'Tambah mata kuliah',
+    kosong: 'Belum ada mata kuliah semester ini',
+    dihapus: '{kode} dihapus dari mata kuliahmu.',
+    // New: a remove or its undo failed; the list is put back as the server has it.
+    hapusGagal: '{kode} gagal dihapus. Periksa koneksimu, lalu coba lagi.',
+    urungGagal: '{kode} gagal dikembalikan. Periksa koneksimu, lalu coba lagi.',
+    // New: the list couldn't load.
+    gagalMuat: 'Mata kuliahmu gagal dimuat.',
+  },
+  tambah: {
+    cari: 'Cari mata kuliah',
+    placeholder: 'Cari kode atau nama, misalnya IF2211',
+    tidakAda: 'Tidak ada mata kuliah untuk “{kata}”.',
+    kelasGrup: 'Kelas {kode}',
+    kelasPilihan: 'K{k}',
+    tambahkan: 'Tambahkan',
+    tambahkanJumlah: '({jumlah})',
+    pilihDulu: 'Pilih kelas (K1–K3) di mata kuliah yang mau kamu tambahkan.',
+    ditambahkan:
+      '{jumlah} mata kuliah ditambahkan. Ding Dong dan Kalender ikut diperbarui.',
+    // New: sending the picks, and its failure (the picks stay).
+    menambahkan: 'Menambahkan…',
+    gagal: 'Mata kuliah gagal ditambahkan. Periksa koneksimu, lalu coba lagi.',
+    gagalMuat: 'Daftar mata kuliah gagal dimuat.',
+  },
+  // Kredit (a toast in the prototype; new copy): its load failed.
+  kredit: {
+    gagal: 'Kredit gagal dimuat.',
+  },
   // Pasang PIPS! (a toast in the prototype; new copy, OPEN-QUESTIONS D3).
   pasang: {
     judul: 'Pasang PIPS!',
@@ -61,7 +98,9 @@ export const profil = {
     langkahIphone2: 'Pilih Tambahkan ke Layar Utama.',
     langkahIphone3: 'Ketuk Tambah, lalu buka PIPS! dari layar utama.',
     line: 'Browser di dalam LINE tidak bisa memasang aplikasi. Buka PIPS! di Chrome atau Safari dulu: ketuk menu di pojok, lalu pilih buka di browser lain.',
-    android: 'Buka menu Chrome di pojok kanan atas, lalu pilih Tambahkan ke layar utama.',
-    lainnya: 'Di Chrome atau Edge, pilih ikon pasang di ujung kolom alamat. Di ponsel, pakai menu browser lalu Tambahkan ke layar utama.',
+    android:
+      'Buka menu Chrome di pojok kanan atas, lalu pilih Tambahkan ke layar utama.',
+    lainnya:
+      'Di Chrome atau Edge, pilih ikon pasang di ujung kolom alamat. Di ponsel, pakai menu browser lalu Tambahkan ke layar utama.',
   },
 } as const;
