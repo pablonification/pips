@@ -1,5 +1,9 @@
 import { useEffect } from 'react';
-import { Button, HmifLogo, Wordmark } from '~/components/garis';
+// Straight from their files, not the barrel: /login is the first page a new member loads, and the barrel's chunk
+// brings the overlays' dialog library along.
+import { Button } from '~/components/garis/Button';
+import { HmifLogo } from '~/components/garis/HmifLogo';
+import { Wordmark } from '~/components/garis/Wordmark';
 import { IconPeringatan } from '~/components/icons/peringatan';
 import { IconUlang } from '~/components/icons/ulang';
 import { common } from '~/copy/common';

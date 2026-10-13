@@ -1,5 +1,7 @@
 import type { FormEvent } from 'react';
-import { Button, Field, Input, SectionHead } from '~/components/garis';
+import { Button } from '~/components/garis/Button';
+import { Field, Input } from '~/components/garis/Field';
+import { SectionHead } from '~/components/garis/List';
 import { masuk } from '~/copy/masuk';
 
 const copy = masuk.uji;

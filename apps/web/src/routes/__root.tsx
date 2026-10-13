@@ -2,9 +2,9 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Outlet, createRootRoute, redirect } from '@tanstack/react-router';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { Toaster } from 'react-hot-toast';
-import { Toaster as GarisToaster } from '~/components/garis';
-import { PushPrompt } from '~/components/push';
-import { InstallSheet } from '~/features/profil/InstallSheet';
+// Straight from its file: the barrel would put every Garis component (dialogs, menus) in the entry chunk.
+import { Toaster as GarisToaster } from '~/components/garis/Toast';
+import { RootOverlays } from '~/components/push/RootOverlays';
 import { queryClient } from '~/api/client';
 import {
   PERSIST_BUSTER,
@@ -48,8 +48,7 @@ function RootComponent() {
       <Outlet />
       {/* P1-C: the Garis toasts and the push prompt, for every page including sign-in and first run. */}
       <GarisToaster />
-      <PushPrompt />
-      <InstallSheet />
+      <RootOverlays />
       <ReactQueryDevtools />
     </PersistQueryClientProvider>
   );
