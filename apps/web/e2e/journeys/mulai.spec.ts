@@ -2,7 +2,7 @@
  * First run (`/mulai`, P1-C; SPEC stories 5–7, no locked design): after a sign-in with no shared link, on a device
  * that hasn't finished or skipped it, while a step is open. Courses first, then notifications, then Beranda.
  */
-import type { Page } from '@playwright/test';
+import { devices, type Page } from '@playwright/test';
 import { greeting } from '../support/app';
 import { fakeGoogle, googleRequests } from '../support/google';
 import { E2E_SUBSCRIPTION, pushDevice } from '../support/push';
@@ -182,5 +182,28 @@ test.describe('not installed', () => {
     await expect(
       page.getByRole('dialog', { name: 'Pasang PIPS!' }),
     ).toBeVisible();
+  });
+});
+
+test.describe('an iPhone outside the installed app @phone-only', () => {
+  test.use({ installed: false, userAgent: devices['iPhone 15'].userAgent });
+
+  test('regression: one Pasang button, on the Pasang PIPS! step; the notification step says why it waits', async ({
+    page,
+  }) => {
+    await page.goto('/mulai');
+    const notif = step(page, 'Notifikasi belum menyala');
+    await expect(notif).toContainText('Perlu dipasang ke layar utama');
+    await expect(notif.getByRole('button')).toHaveCount(0);
+    await expect(
+      main(page).getByRole('button', { name: 'Pasang' }),
+    ).toHaveCount(1);
+    await step(page, 'Pasang PIPS!')
+      .getByRole('button', { name: 'Pasang' })
+      .click();
+    await expect(
+      page.getByRole('dialog', { name: 'Pasang PIPS!' }),
+    ).toBeVisible();
+    expect((await pushDevice(page)).asks).toBe(0);
   });
 });

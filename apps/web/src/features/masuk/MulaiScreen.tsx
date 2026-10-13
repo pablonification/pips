@@ -148,10 +148,6 @@ export function MulaiScreen() {
                 >
                   {copy.nyalakan}
                 </Button>
-              ) : status === 'perlu-pasang' ? (
-                <Button variant="paper" size="sm" onClick={openInstallSheet}>
-                  {copy.pasangTombol}
-                </Button>
               ) : undefined
             }
           />
