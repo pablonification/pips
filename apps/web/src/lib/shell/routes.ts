@@ -8,7 +8,9 @@ import { serviceById } from '~/lib/services';
  * What the shell needs to know about every page (SPEC "Information architecture and shell"; the prototype's
  * `titleOf`, `ROOTS` and stacks in `garis/app.js`): its title, the page above it, which destination it belongs to,
  * and whether it is a focused flow. The key is the route's path, so TypeScript fails until a new route has an
- * entry here. A screen with a title from its data (a form, a room, a post) sets it with `usePageTitle()`.
+ * entry here. A screen with a title from its data (a form, a room, a post) sets it with `usePageTitle()`. A page
+ * whose title or parent depends on the URL's params gets them from its feature (`registerRouteRules`), so the shell
+ * imports no feature code.
  * Add entries in their own commit and don't reorder others' (WORKER-RULES, "Shared files").
  */
 
@@ -85,10 +87,9 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   '/layanan/dingdong': {
     title: svc('dingdong'),
     parent: '/layanan',
-    legacy: true,
   },
-  '/layanan/nim': { title: svc('nim'), parent: '/layanan', legacy: true },
-  '/layanan/lomba': { title: svc('lomba'), parent: '/layanan', legacy: true },
+  '/layanan/nim': { title: svc('nim'), parent: '/layanan' },
+  '/layanan/lomba': { title: svc('lomba'), parent: '/layanan' },
   '/layanan/curhat': {
     title: svc('curhat'),
     parent: '/layanan',
@@ -111,21 +112,19 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     parent: '/layanan',
     focused: true,
   },
-  '/layanan/testi': { title: svc('testi'), parent: '/layanan', legacy: true },
+  // Testi Matkul's levels: titles and the list's parent come from the URL (src/features/testi/shell.ts).
+  '/layanan/testi': { title: svc('testi'), parent: '/layanan' },
   '/layanan/testi/$type': {
     title: svc('testi'),
     parent: '/layanan/testi',
-    legacy: true,
   },
   '/layanan/testi/$type/$semester': {
     title: svc('testi'),
     parent: '/layanan/testi/$type',
-    legacy: true,
   },
   '/layanan/testi/$type/$semester/$courseId': {
     title: svc('testi'),
     parent: '/layanan/testi/$type/$semester',
-    legacy: true,
   },
   // Kelola: last in Layanan on phones and tablets, its own sidebar item on desktop (as the locked prototype has it).
   '/kelola': {
@@ -186,6 +185,25 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   '/dev/shell': { title: 'Uji shell', parent: '/layanan' },
 };
 
+/**
+ * A page's title or parent that depends on the URL's params, registered by its feature at start (src/main.tsx).
+ * Either answers null to fall back to `ROUTE_META`.
+ */
+export interface RouteRules {
+  title?: (params: Record<string, string>) => string | null;
+  parent?: (params: Record<string, string>) => ShellPath | null;
+}
+
+const RULES = new Map<ShellPath, RouteRules>();
+
+/** Lets a feature title its pages, or place them, from the URL, without the shell importing it. */
+export function registerRouteRules(
+  rules: Partial<Record<ShellPath, RouteRules>>,
+) {
+  for (const [path, r] of Object.entries(rules))
+    RULES.set(path as ShellPath, r);
+}
+
 /** A router match's path ('/layanan/dingdong/', '/_app/…' ids aside) as a `ShellPath`, or null outside the shell. */
 export function shellPath(fullPath: string): ShellPath | null {
   const p = fullPath.length > 1 ? fullPath.replace(/\/+$/, '') : fullPath;
@@ -196,6 +214,8 @@ export function titleOf(
   path: ShellPath,
   params: Record<string, string> = {},
 ): string {
+  const ruled = RULES.get(path)?.title?.(params);
+  if (ruled) return ruled;
   const t = ROUTE_META[path].title;
   return typeof t === 'function' ? t(params) : t;
 }
@@ -229,7 +249,10 @@ export function fillPath(
 export function parentOf(
   path: ShellPath,
   lastRoot: Destination | null = null,
+  params: Record<string, string> = {},
 ): ShellPath | null {
+  const ruled = RULES.get(path)?.parent?.(params);
+  if (ruled) return ruled;
   const p = ROUTE_META[path].parent;
   if (!p) return null;
   return p === LAST_ROOT ? DESTINATION_PATH[lastRoot ?? 'beranda'] : p;
@@ -246,6 +269,7 @@ export function activeItem(
   path: ShellPath,
   layout: Layout,
   lastRoot: Destination | null = null,
+  params: Record<string, string> = {},
 ): Destination | 'kelola' | 'profil' | null {
   let p: ShellPath | null = path;
   for (let i = 0; p && i < 12; i++) {
@@ -253,7 +277,7 @@ export function activeItem(
     if (layout === 'desk' && meta.deskRoot) return meta.deskRoot;
     if (meta.root) return meta.root;
     if (meta.parent === LAST_ROOT) return lastRoot;
-    p = meta.parent ?? null;
+    p = parentOf(p, lastRoot, params);
   }
   return lastRoot;
 }
@@ -279,7 +303,7 @@ export function trailOf(
     const meta: RouteMeta = ROUTE_META[p];
     if (meta.root || meta.deskRoot || !meta.parent || meta.parent === LAST_ROOT)
       break;
-    p = meta.parent;
+    p = parentOf(p, undefined, params);
   }
   return out;
 }

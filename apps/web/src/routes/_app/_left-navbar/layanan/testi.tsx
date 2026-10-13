@@ -1,24 +1,5 @@
-import type { JSX } from 'react';
-import { createFileRoute, Outlet } from '@tanstack/react-router';
-import UserInfo from '~/components/user/user-info';
-import useSession from '~/hooks/auth/useSession';
+import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_app/_left-navbar/layanan/testi')({
-  component: TestimoniLayout,
-});
-
-function TestimoniLayout(): JSX.Element {
-  const user = useSession();
-
-  return (
-    <main className="flex h-full flex-col gap-3 overflow-hidden pt-3 lg:pt-0">
-      <UserInfo
-        name={user.fullName}
-        email={user.email}
-        imageURL={user.picture}
-        className="flex w-full items-center gap-4 px-5 py-4 lg:hidden lg:gap-9"
-      />
-      <Outlet />
-    </main>
-  );
-}
+// Testi Matkul's start, programme and list pages render inside this route; it adds nothing of its own (P2-B: today's
+// header with your name and email is gone, as in the prototype).
+export const Route = createFileRoute('/_app/_left-navbar/layanan/testi')({});

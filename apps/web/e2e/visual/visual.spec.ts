@@ -7,7 +7,14 @@
  * the CI container (the e2e job uploads its results), so font rendering matches where they are checked.
  */
 import { expect, test } from '../support/test';
-import type { CaptureState } from '../capture/states';
+import { STATES, type CaptureState } from '../capture/states';
+
+const fromStates = (ids: string[]) =>
+  ids.map((id) => {
+    const state = STATES.find((s) => s.id === id);
+    if (!state) throw new Error(`visual: no capture state ${id}`);
+    return state;
+  });
 
 /** States with committed references. Same shape as capture/states.ts. */
 export const VISUAL_STATES: CaptureState[] = [
@@ -26,6 +33,23 @@ export const VISUAL_STATES: CaptureState[] = [
     path: '/kelola/sparta',
     ready: (p) => p.getByRole('main').getByText('3 pendaftar'),
   },
+  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba.
+  ...fromStates([
+    'dingdong',
+    'dingdong-empty',
+    'dingdong-loading',
+    'dingdong-error',
+    'dingdong-offline',
+    'testi-programs',
+    'testi-courses',
+    'testi-course',
+    'testi-search',
+    'testi-course-empty',
+    'nim-finder',
+    'nim-finder-results',
+    'competition',
+    'lomba-error',
+  ]),
 ];
 
 for (const state of VISUAL_STATES) {

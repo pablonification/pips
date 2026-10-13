@@ -1,36 +1,12 @@
-import type { JSX } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import TestiListMain from './-components/TestiListMain';
-import TestiListItem from './-components/TestiListItem';
-import BookMarkIcon from '~/assets/icons/testimoni/bookmark.svg';
+import { prefetch } from '~/api/queries';
+import { TestiStartScreen } from '~/features/testi/TestiScreens';
+import { catalogueQuery } from '~/features/testi/queries';
+import { querySearchSchema } from '~/lib/search-params';
 
 export const Route = createFileRoute('/_app/_left-navbar/layanan/testi/')({
-  component: TestimoniPage,
+  // The catalogue, for the search, while the page's code downloads.
+  loader: () => prefetch(catalogueQuery()),
+  component: TestiStartScreen,
+  validateSearch: (search) => querySearchSchema.parse(search),
 });
-
-const TYPES = ['Teknik Informatika', 'Sistem dan Teknologi Informasi'];
-
-function TestimoniPage(): JSX.Element {
-  return (
-    <TestiListMain linkFrom={Route.fullPath}>
-      {[
-        ...TYPES.map((type, idx) => (
-          <TestiListItem
-            linkFrom={Route.fullPath}
-            linkTo={`./${type.toLowerCase().split(' ').join('-')}`}
-            icon={BookMarkIcon}
-            title={type}
-            key={idx}
-          />
-        )),
-        <TestiListItem
-          key={3}
-          linkFrom={Route.fullPath}
-          linkTo="./mata-kuliah-umum/other"
-          icon={BookMarkIcon}
-          title="Mata Kuliah Umum"
-        />,
-      ]}
-    </TestiListMain>
-  );
-}

@@ -467,10 +467,14 @@ test('the shell’s first code loads only Pengumuman’s small modules (the badg
     fs.readFileSync(path.resolve(import.meta.dirname, '../src', f), 'utf8');
   const imports = (src: string) =>
     [...src.matchAll(/^import[\s\S]*?from '([^']+)';/gm)].map((m) => m[1]);
+  // The badge registers at start (src/main.tsx) through the shell's registry: the shell imports no feature code.
   assert.deepEqual(imports(read('components/shell/nav-badges.ts')), [
-    '~/features/pengumuman/unread',
-    '~/features/pengumuman/unread-query',
     '~/lib/shell/routes',
+  ]);
+  assert.deepEqual(imports(read('features/pengumuman/shell.ts')), [
+    '~/components/shell/nav-badges',
+    './unread',
+    './unread-query',
   ]);
   assert.deepEqual(imports(read('features/pengumuman/unread.ts')), [
     '~/api/constants',

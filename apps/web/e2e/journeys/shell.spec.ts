@@ -313,10 +313,10 @@ test.describe('today’s screens inside the shell', () => {
   test('a screen that fills the window fits between the bars, its own scrolling intact', async ({
     page,
   }) => {
-    // Info Lomba is still today's screen (h-screen); Form was until P2-A replaced it.
-    await page.goto('/layanan/lomba');
+    // Curhat is still today's screen (h-screen) until P2-C; Form was until P2-A replaced it, Info Lomba until P2-B.
+    await page.goto('/layanan/curhat');
     await expect(
-      page.getByRole('main').getByText('Find IT! 2026').first(),
+      page.getByRole('main').getByRole('heading', { name: 'Amber Heron' }),
     ).toBeVisible();
     const overflow = await page
       .locator('[data-scroll-restoration-id="isi"]')
@@ -456,9 +456,12 @@ test.describe('global search', () => {
     await expect(palette(page)).toHaveCount(0);
     await expect(page).toHaveURL(/\/layanan\/nim$/);
     await expect(page).toHaveTitle('NIM Finder · PIPS!');
-    // Focus moves to the new page's title (phones and tablets) or its main landmark (desktop, today's screen).
+    // Focus moves to the new page's title: the top bar's on phones and tablets, the page head on desktop (P2-B's
+    // NIM Finder has one; today's screen didn't, so focus went to the main landmark).
     if (layoutOf(testInfo) === 'desktop')
-      await expect(page.locator('#isi')).toBeFocused();
+      await expect(
+        page.getByRole('heading', { level: 1, name: 'NIM Finder' }),
+      ).toBeFocused();
     else await expect(topTitle(page)).toBeFocused();
   });
 

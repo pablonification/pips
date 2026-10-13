@@ -261,6 +261,31 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
         .first()
         .getByText('Pengisi baru (contoh)'),
   },
+  // P2-B: Testi Matkul on phones. The locked captures still show a toast from the prototype's previous step
+  // ("1 mata kuliah ditambahkan…"); the app has none here (a known difference, in the P2-B report).
+  'i-testi': {
+    path: '/layanan/testi',
+    act: async (p) => {
+      const main = p.getByRole('main');
+      await main.getByRole('link', { name: 'Teknik Informatika' }).click();
+      await main.getByRole('link', { name: 'Semester 3' }).click();
+      await main.getByRole('link', { name: /^IF2110 / }).click();
+      await main.getByRole('button', { name: 'Testimoni berikutnya' }).click();
+    },
+    ready: (p) => p.getByRole('article', { name: 'Testimoni 2 dari 3' }),
+  },
+  'i-testi-search': {
+    path: '/layanan/testi',
+    act: async (p) => {
+      await p
+        .getByRole('searchbox', { name: 'Cari mata kuliah' })
+        .fill('if2110');
+    },
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .getByRole('link', { name: /^IF2110 .* 3 testimoni$/ }),
+  },
 };
 
 /** The live page's socket is in the PIXEL form's admin room. */

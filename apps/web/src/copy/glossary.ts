@@ -123,6 +123,9 @@ export const PROPER_NOUNS = [
   'K1–K3',
   // The day-before reminder, as the prototype writes it ("pengingat H-1").
   'H-1',
+  // P2-B: Testi Matkul's "Review Dosen" section and its "Mata Kuliah Pilihan" list.
+  'Dosen',
+  'Pilihan',
   // P1-B: the composer's audience choice, named in its errors ("atau ganti ke Semua").
   'Semua',
 ] as const;
