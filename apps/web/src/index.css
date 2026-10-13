@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
 
 /*
   Only the Garis tokens exist (SPEC "Design tokens and theming"): Tailwind's own palette, font stacks, text sizes,
