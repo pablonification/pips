@@ -222,11 +222,13 @@ function AgendaCard({
   const open = useOpenEvent();
   const headingId = useId();
   const draw = useMemo(() => takeDraw(), []);
-  const late = useDelayed(!agenda.ready && !agenda.offline && !agenda.failed);
+  // The chosen day's month is enough: the other month may still be loading, or have failed.
+  const known = agenda.has(chosen);
+  const late = useDelayed(!known && !agenda.offline && !agenda.failed);
   const events = eventsOn(agenda.events, chosen);
   const state = (
     <DayListState
-      state={agenda}
+      state={{ ...agenda, ready: known }}
       late={late}
       empty={events.length === 0}
       emptyClassName="g-ag-empty"
@@ -242,14 +244,16 @@ function AgendaCard({
       </h2>
       <div className="g-ag-strip" role="group" aria-label={k.pilihHari}>
         {days.map((d, i) => {
-          const evs = agenda.ready ? eventsOn(agenda.events, d) : [];
+          // Each month's bars as soon as it arrives, whatever the other month does.
+          const known = agenda.has(d);
+          const evs = known ? eventsOn(agenda.events, d) : [];
           return (
             <button
               key={d}
               type="button"
               className={cn('g-ag-day', i === 0 && 'today')}
               aria-pressed={d === chosen}
-              aria-label={stripDayName(d, i, evs.length)}
+              aria-label={stripDayName(d, i, known ? evs.length : null)}
               style={{ '--i': i } as CSSProperties}
               onClick={() =>
                 void navigate({
@@ -270,7 +274,7 @@ function AgendaCard({
           );
         })}
       </div>
-      {agenda.ready && events.length ? (
+      {known && events.length ? (
         <EventRows
           className="g-ag-list"
           events={events}

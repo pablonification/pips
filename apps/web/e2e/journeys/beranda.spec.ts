@@ -534,6 +534,38 @@ test.describe('the month’s end', () => {
   });
 });
 
+test.describe('the month’s end, one month failing', () => {
+  test.use({ now: '2026-10-28T09:00:00+07:00' });
+  test('October’s days keep their bars and rows while November fails; November’s days say no count', async ({
+    page,
+    api,
+    db,
+  }) => {
+    db.events.push(
+      event('o1', 'Rapat Angkatan', '2026-10-29T19:00', '2026-10-29T21:00'),
+    );
+    api.on('GET /api/calendar/me', ({ db, query }) =>
+      query.get('month') === '11'
+        ? reply.status(503)
+        : db.events.filter(
+            (e) =>
+              new Date(Date.parse(e.start) + 7 * 36e5).getUTCMonth() + 1 === 10,
+          ),
+    );
+    await page.goto('/');
+    const tomorrow = stripDay(page, 'Kamis, 29 Oktober, besok, 1 acara');
+    await expect(tomorrow).toBeVisible();
+    await expect(tomorrow.locator('.g-mbars i')).toHaveCount(1);
+    // Unknown, not "tidak ada acara".
+    await expect(stripDay(page, 'Senin, 2 November')).toBeVisible();
+    await tomorrow.click();
+    await expect(agendaRows(page)).toHaveText([
+      'Rapat Angkatan',
+      'Acara Himpunan',
+    ]);
+  });
+});
+
 test.describe('Raka, pengurus', () => {
   test.use({ persona: 'pengurus' });
 

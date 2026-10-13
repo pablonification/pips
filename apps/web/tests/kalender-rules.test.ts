@@ -355,6 +355,8 @@ test('accessible names: strip days, month days and desktop cells', () => {
     stripDayName('2026-10-11', 3, 0),
     'Minggu, 11 Oktober, tidak ada acara',
   );
+  // P1-A round 2: a day whose month hasn't arrived (or failed) has no count, not a wrong "tidak ada acara".
+  assert.equal(stripDayName('2026-11-02', 5, null), 'Senin, 2 November');
   assert.equal(
     monthDayName('2026-10-08', '2026-10-08', 2),
     'Kamis, 8 Oktober, hari ini, 2 acara',

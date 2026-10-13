@@ -9,12 +9,18 @@ import {
   useQueryClient,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { api } from '~/api/client';
 import { CALENDAR_EVENTS_QUERY_KEY } from '~/api/constants';
 import { ApiError, type CalendarEvent } from '~/api/generated';
 import { calendarEventsQuery, currentCoursesQuery } from '~/api/queries';
-import type { Month } from '~/lib/days';
+import { monthOf, type DayKey, type Month } from '~/lib/days';
 import { coursesById, mergeEvents, type CalEvent } from './rules';
 
 export interface MonthsState {
@@ -30,11 +36,21 @@ export interface MonthsState {
   offline: boolean;
   /** When the oldest month on screen was last updated (for "Offline · diperbarui 07.45"). */
   updatedAt: number;
+  /** Whether a day's month has arrived, so its events (or none) are known; also when another month failed. */
+  has: (day: DayKey) => boolean;
   retry: () => void;
 }
 
-function combine(results: UseQueryResult<CalendarEvent[]>[]): MonthsState {
+function combine(
+  results: UseQueryResult<CalendarEvent[]>[],
+  months: readonly Month[],
+): MonthsState {
   const missing = results.filter((r) => r.data === undefined);
+  const arrived = new Set(
+    months
+      .filter((_, i) => results[i]?.data !== undefined)
+      .map((m) => `${m.year}-${m.month}`),
+  );
   return {
     events: mergeEvents(results.map((r) => r.data)),
     ready: missing.length === 0,
@@ -45,17 +61,25 @@ function combine(results: UseQueryResult<CalendarEvent[]>[]): MonthsState {
       ...results.map((r) => r.dataUpdatedAt || Infinity),
       Date.now(),
     ),
+    has: (day) => {
+      const m = monthOf(day);
+      return arrived.has(`${m.year}-${m.month}`);
+    },
     retry: () => {
       for (const r of results) if (r.data === undefined) void r.refetch();
     },
   };
 }
 
-/** The events of some months (Beranda's strip: one or two; Kalender's grid: up to three). */
+/** The events of some months (Beranda's strip: one or two; Kalender's grid: up to three). `months` must be stable. */
 export function useMonthsEvents(months: readonly Month[]): MonthsState {
+  const combineMonths = useCallback(
+    (results: UseQueryResult<CalendarEvent[]>[]) => combine(results, months),
+    [months],
+  );
   return useQueries({
     queries: months.map((m) => calendarEventsQuery(m)),
-    combine,
+    combine: combineMonths,
   });
 }
 

@@ -149,7 +149,8 @@ const count = (n: number) =>
 export function stripDayName(
   day: DayKey,
   index: number,
-  events: number,
+  /** Null while the day's month hasn't arrived: no count rather than a wrong "tidak ada acara". */
+  events: number | null,
 ): string {
   const date = dLong(dayStartOf(day));
   const named =
@@ -158,7 +159,7 @@ export function stripDayName(
       : index === 1
         ? fill(t.nama.besok, { hari: date })
         : date;
-  return `${named}, ${count(events)}`;
+  return events === null ? named : `${named}, ${count(events)}`;
 }
 
 /** A day's name in the phone month: "Kamis, 8 Oktober, hari ini, 2 acara". */
