@@ -156,6 +156,24 @@ test.describe('Nadia', () => {
     ).toBeVisible();
     await api.setOffline(false);
   });
+
+  test('regression: offline, the banner gives the time of the last data that loaded, never just “now”', async ({
+    page,
+    api,
+  }) => {
+    // The courses never load; the rest of the page did, at 13.35.
+    api.on('GET /api/course/take/current', reply.status(503));
+    await page.goto('/profil');
+    await expect(
+      main(page).getByRole('button', { name: 'Coba lagi' }),
+    ).toBeVisible();
+    await page.clock.fastForward('20:00');
+    await api.setOffline(true);
+    await expect(
+      main(page).getByText('Offline · diperbarui 13.35'),
+    ).toBeVisible();
+    await api.setOffline(false);
+  });
 });
 
 test.describe('Raka', () => {

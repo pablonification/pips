@@ -79,6 +79,8 @@ export const common = {
   },
   offline: {
     banner: 'Offline · diperbarui {waktu}',
+    // P1-C: nothing on the page has come from the server yet, so there is no time to give.
+    bannerTanpaWaktu: 'Offline',
   },
   // The words the Garis components say themselves (P0-A, moved here from components/garis/strings.ts).
   komponen: {

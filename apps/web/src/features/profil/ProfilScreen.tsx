@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
+import { ME_QUERY_KEY } from '~/api/constants';
 import { currentCoursesQuery, userAcademicQuery } from '~/api/queries';
 import type { UserWithRoles } from '~/api/generated';
 import {
@@ -192,6 +193,15 @@ export function ProfilScreen() {
   const courses = useQuery(currentCoursesQuery());
   const online = useOnline();
   const { preference, setPreference } = useTheme();
+  const qc = useQueryClient();
+  // The last time anything on this page came from the server: the newest of its queries, the member's own included.
+  // Never "now" when nothing loaded (review m5); then the banner leaves the time out.
+  const updatedAt = Math.max(
+    academic.dataUpdatedAt,
+    groups.dataUpdatedAt,
+    courses.dataUpdatedAt,
+    qc.getQueryState([ME_QUERY_KEY])?.dataUpdatedAt ?? 0,
+  );
 
   const grup = groupsFact(me.roles, groups.data);
   const facts: [string, string][] = [
@@ -228,7 +238,7 @@ export function ProfilScreen() {
         {!online ? (
           <OfflineBanner
             className="lg:col-span-2"
-            updatedAt={jamWib(courses.dataUpdatedAt || Date.now())}
+            updatedAt={updatedAt ? jamWib(updatedAt) : undefined}
           />
         ) : null}
         <div className="grid gap-5 lg:gap-4">
