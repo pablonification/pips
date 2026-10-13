@@ -106,6 +106,16 @@ export const PROPER_NOUNS = [
   'Magang',
   'Data',
   'Pasang',
+  // P1-C: browsers and devices named in the push and Pasang PIPS! copy, and iOS's own menu words.
+  'Chrome',
+  'Edge',
+  'Firefox',
+  'Safari',
+  'Android',
+  'Bagikan',
+  'Tambahkan',
+  'Layar',
+  'Utama',
 ] as const;
 
 /** All-capitals words the app may show. Anything else in capitals is capitals the app added itself. */
@@ -127,4 +137,6 @@ export const ACRONYMS = [
   'UI',
   'UX',
   'IT',
+  // P1-C: the LINE app, whose in-app browser can't install PIPS!.
+  'LINE',
 ] as const;
