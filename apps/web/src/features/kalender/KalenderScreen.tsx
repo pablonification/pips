@@ -163,6 +163,16 @@ export function KalenderScreen({ hari, acara }: KalenderSearch) {
         replace: true,
       });
   }, [desk, acara, urlEvent.missing, navigate]);
+  // A link with an event but no day (Beranda's, or one shared from a phone) shows it under its own day, as the
+  // prototype's `openEvent` does, not under today.
+  const eventDay = urlEvent.event ? dayKeyOf(urlEvent.event.start) : null;
+  useEffect(() => {
+    if (desk && acara && !hari && eventDay)
+      void navigate({
+        search: (s) => ({ ...s, hari: eventDay }),
+        replace: true,
+      });
+  }, [desk, acara, hari, eventDay, navigate]);
 
   const monthNav = (
     <div className="g-month-nav">

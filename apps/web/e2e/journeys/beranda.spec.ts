@@ -321,11 +321,18 @@ test.describe('Nadia', () => {
     await page.goto('/?acara=a3');
     if (layoutOf(testInfo) === 'desktop') {
       await expect(page).toHaveURL(/\/kalender\?.*acara=a3/);
+      const side = page.getByRole('region', { name: 'Acara hari terpilih' });
       await expect(
-        page
-          .getByRole('region', { name: 'Acara hari terpilih' })
-          .getByRole('heading', { name: 'Deadline Tugas Besar 1' }),
+        side.getByRole('heading', { name: 'Deadline Tugas Besar 1' }),
       ).toBeVisible();
+      // Under its own day (Jumat 9 Oktober), not today's: the link has no day, so Kalender takes the event's.
+      await expect(page).toHaveURL(/hari=2026-10-09/);
+      await expect(
+        side.getByRole('heading', { name: 'Jumat, 9 Oktober', exact: true }),
+      ).toBeVisible();
+      await expect(
+        side.getByRole('button', { name: /Deadline Tugas Besar 1/ }),
+      ).toHaveAttribute('aria-current', 'true');
     } else {
       await expect(
         page
