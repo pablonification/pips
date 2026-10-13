@@ -83,6 +83,25 @@ export function useSpartaWrites() {
   };
 }
 
+/**
+ * Saves a draft as the page goes away (`pagehide`): a `keepalive` request, which the browser finishes after the page
+ * is gone. The generated client can't ask for that.
+ */
+export function saveDraftOnLeave(requestBody: DraftInternshipSubmission) {
+  void fetch(
+    `${import.meta.env.VITE_API_URL ?? ''}/api/internship/submission`,
+    {
+      method: 'PUT',
+      keepalive: true,
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+    },
+  ).catch(() => {
+    // Nothing to tell: the page is gone.
+  });
+}
+
 /** A file answer: a presigned upload (`POST /media/upload`), as today's screen does; resolves to the file's URL. */
 export async function uploadFile(file: File): Promise<string> {
   const presigned = await api.media.createPresignedUrl({

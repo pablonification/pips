@@ -750,3 +750,31 @@ test('a file upload finishing doesn’t overwrite what was typed meanwhile', asy
     ['div-cnc', []],
   ]);
 });
+
+test('a save still waiting when the page goes away is sent with it (pagehide)', async ({
+  page,
+  api,
+  db,
+}) => {
+  openSeason(db);
+  api.on('PUT /api/internship/submission', writes.saveSpartaDraft);
+  await page.goto('/layanan/sparta');
+  await page.getByRole('button', { name: 'Mulai' }).click();
+  await expect(page.getByLabel('Kelas')).toBeVisible();
+  // Stop the clock, so the 800 ms pause before a save never ends on its own.
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 10);
+  await page.getByLabel('Kelas').fill('K-05');
+  await page.waitForTimeout(1500);
+  expect(api.calls('PUT /api/internship/submission')).toHaveLength(0);
+  // The page goes away (Playwright can't watch a request outlive a real unload, so the event is sent here).
+  await page.evaluate(() =>
+    window.dispatchEvent(
+      new PageTransitionEvent('pagehide', { persisted: false }),
+    ),
+  );
+  await expect.poll(() => lastPut(api)?.kelas).toBe('K-05');
+  expect(api.calls('PUT /api/internship/submission')).toHaveLength(1);
+  expect(
+    db.internshipSubmissions.find((s) => s.userId === db.me!.id)?.kelas,
+  ).toBe('K-05');
+});

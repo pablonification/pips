@@ -50,6 +50,7 @@ import { serviceById } from '~/lib/services';
 import {
   spartaDepartmentsQuery,
   spartaSubmissionQuery,
+  saveDraftOnLeave,
   spartaWindowQuery,
   useSpartaWrites,
 } from './sparta-data';
@@ -425,6 +426,18 @@ function Steps({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
+
+  // A save still waiting when the page goes away (the tab closes, a reload) is sent with it, as form drafts are.
+  useEffect(() => {
+    const leave = () => {
+      if (!timer.current) return;
+      clearTimeout(timer.current);
+      timer.current = null;
+      saveDraftOnLeave(toRequest(latest.current, divisions));
+    };
+    window.addEventListener('pagehide', leave);
+    return () => window.removeEventListener('pagehide', leave);
+  }, [divisions]);
 
   useEffect(() => {
     if (!focus) return;
