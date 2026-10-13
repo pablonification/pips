@@ -44,7 +44,7 @@ export async function expectFits(page: Page, where: string) {
     const clipped: string[] = [];
     const small: string[] = [];
     for (const el of document.querySelectorAll<HTMLElement>('#isi *')) {
-      if (el.closest('[data-legacy]') || !el.checkVisibility()) continue;
+      if (!el.checkVisibility()) continue;
       const own = [...el.childNodes].some(
         (n) => n.nodeType === 3 && n.textContent?.trim(),
       );

@@ -109,20 +109,3 @@ export function TopBarActions({ children }: { children: ReactNode }) {
   const slot = useContext(TopBarSlot);
   return slot ? createPortal(children, slot) : null;
 }
-
-/**
- * Today's screen on its old light surface, inside the new shell, until its redesign replaces it. The shell wraps
- * every route the table marks `legacy`; use this only for old parts inside a redesigned page (Beranda until P1-A).
- */
-export function LegacyScreen({
-  className,
-  ...rest
-}: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn('g-legacy theme-light', className)}
-      data-legacy=""
-      {...rest}
-    />
-  );
-}

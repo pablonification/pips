@@ -31,11 +31,10 @@ async function expectLit(page: Page, name: string) {
   await expect(lit).toHaveAccessibleName(new RegExp(`^${name}`));
 }
 
-/** No serious or critical axe violation in the shell; today's screens inside (`data-legacy`) are left out. */
+/** No serious or critical axe violation on the page, the shell and the screen inside it. */
 async function expectShellAccessible(page: Page, where: string) {
   const result = await new AxeBuilder({ page })
     .withTags(AXE_TAGS)
-    .exclude('[data-legacy]')
     .setLegacyMode(true)
     .analyze();
   const bad = result.violations
@@ -58,7 +57,7 @@ async function expectFits(page: Page, where: string) {
     for (const el of document.querySelectorAll<HTMLElement>(
       '.g-shell *, .g-desk *',
     )) {
-      if (el.closest('[data-legacy]') || !el.childNodes.length) continue;
+      if (!el.childNodes.length) continue;
       const own = [...el.childNodes].some(
         (n) => n.nodeType === 3 && n.textContent?.trim(),
       );
