@@ -364,9 +364,9 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
         await deps.google.remove(calendarId, eventDB.googleCalendarId);
       } catch (error) {
         // Already removed in Google Calendar: remove the row too, or the event could never be deleted (C6).
-        const gone = await googleEventGone(error, () =>
-          deps.google.getCalendar(calendarId),
-        );
+        const gone = await googleEventGone(error, async () => {
+          await deps.google.getCalendar(calendarId);
+        });
         if (!gone) throw error;
       }
       const event = await deps.deleteCalendarEvent(eventId);
