@@ -14,6 +14,7 @@ import {
   activeItem,
   deskCrumbs,
   DESTINATION_PATH,
+  documentTitleOf,
   fillPath,
   isRootPage,
   parentOf,
@@ -70,6 +71,26 @@ test('titles: members’ service names and the prototype’s page names', () => 
   assert.equal(titleOf('/profil/matkul'), 'Mata kuliahku');
   assert.equal(titleOf('/profil/matkul/tambah'), 'Tambah mata kuliah');
   for (const p of PATHS) assert.ok(titleOf(p, { id: 'x' }).length > 0, p);
+});
+
+test('document titles: the live page is "Live Counting & Rekap Form" in the browser tab (review P3-A m8)', () => {
+  // The top bar and breadcrumbs keep the prototype's short name; the browser tab names the whole service.
+  assert.equal(
+    documentTitleOf('/kelola/live/$formId', { formId: 'pixel' }),
+    'Live Counting & Rekap Form',
+  );
+  assert.equal(titleOf('/kelola/live/$formId'), 'Live Counting');
+  // Every other page: its title, or a title from the screen's data first.
+  assert.equal(documentTitleOf('/kelola/live'), 'Live Counting');
+  assert.equal(documentTitleOf('/profil/matkul'), 'Mata kuliahku');
+  assert.equal(
+    documentTitleOf('/kelola/sparta/$submissionId', {}, 'Bima Santoso'),
+    'Bima Santoso',
+  );
+  assert.equal(documentTitleOf(null), 'PIPS!');
+  for (const p of PATHS)
+    if (p !== '/kelola/live/$formId')
+      assert.equal(documentTitleOf(p, { id: 'x' }), titleOf(p, { id: 'x' }), p);
 });
 
 test('focused flows are the form, the composer, a Curhat room and Magang SPARTA (SPEC story 19; P2-A brief), and first run (P1-C)', () => {

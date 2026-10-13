@@ -42,6 +42,11 @@ export interface RouteMeta {
   /** The page above it, for back without history and for the breadcrumbs. */
   parent?: ShellPath | typeof LAST_ROOT;
   /**
+   * The browser tab's name when it differs from `title`: the live page is "Live Counting" in the top bar and the
+   * breadcrumbs (the prototype's `titleOf`), and "Live Counting & Rekap Form · PIPS!" as a document (P3-A brief).
+   */
+  documentTitle?: string;
+  /**
    * On desktop the page is a sidebar item of its own (Kelola, Profil): the breadcrumbs start here and the sidebar
    * lights it. On phones and tablets it is still reached from `parent`.
    */
@@ -135,6 +140,7 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   },
   '/kelola/live/$formId': {
     title: common.shell.liveCounting,
+    documentTitle: svc('live'),
     parent: '/kelola',
   },
   '/kelola/live/$formId/rekap': {
@@ -192,6 +198,17 @@ export function titleOf(
 ): string {
   const t = ROUTE_META[path].title;
   return typeof t === 'function' ? t(params) : t;
+}
+
+/** The document title's name: a title from the screen's data first, then the route's `documentTitle`, then its title. */
+export function documentTitleOf(
+  path: ShellPath | null,
+  params: Record<string, string> = {},
+  dataTitle?: string,
+): string {
+  if (dataTitle) return dataTitle;
+  if (!path) return common.app.name;
+  return ROUTE_META[path].documentTitle ?? titleOf(path, params);
 }
 
 /** Fills a route path's `$params`; null when one is missing. */
