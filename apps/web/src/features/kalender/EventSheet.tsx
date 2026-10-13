@@ -4,10 +4,11 @@
  * row that opened it. An id the API doesn't know opens nothing, and the param is dropped.
  */
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { Course } from '~/api/generated';
 import { Sheet } from '~/components/garis';
 import { kalender as t } from '~/copy/kalender';
+import { useEventManaging } from '~/features/kelola-acara/EventOptions';
 import { useEvent } from './data';
 import { useCloseEvent } from './open';
 import { EventInfo } from './parts';
@@ -48,9 +49,15 @@ export function EventSheet({
     event?.courseId !== undefined && event.courseId !== null
       ? courses.get(event.courseId)
       : undefined;
+  // P3-B: not opened under Ubah or Hapus acara that it wasn't already under (a tablet turned back from the desktop
+  // layout with one open); it opens once that dialog closes (review m3).
+  const managing = useEventManaging();
+  const [wasOpen, setWasOpen] = useState(false);
+  const open = !!id && !!event && (!managing || wasOpen);
+  if (open !== wasOpen) setWasOpen(open);
   return (
     <Sheet
-      open={!!id && !!event}
+      open={open}
       onOpenChange={(open) => {
         if (!open && id) close(id);
       }}

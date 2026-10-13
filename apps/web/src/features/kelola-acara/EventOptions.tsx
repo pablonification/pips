@@ -17,6 +17,7 @@ import {
   Suspense,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -52,15 +53,30 @@ interface Target {
   event: CalendarEvent;
 }
 
-const EventManageContext = createContext<((target: Target) => void) | null>(
-  null,
-);
+interface Host {
+  open: (target: Target) => void;
+  /** Ubah acara or Hapus acara is open. */
+  managing: boolean;
+}
+
+const EventManageContext = createContext<Host | null>(null);
+
+/**
+ * Whether one of the host's dialogs is open. The phone sheet doesn't open under one it wasn't already under (coming
+ * back from the desktop layout, where the event was in the side column): it would cover the dialog and take its focus.
+ */
+export const useEventManaging = () =>
+  useContext(EventManageContext)?.managing ?? false;
 
 /** Holds Ubah acara's and Hapus acara's dialogs for the event options inside it. */
 export function EventManageHost({ children }: { children: ReactNode }) {
   const [target, setTarget] = useState<Target | null>(null);
+  const host = useMemo(
+    () => ({ open: setTarget, managing: target !== null }),
+    [target],
+  );
   return (
-    <EventManageContext.Provider value={setTarget}>
+    <EventManageContext.Provider value={host}>
       {children}
       {target ? (
         <Dialogs
@@ -82,7 +98,7 @@ export function EventOptions({ event }: { event: CalendarEvent }) {
 }
 
 function OptionsButton({ event }: { event: CalendarEvent }) {
-  const open = useContext(EventManageContext)!;
+  const { open } = useContext(EventManageContext)!;
   return (
     <Menu
       trigger={
