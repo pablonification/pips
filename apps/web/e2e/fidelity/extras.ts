@@ -202,6 +202,28 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
     },
     ready: (p) => p.getByText('Form berhasil dikirim!'),
   },
+  // P2-C: in r1, Balas on m4, type and send, acknowledged (garis-check.mjs's Curhat flow).
+  'i-curhat-room': {
+    path: '/layanan/curhat/r1',
+    mock: (api) =>
+      api.on('POST /api/curhat/chatroom/:chatroomId/read', writes.readRoom),
+    act: async (p) => {
+      const log = p.getByRole('log', { name: 'Percakapan Teal Koala' });
+      await log.getByRole('button', { name: 'Balas' }).last().click();
+      const field = p.getByRole('textbox', {
+        name: 'Tulis pesan untuk tim Welfare',
+      });
+      await field.fill('Mau kak, makasih!');
+      await p.getByRole('button', { name: 'Kirim pesan' }).click();
+      await log.getByText('Terkirim · 13.35').waitFor();
+      // The prototype's field keeps focus after sending, with its ring.
+      await field.focus();
+    },
+    ready: (p) =>
+      p
+        .getByRole('log', { name: 'Percakapan Teal Koala' })
+        .getByText('Mau kak, makasih!'),
+  },
 };
 
 const P1_TITLE = 'Jadwal UTS Ganjil 2026/2027 sudah keluar';

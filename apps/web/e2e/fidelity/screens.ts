@@ -62,10 +62,6 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       path: '/layanan/lomba',
       ready: (p) => visibleText(p, 'Find IT! 2026'),
     },
-    'anggota-curhat': {
-      path: '/layanan/curhat',
-      ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
-    },
     'anggota-profil': {
       path: '/profil',
       ready: (p) =>
@@ -118,6 +114,23 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
         ready: (p) => p.getByRole('alertdialog', { name: 'Kirim jawaban?' }),
       },
     ],
+
+    // P2-C: Curhat Yuk! for members. A pengurus without rooms sees the member side, empty (not the Welfare inbox).
+    'anggota-curhat': {
+      path: '/layanan/curhat',
+      ready: (p) =>
+        p.getByRole('main').getByRole('link', { name: /^Amber Heron/ }),
+    },
+    'anggota-room': {
+      path: '/layanan/curhat/r1',
+      mock: (api) =>
+        api.on('POST /api/curhat/chatroom/:chatroomId/read', writes.readRoom),
+      ready: (p) => p.getByRole('log', { name: 'Percakapan Teal Koala' }),
+    },
+    'pengurus-curhat-empty': {
+      path: '/layanan/curhat',
+      ready: (p) => p.getByRole('main').getByText('Belum ada ruang cerita'),
+    },
 
     // P1-B: Pengumuman. The phone and tablet captures of the locked `post` were set without opening p1, so they show 4
     // unread where the app (which marks it read) shows 3.
