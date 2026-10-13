@@ -338,7 +338,8 @@ test.describe('Live Counting', () => {
     ).toBeVisible();
     await expect(page.getByText('Simulasi pengisi baru')).toHaveCount(0);
     await expect(page.getByText(/Contoh/)).toHaveCount(0);
-    await expect(page).toHaveTitle('Live Counting · PIPS!');
+    // The browser tab names the whole service (brief, Build 3; review P3-A m8); the top bar keeps "Live Counting".
+    await expect(page).toHaveTitle('Live Counting & Rekap Form · PIPS!');
     // The count is in a polite live region; the square is still under reduced motion.
     await expect(plaque(page).locator('[aria-live="polite"]')).toContainText(
       '142',
@@ -775,6 +776,28 @@ test.describe('Rekap Form', () => {
     await strictGates(page, testInfo, 'rekap-empty', lit(testInfo));
   });
 
+  test('a page past the last goes to the last page (review P3-A m7)', async ({
+    page,
+  }) => {
+    await page.goto('/kelola/live/pixel/rekap?halaman=99');
+    await expect(page).toHaveURL(/halaman=8$/);
+    await expect(main(page).getByText('8 / 8')).toBeVisible();
+    await expect(main(page).getByText('142 hasil.')).toBeVisible();
+    await expect(rows(page)).toHaveCount(2);
+    await expect(main(page).getByText('99 / 8')).toHaveCount(0);
+    await expect(
+      main(page).getByText('Tidak ada respon yang cocok.'),
+    ).toHaveCount(0);
+    // A search with one page: page 1, and its match shows.
+    await page.goto('/kelola/live/pixel/rekap?q=farah&halaman=3');
+    await expect(page).toHaveURL(/\/rekap\?q=farah$/);
+    await expect(main(page).getByText('1 hasil.')).toBeVisible();
+    await expect(rows(page)).toHaveCount(1);
+    await expect(
+      main(page).getByText('Tidak ada respon yang cocok.'),
+    ).toHaveCount(0);
+  });
+
   test('back from Rekap Form goes to the live page', async ({
     page,
   }, testInfo) => {
@@ -810,14 +833,16 @@ test.describe('Data SPARTA Magang', () => {
   }, testInfo) => {
     await page.goto('/kelola/sparta');
     await expect(main(page).getByText('3 pendaftar')).toBeVisible();
+    // One tree (SPEC "responsive single trees"; review P3-A m2): the other layout's isn't in the page at all.
     if (touch(testInfo)) {
-      await expect(table(page)).toBeHidden();
+      await expect(table(page)).toHaveCount(0);
       await expect(spartaRows(page)).toHaveCount(3);
       await expect(spartaRows(page).first()).toContainText('Bima Santoso');
       await expect(spartaRows(page).first()).toContainText('Terkunci');
       await expect(spartaRows(page).first()).toContainText('NIM13525071');
     } else {
       await expect(table(page)).toBeVisible();
+      await expect(spartaRows(page)).toHaveCount(0);
       await expect(table(page).locator('thead th')).toHaveText([
         'Nama',
         'NIM',
@@ -915,6 +940,88 @@ test.describe('Data SPARTA Magang', () => {
     await strictGates(page, testInfo, 'sparta-no-match', lit(testInfo));
     await main(page).getByRole('button', { name: 'Hapus filter' }).click();
     await expect(main(page).getByText('3 pendaftar')).toBeVisible();
+    // Regression (review P3-A M1): the search box is cleared too, and the next letters search afresh.
+    await expect(search).toHaveValue('');
+    await expect(page).not.toHaveURL(/q=/);
+    await search.pressSequentially('tas');
+    await expect(main(page).getByText('1 pendaftar')).toBeVisible();
+    expect(await namesShown(page, testInfo)).toEqual(['Tasya Amelia']);
+    // Opened from a link with a search, the box shows it.
+    await page.goto('/kelola/sparta?q=bima');
+    await expect(search).toHaveValue('bima');
+    await expect(main(page).getByText('1 pendaftar')).toBeVisible();
+  });
+
+  test("the filters' labels line up (review P3-A m5)", async ({ page }) => {
+    await page.goto('/kelola/sparta');
+    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
+    const labels = main(page).locator('.g-sparta-filters .t-label');
+    await expect(labels).toHaveText(['Divisi', 'Pilihan', 'Status']);
+    const size = page.viewportSize()!;
+    for (const width of [834, 1024, 1440]) {
+      await page.setViewportSize({ width, height: size.height });
+      await expect
+        .poll(
+          async () => {
+            const tops = await labels.evaluateAll((els) =>
+              els.map((el) => Math.round(el.getBoundingClientRect().top)),
+            );
+            return Math.max(...tops) - Math.min(...tops);
+          },
+          { message: `labels at ${width} px` },
+        )
+        .toBe(0);
+    }
+    await page.setViewportSize(size);
+  });
+
+  test('300 submissions: one tree, and typing a search keeps up (review P3-A m2)', async ({
+    page,
+    db,
+  }, testInfo) => {
+    const base = db.internshipSubmissions[0];
+    db.internshipSubmissions = Array.from({ length: 300 }, (_, i) => ({
+      ...base,
+      id: `sub-${i}`,
+      nim: `1352${String(i).padStart(4, '0')}`,
+      fullName: `Pendaftar ${i + 1}`,
+    }));
+    await page.goto('/kelola/sparta');
+    await expect(main(page).getByText('300 pendaftar')).toBeVisible();
+    if (touch(testInfo)) {
+      await expect(spartaRows(page)).toHaveCount(300);
+      await expect(table(page)).toHaveCount(0);
+    } else {
+      await expect(table(page).locator('tbody tr')).toHaveCount(300);
+      await expect(spartaRows(page)).toHaveCount(0);
+    }
+    // Typing keeps up on a phone-speed CPU (4× slowdown): the list filters from a deferred query and re-renders only
+    // when the rows shown change, so most keystrokes cost no long main-thread task (over 50 ms, measured by the
+    // browser). Before the fix each of the 12 keystrokes re-rendered both trees: 12 long tasks; after: 2 to 3.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await page.evaluate(() => {
+      const w = window as unknown as { __long: number[] };
+      w.__long = [];
+      new PerformanceObserver((list) => {
+        for (const e of list.getEntries()) w.__long.push(e.duration);
+      }).observe({ type: 'longtask' });
+    });
+    const search = main(page).getByRole('searchbox', {
+      name: 'Cari nama atau NIM',
+    });
+    await search.pressSequentially('pendaftar 29', { delay: 30 });
+    await expect(search).toHaveValue('pendaftar 29');
+    // "Pendaftar 29" and "Pendaftar 290" to "Pendaftar 299".
+    await expect(main(page).getByText('11 pendaftar')).toBeVisible();
+    const long = await page.evaluate(
+      () => (window as unknown as { __long: number[] }).__long,
+    );
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    expect(long.length, `long tasks: ${long.join(', ')}`).toBeLessThanOrEqual(
+      6,
+    );
+    expect(await namesShown(page, testInfo)).toHaveLength(11);
   });
 
   test('Export of exactly the rows shown', async ({ page }) => {
@@ -947,7 +1054,11 @@ test.describe('Data SPARTA Magang', () => {
     await page.goto('/kelola/sparta');
     const bars = main(page).locator('.g-hbars .g-hbar');
     await expect(bars).toHaveText([/^Welfare and Academics\s*3$/]);
-    await main(page).getByRole('radio', { name: 'Semua pilihan' }).check();
+    // "Semua pilihan" names only the Pilihan filter's option; the statistics count every choice as "Pilihan 1–4".
+    await expect(
+      main(page).getByRole('radio', { name: 'Semua pilihan' }),
+    ).toHaveCount(0);
+    await main(page).getByRole('radio', { name: 'Pilihan 1–4' }).check();
     await expect(bars).toHaveText([
       /^Welfare and Academics\s*6$/,
       /^Competition and Community\s*3$/,
@@ -1004,9 +1115,19 @@ test.describe('Data SPARTA Magang', () => {
     db.internshipSubmissions = [];
     await page.goto('/kelola/sparta');
     await expect(main(page).getByText('Belum ada pendaftar')).toBeVisible();
+    // One message (review P3-A m3): no statistics, toolbar, count or Export with nothing to act on.
     await expect(
       main(page).getByText('Belum ada data pilihan untuk ditampilkan.'),
-    ).toBeVisible();
+    ).toHaveCount(0);
+    await expect(main(page).getByRole('searchbox')).toHaveCount(0);
+    await expect(main(page).getByRole('combobox')).toHaveCount(0);
+    await expect(main(page).getByText('0 pendaftar')).toHaveCount(0);
+    await expect(
+      main(page).getByRole('button', { name: 'Export CSV' }),
+    ).toHaveCount(0);
+    await expect(
+      main(page).getByRole('heading', { name: 'Statistik pilihan' }),
+    ).toHaveCount(0);
     await strictGates(page, testInfo, 'sparta-empty', lit(testInfo));
   });
 
@@ -1106,7 +1227,7 @@ test.describe('Data SPARTA Magang', () => {
     });
     bima.choices![0].answers.push({
       questionId: 'dq9',
-      answer: 'https://files.hmif.dev/portofolio.pdf',
+      answer: 'https://media.pips.test/sparta/portofolio.pdf',
     });
     await page.goto('/kelola/sparta/sub-13525071');
     await expect(
@@ -1115,9 +1236,44 @@ test.describe('Data SPARTA Magang', () => {
     const file = main(page).getByRole('link', { name: /Lihat file/ });
     await expect(file).toHaveAttribute(
       'href',
-      'https://files.hmif.dev/portofolio.pdf',
+      'https://media.pips.test/sparta/portofolio.pdf',
     );
     await expect(file).toHaveAttribute('target', '_blank');
+  });
+
+  // Review P3-A m1: a member's file answer is any text they saved. Only a file in the app's storage
+  // (VITE_MEDIA_URL, https://media.pips.test in the harness) becomes a link; anything else is plain text.
+  test("a file answer that isn't in the app's storage is plain text, never a link", async ({
+    page,
+    db,
+  }) => {
+    db.internshipDepartments[0].divisions![0].questions.push({
+      id: 'dq9',
+      label: 'Portofolio',
+      type: 'file',
+      required: false,
+    });
+    const answers = db.internshipSubmissions[0].choices![0].answers;
+    answers.push({ questionId: 'dq9', answer: '' });
+    for (const answer of [
+      'javascript:alert(document.cookie)',
+      ' JavaScript:alert(1)',
+      'java\tscript:alert(1)',
+      'data:text/html,<script>alert(1)</script>',
+      '//evil.example/cv.pdf',
+      'https://evil.example/login',
+      'https://media.pips.test@evil.example/cv.pdf',
+    ]) {
+      answers[answers.length - 1].answer = answer;
+      await page.goto('/kelola/sparta/sub-13525071');
+      const card = main(page).locator('.g-choice-card').first();
+      await expect(card.getByText('Portofolio')).toBeVisible();
+      await expect(card.locator('dd').last()).toHaveText(answer.trim());
+      await expect(
+        main(page).getByRole('link', { name: /Lihat file/ }),
+      ).toHaveCount(0);
+      await expect(card.locator('a')).toHaveCount(0);
+    }
   });
 
   test('an unknown submission', async ({ page }) => {
