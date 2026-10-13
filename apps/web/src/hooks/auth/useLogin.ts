@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { api } from '~/api/client';
 import { ApiError, User } from '~/api/generated';
+import { registerExistingPush } from '~/lib/push';
 import { forgetMemberOnDevice, invalidateSession } from '~/lib/session';
 
 /** Sign-in with Google (and, on staging, test login). Afterwards goes to `redirectTo`, a path already checked by `safeRedirect`. */
@@ -12,6 +13,8 @@ export default function useLogin(redirectTo = '/') {
   const start = (user: User) => {
     void forgetMemberOnDevice();
     invalidateSession(user);
+    // A device that already has notifications on is linked to the new session again, without asking anything.
+    void registerExistingPush();
     void navigate({ href: redirectTo, replace: true });
   };
 
