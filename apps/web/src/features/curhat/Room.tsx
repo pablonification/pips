@@ -202,6 +202,20 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
+  // The bar grows (the reply chip, a longer draft) over the end of the thread: at the end, stay there, so it never
+  // covers the newest message or its Balas and Kirim ulang.
+  useEffect(() => {
+    const bar = document.querySelector<HTMLElement>('.g-chat-bar');
+    if (!bar || typeof ResizeObserver === 'undefined') return;
+    let last = bar.offsetHeight;
+    const ro = new ResizeObserver(() => {
+      const h = bar.offsetHeight;
+      if (h > last && nearEnd.current) scrollToEnd();
+      last = h;
+    });
+    ro.observe(bar);
+    return () => ro.disconnect();
+  }, []);
   // On every change of the thread, not just its length: a delivered message grows (Terkirim, then Balas).
   useLayoutEffect(() => {
     if (stick.current || nearEnd.current) scrollToEnd();

@@ -434,6 +434,30 @@ test.describe('delivery under a dropped connection', () => {
     ]);
   });
 
+  test('regression: the reply chip never covers a failed message’s Kirim ulang', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    api.socket.answer('message', () => ({ ok: false, error: 'server' }));
+    await page.setViewportSize({ width: 390, height: 900 });
+    await openR1(page);
+    // A long message, as the gates found it (desktop at 390 px): its line ends right where the bar grows.
+    await composer(page).fill(
+      'Aku pengen cerita panjang soal minggu ini karena rasanya semua tenggat datang bersamaan dan aku belum tahu harus mulai dari mana, apalagi ada rapat kepanitiaan tiap Rabu malam yang selalu molor sampai larut.',
+    );
+    await sendButton(page).click();
+    const retry = log(page).getByRole('button', { name: 'Kirim ulang' });
+    await expect(retry).toBeVisible();
+    await log(page).getByRole('button', { name: 'Balas' }).last().click();
+    await expect(chip(page)).toBeVisible();
+    await expect(retry).toBeInViewport({ ratio: 1 });
+    // Nothing covers it: the sticky bar starts below the button.
+    const button = (await retry.boundingBox())!;
+    const bar = (await page.locator('.g-chat-bar').boundingBox())!;
+    expect(bar.y).toBeGreaterThanOrEqual(button.y + button.height);
+  });
+
   test('an error acknowledgement: Gagal at once', async ({ page, api }) => {
     canRead(api);
     api.socket.answer('message', () => ({ ok: false, error: 'server' }));
