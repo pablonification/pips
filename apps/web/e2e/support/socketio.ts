@@ -64,6 +64,16 @@ export class FakeSocketServer {
     this.answers.set('curhat:join', (data, s) => this.join(data, s));
   }
 
+  /** Answer `event`'s acknowledgements as the API does again, after `answer()` changed them (P2-C). */
+  answerAsApi(event: 'message' | 'curhat:join'): void {
+    this.answers.set(
+      event,
+      event === 'message'
+        ? (data, s) => this.saveMessage(data, s)
+        : (data, s) => this.join(data, s),
+    );
+  }
+
   /** Answer `event`'s acknowledgements with `fn` from now on (return `undefined` to never answer). */
   answer(event: string, fn: AckAnswer): void {
     this.answers.set(event, fn);
