@@ -227,6 +227,14 @@ export function FormFill({ formId }: { formId: string }) {
   // Closed while filling (the server answered 403): the closed view with the answers on screen.
   const [closedWith, setClosedWith] = useState<Answers | null>(null);
 
+  // Sent already (from another device or tab): a draft left on this one has no use, and holds personal answers.
+  const answered = detail.data?.status === 'already_responded' || !!mine.data;
+  const hasDraft = !!draft.restored;
+  const clearDraft = draft.clear;
+  useEffect(() => {
+    if (answered && hasDraft) void clearDraft();
+  }, [answered, hasDraft, clearDraft]);
+
   const form = detail.data;
   if (sentNow && form) return <ThankYou title={form.title} focus />;
   if (detail.isError && !form) {

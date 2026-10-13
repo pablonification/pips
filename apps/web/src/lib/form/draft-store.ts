@@ -127,3 +127,15 @@ export async function deleteDraft(key: string): Promise<void> {
     // Nothing to do: a draft that can't be deleted expires on its own.
   }
 }
+
+/** Every member's form drafts on this device (keys `bungkus-hmif-form-…`), for sign-out: none of them stays. */
+export async function deleteAllDrafts(): Promise<void> {
+  const prefix = storeKey('hmif-form-');
+  try {
+    await run('readwrite', (s) =>
+      s.delete(IDBKeyRange.bound(prefix, `${prefix}\uffff`)),
+    );
+  } catch {
+    // Nothing to do: a draft that can't be deleted expires on its own.
+  }
+}

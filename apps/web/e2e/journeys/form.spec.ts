@@ -42,7 +42,7 @@ async function expectFocusedFlow(page: Page, testInfo: TestInfo) {
 }
 
 /** The draft this test's member has for the PIXEL form, read straight from the device (today's bungkus store). */
-async function storedDraft(page: Page, db: Db) {
+async function storedDraft(page: Page, db: Db, userId = db.me!.id) {
   return page.evaluate(
     (key) =>
       new Promise<unknown>((resolve, reject) => {
@@ -60,7 +60,7 @@ async function storedDraft(page: Page, db: Db) {
           };
         };
       }),
-    `bungkus-hmif-form-pixel-${db.me!.id}`,
+    `bungkus-hmif-form-pixel-${userId}`,
   );
 }
 
@@ -70,6 +70,7 @@ async function plantTodaysDraft(
   db: Db,
   answers: Record<string, string | string[]>,
   ageDays: number,
+  userId = db.me!.id,
 ) {
   await page.evaluate(
     ({ key, answers, ageDays }) =>
@@ -92,7 +93,7 @@ async function plantTodaysDraft(
           };
         };
       }),
-    { key: `bungkus-hmif-form-pixel-${db.me!.id}`, answers, ageDays },
+    { key: `bungkus-hmif-form-pixel-${userId}`, answers, ageDays },
   );
 }
 
@@ -855,6 +856,38 @@ test('already sent: the thank-you instead of the questions', async ({
   await page.goto('/layanan/form/pixel');
   await expect(plaque(page)).toBeVisible();
   await expect(lanjut(page)).toHaveCount(0);
+});
+
+test('sent from another device: the draft left on this one goes', async ({
+  page,
+  db,
+}) => {
+  await page.goto('/layanan/form');
+  await plantTodaysDraft(page, db, { q1: 'Nadia Putri', q3: 'PIXEL' }, 1);
+  db.formDetails.pixel.status = 'already_responded';
+  db.myResponses.pixel = {
+    id: 'response-pixel',
+    formId: 'pixel',
+    userId: db.me!.id,
+    answers: [],
+    submittedAt: NOW,
+  };
+  await page.goto('/layanan/form/pixel');
+  await expect(plaque(page)).toBeVisible();
+  await expect.poll(() => storedDraft(page, db)).toBeNull();
+});
+
+test('signed out: no form draft stays on the device', async ({ page, db }) => {
+  await page.goto('/layanan/form/pixel');
+  await page.getByLabel('Hai dengan siapa di sini?').fill('Nadia P.');
+  await expect
+    .poll(async () => JSON.stringify(await storedDraft(page, db)))
+    .toContain('q1');
+  // The session ends (the server answers 401 to the session check).
+  db.signedIn = false;
+  await page.reload();
+  await expect(page).toHaveURL(/\/login(\?|$)/);
+  await expect.poll(() => storedDraft(page, db)).toBeNull();
 });
 
 test.describe('gates at every width', () => {

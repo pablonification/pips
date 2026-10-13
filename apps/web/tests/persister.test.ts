@@ -119,11 +119,13 @@ test('signing out leaves nothing of the member, and nothing comes back later', a
   });
 
   let shellForgotten = 0;
+  let draftsRemoved = 0;
   await forgetMember({
     queryClient,
     removePersisted: () => store.delete(),
     storage,
     forgetShell: () => void shellForgotten++,
+    removeFormDrafts: () => void draftsRemoved++,
   });
   // A write was also waiting when she signed out.
   await tick(THROTTLE * 5);
@@ -141,6 +143,8 @@ test('signing out leaves nothing of the member, and nothing comes back later', a
   assert.equal(storage.map.get('user'), 'null');
   // Review M5: the shell's page titles and back history go too.
   assert.equal(shellForgotten, 1);
+  // Review of P2-A, m6: form drafts (name, NIM, answers) go too.
+  assert.equal(draftsRemoved, 1);
   unsubscribe();
 });
 
