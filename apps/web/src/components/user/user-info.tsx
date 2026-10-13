@@ -4,7 +4,8 @@ import Avatar from './avatar';
 
 type ComponentProps = {
   name: string;
-  email: string;
+  /** Optional: post and comment authors no longer carry an email (OPEN-QUESTIONS C10). */
+  email?: string;
   imageURL: string | null;
   className?: string;
   avatarClassName?: string;
@@ -42,7 +43,11 @@ export default function UserInfo({
 
       <div>
         <h3 className={cn('text-body-lg font-bold', nameClassName)}>{name}</h3>
-        <p className={cn('text-xs text-[#6A6B6A]', emailClassName)}>{email}</p>
+        {email ? (
+          <p className={cn('text-xs text-[#6A6B6A]', emailClassName)}>
+            {email}
+          </p>
+        ) : null}
       </div>
     </div>
   );

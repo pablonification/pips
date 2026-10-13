@@ -10,7 +10,6 @@ const DetailPost = ({ info }: { info: Info }) => {
     <div className="flex-col space-y-4">
       <UserInfo
         name={info.creator.fullName}
-        email={info.creator.email}
         imageURL={info.creator.picture}
       />
       <PostText infoId={info.id} title={info.title} content={info.content} />
