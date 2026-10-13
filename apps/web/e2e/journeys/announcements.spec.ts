@@ -718,6 +718,31 @@ test.describe('the author (Raka, admin)', () => {
     await expect(page).toHaveURL(/\/pengumuman\/p2$/);
     await expect(detail(page).getByRole('heading', { name: P2 })).toBeVisible();
   });
+
+  test('a comment delete the server refuses says so as a post’s does, and keeps the comment (review minor 10)', async ({
+    page,
+    api,
+  }) => {
+    api
+      .on('POST /api/info/:infoId/read', writes.markRead)
+      .on('DELETE /api/comment/:commentId', reply.status(403));
+    await page.goto('/pengumuman/p1');
+    await detail(page)
+      .locator('[data-comment="p1-c1"]')
+      .getByRole('button', { name: 'Hapus' })
+      .click();
+    await page
+      .getByRole('alertdialog', { name: 'Hapus komentar ini?' })
+      .getByRole('button', { name: 'Hapus' })
+      .click();
+    await expect(
+      toastText(page, 'Kamu tidak bisa melakukan ini.'),
+    ).toBeVisible();
+    await expect(toastText(page, 'Belum berhasil. Coba lagi.')).toHaveCount(0);
+    await expect(
+      detail(page).getByText('Kak, IF2123 K01 sama K02 ruangnya beda ya?'),
+    ).toBeVisible();
+  });
 });
 
 test.describe('deep links', () => {
@@ -839,35 +864,67 @@ test.describe('states', () => {
     await strictGates(page, testInfo, 'feed-empty');
   });
 
-  test('more than 10 posts: the next page loads at the end, with Muat lagi', async ({
+  test('more than 10 posts: the next pages load at the end by themselves up to 5, then only with Muat lagi', async ({
     page,
     db,
     api,
   }, testInfo) => {
     const base = db.infos[0];
-    db.infos = Array.from({ length: 23 }, (_, i) => ({
+    db.infos = Array.from({ length: 63 }, (_, i) => ({
       ...base,
       id: `x${i}`,
       title: `Pengumuman uji ${i + 1}`,
       createdAt: new Date(Date.parse(base.createdAt) - i * 60e3).toISOString(),
       isRead: true,
     }));
-    await page.goto('/pengumuman');
-    await expect(postInList(page, testInfo, 'x0')).toBeVisible();
+    const asked = (offset: number) =>
+      api
+        .calls('GET /api/info')
+        .some(
+          (c) =>
+            !c.query.includes('unread=true') &&
+            new URLSearchParams(c.query).get('offset') === String(offset),
+        );
+    const item = (n: number) => postInList(page, testInfo, `x${n}`);
     const more = page.getByRole('button', { name: 'Muat lagi' });
-    await more.scrollIntoViewIfNeeded();
-    await expect(postInList(page, testInfo, 'x10')).toBeAttached();
-    await expect
-      .poll(() =>
-        api.calls('GET /api/info').some((c) => c.query.includes('offset=10')),
-      )
-      .toBe(true);
-    await page
-      .locator(
-        isDesk(testInfo) ? '[data-post-row="x19"]' : '[data-post-link="x19"]',
-      )
-      .scrollIntoViewIfNeeded();
-    await expect(postInList(page, testInfo, 'x22')).toBeAttached();
+    // Scroll to the list's end and wait until the page has looked: an observer's first report comes once layout has
+    // seen the scroll (the app's own end marker, right above Muat lagi, reports in the same update), then two frames
+    // for the app to act on it. Its first report, not "in view": a page loading by itself moves Muat lagi down.
+    const scrollToEnd = async () => {
+      await more.scrollIntoViewIfNeeded();
+      await more.evaluate(
+        (el) =>
+          new Promise<void>((resolve) => {
+            const io = new IntersectionObserver(() => {
+              io.disconnect();
+              requestAnimationFrame(() =>
+                requestAnimationFrame(() => resolve()),
+              );
+            });
+            io.observe(el);
+          }),
+      );
+    };
+    await page.goto('/pengumuman');
+    await expect(item(0)).toBeVisible();
+    // Pages 2 to 5 load as the end scrolls into view; nobody presses Muat lagi.
+    for (const offset of [10, 20, 30, 40]) {
+      await scrollToEnd();
+      await expect.poll(() => asked(offset)).toBe(true);
+      await expect(item(offset + 9)).toBeAttached();
+    }
+    // After 5 pages, the end in view loads nothing more: page 6 waits for Muat lagi.
+    await scrollToEnd();
+    expect(asked(50)).toBe(false);
+    await expect(item(50)).toHaveCount(0);
+    await more.click();
+    await expect(item(50)).toBeAttached();
+    expect(asked(50)).toBe(true);
+    // And page 7 (the last, 3 posts) too; then there's nothing more to load.
+    await scrollToEnd();
+    expect(asked(60)).toBe(false);
+    await more.click();
+    await expect(item(62)).toBeAttached();
     await expect(more).toHaveCount(0);
   });
 
