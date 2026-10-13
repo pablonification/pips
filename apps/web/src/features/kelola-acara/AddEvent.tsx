@@ -66,6 +66,10 @@ export function AddEventHost({ open, day }: { open: boolean; day: DayKey }) {
   useEffect(() => {
     if (open && !allowed) dropParam();
   }, [open, allowed, dropParam]);
+  // Closed some other way (the browser's Back): a dialog that later arrives with a link closes in place (review m5).
+  useEffect(() => {
+    if (!open) openedHere = false;
+  }, [open]);
 
   if (!open || !allowed) return null;
 
