@@ -6,7 +6,6 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import {
   useEffect,
-  useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
@@ -16,6 +15,7 @@ import { IconLanjut } from '~/components/icons/lanjut';
 import { IconLuar } from '~/components/icons/luar';
 import { common } from '~/copy/common';
 import { offlineUpdatedAt } from './updated';
+import { urlEcho } from './url-text';
 
 const subscribe = (l: () => void) => {
   window.addEventListener('online', l);
@@ -38,23 +38,21 @@ export function useOnline() {
 /**
  * A search box's text that also lives in the URL (P0-B's `q`), so Back and reload keep it and a link can open the
  * page filled in. The box answers at once; the URL follows with `replace`, a moment behind, and those values never
- * overwrite what's typed. A different `q` arriving from outside (another link to this page) replaces the text.
+ * overwrite what's typed. A `q` arriving from outside (another link to this page) replaces the text (`urlEcho`).
  */
 export function useUrlText(
   urlQ: string | undefined,
   writeUrl: (q: string | undefined) => void,
 ): [string, (text: string) => void] {
   const [text, setText] = useState(urlQ ?? '');
-  const ours = useRef(new Set<string>());
+  const [echo] = useState(() => urlEcho(urlQ ?? ''));
   useEffect(() => {
-    if (urlQ === undefined || ours.current.has(urlQ)) return;
-    ours.current.clear();
-    setText(urlQ);
-  }, [urlQ]);
+    if (echo.isOutside(urlQ)) setText(urlQ ?? '');
+  }, [echo, urlQ]);
   return [
     text,
     (v: string) => {
-      ours.current.add(v);
+      echo.wrote(v);
       setText(v);
       writeUrl(v || undefined);
     },
