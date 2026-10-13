@@ -58,8 +58,11 @@ export function LoginScreen({ redirectTo }: { redirectTo: string | null }) {
           <div role="alert" className="empty:hidden">
             {problem ? (
               <div className="grid gap-3">
-                <p className="g-err t-sm">
-                  <IconPeringatan size={16} />
+                {/* A message of two or three lines: the icon stays by its first line. */}
+                <p className="g-err items-start t-sm">
+                  <span className="mt-0.5 flex-none">
+                    <IconPeringatan size={16} />
+                  </span>
                   {MESSAGES[problem]}
                 </p>
                 {problem === 'gagal' ? (
