@@ -224,6 +224,37 @@ test('the month buttons choose today in today’s month, else the 1st; Hari ini 
   ).toHaveAttribute('aria-pressed', 'true');
 });
 
+test('arrows pressed with Alt, ⌘ or Ctrl are left to the browser (Alt+← is Back)', async ({
+  page,
+}) => {
+  await page.goto('/kalender');
+  const today = day(page, /^Kamis, 8 Oktober/);
+  await today.focus();
+  // Whether the grid took each key: seen after React's handler, as the event leaves the document.
+  await page.evaluate(() => {
+    const w = window as { taken?: string[] };
+    w.taken = [];
+    document.addEventListener('keydown', (e) => {
+      if (e.defaultPrevented) w.taken!.push(e.key);
+    });
+  });
+  for (const key of [
+    'Control+ArrowRight',
+    'Meta+ArrowRight',
+    'Alt+ArrowDown',
+    'Control+PageDown',
+    'Meta+Home',
+  ])
+    await page.keyboard.press(key);
+  await expect(today).toBeFocused();
+  expect(
+    await page.evaluate(() => (window as { taken?: string[] }).taken),
+  ).toEqual([]);
+  // Without one, the grid still moves.
+  await page.keyboard.press('ArrowRight');
+  await expect(day(page, /^Jumat, 9 Oktober/)).toBeFocused();
+});
+
 test('the keyboard: one Tab stop, arrows, Home and End, Page Up and Down, Enter chooses', async ({
   page,
 }, testInfo) => {

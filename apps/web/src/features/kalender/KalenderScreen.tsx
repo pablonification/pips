@@ -134,6 +134,8 @@ export function KalenderScreen({ hari, acara }: KalenderSearch) {
   });
 
   const onGridKey = (e: KeyboardEvent) => {
+    // With Alt, ⌘ or Ctrl the key is the browser's or the system's (Alt+← is Back): leave it.
+    if (e.altKey || e.metaKey || e.ctrlKey) return;
     const next = moveFocus(focusDay, e.key);
     if (!next) return;
     e.preventDefault();
