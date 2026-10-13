@@ -1,4 +1,5 @@
 import { queryOptions, type QueryKey } from '@tanstack/react-query';
+import { CURHAT_UNREAD_KEY } from '~/lib/curhat-unread';
 import { api, queryClient } from './client';
 import {
   CALENDAR_EVENTS_QUERY_KEY,
@@ -59,9 +60,6 @@ export const formListQuery = () =>
     queryKey: [FORM_QUERY_KEY, 'list'],
     queryFn: () => api.form.listForms(),
   });
-
-/** Unread Curhat messages per room. Under the chatrooms key, so Curhat's own refreshes renew it too. */
-export const CURHAT_UNREAD_KEY = [CHATROOMS_QUERY_KEY, 'unread'] as const;
 
 /** One definition for Curhat's list, Layanan's count and Beranda's row (review of P2-C, minor 7). */
 export const curhatUnreadQuery = () =>

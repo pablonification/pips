@@ -1,5 +1,5 @@
 import { CHATROOMS_QUERY_KEY } from '~/api/constants';
-import { CURHAT_UNREAD_KEY } from '~/api/queries';
+import { CURHAT_UNREAD_KEY } from '~/lib/curhat-unread';
 
 /** The rooms (`GET /curhat/chatrooms`). */
 export const ROOMS_KEY = [CHATROOMS_QUERY_KEY] as const;

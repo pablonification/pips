@@ -3,6 +3,10 @@
  * Beranda's "Balasan baru dari Welfare". Shared, so no feature imports another; the query is `curhatUnreadQuery` in
  * src/api/queries.ts. Unit-tested in tests/curhat-rules.test.ts.
  */
+import { CHATROOMS_QUERY_KEY } from '~/api/constants';
+
+/** Unread Curhat messages per room. Under the chatrooms key, so Curhat's own refreshes renew it too. */
+export const CURHAT_UNREAD_KEY = [CHATROOMS_QUERY_KEY, 'unread'] as const;
 
 export interface UnreadRow {
   chatroomId: string;
