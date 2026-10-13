@@ -61,8 +61,14 @@ export async function expectUnread(page: Page, n: number) {
   const nav = page
     .getByRole('navigation', { name: 'Navigasi utama' })
     .getByRole('link', { name: /^Pengumuman/ });
+  // ", n belum dibaca" on the tab bar and rail (one aria-label); " n belum dibaca" in the desktop sidebar.
+  const desk = (page.viewportSize()?.width ?? 0) >= 1024;
   await expect(nav).toHaveAccessibleName(
-    n ? new RegExp(`^Pengumuman,? ${n} belum dibaca$`) : /^Pengumuman$/,
+    n
+      ? desk
+        ? `Pengumuman ${n} belum dibaca`
+        : `Pengumuman, ${n} belum dibaca`
+      : 'Pengumuman',
   );
 }
 
