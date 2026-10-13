@@ -3,7 +3,13 @@
  * the gold Kirim pesan button. The field is a textarea that looks like the one-line field at rest and grows with its
  * text up to five lines; Enter follows the pointer (`enterAction`, SPEC story 98).
  */
-import { useLayoutEffect, useRef, type Ref, type RefObject } from 'react';
+import {
+  useLayoutEffect,
+  useRef,
+  type ReactNode,
+  type Ref,
+  type RefObject,
+} from 'react';
 import { Button, IconButton } from '~/components/garis';
 import { IconKirim } from '~/components/icons/kirim';
 import { IconTutup } from '~/components/icons/tutup';
@@ -32,6 +38,7 @@ export function Composer({
   replyText,
   onCancelReply,
   field,
+  banner,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -40,6 +47,8 @@ export function Composer({
   replyText: string | null;
   onCancelReply: () => void;
   field: RefObject<HTMLTextAreaElement | null>;
+  /** Above the reply chip, in the bar that stays at the bottom: the lost-connection banner, where you send. */
+  banner?: ReactNode;
 }) {
   const own = useRef<HTMLTextAreaElement | null>(null);
   const setRef: Ref<HTMLTextAreaElement> = (el) => {
@@ -58,6 +67,7 @@ export function Composer({
         onSend();
       }}
     >
+      {banner}
       {replyText !== null ? (
         <div className="g-reply-chip">
           <span className="line-clamp-1 min-w-0 flex-1">

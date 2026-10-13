@@ -62,7 +62,12 @@ async function openR1(page: Page) {
 
 /** What the API acknowledges a message with (no userId), for tests that answer by hand. */
 function saved(data: unknown, id = 'e2e-message-by-hand'): CurhatSocketMessage {
-  const d = data as { chatroomId: string; message: string; replyId?: string };
+  const d = data as {
+    chatroomId: string;
+    message: string;
+    replyId?: string;
+    clientMessageId?: string;
+  };
   return {
     id,
     chatroomId: d.chatroomId,
@@ -70,8 +75,20 @@ function saved(data: unknown, id = 'e2e-message-by-hand'): CurhatSocketMessage {
     content: d.message,
     createdAt: NOW,
     isSender: true,
+    clientMessageId: d.clientMessageId ?? null,
   };
 }
+
+/** A message's device id (P2-C round 2): a UUID the app makes. */
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+/** What the app emits for a message: exactly these fields, with a fresh device id. */
+const payload = (message: string, replyId: string | null = null) => ({
+  chatroomId: 'r1',
+  message,
+  replyId,
+  clientMessageId: expect.stringMatching(UUID),
+});
 
 /** The newest message is in view: the composer and the last bubble are both on screen. */
 async function expectAtNewest(page: Page, lastText: string) {
@@ -215,9 +232,10 @@ test.describe('starting a room', () => {
     await expect(page).toHaveURL(/\/layanan\/curhat$/);
   });
 
-  test('the server’s 400 shows the same toast; another failure the error toast', async ({
+  test('the server’s 400 shows the same toast and fetches the rooms again; another failure the error toast', async ({
     page,
     api,
+    db,
   }) => {
     api.on(
       'POST /api/curhat/chatroom',
@@ -226,10 +244,23 @@ test.describe('starting a room', () => {
       }),
     );
     await page.goto('/layanan/curhat');
+    await expect(main(page).getByText('2 dari 3 ruang dipakai')).toBeVisible();
+    // Review minor 4: a third room was started on another device; the list catches up after the 400.
+    db.chatrooms.r3 = {
+      id: 'r3',
+      title: 'coral otter',
+      messages: [],
+      labels: [],
+      isPinned: false,
+      canDelete: true,
+    };
     await newRoom(page).click();
     await expect(
       toastText(page, 'Maksimal 3 ruang. Hapus salah satu ruang dulu.'),
     ).toBeVisible();
+    await expect(main(page).getByText('3 dari 3 ruang dipakai')).toBeVisible();
+    await expect(row(page, 'Coral Otter')).toBeVisible();
+    delete db.chatrooms.r3;
     api.on('POST /api/curhat/chatroom', reply.status(500));
     await newRoom(page).click();
     await expect(
@@ -344,16 +375,15 @@ test.describe('a room', () => {
       4,
     );
     const [sent] = api.socket.emitted('message');
-    expect(sent.data).toEqual({
-      chatroomId: 'r1',
-      message: MINE,
-      replyId: 'm4',
-    });
+    expect(sent.data).toEqual(payload(MINE, 'm4'));
     expect(sent.ackId).toBeDefined();
     await expectAtNewest(page, MINE);
 
+    // Review minor 5: the bubble stays the same element from Mengirim to Terkirim, so it is announced as added once.
+    const sentBubble = await bubble(page, MINE).elementHandle();
     api.socket.ack(sent, { ok: true, message: saved(sent.data, 'm10') });
     await expect(bubble(page, MINE)).toContainText('Terkirim · 13.35');
+    expect(await sentBubble!.evaluate((el) => el.isConnected)).toBe(true);
     await expect(bubble(page, MINE)).toContainText(`Membalas: ${M4}`);
     await expect(bubble(page, M3).first()).not.toContainText('Terkirim');
     await expect(log(page).getByRole('button', { name: 'Balas' })).toHaveCount(
@@ -380,11 +410,9 @@ test.describe('a room', () => {
     await composer(page).fill('Tanpa balasan');
     await sendButton(page).click();
     await expect(bubble(page, 'Tanpa balasan')).toContainText('Terkirim');
-    expect(api.socket.emitted('message')[0].data).toEqual({
-      chatroomId: 'r1',
-      message: 'Tanpa balasan',
-      replyId: null,
-    });
+    expect(api.socket.emitted('message')[0].data).toEqual(
+      payload('Tanpa balasan'),
+    );
   });
 
   test('empty text doesn’t send; focus stays in the field', async ({
@@ -401,7 +429,7 @@ test.describe('a room', () => {
 });
 
 test.describe('delivery under a dropped connection', () => {
-  test('no acknowledgement: Gagal after 10 s, announced; Kirim ulang delivers', async ({
+  test('no acknowledgement: Gagal after 10 s, announced once; Kirim ulang delivers', async ({
     page,
     api,
   }, testInfo) => {
@@ -415,9 +443,13 @@ test.describe('delivery under a dropped connection', () => {
     await expect(bubble(page, MINE)).toContainText('Mengirim');
     await page.clock.fastForward(1_500);
     await expect(log(page).getByText('Gagal', { exact: true })).toBeVisible();
+    // Review minor 5: announced once, by the log adding the Gagal line; no second live region repeats it.
+    await expect(log(page)).toHaveAttribute('aria-relevant', 'additions');
     await expect(
-      page.getByText('Pesan gagal terkirim. Kirim ulang untuk mencoba lagi.'),
-    ).toBeAttached();
+      page
+        .locator('[aria-live]:not([role="log"])')
+        .filter({ hasText: 'Gagal' }),
+    ).toHaveCount(0);
     await expect(log(page).getByRole('button', { name: 'Balas' })).toHaveCount(
       4,
     );
@@ -427,11 +459,11 @@ test.describe('delivery under a dropped connection', () => {
     await log(page).getByRole('button', { name: 'Kirim ulang' }).click();
     await expect(bubble(page, MINE)).toContainText('Terkirim · 13.35');
     await expect(log(page).getByText('Gagal', { exact: true })).toHaveCount(0);
-    // The same text again, once delivered.
-    expect(api.socket.emitted('message').map((e) => e.data)).toEqual([
-      { chatroomId: 'r1', message: MINE, replyId: null },
-      { chatroomId: 'r1', message: MINE, replyId: null },
-    ]);
+    // The same text and device id again, once delivered.
+    const [first, again] = api.socket.emitted('message').map((e) => e.data);
+    expect(first).toEqual(payload(MINE));
+    expect(again).toEqual(first);
+    expect(api.socket.emitted('message')).toHaveLength(2);
   });
 
   test('regression: the reply chip never covers a failed message’s Kirim ulang', async ({
@@ -482,10 +514,19 @@ test.describe('delivery under a dropped connection', () => {
       .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
       .toBe(true);
     const fetched = api.calls('GET /api/curhat/chatrooms').length;
+    // Review M1: the live region is there before the text, so the text is announced when it comes.
+    const status = page.locator('.g-chat-bar [role="status"]');
+    await expect(status).toBeAttached();
+    await expect(status).toBeEmpty();
     api.socket.drop();
+    await expect(status).toHaveText(
+      'Koneksi Curhat terputus. Menyambungkan lagi…',
+    );
+    // Review M1: in view where the room opens, at its newest message, and the newest message still in view.
     await expect(
       page.getByText('Koneksi Curhat terputus. Menyambungkan lagi…'),
-    ).toBeVisible();
+    ).toBeInViewport({ ratio: 1 });
+    await expectAtNewest(page, M4);
     await strictGates(page, testInfo, 'curhat-dropped');
     await composer(page).fill(MINE);
     await sendButton(page).click();
@@ -508,6 +549,232 @@ test.describe('delivery under a dropped connection', () => {
     expect(api.socket.emitted('message')).toHaveLength(1);
   });
 
+  test('regression (review M1): offline, the banner is in view at the newest message of a room', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    await openR1(page);
+    await expectAtNewest(page, M4);
+    await api.setOffline(true);
+    await expect(page.getByText('Offline · diperbarui 13.35')).toBeInViewport({
+      ratio: 1,
+    });
+    await expectAtNewest(page, M4);
+    await api.setOffline(false);
+    await expect(page.getByText(/^Offline/)).toHaveCount(0);
+  });
+
+  // Review M2, OPEN-QUESTIONS A11 (Dev 1's decision): saved by the server, the acknowledgement lost.
+  test('regression: saved, its acknowledgement lost: Gagal, then Kirim ulang shows it once and saves it once', async ({
+    page,
+    api,
+    db,
+  }) => {
+    canRead(api);
+    api.socket.saveWithoutAnswer();
+    await openR1(page);
+    const fetched = api.calls('GET /api/curhat/chatrooms').length;
+    await composer(page).fill(MINE);
+    await sendButton(page).click();
+    await expect(bubble(page, MINE)).toContainText('Mengirim');
+    await page.clock.fastForward(10_500);
+    await expect(log(page).getByText('Gagal', { exact: true })).toBeVisible();
+    // The server has it already.
+    expect(
+      db.chatrooms.r1.messages!.filter((m) => m.content === MINE),
+    ).toHaveLength(1);
+    // Nothing fetched the rooms in between, so only Kirim ulang can settle it.
+    expect(api.calls('GET /api/curhat/chatrooms')).toHaveLength(fetched);
+
+    api.socket.answerAsApi('message');
+    await log(page).getByRole('button', { name: 'Kirim ulang' }).click();
+    await expect(bubble(page, MINE)).toContainText('Terkirim · 13.35');
+    await expect(bubble(page, MINE)).toHaveCount(1);
+    await expect(log(page).getByText('Gagal', { exact: true })).toHaveCount(0);
+    // Sent twice with one device id; saved once.
+    const sent = api.socket.emitted('message').map((e) => e.data);
+    expect(sent).toHaveLength(2);
+    expect(sent[0]).toEqual(payload(MINE));
+    expect(sent[1]).toEqual(sent[0]);
+    expect(
+      db.chatrooms.r1.messages!.filter((m) => m.content === MINE),
+    ).toHaveLength(1);
+    // Fetched again, the room still shows it once.
+    await page.reload();
+    await expect(bubble(page, MINE)).toHaveCount(1);
+  });
+
+  test('regression: saved, then the connection drops before the answer: back, it shows once, delivered, with no resend', async ({
+    page,
+    api,
+    db,
+  }) => {
+    canRead(api);
+    api.socket.saveWithoutAnswer();
+    await openR1(page);
+    await expect
+      .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
+      .toBe(true);
+    await composer(page).fill(MINE);
+    await sendButton(page).click();
+    await expect.poll(() => api.socket.emitted('message').length).toBe(1);
+    api.socket.drop();
+    await expect(log(page).getByText('Gagal', { exact: true })).toBeVisible();
+    api.socket.restore();
+    await page.clock.fastForward(6_000);
+    // The catch-up fetch brings the server's copy, with this device's id: one bubble, delivered.
+    await expect(bubble(page, MINE)).toContainText('Terkirim · 13.35', {
+      timeout: 15_000,
+    });
+    await expect(bubble(page, MINE)).toHaveCount(1);
+    await expect(log(page).getByText('Gagal', { exact: true })).toHaveCount(0);
+    await expect(
+      log(page).getByRole('button', { name: 'Kirim ulang' }),
+    ).toHaveCount(0);
+    expect(api.socket.emitted('message')).toHaveLength(1);
+    expect(
+      db.chatrooms.r1.messages!.filter((m) => m.content === MINE),
+    ).toHaveLength(1);
+  });
+
+  // Review minor 1: a rooms fetch that started before the save lands with the older list.
+  test('regression: a delivered message stays when a rooms fetch that started earlier lands without it', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    await openR1(page);
+    await expect
+      .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
+      .toBe(true);
+    const fetched = api.calls('GET /api/curhat/chatrooms').length;
+    // The next rooms fetch takes the list as it is now, before the message, and answers only once released. That
+    // list also has an older Welfare message this page hasn't seen, so we know when it has landed.
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((r) => (release = r));
+    const OLDER = 'Pesan dari daftar yang lebih lama.';
+    api.on('GET /api/curhat/chatrooms', async ({ db }) => {
+      const older = JSON.parse(
+        JSON.stringify(db.chatrooms),
+      ) as typeof db.chatrooms;
+      older.r1.messages = [
+        {
+          id: 'm-older',
+          chatroomId: 'r1',
+          replyId: null,
+          content: OLDER,
+          createdAt: '2026-10-08T06:30:00.000Z',
+          isSender: false,
+          clientMessageId: null,
+        },
+        ...older.r1.messages!,
+      ];
+      await held;
+      return older;
+    });
+    // A Welfare reply in a room this page doesn't know makes it fetch the rooms again.
+    api.socket.emit('reply', {
+      id: 'm-elsewhere',
+      chatroomId: 'r-elsewhere',
+      replyId: null,
+      content: 'Halo',
+      createdAt: NOW,
+      isSender: false,
+      clientMessageId: null,
+    });
+    await expect
+      .poll(() => api.calls('GET /api/curhat/chatrooms').length)
+      .toBe(fetched + 1);
+    await composer(page).fill(MINE);
+    await sendButton(page).click();
+    await expect(bubble(page, MINE)).toContainText('Terkirim · 13.35');
+    release();
+    await expect(bubble(page, OLDER)).toBeVisible();
+    await expect(bubble(page, MINE)).toHaveCount(1);
+    await expect(bubble(page, MINE)).toContainText('Terkirim · 13.35');
+    await expectAtNewest(page, MINE);
+  });
+
+  // Review minor 2: refusals Kirim ulang can't get past.
+  test('refused as forbidden (the room was deleted elsewhere): the rooms are fetched again and it is not found', async ({
+    page,
+    api,
+    db,
+  }) => {
+    canRead(api);
+    await openR1(page);
+    await expect
+      .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
+      .toBe(true);
+    delete db.chatrooms.r1;
+    await composer(page).fill(MINE);
+    await sendButton(page).click();
+    await expect(
+      main(page).getByRole('heading', { name: 'Ruang tidak ditemukan' }),
+    ).toBeAttached();
+    await expect(
+      main(page).getByText('Ruang tidak ditemukan').last(),
+    ).toBeVisible();
+  });
+
+  test('refused as unauthorized (the session is gone): the session is checked and sign-in takes over', async ({
+    page,
+    api,
+    db,
+  }) => {
+    canRead(api);
+    await openR1(page);
+    await expect
+      .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
+      .toBe(true);
+    db.signedIn = false;
+    await composer(page).fill(MINE);
+    await sendButton(page).click();
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  // Review minor 3: at session expiry the API ends the connection; socket.io doesn't reconnect by itself.
+  test('the server ends the connection: the session is checked; still signed in, it connects again and sends', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    await openR1(page);
+    await expect
+      .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
+      .toBe(true);
+    const checks = api.calls('GET /api/me').length;
+    api.socket.endSessions();
+    await expect
+      .poll(() => api.calls('GET /api/me').length)
+      .toBeGreaterThan(checks);
+    await expect
+      .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
+      .toBe(true);
+    await expect(
+      page.getByText('Koneksi Curhat terputus. Menyambungkan lagi…'),
+    ).toHaveCount(0);
+    await composer(page).fill(MINE);
+    await sendButton(page).click();
+    await expect(bubble(page, MINE)).toContainText('Terkirim · 13.35');
+  });
+
+  test('the server ends the connection and the session is gone: sign-in takes over', async ({
+    page,
+    api,
+    db,
+  }) => {
+    canRead(api);
+    await openR1(page);
+    await expect
+      .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
+      .toBe(true);
+    db.signedIn = false;
+    api.socket.endSessions();
+    await expect(page).toHaveURL(/\/login/);
+  });
+
   test('regression: a message sent after Back and reopening the room is emitted and delivered', async ({
     page,
     api,
@@ -523,7 +790,7 @@ test.describe('delivery under a dropped connection', () => {
     await sendButton(page).click();
     await expect(bubble(page, MINE)).toContainText('Terkirim');
     expect(api.socket.emitted('message').map((e) => e.data)).toEqual([
-      { chatroomId: 'r1', message: MINE, replyId: null },
+      payload(MINE),
     ]);
   });
 
@@ -553,6 +820,7 @@ test.describe('Welfare’s replies', () => {
     content,
     createdAt: NOW,
     isSender: false,
+    clientMessageId: null,
   });
 
   test('in the open room: shown at the newest message, and read at once', async ({
@@ -879,6 +1147,7 @@ test.describe('gates at every size', () => {
           content: LONG,
           createdAt: NOW,
           isSender: false,
+          clientMessageId: null,
         },
         ...db.chatrooms.r1.messages!,
       ];

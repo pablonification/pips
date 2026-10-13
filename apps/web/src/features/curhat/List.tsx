@@ -12,7 +12,6 @@ import {
   EmptyState,
   ErrorState,
   NoteBox,
-  OfflineBanner,
   RowButton,
   RuledList,
   Skeleton,
@@ -24,12 +23,14 @@ import { IconPeringatan } from '~/components/icons/peringatan';
 import { IconTambah } from '~/components/icons/tambah';
 import { keepFocusOnNavigationTo } from '~/components/shell/focus';
 import { DeskHead, PageBody } from '~/components/shell/page';
+import { common } from '~/copy/common';
 import { curhat as t } from '~/copy/curhat';
 import { fill } from '~/copy/fill';
 import { hm } from '~/lib/dates';
 import { serviceById } from '~/lib/services';
 import {
   addRoom,
+  ROOMS_KEY,
   useCreateRoom,
   useCurhatClient,
   useCurhatState,
@@ -83,15 +84,27 @@ function useDelayed(active: boolean, ms = SKELETON_DELAY_MS) {
  * Above the data already loaded: the device is offline (P0-A's banner, with the last update), or only Curhat's
  * connection is down ("Koneksi Curhat terputus. Menyambungkan lagi…", OPEN-QUESTIONS D7).
  */
+/**
+ * The lost-connection banner: P0-A's offline banner when the device is offline, "Koneksi Curhat terputus…" when only
+ * Curhat's connection is down. Its live region is always there, so the text is announced when it appears (a region
+ * mounted with its text already inside often isn't); `display: contents` keeps it out of the layout while empty.
+ */
 export function ConnectionBanner({ updatedAt }: { updatedAt: number }) {
   const online = useOnline();
   const { status } = useCurhatState();
-  if (!online) return <OfflineBanner updatedAt={hm(updatedAt || Date.now())} />;
-  if (status !== 'down') return null;
+  const text = !online
+    ? fill(common.offline.banner, { waktu: hm(updatedAt || Date.now()) })
+    : status === 'down'
+      ? t.ruang.terputus
+      : null;
   return (
-    <div className="g-offline" role="status">
-      <IconPeringatan size={16} />
-      <span>{t.ruang.terputus}</span>
+    <div className="contents" role="status">
+      {text === null ? null : (
+        <div className="g-offline">
+          <IconPeringatan size={16} />
+          <span>{text}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -162,9 +175,11 @@ function NewRoom({ count }: { count: number }) {
         });
       },
       onError: (e) => {
-        if (e instanceof ApiError && e.status === 400)
+        if (e instanceof ApiError && e.status === 400) {
           toast.error(t.daftar.penuhToast);
-        else toast.error(t.daftar.gagalBuat);
+          // Full by the server's count: rooms started on another device show up, and the count with them.
+          void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
+        } else toast.error(t.daftar.gagalBuat);
       },
     });
   };

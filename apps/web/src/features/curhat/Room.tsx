@@ -161,7 +161,6 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
 
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState<string | null>(null);
-  const [said, setSaid] = useState('');
   const field = useRef<HTMLTextAreaElement | null>(null);
   const focusField = () => requestAnimationFrame(() => field.current?.focus());
 
@@ -222,14 +221,6 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
     stick.current = false;
   }, [items]);
 
-  // A failure is said once, politely (status is also icon, word and colour on the bubble).
-  const failed = mine.filter((e) => e.status === 'failed').length;
-  const failedBefore = useRef(failed);
-  useEffect(() => {
-    if (failed > failedBefore.current) setSaid(t.ruang.gagalUmumkan);
-    failedBefore.current = failed;
-  }, [failed]);
-
   const quoted =
     replyTo === null
       ? null
@@ -244,7 +235,6 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
       return;
     }
     stick.current = true;
-    setSaid('');
     client.send(roomId, body, quoted === null ? null : replyTo);
     setText('');
     setReplyTo(null);
@@ -296,13 +286,15 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
         }
       />
       <PageBody className="g-room-page">
-        <ConnectionBanner updatedAt={rooms.dataUpdatedAt} />
         {items.length ? null : (
           <p className="g-chat-first t-sm text-fg-2">{t.ruang.pertama}</p>
         )}
         <div
           className="g-chat"
           role="log"
+          // Only what is added is read out (a new message, its Gagal line), once; not every change of a time line
+          // (review minor 5). The Gagal line is the one announcement of a failure.
+          aria-relevant="additions"
           aria-label={fill(t.ruang.percakapan, { nama: name })}
         >
           {items.map((item) =>
@@ -325,15 +317,14 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
             ),
           )}
         </div>
-        <p className="sr-only" aria-live="polite">
-          {said}
-        </p>
         <Composer
           field={field}
           value={text}
           onChange={setText}
           onSend={send}
           replyText={quoted}
+          // In the bar at the bottom, so it is in view at the newest message, where the room opens (review M1).
+          banner={<ConnectionBanner updatedAt={rooms.dataUpdatedAt} />}
           onCancelReply={() => {
             setReplyTo(null);
             focusField();

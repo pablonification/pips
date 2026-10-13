@@ -53,7 +53,6 @@ export const curhat = {
     waktuTerkirim: 'Terkirim · {jam}',
     gagal: 'Gagal',
     kirimUlang: 'Kirim ulang',
-    gagalUmumkan: 'Pesan gagal terkirim. Kirim ulang untuk mencoba lagi.',
     // New copy (OPEN-QUESTIONS D7): only Curhat's connection is down; the device is online.
     terputus: 'Koneksi Curhat terputus. Menyambungkan lagi…',
   },
