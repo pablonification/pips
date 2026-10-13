@@ -50,7 +50,17 @@ export function useCloseEvent() {
   const router = useRouter();
   const { pathname } = useLocation();
   return useCallback(
-    (id: string) => {
+    /** `then.hari` (P3-B, after Ubah acara on Kalender): close onto that day, replacing the entry instead of going back. */
+    (id: string, then?: { hari: string }) => {
+      if (then) {
+        openedHere = null;
+        void navigate({
+          to: '/kalender',
+          search: (s) => ({ ...s, acara: undefined, hari: then.hari }),
+          replace: true,
+        });
+        return;
+      }
       if (openedHere === id && router.history.canGoBack()) {
         openedHere = null;
         router.history.back();
