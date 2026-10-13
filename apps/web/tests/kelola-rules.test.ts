@@ -44,7 +44,7 @@ test('kelolaServices: Raka gets the three rows in the registry order', () => {
     [
       ['Live Counting & Rekap Form', 'grafik', '/kelola/live'],
       ['Data SPARTA Magang', 'kelola', '/kelola/sparta'],
-      ['Tambah acara Akademik', 'kalender', '/kalender'],
+      ['Tambah acara Akademik', 'kalender', '/kelola/acara'],
     ],
   );
   assert.deepEqual(
