@@ -25,6 +25,7 @@ import {
   MAX_INFO_TITLE_LENGTH,
 } from '~/lib/constants';
 import { hm } from '~/lib/dates';
+import { extractUrls } from '~/lib/url-parser';
 
 export const PAGE_SIZE = 10;
 /** Paging loads by itself up to this many pages; after that only Muat lagi does (SPEC "Pengumuman"). */
@@ -508,13 +509,20 @@ export function hostOf(url: string) {
 /* ================= Text ================= */
 
 /**
- * The post's text as shown: links left alone on its last lines are dropped, since their cards follow right below
- * (the prototype keeps a post's link apart from its text). Links inside the text stay, made links.
+ * The post's text as shown: a link alone on one of its last lines is dropped, since its card follows right below
+ * (the prototype keeps a post's link apart from its text; a deviation listed for the owner). Only a line that is
+ * exactly a link with a card (`extractUrls`, as the cards use it) and looks like one (a scheme, `www.` or a path),
+ * so a last line like "file.pdf" or "HMIF.ITB" stays. Links inside the text stay, made links.
  */
 export function displayText(content: string) {
+  const cards = new Set(extractUrls(content));
+  const looksLikeLink = /^(?:[a-z]+:\/\/|www\.|[^/\s]+\/)/i;
   const lines = content.replace(/\s+$/, '').split('\n');
-  const bare = /^\s*(?:https?:\/\/|www\.)?[\w.-]+\.[a-z]{2,}(?:\/\S*)?\s*$/i;
-  while (lines.length > 1 && bare.test(lines[lines.length - 1])) lines.pop();
+  const dropped = (line: string) => {
+    const l = line.trim();
+    return cards.has(l) && looksLikeLink.test(l);
+  };
+  while (lines.length > 1 && dropped(lines[lines.length - 1])) lines.pop();
   return lines.join('\n').replace(/\s+$/, '');
 }
 

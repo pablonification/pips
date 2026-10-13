@@ -494,4 +494,21 @@ test('a link alone on the last lines folds into its card; links inside the text 
   );
   assert.equal(displayText('https://forms.gle/x'), 'https://forms.gle/x'); // nothing else to show
   assert.equal(displayText('Halo\n\nhttps://a.id/x\nwww.b.id \n'), 'Halo');
+  assert.equal(
+    displayText('Daftar di sini\nbit.ly/DaftarGemastik'),
+    'Daftar di sini',
+  );
+  // Only a line that is a link with a card below, and looks like a link (review minor 4).
+  assert.equal(
+    displayText('Berkasnya terlampir.\nfile.pdf'),
+    'Berkasnya terlampir.\nfile.pdf',
+  );
+  assert.equal(
+    displayText('Salam hangat,\nHMIF.ITB'),
+    'Salam hangat,\nHMIF.ITB',
+  );
+  assert.equal(
+    displayText('Cek tautannya:\nhttps://a.id/x lalu isi'),
+    'Cek tautannya:\nhttps://a.id/x lalu isi',
+  );
 });
