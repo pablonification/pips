@@ -1,5 +1,6 @@
 import type { FileRouteTypes } from '~/routeTree.gen';
 import { common } from '~/copy/common';
+import { mulai } from '~/copy/mulai';
 import { serviceById } from '~/lib/services';
 
 /*
@@ -156,17 +157,14 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: nav.profil,
     parent: LAST_ROOT,
     deskRoot: 'profil',
-    legacy: true,
   },
   '/profil/matkul': {
     title: common.shell.mataKuliahku,
     parent: '/profil',
-    legacy: true,
   },
   '/profil/matkul/tambah': {
     title: common.shell.tambahMataKuliah,
     parent: '/profil/matkul',
-    legacy: true,
   },
   '/profil/notifikasi': {
     title: common.shell.notifikasi,
@@ -175,8 +173,9 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   '/profil/kredit': {
     title: common.shell.kredit,
     parent: '/profil',
-    legacy: true,
   },
+  // P1-C: first run after a sign-in, a focused flow (no tab bar) that ends on Beranda.
+  '/mulai': { title: mulai.judul, parent: '/', focused: true },
   // The shell's test page (src/dev/shell, development and staging only): a drill-down page below Layanan.
   '/dev/shell': { title: 'Uji shell', parent: '/layanan' },
 };

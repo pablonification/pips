@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppLeftNavbarRouteImport } from './routes/_app/_left-navbar'
 import { Route as AppKalenderRouteImport } from './routes/_app/kalender'
+import { Route as AppMulaiRouteImport } from './routes/_app/mulai'
 import { Route as DevGarisRouteImport } from './routes/dev/garis'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as AppLeftNavbarIndexRouteImport } from './routes/_app/_left-navbar/index'
@@ -61,6 +62,11 @@ const AppLeftNavbarRoute = AppLeftNavbarRouteImport.update({
 const AppKalenderRoute = AppKalenderRouteImport.update({
   id: '/kalender',
   path: '/kalender',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMulaiRoute = AppMulaiRouteImport.update({
+  id: '/mulai',
+  path: '/mulai',
   getParentRoute: () => AppRoute,
 } as any)
 const DevGarisRoute = DevGarisRouteImport.update({
@@ -282,6 +288,7 @@ const AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppLeftNavbarIndexRoute
   '/kalender': typeof AppKalenderRouteWithChildren
+  '/mulai': typeof AppMulaiRoute
   '/dev/garis': typeof DevGarisRoute
   '/login/': typeof LoginIndexRoute
   '/profil': typeof AppLeftNavbarProfilRouteWithChildren
@@ -320,6 +327,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppLeftNavbarIndexRoute
+  '/mulai': typeof AppMulaiRoute
   '/dev/garis': typeof DevGarisRoute
   '/login': typeof LoginIndexRoute
   '/dev/shell': typeof AppDevShellRoute
@@ -359,6 +367,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/_left-navbar': typeof AppLeftNavbarRouteWithChildren
   '/_app/kalender': typeof AppKalenderRouteWithChildren
+  '/_app/mulai': typeof AppMulaiRoute
   '/dev/garis': typeof DevGarisRoute
   '/login/': typeof LoginIndexRoute
   '/_app/_left-navbar/profil': typeof AppLeftNavbarProfilRouteWithChildren
@@ -402,6 +411,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/kalender'
+    | '/mulai'
     | '/dev/garis'
     | '/login/'
     | '/profil'
@@ -440,6 +450,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/mulai'
     | '/dev/garis'
     | '/login'
     | '/dev/shell'
@@ -478,6 +489,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_app/_left-navbar'
     | '/_app/kalender'
+    | '/_app/mulai'
     | '/dev/garis'
     | '/login/'
     | '/_app/_left-navbar/profil'
@@ -544,6 +556,13 @@ declare module '@tanstack/react-router' {
       path: '/kalender'
       fullPath: '/kalender'
       preLoaderRoute: typeof AppKalenderRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mulai': {
+      id: '/_app/mulai'
+      path: '/mulai'
+      fullPath: '/mulai'
+      preLoaderRoute: typeof AppMulaiRouteImport
       parentRoute: typeof AppRoute
     }
     '/dev/garis': {
@@ -944,12 +963,14 @@ const AppKalenderRouteWithChildren = AppKalenderRoute._addFileChildren(
 interface AppRouteChildren {
   AppLeftNavbarRoute: typeof AppLeftNavbarRouteWithChildren
   AppKalenderRoute: typeof AppKalenderRouteWithChildren
+  AppMulaiRoute: typeof AppMulaiRoute
   AppDevShellRoute: typeof AppDevShellRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppLeftNavbarRoute: AppLeftNavbarRouteWithChildren,
   AppKalenderRoute: AppKalenderRouteWithChildren,
+  AppMulaiRoute: AppMulaiRoute,
   AppDevShellRoute: AppDevShellRoute,
 }
 
