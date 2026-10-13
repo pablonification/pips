@@ -42,7 +42,7 @@ export const FINDINGS: Finding[] = [
     layouts: ['phone', 'tablet', 'desktop'],
     themes: ['dark'],
     detail:
-      'When a page\'s code fails to load, the shell shows "Bagian ini gagal dimuat." with Coba lagi and Ke Beranda (src/components/error-fallback.tsx, RouteErrorFallback). It is built from today\'s Button (components/ui/button.tsx, variant "outlined"), not Garis components, and in dark axe reports color-contrast (serious) on the outlined Ke Beranda button (.border). Light passes. No journey reaches this state. C1 may touch the old Button; check again after C1.',
+      'When a page\'s code fails to load, the shell shows "Bagian ini gagal dimuat." with Coba lagi and Ke Beranda (src/components/error-fallback.tsx, RouteErrorFallback). It is built from today\'s Button (components/ui/button.tsx, variant "outlined"), not Garis components, and in dark axe reports color-contrast (serious) on the outlined Ke Beranda button (.border): its words are dark on the dark page and can hardly be read, and Coba lagi is a black button. Light passes. The still `route-error` shows it. No journey reaches this state. C1 may touch the old Button; check again after C1.',
     owner: 'P0-B',
   },
 ];
