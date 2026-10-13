@@ -14,7 +14,9 @@
  * Acknowledgements default to what the API answers (`apps/api/src/websocket/curhat.ts`), on the test's data:
  * `message` is refused without a session (`unauthorized`), outside your rooms (`forbidden`), with empty text or a
  * reply to a message outside the room (`invalid`); otherwise the message is saved in `db.chatrooms` and
- * acknowledged as `{ ok: true, message }` (`isSender: true`, no `userId`). `curhat:join` checks the same access.
+ * acknowledged as `{ ok: true, message }` (`isSender: true`, no `userId`); a repeat of a `clientMessageId` in the
+ * room saves nothing and is answered with the first copy, as the API's unique index does. `curhat:join` checks the
+ * same access.
  * A handshake with `auth.curhat` joins every room in `db.chatrooms`; one with `auth.chatroomId` joins that room if
  * it's yours. As the API does, a `message` without an acknowledgement is still saved.
  */
@@ -27,6 +29,8 @@ import type {
 import { NOW, type Db } from '../fixtures/api';
 
 const SEP = '\x1e';
+/** The API takes a message's device id only as a UUID (`CurhatMessagePayloadSchema`). */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const POLL_HOLD_MS = 15_000;
 
 export interface FakeSocket {
@@ -72,6 +76,17 @@ export class FakeSocketServer {
         ? (data, s) => this.saveMessage(data, s)
         : (data, s) => this.join(data, s),
     );
+  }
+
+  /**
+   * Save every `message` as the API does but never answer it (P2-C): the acknowledgement is lost after the save, as
+   * when a phone network drops it. `ack()` can still answer one later; `answerAsApi('message')` undoes it.
+   */
+  saveWithoutAnswer(): void {
+    this.answers.set('message', (data, s) => {
+      this.saveMessage(data, s);
+      return undefined;
+    });
   }
 
   /** Answer `event`'s acknowledgements with `fn` from now on (return `undefined` to never answer). */
@@ -124,6 +139,19 @@ export class FakeSocketServer {
 
   restore(): void {
     this.down = false;
+  }
+
+  /**
+   * The API ends every connection itself, as it does when a session expires (`socket.disconnect(true)`: the client
+   * hears `io server disconnect` and doesn't reconnect by itself). The transport stays up (P2-C).
+   */
+  endSessions(): void {
+    for (const s of this.sessions.values()) {
+      if (!s.connected) continue;
+      s.connected = false;
+      s.rooms.clear();
+      this.push(s, '41');
+    }
   }
 
   close(): void {
@@ -253,14 +281,20 @@ export class FakeSocketServer {
 
   private saveMessage(data: unknown, session: FakeSocket): CurhatMessageAck {
     if (!this.db?.signedIn) return { ok: false, error: 'unauthorized' };
-    const { chatroomId, message, replyId } = (data ?? {}) as {
+    const { chatroomId, message, replyId, clientMessageId } = (data ?? {}) as {
       chatroomId?: unknown;
       message?: unknown;
       replyId?: unknown;
+      clientMessageId?: unknown;
     };
     if (typeof chatroomId !== 'string' || typeof message !== 'string')
       return { ok: false, error: 'invalid' };
     if (!message.trim()) return { ok: false, error: 'invalid' };
+    if (
+      clientMessageId != null &&
+      (typeof clientMessageId !== 'string' || !UUID.test(clientMessageId))
+    )
+      return { ok: false, error: 'invalid' };
     const room = this.db.chatrooms[chatroomId];
     if (!room) return { ok: false, error: 'forbidden' };
     const quoted =
@@ -269,6 +303,15 @@ export class FakeSocketServer {
         : undefined;
     if (typeof replyId === 'string' && replyId && !quoted)
       return { ok: false, error: 'invalid' };
+    // As the API's unique (chatroom_id, client_message_id): a resend with the same id answers the first copy.
+    const first =
+      typeof clientMessageId === 'string'
+        ? room.messages?.find((m) => m.clientMessageId === clientMessageId)
+        : undefined;
+    if (first) {
+      session.rooms.add(chatroomId);
+      return { ok: true, message: { ...first, isSender: true } };
+    }
     const saved: CurhatSocketMessage = {
       id: `e2e-message-${++this.saved}`,
       chatroomId,
@@ -276,6 +319,8 @@ export class FakeSocketServer {
       content: message,
       createdAt: NOW,
       isSender: true,
+      clientMessageId:
+        typeof clientMessageId === 'string' ? clientMessageId : null,
       ...(quoted
         ? {
             reply: {

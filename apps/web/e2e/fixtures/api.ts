@@ -283,6 +283,8 @@ function toChatrooms(persona: PersonaKey): ListChatroom {
       .map((m) => ({
         ...plain(m.id),
         isSender: m.me,
+        // Sample history carries no device id (sent before P2-C's round 2, or by Welfare).
+        clientMessageId: null,
         ...(m.reply ? { reply: plain(m.reply) } : {}),
       }));
     const chatroom: Chatroom = {
