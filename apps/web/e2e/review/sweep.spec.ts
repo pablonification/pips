@@ -138,9 +138,11 @@ async function logoProblems(page: Page) {
         // Below the fold is fine; cut by the window's sides is not.
         if (r.left < 0 || r.right > innerWidth) out.push('clipped');
       } else if (
-        !document.querySelector(
-          '[role="dialog"][aria-modal="true"], [role="alertdialog"]',
-        )
+        ![
+          ...document.querySelectorAll<HTMLElement>(
+            '[role="dialog"], [role="alertdialog"]',
+          ),
+        ].some((d) => d.checkVisibility())
       ) {
         // An open dialog's backdrop dims everything behind it, the logo too: that isn't covering it.
         const hit = document.elementFromPoint(
