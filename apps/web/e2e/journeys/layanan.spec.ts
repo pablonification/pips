@@ -173,9 +173,10 @@ test.describe('Raka', () => {
       'href',
       '/kelola/sparta',
     );
+    // P3-B: /kelola/acara forwards to the add-event dialog over Kalender (/kalender?tambah=acara; manage-events.spec.ts).
     await expect(row(page, /^Tambah acara Akademik/)).toHaveAttribute(
       'href',
-      '/kalender',
+      '/kelola/acara',
     );
     await expect(row(page, /^Data SPARTA Magang/)).toContainText(
       'Pilihan divisi magang angkatan 2025 · ditutup 23 Agu 2026',
