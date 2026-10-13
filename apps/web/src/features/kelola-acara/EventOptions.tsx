@@ -89,7 +89,8 @@ function OptionsButton({ event }: { event: CalendarEvent }) {
         <IconButton
           label={fill(t.opsi, { judul: event.title })}
           size="sm"
-          className="ml-auto"
+          // Overhangs the tag row instead of making it taller (review m8); touch layouts keep the 44 px area.
+          className="-my-[5px] ml-auto"
         >
           <IconLainnya size={20} />
         </IconButton>
