@@ -215,7 +215,7 @@ export function flow(
   variantKey: string,
   use: UseOptions,
   body: Body,
-  opts: { fails?: string } = {},
+  opts: { fails?: string; failsWhere?: { layouts?: Layout[]; themes?: Theme[] } } = {},
 ) {
   const entry = flowById(id);
   const variant = entry.variants.find((v) => v.key === variantKey);
@@ -238,7 +238,11 @@ export function flow(
           !entry.themes.includes(where.theme),
         'not recorded at this layout or theme',
       );
-      if (opts.fails) test.fail(true, opts.fails);
+      const fails =
+        !!opts.fails &&
+        (!opts.failsWhere?.layouts || opts.failsWhere.layouts.includes(where!.layout)) &&
+        (!opts.failsWhere?.themes || opts.failsWhere.themes.includes(where!.theme));
+      if (fails) test.fail(true, opts.fails);
       const f = new Recorder(page, testInfo, entry, variant);
       let error: string | null = null;
       try {
@@ -250,10 +254,10 @@ export function flow(
         error = e instanceof Error ? e.message.split('\n')[0] : String(e);
         // The config keeps a trace only on an unexpected failure, so a known one saves its own (F1 brief, step 4).
         // `trace: 'on'` can't be set per flow: it forces a new worker, which Playwright refuses inside a group.
-        if (opts.fails) await saveTrace(page, testInfo);
+        if (fails) await saveTrace(page, testInfo);
         throw e;
       } finally {
-        writeRecord(f, api, testInfo, where!, error, opts.fails ?? null);
+        writeRecord(f, api, testInfo, where!, error, fails ? opts.fails! : null);
       }
     });
   });

@@ -18,6 +18,12 @@ export interface Finding {
   security?: boolean;
 }
 
+/** Where a finding fails its flows: every recording, or only these layouts or themes. */
+export interface FailsWhere {
+  layouts?: string[];
+  themes?: string[];
+}
+
 export const FINDINGS: Finding[] = [
   {
     id: 'F1-1',
@@ -28,6 +34,16 @@ export const FINDINGS: Finding[] = [
     detail:
       'Search for "zzzz": "Tidak ada hasil untuk “zzzz”." shows, and axe reports aria-required-children (critical) on the search dialog (#radix-…), the list of results left with no option. Strict gates fail. The journeys never audited the empty result (shell.spec.ts audits the start list only).',
     owner: 'P1-A',
+  },
+  {
+    id: 'F1-2',
+    title: 'In dark, the error page of a page that failed to load fails contrast: its "Ke Beranda" button',
+    flows: ['errors-offline'],
+    layouts: ['phone', 'tablet', 'desktop'],
+    themes: ['dark'],
+    detail:
+      'When a page\'s code fails to load, the shell shows "Bagian ini gagal dimuat." with Coba lagi and Ke Beranda (src/components/error-fallback.tsx, RouteErrorFallback). It is built from today\'s Button (components/ui/button.tsx, variant "outlined"), not Garis components, and in dark axe reports color-contrast (serious) on the outlined Ke Beranda button (.border). Light passes. No journey reaches this state. C1 may touch the old Button; check again after C1.',
+    owner: 'P0-B',
   },
 ];
 
