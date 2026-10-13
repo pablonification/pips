@@ -11,6 +11,7 @@
 import type { BrowserContext, Locator, Page } from '@playwright/test';
 import { visibleText } from '../support/app';
 import type { ApiMock } from '../support/mock';
+import { fillPixelUpTo } from '../support/flows';
 import * as writes from '../support/writes';
 
 export interface FidelityScreen {
@@ -65,10 +66,6 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       path: '/layanan/curhat',
       ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
     },
-    'anggota-form': {
-      path: '/layanan/form',
-      ready: (p) => visibleText(p, 'Form Analisis Kondisi PIXEL'),
-    },
     'anggota-profil': {
       path: '/profil',
       ready: (p) =>
@@ -94,8 +91,31 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       path: '/kelola/live/pixel',
       ready: (p) => visibleText(p, 'Halaman 1 dari 8'),
     },
+    // P2-A: Form (PIXEL).
+    'anggota-form': {
+      path: '/layanan/form',
+      ready: (p) =>
+        p.getByRole('main').getByRole('link', { name: /Form Analisis/ }),
+    },
+    'anggota-fill': {
+      path: '/layanan/form/pixel',
+      ready: (p) =>
+        p.getByRole('main').getByRole('heading', { name: 'Identitas' }),
+    },
     'pengurus-form-empty': {
       path: '/layanan/form',
-      ready: (p) => visibleText(p, 'Belum ada form untuk kamu'),
+      ready: (p) => p.getByRole('main').getByText('Belum ada form untukmu'),
     },
+    // The send dialog on desktop, over the check page (the locked capture has Profil behind it).
+    'anggota-ov-confirm': [
+      {
+        path: '/layanan/form/pixel',
+        layouts: ['desk'],
+        act: async (p) => {
+          await fillPixelUpTo(p, 5);
+          await p.getByRole('button', { name: 'Kirim jawaban' }).click();
+        },
+        ready: (p) => p.getByRole('alertdialog', { name: 'Kirim jawaban?' }),
+      },
+    ],
   };

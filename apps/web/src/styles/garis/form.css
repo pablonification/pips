@@ -65,15 +65,17 @@
     padding: 0;
     min-width: 0;
   }
-  .g-qblock > .t-label,
-  .g-qblock > legend {
+  /* A question's label (garis.css `.qblock .t-label`): 15 px semibold. A legend keeps the browser's 2 px padding, as
+     in the prototype, and 4 px below it. */
+  .g-q-label {
     font-size: 15px;
     font-weight: 600;
     line-height: 1.4;
+    color: var(--text);
   }
-  .g-qblock > legend {
+  legend.g-q-label {
     margin-bottom: 4px;
-    padding: 0;
+    padding: 0 2px;
   }
   .g-qblock .g-opt-note {
     font-weight: 400;

@@ -54,7 +54,7 @@ export function QBlock({
     const prefilled = !!q.prefill && text !== '';
     return (
       <div className="g-qblock" data-qb={q.id}>
-        <label className="t-label" htmlFor={id}>
+        <label className="g-q-label" htmlFor={id}>
           {q.label}
           {optional}
         </label>
@@ -94,7 +94,7 @@ export function QBlock({
         data-qb={q.id}
         aria-describedby={missing ? `${hintId} ${errId}` : hintId}
       >
-        <legend className="t-label">
+        <legend className="g-q-label">
           {label}
           {optional}
         </legend>
@@ -129,7 +129,7 @@ export function QBlock({
       data-qb={q.id}
       aria-describedby={missing ? errId : undefined}
     >
-      <legend className="t-label">
+      <legend className="g-q-label">
         {q.label}
         {optional}
       </legend>

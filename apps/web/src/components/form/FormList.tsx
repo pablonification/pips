@@ -52,9 +52,7 @@ export function FormList() {
               <StatusTag status={statusShown(f.status)} />
               <span className="block t-sub">{f.title}</span>
               {f.description ? (
-                <span className="g-clamp2 block t-sm text-fg-2">
-                  {f.description}
-                </span>
+                <span className="g-clamp2 t-sm text-fg-2">{f.description}</span>
               ) : null}
               <span className="block t-cap text-fg-3">{caption(f)}</span>
             </Link>
