@@ -1,4 +1,4 @@
-import { useGoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin, useGoogleOAuth } from '@react-oauth/google';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -36,6 +36,9 @@ async function firstRunSignals(): Promise<FirstRunSignals | null> {
  */
 export default function useLogin(redirectTo: string | null = null) {
   const navigate = useNavigate();
+  // Google's script (accounts.google.com) may not load: blocked, offline, or still loading. Pressing the button then
+  // says so instead of doing nothing.
+  const { scriptLoadedSuccessfully } = useGoogleOAuth();
   const [problem, setProblem] = useState<SignInProblem | null>(null);
   const [lastToken, setLastToken] = useState<string | null>(null);
 
@@ -87,13 +90,26 @@ export default function useLogin(redirectTo: string | null = null) {
     onSuccess: start,
   });
 
+  const openGoogle = () => {
+    if (!scriptLoadedSuccessfully) {
+      setProblem('gagal');
+      return;
+    }
+    setProblem(null);
+    login();
+  };
+
   return {
-    login: () => {
-      setProblem(null);
-      login();
+    login: openGoogle,
+    /**
+     * Coba lagi after a server or network error: the same Google token again (it lasts an hour). Without a token,
+     * Google's popup again; if Google's script never loaded, the page loads again to fetch it.
+     */
+    retry: () => {
+      if (lastToken) send(lastToken);
+      else if (scriptLoadedSuccessfully) openGoogle();
+      else window.location.reload();
     },
-    /** Coba lagi after a server or network error: the same Google token again (it lasts an hour). */
-    retry: () => (lastToken ? send(lastToken) : login()),
     /** Waiting for the API, or for the destination's first-run check. */
     pending: loginCallbackMutation.isPending || loginCallbackMutation.isSuccess,
     problem,
