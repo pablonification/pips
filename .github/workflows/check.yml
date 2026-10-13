@@ -123,6 +123,9 @@ jobs:
         run: pnpm --filter web run e2e --shard=${{ matrix.shard }}/4
         env:
           E2E_WORKERS: 2
+          # Strict gates on every journey, old screens included: every screen is replaced by now, and C1 (cleanup)
+          # starts only from a branch that passes them (C1 brief, "Start").
+          E2E_GATES: strict
       - name: Keep the report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
