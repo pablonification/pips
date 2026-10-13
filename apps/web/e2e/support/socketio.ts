@@ -15,7 +15,8 @@
  * reply to a message outside the room (`invalid`); otherwise the message is saved in `db.chatrooms` and
  * acknowledged as `{ ok: true, message }` (`isSender: true`, no `userId`). `curhat:join` checks the same access.
  * A handshake with `auth.curhat` joins every room in `db.chatrooms`; one with `auth.chatroomId` joins that room if
- * it's yours. As the API does, a `message` without an acknowledgement is still saved.
+ * it's yours. One with `auth.formAdminId` joins `form-admin:{formId}` when the member is an admin (Live Counting:
+ * `api.socket.emit('form:new-response', event, (s) => s.rooms.has('form-admin:pixel'))`). As the API does, a `message` without an acknowledgement is still saved.
  */
 import type { Route } from '@playwright/test';
 import type {
@@ -205,6 +206,14 @@ export class FakeSocketServer {
     const room = session.auth.chatroomId;
     if (typeof room === 'string' && mine.includes(room))
       session.rooms.add(room);
+    // P3-A: Live Counting's room, as the API (websocket/connection.ts): `form-admin:{formId}`, for admins only.
+    const form = session.auth.formAdminId;
+    if (
+      typeof form === 'string' &&
+      this.db?.signedIn &&
+      this.db.me?.roles.includes('admin')
+    )
+      session.rooms.add(`form-admin:${form}`);
   }
 
   private join(data: unknown, session: FakeSocket): CurhatJoinAck {
