@@ -8,6 +8,8 @@ export const nim = {
   placeholder: 'Ketik nama atau NIM',
   minimal: 'Ketik minimal 3 huruf nama atau angka NIM.',
   hasil: '{jumlah} hasil. Pilih untuk menyalin NIM.',
+  // New copy (Dev 1, P2-B round 2): at the API's cap, so the count isn't taken for the total.
+  hasilBatas: '{jumlah}+ hasil. Pilih untuk menyalin NIM.',
   tidakAda: 'Tidak ada anggota dengan nama atau NIM “{kata}”.',
   salinLabel: 'Salin NIM {nim}, {nama}',
   disalin: 'NIM {nim} disalin.',

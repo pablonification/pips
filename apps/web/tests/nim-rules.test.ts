@@ -73,3 +73,15 @@ test('status wording, as nimResults words it', () => {
   );
   assert.equal(nimStatus({ kind: 'loading' }), 'Mencari…');
 });
+
+test('at the API’s cap of 30 the count reads "30+ hasil", so it isn’t taken for the total', () => {
+  // Dev 1's decision (P2-B round 2): P0-D returns at most 30 members (apps/api/src/lib/nim-finder.ts).
+  assert.equal(
+    nimStatus({ kind: 'done', count: 30, typed: '135' }),
+    '30+ hasil. Pilih untuk menyalin NIM.',
+  );
+  assert.equal(
+    nimStatus({ kind: 'done', count: 29, typed: '135' }),
+    '29 hasil. Pilih untuk menyalin NIM.',
+  );
+});

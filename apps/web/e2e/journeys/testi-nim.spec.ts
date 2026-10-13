@@ -421,6 +421,28 @@ test.describe('NIM Finder', () => {
     await strictAudit(page, testInfo, 'nim-photos');
   });
 
+  test('at the API’s cap of 30 the count reads "30+ hasil"', async ({
+    page,
+    api,
+  }) => {
+    // Dev 1's decision (P2-B round 2): 30 is P0-D's cap, not the total, so the count says there may be more.
+    api.on('GET /api/user/nim', () =>
+      Array.from({ length: 30 }, (_, i) => ({
+        fullName: `Anggota ${String(i + 1).padStart(2, '0')}`,
+        nim: `135240${String(i + 1).padStart(2, '0')}`,
+        major: 'IF' as const,
+        picture: null,
+      })),
+    );
+    await page.goto('/layanan/nim?q=135');
+    await expect(main(page).getByRole('status')).toHaveText(
+      '30+ hasil. Pilih untuk menyalin NIM.',
+    );
+    await expect(
+      main(page).getByRole('button', { name: /^Salin NIM / }),
+    ).toHaveCount(30);
+  });
+
   test('a row copies its NIM and says so', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/layanan/nim?q=tasya');
