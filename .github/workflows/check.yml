@@ -7,6 +7,23 @@ on:
     branches: [main, redesign]
 
 jobs:
+  commits:
+    name: commit messages
+    # Conventional Commits for every commit a pull request adds (owner's rule, 2026-10-13).
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: The check's own tests
+        run: node --test scripts/*.test.mjs
+      - name: Every new commit is a Conventional Commit
+        run: node scripts/commit-messages.mjs "origin/${{ github.base_ref }}" "${{ github.event.pull_request.head.sha }}"
+
   check:
     name: check, test and build
     runs-on: ubuntu-latest
