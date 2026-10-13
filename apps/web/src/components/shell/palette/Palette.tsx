@@ -17,8 +17,8 @@ import { usePaletteItems } from './sources';
 const t = common.palette;
 
 export default function Palette() {
-  const items = usePaletteItems();
   const [query, setQuery] = useState('');
+  const items = usePaletteItems(query);
   const groups = useMemo(
     () => paletteResults(items, query, t.pintasan),
     [items, query],
