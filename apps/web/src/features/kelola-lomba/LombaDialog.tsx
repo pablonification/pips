@@ -88,6 +88,11 @@ export default function LombaDialog({
       requestAnimationFrame(() => document.getElementById(fid(first))?.focus());
       return;
     }
+    // Ubah lomba with nothing changed: nothing to send, so it closes as Batal does (review M1).
+    if (competition && !Object.keys(changedFields(competition, draft)).length) {
+      onOpenChange(false);
+      return;
+    }
     save.mutate(draft, { onSuccess: onSaved, onError: onFailed });
   };
 

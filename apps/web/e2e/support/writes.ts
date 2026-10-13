@@ -588,14 +588,25 @@ export const createCompetition: Handler = ({ db, body }) => {
   return reply.json(competition, 201);
 };
 
-/** PUT /api/competitions/:id — `cnc`; the fields sent replace the stored ones (a sent `mediaUrls` replaces posters). */
+/**
+ * PUT /api/competitions/:id — `cnc`; the fields sent replace the stored ones (a sent `mediaUrls` replaces posters).
+ * As the API: 400 for an empty body (nothing to change) and for a name or organiser under 3 characters.
+ */
 export const updateCompetition: Handler = ({ db, params, body }) => {
   if (!hasRole(db, 'cnc')) return unauthorized();
+  const sent = body as Partial<Competition> & { mediaUrls?: string[] };
+  const short = (['name', 'organizer'] as const).find(
+    (k) => sent[k] !== undefined && String(sent[k]).length < 3,
+  );
+  if (short)
+    return reply.status(400, {
+      error: `${short === 'name' ? 'Name' : 'Organizer'} must be at least 3 characters`,
+    });
   const c = db.competitions.find((x) => x.id === params.id);
+  if (Object.keys(sent).length === 0)
+    return reply.status(400, { error: 'Nothing to update' });
   if (!c) return reply.status(404, { error: 'Competition not found' });
-  const { mediaUrls, ...rest } = body as Partial<Competition> & {
-    mediaUrls?: string[];
-  };
+  const { mediaUrls, ...rest } = sent;
   Object.assign(c, rest);
   if (mediaUrls) c.medias = [];
   return { ...c };
