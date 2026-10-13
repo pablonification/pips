@@ -29,6 +29,8 @@ export const appSearchSchema = z.object({
 
 /** Kalender's route: the redesign's `hari` and `acara` (P1-A), and today's screen's `selected*` until it is replaced. */
 export const kalenderRouteSearchSchema = kalenderSearchSchema.extend({
+  // P3-B: the add-event dialog (`/kalender?tambah=acara`).
+  tambah: z.literal('acara').optional().catch(undefined),
   selectedDate: z.number().optional().catch(undefined),
   selectedMonth: z.number().optional().catch(undefined),
   selectedYear: z.number().optional().catch(undefined),
