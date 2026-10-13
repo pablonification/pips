@@ -845,7 +845,7 @@ export const FLOWS: Flow[] = [
     darkSet: false,
     stories: [112],
     owners: ['P3-B'],
-    startsAt: '/layanan/testi/if/3/IF2110',
+    startsAt: '/layanan/testi/teknik-informatika/3/course-IF2110',
     check:
       'P3-B’s proposal (D9): Tambah testimoni on a course page for akademik; IF’s sections (STI’s on an STI course); "Tulis minimal satu bagian."; the new testimonial in the pager.',
     locked: [],
