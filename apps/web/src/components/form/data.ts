@@ -42,15 +42,35 @@ export function sendOutcome(error: unknown): SendOutcome {
   return 'failed';
 }
 
+/**
+ * Sends the answers and says how it ended. The caller acts on the outcome first and only then refreshes the form
+ * and the list (`refresh`), so the screen can't swap to another state halfway through (a refetch that already says
+ * "already responded" would otherwise unmount it before it cleared the draft and showed the toast).
+ */
 export function useSendForm(formId: string) {
   const queryClient = useQueryClient();
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: (answers: { questionId: string; answer: AnswerValue }[]) =>
       api.form.submitFormResponse({ formId, requestBody: { answers } }),
-    // Refresh the list (Beranda's row goes) and this form, whatever happened: a 409 or 403 changes them too.
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: [FORM_QUERY_KEY] }),
+    // Offline, a send fails at once (and the screen offers Coba lagi) instead of waiting, paused, for the network.
+    networkMode: 'always',
   });
+  return {
+    pending: mutation.isPending,
+    send: async (
+      answers: { questionId: string; answer: AnswerValue }[],
+    ): Promise<SendOutcome> => {
+      try {
+        await mutation.mutateAsync(answers);
+        return 'sent';
+      } catch (error) {
+        return sendOutcome(error);
+      }
+    },
+    // The list too (Beranda's row goes), whatever happened: a 409 or 403 changes them as well.
+    refresh: () =>
+      queryClient.invalidateQueries({ queryKey: [FORM_QUERY_KEY] }),
+  };
 }
 
 function subscribeOnline(onChange: () => void) {

@@ -47,8 +47,7 @@ export const form = {
     // New: while it sends, and when it can't.
     mengirim: 'Mengirim…',
     berhasil: 'Form berhasil dikirim!',
-    gagal:
-      'Jawabanmu belum terkirim. Jawaban dan drafmu tetap aman, coba kirim lagi.',
+    gagal: 'Jawabanmu belum terkirim. Periksa koneksimu, lalu coba lagi.',
   },
   selesai: {
     judul: 'Terima kasih sudah mengisi!',

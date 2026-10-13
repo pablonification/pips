@@ -229,7 +229,8 @@ export function FormFill({ formId }: { formId: string }) {
   const mine = useQuery(myResponseQuery(formId));
   const draft = useFormDraft(formId, me.id);
   const [sentNow, setSentNow] = useState(false);
-  const [closedNow, setClosedNow] = useState(false);
+  // Closed while filling (the server answered 403): the closed view with the answers on screen.
+  const [closedWith, setClosedWith] = useState<Answers | null>(null);
 
   const form = detail.data;
   if (sentNow && form) return <ThankYou title={form.title} focus />;
@@ -268,8 +269,8 @@ export function FormFill({ formId }: { formId: string }) {
     );
   if (form.status === 'already_responded' || mine.data)
     return <ThankYou title={form.title} focus={false} />;
-  if (form.status === 'closed' || closedNow)
-    return <Closed form={form} draft={draft.restored} />;
+  if (form.status === 'closed' || closedWith)
+    return <Closed form={form} draft={closedWith ?? draft.restored} />;
   if (!form.sections)
     return <NotOpenYet form={form} refetch={detail.refetch} />;
   return (
@@ -279,8 +280,8 @@ export function FormFill({ formId }: { formId: string }) {
       start={startingAnswers(form.sections, draft.restored, me)}
       draft={draft}
       onSent={() => setSentNow(true)}
-      onClosed={() => {
-        setClosedNow(true);
+      onClosed={(answers) => {
+        setClosedWith(answers);
         void detail.refetch();
       }}
     />
@@ -302,7 +303,7 @@ function Filler({
   start: Answers;
   draft: ReturnType<typeof useFormDraft>;
   onSent: () => void;
-  onClosed: () => void;
+  onClosed: (answers: Answers) => void;
 }) {
   const n = sections.length;
   const [answers, setAnswers] = useState<Answers>(start);
@@ -312,7 +313,7 @@ function Filler({
   const [confirming, setConfirming] = useState(false);
   const [focus, setFocus] = useState<Focus>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const send = useSendForm(form.id);
+  const sender = useSendForm(form.id);
   const failedToast = useRef<number | null>(null);
   const review = sec >= n;
 
@@ -358,41 +359,39 @@ function Filler({
     go(fromReview ? n : sec + 1);
   };
 
-  const submit = () => {
-    if (send.isPending) return;
+  const submit = async () => {
+    if (sender.pending) return;
     if (failedToast.current !== null) toast.dismiss(failedToast.current);
     failedToast.current = null;
-    send.mutate(answersToSend(sections, answers), {
-      onSuccess: () => {
-        setConfirming(false);
-        void draft.clear();
-        toast.success(copy.kirim.berhasil);
-        onSent();
-      },
-      onError: (error) => {
-        setConfirming(false);
-        const outcome = sendOutcome(error);
-        if (outcome === 'already') {
-          void draft.clear();
-          onSent();
-        } else if (outcome === 'closed') {
-          onClosed();
-        } else if (outcome === 'incomplete') {
-          const first = firstIncompleteSection(sections, answers);
-          if (first >= 0) {
-            setSec(first);
-            setFromReview(true);
-            const missing = sectionMissing(sections[first], answers);
-            setErrs(missing.map((q) => q.id));
-            setFocus({ kind: 'question', id: missing[0].id });
-          }
-        } else {
-          failedToast.current = toast.error(copy.kirim.gagal, {
-            action: { label: common.actions.cobaLagi, onClick: submit },
-          });
-        }
-      },
-    });
+    const outcome = await sender.send(answersToSend(sections, answers));
+    setConfirming(false);
+    if (outcome === 'sent') {
+      await draft.clear();
+      toast.success(copy.kirim.berhasil);
+      onSent();
+    } else if (outcome === 'already') {
+      await draft.clear();
+      onSent();
+    } else if (outcome === 'closed') {
+      onClosed(answers);
+    } else if (outcome === 'incomplete') {
+      const first = firstIncompleteSection(sections, answers);
+      if (first >= 0) {
+        const missing = sectionMissing(sections[first], answers);
+        setSec(first);
+        setFromReview(true);
+        setErrs(missing.map((q) => q.id));
+        setFocus({ kind: 'question', id: missing[0].id });
+      }
+    } else {
+      failedToast.current = toast.error(copy.kirim.gagal, {
+        action: {
+          label: common.actions.cobaLagi,
+          onClick: () => void submit(),
+        },
+      });
+    }
+    void sender.refresh();
   };
 
   const bar = (
@@ -444,12 +443,12 @@ function Filler({
         <ConfirmDialog
           open={confirming}
           onOpenChange={(open) => {
-            if (!send.isPending) setConfirming(open);
+            if (!sender.pending) setConfirming(open);
           }}
           title={copy.kirim.judul}
           cancelLabel={copy.kirim.periksaLagi}
-          confirmLabel={send.isPending ? copy.kirim.mengirim : copy.kirim.kirim}
-          onConfirm={submit}
+          confirmLabel={sender.pending ? copy.kirim.mengirim : copy.kirim.kirim}
+          onConfirm={() => void submit()}
         >
           {copy.kirim.isi}
         </ConfirmDialog>
