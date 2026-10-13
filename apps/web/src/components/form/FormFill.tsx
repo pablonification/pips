@@ -376,6 +376,9 @@ function Filler({
     const outcome = await sender.send(answersToSend(sections, answers));
     sending.current = false;
     setConfirming(false);
+    // A 400 goes back to the first incomplete section, if the screen's own rules can find one.
+    const placed =
+      outcome === 'incomplete' ? firstIncompleteSection(sections, answers) : -1;
     if (outcome === 'sent') {
       await draft.clear();
       toast.success(copy.kirim.berhasil);
@@ -385,16 +388,15 @@ function Filler({
       onSent();
     } else if (outcome === 'closed') {
       onClosed(answers);
-    } else if (outcome === 'incomplete') {
-      const first = firstIncompleteSection(sections, answers);
-      if (first >= 0) {
-        const missing = sectionMissing(sections[first], answers);
-        setSec(first);
-        setFromReview(true);
-        setErrs(missing.map((q) => q.id));
-        setFocus({ kind: 'question', id: missing[0].id });
-      }
+    } else if (outcome === 'incomplete' && placed >= 0) {
+      const first = placed;
+      const missing = sectionMissing(sections[first], answers);
+      setSec(first);
+      setFromReview(true);
+      setErrs(missing.map((q) => q.id));
+      setFocus({ kind: 'question', id: missing[0].id });
     } else {
+      // Offline, network, 5xx, or a 400 the screen's own rules can't place: keep everything, with Coba lagi.
       failedToast.current = toast.error(copy.kirim.gagal, {
         action: {
           label: common.actions.cobaLagi,

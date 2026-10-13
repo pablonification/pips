@@ -640,6 +640,32 @@ test.describe('send failures keep everything', () => {
     expect(last.q29).toBe('2');
   });
 
+  test('a 400 the screen can’t place: the error toast with Coba lagi, nothing lost', async ({
+    page,
+    api,
+  }) => {
+    await page.goto('/layanan/form/pixel');
+    await fillPixelUpTo(page, 5);
+    // Every answer is there, yet the server refuses (a validation or database error answered 400).
+    api.on(
+      'POST /api/form/:formId/response',
+      reply.status(400, { error: 'invalid input syntax' }),
+    );
+    await page.getByRole('button', { name: 'Kirim jawaban' }).click();
+    await confirmSheet(page)
+      .getByRole('button', { name: 'Kirim', exact: true })
+      .click();
+    const toast = page
+      .locator('.g-toasts [aria-live="assertive"]')
+      .filter({ hasText: 'Jawabanmu belum terkirim.' });
+    await expect(toast).toBeVisible();
+    await expect(section(page, 'Periksa jawabanmu')).toBeVisible();
+    await expect(main(page).getByText('4 dari 5')).toBeVisible();
+    api.on('POST /api/form/:formId/response', writes.submitForm);
+    await toast.getByRole('button', { name: 'Coba lagi' }).click();
+    await expect(plaque(page)).toBeVisible();
+  });
+
   test('409: sent before, so the thank-you', async ({ page, api, db }) => {
     api.on(
       'POST /api/form/:formId/response',

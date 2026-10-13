@@ -561,3 +561,33 @@ test('Coba lagi on a failed send sends the choices as they are now', async ({
     db.internshipSubmissions.find((s) => s.userId === db.me!.id)?.kelas,
   ).toBe('K-09');
 });
+
+test('a 400 the screen can’t place: the error toast with Coba lagi, nothing lost', async ({
+  page,
+  api,
+  db,
+}) => {
+  openSeason(db);
+  api.on('PUT /api/internship/submission', writes.saveSpartaDraft);
+  // Everything is filled, yet the server refuses with 400 (a validation error the screen doesn't check).
+  api.on(
+    'POST /api/internship/submission/submit',
+    reply.status(400, { error: 'Invalid submission' }),
+  );
+  await page.goto('/layanan/sparta');
+  await toReview(page);
+  await page.getByRole('button', { name: 'Kirim pilihan' }).click();
+  await page
+    .getByRole('alertdialog', { name: 'Kirim pilihan divisi?' })
+    .getByRole('button', { name: 'Kirim', exact: true })
+    .click();
+  const toast = page
+    .locator('.g-toasts [aria-live="assertive"]')
+    .filter({ hasText: 'Pilihanmu belum terkirim.' });
+  await expect(toast).toBeVisible();
+  await expect(heading(page, 'Periksa pilihanmu')).toBeVisible();
+  await expect(main(page).getByText('Gemastik')).toBeVisible();
+  api.on('POST /api/internship/submission/submit', writes.submitSparta);
+  await toast.getByRole('button', { name: 'Coba lagi' }).click();
+  await expect(main(page).getByText('Sudah dikirim')).toBeVisible();
+});

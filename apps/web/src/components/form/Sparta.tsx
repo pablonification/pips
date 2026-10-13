@@ -459,19 +459,21 @@ function Steps({
     const outcome = await writes.submit(toRequest(draft, divisions));
     sending.current = false;
     setConfirming(false);
+    // A 400 goes back to the first incomplete step, if the screen's own checks can find one.
+    const placed =
+      outcome === 'invalid' ? firstIncompleteStep(draft, divisions) : -1;
     if (outcome === 'ok') toast.success(copy.kirim.berhasil);
     else if (outcome === 'closed') onClosed(draft);
     else if (outcome === 'locked') void writes.refresh();
-    else if (outcome === 'invalid') {
-      const first = firstIncompleteStep(draft, divisions);
-      if (first >= 0) {
-        const m = stepMissing(SPARTA_STEPS[first], draft, divisions);
-        setStep(first);
-        setFromReview(true);
-        setMissing(m);
-        setFocus({ kind: 'missing', sk: skOf(m[0]) });
-      }
+    else if (outcome === 'invalid' && placed >= 0) {
+      const first = placed;
+      const m = stepMissing(SPARTA_STEPS[first], draft, divisions);
+      setStep(first);
+      setFromReview(true);
+      setMissing(m);
+      setFocus({ kind: 'missing', sk: skOf(m[0]) });
     } else
+      // Offline, network, 5xx, or a 400 the screen's own checks can't place: keep everything, with Coba lagi.
       sentToast.current = toast.error(copy.kirim.gagal, {
         action: {
           label: common.actions.cobaLagi,
