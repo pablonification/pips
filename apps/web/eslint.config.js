@@ -22,6 +22,8 @@ export const GARIS_FILES = [
   // P0-C: the app shell.
   'src/components/shell/**/*.{ts,tsx}',
   'src/lib/shell/**/*.{ts,tsx}',
+  // P1-C: push, Profil, Layanan, sign-in and first run.
+  'src/components/push/**/*.{ts,tsx}',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
