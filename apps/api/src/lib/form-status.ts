@@ -47,6 +47,22 @@ export function formSectionsVisible(
   );
 }
 
+/**
+ * Whether `GET /form/{id}` sends a form's questions to this member (P3-A, from the P2-A review): only to the form's
+ * angkatan, or to a form admin (Live Counting and Rekap Form read the title through it, and an admin needn't be in
+ * the angkatan), and then only from the opening time (`formSectionsVisible`). Everyone else still gets the form's
+ * title, window and status with `sections: null`, so the member side can say it isn't for their angkatan.
+ */
+export function formQuestionsVisible(
+  form: Pick<FormWindow, 'opensAt'> & { eligibleAngkatan: readonly number[] },
+  member: { nim: string; angkatan: number; isFormAdmin: boolean },
+  now: Date | number = Date.now(),
+): boolean {
+  const forThisMember =
+    form.eligibleAngkatan.includes(member.angkatan) || member.isFormAdmin;
+  return forThisMember && formSectionsVisible(form, member.nim, now);
+}
+
 /** Number of sections, for the list ("5 bagian"). */
 export function sectionCount(form: { sections: readonly unknown[] }): number {
   return form.sections.length;

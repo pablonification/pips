@@ -4,6 +4,7 @@ import { usePlaceholderEnv } from '../scripts/placeholder-env';
 import type { Form } from '../src/db/schema';
 import {
   EARLY_ACCESS_NIMS,
+  formQuestionsVisible,
   formSectionsVisible,
   formStatus,
   sectionCount,
@@ -181,8 +182,13 @@ before(async () => {
 });
 after(() => mock.timers.reset());
 
-function world(form: Form, responded = false) {
+function world(
+  form: Form,
+  responded = false,
+  roles: Record<string, string[]> = {},
+) {
   const saved: unknown[] = [];
+  const rolesRead: string[] = [];
   const announced: unknown[] = [];
   const deps: FormDeps = {
     getActiveForms: async () => (form.isActive ? [form] : []),
@@ -211,9 +217,15 @@ function world(form: Form, responded = false) {
     getFormResponsesCount: async () => saved.length,
     getFormResponsesList: async () => ({ responses: [], total: 0 }),
     getFormResponsesForAnalytics: async () => [],
+    getUserRoles: async (userId) => {
+      rolesRead.push(userId);
+      return (roles[userId] ?? []) as Awaited<
+        ReturnType<FormDeps['getUserRoles']>
+      >;
+    },
     announceResponse: (_formId, event) => announced.push(event),
   };
-  return { router: createFormRouter(deps), saved, announced };
+  return { router: createFormRouter(deps), saved, announced, rolesRead };
 }
 
 const answers = { answers: [{ questionId: 'q1', answer: 'Nadia Putri' }] };
@@ -344,5 +356,58 @@ test('not open yet, not for your angkatan, missing answers, unknown form', async
     (await callRouter(router, nadia, 'POST', '/form/nope/response', answers))
       .status,
     404,
+  );
+});
+
+// P3-A, from the P2-A review: the questions went to every signed-in member who knew the form's id.
+test("GET /form/{id}: questions only for the form's angkatan or a form admin", async () => {
+  const w = world(pixelForm(), false, { 'u-raka': ['admin'] });
+  const eligible = await callRouter(w.router, nadia, 'GET', '/form/pixel');
+  assert.equal(eligible.status, 200);
+  assert.equal(eligible.body.sections.length, 2);
+  assert.deepEqual(w.rolesRead, [], 'an eligible member costs no roles query');
+
+  const other = testUser('u-other', { nim: '13524099', angkatan: 2024 });
+  const outside = await callRouter(w.router, other, 'GET', '/form/pixel');
+  assert.equal(outside.status, 200);
+  assert.equal(outside.body.sections, null);
+  assert.equal(outside.body.title, pixelForm().title);
+  assert.deepEqual(outside.body.eligibleAngkatan, [2025]);
+
+  const admin = await callRouter(w.router, raka, 'GET', '/form/pixel');
+  assert.equal(admin.status, 200);
+  assert.equal(admin.body.sections.length, 2);
+
+  // Another role isn't enough.
+  const akademik = await callRouter(
+    world(pixelForm(), false, { 'u-raka': ['akademik'] }).router,
+    raka,
+    'GET',
+    '/form/pixel',
+  );
+  assert.equal(akademik.body.sections, null);
+});
+
+test('formQuestionsVisible: angkatan or admin, and never before opening', () => {
+  const form = pixelForm();
+  const later = pixelForm({ opensAt: new Date('2026-10-10T06:00:00Z') });
+  const member = { nim: '13525001', angkatan: 2025, isFormAdmin: false };
+  assert.equal(formQuestionsVisible(form, member), true);
+  assert.equal(
+    formQuestionsVisible(form, { ...member, angkatan: 2024 }),
+    false,
+  );
+  assert.equal(
+    formQuestionsVisible(form, {
+      ...member,
+      angkatan: 2024,
+      isFormAdmin: true,
+    }),
+    true,
+  );
+  assert.equal(formQuestionsVisible(later, member), false);
+  assert.equal(
+    formQuestionsVisible(later, { ...member, isFormAdmin: true }),
+    false,
   );
 });

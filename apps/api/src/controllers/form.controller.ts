@@ -1,7 +1,7 @@
 import postgres from 'postgres';
 import { findMissingRequiredQuestions } from '~/lib/form-answers';
 import {
-  formSectionsVisible,
+  formQuestionsVisible,
   formStatus,
   sectionCount,
 } from '~/lib/form-status';
@@ -16,6 +16,7 @@ import {
   getFormResponsesList,
   getResponseByUserId,
 } from '~/repositories/form.repo';
+import { getUserRoles } from '~/repositories/user-role.repo';
 import {
   getFormAnalyticsRoute,
   getFormResponsesCountRoute,
@@ -41,6 +42,8 @@ export interface FormDeps {
   getFormResponsesCount: WithoutDb<typeof getFormResponsesCount>;
   getFormResponsesList: WithoutDb<typeof getFormResponsesList>;
   getFormResponsesForAnalytics: WithoutDb<typeof getFormResponsesForAnalytics>;
+  /** A member's roles, read only when a form isn't for their angkatan (is this a form admin?). */
+  getUserRoles: WithoutDb<typeof getUserRoles>;
   /** Tells Live Counting (the form's admin room) about a new response. */
   announceResponse: (formId: string, event: object) => void;
 }
@@ -53,6 +56,7 @@ const databaseDeps: FormDeps = {
   getFormResponsesCount: withDb(getFormResponsesCount),
   getFormResponsesList: withDb(getFormResponsesList),
   getFormResponsesForAnalytics: withDb(getFormResponsesForAnalytics),
+  getUserRoles: withDb(getUserRoles),
   announceResponse: (formId, event) => {
     getIo().to(formAdminRoom(formId)).emit('form:new-response', event);
   },
@@ -100,11 +104,23 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
     if (!form) return c.json({ error: 'Form not found' }, 404);
 
     const response = await deps.getResponseByUserId(formId, user.id);
+    // Roles are read only for a member outside the form's angkatan, so eligible members pay no extra query.
+    const isFormAdmin =
+      !form.eligibleAngkatan.includes(user.angkatan) &&
+      (await deps.getUserRoles(user.id)).some((r) =>
+        (FORM_ADMIN_ROLES as readonly string[]).includes(r),
+      );
 
     return c.json(
       {
         ...form,
-        sections: formSectionsVisible(form, user.nim) ? form.sections : null,
+        sections: formQuestionsVisible(form, {
+          nim: user.nim,
+          angkatan: user.angkatan,
+          isFormAdmin,
+        })
+          ? form.sections
+          : null,
         status: formStatus(form, { hasResponse: !!response, nim: user.nim }),
       },
       200,
