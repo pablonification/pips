@@ -599,6 +599,17 @@ test.describe('Raka, pengurus', () => {
     await expect(page).toHaveURL(/\/kelola\/live\/pixel$/);
   });
 
+  test('while the count loads, the Kelola card shows a bar in its place, not an empty number', async ({
+    page,
+    api,
+  }) => {
+    api.on('GET /api/form/:formId/responses/count', reply.hang());
+    await page.goto('/');
+    const kelola = main(page).getByRole('link', { name: /Live Counting/ });
+    await expect(kelola).toContainText('sudah mengisi');
+    await expect(kelola.locator('.g-kelola-n .g-skel-bar')).toBeVisible();
+  });
+
   test('with no form open, the Kelola card is hidden', async ({ page, db }) => {
     db.adminForms = db.adminForms.map((f) => ({ ...f, isActive: false }));
     await page.goto('/');

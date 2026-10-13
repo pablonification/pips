@@ -237,6 +237,9 @@
   .g-kelola-n {
     text-align: right;
   }
+  .g-kelola-n .g-skel-bar {
+    margin-left: auto;
+  }
   .g-live {
     display: inline-flex;
     align-items: center;

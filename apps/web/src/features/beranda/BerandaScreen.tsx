@@ -27,6 +27,7 @@ import {
   RuledList,
   SectionHead,
   Skeleton,
+  SkeletonBar,
   SkeletonRow,
   Tile,
   UnreadBar,
@@ -724,6 +725,7 @@ function UnreadRow({ info }: { info: Info }) {
 
 function KelolaSummary({ desk = false, now }: { desk?: boolean; now: number }) {
   const user = useSession();
+  const online = useOnline();
   const admin = can(user, 'liveCounting');
   const forms = useQuery({ ...adminFormsQuery(), enabled: admin });
   const form = kelolaForm(forms.data, now);
@@ -751,7 +753,13 @@ function KelolaSummary({ desk = false, now }: { desk?: boolean; now: number }) {
             </span>
             <span className="g-kelola-n">
               <span className="block t-figure">
-                {count.data ?? (count.isError ? '–' : '')}
+                {count.data ??
+                  (sourceState(count, online) === 'waiting' ? (
+                    // Loading: a bar in the figure's place, not an empty number over "sudah mengisi".
+                    <SkeletonBar width={48} height={32} />
+                  ) : (
+                    '–'
+                  ))}
               </span>
               <span className="block t-cap text-fg-3">
                 {t.kelola.sudahMengisi}
