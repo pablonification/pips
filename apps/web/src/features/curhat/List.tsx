@@ -114,7 +114,7 @@ function RoomRow({ room, unread }: { room: Chatroom; unread: number }) {
                   <span className="sr-only">{unreadSr(unread)}</span>
                 ) : null}
               </span>
-              <span className="line-clamp-1 block t-cap text-fg-2">
+              <span className="line-clamp-1 t-cap text-fg-2">
                 {previewOf(room)}
               </span>
             </span>
