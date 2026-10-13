@@ -1,6 +1,9 @@
 // P3-A: Kelola's CSV files (src/features/kelola/csv.ts) against today's export code, byte for byte, plus the two
-// fixes: times in WIB whatever the device's zone, and `\r` quoted.
+// fixes: times in WIB whatever the device's zone, and `\r` quoted. C1 deleted today's exporters
+// (`kelola/live/$formId/-exportResponses.ts`, `kelola/sparta/-exportSubmissions.ts`); the files they wrote for these
+// same fixtures are kept in tests/fixtures/kelola-csv/ (name in `.name`, bytes with the BOM in `.csv`).
 import { strict as assert } from 'node:assert';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { buildDb } from '../e2e/fixtures/api';
 import type {
@@ -11,49 +14,19 @@ import type {
 import { responsesCsv, submissionsCsv } from '../src/features/kelola/csv';
 import { divisionsOf } from '../src/features/kelola/rules';
 import { escapeCsvValue, rowsToCsv } from '../src/lib/csv';
-import { exportFormResponsesToCsv } from '../src/routes/_app/_left-navbar/kelola/live/$formId/-exportResponses';
-import { exportSubmissionsToCsv } from '../src/routes/_app/_left-navbar/kelola/sparta/-exportSubmissions';
 
 const db = buildDb('pengurus');
 const form = db.formDetails.pixel;
 const NOW = Date.parse('2026-10-08T06:35:12.000Z');
 
-/** Runs today's exporter and returns the file it would download (name and bytes, BOM included). */
-async function today(
-  run: () => void,
-): Promise<{ filename: string; bytes: string }> {
-  let blob: Blob | null = null;
-  let filename = '';
-  const g = globalThis as Record<string, unknown>;
-  const saved = {
-    document: g.document,
-    create: URL.createObjectURL,
-    revoke: URL.revokeObjectURL,
-  };
-  g.document = {
-    createElement: () => ({
-      click() {},
-      set download(v: string) {
-        filename = v;
-      },
-    }),
-    body: { appendChild() {}, removeChild() {} },
-  };
-  URL.createObjectURL = (b: Blob) => ((blob = b), 'blob:e2e');
-  URL.revokeObjectURL = () => {};
-  try {
-    run();
-  } finally {
-    g.document = saved.document;
-    URL.createObjectURL = saved.create;
-    URL.revokeObjectURL = saved.revoke;
-  }
-  // Decoded keeping the BOM (Blob.text() would drop it).
-  const raw = await (blob as unknown as Blob).arrayBuffer();
-  return {
-    filename,
-    bytes: new TextDecoder('utf-8', { ignoreBOM: true }).decode(raw),
-  };
+/** The file today's exporter downloaded for these fixtures (name and bytes, BOM included), saved before C1. */
+function today(name: string): { filename: string; bytes: string } {
+  const at = (ext: string) =>
+    readFileSync(
+      new URL(`./fixtures/kelola-csv/${name}.${ext}`, import.meta.url),
+      'utf8',
+    );
+  return { filename: at('name'), bytes: at('csv') };
 }
 
 /** What the new module's file downloads as: the BOM, then the content (src/lib/csv.ts `downloadCsv`). */
@@ -90,11 +63,7 @@ function withTz<T>(tz: string, fn: () => T): T {
 test('responses CSV: byte for byte today\'s file under WIB (headers, cells, "; ", BOM, name)', async (t) => {
   t.mock.timers.enable({ apis: ['Date'], now: NOW });
   const list = responses();
-  const old = await withTz('Asia/Jakarta', () =>
-    today(() =>
-      exportFormResponsesToCsv(form.title, form.sections ?? [], list),
-    ),
-  );
+  const old = today('responses-wib');
   const next = responsesCsv(form.title, form.sections ?? [], list, NOW);
   assert.equal(next.filename, old.filename);
   assert.equal(
@@ -117,11 +86,7 @@ test("responses CSV: WIB times under another zone (today wrote the device's time
   assert.equal(elsewhere.content, wib.content);
   assert.equal(elsewhere.filename, wib.filename);
   // Regression: today's exporter writes Los Angeles times.
-  const old = await withTz('America/Los_Angeles', () =>
-    today(() =>
-      exportFormResponsesToCsv(form.title, form.sections ?? [], list),
-    ),
-  );
+  const old = today('responses-los-angeles');
   assert.notEqual(old.bytes, bytesOf(wib.content));
   assert.match(old.bytes, /,07-10-2026 23:31$/m);
 });
@@ -163,7 +128,7 @@ function spartaWorld() {
 test("SPARTA CSV: byte for byte today's file, partial drafts and a missing division included", async (t) => {
   t.mock.timers.enable({ apis: ['Date'], now: NOW });
   const { divisions, byId, subs } = spartaWorld();
-  const old = await today(() => exportSubmissionsToCsv(subs, divisions, byId));
+  const old = today('sparta');
   const next = submissionsCsv(subs, divisions, byId, NOW);
   assert.equal(next.filename, old.filename);
   assert.equal(next.filename, 'internship-submissions-2026-10-08-06-35-12.csv');
