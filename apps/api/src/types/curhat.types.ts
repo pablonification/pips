@@ -15,6 +15,8 @@ export const ChatroomMessageSchema = createSelectSchema(chatroomMessages)
   })
   .extend({
     isSender: z.boolean().optional(),
+    /** Whether the room's owner wrote it (Welfare's inbox tells the member from a teammate); no identity. */
+    fromOwner: z.boolean(),
     reply: createSelectSchema(chatroomMessages)
       .omit({
         userId: true,
@@ -121,6 +123,8 @@ const CurhatQuotedMessageSchema = z.object({
 
 export const CurhatSocketMessageSchema = CurhatQuotedMessageSchema.extend({
   isSender: z.boolean(),
+  /** Whether the room's owner wrote it (P3-C): the member's message, not Welfare's. Says nothing about who. */
+  fromOwner: z.boolean(),
   /** The device's id for the message, only for its sender (`isSender`); null for everyone else and older clients. */
   clientMessageId: z.string().nullable(),
   reply: CurhatQuotedMessageSchema.optional(),

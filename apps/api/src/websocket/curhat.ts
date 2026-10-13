@@ -2,6 +2,8 @@ import type { Socket } from 'socket.io';
 import type { ChatroomMessage } from '~/db/schema';
 import {
   canAccessChatroom,
+  CURHAT_WELFARE_ROOM,
+  isCurhatAdmin,
   toChatroomMessageResponse,
   type ChatroomMessageResponse,
 } from '~/lib/curhat';
@@ -22,6 +24,8 @@ export interface CurhatSocketDeps {
     chatroomId: string,
   ) => Promise<{ id: string; userId: string | null } | undefined>;
   getOwnedChatroomIds: (userId: string) => Promise<string[]>;
+  /** Every room's id: a Welfare socket of the Curhat area joins them all (P3-C). */
+  getAllChatroomIds: () => Promise<string[]>;
   getMessage: (messageId: string) => Promise<ChatroomMessage | undefined>;
   /**
    * Saves a message once per `clientMessageId` in its room: a repeat saves nothing and gives back the first copy with
@@ -77,10 +81,15 @@ export function registerCurhatSocket(
   session: Promise<SocketSession | null>,
   deps: CurhatSocketDeps,
 ) {
-  async function mayAccess(userId: string, chatroomId: string) {
+  /** The room, when `userId` may access it; its owner says whose messages are the member's (`fromOwner`). */
+  async function accessibleRoom(userId: string, chatroomId: string) {
     const room = await deps.getChatroom(chatroomId);
     const roles = await deps.getUserRoles(userId);
-    return canAccessChatroom({ id: userId }, roles, room);
+    return canAccessChatroom({ id: userId }, roles, room) ? room : undefined;
+  }
+
+  async function mayAccess(userId: string, chatroomId: string) {
+    return (await accessibleRoom(userId, chatroomId)) !== undefined;
   }
 
   /** The session, while its token is valid. Once it has expired the socket is cut off (`connection.ts` too). */
@@ -115,7 +124,8 @@ export function registerCurhatSocket(
     const { chatroomId, message: content } = parsed.data;
     const replyId = parsed.data.replyId ?? null;
 
-    if (!(await mayAccess(s.userId, chatroomId))) return refuse('forbidden');
+    const room = await accessibleRoom(s.userId, chatroomId);
+    if (!room) return refuse('forbidden');
 
     let quoted: ChatroomMessage | undefined;
     if (replyId) {
@@ -144,6 +154,7 @@ export function registerCurhatSocket(
           toChatroomMessageResponse(
             { ...saved, reply: firstQuote ?? null },
             s.userId,
+            room.userId,
           ),
         ),
       };
@@ -162,7 +173,9 @@ export function registerCurhatSocket(
       }
       receiver.emit(
         'reply',
-        onTheWire(toChatroomMessageResponse(saved, receiverId ?? '')),
+        onTheWire(
+          toChatroomMessageResponse(saved, receiverId ?? '', room.userId),
+        ),
       );
     }
 
@@ -176,6 +189,7 @@ export function registerCurhatSocket(
         toChatroomMessageResponse(
           { ...saved, reply: quoted ?? null },
           s.userId,
+          room.userId,
         ),
       ),
     };
@@ -207,10 +221,16 @@ export function registerCurhatSocket(
     const s = await session;
     if (!s) return;
     const auth = (socket.handshake.auth ?? {}) as Record<string, unknown>;
-    // One connection for the whole Curhat area: every room the member owns.
+    // One connection for the whole Curhat area: every room the member owns. Welfare's (P3-C) joins every room,
+    // and the Welfare group room, through which a room started later is joined (`curhat.controller.ts`).
     if (auth.curhat === true) {
-      const owned = await deps.getOwnedChatroomIds(s.userId);
-      if (owned.length) await socket.join(owned);
+      if (isCurhatAdmin(s.roles)) {
+        const every = await deps.getAllChatroomIds();
+        await socket.join([CURHAT_WELFARE_ROOM, ...every]);
+      } else {
+        const owned = await deps.getOwnedChatroomIds(s.userId);
+        if (owned.length) await socket.join(owned);
+      }
     }
     // Today's screens open one socket per room.
     if (typeof auth.chatroomId === 'string' && auth.chatroomId) {

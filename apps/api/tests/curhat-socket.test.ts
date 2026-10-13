@@ -1,9 +1,13 @@
 import { strict as assert } from 'node:assert';
+import { randomUUID } from 'node:crypto';
 import { createServer, type Server as HttpServer } from 'node:http';
 import { after, before, beforeEach, test } from 'node:test';
 import { Server } from 'socket.io';
 import { io as connect, type Socket as ClientSocket } from 'socket.io-client';
 import type { ChatroomMessage } from '../src/db/schema';
+import { usePlaceholderEnv } from '../scripts/placeholder-env';
+import type { CurhatDeps } from '../src/controllers/curhat.controller';
+import { CURHAT_WELFARE_ROOM } from '../src/lib/curhat';
 import {
   createConnectionHandler,
   formAdminRoom,
@@ -27,10 +31,12 @@ const URL = `http://127.0.0.1:${PORT}`;
 const nadia = testUser('u-nadia');
 const other = testUser('u-other', { nim: '13525002' });
 const welfare = testUser('u-welfare', { nim: '13524001' });
+const teammate = testUser('u-welfare-2', { nim: '13524003' });
 const admin = testUser('u-admin', { nim: '13524002' });
 
 const ROLES: Record<string, string[]> = {
   [welfare.id]: ['curhatadmin'],
+  [teammate.id]: ['curhatadmin'],
   [admin.id]: ['admin'],
 };
 
@@ -85,6 +91,7 @@ before(async () => {
         getChatroom: async (id) => rooms.find((r) => r.id === id),
         getOwnedChatroomIds: async (userId) =>
           rooms.filter((r) => r.userId === userId).map((r) => r.id),
+        getAllChatroomIds: async () => rooms.map((r) => r.id),
         getMessage: async (id) => messages.find((m) => m.id === id),
         // As the unique index on (chatroom_id, client_message_id) does: a repeat in the same room saves nothing.
         saveMessage: async ({
@@ -511,6 +518,154 @@ test('a curhat handshake joins every room the member owns, and nothing else', as
   const socket = await client(nadia, { curhat: true });
   await settled();
   assert.deepEqual(await roomsOf(socket.id!), ['r1', 'r2']);
+});
+
+// --- Welfare's inbox (P3-C, OPEN-QUESTIONS A7) ---
+
+test("a Welfare curhat handshake joins every room and Welfare's group room; a member's still only their own", async () => {
+  const staff = await client(welfare, { curhat: true });
+  const member = await client(other, { curhat: true });
+  const notWelfare = await client(admin, { curhat: true });
+  await settled();
+  assert.deepEqual(
+    await roomsOf(staff.id!),
+    [CURHAT_WELFARE_ROOM, 'r1', 'r2', 'r9'].sort(),
+  );
+  assert.deepEqual(await roomsOf(member.id!), ['r9']);
+  assert.deepEqual(await roomsOf(notWelfare.id!), []);
+});
+
+test('a room a member starts after Welfare connected reaches Welfare live, through the create route', async () => {
+  usePlaceholderEnv();
+  const { createCurhatRouter } =
+    await import('../src/controllers/curhat.controller');
+  const unused = () => {
+    throw new Error('not used here');
+  };
+  // The route with storage faked; Welfare's sockets join the new room as the database deps do with getIo().
+  const router = createCurhatRouter({
+    getUserRoles: async (id) => ROLES[id] ?? [],
+    createChatroomWithinLimit: async ({ title, userId }) => {
+      const made = { id: 'r4', title, userId };
+      rooms.push(made);
+      return made;
+    },
+    welfareJoin: (chatroomId) => {
+      io.in(CURHAT_WELFARE_ROOM).socketsJoin(chatroomId);
+    },
+    getUserChatrooms: unused,
+    getWelfareChatrooms: unused,
+    getChatroomOwner: unused,
+    deleteChatroom: unused,
+    getUnreadCounts: unused,
+    markChatroomRead: unused,
+    pinChatroom: unused,
+  } satisfies CurhatDeps);
+
+  const staff = await client(welfare, { curhat: true });
+  const member = await client(other, { curhat: true });
+  await settled();
+  const toStaff = collect(staff, 'reply');
+  const res = await router.request('/curhat/chatroom', {
+    method: 'POST',
+    headers: { Cookie: await sessionCookie(other) },
+  });
+  assert.equal(res.status, 201);
+  await settled();
+  assert.ok((await roomsOf(staff.id!)).includes('r4'));
+  assert.deepEqual(
+    await member.timeout(2000).emitWithAck('curhat:join', { chatroomId: 'r4' }),
+    { ok: true },
+  );
+  await send(member, { chatroomId: 'r4', message: 'Halo, aku mau cerita' });
+  await settled();
+  assert.equal(toStaff.length, 1);
+  assert.deepEqual(
+    CurhatReplyEventSchema.strict().parse(toStaff[0]),
+    toStaff[0],
+  );
+  const got = toStaff[0] as { isSender: boolean; fromOwner: boolean };
+  assert.deepEqual([got.isSender, got.fromOwner], [false, true]);
+  assert.deepEqual(pathsOfKey(toStaff[0], 'userId'), []);
+});
+
+test("fromOwner in the acknowledgement, a repeat's acknowledgement and reply; a teammate's reply carries no device id", async () => {
+  const member = await client(nadia, { curhat: true });
+  const staff = await client(welfare, { curhat: true });
+  const mate = await client(teammate, { curhat: true });
+  await settled();
+  const toMember = collect(member, 'reply');
+  const toStaff = collect(staff, 'reply');
+  const toMate = collect(mate, 'reply');
+
+  // The member writes: theirs (fromOwner) for everyone.
+  const own = await send(member, {
+    chatroomId: 'r1',
+    message: 'Kak, aku butuh teman cerita',
+    clientMessageId: randomUUID(),
+  });
+  assert.equal(own.ok, true);
+  assert.equal(own.message.fromOwner, true);
+  await settled();
+  for (const got of [toStaff, toMate]) {
+    assert.equal(got.length, 1);
+    assert.equal((got[0] as { fromOwner: boolean }).fromOwner, true);
+  }
+
+  // Welfare answers: not the owner's, for the sender, the member and the teammate.
+  const id = randomUUID();
+  const payload = {
+    chatroomId: 'r1',
+    message: 'Siap, aku kirim jadwalnya ya.',
+    replyId: 'm1',
+    clientMessageId: id,
+  };
+  const answer = await send(staff, payload);
+  const repeat = await send(staff, payload);
+  assert.deepEqual(CurhatMessageAckSchema.parse(answer), answer);
+  assert.equal(answer.message.fromOwner, false);
+  assert.equal(answer.message.isSender, true);
+  assert.equal(answer.message.clientMessageId, id);
+  assert.deepEqual(repeat, answer, "the repeat's acknowledgement is the same");
+  assert.equal(repeat.message.fromOwner, false);
+  await settled();
+  assert.equal(toMember.length, 1, 'relayed once');
+  assert.equal(toMate.length, 2);
+  const forMate = toMate[1] as {
+    isSender: boolean;
+    fromOwner: boolean;
+    clientMessageId: unknown;
+  };
+  assert.deepEqual(
+    [forMate.isSender, forMate.fromOwner, forMate.clientMessageId],
+    [false, false, null],
+  );
+  const forMember = toMember[0] as { fromOwner: boolean };
+  assert.equal(forMember.fromOwner, false);
+  for (const got of [...toMember, ...toMate])
+    assert.deepEqual(pathsOfKey(got, 'userId'), []);
+});
+
+test("a Welfare socket whose role is taken away stops getting new rooms' messages", async () => {
+  const staff = await client(welfare, { curhat: true });
+  const member = await client(other, { curhat: true });
+  await settled();
+  const toStaff = collect(staff, 'reply');
+  try {
+    ROLES[welfare.id] = [];
+    rooms.push({ id: 'r5', userId: other.id });
+    io.in(CURHAT_WELFARE_ROOM).socketsJoin('r5');
+    await member.timeout(2000).emitWithAck('curhat:join', { chatroomId: 'r5' });
+    assert.equal(
+      (await send(member, { chatroomId: 'r5', message: 'halo' })).ok,
+      true,
+    );
+    await settled();
+    assert.deepEqual(toStaff, []);
+    assert.ok(!(await roomsOf(staff.id!)).includes('r5'));
+  } finally {
+    ROLES[welfare.id] = ['curhatadmin'];
+  }
 });
 
 test('curhat:join adds a room created after connecting, after the access check', async () => {

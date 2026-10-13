@@ -7,6 +7,17 @@ export const CURHAT_MAX_ROOMS = 3;
 export const CURHAT_ADMIN_ROLE = 'curhatadmin';
 
 /**
+ * The socket.io room every Welfare socket of the Curhat area joins (P3-C), so a room a member starts later can be
+ * joined by all of them at once (`socketsJoin`). Room ids are UUIDs, so it can't clash with one.
+ */
+export const CURHAT_WELFARE_ROOM = 'curhat:welfare';
+
+/** Whether `roles` read and answer every room (Welfare). */
+export function isCurhatAdmin(roles: readonly string[]): boolean {
+  return roles.includes(CURHAT_ADMIN_ROLE);
+}
+
+/**
  * Who may read, join and post in a Curhat room: its owner, or anyone with `curhatadmin`. Used by the chat socket
  * (joining and every message), the read marks and the unread counts; P3-B's Welfare inbox reuses it.
  */
@@ -16,7 +27,7 @@ export function canAccessChatroom(
   room: Pick<Chatroom, 'userId'> | null | undefined,
 ): boolean {
   if (!room) return false;
-  if (roles.includes(CURHAT_ADMIN_ROLE)) return true;
+  if (isCurhatAdmin(roles)) return true;
   return room.userId !== null && room.userId === user.id;
 }
 
@@ -38,11 +49,16 @@ export interface ChatroomMessageResponse {
   content: string;
   createdAt: Date;
   isSender?: boolean;
+  /**
+   * Whether the room's owner wrote it (P3-C, OPEN-QUESTIONS A7): Welfare tells the member's messages from a
+   * teammate's. It says nothing about who anyone is.
+   */
+  fromOwner: boolean;
   /** The sender's device id for the message (P2-C), shown only to the sender; null for everyone else. */
   clientMessageId: string | null;
   reply?: Omit<
     ChatroomMessageResponse,
-    'isSender' | 'reply' | 'clientMessageId'
+    'isSender' | 'reply' | 'clientMessageId' | 'fromOwner'
   >;
 }
 
@@ -57,17 +73,20 @@ function messageFields(message: StoredMessage) {
 }
 
 /**
- * Serialises a message for `viewerId`: `isSender` says whether they wrote it; the quoted message comes without its
- * sender. The device's id for the message goes only to its sender, who matches it to what they sent (P2-C).
+ * Serialises a message of a room owned by `ownerId` for `viewerId`: `isSender` says whether they wrote it, and
+ * `fromOwner` whether the room's owner did (P3-C); the quoted message comes without its sender. The device's id for
+ * the message goes only to its sender, who matches it to what they sent (P2-C).
  */
 export function toChatroomMessageResponse(
   message: StoredMessage & { reply?: StoredMessage | null },
   viewerId: string,
+  ownerId: string | null | undefined,
 ): ChatroomMessageResponse {
   const isSender = message.userId === viewerId;
   const response: ChatroomMessageResponse = {
     ...messageFields(message),
     isSender,
+    fromOwner: ownerId != null && message.userId === ownerId,
     clientMessageId: isSender ? (message.clientMessageId ?? null) : null,
   };
   if (message.reply) response.reply = messageFields(message.reply);
@@ -105,7 +124,7 @@ export function toChatroomResponse(room: StoredRoom, viewerId: string) {
   };
   if (room.messages) {
     response.messages = room.messages.map((m) =>
-      toChatroomMessageResponse(m, viewerId),
+      toChatroomMessageResponse(m, viewerId, room.userId),
     );
   }
   if (room.labels) {

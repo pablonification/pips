@@ -6,6 +6,7 @@ import { db } from '~/db/drizzle';
 import { sendNotificationToAll } from '~/lib/push-manager';
 import {
   getChatroomMessageById,
+  getAllChatroomIds,
   getChatroomOwner,
   getChatroomParticipantIds,
   getOwnedChatroomIds,
@@ -51,6 +52,7 @@ export default function setupWebsocket(httpServer: ServerType) {
           await getChatroomOwner(db, chatroomId),
         getOwnedChatroomIds: async (userId) =>
           await getOwnedChatroomIds(db, userId),
+        getAllChatroomIds: async () => await getAllChatroomIds(db),
         getMessage: async (messageId) =>
           await getChatroomMessageById(db, messageId),
         saveMessage: async (message) => await saveMessage(db, message),

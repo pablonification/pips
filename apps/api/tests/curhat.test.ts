@@ -124,6 +124,7 @@ test('a room leaves the API without its owner or any sender id, at any depth', (
       'clientMessageId',
       'content',
       'createdAt',
+      'fromOwner',
       'id',
       'isSender',
       'reply',
@@ -233,6 +234,10 @@ interface World {
   reads: Array<{ userId: string; messageId: string }>;
   created: Array<{ title: string; userId: string }>;
   locks: Record<string, Promise<void>>;
+  /** Rooms Welfare's sockets were told to join (P3-C); `welfareJoinFails` makes the join throw. */
+  welfareJoined: string[];
+  welfareJoinFails?: boolean;
+  pins: Array<{ chatroomId: string; userId: string; isPinned: boolean }>;
 }
 
 function fakeDeps(world: World): CurhatDeps {
@@ -291,7 +296,14 @@ function fakeDeps(world: World): CurhatDeps {
         }
       }
     },
-    pinChatroom: async () => {},
+    pinChatroom: async (chatroomId, userId, isPinned) => {
+      world.pins.push({ chatroomId, userId, isPinned });
+    },
+    welfareJoin: (chatroomId) => {
+      if (world.welfareJoinFails)
+        throw new Error('Websocket has not been set up yet');
+      world.welfareJoined.push(chatroomId);
+    },
   };
 }
 
@@ -312,6 +324,8 @@ function newWorld(): World {
     reads: [],
     created: [],
     locks: {},
+    welfareJoined: [],
+    pins: [],
   };
 }
 
@@ -327,11 +341,17 @@ async function call(
   user: ReturnType<typeof testUser> | null,
   method: string,
   path: string,
+  json?: unknown,
 ) {
   const router = createCurhatRouter(fakeDeps(world));
   const headers: Record<string, string> = {};
   if (user) headers.Cookie = await sessionCookie(user);
-  const res = await router.request(path, { method, headers });
+  if (json !== undefined) headers['Content-Type'] = 'application/json';
+  const res = await router.request(path, {
+    method,
+    headers,
+    body: json === undefined ? undefined : JSON.stringify(json),
+  });
   const text = await res.text();
   let body: any = null;
   try {
@@ -549,4 +569,139 @@ test('the OpenAPI document: the unread route takes no path parameter, and the re
   ]) {
     assert.ok(name in schemas, name);
   }
+});
+
+// --- Welfare's inbox (P3-C, OPEN-QUESTIONS A7) ---
+
+test('fromOwner says whether the room owner wrote each message, the same in every view, and never who', () => {
+  const r = room('r1', nadia.id, [
+    { id: 'm1', userId: nadia.id },
+    { id: 'm2', userId: welfare.id, replyId: 'm1' },
+    { id: 'm3', userId: 'u-welfare-2' },
+  ]);
+  r.messages[1] = {
+    ...r.messages[1],
+    reply: { ...r.messages[0] },
+  } as (typeof r.messages)[number];
+  const views = {
+    nadia: toChatroomResponse(r, nadia.id),
+    welfare: toChatroomResponse(r, welfare.id),
+  };
+  for (const view of Object.values(views)) {
+    assert.deepEqual(
+      view.messages!.map((m) => m.fromOwner),
+      [true, false, false],
+    );
+    // The quote needs none, and has none.
+    assert.deepEqual(pathsOfKey(view.messages![1].reply, 'fromOwner'), []);
+    assert.deepEqual(pathsOfKey(view, 'userId'), []);
+  }
+  // Welfare: the member's message isn't theirs; their own is; a teammate's is neither.
+  assert.deepEqual(
+    views.welfare.messages!.map((m) => [m.isSender, m.fromOwner]),
+    [
+      [false, true],
+      [true, false],
+      [false, false],
+    ],
+  );
+  // A room whose owner is gone (null): nothing is the owner's.
+  const orphan = toChatroomResponse({ ...r, userId: null }, welfare.id);
+  assert.deepEqual(
+    orphan.messages!.map((m) => m.fromOwner),
+    [false, false, false],
+  );
+});
+
+test('the room list carries fromOwner in both views, and the OpenAPI document declares it', async () => {
+  const member = await call(newWorld(), nadia, 'GET', '/curhat/chatrooms');
+  assert.deepEqual(
+    member.body.r1.messages.map((m: { fromOwner: boolean }) => m.fromOwner),
+    [true, false],
+  );
+  const welfareView = await call(
+    newWorld(),
+    welfare,
+    'GET',
+    '/curhat/chatrooms',
+  );
+  assert.deepEqual(
+    welfareView.body.r1.messages.map(
+      (m: { isSender: boolean; fromOwner: boolean }) => [
+        m.isSender,
+        m.fromOwner,
+      ],
+    ),
+    [
+      [false, true],
+      [true, false],
+    ],
+  );
+  assert.deepEqual(
+    welfareView.body.r9.messages.map(
+      (m: { fromOwner: boolean }) => m.fromOwner,
+    ),
+    [true, false],
+  );
+
+  const { ChatroomMessageSchema, CurhatSocketMessageSchema } =
+    await import('../src/types/curhat.types');
+  assert.equal(ChatroomMessageSchema.shape.fromOwner.isOptional(), false);
+  assert.equal(CurhatSocketMessageSchema.shape.fromOwner.isOptional(), false);
+});
+
+test("a member's new room is joined by Welfare's sockets; a refused one is not, and no socket server doesn't fail it", async () => {
+  const world = newWorld();
+  world.rooms = [];
+  const made = await call(world, nadia, 'POST', '/curhat/chatroom');
+  assert.equal(made.status, 201);
+  assert.deepEqual(world.welfareJoined, [made.body.id]);
+
+  const full = newWorld();
+  full.rooms = [
+    room('a', nadia.id, []),
+    room('b', nadia.id, []),
+    room('c', nadia.id, []),
+  ];
+  assert.equal(
+    (await call(full, nadia, 'POST', '/curhat/chatroom')).status,
+    400,
+  );
+  assert.deepEqual(full.welfareJoined, []);
+
+  const noSockets = newWorld();
+  noSockets.rooms = [];
+  noSockets.welfareJoinFails = true;
+  assert.equal(
+    (await call(noSockets, nadia, 'POST', '/curhat/chatroom')).status,
+    201,
+  );
+});
+
+test('pinning is for Welfare only: anyone else gets 401 and nothing is pinned', async () => {
+  const world = newWorld();
+  const refused = await call(world, nadia, 'PUT', '/curhat/chatroom/r1/pin', {
+    isPinned: true,
+  });
+  assert.equal(refused.status, 401);
+  assert.deepEqual(world.pins, []);
+
+  const pinned = await call(world, welfare, 'PUT', '/curhat/chatroom/r9/pin', {
+    isPinned: true,
+  });
+  assert.equal(pinned.status, 200);
+  const unpinned = await call(
+    world,
+    welfare,
+    'PUT',
+    '/curhat/chatroom/r9/pin',
+    {
+      isPinned: false,
+    },
+  );
+  assert.equal(unpinned.status, 200);
+  assert.deepEqual(world.pins, [
+    { chatroomId: 'r9', userId: welfare.id, isPinned: true },
+    { chatroomId: 'r9', userId: welfare.id, isPinned: false },
+  ]);
 });
