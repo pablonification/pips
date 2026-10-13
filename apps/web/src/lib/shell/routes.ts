@@ -60,18 +60,18 @@ const svc = (id: Parameters<typeof serviceById>[0]) => serviceById(id).label;
 
 export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   '/': { title: nav.beranda, root: 'beranda' },
-  '/pengumuman': { title: nav.pengumuman, root: 'pengumuman', legacy: true },
+  '/pengumuman': { title: nav.pengumuman, root: 'pengumuman' },
   '/pengumuman/$id': {
     title: nav.pengumuman,
     parent: '/pengumuman',
     crumbs: false,
-    legacy: true,
   },
+  // P1-B: on desktop the composer is a dialog over the split, which has no breadcrumbs.
   '/pengumuman/tulis': {
     title: common.shell.buatPengumuman,
     parent: '/pengumuman',
     focused: true,
-    legacy: true,
+    crumbs: false,
   },
   '/kalender': { title: nav.kalender, root: 'kalender', legacy: true },
   '/layanan': { title: nav.layanan, root: 'layanan', legacy: true },

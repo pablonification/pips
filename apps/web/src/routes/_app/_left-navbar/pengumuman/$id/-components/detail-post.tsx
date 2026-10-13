@@ -8,11 +8,7 @@ import PostText from './post-text';
 const DetailPost = ({ info }: { info: Info }) => {
   return (
     <div className="flex-col space-y-4">
-      <UserInfo
-        name={info.creator.fullName}
-        email={info.creator.email}
-        imageURL={info.creator.picture}
-      />
+      <UserInfo name={info.creator.fullName} imageURL={info.creator.picture} />
       <PostText infoId={info.id} title={info.title} content={info.content} />
       {info.infoMedias && info.infoMedias.length > 0 && (
         <InfoPhotosCarousel medias={info.infoMedias} />

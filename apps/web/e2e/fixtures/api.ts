@@ -90,15 +90,14 @@ export function personUser(key: PersonKey): User {
 }
 
 /**
- * A post's or comment's author as the API sends it to other members (apps/api/src/lib/author.ts): id, name,
- * photo and email, nothing else.
+ * A post's or comment's author as the API sends it to other members (apps/api/src/lib/author.ts): id, name and
+ * photo, nothing else.
  */
 export function authorOf(user: User): Author {
   return {
     id: user.id,
     fullName: user.fullName,
     picture: user.picture,
-    email: user.email,
   };
 }
 

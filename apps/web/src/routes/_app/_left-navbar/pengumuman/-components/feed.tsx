@@ -109,7 +109,6 @@ function UserInfo({ info }: { info: Info }) {
           <UserInfoProfile
             name={info.creator.fullName}
             imageURL={info.creator.picture}
-            email={info.creator.email}
             className="mb-5"
             avatarClassName="size-13"
           />
