@@ -66,12 +66,15 @@ export function semesterLabel(a: Academic): string {
   return `${a.semesterCode} ${a.semesterYear}/${a.semesterYear + 1}`;
 }
 
-/** Informasi akun's Grup: the groups' names, only for a member with roles. */
+/**
+ * Informasi akun's Grup: the groups' names, only for a member with roles. Nothing until the names have loaded, so
+ * the row never shows role keys ("welfarenakademik") while they load or after they fail (review m6).
+ */
 export function groupsFact(
   roles: readonly string[],
   groups: ReadonlyArray<{ role: string; group: string }> | undefined,
 ): string | null {
-  if (!roles.length) return null;
+  if (!roles.length || !groups) return null;
   const names = roles.map((r) => groups?.find((g) => g.role === r)?.group ?? r);
   return [...new Set(names)].join(', ');
 }

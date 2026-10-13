@@ -91,6 +91,8 @@ test('Grup: only with roles; group names, each once', () => {
   // A role the list doesn't name shows its key rather than nothing.
   assert.equal(groupsFact(['ring1'], groups), 'ring1');
   assert.equal(groupsFact(['akademik', 'akademik'], groups), 'Akademik');
+  // Regression (review m6): no role keys while the names load or after they fail.
+  assert.equal(groupsFact(['akademik', 'admin'], undefined), null);
 });
 
 /* ---- Mata kuliahku and Tambah mata kuliah ---- */

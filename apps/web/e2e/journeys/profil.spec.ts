@@ -206,6 +206,30 @@ test.describe('Raka', () => {
     await strictGates(page, testInfo, 'profil-raka', 'Profil');
   });
 
+  test('regression: Grup shows no role keys while the group names load, nor after they fail', async ({
+    page,
+    api,
+  }) => {
+    let fail = false;
+    let answer!: () => void;
+    const held = new Promise<void>((r) => (answer = r));
+    api.on('GET /api/auth/groups', async ({ db }) => {
+      await held;
+      return fail ? reply.status(503) : db.groups;
+    });
+    await page.goto('/profil');
+    await main(page).getByText('Informasi akun').click();
+    await expect.poll(() => facts(page)).toHaveLength(4);
+    await expect(main(page)).not.toContainText('welfarenakademik');
+    fail = true;
+    answer();
+    await expect(
+      main(page).getByRole('button', { name: 'Coba lagi' }),
+    ).toBeVisible();
+    expect((await facts(page)).map(([k]) => k)).not.toContain('Grup');
+    await expect(main(page)).not.toContainText('welfarenakademik');
+  });
+
   test('Keluar: unlinks this device, then signs out and lands on sign-in, never asking for permission', async ({
     page,
     api,
