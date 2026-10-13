@@ -21,17 +21,20 @@ export const recordingName = (
 export function plannedRecordings(flow, theme) {
   if (!flow.themes.includes(theme)) return [];
   return flow.variants.flatMap((v) =>
-    v.layouts.map((layout) => ({
-      flow: flow.id,
-      variant: v.key,
-      who: v.who,
-      layout,
-      theme,
-      project: `review-${layout}-${theme}`,
-      name: recordingName(flow, layout, theme, v.key),
-      file: `media/flows/${flow.id}/${recordingName(flow, layout, theme, v.key)}.mp4`,
-      poster: `media/flows/${flow.id}/${recordingName(flow, layout, theme, v.key)}.webp`,
-    })),
+    // 320 px is recorded in light only (review-narrow320-light, F1 brief step 2).
+    v.layouts
+      .filter((layout) => layout !== 'narrow320' || theme === 'light')
+      .map((layout) => ({
+        flow: flow.id,
+        variant: v.key,
+        who: v.who,
+        layout,
+        theme,
+        project: `review-${layout}-${theme}`,
+        name: recordingName(flow, layout, theme, v.key),
+        file: `media/flows/${flow.id}/${recordingName(flow, layout, theme, v.key)}.mp4`,
+        poster: `media/flows/${flow.id}/${recordingName(flow, layout, theme, v.key)}.webp`,
+      })),
   );
 }
 
