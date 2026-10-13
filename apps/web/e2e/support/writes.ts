@@ -610,7 +610,7 @@ export const deleteCompetition: Handler = ({ db, params }) => {
   return { ...c };
 };
 
-/** POST /api/testimoni — `akademik` only (not `admin`); 200 with the testimonial, last in its course's list. */
+/** POST /api/testimoni — `akademik` only (not `admin`); 200 with the testimonial (no `userId`, as the API), last in its course's list. */
 export const createTestimonial: Handler = ({ db, body }) => {
   if (!hasRole(db, 'akademik')) return unauthorized();
   const b = body as Partial<Testimoni> & { courseId: string };
@@ -628,7 +628,6 @@ export const createTestimonial: Handler = ({ db, body }) => {
     ...blank,
     ...b,
     id: `e2e-testimoni-${db.testimonials.length + 1}`,
-    userId: db.me!.id,
     createdAt: NOW,
   };
   db.testimonials.push(t);
