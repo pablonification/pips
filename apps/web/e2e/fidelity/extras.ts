@@ -116,6 +116,16 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
         .getByRole('main')
         .filter({ has: page.getByText('PIXEL, isi Form Analisis Kondisi ya!') })
         .waitFor();
+      // The locked capture's page was scrolled to Pengumuman belum dibaca (its heading's top 491 px down).
+      await page.evaluate(() => {
+        const scroller = document.querySelector(
+          '[data-scroll-restoration-id="isi"]',
+        )!;
+        const h = [...document.querySelectorAll('#isi h2')].find(
+          (e) => e.textContent === 'Pengumuman belum dibaca',
+        )!;
+        scroller.scrollTop += h.getBoundingClientRect().top - 491;
+      });
       await page.getByRole('button', { name: 'Cari di PIPS!' }).click();
     },
     ready: (p) =>
