@@ -7,7 +7,9 @@ import {
   can,
   canCreateEvent,
   canDeleteContent,
+  canManageEvent,
   canPostInCategory,
+  eventCategoriesFor,
   type Capability,
 } from '../src/lib/capabilities';
 
@@ -22,7 +24,7 @@ const constant = (source: string, name: string) =>
   list(new RegExp(`${name}\\s*=\\s*\\[([^\\]]*)\\]`).exec(source)![1]);
 const middlewareRoles = (source: string) => [
   ...new Set(
-    [...source.matchAll(/roleMiddleware\(\[([^\]]*)\]\)/g)].map((m) =>
+    [...source.matchAll(/roleMiddleware\(\[([^\]]*)\][,)]/g)].map((m) =>
       list(m[1]).join(','),
     ),
   ),
@@ -33,6 +35,11 @@ const SERVER: Record<Capability, () => string[]> = {
   createCompetition: () => {
     const sets = middlewareRoles(api('controllers/competitions.controller.ts'));
     assert.equal(sets.length, 1, 'competitions use one role set');
+    return sets[0].split(',');
+  },
+  manageCompetition: () => {
+    const sets = middlewareRoles(api('controllers/competitions.controller.ts'));
+    assert.equal(sets.length, 1, 'add, change and delete use one role set');
     return sets[0].split(',');
   },
   createTestimonial: () =>
@@ -157,4 +164,35 @@ test('deleting: the author, or a moderator (admin)', () => {
     false,
   );
   assert.equal(canDeleteContent(null, 'nadia'), false);
+});
+
+// P3-B: events by category. The server checks adding, changing and deleting the same way (calendar.controller.ts).
+test('events: Akademik for akademik, Himpunan for ring1, Akademik first; changing follows the category', () => {
+  assert.deepEqual(eventCategoriesFor(raka), ['akademik']);
+  assert.deepEqual(eventCategoriesFor({ roles: ['ring1'] }), ['himpunan']);
+  assert.deepEqual(eventCategoriesFor({ roles: ['ring1', 'akademik'] }), [
+    'akademik',
+    'himpunan',
+  ]);
+  assert.deepEqual(eventCategoriesFor(nadia), []);
+  assert.deepEqual(eventCategoriesFor({ roles: ['admin', 'cnc'] }), []);
+  assert.equal(canManageEvent(raka, 'akademik'), true);
+  assert.equal(canManageEvent(raka, 'himpunan'), false);
+  assert.equal(canManageEvent({ roles: ['ring1'] }, 'himpunan'), true);
+  assert.equal(canManageEvent({ roles: ['ring1'] }, 'akademik'), false);
+  assert.equal(canManageEvent(nadia, 'akademik'), false);
+  // The server checks update and delete with the same rule as add: Akademik needs akademik, anything else ring1.
+  const src = api('controllers/calendar.controller.ts');
+  assert.equal(
+    [...src.matchAll(/category === 'akademik'/g)].length,
+    3,
+    'add, update and delete each check the category',
+  );
+  assert.equal([...src.matchAll(/roles\.includes\('ring1'\)/g)].length, 3);
+});
+
+test('competitions: cnc adds, changes and deletes; nobody else', () => {
+  assert.equal(can({ roles: ['cnc'] }, 'manageCompetition'), true);
+  assert.equal(can(raka, 'manageCompetition'), false);
+  assert.equal(can(raka, 'createCompetition'), false);
 });
