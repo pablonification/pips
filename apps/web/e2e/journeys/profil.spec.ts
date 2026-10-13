@@ -324,14 +324,12 @@ test('Tampilan: Sistem, Terang and Gelap set the theme and its colours, and pers
   expect((await state()).dark).toBe(dark);
 
   await seg.getByText('Gelap').click();
-  await expect
-    .poll(state)
-    .toEqual({
-      dark: true,
-      scheme: 'dark',
-      themeColor: '#0A0907',
-      stored: 'dark',
-    });
+  await expect.poll(state).toEqual({
+    dark: true,
+    scheme: 'dark',
+    themeColor: '#0A0907',
+    stored: 'dark',
+  });
   await seg.getByText('Terang').click();
   await expect.poll(state).toEqual({
     dark: false,

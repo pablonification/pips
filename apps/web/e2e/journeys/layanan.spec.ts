@@ -101,14 +101,12 @@ test.describe('Nadia', () => {
       await expect(link).not.toContainText('s.hmif.dev');
     }
     // Stand in for the external site, so the test never leaves this machine; PIPS! stays in its own tab.
-    await page
-      .context()
-      .route('https://s.hmif.dev/**', (route) =>
-        route.fulfill({
-          contentType: 'text/html',
-          body: '<title>Mading Beasiswa</title>',
-        }),
-      );
+    await page.context().route('https://s.hmif.dev/**', (route) =>
+      route.fulfill({
+        contentType: 'text/html',
+        body: '<title>Mading Beasiswa</title>',
+      }),
+    );
     const [tab] = await Promise.all([
       page.context().waitForEvent('page'),
       row(page, /^Beasiswa/).click(),
