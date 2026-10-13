@@ -255,6 +255,41 @@ test.describe('Raka, angkatan 2024', () => {
     await main(page).getByRole('link', { name: 'Lihat daftar Form' }).click();
     await expect(page).toHaveURL(/\/layanan\/form$/);
   });
+
+  test('Nadia’s draft on this device stays hers: Raka starts from his own account', async ({
+    page,
+    db,
+  }) => {
+    // A form both angkatan can fill, and Nadia's draft of it left on the shared device.
+    db.formDetails.pixel.eligibleAngkatan = [2024, 2025];
+    const nadia = 'user-13525045';
+    await page.goto('/layanan/form');
+    await plantTodaysDraft(
+      page,
+      db,
+      { q1: 'Nadia Putri', q2: '13525045', q3: 'PIXEL' },
+      0,
+      nadia,
+    );
+    await page.goto('/layanan/form/pixel');
+    await expect(section(page, 'Identitas')).toBeVisible();
+    await expect(page.getByLabel('Hai dengan siapa di sini?')).toHaveValue(
+      db.me!.fullName,
+    );
+    await expect(page.getByLabel('Mau tau nim kamu dong')).toHaveValue(
+      db.me!.nim,
+    );
+    await expect(page.getByRole('radio', { name: 'PIXEL' })).not.toBeChecked();
+    await expect(saved(page)).toHaveCount(0);
+    // Raka's typing goes under his own key; Nadia's draft is untouched.
+    await page.getByRole('radio', { name: 'IF', exact: true }).check();
+    await expect
+      .poll(async () => JSON.stringify(await storedDraft(page, db)))
+      .toContain('q4');
+    expect(JSON.stringify(await storedDraft(page, db, nadia))).not.toContain(
+      'q4',
+    );
+  });
 });
 
 test('the PIXEL form end to end: prefill, required errors, Other, rating by keyboard, Ubah, confirm, send', async ({

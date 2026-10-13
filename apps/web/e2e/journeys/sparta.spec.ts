@@ -37,6 +37,18 @@ const heading = (page: Page, name: string) =>
 const lanjut = (page: Page) => page.getByRole('button', { name: 'Lanjut' });
 const saved = (page: Page) => main(page).getByText('Draf tersimpan');
 
+/** Lanjut to the next step, which saves the draft on the server: one more PUT, holding the answers so far. */
+async function lanjutSaves(
+  page: Page,
+  api: { calls: (s: string) => unknown[] },
+) {
+  const before = api.calls('PUT /api/internship/submission').length;
+  await lanjut(page).click();
+  await expect
+    .poll(() => api.calls('PUT /api/internship/submission').length)
+    .toBeGreaterThan(before);
+}
+
 /** Next season: open from 1 Oktober to 31 Oktober 2026, 23.59 WIB; Nadia starts with nothing saved. */
 function openSeason(db: Db, { keepDraft = false } = {}) {
   db.spartaWindow = {
@@ -178,11 +190,16 @@ test('closed: the closing time, Nadia’s draft read-only, nothing to send', asy
   ).toBeVisible();
   await expect(main(page).getByText('Belum dikirim')).toBeVisible();
   await expect(main(page).getByText('e2e.nadia')).toBeVisible();
-  await expect(
+  // Her choices in priority order; the fourth wasn't chosen yet.
+  const choice = (n: number) =>
     main(page)
-      .getByText('Welfare and Academics')
-      .or(main(page).getByText('Akademik', { exact: true })),
-  ).not.toHaveCount(0);
+      .locator('.g-rv-list > div')
+      .filter({ has: page.locator('dt', { hasText: `Prioritas ${n}` }) })
+      .locator('dd');
+  await expect(choice(1)).toHaveText('Akademik');
+  await expect(choice(2)).toHaveText('Welfare');
+  await expect(choice(3)).toHaveText('Competition and Community');
+  await expect(choice(4)).toHaveText('Tidak diisi');
   await expect(main(page).getByRole('button')).toHaveCount(0);
   await expect(page).toHaveTitle('Magang SPARTA · PIPS!');
   // A focused flow: no tab bar or rail on touch layouts.
@@ -304,19 +321,15 @@ test('next season: the deadline and four steps, a draft on every step, four choi
   await page.getByLabel('Organisasi', { exact: true }).fill('Unit Robotika');
   await page.getByLabel('Periode').fill('2025/2026');
   await gates(page, testInfo, 'sparta-step-1');
-  const beforeStep = api.calls('PUT /api/internship/submission').length;
-  await lanjut(page).click();
+  await lanjutSaves(page, api);
 
   // 2. Penjelasan divisi; the step was saved.
   await expect(heading(page, 'Penjelasan divisi')).toBeFocused();
-  await expect
-    .poll(() => api.calls('PUT /api/internship/submission').length)
-    .toBeGreaterThan(beforeStep);
   await expect(
     main(page).getByText('Mengelola media sosial HMIF.'),
   ).toBeVisible();
   await gates(page, testInfo, 'sparta-step-2');
-  await lanjut(page).click();
+  await lanjutSaves(page, api);
 
   // 3. Pilih divisi: exactly four; a fifth can't be ticked; reorder by keyboard.
   await expect(heading(page, 'Pilih divisi')).toBeFocused();
@@ -375,7 +388,7 @@ test('next season: the deadline and four steps, a draft on every step, four choi
     /Competition and Community/,
   ]);
   await gates(page, testInfo, 'sparta-step-3');
-  await lanjut(page).click();
+  await lanjutSaves(page, api);
 
   // 4. Pertanyaan divisi: each chosen division's questions, in priority order.
   await expect(heading(page, 'Pertanyaan divisi')).toBeFocused();
@@ -397,7 +410,7 @@ test('next season: the deadline and four steps, a draft on every step, four choi
     .fill('Suka mengajar');
   await page.getByLabel('Lomba apa yang pernah kamu ikuti?').fill('Gemastik');
   await gates(page, testInfo, 'sparta-step-4');
-  await lanjut(page).click();
+  await lanjutSaves(page, api);
 
   // The check page, then the confirmation that the choices lock.
   await expect(heading(page, 'Periksa pilihanmu')).toBeFocused();
@@ -445,10 +458,6 @@ test('next season: the deadline and four steps, a draft on every step, four choi
   expect(
     db.internshipSubmissions.find((s) => s.userId === db.me!.id)?.isLocked,
   ).toBe(true);
-  // Steps were saved on the way: at least one save per step left.
-  expect(
-    api.calls('PUT /api/internship/submission').length,
-  ).toBeGreaterThanOrEqual(4);
 });
 
 test('next season with a draft: Lanjutkan, and the saved choices come back', async ({
@@ -522,8 +531,12 @@ test('a late write answered 403 shows the closed state with nothing lost', async
   await expect(main(page).getByText('K-04')).toBeVisible();
   await expect(main(page).getByText('nadia.late')).toBeVisible();
   await expect(lanjut(page)).toHaveCount(0);
-  const last = api.calls('PUT /api/internship/submission').at(-1)!;
-  expect(last).toBeTruthy();
+  // The step's save came after the deadline and was refused; the server keeps what was saved before it.
+  const puts = api.calls('PUT /api/internship/submission');
+  expect(puts.at(-1)!.status).toBe(403);
+  expect(puts.slice(0, -1).every((p) => p.status === 200)).toBe(true);
+  const stored = db.internshipSubmissions.find((s) => s.userId === db.me!.id);
+  expect([stored?.kelas, stored?.idLine]).toEqual(['K-04', 'nadia.late']);
 });
 
 test('each open step at 320 px: nothing overflows, the step line fits @phone-only', async ({
