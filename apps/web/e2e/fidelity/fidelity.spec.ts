@@ -21,8 +21,9 @@ for (const [persona, routes] of [
   ['pengurus', PENGURUS_ROUTES],
 ] as const) {
   for (const route of routes) {
-    const screen = SCREENS[`${persona}-${route}`];
-    if (!screen) continue; // not built yet: the report lists it
+    const entry = SCREENS[`${persona}-${route}`];
+    if (!entry) continue; // not built yet: the report lists it
+    const entries = Array.isArray(entry) ? entry : [entry];
     test.describe(`${persona}-${route}`, () => {
       test.use({ persona });
       test(`${persona}-${route}`, async ({ page, api, context }, testInfo) => {
@@ -33,8 +34,10 @@ for (const [persona, routes] of [
         const [, layout, theme] = /^fidelity-(\w+)-(\w+)$/.exec(
           testInfo.project.name,
         )!;
-        if (screen.layouts && !screen.layouts.includes(layout as 'phone'))
-          return;
+        const screen = entries.find(
+          (e) => !e.layouts || e.layouts.includes(layout as 'phone'),
+        );
+        if (!screen) return;
         screen.mock?.(api);
         const url = screen.paths?.[layout as 'phone'] ?? screen.path;
         await page.goto(url);

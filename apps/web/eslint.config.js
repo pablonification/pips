@@ -31,6 +31,12 @@ export const GARIS_FILES = [
   'src/routes/_app/_left-navbar/pengumuman/index.tsx',
   'src/routes/_app/_left-navbar/pengumuman/$id/index.tsx',
   'src/routes/_app/_left-navbar/pengumuman/tulis/index.tsx',
+  // P2-A: Form and Magang SPARTA.
+  'src/components/form/**/*.{ts,tsx}',
+  'src/lib/form/**/*.{ts,tsx}',
+  'src/routes/_app/_left-navbar/layanan/form/index.tsx',
+  'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
+  'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.

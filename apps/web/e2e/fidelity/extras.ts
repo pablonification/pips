@@ -14,7 +14,8 @@
  * Captures of the app area ('app') and of the window ('page') are viewport screenshots; for an 'element' screen,
  * `target` names the element. Unmapped screens show as "not built yet" in the report; PROTOTYPE_ONLY are skipped.
  */
-import type { Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
+import { pixelSections } from '../support/flows';
 import { visibleText } from '../support/app';
 import * as writes from '../support/writes';
 import type { FidelityScreen } from './screens';
@@ -24,6 +25,28 @@ export interface ExtraCapture extends FidelityScreen {
   /** The element to capture (required for 'element' screens). */
   target?: (page: import('@playwright/test').Page) => Locator;
 }
+
+/** P2-A: the PIXEL form as the prototype's check fills it (garis-check.mjs, "Form: required fields; …"). */
+const lanjut = (p: Page) => p.getByRole('button', { name: 'Lanjut' }).click();
+async function checkFill(p: Page, upTo: 'rating' | 'review') {
+  await p.getByRole('radio', { name: 'PIXEL' }).check();
+  await p.getByRole('radio', { name: 'IF', exact: true }).check();
+  await p.getByRole('radio', { name: 'IF K2' }).check();
+  await lanjut(p);
+  await p.getByRole('checkbox', { name: 'Other' }).check();
+  await p.getByLabel(/^Sebutkan yang kamu maksud/).fill('Main musik');
+  await p.getByLabel(/^Selama ikut kegiatan HMIF/).fill('Welcoming party');
+  await lanjut(p);
+  await p.getByRole('checkbox', { name: 'Ada teman yang ikut' }).check();
+  await p.getByLabel(/^Kapan kamu biasanya/).fill('Sabtu sore');
+  await lanjut(p);
+  await pixelSections[3](p);
+  await lanjut(p);
+  await p.getByRole('radio', { name: '5', exact: true }).check();
+  if (upTo === 'review') await lanjut(p);
+}
+const fill = '/layanan/form/pixel';
+const fillMain = (p: Page) => p.getByRole('main');
 
 /** P0-C: Beranda at other window sizes, for the shell's chrome (bars, rail, sidebar, gold header); P1-A fills it. */
 const beranda: ExtraCapture = {
@@ -141,6 +164,43 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
         .click();
     },
     ready: (p) => p.getByRole('menuitem', { name: /Bisa lagi mulai 15\.30/ }),
+  },
+  // P2-A: the form's interaction captures (phone, light, Nadia).
+  'i-form-required': {
+    path: fill,
+    act: async (p) => lanjut(p),
+    ready: (p) => fillMain(p).getByText('Pertanyaan ini wajib diisi').first(),
+  },
+  'i-form-draft-restored': {
+    path: fill,
+    act: async (p) => {
+      await p.getByRole('radio', { name: 'PIXEL' }).check();
+      await p.getByRole('radio', { name: 'IF', exact: true }).check();
+      await p.getByRole('radio', { name: 'IF K2' }).check();
+      await fillMain(p).getByText('Draf tersimpan').waitFor();
+      await p.reload();
+    },
+    ready: (p) => fillMain(p).getByText('Draf tersimpan'),
+  },
+  'i-form-rating': {
+    path: fill,
+    act: async (p) => checkFill(p, 'rating'),
+    ready: (p) => fillMain(p).getByText('Draf tersimpan'),
+  },
+  'i-form-review': {
+    path: fill,
+    act: async (p) => checkFill(p, 'review'),
+    ready: (p) => fillMain(p).getByText('Draf tersimpan'),
+  },
+  'i-form-done': {
+    path: fill,
+    mock: (api) => api.on('POST /api/form/:formId/response', writes.submitForm),
+    act: async (p) => {
+      await checkFill(p, 'review');
+      await p.getByRole('button', { name: 'Kirim jawaban' }).click();
+      await p.getByRole('button', { name: 'Kirim', exact: true }).click();
+    },
+    ready: (p) => p.getByText('Form berhasil dikirim!'),
   },
 };
 

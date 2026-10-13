@@ -1,0 +1,226 @@
+/*
+  Form (P2-A), ported exactly from the locked prototype's garis.css: `.fcard`, `.qblock`, `.form-nav`, `.review`,
+  `.rv-sec`, `.rv-list`, and the inline styles of `scrForm`, `qBlock`, `reviewPage` and `scrFill` (garis/screens-more.js).
+  The option rows, rating keycaps, Segbar, Saved and the plaque are P0-A's (components.css). Colours only from tokens.
+  Magang SPARTA (no locked design) is built from these same pieces.
+*/
+@layer components {
+  /* The form list: one card per form. */
+  .g-form-list {
+    display: grid;
+    gap: 10px;
+  }
+  .g-fcard {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    background: var(--bg-surface);
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px var(--border);
+    color: inherit;
+    text-decoration: none;
+    text-align: left;
+  }
+  a.g-fcard:hover {
+    background: var(--bg-hover);
+  }
+  .g-clamp2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Filling: the head (description, Bagian n dari N, the Segbar, the section title), then the questions. */
+  .g-fill-head {
+    display: grid;
+    gap: 10px;
+  }
+  .g-fill-desc {
+    margin-bottom: 6px;
+  }
+  .g-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .g-fill-head .g-saved,
+  .g-fill-saved {
+    min-height: 20px;
+    color: var(--text-3);
+  }
+  .g-qs {
+    display: grid;
+    gap: 22px;
+  }
+  .g-qblock {
+    display: grid;
+    gap: 10px;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  /* A question's label (garis.css `.qblock .t-label`): 15 px semibold. A legend keeps the browser's 2 px padding, as
+     in the prototype, and 4 px below it. */
+  .g-q-label {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  legend.g-q-label {
+    margin-bottom: 4px;
+    padding: 0 2px;
+  }
+  .g-qblock .g-opt-note {
+    font-weight: 400;
+    color: var(--text-3);
+  }
+  .g-qblock .g-field.num {
+    font-variant-numeric: tabular-nums;
+  }
+  .g-form-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  /* The check page. */
+  .g-review {
+    display: grid;
+    gap: 24px;
+  }
+  .g-rv-sec {
+    display: grid;
+    gap: 6px;
+  }
+  .g-rv-list {
+    margin: 0;
+  }
+  .g-rv-list > div {
+    display: grid;
+    gap: 2px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+  }
+  .g-rv-list dt {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-2);
+  }
+  .g-rv-list dd {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.45;
+    font-weight: 600;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+  .g-rv-list dd.none {
+    font-weight: 400;
+    color: var(--text-3);
+  }
+
+  /* The thank-you plaque (scrFill when done). */
+  .g-thanks {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+    padding: 22px 20px;
+  }
+  .g-thanks .sub {
+    color: color-mix(in srgb, var(--ink) 82%, transparent);
+  }
+  .g-fill-done {
+    display: grid;
+    gap: 18px;
+  }
+  .g-fill-done > .g-btn {
+    justify-self: start;
+  }
+
+  /* A form that hasn't opened: its time and the countdown (no locked design; built from the form's own head). */
+  .g-fill-when {
+    display: grid;
+    gap: 4px;
+  }
+
+  /* Magang SPARTA: the four steps up front, and the priority list (no locked design). */
+  .g-steps {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .g-steps > li {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+    counter-increment: step;
+  }
+  .g-steps > li::before {
+    content: counter(step);
+    flex: none;
+    width: 20px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-2);
+  }
+  .g-prio {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .g-prio > li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 6px 6px 6px 12px;
+    border-radius: 8px;
+    background: var(--bg-surface);
+    box-shadow: inset 0 0 0 1.5px var(--text);
+    font-size: 15px;
+  }
+  .g-prio-n {
+    flex: none;
+    width: 20px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .g-prio-name {
+    flex: 1;
+    min-width: 0;
+  }
+  .g-prio-moves {
+    display: flex;
+    flex: none;
+    gap: 4px;
+  }
+  /* Penjelasan divisi: each division's name, then its description. */
+  .g-div-list dt {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .g-div-list dd {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-2);
+  }
+  .g-kesibukan {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+}
