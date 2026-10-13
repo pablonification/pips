@@ -438,6 +438,38 @@ test.describe('Nadia', () => {
     ).length;
     expect(before).toBeLessThanOrEqual(15);
   });
+
+  test('a cold first load asks for at most 15 resources of any kind before the agenda card has its rows (SPEC budget; desktop adds its logo)', async ({
+    page,
+  }, testInfo) => {
+    // Every request the page makes (document, scripts, styles, fonts, images, API), until the content is there.
+    const seen: { type: string; url: string }[] = [];
+    let counting = true;
+    page.on('request', (r) => {
+      if (counting && !r.url().startsWith('data:'))
+        seen.push({ type: r.resourceType(), url: r.url() });
+    });
+    await page.goto('/');
+    await expect(agendaRows(page).first()).toHaveText('Kuis 2');
+    counting = false;
+    const byType: Record<string, number> = {};
+    for (const r of seen) byType[r.type] = (byType[r.type] ?? 0) + 1;
+    await testInfo.attach('requests-before-content.json', {
+      body: JSON.stringify(
+        { total: seen.length, byType, urls: seen.map((r) => r.url) },
+        null,
+        1,
+      ),
+      contentType: 'application/json',
+    });
+    // SPEC's budget is for its lab phone profile (390 × 844); tablets meet it too. Desktop's sidebar also shows the
+    // official logo in its first paint: one image more.
+    const desktop = layoutOf(testInfo) === 'desktop';
+    expect(byType.image ?? 0).toBe(desktop ? 1 : 0);
+    expect(seen.length, JSON.stringify(byType)).toBeLessThanOrEqual(
+      desktop ? 16 : 15,
+    );
+  });
 });
 
 test.describe('the month’s end', () => {
