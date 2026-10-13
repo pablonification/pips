@@ -247,9 +247,11 @@ test('logging out never asks for notification permission, and clears what was ke
     .not.toBeNull();
   await expectCacheWritten(page);
   await page.goto('/profil');
+  // P1-C: Profil's Keluar, then its confirmation (today's "Log out" button is gone).
+  await page.getByRole('main').getByRole('button', { name: 'Keluar' }).click();
   await page
-    .getByRole('button', { name: 'Log out' })
-    .locator('visible=true')
+    .getByRole('alertdialog', { name: 'Keluar dari PIPS!?' })
+    .getByRole('button', { name: 'Keluar' })
     .click();
   await expect(page).toHaveURL(/\/login(\?|$)/);
   expect(api.calls('POST /api/logout')).toHaveLength(1);

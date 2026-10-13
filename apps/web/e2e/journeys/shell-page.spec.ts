@@ -183,9 +183,14 @@ test.describe('signing out', () => {
     await expect(page).toHaveTitle('Ruang rahasia · PIPS!');
     await expect.poll(() => shellMemory(page)).toContain('Ruang rahasia');
     await page.goto('/profil');
+    // P1-C: Profil's Keluar, then its confirmation (today's "Log out" button is gone).
     await page
-      .getByRole('button', { name: 'Log out' })
-      .locator('visible=true')
+      .getByRole('main')
+      .getByRole('button', { name: 'Keluar' })
+      .click();
+    await page
+      .getByRole('alertdialog', { name: 'Keluar dari PIPS!?' })
+      .getByRole('button', { name: 'Keluar' })
       .click();
     await expect(page).toHaveURL(/\/login(\?|$)/);
     await expect.poll(() => shellMemory(page)).not.toContain('Ruang rahasia');
