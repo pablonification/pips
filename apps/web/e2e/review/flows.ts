@@ -761,7 +761,7 @@ export const FLOWS: Flow[] = [
     area: 'profil',
     variants: [
       { key: 'nadia', persona: 'anggota', who: 'Nadia' },
-      { key: 'blocked', persona: 'anggota', who: 'Nadia, notifications blocked' },
+      { key: 'blocked', persona: 'anggota', who: 'Nadia, the browser blocks notifications' },
       { key: 'iphone', persona: 'anggota', who: 'Nadia on an iPhone browser', layouts: ['phone'] },
     ],
     layouts: ALL,
