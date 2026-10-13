@@ -5,7 +5,7 @@
  * "@phone-only" journeys run on phones and tablets (the touch layouts), "@desktop-only" ones on desktop.
  */
 import AxeBuilder from '@axe-core/playwright';
-import type { Page, TestInfo } from '@playwright/test';
+import type { Locator, Page, TestInfo } from '@playwright/test';
 import { greeting, layoutOf } from '../support/app';
 import { AXE_TAGS } from '../support/audit';
 import { expect, test } from '../support/test';
@@ -74,6 +74,37 @@ async function expectFits(page: Page, where: string) {
   expect(m, where).toEqual({ doc: 0, scroller: 0, small: [] });
 }
 
+/**
+ * The navigation's destinations in order: each one's visible label, and its name. Pengumuman adds its unread count
+ * (P1-B): a visible badge, and in the name ", 4 belum dibaca" on the tab bar and rail, " 4 belum dibaca" in the
+ * sidebar (its words are a hidden span after the label).
+ */
+async function expectDestinations(
+  nav: Locator,
+  names: string[],
+  layout: ReturnType<typeof layoutOf>,
+  unread: number,
+) {
+  const links = nav.getByRole('link');
+  await expect(links).toHaveCount(names.length);
+  for (const [i, name] of names.entries()) {
+    const link = links.nth(i);
+    await expect(link.getByText(name, { exact: true })).toBeVisible();
+    const counted = name === 'Pengumuman' && unread > 0;
+    await expect(link).toHaveAccessibleName(
+      !counted
+        ? name
+        : layout === 'desktop'
+          ? `${name} ${unread} belum dibaca`
+          : `${name}, ${unread} belum dibaca`,
+    );
+    if (counted)
+      await expect(link.locator('[aria-hidden="true"]').last()).toHaveText(
+        String(unread),
+      );
+  }
+}
+
 test.describe('navigation', () => {
   test('the four destinations, the one you are on lit, in the layout’s own navigation', async ({
     page,
@@ -83,12 +114,13 @@ test.describe('navigation', () => {
     const layout = layoutOf(testInfo);
     const nav = mainNav(page);
     await expect(nav).toHaveCount(1);
-    await expect(nav.getByRole('link')).toHaveText([
-      'Beranda',
-      'Pengumuman',
-      'Kalender',
-      'Layanan',
-    ]);
+    // Since P1-B, Pengumuman carries Nadia's unread count.
+    await expectDestinations(
+      nav,
+      ['Beranda', 'Pengumuman', 'Kalender', 'Layanan'],
+      layout,
+      4,
+    );
     const box = (await nav.boundingBox())!;
     const vp = page.viewportSize()!;
     if (layout === 'phone') {
@@ -568,13 +600,13 @@ test.describe('Kelola', () => {
   }) => {
     await page.goto('/');
     await expect(greeting(page, 'Raka')).toBeVisible();
-    await expect(mainNav(page).getByRole('link')).toHaveText([
-      'Beranda',
-      'Pengumuman',
-      'Kalender',
-      'Layanan',
-      'Kelola',
-    ]);
+    // Raka has 1 unread post.
+    await expectDestinations(
+      mainNav(page),
+      ['Beranda', 'Pengumuman', 'Kalender', 'Layanan', 'Kelola'],
+      'desktop',
+      1,
+    );
     await navItem(page, 'Kelola').click();
     await expect(page).toHaveURL(/\/kelola$/);
     await expectLit(page, 'Kelola');

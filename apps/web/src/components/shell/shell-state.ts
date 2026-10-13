@@ -47,15 +47,31 @@ const listeners = new Set<() => void>();
 const get = () => (state ??= load());
 
 let writeTimer: ReturnType<typeof setTimeout> | null = null;
+function write() {
+  try {
+    sessionStorage.setItem(KEY, JSON.stringify(get()));
+  } catch {
+    /* storage blocked: remembered for this page only */
+  }
+}
+/** A write still waiting goes out now: the page is going away (a reload, a link, closing the tab). */
+function flush() {
+  if (!writeTimer) return;
+  clearTimeout(writeTimer);
+  writeTimer = null;
+  write();
+}
+let flushOnLeave = false;
 function save() {
+  if (!flushOnLeave && typeof window !== 'undefined') {
+    flushOnLeave = true;
+    // Without this a reload within 200 ms of a change forgot it (the tab you were on, a page's title).
+    window.addEventListener('pagehide', flush);
+  }
   if (writeTimer) return;
   writeTimer = setTimeout(() => {
     writeTimer = null;
-    try {
-      sessionStorage.setItem(KEY, JSON.stringify(get()));
-    } catch {
-      /* storage blocked: remembered for this page only */
-    }
+    write();
   }, 200);
 }
 

@@ -16,6 +16,8 @@ import * as writes from '../support/writes';
 
 export interface FidelityScreen {
   path: string;
+  /** Another URL for some layouts (the desktop split shows a post at `/pengumuman`, without opening it). */
+  paths?: Partial<Record<'phone' | 'tablet' | 'desk', string>>;
   layouts?: ('phone' | 'tablet' | 'desk')[];
   mock?: (api: ApiMock) => void;
   act?: (
@@ -27,6 +29,14 @@ export interface FidelityScreen {
 
 type Key = `anggota-${string}` | `pengurus-${string}`;
 
+const P1_TITLE = 'Jadwal UTS Ganjil 2026/2027 sudah keluar';
+const P2_TITLE = 'Cari tim Gemastik XIX? Isi form ini';
+/** P1-B: the feed; on desktop with p1 beside it, not marked read. */
+const pengumumanFeed: FidelityScreen = {
+  path: '/pengumuman',
+  ready: (p) => visibleText(p, P1_TITLE),
+};
+
 /**
  * One entry, or several when layouts differ (each with its `layouts`): `anggota-ov-confirm` is the sign-out sheet on
  * phones and tablets (P1-C) and the form's send dialog on desktop (P2-A).
@@ -35,16 +45,6 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
   {
     // Today's app (before the redesign).
     'anggota-beranda': { path: '/', ready: (p) => visibleText(p, 'Kuis 2') },
-    'anggota-pengumuman': {
-      path: '/pengumuman',
-      ready: (p) => visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar'),
-    },
-    'anggota-post': {
-      path: '/pengumuman/p1',
-      mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
-      ready: (p) =>
-        visibleText(p, 'Kak, IF2123 K01 sama K02 ruangnya beda ya?'),
-    },
     'anggota-kalender': {
       path: '/kalender',
       ready: (p) => visibleText(p, 'Sharing Session: Magang di Startup'),
@@ -162,5 +162,76 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
     'pengurus-layanan': {
       path: '/layanan',
       ready: (p) => p.getByRole('main').getByText('Tambah acara Akademik'),
+    },
+
+    // P1-B: Pengumuman. The phone and tablet captures of the locked `post` were set without opening p1, so they show 4
+    // unread where the app (which marks it read) shows 3.
+    'anggota-pengumuman': pengumumanFeed,
+    'pengurus-pengumuman': pengumumanFeed,
+    'anggota-post': {
+      path: '/pengumuman/p1',
+      paths: { desk: '/pengumuman' },
+      mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
+      ready: (p) =>
+        p
+          .locator('article.g-detail')
+          .getByText('Komentar', { exact: false })
+          .first(),
+    },
+    'anggota-tulis': {
+      path: '/pengumuman/tulis',
+      ready: (p) => p.getByRole('textbox', { name: 'Isi pengumuman' }),
+    },
+    'anggota-ov-filter': {
+      path: '/pengumuman',
+      act: async (p) => {
+        await visibleText(p, P1_TITLE).waitFor();
+        await p.getByRole('button', { name: /^Kategori/ }).click();
+      },
+      ready: (p) =>
+        p.getByRole('dialog', { name: 'Kategori yang ditampilkan' }),
+    },
+    'anggota-pop-react': {
+      path: '/pengumuman',
+      act: async (p) => {
+        await visibleText(p, P1_TITLE).waitFor();
+        const desk = (p.viewportSize()?.width ?? 0) >= 1024;
+        const scope = desk
+          ? p.locator('article.g-detail')
+          : p.getByRole('article', { name: new RegExp(`^${P1_TITLE}`) });
+        await scope
+          .getByRole('button', { name: /Beri reaksi$|Ganti reaksi$/ })
+          .last()
+          .click();
+      },
+      ready: (p) => p.getByRole('group', { name: 'Pilih reaksi' }),
+    },
+    'anggota-pop-menu': {
+      path: '/pengumuman',
+      act: async (p) => {
+        await visibleText(p, P1_TITLE).waitFor();
+        const desk = (p.viewportSize()?.width ?? 0) >= 1024;
+        await p
+          .getByRole('button', {
+            name: `Opsi untuk ${desk ? P1_TITLE : P2_TITLE}`,
+          })
+          .first()
+          .click();
+      },
+      ready: (p) => p.getByRole('menu'),
+    },
+    'pengurus-pop-menu-own': {
+      path: '/pengumuman/p1',
+      paths: { desk: '/pengumuman/p5' },
+      mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
+      act: async (p) => {
+        const desk = (p.viewportSize()?.width ?? 0) >= 1024;
+        const title = desk ? 'Rapat koordinasi divisi Akademik' : P1_TITLE;
+        await p
+          .getByRole('button', { name: `Opsi untuk ${title}` })
+          .first()
+          .click();
+      },
+      ready: (p) => p.getByRole('menu'),
     },
   };

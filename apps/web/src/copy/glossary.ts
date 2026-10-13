@@ -123,6 +123,8 @@ export const PROPER_NOUNS = [
   'K1–K3',
   // The day-before reminder, as the prototype writes it ("pengingat H-1").
   'H-1',
+  // P1-B: the composer's audience choice, named in its errors ("atau ganti ke Semua").
+  'Semua',
 ] as const;
 
 /** All-capitals words the app may show. Anything else in capitals is capitals the app added itself. */

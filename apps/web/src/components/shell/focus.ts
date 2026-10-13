@@ -22,8 +22,23 @@ export function focusPageTitle() {
   (title ?? document.getElementById('isi'))?.focus({ preventScroll: true });
 }
 
+/**
+ * A screen can keep focus where the member is for one navigation: choosing a row in a split page's list (P1-B's
+ * Pengumuman on desktop) opens its post beside the list, and focus stays on the row, not the page's title.
+ */
+let keepFor: string | null = null;
+export function keepFocusOnNavigationTo(pathname: string) {
+  keepFor = pathname;
+}
+
 /** After a navigation has rendered: focus its title, and let a title that appears later take it. */
-export function focusAfterNavigation() {
+export function focusAfterNavigation(pathname?: string) {
+  const keep = keepFor !== null && keepFor === pathname;
+  keepFor = null;
+  if (keep) {
+    titleDue = false;
+    return;
+  }
   if (!listening) {
     listening = true;
     // Once the member acts, focus is theirs again.

@@ -6,6 +6,5 @@ export const AuthorSchema = z
     id: z.string(),
     fullName: z.string(),
     picture: z.string().nullable(),
-    email: z.string(),
   })
   .openapi('Author');

@@ -51,24 +51,24 @@ function listInfos(infos: Info[], q: URLSearchParams): Info[] {
   const excluded = q.getAll('excludeCategory').flatMap((v) => v.split(','));
   const sort = q.get('sort') ?? 'newest';
   const offset = Number(q.get('offset') ?? 0);
-  return infos
-    .filter((i) => q.get('unread') !== 'true' || !i.isRead)
-    .filter(
-      (i) =>
-        !excluded.length ||
-        !i.infoCategories?.some((c) => excluded.includes(c.categoryId)),
-    )
-    .filter(
-      (i) =>
-        !search ||
-        includes(`${i.title} ${i.content} ${i.creator.fullName}`, search),
-    )
-    .sort(
-      (a, b) =>
-        (sort === 'oldest' ? 1 : -1) *
-        (Date.parse(a.createdAt) - Date.parse(b.createdAt)),
-    )
-    .slice(offset, offset + PAGE);
+  return (
+    infos
+      .filter((i) => q.get('unread') !== 'true' || !i.isRead)
+      // As the API (info.repo.ts): `excludeCategory` takes category names, and a post is left out when any of its
+      // categories is excluded; `search` matches the title and the content, never the author (P1-B).
+      .filter(
+        (i) =>
+          !excluded.length ||
+          !i.infoCategories?.some((c) => excluded.includes(c.category.name)),
+      )
+      .filter((i) => !search || includes(`${i.title} ${i.content}`, search))
+      .sort(
+        (a, b) =>
+          (sort === 'oldest' ? 1 : -1) *
+          (Date.parse(a.createdAt) - Date.parse(b.createdAt)),
+      )
+      .slice(offset, offset + PAGE)
+  );
 }
 
 export const defaultHandlers: Record<string, Handler> = {
