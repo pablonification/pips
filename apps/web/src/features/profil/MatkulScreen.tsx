@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
+import { useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { api } from '~/api/client';
 import {
@@ -50,6 +51,13 @@ export function MatkulScreen() {
   const courses = useQuery(currentCoursesQuery());
   const online = useOnline();
   const list = courses.data ?? [];
+  // Writes still waiting for the server. The list is fetched again only when the last one answers, so a refetch
+  // never brings back a row whose removal is still on its way (review m2).
+  const writing = useRef(0);
+  const settled = () => {
+    writing.current -= 1;
+    if (writing.current === 0) refreshCourses(qc);
+  };
 
   const focusAfterRemove = (nextId: string | undefined) => {
     const el = nextId
@@ -58,8 +66,16 @@ export function MatkulScreen() {
     el?.focus();
   };
 
+  /** Puts one row back at its place, leaving every other row as it is now (review m2). */
+  const putBack = (row: UserCourse, at: number) =>
+    qc.setQueryData<UserCourse[]>([CURRENT_COURSES_QUERY_KEY], (cs) => {
+      if (!cs || cs.some((c) => c.courseId === row.courseId)) return cs;
+      const copyOf = [...cs];
+      copyOf.splice(Math.min(at, copyOf.length), 0, row);
+      return copyOf;
+    });
+
   const remove = (row: UserCourse) => {
-    const before = qc.getQueryData<UserCourse[]>([CURRENT_COURSES_QUERY_KEY]);
     const at = list.findIndex((c) => c.courseId === row.courseId);
     const next = list[at + 1];
     const code = row.course?.code ?? '';
@@ -72,43 +88,49 @@ export function MatkulScreen() {
     );
     focusAfterRemove(next?.courseId);
     void qc.cancelQueries({ queryKey: [CURRENT_COURSES_QUERY_KEY] });
-    api.course
+    writing.current += 1;
+    const deleted = api.course
       .deleteUserCourse({ requestBody: { courseIds: [row.courseId] } })
       .then(
+        () => true,
         () => {
-          refreshCourses(qc);
-          toast.success(fill(copy.dihapus, { kode: code }), {
-            action: {
-              label: common.komponen.urungkan,
-              onClick: () => undo(row, at),
-            },
-          });
-        },
-        () => {
-          qc.setQueryData([CURRENT_COURSES_QUERY_KEY], before);
+          // Only this row comes back: another removal made meanwhile stays (review m2).
+          toast.dismiss(shown);
+          putBack(row, at);
           toast.error(fill(copy.hapusGagal, { kode: code }));
+          return false;
         },
-      );
+      )
+      .finally(settled);
+    // The toast with Urungkan shows at once, as the prototype's (review m3). Urungkan pressed before the server
+    // answers waits for the removal, so the PUT never lands before the DELETE.
+    const shown = toast.success(fill(copy.dihapus, { kode: code }), {
+      action: {
+        label: common.komponen.urungkan,
+        onClick: () => undo(row, at, deleted),
+      },
+    });
   };
 
-  const undo = (row: UserCourse, at: number) => {
-    qc.setQueryData<UserCourse[]>([CURRENT_COURSES_QUERY_KEY], (cs) => {
-      if (!cs || cs.some((c) => c.courseId === row.courseId)) return cs;
-      const copyOf = [...cs];
-      copyOf.splice(Math.min(at, copyOf.length), 0, row);
-      return copyOf;
-    });
-    api.course
-      .createOrUpdateBatchUserCourse({
-        requestBody: [{ courseId: row.courseId, class: row.class }],
+  const undo = (row: UserCourse, at: number, deleted: Promise<boolean>) => {
+    putBack(row, at);
+    writing.current += 1;
+    void deleted
+      .then((ok) => {
+        // The removal failed: the row is back already, and there is nothing to undo on the server.
+        if (!ok) return;
+        return api.course
+          .createOrUpdateBatchUserCourse({
+            requestBody: [{ courseId: row.courseId, class: row.class }],
+          })
+          .then(undefined, () => {
+            // The fetch after the last write takes the row away again.
+            toast.error(
+              fill(copy.urungGagal, { kode: row.course?.code ?? '' }),
+            );
+          });
       })
-      .then(
-        () => refreshCourses(qc),
-        () => {
-          refreshCourses(qc);
-          toast.error(fill(copy.urungGagal, { kode: row.course?.code ?? '' }));
-        },
-      );
+      .finally(settled);
   };
 
   return (

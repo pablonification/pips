@@ -108,6 +108,101 @@ test.describe('Mata kuliahku', () => {
     expect(await sks(page)).toBe('18');
   });
 
+  test('regression: a failed remove brings back only its own row, not one removed meanwhile', async ({
+    page,
+    api,
+    db,
+  }) => {
+    let failIF2120!: () => void;
+    const held = new Promise<void>((r) => (failIF2120 = r));
+    api.on('DELETE /api/course/take/batch', async (req) => {
+      const { courseIds } = req.body as { courseIds: string[] };
+      if (courseIds.includes('course-IF2120')) {
+        await held;
+        return reply.status(500);
+      }
+      return writes.dropCourses(req);
+    });
+    await page.goto('/profil/matkul');
+    await removeBtn(page, 'IF2120').click();
+    await removeBtn(page, 'IF2150').click();
+    await expect
+      .poll(() => api.calls('DELETE /api/course/take/batch').length)
+      .toBe(2);
+    // IF2150's removal is done on the server before IF2120's fails.
+    await expect
+      .poll(() => db.myCourses.map((c) => c.courseId))
+      .not.toContain('course-IF2150');
+    await expect.poll(() => codes(page)).not.toContain('IF2120');
+    failIF2120();
+    await expect(
+      toastText(
+        page,
+        'IF2120 gagal dihapus. Periksa koneksimu, lalu coba lagi.',
+      ),
+    ).toBeVisible();
+    await expect.poll(() => codes(page)).toContain('IF2120');
+    await expect
+      .poll(() => codes(page))
+      .toEqual(['IF2110', 'IF2120', 'IF2123', 'IF2130', 'IF2180']);
+    expect(await sks(page)).toBe('14');
+  });
+
+  test('regression: the toast with Urungkan shows before the server answers; Urungkan then waits for the removal', async ({
+    page,
+    api,
+  }) => {
+    let answer!: () => void;
+    const held = new Promise<void>((r) => (answer = r));
+    api.on('DELETE /api/course/take/batch', async (req) => {
+      await held;
+      return writes.dropCourses(req);
+    });
+    api.on('PUT /api/course/take/batch', writes.takeCourses);
+    await page.goto('/profil/matkul');
+    await removeBtn(page, 'IF2130').click();
+    const toast = toastText(page, 'IF2130 dihapus dari mata kuliahmu.');
+    await expect(toast).toBeVisible();
+    expect(api.calls('DELETE /api/course/take/batch')).toHaveLength(1);
+    await toast.getByRole('button', { name: 'Urungkan' }).click();
+    await expect.poll(() => codes(page)).toContain('IF2130');
+    // Nothing is put back on the server until the removal has answered.
+    await page.waitForTimeout(300);
+    expect(api.calls('PUT /api/course/take/batch')).toHaveLength(0);
+    answer();
+    await expect
+      .poll(() => api.calls('PUT /api/course/take/batch').map((c) => c.body))
+      .toEqual([[{ courseId: 'course-IF2130', class: 2 }]]);
+    await expect.poll(() => codes(page)).toContain('IF2130');
+    expect(await sks(page)).toBe('18');
+  });
+
+  test('regression: when a removal fails after its toast showed, the error toast replaces it', async ({
+    page,
+    api,
+  }) => {
+    let answer!: () => void;
+    const held = new Promise<void>((r) => (answer = r));
+    api.on('DELETE /api/course/take/batch', async () => {
+      await held;
+      return reply.status(500);
+    });
+    await page.goto('/profil/matkul');
+    await removeBtn(page, 'IF2130').click();
+    const toast = toastText(page, 'IF2130 dihapus dari mata kuliahmu.');
+    await expect(toast).toBeVisible();
+    answer();
+    await expect(
+      toastText(
+        page,
+        'IF2130 gagal dihapus. Periksa koneksimu, lalu coba lagi.',
+      ),
+    ).toBeVisible();
+    await expect(toast).toHaveCount(0);
+    await expect.poll(() => codes(page)).toContain('IF2130');
+    expect(api.calls('PUT /api/course/take/batch')).toHaveLength(0);
+  });
+
   test('no courses: the empty state with the explanation open', async ({
     page,
     db,
