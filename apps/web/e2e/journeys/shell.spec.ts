@@ -1,7 +1,7 @@
 /**
  * The app shell (P0-C): the tab bar on phones, the rail on tablets, the sidebar on desktop, the top bar and back,
- * the desktop breadcrumbs, Beranda's gold header, focused flows, global search, and their accessibility. The
- * pages inside are today's screens until their redesign tasks; these journeys check the shell around them.
+ * the desktop breadcrumbs, Beranda's gold header, focused flows, global search, and their accessibility. Each
+ * screen's own journeys check the pages inside.
  * "@phone-only" journeys run on phones and tablets (the touch layouts), "@desktop-only" ones on desktop.
  */
 import AxeBuilder from '@axe-core/playwright';

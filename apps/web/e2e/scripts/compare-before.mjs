@@ -6,7 +6,9 @@
 // index.html summary to ops/redesign/compare/<timestamp>/.
 //
 // A state counts as changed when more than E2E_COMPARE_THRESHOLD of its pixels differ (default 0.0001 = 0.01 %),
-// or when it is missing on either side. The command exits 1 if any state changed.
+// or when it is missing on either side. A state the redesigned app no longer has (states.ts `removed`, such as the
+// install tutorial) is captured at its path and listed as removed, with its reason. The command exits 1 if any
+// state changed or is missing.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { FILTER_SCRIPT, filterSelect, page } from './lib/html.mjs';
@@ -17,6 +19,7 @@ import {
   sideBySide,
   writePng,
 } from './lib/image.mjs';
+import { captureStatus } from './lib/compare.mjs';
 import { recordDir, stamp } from './lib/paths.mjs';
 import {
   CAPTURE_PROJECTS,
@@ -43,7 +46,10 @@ const out = recordDir(path.join('compare', stamp()));
 const afterDir = path.join(out, 'after');
 mkdirSync(afterDir, { recursive: true });
 
-const code = playwright(CAPTURE_PROJECTS, { E2E_CAPTURE_DIR: afterDir });
+const code = playwright(CAPTURE_PROJECTS, {
+  E2E_CAPTURE_DIR: afterDir,
+  E2E_GATES: 'record',
+});
 const after = new Map(
   readRecords(afterDir).map((r) => [`${r.variant}/${r.id}`, r]),
 );
@@ -64,9 +70,14 @@ for (const state of manifest.states) {
       axeBefore: b.axe,
     };
     if (!a) {
-      rows.push({ ...row, status: 'missing', ratio: 1 });
+      rows.push({
+        ...row,
+        status: captureStatus({ captured: false, threshold }),
+        ratio: 1,
+      });
       continue;
     }
+    const removed = a.removed ? { note: `removed: ${a.removed}` } : {};
     const imgB = readPng(path.join(beforeDir, b.image));
     const imgA = readPng(path.join(afterDir, a.image));
     const afterRel = path.relative(out, path.join(afterDir, a.image));
@@ -76,9 +87,15 @@ for (const state of manifest.states) {
         ...row,
         after: afterRel,
         axeAfter,
-        status: 'changed',
+        status: captureStatus({
+          captured: true,
+          removed: a.removed,
+          sizeDiffers: true,
+          threshold,
+        }),
         ratio: 1,
         note: `size ${imgB.width}×${imgB.height} → ${imgA.width}×${imgA.height}`,
+        ...removed,
       });
       continue;
     }
@@ -93,7 +110,13 @@ for (const state of manifest.states) {
       axeAfter,
       changedPixels: d.changed,
       ratio: d.ratio,
-      status: d.ratio > threshold ? 'changed' : 'unchanged',
+      status: captureStatus({
+        captured: true,
+        removed: a.removed,
+        ratio: d.ratio,
+        threshold,
+      }),
+      ...removed,
     });
   }
 }
@@ -105,7 +128,9 @@ const known = new Set(
 );
 const added = [...after.keys()].filter((k) => !known.has(k));
 
-const changed = rows.filter((r) => r.status !== 'unchanged');
+const changed = rows.filter(
+  (r) => r.status !== 'unchanged' && r.status !== 'removed',
+);
 const report = {
   kind: 'pips-compare-before',
   comparedAt: new Date().toISOString(),
@@ -121,6 +146,7 @@ const report = {
     unchanged: rows.length - changed.length,
     changed: changed.filter((r) => r.status === 'changed').length,
     missing: changed.filter((r) => r.status === 'missing').length,
+    removed: rows.filter((r) => r.status === 'removed').length,
     newStates: added.length,
   },
   captureExitCode: code,
@@ -132,7 +158,7 @@ writeFileSync(path.join(out, 'index.html'), html(report));
 
 const s = report.summary;
 console.log(
-  `\nCompared ${s.compared} captures with the before set: ${s.unchanged} unchanged, ${s.changed} changed, ${s.missing} missing, ${s.newStates} new.`,
+  `\nCompared ${s.compared} captures with the before set: ${s.unchanged} unchanged, ${s.changed} changed, ${s.missing} missing, ${s.removed} removed, ${s.newStates} new.`,
 );
 for (const r of changed)
   console.log(
@@ -163,9 +189,9 @@ function html(r) {
   const s = r.summary;
   const body = `<h1>Compared with the before set</h1>
 <p>${esc(r.app)}, ${esc(r.comparedAt)}. Before set: ${esc(r.beforeSet.app)}, recorded ${esc(r.beforeSet.recordedAt)}.</p>
-<p><strong>${s.compared} captures: ${s.unchanged} unchanged, ${s.changed} changed, ${s.missing} missing</strong>${s.newStates ? `, ${s.newStates} new (${esc(r.newStates.join(', '))})` : ''}.
+<p><strong>${s.compared} captures: ${s.unchanged} unchanged, ${s.changed} changed, ${s.missing} missing, ${s.removed} removed</strong>${s.newStates ? `, ${s.newStates} new (${esc(r.newStates.join(', '))})` : ''}.
 A capture counts as changed above ${pct(r.threshold.changedPixelRatio)} changed pixels (pixelmatch colour tolerance ${r.threshold.pixelmatchColourTolerance}).</p>
-<div class="filters">${filterSelect('status', 'Status', ['changed', 'missing', 'unchanged'])}${filterSelect('variant', 'Size and theme', VARIANTS)}<span class="muted"><span id="count"></span> shown</span></div>
+<div class="filters">${filterSelect('status', 'Status', ['changed', 'missing', 'removed', 'unchanged'])}${filterSelect('variant', 'Size and theme', VARIANTS)}<span class="muted"><span id="count"></span> shown</span></div>
 <div class="wide"><div class="grid">${cards}</div></div>`;
   return page('PIPS! compared with the before set', body, FILTER_SCRIPT);
 }

@@ -16,8 +16,6 @@ import type {
   InternshipService,
   MarkdownService,
   OpenGraphService,
-  ProgrammeWindowService,
-  ReactionService,
   TestimoniService,
   UnsubscribeService,
   UserFinderService,
@@ -89,9 +87,6 @@ function listInfos(infos: Info[], q: URLSearchParams): Info[] {
 export const defaultHandlers: Record<string, Handler> = {
   // Session and profile
   'GET /api/me': signedIn(({ db }) => ok<R<AuthService['getMe']>>(db.me!)),
-  'GET /api/user': signedIn(({ db }) =>
-    ok<R<UserProfileService['getUserProfile']>>(db.me!),
-  ),
   'GET /api/user/academic': signedIn(({ db }) =>
     ok<R<UserProfileService['getUserAcademic']>>(db.academic),
   ),
@@ -105,13 +100,6 @@ export const defaultHandlers: Record<string, Handler> = {
     ok<R<UnsubscribeService['getListUserUnsubscribeCategory']>>({
       userId: db.me!.id,
       categoryId: db.mutedCategoryIds,
-    }),
-  ),
-  'GET /api/unsubscribe/category/:categoryId': signedIn(({ db, params }) =>
-    ok<R<UnsubscribeService['getUserUnsubscribeCategory']>>({
-      userId: db.me!.id,
-      categoryId: params.categoryId,
-      unsubscribed: db.mutedCategoryIds.includes(params.categoryId),
     }),
   ),
 
@@ -140,24 +128,6 @@ export const defaultHandlers: Record<string, Handler> = {
     const list = [...(db.comments[query.get('infoId') ?? ''] ?? [])];
     if (query.get('sort') !== 'oldest') list.reverse();
     return ok<R<CommentService['getCommentsList']>>({ comment: list });
-  }),
-  'GET /api/comment/:commentId': signedIn(
-    ({ db, params }) =>
-      ok<R<CommentService['getCommentsById']> | undefined>(
-        Object.values(db.comments)
-          .flat()
-          .find((c) => c.id === params.commentId),
-      ) ?? notFound('comment'),
-  ),
-  'GET /api/reaction': signedIn(({ db, query }) => {
-    const info = db.infos.find((i) => i.id === query.get('infoId'));
-    if (info) return ok<R<ReactionService['getReactions']>>(info.reactions);
-    const comment = Object.values(db.comments)
-      .flat()
-      .find((c) => c.id === query.get('commentId'));
-    return ok<R<ReactionService['getReactions']>>(
-      comment?.reactions ?? { totalReactions: 0, reactionsCount: [] },
-    );
   }),
   'GET /api/open-graph': signedIn(({ query }) => {
     const url = query.get('url') ?? '';
@@ -194,21 +164,11 @@ export const defaultHandlers: Record<string, Handler> = {
       }),
     );
   }),
-  'GET /api/calendar/event': signedIn(({ db, query }) =>
-    ok<R<CalendarService['getCalendarEvent']>>(
-      db.events.filter(
-        (e) => !query.get('category') || e.category === query.get('category'),
-      ),
-    ),
-  ),
   'GET /api/calendar/event/:eventId': signedIn(
     ({ db, params }) =>
       ok<R<CalendarService['getCalendarEventById']> | undefined>(
         db.events.find((e) => e.id === params.eventId),
       ) ?? notFound('event'),
-  ),
-  'GET /api/calendar/group': signedIn(({ db }) =>
-    ok<R<CalendarService['getCalendarGroup']>>(db.calendarGroups),
   ),
 
   // Courses
@@ -232,9 +192,6 @@ export const defaultHandlers: Record<string, Handler> = {
       ok<R<CourseService['getCourseById']> | undefined>(
         db.courses.find((c) => c.id === params.courseId),
       ) ?? notFound('course'),
-  ),
-  'GET /api/course/take': signedIn(({ db }) =>
-    ok<R<CourseService['getUserCourse']>>(db.myCourses),
   ),
   'GET /api/course/take/current': signedIn(({ db }) =>
     ok<R<CourseService['getCurrentUserCourse']>>(db.myCourses),
@@ -332,13 +289,6 @@ export const defaultHandlers: Record<string, Handler> = {
         }))
         .filter((r) => r.unreadCount > 0),
     ),
-  ),
-
-  // Programme windows: the API answers only the windows open now for this member, so `db.windows` holds just those.
-  'GET /api/programme-windows': signedIn(({ db }) =>
-    ok<R<ProgrammeWindowService['listProgrammeWindows']>>({
-      windows: db.windows,
-    }),
   ),
 
   // Forms

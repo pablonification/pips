@@ -1,4 +1,5 @@
-// `pnpm --filter web e2e:before`: records the "before" set of today's interface.
+// `pnpm --filter web e2e:before`: records the "before" set of the interface before the redesign (done once, on
+// 2026-10-12; the set is a record and is never updated).
 //
 // Captures every state in e2e/capture/states.ts at phone and desktop size, light and dark, with axe and the other
 // quality-gate measurements, then writes manifest.json and an index.html gallery to ops/redesign/before-set/.
@@ -42,7 +43,10 @@ if (previous && !resume && process.env.E2E_BEFORE_OVERWRITE !== '1') {
 if (!resume) rmSync(dir, { recursive: true, force: true });
 mkdirSync(dir, { recursive: true });
 
-const code = playwright(CAPTURE_PROJECTS, { E2E_CAPTURE_DIR: dir });
+const code = playwright(CAPTURE_PROJECTS, {
+  E2E_CAPTURE_DIR: dir,
+  E2E_GATES: 'record',
+});
 const records = readRecords(dir);
 const manifest = buildManifest(records, code === 0, resume ? previous : null);
 writeFileSync(

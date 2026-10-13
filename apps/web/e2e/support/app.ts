@@ -1,7 +1,7 @@
-/** Small helpers for driving today's app; the redesign replaces them along with the screens. */
+/** Small helpers for driving the app in journeys, captures and fidelity runs. */
 import type { Page, TestInfo } from '@playwright/test';
 
-/** A touch layout below 1024 px (phone or tablet), where today's screens show their phone layout. */
+/** A touch layout below 1024 px (phone or tablet): the tab bar or rail, no sidebar. */
 export const isPhone = (testInfo: TestInfo) =>
   /phone|tablet/.test(testInfo.project.name);
 
@@ -13,22 +13,9 @@ export const layoutOf = (testInfo: TestInfo): 'phone' | 'tablet' | 'desktop' =>
       ? 'phone'
       : 'desktop';
 
-/** The visible copy of a text: today's app renders its phone and desktop layouts side by side and hides one. */
-export const visibleText = (page: Page, text: string | RegExp) =>
-  page.getByText(text).locator('visible=true').first();
-
-/** The page's visible text (hidden layouts excluded), for text split across elements. */
+/** The page's rendered text (`innerText`, so hidden elements are left out), for text split across elements. */
 export const pageText = (page: Page) =>
   page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
-
-/** The Timeline page's title: "Timeline" on phones, the HMIF banner heading on desktop. */
-export const timelineTitle = (page: Page) =>
-  page
-    .getByRole('heading', {
-      name: /^(Timeline|Himpunan Mahasiswa Informatika ITB)$/,
-    })
-    .locator('visible=true')
-    .first();
 
 /**
  * The shell's way to a destination, whichever layout shows it (P0-C): a tab, a rail or sidebar item, and for
@@ -39,10 +26,7 @@ export const navLink = (
   name: 'Beranda' | 'Pengumuman' | 'Kalender' | 'Layanan' | 'Profil',
 ) =>
   name === 'Profil'
-    ? page
-        .getByRole('link', { name: /^Profil, |Profil$/ })
-        .locator('visible=true')
-        .first()
+    ? page.getByRole('link', { name: /^Profil, |Profil$/ })
     : page
         .getByRole('navigation', { name: 'Navigasi utama' })
         .getByRole('link', { name: new RegExp(`^${name}`) });
@@ -68,7 +52,7 @@ export async function settle(page: Page): Promise<void> {
       );
     await frames();
     // Paint every image again now that it is decoded. Chromium sometimes draws an image before its decode has
-    // finished and keeps that raster; an SVG at a fractional position (Timeline's clear button) then lands half a
+    // finished and keeps that raster; an SVG at a fractional position (a search field's clear button) then lands half a
     // pixel apart from one run to the next.
     const images = [...document.images].map((img) => ({
       img,

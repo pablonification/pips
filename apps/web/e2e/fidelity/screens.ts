@@ -5,14 +5,13 @@
  * sheet, a popover, a dialog), and what is visible when it is ready. Screens without an entry show as "not built
  * yet" in the fidelity report. `layouts` limits an entry to some layouts when the others differ.
  *
- * Today's entries point at today's app, where an equivalent screen exists, so the report shows them as
- * "different". The redesign replaces them (P0-B changes the URLs).
+ * Every entry points at the redesigned app (C1 checked none is left from today's).
  */
 import type { BrowserContext, Locator, Page } from '@playwright/test';
-import { visibleText } from '../support/app';
 import type { ApiMock } from '../support/mock';
 import { fillPixelUpTo } from '../support/flows';
 import * as writes from '../support/writes';
+import { inFeed } from '../support/pengumuman';
 
 export interface FidelityScreen {
   path: string;
@@ -34,7 +33,7 @@ const P2_TITLE = 'Cari tim Gemastik XIX? Isi form ini';
 /** P1-B: the feed; on desktop with p1 beside it, not marked read. */
 const pengumumanFeed: FidelityScreen = {
   path: '/pengumuman',
-  ready: (p) => visibleText(p, P1_TITLE),
+  ready: (p) => inFeed(p, P1_TITLE),
 };
 
 /**
@@ -70,7 +69,6 @@ export function liveAsLocked(api: ApiMock) {
  */
 export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
   {
-    // Today's app (before the redesign).
     // P1-C: Profil, Mata kuliahku and Notifikasi, redesigned in place.
     'anggota-profil': {
       path: '/profil',
@@ -301,7 +299,7 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
     'anggota-ov-filter': {
       path: '/pengumuman',
       act: async (p) => {
-        await visibleText(p, P1_TITLE).waitFor();
+        await inFeed(p, P1_TITLE).waitFor();
         await p.getByRole('button', { name: /^Kategori/ }).click();
       },
       ready: (p) =>
@@ -310,7 +308,7 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
     'anggota-pop-react': {
       path: '/pengumuman',
       act: async (p) => {
-        await visibleText(p, P1_TITLE).waitFor();
+        await inFeed(p, P1_TITLE).waitFor();
         const desk = (p.viewportSize()?.width ?? 0) >= 1024;
         const scope = desk
           ? p.locator('article.g-detail')
@@ -325,7 +323,7 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
     'anggota-pop-menu': {
       path: '/pengumuman',
       act: async (p) => {
-        await visibleText(p, P1_TITLE).waitFor();
+        await inFeed(p, P1_TITLE).waitFor();
         const desk = (p.viewportSize()?.width ?? 0) >= 1024;
         await p
           .getByRole('button', {

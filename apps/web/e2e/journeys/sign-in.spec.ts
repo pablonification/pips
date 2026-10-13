@@ -90,6 +90,21 @@ test.describe('signed out', () => {
     await expect(page).toHaveURL(/\/pengumuman\/p1$/);
   });
 
+  // C1: the other old path that comes from outside the app, the Curhat reply push (apps/api websocket/setup.ts).
+  test('a Curhat reply push to today’s /home/curhat comes back to Curhat after sign-in', async ({
+    page,
+    api,
+  }) => {
+    await fakeGoogle(page.context());
+    await page.goto('/home/curhat');
+    await expect(page).toHaveURL(/\/login\?redirect=%2Flayanan%2Fcurhat$/);
+    api.on('POST /api/auth/login/accesstoken', writes.loginAccessToken);
+    await googleReady(page);
+    await masuk(page).click();
+    await expect(page).toHaveURL(/\/layanan\/curhat$/);
+    await expect(page).toHaveTitle('Curhat Yuk! · PIPS!');
+  });
+
   test.describe('with notifications on and courses set', () => {
     test.use({ push: 'on' });
 
@@ -245,7 +260,7 @@ test.describe('signed out', () => {
       (user) => localStorage.setItem('user', JSON.stringify(user)),
       db.me,
     );
-    await page.goto('/home');
+    await page.goto('/');
     await expect(page).toHaveURL(/\/login$/);
   });
 

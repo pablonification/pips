@@ -1,4 +1,4 @@
-import { greeting, inMain, navLink, visibleText } from '../support/app';
+import { greeting, inMain, navLink } from '../support/app';
 import { reply } from '../support/mock';
 import { strictAudit } from '../support/strict';
 import { expect, test } from '../support/test';
@@ -121,7 +121,7 @@ test('a 401 after a visit leaves nothing of Nadia on the device, not even a seco
     .poll(async () => (await memberStorage(page)).userAcademic)
     .not.toBeNull();
   await page.goto('/');
-  await expect(visibleText(page, 'Kuis 2')).toBeVisible();
+  await expect(page.getByText('Kuis 2')).toBeVisible();
   await expectCacheWritten(page);
   api.on('GET /api/me', reply.status(401, { error: 'Unauthorized' }));
   await page.reload();
@@ -200,12 +200,12 @@ test('the first page of announcements and the agenda come back from the device w
   api,
 }) => {
   await page.goto('/');
-  await expect(visibleText(page, 'Kuis 2')).toBeVisible();
+  await expect(page.getByText('Kuis 2')).toBeVisible();
   // The persisted cache is written at most once a second.
   await expectCacheWritten(page);
   api.on('GET /api/calendar/me', reply.hang());
   await page.reload();
-  await expect(visibleText(page, 'Kuis 2')).toBeVisible();
+  await expect(page.getByText('Kuis 2')).toBeVisible();
   const stored = ((await storedCache(page))?.clientState.queries ?? []).map(
     (q) => String(q.queryKey[0]),
   );

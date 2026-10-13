@@ -1,11 +1,5 @@
-/** Steps through today's app shared by journeys and captures. */
+/** Steps through the app shared by journeys and captures. */
 import type { Page } from '@playwright/test';
-
-/** A question of the PIXEL form by its label (P2-A: every field is labelled; groups are fieldsets with a legend). */
-export const formField = (page: Page, question: string) =>
-  page.locator('[data-qb]').filter({
-    has: page.locator('label, legend').filter({ hasText: question }),
-  });
 
 /** The PIXEL form's answers used everywhere, one function per section. */
 export const pixelSections: ((page: Page) => Promise<void>)[] = [
