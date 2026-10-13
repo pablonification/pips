@@ -5,6 +5,7 @@
  */
 import {
   useCallback,
+  useEffect,
   useRef,
   useState,
   type FormEvent,
@@ -234,7 +235,11 @@ function CommentsSection({ info, level }: { info: Info; level: 'h2' | 'h3' }) {
       {list.map((c) => (
         <CommentItem key={c.id} infoId={info.id} comment={c} field={field} />
       ))}
-      <CommentForm infoId={info.id} field={field} />
+      <CommentForm
+        infoId={info.id}
+        field={field}
+        count={comments?.length ?? 0}
+      />
     </section>
   );
 }
@@ -365,12 +370,19 @@ function CommentItem({
 function CommentForm({
   infoId,
   field,
+  count,
 }: {
   infoId: string;
   field: RefObject<HTMLInputElement | null>;
+  count: number;
 }) {
   const me = useSession();
   const [text, setText] = useState('');
+  // A sent comment lands above the field and pushes it down: keep the focused field in view.
+  useEffect(() => {
+    if (document.activeElement === field.current)
+      field.current?.scrollIntoView({ block: 'nearest' });
+  }, [count, field]);
   const post = usePostComment(infoId);
   const send = (content: string) =>
     post.mutate(content, {
