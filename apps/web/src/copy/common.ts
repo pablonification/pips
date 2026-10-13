@@ -88,6 +88,8 @@ export const common = {
     statusIsi: 'Isi sekarang',
     statusBelumDibuka: 'Belum dibuka',
     statusSudahDiisi: 'Sudah diisi',
+    // P2-A: a closed form (new copy, OPEN-QUESTIONS D5).
+    statusDitutup: 'Ditutup',
     // Under a course's credits (garis.css `.sks`).
     sks: 'SKS',
   },

@@ -247,8 +247,10 @@ test.describe('back', () => {
 test.describe('focused flows', () => {
   for (const [path, title] of [
     ['/pengumuman/tulis', 'Buat pengumuman'],
-    ['/layanan/form/pixel', 'Form'],
+    // P2-A: the form's own title, as the prototype's phone top bar shows it (usePageTitle).
+    ['/layanan/form/pixel', 'Form Analisis Kondisi PIXEL'],
     ['/layanan/curhat/r1', 'Ruang'],
+    ['/layanan/sparta', 'Magang SPARTA'],
   ] as const) {
     test(`${path} hides the tab bar and rail and keeps back @phone-only`, async ({
       page,
@@ -280,9 +282,10 @@ test.describe('today’s screens inside the shell', () => {
   test('a screen that fills the window fits between the bars, its own scrolling intact', async ({
     page,
   }) => {
-    await page.goto('/layanan/form');
+    // Info Lomba is still today's screen (h-screen); Form was until P2-A replaced it.
+    await page.goto('/layanan/lomba');
     await expect(
-      page.getByRole('main').getByText('Form Analisis Kondisi PIXEL').first(),
+      page.getByRole('main').getByText('Find IT! 2026').first(),
     ).toBeVisible();
     const overflow = await page
       .locator('[data-scroll-restoration-id="isi"]')

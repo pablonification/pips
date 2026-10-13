@@ -1,5 +1,5 @@
 import postgres from 'postgres';
-import { FormQuestion, FormSection } from '~/db/schema';
+import { findMissingRequiredQuestions } from '~/lib/form-answers';
 import {
   formSectionsVisible,
   formStatus,
@@ -216,44 +216,3 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
 }
 
 export const formRouter = createFormRouter();
-
-/**
- * Returns labels of required questions that were not answered. A question is
- * only required if it doesn't have a `dependsOn`, or its `dependsOn`
- * condition is satisfied by the submitted answers (see plan's judgment call
- * on question #17 — conditionally-required questions aren't required when
- * N/A).
- */
-function findMissingRequiredQuestions(
-  sections: FormSection[],
-  answers: Array<{ questionId: string; answer: string | string[] }>,
-): string[] {
-  const answerMap = new Map(answers.map((a) => [a.questionId, a.answer]));
-  const missing: string[] = [];
-
-  const isAnswered = (questionId: string) => {
-    const answer = answerMap.get(questionId);
-    if (answer === undefined) return false;
-    return Array.isArray(answer) ? answer.length > 0 : answer.trim() !== '';
-  };
-
-  const isRequired = (question: FormQuestion) => {
-    if (question.optional) return false;
-    if (!question.dependsOn) return true;
-    const dependsAnswer = answerMap.get(question.dependsOn.questionId);
-    if (Array.isArray(dependsAnswer)) {
-      return dependsAnswer.includes(question.dependsOn.value);
-    }
-    return dependsAnswer === question.dependsOn.value;
-  };
-
-  for (const section of sections) {
-    for (const question of section.questions) {
-      if (isRequired(question) && !isAnswered(question.id)) {
-        missing.push(question.label);
-      }
-    }
-  }
-
-  return missing;
-}
