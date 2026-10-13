@@ -246,6 +246,10 @@ test('no way in while closed: not in search; the old address still lands here', 
   page,
 }) => {
   await page.goto('/layanan/form');
+  // The shortcut listens once the shell has rendered: a key pressed before that is lost (seen on tablet-dark).
+  await expect(
+    main(page).getByRole('link', { name: /Form Analisis Kondisi PIXEL/ }),
+  ).toBeVisible();
   await page.keyboard.press('ControlOrMeta+k');
   const palette = page.getByRole('dialog', { name: 'Pencarian global' });
   await palette.getByRole('combobox').fill('sparta');
