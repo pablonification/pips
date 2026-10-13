@@ -239,8 +239,11 @@ export const createInfo: Handler = ({ db, body }) => {
     forGroups?: string[];
     mediaUrls?: string[];
   };
-  const cats = b.forCategories.map((id) => db.categories.find((c) => c.id === id));
-  if (cats.some((c) => !c)) return reply.status(400, { error: 'Unknown category' });
+  const cats = b.forCategories.map((id) =>
+    db.categories.find((c) => c.id === id),
+  );
+  if (cats.some((c) => !c))
+    return reply.status(400, { error: 'Unknown category' });
   if (cats.some((c) => !db.postableCategories.some((p) => p.id === c!.id)))
     return reply.status(403, { error: 'You may not post in this category' });
   const me = db.me!;
@@ -265,7 +268,11 @@ export const createInfo: Handler = ({ db, body }) => {
         createdAt: NOW,
       },
     })),
-    infoCategories: cats.map((c) => ({ infoId: id, categoryId: c!.id, category: c! })),
+    infoCategories: cats.map((c) => ({
+      infoId: id,
+      categoryId: c!.id,
+      category: c!,
+    })),
     infoCourses: [],
     infoAngkatan: (b.forAngkatan ?? []).map((angkatanId) => ({
       infoId: id,
@@ -287,7 +294,11 @@ export const createInfo: Handler = ({ db, body }) => {
   };
   db.infos.unshift(info);
   db.comments[id] = [];
-  const { creator: _c, comments: _n, reactions: _r, ...created } = info;
+  // POST /api/info answers the post without its author, comment count or reactions.
+  const created: Partial<Info> = { ...info };
+  delete created.creator;
+  delete created.comments;
+  delete created.reactions;
   return created;
 };
 
@@ -305,9 +316,12 @@ export const deleteInfo: Handler = ({ db, params }) => {
 export const renotify: Handler = ({ db, params }) => {
   const info = db.infos.find((i) => i.id === params.infoId);
   if (!info) return reply.status(404, { error: 'Info not found' });
-  if (info.creatorId !== db.me!.id) return reply.status(403, { error: 'Forbidden' });
+  if (info.creatorId !== db.me!.id)
+    return reply.status(403, { error: 'Forbidden' });
   if (Date.parse(NOW) - Date.parse(info.lastNotifiedAt) < 3 * 36e5)
-    return reply.status(400, { error: 'Info was notified less than 3 hours ago' });
+    return reply.status(400, {
+      error: 'Info was notified less than 3 hours ago',
+    });
   info.lastNotifiedAt = NOW;
   info.canNotify = false;
   return {};
@@ -319,7 +333,9 @@ export const deleteComment: Handler = ({ db, params }) => {
   if (!c) return reply.status(404, { error: 'Comment not found' });
   if (c.creatorId !== db.me!.id && !isModerator(db))
     return reply.status(403, { error: 'Forbidden' });
-  db.comments[c.repliedInfoId] = db.comments[c.repliedInfoId].filter((x) => x.id !== c.id);
+  db.comments[c.repliedInfoId] = db.comments[c.repliedInfoId].filter(
+    (x) => x.id !== c.id,
+  );
   const info = db.infos.find((i) => i.id === c.repliedInfoId);
   if (info) info.comments = Math.max(0, info.comments - 1);
   return c;
@@ -330,7 +346,8 @@ export const unreact: Handler = ({ db, params }) => {
   const target = params.commentId
     ? allComments(db).find((c) => c.id === params.commentId)
     : db.infos.find((i) => i.id === params.infoId);
-  if (!target?.reactions.userReaction) return reply.status(404, { error: 'Reaction not found' });
+  if (!target?.reactions.userReaction)
+    return reply.status(404, { error: 'Reaction not found' });
   target.reactions = setReaction(target.reactions, null);
   return {};
 };
