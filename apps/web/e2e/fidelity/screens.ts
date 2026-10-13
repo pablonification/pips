@@ -11,6 +11,7 @@
 import type { BrowserContext, Locator, Page } from '@playwright/test';
 import { visibleText } from '../support/app';
 import type { ApiMock } from '../support/mock';
+import { fillPixelUpTo } from '../support/flows';
 import * as writes from '../support/writes';
 
 export interface FidelityScreen {
@@ -26,83 +27,108 @@ export interface FidelityScreen {
 
 type Key = `anggota-${string}` | `pengurus-${string}`;
 
-export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
-  // Today's app (before the redesign).
-  'anggota-beranda': { path: '/', ready: (p) => visibleText(p, 'Kuis 2') },
-  'anggota-pengumuman': {
-    path: '/pengumuman',
-    ready: (p) => visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar'),
-  },
-  'anggota-post': {
-    path: '/pengumuman/p1',
-    mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
-    ready: (p) => visibleText(p, 'Kak, IF2123 K01 sama K02 ruangnya beda ya?'),
-  },
-  'anggota-kalender': {
-    path: '/kalender',
-    ready: (p) => visibleText(p, 'Sharing Session: Magang di Startup'),
-  },
-  'anggota-curhat': {
-    path: '/layanan/curhat',
-    ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
-  },
-  'anggota-form': {
-    path: '/layanan/form',
-    ready: (p) => visibleText(p, 'Form Analisis Kondisi PIXEL'),
-  },
-  'anggota-profil': {
-    path: '/profil',
-    ready: (p) =>
-      p
-        .getByRole('listitem')
-        .filter({ hasText: '13525045' })
-        .locator('visible=true')
-        .first(),
-  },
-  'anggota-matkul': {
-    path: '/profil/matkul',
-    ready: (p) => p.getByText('Jumlah SKS').locator('visible=true').first(),
-  },
-  'anggota-notif': {
-    path: '/profil/notifikasi',
-    ready: (p) => p.getByRole('switch').locator('visible=true').last(),
-  },
-  'pengurus-kelola': {
-    path: '/kelola',
-    ready: (p) => p.getByRole('link', { name: /Data SPARTA Magang/ }),
-  },
-  'pengurus-live': {
-    path: '/kelola/live/pixel',
-    ready: (p) => visibleText(p, 'Halaman 1 dari 8'),
-  },
-  'pengurus-form-empty': {
-    path: '/layanan/form',
-    ready: (p) => visibleText(p, 'Belum ada form untuk kamu'),
-  },
-  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba (the states garis-check.mjs ROUTES gives them).
-  'anggota-dingdong': {
-    path: '/layanan/dingdong',
-    ready: (p) => p.getByRole('link', { name: /^IF2180 Socio-informatika/ }),
-  },
-  'anggota-testi-list': {
-    path: '/layanan/testi/teknik-informatika/3',
-    // Every row's count has arrived.
-    ready: (p) =>
-      p
-        .getByRole('main')
-        .getByRole('link', { name: /^IF2150 .* 1 testimoni$/ }),
-  },
-  'anggota-testi-course': {
-    path: '/layanan/testi/teknik-informatika/3/course-IF2110',
-    ready: (p) => p.getByRole('article', { name: 'Testimoni 1 dari 3' }),
-  },
-  'anggota-nim': {
-    path: '/layanan/nim',
-    ready: (p) =>
-      p.getByRole('status').filter({ hasText: 'Ketik minimal 3 huruf' }),
-  },
-  'anggota-lomba': {
-    path: '/layanan/lomba',
-    ready: (p) => p.getByRole('heading', { name: 'Find IT! 2026' }),
-  },
-};
+/**
+ * One entry, or several when layouts differ (each with its `layouts`): `anggota-ov-confirm` is the sign-out sheet on
+ * phones and tablets (P1-C) and the form's send dialog on desktop (P2-A).
+ */
+export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
+  {
+    // Today's app (before the redesign).
+    'anggota-beranda': { path: '/', ready: (p) => visibleText(p, 'Kuis 2') },
+    'anggota-pengumuman': {
+      path: '/pengumuman',
+      ready: (p) => visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar'),
+    },
+    'anggota-post': {
+      path: '/pengumuman/p1',
+      mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
+      ready: (p) =>
+        visibleText(p, 'Kak, IF2123 K01 sama K02 ruangnya beda ya?'),
+    },
+    'anggota-kalender': {
+      path: '/kalender',
+      ready: (p) => visibleText(p, 'Sharing Session: Magang di Startup'),
+    },
+    'anggota-curhat': {
+      path: '/layanan/curhat',
+      ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
+    },
+    'anggota-profil': {
+      path: '/profil',
+      ready: (p) =>
+        p
+          .getByRole('listitem')
+          .filter({ hasText: '13525045' })
+          .locator('visible=true')
+          .first(),
+    },
+    'anggota-matkul': {
+      path: '/profil/matkul',
+      ready: (p) => p.getByText('Jumlah SKS').locator('visible=true').first(),
+    },
+    'anggota-notif': {
+      path: '/profil/notifikasi',
+      ready: (p) => p.getByRole('switch').locator('visible=true').last(),
+    },
+    'pengurus-kelola': {
+      path: '/kelola',
+      ready: (p) => p.getByRole('link', { name: /Data SPARTA Magang/ }),
+    },
+    'pengurus-live': {
+      path: '/kelola/live/pixel',
+      ready: (p) => visibleText(p, 'Halaman 1 dari 8'),
+    },
+    // P2-A: Form (PIXEL).
+    'anggota-form': {
+      path: '/layanan/form',
+      ready: (p) =>
+        p.getByRole('main').getByRole('link', { name: /Form Analisis/ }),
+    },
+    'anggota-fill': {
+      path: '/layanan/form/pixel',
+      ready: (p) =>
+        p.getByRole('main').getByRole('heading', { name: 'Identitas' }),
+    },
+    'pengurus-form-empty': {
+      path: '/layanan/form',
+      ready: (p) => p.getByRole('main').getByText('Belum ada form untukmu'),
+    },
+    // The send dialog on desktop, over the check page (the locked capture has Profil behind it).
+    'anggota-ov-confirm': [
+      {
+        path: '/layanan/form/pixel',
+        layouts: ['desk'],
+        act: async (p) => {
+          await fillPixelUpTo(p, 5);
+          await p.getByRole('button', { name: 'Kirim jawaban' }).click();
+        },
+        ready: (p) => p.getByRole('alertdialog', { name: 'Kirim jawaban?' }),
+      },
+    ],
+    // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba (the states garis-check.mjs ROUTES gives them).
+    'anggota-dingdong': {
+      path: '/layanan/dingdong',
+      ready: (p) => p.getByRole('link', { name: /^IF2180 Socio-informatika/ }),
+    },
+    'anggota-testi-list': {
+      path: '/layanan/testi/teknik-informatika/3',
+      // Every row's count has arrived.
+      ready: (p) =>
+        p
+          .getByRole('main')
+          .getByRole('link', { name: /^IF2150 .* 1 testimoni$/ }),
+    },
+    'anggota-testi-course': {
+      path: '/layanan/testi/teknik-informatika/3/course-IF2110',
+      ready: (p) => p.getByRole('article', { name: 'Testimoni 1 dari 3' }),
+    },
+    'anggota-nim': {
+      path: '/layanan/nim',
+      ready: (p) =>
+        p.getByRole('status').filter({ hasText: 'Ketik minimal 3 huruf' }),
+    },
+    'anggota-lomba': {
+      path: '/layanan/lomba',
+      ready: (p) => p.getByRole('heading', { name: 'Find IT! 2026' }),
+    },
+  };

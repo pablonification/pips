@@ -24,6 +24,13 @@ export const GARIS_FILES = [
   'src/lib/shell/**/*.{ts,tsx}',
   // P1-C: push, Profil, Layanan, sign-in and first run.
   'src/components/push/**/*.{ts,tsx}',
+  // P2-A: Form and Magang SPARTA.
+  'src/components/form/**/*.{ts,tsx}',
+  'src/lib/form/**/*.{ts,tsx}',
+  'src/routes/_app/_left-navbar/layanan/form/index.tsx',
+  'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
+  'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
+  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba.
   'src/features/**/*.{ts,tsx}',
 ];
 

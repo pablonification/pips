@@ -355,14 +355,18 @@ export const STATES: CaptureState[] = [
     id: 'form-list',
     title: 'Form list',
     path: '/layanan/form',
-    ready: (p) => heading(p, 'Form Analisis Kondisi PIXEL', 2),
+    // P2-A: the card is a link named by its title.
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .getByRole('link', { name: /Form Analisis Kondisi PIXEL/ }),
   },
   {
     id: 'form-empty',
     title: 'Form list, nothing to fill (Raka)',
     persona: 'pengurus',
     path: '/layanan/form',
-    ready: (p) => visibleText(p, 'Belum ada form untuk kamu'),
+    ready: (p) => visibleText(p, 'Belum ada form untukmu'),
   },
   ...[1, 2, 3, 4, 5].map((n): CaptureState => ({
     id: `form-step-${n}`,
@@ -376,7 +380,7 @@ export const STATES: CaptureState[] = [
     id: 'form-required',
     title: 'PIXEL form, required questions missing',
     path: '/layanan/form/pixel',
-    act: async (p) => p.getByRole('button', { name: 'Selanjutnya' }).click(),
+    act: async (p) => p.getByRole('button', { name: 'Lanjut' }).click(),
     ready: (p) => p.getByText('Pertanyaan ini wajib diisi').first(),
   },
   {
@@ -384,10 +388,11 @@ export const STATES: CaptureState[] = [
     title: 'PIXEL form, confirm sending',
     path: '/layanan/form/pixel',
     act: async (p) => {
+      // P2-A: after the five sections comes the check page, which sends.
       await fillPixelUpTo(p, 5);
-      await p.getByRole('button', { name: 'Kirim Jawaban' }).click();
+      await p.getByRole('button', { name: 'Kirim jawaban' }).click();
     },
-    ready: (p) => p.getByRole('dialog', { name: 'Kirim Jawaban?' }),
+    ready: (p) => p.getByRole('alertdialog', { name: 'Kirim jawaban?' }),
   },
   {
     id: 'form-done',
@@ -396,8 +401,8 @@ export const STATES: CaptureState[] = [
     mock: (api) => api.on('POST /api/form/:formId/response', writes.submitForm),
     act: async (p) => {
       await fillPixelUpTo(p, 5);
-      await p.getByRole('button', { name: 'Kirim Jawaban' }).click();
-      await p.getByRole('button', { name: 'Ya, Kirim' }).click();
+      await p.getByRole('button', { name: 'Kirim jawaban' }).click();
+      await p.getByRole('button', { name: 'Kirim', exact: true }).click();
       // Let the success toast leave so the capture shows the page itself. Wait for it to appear first: waiting
       // only for "hidden" passed at once while the request was still running, and the toast then showed up in
       // some captures and not in others.

@@ -2,6 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react';
 import { IconCentang } from '~/components/icons/centang';
 import { IconForm } from '~/components/icons/form';
 import { IconJam } from '~/components/icons/jam';
+import { IconKunci } from '~/components/icons/kunci';
 import { cn } from '~/lib/utils';
 import { common } from '~/copy/common';
 
@@ -33,9 +34,12 @@ export function Tag({
   );
 }
 
-export type FormStatus = 'open' | 'soon' | 'done';
+export type FormStatus = 'open' | 'soon' | 'done' | 'closed';
 
-/** A form's status, always icon + word + colour: Isi sekarang, Belum dibuka, Sudah diisi (garis/ui.js `statusTag`). */
+/**
+ * A form's status, always icon + word + colour: Isi sekarang, Belum dibuka, Sudah diisi (garis/ui.js `statusTag`), and
+ * Ditutup (P2-A; no locked design: the lock icon on the plain tag, like Belum dibuka).
+ */
 export function StatusTag({
   status,
   className,
@@ -51,6 +55,12 @@ export function StatusTag({
         className={className}
       >
         {common.komponen.statusSudahDiisi}
+      </Tag>
+    );
+  if (status === 'closed')
+    return (
+      <Tag icon={<IconKunci size={16} />} className={className}>
+        {common.komponen.statusDitutup}
       </Tag>
     );
   if (status === 'soon')

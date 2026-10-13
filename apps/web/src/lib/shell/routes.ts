@@ -94,17 +94,16 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     focused: true,
     legacy: true,
   },
-  '/layanan/form': { title: svc('form'), parent: '/layanan', legacy: true },
+  '/layanan/form': { title: svc('form'), parent: '/layanan' },
   '/layanan/form/$formId': {
     title: svc('form'),
     parent: '/layanan/form',
     focused: true,
-    legacy: true,
   },
   '/layanan/sparta': {
     title: svc('sparta'),
     parent: '/layanan',
-    legacy: true,
+    focused: true,
   },
   // Testi Matkul's levels: titles and the list's parent come from the URL (src/features/testi/shell.ts).
   '/layanan/testi': { title: svc('testi'), parent: '/layanan' },
