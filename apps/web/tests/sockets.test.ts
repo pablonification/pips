@@ -12,7 +12,10 @@ const source = (file: string) =>
 // Regression: today's Curhat opened its sockets without credentials, which only worked while the API trusted any
 // room id a client sent.
 for (const file of [
-  'routes/_app/_left-navbar/layanan/curhat/index.tsx',
+  // Today's screen, kept for Welfare until P3-C (P2-C moved it out of the route file).
+  'routes/_app/_left-navbar/layanan/curhat/-components/welfare.tsx',
+  // P2-C: the members' one connection for the Curhat area.
+  'features/curhat/Area.tsx',
   'routes/_app/_left-navbar/kelola/live/$formId/-useFormAdminData.ts',
 ]) {
   test(`every socket in ${file} sends the session cookie`, () => {

@@ -1,14 +1,16 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { chatroomsQuery, prefetch } from '~/api/queries';
+/**
+ * Today's Curhat screen, kept for Welfare (`curhatadmin`) until P3-C's inbox replaces it (P2-C brief, item 18);
+ * C1 deletes it. Unchanged but for its new place: members get the redesigned area (src/features/curhat).
+ */
 import React, { useEffect, useState } from 'react';
-import ChatList from './-components/chatlist'; // Ensure the correct path to your ChatList component
-import ChatRoom from './-components/chatroom'; // Ensure the correct path to your ChatRoom component
+import ChatList from './chatlist'; // Ensure the correct path to your ChatList component
+import ChatRoom from './chatroom'; // Ensure the correct path to your ChatRoom component
 import { useQuery } from '@tanstack/react-query';
 import { api } from '~/api/client';
 import { Chatroom } from '~/api/generated';
 import { io, Socket } from 'socket.io-client';
 
-const Curhat: React.FC = () => {
+export const WelfareCurhat: React.FC = () => {
   const [selectedChat, setSelectedChat] = useState<Chatroom | null>(null);
   const [sockets, setSockets] = useState<Map<string, Socket>>(new Map());
 
@@ -91,10 +93,3 @@ const Curhat: React.FC = () => {
     </div>
   );
 };
-
-// Now create the route
-export const Route = createFileRoute('/_app/_left-navbar/layanan/curhat/')({
-  // Fetched while the page's code downloads; the page picks up the same request.
-  loader: () => prefetch(chatroomsQuery()),
-  component: Curhat,
-});
