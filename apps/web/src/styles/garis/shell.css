@@ -55,6 +55,9 @@
     gap: 4px;
     padding: 10px 12px 8px 14px;
     min-height: 58px;
+    /* A flex item of the scrolling column: with an explicit min-height it would shrink to 58 px under a long page
+       (the gold bar's 44 px controls then sat 7 px from the top instead of the prototype's 8; P1-A). */
+    flex-shrink: 0;
     background: color-mix(in srgb, var(--bg-app) 92%, transparent);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);

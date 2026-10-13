@@ -71,11 +71,6 @@ export function liveAsLocked(api: ApiMock) {
 export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
   {
     // Today's app (before the redesign).
-    'anggota-beranda': { path: '/', ready: (p) => visibleText(p, 'Kuis 2') },
-    'anggota-kalender': {
-      path: '/kalender',
-      ready: (p) => visibleText(p, 'Sharing Session: Magang di Startup'),
-    },
     'anggota-curhat': {
       path: '/layanan/curhat',
       ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
@@ -151,6 +146,69 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
           p.getByRole('alertdialog', { name: 'Keluar dari PIPS!?' }),
       },
     ],
+
+    // P1-A: Beranda and Kalender, ready once every section has its data.
+    'anggota-beranda': {
+      path: '/',
+      ready: (p) =>
+        p
+          .getByRole('main')
+          .filter({ has: p.getByText('IF2123 Aljabar Linier dan Geometri') })
+          .filter({ has: p.getByText('Notifikasi belum menyala') })
+          .filter({ has: p.getByText('PIXEL, isi Form Analisis Kondisi ya!') }),
+    },
+    'pengurus-beranda': {
+      path: '/',
+      ready: (p) =>
+        p
+          .getByRole('main')
+          .filter({ has: p.getByText('IF3170 Inteligensi Buatan') })
+          .filter({ has: p.getByText('Deadline Tugas Besar 1 · IF3110') })
+          .filter({ has: p.getByText('Cari tim Gemastik XIX? Isi form ini') })
+          .filter({ has: p.getByText('142', { exact: true }) }),
+    },
+    'anggota-kalender': {
+      path: '/kalender',
+      ready: (p) =>
+        p
+          .getByRole('main')
+          .filter({ has: p.getByText('IF2123 Aljabar Linier dan Geometri') })
+          .filter({
+            // The month's bars are in: 19 Oktober has its UTS.
+            has: p.getByRole('button', { name: /^Senin, 19 Oktober, 1 acara/ }),
+          }),
+    },
+    'pengurus-kalender': {
+      path: '/kalender',
+      ready: (p) =>
+        p
+          .getByRole('main')
+          .filter({ has: p.getByText('IF3170 Inteligensi Buatan') })
+          .filter({
+            // The month's bars are in: 19 Oktober has its UTS.
+            has: p.getByRole('button', { name: /^Senin, 19 Oktober, 1 acara/ }),
+          }),
+    },
+    // Kuis 2's sheet over Kalender on phones and tablets; desktop's locked capture is the plain Kalender.
+    'anggota-ov-event': {
+      path: '/kalender',
+      act: async (page) => {
+        if (page.viewportSize()!.width >= 1024) return;
+        await page
+          .getByRole('main')
+          .getByRole('button', { name: /^15\.00.*Kuis 2/ })
+          .click();
+      },
+      ready: (p) =>
+        p.viewportSize()!.width >= 1024
+          ? p
+              .getByRole('main')
+              .filter({ has: p.getByText('Determinan dan balikan matriks.') })
+          : p
+              .getByRole('dialog', { name: 'Detail acara' })
+              .filter({ has: p.getByText('Determinan dan balikan matriks.') }),
+    },
+
     // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba (the states garis-check.mjs ROUTES gives them).
     'anggota-dingdong': {
       path: '/layanan/dingdong',

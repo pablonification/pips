@@ -779,8 +779,8 @@ test('a save still waiting when the page goes away is sent with it (pagehide)', 
   await page.getByRole('button', { name: 'Mulai' }).click();
   await expect(page.getByLabel('Kelas')).toBeVisible();
   // Stop the clock, so the 800 ms pause before a save never ends on its own. A second ahead, not 10 ms: on a busy
-  // machine more than 10 ms passed between reading the clock and pausing it ("Cannot fast-forward to the past"),
-  // and nothing is waiting before the field is typed into, so jumping a second ahead changes nothing.
+  // machine more than 10 ms passed between reading the time and pausing, and Playwright can't pause in the past
+  // ("Cannot fast-forward to the past", once in a full run). Nothing is typed yet, so no save waits in between.
   await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000);
   await page.getByLabel('Kelas').fill('K-05');
   await page.waitForTimeout(1500);

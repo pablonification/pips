@@ -25,6 +25,14 @@ export const GARIS_FILES = [
   // P1-C: push, Profil, Layanan, sign-in and first run.
   'src/components/push/**/*.{ts,tsx}',
   'src/features/**/*.{ts,tsx}',
+  // P1-A: Beranda, Kalender, search's sources, and the shared WIB days.
+  'src/features/beranda/**/*.{ts,tsx}',
+  'src/features/kalender/**/*.{ts,tsx}',
+  'src/features/cari/**/*.{ts,tsx}',
+  'src/lib/days.ts',
+  'src/routes/_app/_left-navbar/index.tsx',
+  'src/routes/_app/kalender.tsx',
+  'src/routes/_app/kalender/index.tsx',
   // P1-B: Pengumuman, and the shared date words.
   'src/features/pengumuman/**/*.{ts,tsx}',
   'src/lib/dates.ts',
@@ -141,6 +149,8 @@ export default defineConfig([
             'accent|success|inverse|outlined|error|dialog|handle|rule|hint|dis-ic|msg|t-ic|act|sq|bars',
             // The shell's parts (src/styles/garis/shell.css) and the theme scopes.
             'cap|sub|s|lap|label|c2|theme-light|theme-dark',
+            // P1-A: Beranda's and Kalender's parts (src/features/beranda/beranda.css, kalender/kalender.css).
+            'time|wd|dn|key|out|today|akademik|himpunan|point|past|h|d|tm|draw|two|grow|brief|prev|ext',
             // Pengumuman's parts (src/features/pengumuman/pengumuman.css).
             'who|meta|z|end|many|host|ttl|lbl|in|state|bar|del|opt|body|read|unread|lead|desk|failed',
             // Kelola's parts (src/styles/garis/kelola.css, P3-A).
@@ -168,6 +178,15 @@ export default defineConfig([
         },
       ],
     },
+  },
+  {
+    // P1-A: no reading or writing refs during render (React's rule; review m9 found one in Tambah acara).
+    files: [
+      'src/features/beranda/**/*.{ts,tsx}',
+      'src/features/kalender/**/*.{ts,tsx}',
+      'src/features/cari/**/*.{ts,tsx}',
+    ],
+    rules: { 'react-hooks/refs': 'error' },
   },
   {
     // Playwright's fixtures call \`use()\`, which react-hooks 7 takes for React 19's \`use\`. The e2e code isn't React.

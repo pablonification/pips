@@ -172,8 +172,19 @@ export default defineConfig(({ mode }) => {
           globIgnores: ['prototypes/**', '**/*.map'],
         },
       }),
-      // The router plugin must come before the React plugin. Every route's component loads on demand.
-      tanstackRouter({ target: 'react', autoCodeSplitting: true }),
+      // The router plugin must come before the React plugin. Every page's component loads on demand; the two layouts
+      // every signed-in page sits in (the shell, and the layout under it) load with the app instead of as two more
+      // requests (P1-A round 2, the request budget). Sign-in loads them too: 4 KiB gzip.
+      tanstackRouter({
+        target: 'react',
+        autoCodeSplitting: true,
+        codeSplittingOptions: {
+          splitBehavior: ({ routeId }) =>
+            routeId === '/_app' || routeId === '/_app/_left-navbar'
+              ? []
+              : undefined,
+        },
+      }),
       react(),
       tailwindcss(),
       chunkModules(),
@@ -189,6 +200,51 @@ export default defineConfig(({ mode }) => {
       sourcemap: true,
       // dist/.vite/manifest.json: chunks and their imports, read by the budget check (scripts/budgets.mjs).
       manifest: true,
+      // One stylesheet: the routes' own CSS is 1–2 KiB gzip each, less than a request costs (SPEC: ≤ 15 requests
+      // before Beranda's content).
+      cssCodeSplit: false,
+      // Fewer, larger chunks without loading code a route doesn't use (P1-A round 2; Beranda went from 49 scripts
+      // before its content to 4, and every route got lighter). Measured by the journey "a cold first load asks for at
+      // most 15 resources of any kind" (e2e/journeys/beranda.spec.ts).
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              // Everything the entry loads before any route, in the entry's own file.
+              { name: 'app', tags: ['$initial'], priority: 4 },
+              // Small leaves most screens share: the Garis icons, the copy, Kalender's pieces that Beranda,
+              // Kalender and search share, and the push state and prompt (Beranda, first run, Notifikasi and search
+              // use them; on their own they were two more requests before Beranda's content).
+              {
+                name: 'ui',
+                test: /[\\/]src[\\/](components[\\/](icons|push)|copy|features[\\/]kalender)[\\/]/,
+                minShareCount: 2,
+                priority: 3,
+              },
+              // Other shared code: one chunk per set of routes that use it, so no route loads code it doesn't use.
+              {
+                name: 'shared',
+                test: /[\\/]src[\\/]/,
+                minShareCount: 2,
+                entriesAware: true,
+                priority: 2,
+              },
+              {
+                name: 'vendor',
+                test: /node_modules/,
+                minShareCount: 2,
+                entriesAware: true,
+                priority: 1,
+              },
+            ],
+          },
+          // The shared chunks' names list every route that uses them; keep the file names short.
+          chunkFileNames: (chunk) =>
+            /^(shared|vendor)~/.test(chunk.name)
+              ? 'assets/shared-[hash].js'
+              : 'assets/[name]-[hash].js',
+        },
+      },
     },
   };
 });

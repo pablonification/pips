@@ -19,6 +19,9 @@ export const kalenderSearchSchema = z.object({
   acara: z.string().min(1).optional().catch(undefined),
 });
 
+/** Beranda (P1-A): the strip's chosen day (`hari`) and the event open in its sheet on phones and tablets (`acara`). */
+export const berandaSearchSchema = kalenderSearchSchema;
+
 /** Every page in the app: `showAnnounce` opens today's desktop composer. */
 export const appSearchSchema = z.object({
   showAnnounce: z.boolean().optional().catch(undefined),

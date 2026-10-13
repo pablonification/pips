@@ -40,6 +40,23 @@ const ADMIN_CALLS = [
 const adminCalls = (api: ApiMock) =>
   ADMIN_CALLS.flatMap((spec) => api.calls(spec));
 
+test("Beranda's Kelola section leads to the hub", async ({ page }) => {
+  // Beranda's Kelola section (P1-A; today's Home had an Admin tile) leads to the hub.
+  await page.goto('/');
+  await main(page)
+    .getByRole('heading', { name: 'Kelola', exact: true })
+    .locator('xpath=../..')
+    .getByRole('link', { name: /^Semua/ })
+    .click();
+  await expect(page).toHaveURL(/\/kelola$/);
+  await expect(
+    listLinks(page).filter({ hasText: 'Live Counting & Rekap Form' }),
+  ).toBeVisible();
+  await expect(
+    listLinks(page).filter({ hasText: 'Data SPARTA Magang' }),
+  ).toBeVisible();
+});
+
 /** The live page's socket is in the form's admin room. */
 async function socketReady(api: ApiMock, formId = 'pixel') {
   await expect

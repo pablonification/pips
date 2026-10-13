@@ -35,6 +35,14 @@ export interface CaptureState {
   ready: (page: Page) => Locator;
 }
 
+/** P1-A: Beranda with every section's data (agenda, follow-ups, unread). */
+const berandaReady = (p: Page) =>
+  p
+    .getByRole('main')
+    .filter({ has: p.getByText('IF2123 Aljabar Linier dan Geometri') })
+    .filter({ has: p.getByText('Notifikasi belum menyala') })
+    .filter({ has: p.getByText('PIXEL, isi Form Analisis Kondisi ya!') });
+
 const readPosts = (api: ApiMock) =>
   api.on('POST /api/info/:infoId/read', writes.markRead);
 
@@ -55,8 +63,8 @@ export const STATES: CaptureState[] = [
     only: 'phone',
     path: '/',
     // P0-B removed the install gate (SPEC "Removals"): a phone browser now opens the app. The state keeps its id
-    // so compare-before shows the before (tutorial) next to the after (Home).
-    ready: (p) => visibleText(p, 'Hi, Nadia Putri!'),
+    // so compare-before shows the before (tutorial) next to the after (Home). P1-A: Beranda greets with "Halo, Nadia".
+    ready: (p) => berandaReady(p),
   },
   {
     id: 'app-loading',
@@ -70,34 +78,44 @@ export const STATES: CaptureState[] = [
     ready: (p) => p.getByText('Loading...'),
   },
 
-  // Home
+  // Home (P1-A: the same states on the redesigned Beranda)
   {
     id: 'home',
     title: 'Home',
     path: '/',
-    ready: (p) => visibleText(p, 'Kuis 2'),
+    ready: (p) => berandaReady(p),
   },
   {
     id: 'home-schedule-loading',
     title: 'Home, schedule loading',
     path: '/',
     mock: (api) => api.on('GET /api/calendar/me', reply.hang()),
-    ready: (p) => visibleText(p, 'Hi, Nadia Putri!'),
+    ready: (p) => p.getByRole('status', { name: 'Memuat acara…' }),
   },
   {
     id: 'home-other-day',
     title: 'Home, Friday chosen on the week strip',
     path: '/',
-    act: async (p) =>
-      p.getByRole('button', { name: '9 Fri' }).locator('visible=true').click(),
-    ready: (p) => visibleText(p, 'Deadline Tugas Besar 1'),
+    act: async (p) => {
+      await berandaReady(p).waitFor();
+      await p.getByRole('button', { name: /^Jumat, 9 Oktober/ }).click();
+    },
+    ready: (p) =>
+      p
+        .getByRole('region', { name: '8 hari ke depan' })
+        .getByText('Deadline Tugas Besar 1'),
   },
   {
     id: 'home-pengurus',
     title: 'Home for Raka (Admin tile)',
     persona: 'pengurus',
     path: '/',
-    ready: (p) => visibleText(p, 'Kuis 1'),
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .filter({ has: p.getByText('IF3170 Inteligensi Buatan') })
+        .filter({ has: p.getByText('Cari tim Gemastik XIX? Isi form ini') })
+        .filter({ has: p.getByText('142', { exact: true }) }),
   },
 
   // Timeline (announcements). Since P1-B these reach the same states in the redesigned Pengumuman.
@@ -253,8 +271,9 @@ export const STATES: CaptureState[] = [
     persona: 'pengurus',
     only: 'desktop',
     path: '/kalender',
-    act: async (p) => p.getByRole('button', { name: 'Add event' }).click(),
-    ready: (p) => p.getByRole('dialog'),
+    act: async (p) => p.getByRole('button', { name: 'Tambah acara' }).click(),
+    // Today's desktop form (unchanged until P3-B) isn't a dialog; before, the role came from the category popover.
+    ready: (p) => p.getByPlaceholder('Add Title').locator('visible=true'),
   },
 
   // Services
