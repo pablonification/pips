@@ -997,6 +997,30 @@ test.describe('share', () => {
     expect(layoutOf(testInfo)).not.toBe('desktop');
   });
 
+  test('when copying the link is refused, it says so instead of “disalin” @phone-only', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'share', {
+        configurable: true,
+        value: undefined,
+      });
+      Object.defineProperty(navigator.clipboard, 'writeText', {
+        configurable: true,
+        value: () =>
+          Promise.reject(
+            new DOMException('Write permission denied.', 'NotAllowedError'),
+          ),
+      });
+    });
+    await page.goto('/pengumuman');
+    await card(page, P7).getByRole('button', { name: 'Bagikan' }).click();
+    await expect(
+      toastText(page, 'Tautan pengumuman belum bisa disalin.'),
+    ).toBeVisible();
+    await expect(toastText(page, 'Tautan pengumuman disalin.')).toHaveCount(0);
+  });
+
   test('desktop: the post has its menu in the byline and no share button @desktop-only', async ({
     page,
   }) => {

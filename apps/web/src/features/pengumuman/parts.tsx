@@ -443,7 +443,9 @@ export async function sharePost(info: Pick<Info, 'id' | 'title' | 'creator'>) {
   try {
     await navigator.clipboard.writeText(url);
   } catch {
-    // Some browsers refuse without a permission; the toast still tells where the link is.
+    // Refused (no permission, or no clipboard at all): say so rather than claim it was copied.
+    toast.error(t.bagikan.gagalSalin);
+    return;
   }
   toast.success(t.bagikan.disalin);
 }

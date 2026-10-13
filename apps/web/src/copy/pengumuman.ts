@@ -112,6 +112,7 @@ export const pengumuman = {
   },
   bagikan: {
     disalin: 'Tautan pengumuman disalin.',
+    gagalSalin: 'Tautan pengumuman belum bisa disalin.',
   },
   filter: {
     judul: 'Kategori yang ditampilkan',
