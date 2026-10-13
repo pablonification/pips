@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 import { api } from '~/api/client';
 import { CATEGORIES_QUERY_KEY, UNSUBSCRIBED_QUERY_KEY } from '~/api/constants';
 import {
@@ -35,7 +35,23 @@ export function NotifikasiScreen() {
     queryFn: () => api.unsubscribe.getListUserUnsubscribeCategory(),
   });
 
-  // Optimistic: the switch moves at once; a failure puts it back with an error toast.
+  /** Mutes or unmutes one category in the cached list, leaving the others as they are now. */
+  const setMuted = (id: string, mute: boolean) =>
+    qc.setQueryData<Muted>([UNSUBSCRIBED_QUERY_KEY], (m) =>
+      m
+        ? {
+            ...m,
+            categoryId: mute
+              ? [...m.categoryId.filter((c) => c !== id), id]
+              : m.categoryId.filter((c) => c !== id),
+          }
+        : m,
+    );
+  // Switches still waiting for the server: the list is fetched again only after the last one answers.
+  const writing = useRef(0);
+
+  // Optimistic: the switch moves at once; a failure puts only that switch back, with an error toast. Putting back
+  // the whole list as it was would undo another switch changed meanwhile (review m2).
   const toggle = useMutation({
     mutationFn: ({ row, on }: { row: CategoryRow; on: boolean }) =>
       on
@@ -46,23 +62,18 @@ export function NotifikasiScreen() {
             requestBody: { categoryId: row.id },
           }),
     onMutate: async ({ row, on }) => {
+      writing.current += 1;
       await qc.cancelQueries({ queryKey: [UNSUBSCRIBED_QUERY_KEY] });
-      const before = qc.getQueryData<Muted>([UNSUBSCRIBED_QUERY_KEY]);
-      qc.setQueryData<Muted>([UNSUBSCRIBED_QUERY_KEY], (m) =>
-        m
-          ? {
-              ...m,
-              categoryId: on
-                ? m.categoryId.filter((id) => id !== row.id)
-                : [...m.categoryId.filter((id) => id !== row.id), row.id],
-            }
-          : m,
-      );
-      return { before };
+      setMuted(row.id, !on);
     },
-    onError: (_e, { row }, ctx) => {
-      qc.setQueryData([UNSUBSCRIBED_QUERY_KEY], ctx?.before);
+    onError: (_e, { row, on }) => {
+      setMuted(row.id, on);
       toast.error(fill(copy.notifikasi.gagal, { nama: row.name }));
+    },
+    onSettled: () => {
+      writing.current -= 1;
+      if (writing.current === 0)
+        void qc.invalidateQueries({ queryKey: [UNSUBSCRIBED_QUERY_KEY] });
     },
   });
 

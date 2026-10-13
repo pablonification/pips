@@ -310,6 +310,35 @@ test.describe('Kategori pengumuman', () => {
     await expect(sw(page, 'Beasiswa')).toHaveAttribute('aria-checked', 'true');
   });
 
+  test('regression: a failed mute puts back only its own switch, not one changed meanwhile', async ({
+    page,
+    api,
+    db,
+  }) => {
+    let failBeasiswa!: () => void;
+    const held = new Promise<void>((r) => (failBeasiswa = r));
+    api.on('POST /api/unsubscribe/category', async (req) => {
+      if ((req.body as { categoryId: string }).categoryId === 'beasiswa') {
+        await held;
+        return reply.status(503);
+      }
+      return writes.muteCategory(req);
+    });
+    await page.goto('/profil/notifikasi');
+    await sw(page, 'Beasiswa').click();
+    await sw(page, 'Karier').click();
+    await expect.poll(() => db.mutedCategoryIds).toContain('karier');
+    failBeasiswa();
+    await expect(
+      toastText(
+        page,
+        'Notifikasi Beasiswa gagal diubah. Periksa koneksimu, lalu coba lagi.',
+      ),
+    ).toBeVisible();
+    await expect(sw(page, 'Beasiswa')).toHaveAttribute('aria-checked', 'true');
+    await expect(sw(page, 'Karier')).toHaveAttribute('aria-checked', 'false');
+  });
+
   test('a failed load shows Coba lagi beside the list, which recovers', async ({
     page,
     api,
