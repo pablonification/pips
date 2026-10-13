@@ -171,7 +171,6 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   '/profil/notifikasi': {
     title: common.shell.notifikasi,
     parent: '/profil',
-    legacy: true,
   },
   '/profil/kredit': {
     title: common.shell.kredit,
