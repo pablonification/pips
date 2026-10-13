@@ -10,7 +10,10 @@ export const KINDS = [
   [/needs dev 1/i, 'needs-dev1'],
   [/choices to check/i, 'choice'],
   [/deviation/i, 'deviation'],
-  [/open questions|questions still open|still open|questions for the owner/i, 'open-question'],
+  [
+    /open questions|questions still open|still open|questions for the owner/i,
+    'open-question',
+  ],
   [/for the owner/i, 'for-owner'],
 ];
 
@@ -52,7 +55,9 @@ export function extractItems(md, file) {
   /** @type {{ level: number, kind: string | null, title: string }} */
   let heading = { level: 0, kind: null, title: '' };
   /** A bold lead-in paragraph's kind, until the next heading or bold lead-in. */
-  let lead = /** @type {{ kind: string | null, title: string } | null} */ (null);
+  let lead = /** @type {{ kind: string | null, title: string } | null} */ (
+    null
+  );
   /** Open list items: indent, the kind their children take (a bold lead-in item), and the item being built. */
   /** @type {{ indent: number, childKind: string | null, title: string, item: { kind: string, text: string, source: { file: string, section: string, line: number } } | null }[]} */
   let stack = [];
@@ -86,7 +91,8 @@ export function extractItems(md, file) {
     if (li) {
       const indent = li[1].length;
       const body = li[2];
-      while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
+      while (stack.length && stack[stack.length - 1].indent >= indent)
+        stack.pop();
       const leadIn = LEAD.exec(body);
       const leadKind = leadIn ? kindOf(leadIn[1]) : null;
       const ctx = contextKind();
@@ -99,29 +105,51 @@ export function extractItems(md, file) {
       }
       if (leadIn && leadKind) {
         // "- **New copy:**" with the strings under it: its children are the items. With nothing under it, itself.
-        const item = { kind: leadKind, text: plain(body), source: { file, section: plain(leadIn[1]), line: n + 1 } };
-        const hasChildren = (LIST.exec(lines[n + 1] ?? '')?.[1].length ?? -1) > indent;
+        const item = {
+          kind: leadKind,
+          text: plain(body),
+          source: { file, section: plain(leadIn[1]), line: n + 1 },
+        };
+        const hasChildren =
+          (LIST.exec(lines[n + 1] ?? '')?.[1].length ?? -1) > indent;
         if (!hasChildren) out.push(item);
-        stack.push({ indent, childKind: leadKind, title: plain(leadIn[1]), item: hasChildren ? null : item });
+        stack.push({
+          indent,
+          childKind: leadKind,
+          title: plain(leadIn[1]),
+          item: hasChildren ? null : item,
+        });
         continue;
       }
       if (!ctx) {
         stack.push({ indent, childKind: null, title: '', item: null });
         continue;
       }
-      const item = { kind: ctx.kind, text: plain(body), source: { file, section: ctx.title, line: n + 1 } };
+      const item = {
+        kind: ctx.kind,
+        text: plain(body),
+        source: { file, section: ctx.title, line: n + 1 },
+      };
       out.push(item);
       stack.push({ indent, childKind: null, title: '', item });
       continue;
     }
     if (/^\|/.test(line.trim())) {
       const ctx = contextKind();
-      const cells = line.trim().replace(/^\||\|$/g, '').split('|').map((c) => plain(c));
+      const cells = line
+        .trim()
+        .replace(/^\||\|$/g, '')
+        .split('|')
+        .map((c) => plain(c));
       const next = lines[n + 1] ?? '';
       const isHeader = /^\s*\|?\s*:?-{3,}/.test(next);
       const isRule = cells.every((c) => /^:?-{3,}:?$/.test(c));
       if (ctx && !isHeader && !isRule && cells.some(Boolean))
-        out.push({ kind: ctx.kind, text: cells.filter(Boolean).join(' · '), source: { file, section: ctx.title, line: n + 1 } });
+        out.push({
+          kind: ctx.kind,
+          text: cells.filter(Boolean).join(' · '),
+          source: { file, section: ctx.title, line: n + 1 },
+        });
       continue;
     }
     if (!line.trim()) continue;
@@ -141,13 +169,18 @@ export function extractItems(md, file) {
 }
 
 /** OPEN-QUESTIONS ids an item mentions ("D8", "A11", "C3"). @param {string} text */
-export const idsIn = (text) => [...new Set([...text.matchAll(/\b([ADC]\d{1,2})\b/g)].map((m) => m[1]))];
+export const idsIn = (text) => [
+  ...new Set([...text.matchAll(/\b([ADC]\d{1,2})\b/g)].map((m) => m[1])),
+];
 
 /**
  * OPEN-QUESTIONS.md: its tables (Design, Behaviour and API, Found in today's code) and the "For HMIF" list.
  * @param {string} md @param {string} file
  */
-export function parseOpenQuestions(md, file = 'ops/redesign/OPEN-QUESTIONS.md') {
+export function parseOpenQuestions(
+  md,
+  file = 'ops/redesign/OPEN-QUESTIONS.md',
+) {
   const lines = md.split('\n');
   const out = [];
   let section = '';
@@ -164,7 +197,8 @@ export function parseOpenQuestions(md, file = 'ops/redesign/OPEN-QUESTIONS.md') 
       const [question, second, third] = cells;
       const found = /found in today/i.test(section);
       const text = plain(question);
-      const decided = /\*\*decided/i.test(second ?? '') || /\*\*decided/i.test(question);
+      const decided =
+        /\*\*decided/i.test(second ?? '') || /\*\*decided/i.test(question);
       out.push({
         id: row[1],
         kind: found ? 'found' : 'open-question',
@@ -179,7 +213,17 @@ export function parseOpenQuestions(md, file = 'ops/redesign/OPEN-QUESTIONS.md') 
     }
     if (/for hmif/i.test(section)) {
       const li = LIST.exec(line);
-      if (li) out.push({ id: null, kind: 'open-question', group: section, text: plain(li[2]), built: null, from: '', decided: null, source: { file, section, line: n + 1 } });
+      if (li)
+        out.push({
+          id: null,
+          kind: 'open-question',
+          group: section,
+          text: plain(li[2]),
+          built: null,
+          from: '',
+          decided: null,
+          source: { file, section, line: n + 1 },
+        });
     }
   }
   return out;
@@ -194,7 +238,8 @@ export function decisionOf(text) {
     /decided(?: by ([^:(]+?))?()[:(]\s*(.*)$/i.exec(t);
   let what = (m?.[3] ?? t).trim();
   // "(review of P2-C, M2): fix it." keeps its words; a lone closing bracket from "Decided … (…" goes.
-  if ((what.match(/\)/g) ?? []).length > (what.match(/\(/g) ?? []).length) what = what.replace(/\)\s*$/, '').trim();
+  if ((what.match(/\)/g) ?? []).length > (what.match(/\(/g) ?? []).length)
+    what = what.replace(/\)\s*$/, '').trim();
   return {
     by: m?.[1]?.trim() || (/dev 1/i.test(t) ? 'Dev 1' : 'the owner'),
     date: m?.[2] || null,
@@ -213,11 +258,21 @@ export function logDecisions(md, file = 'ops/redesign/PLAN.md') {
     const li = /^- (\d{4}-\d{2}-\d{2})(?: (\d\d:\d\d))?: (.*)$/.exec(lines[n]);
     if (!li) continue;
     let text = li[3];
-    for (let k = n + 1; k < lines.length && /^\s+\S/.test(lines[k]); k++) text += ` ${lines[k].trim()}`;
-    if (!/decision|decided|the owner (asked|answered|chose|said)|owner's (rule|decision)/i.test(text)) continue;
+    for (let k = n + 1; k < lines.length && /^\s+\S/.test(lines[k]); k++)
+      text += ` ${lines[k].trim()}`;
+    if (
+      !/decision|decided|the owner (asked|answered|chose|said)|owner's (rule|decision)/i.test(
+        text,
+      )
+    )
+      continue;
     out.push({
       date: li[1],
-      by: /dev 1's decision|decided by dev 1/i.test(text) && !/the owner/i.test(text) ? 'Dev 1' : 'the owner',
+      by:
+        /dev 1's decision|decided by dev 1/i.test(text) &&
+        !/the owner/i.test(text)
+          ? 'Dev 1'
+          : 'the owner',
       text: plain(text),
       source: { file, section: 'Log', line: before + n },
     });
@@ -228,10 +283,24 @@ export function logDecisions(md, file = 'ops/redesign/PLAN.md') {
 /** Who decides an item. @param {{ kind: string, text: string, group?: string }} item */
 export function whoDecides(item) {
   const t = `${item.group ?? ''} ${item.text}`;
-  if (/welfare/i.test(t) && /(privacy wording|crisis|krisis|hotline|labels?)/i.test(t)) return 'HMIF Welfare';
-  if (/for hmif/i.test(item.group ?? '') || /\bHMIF (approval|sign-off|maintainer)|who runs HMIF|production category names|angkatan names|membership status|pemilu/i.test(t))
+  if (
+    /welfare/i.test(t) &&
+    /(privacy wording|crisis|krisis|hotline|labels?)/i.test(t)
+  )
+    return 'HMIF Welfare';
+  if (
+    /for hmif/i.test(item.group ?? '') ||
+    /\bHMIF (approval|sign-off|maintainer)|who runs HMIF|production category names|angkatan names|membership status|pemilu/i.test(
+      t,
+    )
+  )
     return 'HMIF';
-  if (item.kind === 'needs-dev1' || item.kind === 'choice' || item.kind === 'found') return 'Dev 1';
+  if (
+    item.kind === 'needs-dev1' ||
+    item.kind === 'choice' ||
+    item.kind === 'found'
+  )
+    return 'Dev 1';
   return 'the owner';
 }
 
@@ -277,7 +346,12 @@ export function buildQuestions({ openQuestions, plan, files, findings = [] }) {
   }
   for (const f of files)
     for (const it of extractItems(f.text, f.path)) {
-      const decided = /\*\*decided|decided by|owner's decision|dev 1's decision/i.test(it.text) ? decisionOf(it.text) : null;
+      const decided =
+        /\*\*decided|decided by|owner's decision|dev 1's decision/i.test(
+          it.text,
+        )
+          ? decisionOf(it.text)
+          : null;
       add({
         id: null,
         kind: it.kind,
@@ -322,9 +396,14 @@ export function buildQuestions({ openQuestions, plan, files, findings = [] }) {
       tags: f.security ? ['security', 'finding'] : ['finding'],
       related: [],
       flows: f.flows,
-      sources: [{ file: 'apps/web/e2e/review/findings.ts', section: f.id, line: 0 }],
+      sources: [
+        { file: 'apps/web/e2e/review/findings.ts', section: f.id, line: 0 },
+      ],
     });
   const order = ['the owner', 'HMIF', 'HMIF Welfare', 'Dev 1'];
-  const groups = order.map((who) => ({ who, items: items.filter((i) => i.who === who) }));
+  const groups = order.map((who) => ({
+    who,
+    items: items.filter((i) => i.who === who),
+  }));
   return { total: items.length, groups };
 }

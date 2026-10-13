@@ -25,11 +25,17 @@ export interface SweepRoute {
 
 const NADIA = { key: 'nadia', use: { persona: 'anggota' as const } };
 const RAKA = { key: 'raka', use: { persona: 'pengurus' as const } };
-const WELFARE = { key: 'welfare', use: { persona: 'pengurus' as const, roles: ['curhatadmin'] } };
+const WELFARE = {
+  key: 'welfare',
+  use: { persona: 'pengurus' as const, roles: ['curhatadmin'] },
+};
 const BOTH = [NADIA, RAKA];
 
 export const ROUTES = {
-  '/login': { url: '/login', as: [{ key: 'signed-out', use: { persona: null, signedIn: false } }] },
+  '/login': {
+    url: '/login',
+    as: [{ key: 'signed-out', use: { persona: null, signedIn: false } }],
+  },
   '/': { url: '/', as: BOTH },
   '/mulai': { url: '/mulai', as: [NADIA] },
   '/pengumuman': { url: '/pengumuman', as: BOTH },
@@ -46,8 +52,14 @@ export const ROUTES = {
   '/layanan/form/$formId': { url: '/layanan/form/pixel', as: [NADIA] },
   '/layanan/sparta': { url: '/layanan/sparta', as: BOTH },
   '/layanan/testi': { url: '/layanan/testi', as: [NADIA] },
-  '/layanan/testi/$type': { url: '/layanan/testi/teknik-informatika', as: [NADIA] },
-  '/layanan/testi/$type/$semester': { url: '/layanan/testi/teknik-informatika/3', as: [NADIA] },
+  '/layanan/testi/$type': {
+    url: '/layanan/testi/teknik-informatika',
+    as: [NADIA],
+  },
+  '/layanan/testi/$type/$semester': {
+    url: '/layanan/testi/teknik-informatika/3',
+    as: [NADIA],
+  },
   '/layanan/testi/$type/$semester/$courseId': {
     url: '/layanan/testi/teknik-informatika/3/course-IF2110',
     as: BOTH,
@@ -57,7 +69,10 @@ export const ROUTES = {
   '/kelola/live/$formId': { url: '/kelola/live/pixel', as: [RAKA] },
   '/kelola/live/$formId/rekap': { url: '/kelola/live/pixel/rekap', as: [RAKA] },
   '/kelola/sparta': { url: '/kelola/sparta', as: [RAKA] },
-  '/kelola/sparta/$submissionId': { url: '/kelola/sparta/sub-13525071', as: [RAKA] },
+  '/kelola/sparta/$submissionId': {
+    url: '/kelola/sparta/sub-13525071',
+    as: [RAKA],
+  },
   '/kelola/curhat': { url: '/kelola/curhat', as: [WELFARE] },
   '/kelola/curhat/$roomId': { url: '/kelola/curhat/r1', as: [WELFARE] },
   '/profil': { url: '/profil', as: BOTH },

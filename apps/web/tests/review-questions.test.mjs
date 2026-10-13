@@ -76,7 +76,7 @@ test('every item, at any heading level or after a bold lead-in, and nothing else
   const items = extractItems(REPORT, 'reports/P9-Z.md');
   const by = (k) => items.filter((i) => i.kind === k).map((i) => i.text);
   assert.deepEqual(by('deviation'), [
-    'Titles are h1, not the prototype\'s h2.',
+    "Titles are h1, not the prototype's h2.",
     "The tab bar is the prototype's height (about 80 px), not SPEC's.; a nested detail",
   ]);
   assert.deepEqual(by('new-copy'), [
@@ -120,14 +120,24 @@ const OQ = `# Open questions
 
 test('OPEN-QUESTIONS: ids, defaults, decisions, findings and the HMIF list', () => {
   const q = parseOpenQuestions(OQ);
-  assert.deepEqual(q.map((x) => x.id), ['D1', 'D2', 'C3', null, null]);
+  assert.deepEqual(
+    q.map((x) => x.id),
+    ['D1', 'D2', 'C3', null, null],
+  );
   assert.equal(q[0].built, 'The prototype');
   assert.equal(q[0].decided, null);
-  assert.deepEqual(q[1].decided, { by: 'the owner', date: '2026-10-13', what: 'build it ("just make it good")' });
+  assert.deepEqual(q[1].decided, {
+    by: 'the owner',
+    date: '2026-10-13',
+    what: 'build it ("just make it good")',
+  });
   assert.equal(q[2].kind, 'found');
   assert.equal(whoDecides(q[3]), 'HMIF');
   assert.equal(whoDecides(q[4]), 'HMIF Welfare');
-  assert.equal(decisionOf('Decided by Dev 1 2026-10-13 (review of P2-C, M2): fix it.').by, 'Dev 1');
+  assert.equal(
+    decisionOf('Decided by Dev 1 2026-10-13 (review of P2-C, M2): fix it.').by,
+    'Dev 1',
+  );
 });
 
 const PLAN = `# Plan
@@ -156,13 +166,27 @@ test('duplicates merge with every source kept; groups by who decides; security t
       { path: 'reports/A.md', text: same },
       { path: 'reports/B.md', text: same.replace('0028.', '0028') },
     ],
-    findings: [{ id: 'F1-9', title: 'A bug', detail: 'Seen.', owner: 'P1-A', flows: ['beranda'] }],
+    findings: [
+      {
+        id: 'F1-9',
+        title: 'A bug',
+        detail: 'Seen.',
+        owner: 'P1-A',
+        flows: ['beranda'],
+      },
+    ],
   });
   const all = q.groups.flatMap((g) => g.items);
   const mig = all.filter((i) => i.question.startsWith('Apply migration'));
   assert.equal(mig.length, 1);
-  assert.deepEqual(mig[0].sources.map((s) => s.file), ['reports/A.md', 'reports/B.md']);
-  assert.deepEqual(q.groups.map((g) => g.who), ['the owner', 'HMIF', 'HMIF Welfare', 'Dev 1']);
+  assert.deepEqual(
+    mig[0].sources.map((s) => s.file),
+    ['reports/A.md', 'reports/B.md'],
+  );
+  assert.deepEqual(
+    q.groups.map((g) => g.who),
+    ['the owner', 'HMIF', 'HMIF Welfare', 'Dev 1'],
+  );
   assert.deepEqual(all.find((i) => i.id === 'C3').tags, ['security']);
   assert.equal(all.find((i) => i.id === 'D2').status, 'decided');
   assert.equal(all.find((i) => i.id === 'F1-9').who, 'Dev 1');

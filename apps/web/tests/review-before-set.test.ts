@@ -10,7 +10,16 @@ import { FLOWS } from '../e2e/review/flows';
 import { REMOVED, STATE_FLOWS } from '../e2e/scripts/lib/review/data.mjs';
 
 const ids: string[] = JSON.parse(
-  readFileSync(path.resolve(import.meta.dirname, '..', 'e2e', 'review', 'before-set-ids.json'), 'utf8'),
+  readFileSync(
+    path.resolve(
+      import.meta.dirname,
+      '..',
+      'e2e',
+      'review',
+      'before-set-ids.json',
+    ),
+    'utf8',
+  ),
 );
 
 test('52 states, each captured again or removed by design with a reason', () => {
@@ -28,8 +37,21 @@ test('each state is shown by flows that exist', () => {
 });
 
 test('the list is the before set’s own (when the workspace is there)', () => {
-  const manifest = path.resolve(import.meta.dirname, '..', '..', '..', '..', '..', 'ops', 'redesign', 'before-set', 'manifest.json');
+  const manifest = path.resolve(
+    import.meta.dirname,
+    '..',
+    '..',
+    '..',
+    '..',
+    '..',
+    'ops',
+    'redesign',
+    'before-set',
+    'manifest.json',
+  );
   if (!existsSync(manifest)) return;
-  const m = JSON.parse(readFileSync(manifest, 'utf8')) as { states: { id: string }[] };
+  const m = JSON.parse(readFileSync(manifest, 'utf8')) as {
+    states: { id: string }[];
+  };
   assert.deepEqual(m.states.map((s) => s.id).sort(), [...ids].sort());
 });

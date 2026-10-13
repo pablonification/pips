@@ -22,14 +22,20 @@ export interface StillSource {
   /** Where the task named them for the owner. */
   source: string;
   /** Reads a capture's file name: layout, state and theme. */
-  parse: (file: string) => { layout: string; state: string; theme: string } | null;
+  parse: (
+    file: string,
+  ) => { layout: string; state: string; theme: string } | null;
 }
 
 const LAYOUT = (l: string) => (l === 'desk' ? 'desktop' : l);
-const fidelityName = (prefix = '') => (file: string) => {
-  const m = new RegExp(`^(phone|tablet|desk)-${prefix}(.+)-(light|dark)\\.png$`).exec(file);
-  return m ? { layout: LAYOUT(m[1]), state: m[2], theme: m[3] } : null;
-};
+const fidelityName =
+  (prefix = '') =>
+  (file: string) => {
+    const m = new RegExp(
+      `^(phone|tablet|desk)-${prefix}(.+)-(light|dark)\\.png$`,
+    ).exec(file);
+    return m ? { layout: LAYOUT(m[1]), state: m[2], theme: m[3] } : null;
+  };
 
 export const STILL_SOURCES: StillSource[] = [
   {
@@ -38,7 +44,8 @@ export const STILL_SOURCES: StillSource[] = [
     spec: 'e2e/fidelity/no-target.spec.ts',
     env: 'E2E_NO_TARGET_DIR',
     projects: 'fidelity',
-    source: 'reports/P1-C-profil-layanan.md, "Screens with no locked target"; D2, D3, D5',
+    source:
+      'reports/P1-C-profil-layanan.md, "Screens with no locked target"; D2, D3, D5',
     parse: fidelityName(),
   },
   {
@@ -76,7 +83,9 @@ export const STILL_SOURCES: StillSource[] = [
     projects: 'journeys',
     source: 'reports/P2-A-form-sparta.md; reports/P2-A-sparta/; D4',
     parse: (file) => {
-      const m = /^(phone|tablet|desktop)-(light|dark)-(\d+)-(.+)\.png$/.exec(file);
+      const m = /^(phone|tablet|desktop)-(light|dark)-(\d+)-(.+)\.png$/.exec(
+        file,
+      );
       return m ? { layout: m[1], state: m[4], theme: m[2] } : null;
     },
   },
@@ -109,7 +118,8 @@ export interface StillState {
 }
 
 const main = (page: Page) => page.getByRole('main');
-const P3A = 'reports/P3-A-kelola-live.md, "Screens with no locked target, for the owner"; D8';
+const P3A =
+  'reports/P3-A-kelola-live.md, "Screens with no locked target, for the owner"; D8';
 
 export const STILL_STATES: StillState[] = [
   {
@@ -134,7 +144,8 @@ export const STILL_STATES: StillState[] = [
       db.adminResponses.kesan = [];
       db.formAnalytics.kesan = { totalResponses: 0, questions: [] };
     },
-    ready: (page) => main(page).getByRole('link', { name: /^Form Kesan Welcoming Party/ }),
+    ready: (page) =>
+      main(page).getByRole('link', { name: /^Form Kesan Welcoming Party/ }),
   },
   {
     id: 'kelola-rekap',
@@ -201,7 +212,9 @@ export const STILL_STATES: StillState[] = [
     persona: 'pengurus',
     path: '/kelola/sparta/sub-13525045',
     setup: ({ db }) => {
-      const nadia = db.internshipSubmissions.find((s) => s.id === 'sub-13525045');
+      const nadia = db.internshipSubmissions.find(
+        (s) => s.id === 'sub-13525045',
+      );
       if (nadia) Object.assign(nadia, { kelas: '', idLine: '' });
     },
     ready: (page) => main(page).getByText('13525045 · IF · –'),
@@ -214,8 +227,13 @@ export const STILL_STATES: StillState[] = [
     persona: 'anggota',
     path: '/layanan',
     act: async (page) => {
-      await page.context().route('**/assets/dingdong-*.js', (r) => r.abort('failed'));
-      await main(page).getByRole('link', { name: /^Ding Dong/ }).first().click();
+      await page
+        .context()
+        .route('**/assets/dingdong-*.js', (r) => r.abort('failed'));
+      await main(page)
+        .getByRole('link', { name: /^Ding Dong/ })
+        .first()
+        .click();
     },
     ready: (page) => page.getByText('Bagian ini gagal dimuat.'),
   },
@@ -231,7 +249,10 @@ export const STILL_STATES: StillState[] = [
       db.signedIn = true;
       api.on('GET /api/me', reply.status(503));
     },
-    ready: (page) => page.getByText('PIPS! belum bisa terhubung. Periksa koneksimu, lalu coba lagi.'),
+    ready: (page) =>
+      page.getByText(
+        'PIPS! belum bisa terhubung. Periksa koneksimu, lalu coba lagi.',
+      ),
   },
   {
     id: 'pengumuman-offline',
@@ -245,7 +266,10 @@ export const STILL_STATES: StillState[] = [
       await page.context().setOffline(true);
       await page.evaluate(() => window.dispatchEvent(new Event('offline')));
     },
-    ready: (page) => main(page).getByRole('status').filter({ hasText: /^Offline · diperbarui/ }),
+    ready: (page) =>
+      main(page)
+        .getByRole('status')
+        .filter({ hasText: /^Offline · diperbarui/ }),
   },
 ];
 
@@ -257,12 +281,33 @@ export const APP_ICONS = [
   { file: 'apple-touch-icon.png', title: 'iPhone home-screen icon' },
   { file: 'android-chrome-192x192.png', title: 'App icon, 192 px' },
   { file: 'android-chrome-384x384.png', title: 'App icon, 384 px' },
-  { file: 'android-chrome-512x512.png', title: 'App icon, 512 px; the splash shows it on ink (the manifest’s background)' },
-  { file: 'android-chrome-maskable-192x192.png', title: 'Android adaptive icon, 192 px' },
-  { file: 'android-chrome-maskable-512x512.png', title: 'Android adaptive icon, 512 px' },
+  {
+    file: 'android-chrome-512x512.png',
+    title:
+      'App icon, 512 px; the splash shows it on ink (the manifest’s background)',
+  },
+  {
+    file: 'android-chrome-maskable-192x192.png',
+    title: 'Android adaptive icon, 192 px',
+  },
+  {
+    file: 'android-chrome-maskable-512x512.png',
+    title: 'Android adaptive icon, 512 px',
+  },
   { file: 'mstile-150x150.png', title: 'Windows tile' },
   { file: 'push-icon-192x192.png', title: 'Push notification icon' },
-  { file: 'push-badge-96x96.png', title: 'Push badge (D11: a plain square on Android)' },
+  {
+    file: 'push-badge-96x96.png',
+    title: 'Push badge (D11: a plain square on Android)',
+  },
 ];
 /** Old files nothing uses, kept by C1 until HMIF's sign-off (C1's open question 4): listed, not shown as the app's. */
-export const OLD_ICONS = ['splash.png', 'icon.png', 'icon-background.png', 'icon-foreground.png', 'logo-nobg.png', 'logo-nobg-96x96.png', 'logo-nobg-256x256.png'];
+export const OLD_ICONS = [
+  'splash.png',
+  'icon.png',
+  'icon-background.png',
+  'icon-foreground.png',
+  'logo-nobg.png',
+  'logo-nobg-96x96.png',
+  'logo-nobg-256x256.png',
+];

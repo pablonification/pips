@@ -28,11 +28,37 @@ export const PROFILE = {
 const RUNS = 3;
 
 export const LAB_ROUTES = [
-  { id: 'login', url: '/login', signedIn: false, ready: (p: Page) => p.getByRole('button', { name: 'Masuk dengan Google' }) },
-  { id: 'beranda', url: '/', signedIn: true, ready: (p: Page) => p.getByRole('heading', { name: 'Halo, Nadia' }) },
-  { id: 'pengumuman', url: '/pengumuman', signedIn: true, ready: (p: Page) => p.locator('[data-post-link]').first() },
-  { id: 'kalender', url: '/kalender', signedIn: true, ready: (p: Page) => p.getByRole('main').getByText('Kuis 2').first() },
-  { id: 'layanan', url: '/layanan', signedIn: true, ready: (p: Page) => p.getByRole('main').getByRole('heading', { name: 'Kuliah' }) },
+  {
+    id: 'login',
+    url: '/login',
+    signedIn: false,
+    ready: (p: Page) => p.getByRole('button', { name: 'Masuk dengan Google' }),
+  },
+  {
+    id: 'beranda',
+    url: '/',
+    signedIn: true,
+    ready: (p: Page) => p.getByRole('heading', { name: 'Halo, Nadia' }),
+  },
+  {
+    id: 'pengumuman',
+    url: '/pengumuman',
+    signedIn: true,
+    ready: (p: Page) => p.locator('[data-post-link]').first(),
+  },
+  {
+    id: 'kalender',
+    url: '/kalender',
+    signedIn: true,
+    ready: (p: Page) => p.getByRole('main').getByText('Kuis 2').first(),
+  },
+  {
+    id: 'layanan',
+    url: '/layanan',
+    signedIn: true,
+    ready: (p: Page) =>
+      p.getByRole('main').getByRole('heading', { name: 'Kuliah' }),
+  },
 ];
 
 async function throttle(page: Page): Promise<CDPSession> {
@@ -52,10 +78,24 @@ async function throttle(page: Page): Promise<CDPSession> {
 /** Collects paint, LCP, layout shifts, long tasks and interactions from the first byte. */
 const OBSERVE = () => {
   const w = window as unknown as { __lab: Record<string, unknown> };
-  const lab = (w.__lab = { fcp: 0, lcp: 0, cls: 0, tasks: [] as { start: number; duration: number }[], events: [] as number[] });
-  const po = (type: string, cb: (e: PerformanceEntry) => void, extra: Record<string, unknown> = {}) => {
+  const lab = (w.__lab = {
+    fcp: 0,
+    lcp: 0,
+    cls: 0,
+    tasks: [] as { start: number; duration: number }[],
+    events: [] as number[],
+  });
+  const po = (
+    type: string,
+    cb: (e: PerformanceEntry) => void,
+    extra: Record<string, unknown> = {},
+  ) => {
     try {
-      new PerformanceObserver((l) => l.getEntries().forEach(cb)).observe({ type, buffered: true, ...extra });
+      new PerformanceObserver((l) => l.getEntries().forEach(cb)).observe({
+        type,
+        buffered: true,
+        ...extra,
+      });
     } catch {
       // not supported
     }
@@ -65,16 +105,32 @@ const OBSERVE = () => {
   });
   po('largest-contentful-paint', (e) => (lab.lcp = e.startTime));
   po('layout-shift', (e) => {
-    const s = e as PerformanceEntry & { value: number; hadRecentInput: boolean };
+    const s = e as PerformanceEntry & {
+      value: number;
+      hadRecentInput: boolean;
+    };
     if (!s.hadRecentInput) lab.cls += s.value;
   });
-  po('longtask', (e) => lab.tasks.push({ start: e.startTime, duration: e.duration }));
-  po('event', (e) => {
-    if (e.name === 'click' || e.name === 'pointerup' || e.name === 'pointerdown') lab.events.push(e.duration);
-  }, { durationThreshold: 16 });
+  po('longtask', (e) =>
+    lab.tasks.push({ start: e.startTime, duration: e.duration }),
+  );
+  po(
+    'event',
+    (e) => {
+      if (
+        e.name === 'click' ||
+        e.name === 'pointerup' ||
+        e.name === 'pointerdown'
+      )
+        lab.events.push(e.duration);
+    },
+    { durationThreshold: 16 },
+  );
 };
 
-test('the throttle reaches the mock’s answers, or the mock waits 150 ms itself', async ({ page }) => {
+test('the throttle reaches the mock’s answers, or the mock waits 150 ms itself', async ({
+  page,
+}) => {
   await throttle(page);
   await page.goto('/login');
   const ms = await page.evaluate(async () => {
@@ -82,13 +138,19 @@ test('the throttle reaches the mock’s answers, or the mock waits 150 ms itself
     await fetch('/api/me').catch(() => undefined);
     return performance.now() - t;
   });
-  appendFileSync(OUT!, `${JSON.stringify({ kind: 'probe', apiMs: Math.round(ms), reaches: ms >= PROFILE.latencyMs * 0.9 })}\n`);
+  appendFileSync(
+    OUT!,
+    `${JSON.stringify({ kind: 'probe', apiMs: Math.round(ms), reaches: ms >= PROFILE.latencyMs * 0.9 })}\n`,
+  );
 });
 
 for (const r of LAB_ROUTES)
   for (let run = 1; run <= RUNS; run++)
     test.describe(`${r.id} run ${run}`, () => {
-      test.use({ signedIn: r.signedIn, persona: r.signedIn ? 'anggota' : null });
+      test.use({
+        signedIn: r.signedIn,
+        persona: r.signedIn ? 'anggota' : null,
+      });
       test(`${r.id}, run ${run}`, async ({ page }) => {
         await throttle(page);
         // The mock answers before the emulated network: give its answers the profile's latency.
@@ -102,7 +164,12 @@ for (const r of LAB_ROUTES)
         page.on('requestfinished', async (req) => {
           if (!counting || req.url().startsWith('data:')) return;
           const sizes = await req.sizes().catch(() => null);
-          before.push({ url: req.url(), bytes: sizes ? sizes.responseBodySize + sizes.responseHeadersSize : 0 });
+          before.push({
+            url: req.url(),
+            bytes: sizes
+              ? sizes.responseBodySize + sizes.responseHeadersSize
+              : 0,
+          });
         });
         await page.goto(r.url);
         await expect(r.ready(page)).toBeVisible({ timeout: 60_000 });
@@ -110,17 +177,34 @@ for (const r of LAB_ROUTES)
         await page.waitForTimeout(5000);
         let tap: number | null = null;
         if (r.id === 'beranda') {
-          await page.getByRole('navigation', { name: 'Navigasi utama' }).getByRole('link', { name: /^Kalender/ }).click();
+          await page
+            .getByRole('navigation', { name: 'Navigasi utama' })
+            .getByRole('link', { name: /^Kalender/ })
+            .click();
           await expect(page).toHaveURL(/\/kalender/);
           await page.waitForTimeout(1000);
           tap = await page.evaluate(() => {
-            const ev = (window as unknown as { __lab: { events: number[] } }).__lab.events;
+            const ev = (window as unknown as { __lab: { events: number[] } })
+              .__lab.events;
             return ev.length ? Math.max(...ev) : null;
           });
         }
         const m = await page.evaluate(() => {
-          const lab = (window as unknown as { __lab: { fcp: number; lcp: number; cls: number; tasks: { start: number; duration: number }[] } }).__lab;
-          const fcp = lab.fcp || performance.getEntriesByName('first-contentful-paint')[0]?.startTime || null;
+          const lab = (
+            window as unknown as {
+              __lab: {
+                fcp: number;
+                lcp: number;
+                cls: number;
+                tasks: { start: number; duration: number }[];
+              };
+            }
+          ).__lab;
+          const fcp =
+            lab.fcp ||
+            performance.getEntriesByName('first-contentful-paint')[0]
+              ?.startTime ||
+            null;
           const after = lab.tasks.filter((t) => fcp === null || t.start >= fcp);
           return {
             fcp,
@@ -139,7 +223,9 @@ for (const r of LAB_ROUTES)
             ...m,
             tapToPaint: tap,
             requestsBeforeContent: before.length,
-            kibBeforeContent: Math.round(before.reduce((n, b) => n + b.bytes, 0) / 1024),
+            kibBeforeContent: Math.round(
+              before.reduce((n, b) => n + b.bytes, 0) / 1024,
+            ),
           })}\n`,
         );
       });

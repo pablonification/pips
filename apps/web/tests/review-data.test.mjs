@@ -35,16 +35,31 @@ test('a flow’s recordings in a theme: its variants at their layouts, named for
       ['review-phone-dark', 'media/flows/layanan/phone-dark-raka.mp4'],
     ],
   );
-  assert.deepEqual(plannedRecordings({ ...flow, themes: ['light'] }, 'dark'), []);
-  const one = { id: 'beranda', themes: ['light'], variants: [{ key: 'nadia', who: 'Nadia', layouts: ['tablet'] }] };
-  assert.equal(plannedRecordings(one, 'light')[0].poster, 'media/flows/beranda/tablet-light.webp');
+  assert.deepEqual(
+    plannedRecordings({ ...flow, themes: ['light'] }, 'dark'),
+    [],
+  );
+  const one = {
+    id: 'beranda',
+    themes: ['light'],
+    variants: [{ key: 'nadia', who: 'Nadia', layouts: ['tablet'] }],
+  };
+  assert.equal(
+    plannedRecordings(one, 'light')[0].poster,
+    'media/flows/beranda/tablet-light.webp',
+  );
 });
 
 test('the grep picks one flow, not a flow whose id starts the same', () => {
   const re = new RegExp(flowGrep('beranda'));
   assert.ok(re.test('Beranda [beranda:nadia] @flow:beranda'));
-  assert.ok(!re.test('Raka’s Beranda [beranda-pengurus:raka] @flow:beranda-pengurus'));
-  assert.deepEqual(flowOfTitle('x › Beranda [beranda-push:nadia] @flow:beranda-push'), { flow: 'beranda-push', variant: 'nadia' });
+  assert.ok(
+    !re.test('Raka’s Beranda [beranda-pengurus:raka] @flow:beranda-pengurus'),
+  );
+  assert.deepEqual(
+    flowOfTitle('x › Beranda [beranda-push:nadia] @flow:beranda-push'),
+    { flow: 'beranda-push', variant: 'nadia' },
+  );
 });
 
 const REPORT = {
@@ -60,10 +75,26 @@ const REPORT = {
             {
               title: 'Beranda [beranda:nadia] @flow:beranda',
               tests: [
-                { projectName: 'review-phone-light', expectedStatus: 'passed', results: [{ status: 'passed', duration: 9 }] },
-                { projectName: 'review-tablet-light', expectedStatus: 'failed', results: [{ status: 'failed', duration: 9 }] },
-                { projectName: 'review-desktop-light', expectedStatus: 'passed', results: [{ status: 'timedOut', duration: 9 }] },
-                { projectName: 'review-phone-dark', expectedStatus: 'passed', results: [{ status: 'skipped', duration: 0 }] },
+                {
+                  projectName: 'review-phone-light',
+                  expectedStatus: 'passed',
+                  results: [{ status: 'passed', duration: 9 }],
+                },
+                {
+                  projectName: 'review-tablet-light',
+                  expectedStatus: 'failed',
+                  results: [{ status: 'failed', duration: 9 }],
+                },
+                {
+                  projectName: 'review-desktop-light',
+                  expectedStatus: 'passed',
+                  results: [{ status: 'timedOut', duration: 9 }],
+                },
+                {
+                  projectName: 'review-phone-dark',
+                  expectedStatus: 'passed',
+                  results: [{ status: 'skipped', duration: 0 }],
+                },
               ],
             },
           ],
@@ -76,16 +107,32 @@ const REPORT = {
 test('Playwright’s JSON as rows and counts per project; each recording’s result', () => {
   const rows = resultsOf(REPORT);
   assert.equal(rows.length, 4);
-  assert.equal(rows[0].title, 'beranda · Nadia › Beranda [beranda:nadia] @flow:beranda');
+  assert.equal(
+    rows[0].title,
+    'beranda · Nadia › Beranda [beranda:nadia] @flow:beranda',
+  );
   assert.equal(rows[0].file, 'flows/a.flow.ts');
   const c = countsByProject(rows);
-  assert.deepEqual(c['review-phone-light'], { passed: 1, failed: 0, skipped: 0, 'expected failures': 0 });
+  assert.deepEqual(c['review-phone-light'], {
+    passed: 1,
+    failed: 0,
+    skipped: 0,
+    'expected failures': 0,
+  });
   assert.equal(c['review-tablet-light']['expected failures'], 1);
   assert.equal(c['review-desktop-light'].failed, 1);
   assert.equal(c['review-phone-dark'].skipped, 1);
-  assert.deepEqual(rows.map(recordingStatus), ['passed', 'expected-failure', 'failed', 'not recorded']);
+  assert.deepEqual(rows.map(recordingStatus), [
+    'passed',
+    'expected-failure',
+    'failed',
+    'not recorded',
+  ]);
   assert.equal(recordingStatus(undefined), 'not recorded');
-  assert.equal(recordingStatus({ status: 'passed', expected: 'failed' }), 'failed');
+  assert.equal(
+    recordingStatus({ status: 'passed', expected: 'failed' }),
+    'failed',
+  );
 });
 
 test('each locked screen’s owner, as the brief’s table gives it', () => {
@@ -114,13 +161,22 @@ test('each locked screen’s owner, as the brief’s table gives it', () => {
     'phone-pengurus-ov-addev-light': 'P3-B',
     'i-desk-kalender-after': 'P3-B',
   };
-  for (const [name, owner] of Object.entries(cases)) assert.equal(ownerOfScreen(name), owner, name);
+  for (const [name, owner] of Object.entries(cases))
+    assert.equal(ownerOfScreen(name), owner, name);
 });
 
 test('a different screen’s reason: a deviation that names it, else none', () => {
   const items = [
-    { kind: 'deviation', text: 'i-desk-live’s locked capture shows the persona toast.', source: { file: 'reports/P3-A.md' } },
-    { kind: 'needs-dev1', text: 'pengurus-beranda needs Dev 1.', source: { file: 'reports/P1-A.md' } },
+    {
+      kind: 'deviation',
+      text: 'i-desk-live’s locked capture shows the persona toast.',
+      source: { file: 'reports/P3-A.md' },
+    },
+    {
+      kind: 'needs-dev1',
+      text: 'pengurus-beranda needs Dev 1.',
+      source: { file: 'reports/P1-A.md' },
+    },
   ];
   assert.match(deviationFor('i-desk-live', items), /persona toast.*P3-A\.md/);
   assert.equal(deviationFor('desk-pengurus-beranda-light', items), null);
@@ -132,7 +188,19 @@ test('the lab: medians per route, against SPEC’s budgets, with the probe’s a
   assert.equal(median([]), null);
   const s = labSummary([
     { kind: 'probe', apiMs: 3, reaches: false },
-    ...[1, 2, 3].map((run) => ({ kind: 'run', route: 'beranda', run, fcp: 1000 * run, lcp: 2000, cls: 0, tbt: 100, longestTask: 120, tapToPaint: 80, requestsBeforeContent: 16, kibBeforeContent: 300 })),
+    ...[1, 2, 3].map((run) => ({
+      kind: 'run',
+      route: 'beranda',
+      run,
+      fcp: 1000 * run,
+      lcp: 2000,
+      cls: 0,
+      tbt: 100,
+      longestTask: 120,
+      tapToPaint: 80,
+      requestsBeforeContent: 16,
+      kibBeforeContent: 300,
+    })),
   ]);
   assert.equal(s.mockLatencyAdded, true);
   assert.equal(s.rows[0].fcp, 2000);
@@ -142,5 +210,8 @@ test('the lab: medians per route, against SPEC’s budgets, with the probe’s a
 });
 
 test('the release file is named for the package’s day', () => {
-  assert.equal(releaseName('2026-10-20T08:00:00.000Z'), 'review-2026-10-20.zip');
+  assert.equal(
+    releaseName('2026-10-20T08:00:00.000Z'),
+    'review-2026-10-20.zip',
+  );
 });

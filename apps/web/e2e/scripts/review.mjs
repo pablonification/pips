@@ -32,7 +32,13 @@ import { PNG } from 'pngjs';
 import { readPng, resize, sideBySide, writePng } from './lib/image.mjs';
 import { appDir, recordDir, redesignDir } from './lib/paths.mjs';
 import { gitHead, readRecords } from './lib/run.mjs';
-import { MiB, PARTS, fromPilot, packageBudget, planRecordings } from './lib/review/budget.mjs';
+import {
+  MiB,
+  PARTS,
+  fromPilot,
+  packageBudget,
+  planRecordings,
+} from './lib/review/budget.mjs';
 import {
   REMOVED,
   STATE_FLOWS,
@@ -48,26 +54,53 @@ import {
   resultsOf,
 } from './lib/review/data.mjs';
 import { CSS, JS, buildIndex } from './lib/review/index.mjs';
-import { CRF_STEPS, DEFAULT_CRF, POSTER_WIDTH, TOOLS, durationOf, frameArgs, missingTools, mp4Args, run, webpArgs } from './lib/review/media.mjs';
+import {
+  CRF_STEPS,
+  DEFAULT_CRF,
+  POSTER_WIDTH,
+  TOOLS,
+  durationOf,
+  frameArgs,
+  missingTools,
+  mp4Args,
+  run,
+  webpArgs,
+} from './lib/review/media.mjs';
 import { buildQuestions, extractItems } from './lib/review/questions.mjs';
 import { parseStill } from './lib/review/stills.mjs';
 
-const PARTS_ORDER = ['build', 'record', 'fidelity', 'after', 'stills', 'checks', 'lab', 'questions', 'index'];
+const PARTS_ORDER = [
+  'build',
+  'record',
+  'fidelity',
+  'after',
+  'stills',
+  'checks',
+  'lab',
+  'questions',
+  'index',
+];
 const ALL_PARTS = ['build', 'pilot', ...PARTS_ORDER.slice(1)];
 
 const args = process.argv.slice(2);
 const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
-const asked = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--only');
+const asked = args.filter(
+  (a, i) => !a.startsWith('--') && args[i - 1] !== '--only',
+);
 for (const p of asked)
   if (!ALL_PARTS.includes(p)) {
-    console.error(`review: unknown part "${p}". Parts: ${ALL_PARTS.join(', ')}.`);
+    console.error(
+      `review: unknown part "${p}". Parts: ${ALL_PARTS.join(', ')}.`,
+    );
     process.exit(2);
   }
 const parts = asked.length ? asked : PARTS_ORDER;
 
 const repoDir = path.resolve(appDir, '..', '..');
 const workspace = redesignDir();
-const PKG = process.env.REVIEW_OUT ? path.resolve(process.env.REVIEW_OUT) : recordDir('review');
+const PKG = process.env.REVIEW_OUT
+  ? path.resolve(process.env.REVIEW_OUT)
+  : recordDir('review');
 const MEDIA = path.join(PKG, 'media');
 const DATA = path.join(PKG, 'data');
 const WORK = path.join(appDir, 'e2e', '.review');
@@ -90,12 +123,18 @@ const writeJson = (/** @type {string} */ f, /** @type {any} */ v) => {
 /** The disk guard at the budget's 1 GiB floor; stops the command below it. */
 function diskGuard(part) {
   const script = workspace ? path.join(workspace, 'disk-guard.sh') : null;
-  if (!script || !existsSync(script)) return log(`no disk guard here (${part}); continuing`);
-  const r = spawnSync('bash', [script], { env: { ...process.env, MIN_FREE_GB: '1' }, encoding: 'utf8' });
+  if (!script || !existsSync(script))
+    return log(`no disk guard here (${part}); continuing`);
+  const r = spawnSync('bash', [script], {
+    env: { ...process.env, MIN_FREE_GB: '1' },
+    encoding: 'utf8',
+  });
   process.stdout.write(r.stdout ?? '');
   if (r.status !== 0) {
     process.stderr.write(r.stderr ?? '');
-    console.error(`[review] stopped before "${part}": under the 1 GiB floor. Free space, then run it again (it resumes).`);
+    console.error(
+      `[review] stopped before "${part}": under the 1 GiB floor. Free space, then run it again (it resumes).`,
+    );
     process.exit(3);
   }
 }
@@ -103,7 +142,9 @@ function diskGuard(part) {
 /** Free bytes on the disk the package is on. */
 function freeBytes() {
   const r = spawnSync('df', ['-k', appDir], { encoding: 'utf8' });
-  const kb = Number((r.stdout ?? '').trim().split('\n').at(-1)?.split(/\s+/)[3]);
+  const kb = Number(
+    (r.stdout ?? '').trim().split('\n').at(-1)?.split(/\s+/)[3],
+  );
   return Number.isFinite(kb) ? kb * 1024 : 0;
 }
 
@@ -111,7 +152,11 @@ function freeBytes() {
 let dumped = null;
 function dump() {
   if (dumped) return dumped;
-  const r = spawnSync(bin('tsx'), ['e2e/review/dump.ts'], { cwd: appDir, encoding: 'utf8', maxBuffer: 64 * MiB });
+  const r = spawnSync(bin('tsx'), ['e2e/review/dump.ts'], {
+    cwd: appDir,
+    encoding: 'utf8',
+    maxBuffer: 64 * MiB,
+  });
   if (r.status !== 0) throw new Error(`dump.ts failed: ${r.stderr}`);
   return (dumped = JSON.parse(r.stdout));
 }
@@ -120,7 +165,14 @@ function dump() {
 function playwright(projects, extra, env, json) {
   const r = spawnSync(
     bin('playwright'),
-    ['test', '-c', 'e2e', ...projects.map((p) => `--project=${p}`), '--reporter=list,json', ...extra],
+    [
+      'test',
+      '-c',
+      'e2e',
+      ...projects.map((p) => `--project=${p}`),
+      '--reporter=list,json',
+      ...extra,
+    ],
     {
       cwd: appDir,
       stdio: 'inherit',
@@ -157,7 +209,9 @@ function webp(png, out, width) {
 function needTools() {
   const missing = missingTools();
   if (missing.length) {
-    console.error(`[review] missing: ${missing.join(', ')}. Nothing is installed by this script; stopping.`);
+    console.error(
+      `[review] missing: ${missing.join(', ')}. Nothing is installed by this script; stopping.`,
+    );
     process.exit(4);
   }
 }
@@ -168,7 +222,11 @@ function build() {
   diskGuard('build');
   const stampFile = path.join(appDir, 'e2e', '.build', '.review-commit');
   const head = gitHead();
-  if (!head.includes('uncommitted') && existsSync(stampFile) && readFileSync(stampFile, 'utf8') === head)
+  if (
+    !head.includes('uncommitted') &&
+    existsSync(stampFile) &&
+    readFileSync(stampFile, 'utf8') === head
+  )
     return log(`build: e2e/.build is ${head}'s; reused`);
   log(`build: a production build of ${head}`);
   const r = spawnSync('node', ['e2e/scripts/serve.mjs'], {
@@ -189,18 +247,36 @@ function recordFlow(flow, theme, crf) {
   const planned = plannedRecordings(flow, theme);
   if (!planned.length) return;
   const state = readJson(STATE, {});
-  const done = planned.every((p) => existsSync(path.join(PKG, p.file)) && state[`${p.flow}|${p.name}`]);
-  if (done && !FORCE && VIDEO) return log(`record ${flow.id} (${theme}): already recorded, skipped (REVIEW_FORCE=1 to redo)`);
+  const done = planned.every(
+    (p) => existsSync(path.join(PKG, p.file)) && state[`${p.flow}|${p.name}`],
+  );
+  if (done && !FORCE && VIDEO)
+    return log(
+      `record ${flow.id} (${theme}): already recorded, skipped (REVIEW_FORCE=1 to redo)`,
+    );
   diskGuard(`record ${flow.id}`);
   rmSync(RUNS, { recursive: true, force: true });
   const json = path.join(WORK, 'json', `${flow.id}-${theme}.json`);
   mkdirSync(path.dirname(json), { recursive: true });
   const projects = [...new Set(planned.map((p) => p.project))];
-  playwright(projects, ['--grep', flowGrep(flow.id)], { REVIEW_RUN_DIR: RUNS }, json);
+  playwright(
+    projects,
+    ['--grep', flowGrep(flow.id)],
+    { REVIEW_RUN_DIR: RUNS },
+    json,
+  );
   const rows = resultsOf(readJson(json, {}));
   for (const p of planned) {
-    const row = rows.find((r) => r.project === p.project && flowOfTitle(r.title)?.variant === p.variant && flowOfTitle(r.title)?.flow === p.flow);
-    const recFile = path.join(RUNS, `${p.flow}__${p.variant}__${p.project}.json`);
+    const row = rows.find(
+      (r) =>
+        r.project === p.project &&
+        flowOfTitle(r.title)?.variant === p.variant &&
+        flowOfTitle(r.title)?.flow === p.flow,
+    );
+    const recFile = path.join(
+      RUNS,
+      `${p.flow}__${p.variant}__${p.project}.json`,
+    );
     const rec = readJson(recFile, null);
     const entry = {
       ...p,
@@ -208,7 +284,10 @@ function recordFlow(flow, theme, crf) {
       knownFailure: rec?.knownFailure ?? null,
       error: rec?.error ?? null,
       steps: rec?.steps ?? [],
-      gates: (rec?.gates ?? []).map((g) => ({ name: g.name, failures: g.failures })),
+      gates: (rec?.gates ?? []).map((g) => ({
+        name: g.name,
+        failures: g.failures,
+      })),
       guard: rec?.guard ?? null,
       durationMs: rec?.durationMs ?? null,
       seconds: null,
@@ -217,7 +296,9 @@ function recordFlow(flow, theme, crf) {
       poster: null,
     };
     if (rec && VIDEO) {
-      const webm = existsSync(rec.outputDir) ? readdirSync(rec.outputDir).find((f) => f.endsWith('.webm')) : null;
+      const webm = existsSync(rec.outputDir)
+        ? readdirSync(rec.outputDir).find((f) => f.endsWith('.webm'))
+        : null;
       if (webm) {
         const raw = path.join(rec.outputDir, webm);
         const mp4 = path.join(PKG, p.file);
@@ -227,7 +308,12 @@ function recordFlow(flow, theme, crf) {
         const frame = path.join(rec.outputDir, 'poster.png');
         run(TOOLS.ffmpeg, frameArgs(mp4, frame, Math.min(2.5, seconds / 2)));
         webp(frame, path.join(PKG, p.poster), POSTER_WIDTH);
-        Object.assign(entry, { file: p.file, poster: p.poster, seconds, bytes: statSync(mp4).size });
+        Object.assign(entry, {
+          file: p.file,
+          poster: p.poster,
+          seconds,
+          bytes: statSync(mp4).size,
+        });
       } else log(`record ${flow.id}: no video for ${p.name}`);
       // A known failure keeps its trace for F2 (one per finding).
       const trace = path.join(rec.outputDir, 'known-failure-trace.zip');
@@ -253,14 +339,25 @@ function writeFlowsJson() {
   const flows = d.flows.map((f) => {
     const recordings = ['light', 'dark']
       .flatMap((t) => plannedRecordings(f, t))
-      .map((p) => state[`${p.flow}|${p.name}`] ?? { ...p, status: 'not recorded', file: null, poster: null, steps: [] });
-    const ids = [...new Set((f.check.match(/\b[ADC]\d{1,2}\b/g) ?? []))];
+      .map(
+        (p) =>
+          state[`${p.flow}|${p.name}`] ?? {
+            ...p,
+            status: 'not recorded',
+            file: null,
+            poster: null,
+            steps: [],
+          },
+      );
+    const ids = [...new Set(f.check.match(/\b[ADC]\d{1,2}\b/g) ?? [])];
     const finding = d.findings.find((x) => x.flows.includes(f.id));
     return {
       ...f,
       knownFailure: finding ? `${finding.id}: ${finding.title}` : null,
       recordings,
-      beforeAfter: Object.entries(STATE_FLOWS).filter(([, fl]) => fl.includes(f.id)).map(([s]) => s),
+      beforeAfter: Object.entries(STATE_FLOWS)
+        .filter(([, fl]) => fl.includes(f.id))
+        .map(([s]) => s),
       questions: [
         ...ids.map((id) => {
           const q = allQ.find((x) => x.id === id);
@@ -270,7 +367,11 @@ function writeFlowsJson() {
       ],
     };
   });
-  writeJson(path.join(DATA, 'flows.json'), { createdAt: today, commit: gitHead(), flows });
+  writeJson(path.join(DATA, 'flows.json'), {
+    createdAt: today,
+    commit: gitHead(),
+    flows,
+  });
 }
 
 function recordingsByPhase(d) {
@@ -278,34 +379,70 @@ function recordingsByPhase(d) {
   return {
     light: all.map((f) => ({ f, theme: 'light' })),
     'dark-set': all.filter((f) => f.darkSet).map((f) => ({ f, theme: 'dark' })),
-    'dark-rest': all.filter((f) => !f.darkSet).map((f) => ({ f, theme: 'dark' })),
+    'dark-rest': all
+      .filter((f) => !f.darkSet)
+      .map((f) => ({ f, theme: 'dark' })),
   };
 }
 
 function plan(d) {
   const sizes = readJson(path.join(DATA, 'sizes.json'), {});
-  const pilot = sizes.pilot ? { kbps: sizes.pilot.kbps, secondsPerRecording: sizes.pilot.secondsPerRecording } : fromPilot([]);
+  const pilot = sizes.pilot
+    ? {
+        kbps: sizes.pilot.kbps,
+        secondsPerRecording: sizes.pilot.secondsPerRecording,
+      }
+    : fromPilot([]);
   const secs = (list) =>
-    list.flatMap(({ f, theme }) => plannedRecordings(f, theme)).map((p) => ({ layout: p.layout, seconds: pilot.secondsPerRecording }));
+    list
+      .flatMap(({ f, theme }) => plannedRecordings(f, theme))
+      .map((p) => ({ layout: p.layout, seconds: pilot.secondsPerRecording }));
   const phases = recordingsByPhase(d);
   const free = freeBytes();
   const budget = packageBudget(free);
-  const p = planRecordings({ budget, light: secs(phases.light), darkSet: secs(phases['dark-set']), darkRest: secs(phases['dark-rest']), kbps: pilot.kbps });
-  writeJson(path.join(DATA, 'sizes.json'), { ...sizes, measuredAt: today, freeBytes: free, budget, plan: p });
-  return { ...p, phases: process.env.REVIEW_THEMES ? process.env.REVIEW_THEMES.split(',') : p.phases };
+  const p = planRecordings({
+    budget,
+    light: secs(phases.light),
+    darkSet: secs(phases['dark-set']),
+    darkRest: secs(phases['dark-rest']),
+    kbps: pilot.kbps,
+  });
+  writeJson(path.join(DATA, 'sizes.json'), {
+    ...sizes,
+    measuredAt: today,
+    freeBytes: free,
+    budget,
+    plan: p,
+  });
+  return {
+    ...p,
+    phases: process.env.REVIEW_THEMES
+      ? process.env.REVIEW_THEMES.split(',')
+      : p.phases,
+  };
 }
 
 function record() {
   needTools();
   const d = dump();
-  const p = VIDEO ? plan(d) : { ok: true, crf: DEFAULT_CRF, phases: ['light', 'dark-set', 'dark-rest'], reason: '' };
+  const p = VIDEO
+    ? plan(d)
+    : {
+        ok: true,
+        crf: DEFAULT_CRF,
+        phases: ['light', 'dark-set', 'dark-rest'],
+        reason: '',
+      };
   if (!p.ok) {
     console.error(`[review] not recording: ${p.reason}.`);
     process.exit(5);
   }
-  log(`record: ${p.phases.join(', ')} at CRF ${p.crf}${p.reason ? ` (${p.reason})` : ''}`);
+  log(
+    `record: ${p.phases.join(', ')} at CRF ${p.crf}${p.reason ? ` (${p.reason})` : ''}`,
+  );
   const phases = recordingsByPhase(d);
-  for (const phase of p.phases) for (const { f, theme } of phases[phase]) recordFlow(f, theme, p.crf);
+  for (const phase of p.phases)
+    for (const { f, theme } of phases[phase]) recordFlow(f, theme, p.crf);
   writeFlowsJson();
 }
 
@@ -313,14 +450,31 @@ function record() {
 function pilot() {
   needTools();
   const d = dump();
-  for (const id of ['beranda', 'pengumuman-unread', 'form-pixel']) recordFlow(d.flows.find((f) => f.id === id), 'light', DEFAULT_CRF);
+  for (const id of ['beranda', 'pengumuman-unread', 'form-pixel'])
+    recordFlow(
+      d.flows.find((f) => f.id === id),
+      'light',
+      DEFAULT_CRF,
+    );
   const state = readJson(STATE, {});
-  const recs = Object.values(state).filter((r) => ['beranda', 'pengumuman-unread', 'form-pixel'].includes(r.flow) && r.bytes);
-  const measured = fromPilot(recs.map((r) => ({ layout: r.layout, seconds: r.seconds, bytes: r.bytes })));
+  const recs = Object.values(state).filter(
+    (r) =>
+      ['beranda', 'pengumuman-unread', 'form-pixel'].includes(r.flow) &&
+      r.bytes,
+  );
+  const measured = fromPilot(
+    recs.map((r) => ({ layout: r.layout, seconds: r.seconds, bytes: r.bytes })),
+  );
   const sizes = readJson(path.join(DATA, 'sizes.json'), {});
   writeJson(path.join(DATA, 'sizes.json'), {
     ...sizes,
-    pilot: { at: today, recordings: recs.length, ...measured, crf: DEFAULT_CRF, crfSteps: CRF_STEPS },
+    pilot: {
+      at: today,
+      recordings: recs.length,
+      ...measured,
+      crf: DEFAULT_CRF,
+      crfSteps: CRF_STEPS,
+    },
   });
   plan(d);
   log(`pilot: ${JSON.stringify(measured)}`);
@@ -332,10 +486,15 @@ function pilot() {
 function latestRun(kind) {
   const base = recordDir(kind);
   const mine = readJson(path.join(WORK, `${kind}-runs.json`), []);
-  const dirs = existsSync(base) ? readdirSync(base).filter((n) => /^\d{4}-\d\d-\d\dT/.test(n)).sort() : [];
+  const dirs = existsSync(base)
+    ? readdirSync(base)
+        .filter((n) => /^\d{4}-\d\d-\d\dT/.test(n))
+        .sort()
+    : [];
   const newest = dirs.at(-1);
   if (!newest) return null;
-  for (const old of mine.filter((n) => n !== newest)) rmSync(path.join(base, old), { recursive: true, force: true });
+  for (const old of mine.filter((n) => n !== newest))
+    rmSync(path.join(base, old), { recursive: true, force: true });
   writeJson(path.join(WORK, `${kind}-runs.json`), [newest]);
   return path.join(base, newest);
 }
@@ -351,13 +510,22 @@ function reportItems() {
   const dir = path.join(workspace, 'reports');
   return readdirSync(dir)
     .filter((f) => f.endsWith('.md'))
-    .flatMap((f) => extractItems(readFileSync(path.join(dir, f), 'utf8'), `ops/redesign/reports/${f}`));
+    .flatMap((f) =>
+      extractItems(
+        readFileSync(path.join(dir, f), 'utf8'),
+        `ops/redesign/reports/${f}`,
+      ),
+    );
 }
 
 function fidelity() {
   needTools();
   diskGuard('fidelity');
-  const r = spawnSync('node', ['e2e/scripts/fidelity.mjs'], { cwd: appDir, stdio: 'inherit', env: { ...process.env, E2E_REUSE_BUILD: '1', E2E_PORT: PORT } });
+  const r = spawnSync('node', ['e2e/scripts/fidelity.mjs'], {
+    cwd: appDir,
+    stdio: 'inherit',
+    env: { ...process.env, E2E_REUSE_BUILD: '1', E2E_PORT: PORT },
+  });
   const dir = latestRun('fidelity');
   if (!dir) throw new Error('fidelity: no report');
   const report = readJson(path.join(dir, 'report.json'), {});
@@ -365,7 +533,16 @@ function fidelity() {
   const screens = [];
   for (const s of report.screens) {
     const owner = ownerOfScreen(s.name);
-    const row = { name: s.name, layout: s.layout, theme: s.theme, persona: s.persona, kind: s.kind, owner, ssim: s.ssim ?? null, changed: s.changedPixelRatio ?? null };
+    const row = {
+      name: s.name,
+      layout: s.layout,
+      theme: s.theme,
+      persona: s.persona,
+      kind: s.kind,
+      owner,
+      ssim: s.ssim ?? null,
+      changed: s.changedPixelRatio ?? null,
+    };
     if (!s.sideBySide) {
       screens.push({ ...row, status: 'not built yet' });
       continue;
@@ -373,27 +550,66 @@ function fidelity() {
     const out = `media/fidelity/${s.name}.webp`;
     // Each panel at CSS-pixel size: phone screens are 2×, and the side-by-side is drawn at most 1200 px tall.
     const sbs = pngSize(path.join(dir, s.sideBySide));
-    const protoH = pngSize(path.join(dir, s.prototype)).height - (s.protoBar ? s.protoBar * 2 : 0);
+    const protoH =
+      pngSize(path.join(dir, s.prototype)).height -
+      (s.protoBar ? s.protoBar * 2 : 0);
     const drawn = Math.min(protoH, 1200);
-    const width = s.layout === 'phone' ? Math.round(sbs.width * (protoH / 2 + 32) / (drawn + 32)) : undefined;
+    const width =
+      s.layout === 'phone'
+        ? Math.round((sbs.width * (protoH / 2 + 32)) / (drawn + 32))
+        : undefined;
     webp(path.join(dir, s.sideBySide), path.join(PKG, out), width);
-    const deviation = s.status === 'different' ? deviationFor(s.name, items.filter((i) => i.source.file.includes(owner.split(' ')[0]))) : null;
-    screens.push({ ...row, sideBySide: out, deviation, status: s.status === 'different' && !deviation ? 'unexplained' : s.status });
+    const deviation =
+      s.status === 'different'
+        ? deviationFor(
+            s.name,
+            items.filter((i) => i.source.file.includes(owner.split(' ')[0])),
+          )
+        : null;
+    screens.push({
+      ...row,
+      sideBySide: out,
+      deviation,
+      status: s.status === 'different' && !deviation ? 'unexplained' : s.status,
+    });
   }
-  for (const name of prototypeOnly()) screens.push({ name, layout: '', theme: '', persona: 'none', kind: 'prototype', owner: '–', status: 'prototype only' });
+  for (const name of prototypeOnly())
+    screens.push({
+      name,
+      layout: '',
+      theme: '',
+      persona: 'none',
+      kind: 'prototype',
+      owner: '–',
+      status: 'prototype only',
+    });
   const count = (st) => screens.filter((x) => x.status === st).length;
   writeJson(path.join(DATA, 'fidelity.json'), {
     run: path.relative(repoDir, dir),
     captureExitCode: report.captureExitCode,
     lockedScreensNotInList: report.summary?.lockedScreensNotInList ?? [],
-    summary: { close: count('close'), different: count('different'), unexplained: count('unexplained'), notBuiltYet: count('not built yet'), prototypeOnly: count('prototype only') },
+    summary: {
+      close: count('close'),
+      different: count('different'),
+      unexplained: count('unexplained'),
+      notBuiltYet: count('not built yet'),
+      prototypeOnly: count('prototype only'),
+    },
     screens,
   });
-  if (r.status !== 0) log(`fidelity: the capture run exited ${r.status}; see ${dir}`);
+  if (r.status !== 0)
+    log(`fidelity: the capture run exited ${r.status}; see ${dir}`);
 }
 /** The 11 prototype-only screens' names (fidelity/names.mjs). */
 function prototypeOnly() {
-  const r = spawnSync('node', ['-e', "import('./e2e/fidelity/names.mjs').then(m=>process.stdout.write(JSON.stringify(m.PROTOTYPE_ONLY)))"], { cwd: appDir, encoding: 'utf8' });
+  const r = spawnSync(
+    'node',
+    [
+      '-e',
+      "import('./e2e/fidelity/names.mjs').then(m=>process.stdout.write(JSON.stringify(m.PROTOTYPE_ONLY)))",
+    ],
+    { cwd: appDir, encoding: 'utf8' },
+  );
   return JSON.parse(r.stdout || '[]');
 }
 
@@ -402,13 +618,26 @@ function prototypeOnly() {
 function after() {
   needTools();
   diskGuard('after');
-  spawnSync('node', ['e2e/scripts/compare-before.mjs'], { cwd: appDir, stdio: 'inherit', env: { ...process.env, E2E_REUSE_BUILD: '1', E2E_PORT: PORT } });
+  spawnSync('node', ['e2e/scripts/compare-before.mjs'], {
+    cwd: appDir,
+    stdio: 'inherit',
+    env: { ...process.env, E2E_REUSE_BUILD: '1', E2E_PORT: PORT },
+  });
   const dir = latestRun('compare');
   if (!dir) throw new Error('after: no compare report');
   const report = readJson(path.join(dir, 'report.json'), {});
-  const recs = new Map(readRecords(path.join(dir, 'after')).map((r) => [`${r.variant}/${r.id}`, r]));
-  const manifest = readJson(path.join(workspace ?? '', 'before-set', 'manifest.json'), { states: [], totals: {} });
-  const beforeOf = (id, variant) => manifest.states.find((s) => s.id === id)?.variants?.[variant];
+  const recs = new Map(
+    readRecords(path.join(dir, 'after')).map((r) => [
+      `${r.variant}/${r.id}`,
+      r,
+    ]),
+  );
+  const manifest = readJson(
+    path.join(workspace ?? '', 'before-set', 'manifest.json'),
+    { states: [], totals: {} },
+  );
+  const beforeOf = (id, variant) =>
+    manifest.states.find((s) => s.id === id)?.variants?.[variant];
   const tmp = path.join(WORK, 'pairs');
   mkdirSync(tmp, { recursive: true });
   const pairs = [];
@@ -416,8 +645,24 @@ function after() {
   for (const row of report.states ?? []) {
     const b = beforeOf(row.id, row.variant);
     const a = recs.get(`${row.variant}/${row.id}`);
-    const before = b ? { axe: b.axe, overflowX: b.overflowX, smallText: b.smallText, minPx: b.smallestTextPx, lang: b.lang } : null;
-    const aft = a ? { axe: a.audit.axe.byImpact, overflowX: a.audit.metrics.overflowX, smallText: a.audit.metrics.smallText.count, minPx: a.audit.metrics.smallText.minPx, lang: a.audit.metrics.lang } : null;
+    const before = b
+      ? {
+          axe: b.axe,
+          overflowX: b.overflowX,
+          smallText: b.smallText,
+          minPx: b.smallestTextPx,
+          lang: b.lang,
+        }
+      : null;
+    const aft = a
+      ? {
+          axe: a.audit.axe.byImpact,
+          overflowX: a.audit.metrics.overflowX,
+          smallText: a.audit.metrics.smallText.count,
+          minPx: a.audit.metrics.smallText.minPx,
+          lang: a.audit.metrics.lang,
+        }
+      : null;
     if (aft) {
       after.critical += aft.axe.critical;
       after.serious += aft.axe.serious;
@@ -428,7 +673,10 @@ function after() {
       const ib = readPng(path.join(dir, row.before));
       const ia = readPng(path.join(dir, row.after));
       const half = row.variant.startsWith('phone');
-      const pair = sideBySide([half ? resize(ib, ib.width / 2, ib.height / 2) : ib, half ? resize(ia, ia.width / 2, ia.height / 2) : ia]);
+      const pair = sideBySide([
+        half ? resize(ib, ib.width / 2, ib.height / 2) : ib,
+        half ? resize(ia, ia.width / 2, ia.height / 2) : ia,
+      ]);
       const png = path.join(tmp, `${row.variant}-${row.id}.png`);
       writePng(png, pair);
       image = `media/before-after/${row.variant}/${row.id}.webp`;
@@ -439,8 +687,14 @@ function after() {
       id: row.id,
       title: row.title,
       variant: row.variant,
-      status: REMOVED[row.id] ? 'removed' : row.status === 'missing' ? 'missing' : 'paired',
-      reason: REMOVED[row.id] ?? (row.status === 'missing' ? 'no after capture' : null),
+      status: REMOVED[row.id]
+        ? 'removed'
+        : row.status === 'missing'
+          ? 'missing'
+          : 'paired',
+      reason:
+        REMOVED[row.id] ??
+        (row.status === 'missing' ? 'no after capture' : null),
       image,
       before,
       after: aft,
@@ -451,9 +705,14 @@ function after() {
   writeJson(path.join(DATA, 'before-after.json'), {
     run: path.relative(repoDir, dir),
     captureExitCode: report.captureExitCode,
-    missing: pairs.filter((p) => p.status === 'missing').map((p) => `${p.variant}/${p.id}`),
+    missing: pairs
+      .filter((p) => p.status === 'missing')
+      .map((p) => `${p.variant}/${p.id}`),
     totals: {
-      before: { ...manifest.totals?.axeViolations, captures: manifest.totals?.captures ?? 200 },
+      before: {
+        ...manifest.totals?.axeViolations,
+        captures: manifest.totals?.captures ?? 200,
+      },
       after,
     },
     pairs,
@@ -468,21 +727,34 @@ function stills() {
   const out = path.join(WORK, 'stills');
   rmSync(out, { recursive: true, force: true });
   const PROJECTS = {
-    fidelity: ['phone', 'tablet', 'desk'].flatMap((l) => ['light', 'dark'].map((t) => `fidelity-${l}-${t}`)),
-    journeys: ['phone', 'tablet', 'desktop'].flatMap((l) => ['light', 'dark'].map((t) => `${l}-${t}`)),
-    'review-stills': ['phone', 'tablet', 'desktop'].flatMap((l) => ['light', 'dark'].map((t) => `review-stills-${l}-${t}`)),
+    fidelity: ['phone', 'tablet', 'desk'].flatMap((l) =>
+      ['light', 'dark'].map((t) => `fidelity-${l}-${t}`),
+    ),
+    journeys: ['phone', 'tablet', 'desktop'].flatMap((l) =>
+      ['light', 'dark'].map((t) => `${l}-${t}`),
+    ),
+    'review-stills': ['phone', 'tablet', 'desktop'].flatMap((l) =>
+      ['light', 'dark'].map((t) => `review-stills-${l}-${t}`),
+    ),
   };
   for (const src of d.stillSources) {
     diskGuard(`stills ${src.id}`);
     const dir = path.join(out, src.id);
     mkdirSync(dir, { recursive: true });
-    playwright(PROJECTS[src.projects], [src.spec], { [src.env]: dir }, path.join(WORK, 'json', `stills-${src.id}.json`));
+    playwright(
+      PROJECTS[src.projects],
+      [src.spec],
+      { [src.env]: dir },
+      path.join(WORK, 'json', `stills-${src.id}.json`),
+    );
   }
   /** @type {Map<string, any>} */
   const byState = new Map();
   for (const src of d.stillSources) {
     const dir = path.join(out, src.id);
-    for (const file of existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.png')) : []) {
+    for (const file of existsSync(dir)
+      ? readdirSync(dir).filter((f) => f.endsWith('.png'))
+      : []) {
       const p = parseStill(src.id, file);
       if (!p) continue;
       const key = `${src.id.toLowerCase()}-${p.state}`;
@@ -498,7 +770,11 @@ function stills() {
       const img = readPng(png);
       const rel = `media/stills/${key}/${p.layout}-${p.theme}.webp`;
       // Phones are captured at 2×: halve them to CSS pixels.
-      webp(png, path.join(PKG, rel), p.layout === 'phone' ? Math.round(img.width / 2) : undefined);
+      webp(
+        png,
+        path.join(PKG, rel),
+        p.layout === 'phone' ? Math.round(img.width / 2) : undefined,
+      );
       entry.images.push({ layout: p.layout, theme: p.theme, file: rel });
       byState.set(key, entry);
     }
@@ -515,7 +791,9 @@ function stills() {
   writeJson(path.join(DATA, 'stills.json'), {
     stills: [...byState.values()],
     appIcons: icons,
-    oldFiles: d.oldIcons.filter((f) => existsSync(path.join(appDir, 'public', f))),
+    oldFiles: d.oldIcons.filter((f) =>
+      existsSync(path.join(appDir, 'public', f)),
+    ),
   });
   rmSync(out, { recursive: true, force: true });
 }
@@ -523,7 +801,12 @@ function stills() {
 // ---------------------------------------------------------------- checks
 
 function sh(cmd, argv, cwd, env = {}) {
-  const r = spawnSync(cmd, argv, { cwd, encoding: 'utf8', env: { ...process.env, ...env }, maxBuffer: 256 * MiB });
+  const r = spawnSync(cmd, argv, {
+    cwd,
+    encoding: 'utf8',
+    env: { ...process.env, ...env },
+    maxBuffer: 256 * MiB,
+  });
   return { status: r.status ?? 1, out: `${r.stdout ?? ''}${r.stderr ?? ''}` };
 }
 const tail = (s, n = 15) => s.trim().split('\n').slice(-n);
@@ -540,68 +823,248 @@ function checks() {
   diskGuard('checks');
   for (const [id, title, cmd] of [
     ['repo-check', 'Type check and lint (pnpm check)', ['check']],
-    ['repo-test', 'Unit tests, web and api, and the API start test (pnpm test)', ['test']],
+    [
+      'repo-test',
+      'Unit tests, web and api, and the API start test (pnpm test)',
+      ['test'],
+    ],
     ['repo-build', 'Production builds (pnpm build)', ['build']],
   ]) {
     const r = sh('pnpm', cmd, repoDir);
-    add({ id, title, command: `pnpm ${cmd.join(' ')}`, status: r.status === 0 ? 'green' : 'red', failures: r.status ? tail(r.out) : [] });
+    add({
+      id,
+      title,
+      command: `pnpm ${cmd.join(' ')}`,
+      status: r.status === 0 ? 'green' : 'red',
+      failures: r.status ? tail(r.out) : [],
+    });
   }
   // Every step check.yml runs after "Production build".
-  const ci = readFileSync(path.join(repoDir, '.github', 'workflows', 'check.yml'), 'utf8');
+  const ci = readFileSync(
+    path.join(repoDir, '.github', 'workflows', 'check.yml'),
+    'utf8',
+  );
   const afterBuild = ci.split(/- name: Production build/)[1] ?? '';
-  const steps = [...afterBuild.matchAll(/- name: ([^\n]+)\n(?:\s+[a-z-]+:.*\n)*?\s+run: ([^\n]+)/g)].map((m) => ({ name: m[1].trim(), run: m[2].trim() }));
-  for (const s of steps.length ? steps : [{ name: 'Production bundle check', run: 'node apps/web/scripts/verify-production-bundle.mjs apps/web/dist' }]) {
+  const steps = [
+    ...afterBuild.matchAll(
+      /- name: ([^\n]+)\n(?:\s+[a-z-]+:.*\n)*?\s+run: ([^\n]+)/g,
+    ),
+  ].map((m) => ({ name: m[1].trim(), run: m[2].trim() }));
+  for (const s of steps.length
+    ? steps
+    : [
+        {
+          name: 'Production bundle check',
+          run: 'node apps/web/scripts/verify-production-bundle.mjs apps/web/dist',
+        },
+      ]) {
     const r = sh('bash', ['-c', s.run], repoDir);
-    add({ id: `ci-${s.name.toLowerCase().replace(/\W+/g, '-')}`, title: `CI step after the build: ${s.name}`, command: s.run, status: r.status === 0 ? 'green' : 'red', failures: r.status ? tail(r.out) : [] });
+    add({
+      id: `ci-${s.name.toLowerCase().replace(/\W+/g, '-')}`,
+      title: `CI step after the build: ${s.name}`,
+      command: s.run,
+      status: r.status === 0 ? 'green' : 'red',
+      failures: r.status ? tail(r.out) : [],
+    });
   }
   // Budgets (C1's post-build check), strict.
   const budgets = path.join(WORK, 'budgets.json');
-  const b = sh('pnpm', ['--filter', 'web', 'budgets', '--json', budgets], repoDir, { BUDGETS_STRICT: '1' });
-  add({ id: 'budgets', title: d.checks.budgets, command: 'BUDGETS_STRICT=1 pnpm --filter web budgets --json <file>', status: b.status === 0 ? 'green' : 'red', failures: b.status ? tail(b.out) : [], details: readJson(budgets, null) });
+  const b = sh(
+    'pnpm',
+    ['--filter', 'web', 'budgets', '--json', budgets],
+    repoDir,
+    { BUDGETS_STRICT: '1' },
+  );
+  add({
+    id: 'budgets',
+    title: d.checks.budgets,
+    command: 'BUDGETS_STRICT=1 pnpm --filter web budgets --json <file>',
+    status: b.status === 0 ? 'green' : 'red',
+    failures: b.status ? tail(b.out) : [],
+    details: readJson(budgets, null),
+  });
   // The whole journey suite, strict.
   diskGuard('journeys');
   const jj = path.join(WORK, 'json', 'journeys.json');
-  const j = sh('pnpm', ['--filter', 'web', 'e2e', '--reporter=list,json'], repoDir, { E2E_GATES: 'strict', E2E_REUSE_BUILD: '1', E2E_PORT: PORT, E2E_WORKERS: WORKERS, PLAYWRIGHT_JSON_OUTPUT_NAME: jj });
+  const j = sh(
+    'pnpm',
+    ['--filter', 'web', 'e2e', '--reporter=list,json'],
+    repoDir,
+    {
+      E2E_GATES: 'strict',
+      E2E_REUSE_BUILD: '1',
+      E2E_PORT: PORT,
+      E2E_WORKERS: WORKERS,
+      PLAYWRIGHT_JSON_OUTPUT_NAME: jj,
+    },
+  );
   const jr = resultsOf(readJson(jj, {}));
-  const failed = jr.filter((r) => r.status !== r.expected && r.status !== 'skipped');
+  const failed = jr.filter(
+    (r) => r.status !== r.expected && r.status !== 'skipped',
+  );
   const byProject = countsByProject(jr);
-  add({ id: 'journeys', title: d.checks.journeys, command: 'E2E_GATES=strict pnpm --filter web e2e', status: j.status === 0 && !failed.length ? 'green' : 'red', counts: Object.fromEntries(Object.entries(byProject).map(([p, c]) => [p, `${c.passed} passed, ${c.failed} failed`])), failures: failed.map((f) => `${f.project} › ${f.title}`) });
-  const visual = Object.entries(byProject).filter(([p]) => p.startsWith('visual-'));
-  add({ id: 'visual-mac', title: `${d.checks.visual}: this Mac (…-darwin.png), from the journey run`, command: 'part of pnpm --filter web e2e', status: visual.every(([, c]) => !c.failed) ? 'green' : 'red', counts: Object.fromEntries(visual.map(([p, c]) => [p, `${c.passed} passed, ${c.failed} failed`])) });
+  add({
+    id: 'journeys',
+    title: d.checks.journeys,
+    command: 'E2E_GATES=strict pnpm --filter web e2e',
+    status: j.status === 0 && !failed.length ? 'green' : 'red',
+    counts: Object.fromEntries(
+      Object.entries(byProject).map(([p, c]) => [
+        p,
+        `${c.passed} passed, ${c.failed} failed`,
+      ]),
+    ),
+    failures: failed.map((f) => `${f.project} › ${f.title}`),
+  });
+  const visual = Object.entries(byProject).filter(([p]) =>
+    p.startsWith('visual-'),
+  );
+  add({
+    id: 'visual-mac',
+    title: `${d.checks.visual}: this Mac (…-darwin.png), from the journey run`,
+    command: 'part of pnpm --filter web e2e',
+    status: visual.every(([, c]) => !c.failed) ? 'green' : 'red',
+    counts: Object.fromEntries(
+      visual.map(([p, c]) => [p, `${c.passed} passed, ${c.failed} failed`]),
+    ),
+  });
   // The sweep.
   diskGuard('sweep');
   const sj = path.join(WORK, 'json', 'sweep.json');
-  const sweepProjects = ['320', '390', '768', '1024', '1440', 'zoom200'].flatMap((w) => ['light', 'dark'].map((t) => `review-sweep-${w}-${t}`));
+  const sweepProjects = [
+    '320',
+    '390',
+    '768',
+    '1024',
+    '1440',
+    'zoom200',
+  ].flatMap((w) => ['light', 'dark'].map((t) => `review-sweep-${w}-${t}`));
   playwright(sweepProjects, [], {}, sj);
   const sr = resultsOf(readJson(sj, {}));
-  const sf = sr.filter((r) => r.status !== r.expected && r.status !== 'skipped');
-  add({ id: 'sweep', title: d.checks.sweep, command: 'playwright --project=review-sweep-*', status: sr.length && !sf.length ? 'green' : 'red', counts: { passed: sr.length - sf.length, failed: sf.length }, failures: sf.map((f) => `${f.project} › ${f.title}`) });
+  const sf = sr.filter(
+    (r) => r.status !== r.expected && r.status !== 'skipped',
+  );
+  add({
+    id: 'sweep',
+    title: d.checks.sweep,
+    command: 'playwright --project=review-sweep-*',
+    status: sr.length && !sf.length ? 'green' : 'red',
+    counts: { passed: sr.length - sf.length, failed: sf.length },
+    failures: sf.map((f) => `${f.project} › ${f.title}`),
+  });
   // Contrast: the token and theme tests, and axe's colour-contrast failures in the sweep.
-  const t = sh('node', ['--test', 'tests/garis-tokens.test.mjs', 'tests/garis-theme.test.mjs'], appDir);
-  add({ id: 'contrast', title: d.checks.contrast, command: 'node --test tests/garis-tokens.test.mjs tests/garis-theme.test.mjs; the sweep’s axe', status: t.status === 0 ? 'green' : 'red', failures: t.status ? tail(t.out) : [], note: 'axe’s colour-contrast results are in the sweep’s failures above.' });
+  const t = sh(
+    'node',
+    ['--test', 'tests/garis-tokens.test.mjs', 'tests/garis-theme.test.mjs'],
+    appDir,
+  );
+  add({
+    id: 'contrast',
+    title: d.checks.contrast,
+    command:
+      'node --test tests/garis-tokens.test.mjs tests/garis-theme.test.mjs; the sweep’s axe',
+    status: t.status === 0 ? 'green' : 'red',
+    failures: t.status ? tail(t.out) : [],
+    note: 'axe’s colour-contrast results are in the sweep’s failures above.',
+  });
   // CI, read only.
   const retry = workspace ? path.join(workspace, 'gh-retry.sh') : null;
-  const ghRuns = retry ? sh('bash', [retry, 'gh', 'run', 'list', '--repo', 'pablonification/pips', '--branch', 'redesign', '--limit', '5', '--json', 'databaseId,conclusion,headSha,url,workflowName,createdAt'], repoDir) : { status: 1, out: '' };
-  const ghPrs = retry ? sh('bash', [retry, 'gh', 'pr', 'list', '--repo', 'pablonification/pips', '--state', 'merged', '--base', 'redesign', '--limit', '40', '--json', 'number,title,url,mergedAt'], repoDir) : { status: 1, out: '' };
+  const ghRuns = retry
+    ? sh(
+        'bash',
+        [
+          retry,
+          'gh',
+          'run',
+          'list',
+          '--repo',
+          'pablonification/pips',
+          '--branch',
+          'redesign',
+          '--limit',
+          '5',
+          '--json',
+          'databaseId,conclusion,headSha,url,workflowName,createdAt',
+        ],
+        repoDir,
+      )
+    : { status: 1, out: '' };
+  const ghPrs = retry
+    ? sh(
+        'bash',
+        [
+          retry,
+          'gh',
+          'pr',
+          'list',
+          '--repo',
+          'pablonification/pips',
+          '--state',
+          'merged',
+          '--base',
+          'redesign',
+          '--limit',
+          '40',
+          '--json',
+          'number,title,url,mergedAt',
+        ],
+        repoDir,
+      )
+    : { status: 1, out: '' };
   add({
     id: 'ci',
-    title: 'CI on GitHub: the latest runs on redesign and every merged task’s pull request',
+    title:
+      'CI on GitHub: the latest runs on redesign and every merged task’s pull request',
     command: 'ops/redesign/gh-retry.sh gh run list / gh pr list (read only)',
     status: ghRuns.status === 0 ? 'green' : 'slot',
-    note: ghRuns.status === 0 ? 'A push to redesign runs check, test, build and the Docker images; journeys and visual references run only on pull requests (Linux references).' : 'gh couldn’t read the runs here: Dev 1 fills this in.',
-    details: { runs: ghRuns.status === 0 ? safeJson(ghRuns.out) : null, pullRequests: ghPrs.status === 0 ? safeJson(ghPrs.out) : null },
+    note:
+      ghRuns.status === 0
+        ? 'A push to redesign runs check, test, build and the Docker images; journeys and visual references run only on pull requests (Linux references).'
+        : 'gh couldn’t read the runs here: Dev 1 fills this in.',
+    details: {
+      runs: ghRuns.status === 0 ? safeJson(ghRuns.out) : null,
+      pullRequests: ghPrs.status === 0 ? safeJson(ghPrs.out) : null,
+    },
   });
-  add({ id: 'staging', title: 'Staging smoke test (ops/redesign/smoke-staging.sh)', status: 'slot', note: 'Dev 1 runs it: it needs the old server’s test account.' });
+  add({
+    id: 'staging',
+    title: 'Staging smoke test (ops/redesign/smoke-staging.sh)',
+    status: 'slot',
+    note: 'Dev 1 runs it: it needs the old server’s test account.',
+  });
   const fid = readJson(path.join(DATA, 'fidelity.json'), null);
-  if (fid) add({ id: 'fidelity', title: d.checks.fidelity, status: fid.summary.unexplained || fid.lockedScreensNotInList.length ? 'red' : 'green', counts: fid.summary });
+  if (fid)
+    add({
+      id: 'fidelity',
+      title: d.checks.fidelity,
+      status:
+        fid.summary.unexplained || fid.lockedScreensNotInList.length
+          ? 'red'
+          : 'green',
+      counts: fid.summary,
+    });
   const ba = readJson(path.join(DATA, 'before-after.json'), null);
-  if (ba) add({ id: 'before-after', title: d.checks.beforeAfter, status: ba.captureExitCode === 0 && !ba.missing.length ? 'green' : 'red', counts: { pairs: ba.pairs.length, missing: ba.missing.length } });
+  if (ba)
+    add({
+      id: 'before-after',
+      title: d.checks.beforeAfter,
+      status: ba.captureExitCode === 0 && !ba.missing.length ? 'green' : 'red',
+      counts: { pairs: ba.pairs.length, missing: ba.missing.length },
+    });
   for (const [id, title] of [
     ['screen-readers', 'TalkBack, VoiceOver and NVDA (SPEC "Accessibility")'],
-    ['usability', 'The five-student usability test and the tree test (SPEC "Delivery")'],
+    [
+      'usability',
+      'The five-student usability test and the tree test (SPEC "Delivery")',
+    ],
     ['field', 'Field metrics (no monitoring backend)'],
   ])
-    add({ id, title, status: 'needs a person', note: 'Not run by F1: it needs a person.' });
+    add({
+      id,
+      title,
+      status: 'needs a person',
+      note: 'Not run by F1: it needs a person.',
+    });
 }
 const safeJson = (s) => {
   try {
@@ -617,8 +1080,19 @@ function lab() {
   diskGuard('lab');
   const out = path.join(WORK, 'lab.jsonl');
   rmSync(out, { force: true });
-  playwright(['review-lab-phone'], [], { REVIEW_LAB_OUT: out, E2E_WORKERS: '1' }, path.join(WORK, 'json', 'lab.json'));
-  const lines = existsSync(out) ? readFileSync(out, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l)) : [];
+  playwright(
+    ['review-lab-phone'],
+    [],
+    { REVIEW_LAB_OUT: out, E2E_WORKERS: '1' },
+    path.join(WORK, 'json', 'lab.json'),
+  );
+  const lines = existsSync(out)
+    ? readFileSync(out, 'utf8')
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .map((l) => JSON.parse(l))
+    : [];
   const summary = labSummary(lines);
   const checksFile = path.join(DATA, 'checks.json');
   const c = readJson(checksFile, { checks: [] });
@@ -629,9 +1103,19 @@ function lab() {
     date: today,
     commit: gitHead(),
     command: 'playwright --project=review-lab-phone',
-    status: summary.rows.length && summary.rows.every((r) => !r.overBudget.length) ? 'green' : 'red',
-    counts: Object.fromEntries(summary.rows.map((r) => [r.route, `FCP ${r.fcp} ms, LCP ${r.lcp} ms, TBT ${r.tbt} ms, CLS ${r.cls?.toFixed?.(3)}${r.tapToPaint != null ? `, tap ${r.tapToPaint} ms` : ''}`])),
-    failures: summary.rows.filter((r) => r.overBudget.length).map((r) => `${r.route}: over budget on ${r.overBudget.join(', ')}`),
+    status:
+      summary.rows.length && summary.rows.every((r) => !r.overBudget.length)
+        ? 'green'
+        : 'red',
+    counts: Object.fromEntries(
+      summary.rows.map((r) => [
+        r.route,
+        `FCP ${r.fcp} ms, LCP ${r.lcp} ms, TBT ${r.tbt} ms, CLS ${r.cls?.toFixed?.(3)}${r.tapToPaint != null ? `, tap ${r.tapToPaint} ms` : ''}`,
+      ]),
+    ),
+    failures: summary.rows
+      .filter((r) => r.overBudget.length)
+      .map((r) => `${r.route}: over budget on ${r.overBudget.join(', ')}`),
     note: `${summary.comparison} ${summary.mockLatencyAdded ? 'The emulated network doesn’t reach the mock’s answers, so each /api/ answer waits 150 ms itself.' : ''} Installed launch: ${summary.installedLaunch}.`,
     details: summary,
   });
@@ -642,9 +1126,21 @@ function lab() {
 
 function questions() {
   const d = dump();
-  const ws = path.resolve(workspace ?? path.join(repoDir, '..', '..', 'ops', 'redesign'), '..', '..');
-  const read = (rel) => (existsSync(path.join(ws, rel)) ? { path: rel, text: readFileSync(path.join(ws, rel), 'utf8') } : null);
-  const md = (dir) => (existsSync(path.join(ws, dir)) ? readdirSync(path.join(ws, dir)).filter((f) => f.endsWith('.md')).map((f) => read(`${dir}/${f}`)) : []);
+  const ws = path.resolve(
+    workspace ?? path.join(repoDir, '..', '..', 'ops', 'redesign'),
+    '..',
+    '..',
+  );
+  const read = (rel) =>
+    existsSync(path.join(ws, rel))
+      ? { path: rel, text: readFileSync(path.join(ws, rel), 'utf8') }
+      : null;
+  const md = (dir) =>
+    existsSync(path.join(ws, dir))
+      ? readdirSync(path.join(ws, dir))
+          .filter((f) => f.endsWith('.md'))
+          .map((f) => read(`${dir}/${f}`))
+      : [];
   const files = [
     ...md('ops/redesign/reports'),
     ...md('ops/redesign/tasks'),
@@ -661,7 +1157,9 @@ function questions() {
   });
   writeJson(path.join(DATA, 'questions.json'), { createdAt: today, ...q });
   writeJson(path.join(DATA, 'coverage.json'), d.coverage);
-  log(`questions: ${q.total} items (${q.groups.map((g) => `${g.who} ${g.items.length}`).join(', ')}); coverage: ${d.coverage.length} stories`);
+  log(
+    `questions: ${q.total} items (${q.groups.map((g) => `${g.who} ${g.items.length}`).join(', ')}); coverage: ${d.coverage.length} stories`,
+  );
 }
 
 // ---------------------------------------------------------------- index
@@ -677,9 +1175,18 @@ function index() {
     areas: d.areas,
     findings: d.findings,
     flows: readJson(path.join(DATA, 'flows.json'), { flows: [] }),
-    fidelity: readJson(path.join(DATA, 'fidelity.json'), { screens: [], summary: {} }),
-    beforeAfter: readJson(path.join(DATA, 'before-after.json'), { pairs: [], totals: {} }),
-    stills: readJson(path.join(DATA, 'stills.json'), { stills: [], appIcons: [] }),
+    fidelity: readJson(path.join(DATA, 'fidelity.json'), {
+      screens: [],
+      summary: {},
+    }),
+    beforeAfter: readJson(path.join(DATA, 'before-after.json'), {
+      pairs: [],
+      totals: {},
+    }),
+    stills: readJson(path.join(DATA, 'stills.json'), {
+      stills: [],
+      appIcons: [],
+    }),
     checks: readJson(path.join(DATA, 'checks.json'), { checks: [] }),
     questions: readJson(path.join(DATA, 'questions.json'), { groups: [] }),
     coverage: readJson(path.join(DATA, 'coverage.json'), d.coverage),
@@ -698,46 +1205,106 @@ function index() {
     const one = new PNG({ width: 1, height: 1 });
     one.data.fill(255);
     writeFileSync(png, PNG.sync.write(one));
-    if (!missingTools().length) run(TOOLS.cwebp, webpArgs(png, path.join(MEDIA, 'present.webp')));
+    if (!missingTools().length)
+      run(TOOLS.cwebp, webpArgs(png, path.join(MEDIA, 'present.webp')));
   }
   // Sizes per part, measured.
   const partsSize = [
-    { id: 'recordings-light', title: 'Recordings in light', bytes: sizeOfMatching(path.join(MEDIA, 'flows'), /-light(-[a-z0-9-]+)?\.(mp4|webp)$/) },
-    { id: 'recordings-dark', title: 'Recordings in dark', bytes: sizeOfMatching(path.join(MEDIA, 'flows'), /-dark(-[a-z0-9-]+)?\.(mp4|webp)$/) },
+    {
+      id: 'recordings-light',
+      title: 'Recordings in light',
+      bytes: sizeOfMatching(
+        path.join(MEDIA, 'flows'),
+        /-light(-[a-z0-9-]+)?\.(mp4|webp)$/,
+      ),
+    },
+    {
+      id: 'recordings-dark',
+      title: 'Recordings in dark',
+      bytes: sizeOfMatching(
+        path.join(MEDIA, 'flows'),
+        /-dark(-[a-z0-9-]+)?\.(mp4|webp)$/,
+      ),
+    },
     ...PARTS.map((p) => ({
       ...p,
-      bytes: p.id === 'fidelity' ? sizeOf(path.join(MEDIA, 'fidelity')) : p.id === 'beforeAfter' ? sizeOf(path.join(MEDIA, 'before-after')) : p.id === 'stills' ? sizeOf(path.join(MEDIA, 'stills')) : 0,
+      bytes:
+        p.id === 'fidelity'
+          ? sizeOf(path.join(MEDIA, 'fidelity'))
+          : p.id === 'beforeAfter'
+            ? sizeOf(path.join(MEDIA, 'before-after'))
+            : p.id === 'stills'
+              ? sizeOf(path.join(MEDIA, 'stills'))
+              : 0,
     })),
-    { id: 'traces', title: 'Traces of the flows marked test.fail', bytes: sizeOf(path.join(MEDIA, 'traces')) },
+    {
+      id: 'traces',
+      title: 'Traces of the flows marked test.fail',
+      bytes: sizeOf(path.join(MEDIA, 'traces')),
+    },
   ];
   const sizes = readJson(path.join(DATA, 'sizes.json'), {});
-  writeJson(path.join(DATA, 'sizes.json'), { ...sizes, parts: partsSize, media: sizeOf(MEDIA) });
+  writeJson(path.join(DATA, 'sizes.json'), {
+    ...sizes,
+    parts: partsSize,
+    media: sizeOf(MEDIA),
+  });
   data.sizes = readJson(path.join(DATA, 'sizes.json'), {});
   const html = buildIndex(data);
   writeFileSync(path.join(PKG, 'index.html'), html);
   const indexPart = partsSize.find((p) => p.id === 'index');
   if (indexPart) {
-    indexPart.bytes = sizeOf(path.join(PKG, 'assets')) + sizeOf(DATA) + statSync(path.join(PKG, 'index.html')).size;
-    writeJson(path.join(DATA, 'sizes.json'), { ...data.sizes, parts: partsSize, total: sizeOf(PKG) });
+    indexPart.bytes =
+      sizeOf(path.join(PKG, 'assets')) +
+      sizeOf(DATA) +
+      statSync(path.join(PKG, 'index.html')).size;
+    writeJson(path.join(DATA, 'sizes.json'), {
+      ...data.sizes,
+      parts: partsSize,
+      total: sizeOf(PKG),
+    });
   }
-  log(`index: ${path.join(PKG, 'index.html')} (${(statSync(path.join(PKG, 'index.html')).size / 1024).toFixed(0)} KiB); media ${(sizeOf(MEDIA) / MiB).toFixed(1)} MiB`);
+  log(
+    `index: ${path.join(PKG, 'index.html')} (${(statSync(path.join(PKG, 'index.html')).size / 1024).toFixed(0)} KiB); media ${(sizeOf(MEDIA) / MiB).toFixed(1)} MiB`,
+  );
 }
 function sizeOfMatching(dir, re) {
   if (!existsSync(dir)) return 0;
   let n = 0;
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
-    n += e.isDirectory() ? sizeOfMatching(p, re) : re.test(e.name) ? statSync(p).size : 0;
+    n += e.isDirectory()
+      ? sizeOfMatching(p, re)
+      : re.test(e.name)
+        ? statSync(p).size
+        : 0;
   }
   return n;
 }
 
 // ---------------------------------------------------------------- run
 
-const STEPS = { build, pilot, record, fidelity, after, stills, checks, lab, questions, index };
+const STEPS = {
+  build,
+  pilot,
+  record,
+  fidelity,
+  after,
+  stills,
+  checks,
+  lab,
+  questions,
+  index,
+};
 mkdirSync(WORK, { recursive: true });
-log(`package: ${PKG}${only ? `; only ${only}` : ''}; video ${VIDEO ? 'on' : 'off'}; ${os.cpus().length} cores, ${WORKERS} workers`);
-if (parts.some((p) => p !== 'build' && p !== 'questions' && p !== 'index') && !parts.includes('build') && !existsSync(path.join(appDir, 'e2e', '.build', 'index.html')))
+log(
+  `package: ${PKG}${only ? `; only ${only}` : ''}; video ${VIDEO ? 'on' : 'off'}; ${os.cpus().length} cores, ${WORKERS} workers`,
+);
+if (
+  parts.some((p) => p !== 'build' && p !== 'questions' && p !== 'index') &&
+  !parts.includes('build') &&
+  !existsSync(path.join(appDir, 'e2e', '.build', 'index.html'))
+)
   build();
 for (const p of parts) {
   log(`— ${p}`);

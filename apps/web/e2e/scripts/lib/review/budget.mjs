@@ -19,12 +19,21 @@ export const BUDGET = {
 export const PARTS = [
   { id: 'fidelity', title: 'Prototype versus app', max: 40 * MiB },
   { id: 'beforeAfter', title: 'Before and after', max: 25 * MiB },
-  { id: 'stills', title: 'Screens with no locked target and the proposals', max: 10 * MiB },
+  {
+    id: 'stills',
+    title: 'Screens with no locked target and the proposals',
+    max: 10 * MiB,
+  },
   { id: 'index', title: 'Index, data, posters, assets', max: 5 * MiB },
 ];
 
 /** Measured on this Mac at CRF 32, 25 fps (F1 brief): kilobytes per second of video, per layout. @type {Record<string, number>} */
-export const MEASURED_KBPS = { phone: 15, tablet: 21, desktop: 28, narrow320: 15 };
+export const MEASURED_KBPS = {
+  phone: 15,
+  tablet: 21,
+  desktop: 28,
+  narrow320: 15,
+};
 /** Measured: about 0.83 × the size for each 2 CRF steps up (CRF 28 → 32 was about 0.7). */
 export const SIZE_PER_CRF_STEP = 0.83;
 
@@ -33,11 +42,15 @@ export const SIZE_PER_CRF_STEP = 0.83;
  * @param {number} freeBytes
  */
 export function packageBudget(freeBytes, b = BUDGET) {
-  return Math.max(0, Math.min(b.cap, freeBytes - b.floor - b.workingPeak - b.margin));
+  return Math.max(
+    0,
+    Math.min(b.cap, freeBytes - b.floor - b.workingPeak - b.margin),
+  );
 }
 
 /** What the other parts may take at most. */
-export const otherParts = (parts = PARTS) => parts.reduce((n, p) => n + p.max, 0);
+export const otherParts = (parts = PARTS) =>
+  parts.reduce((n, p) => n + p.max, 0);
 
 /**
  * The projected bytes of a set of recordings.
@@ -48,7 +61,10 @@ export const otherParts = (parts = PARTS) => parts.reduce((n, p) => n + p.max, 0
 export function projectBytes(recordings, kbps = MEASURED_KBPS, crf = 32) {
   const scale = SIZE_PER_CRF_STEP ** ((crf - 32) / 2);
   return Math.round(
-    recordings.reduce((n, r) => n + r.seconds * (kbps[r.layout] ?? kbps.desktop) * 1024 * scale, 0),
+    recordings.reduce(
+      (n, r) => n + r.seconds * (kbps[r.layout] ?? kbps.desktop) * 1024 * scale,
+      0,
+    ),
   );
 }
 
@@ -66,9 +82,12 @@ export function fromPilot(pilot) {
   }
   /** @type {Record<string, number>} */
   const kbps = { ...MEASURED_KBPS };
-  for (const [layout, { s, b }] of Object.entries(by)) if (s > 0) kbps[layout] = b / 1024 / s;
+  for (const [layout, { s, b }] of Object.entries(by))
+    if (s > 0) kbps[layout] = b / 1024 / s;
   if (kbps.phone && !by.narrow320) kbps.narrow320 = kbps.phone;
-  const seconds = pilot.length ? pilot.reduce((n, r) => n + r.seconds, 0) / pilot.length : 40;
+  const seconds = pilot.length
+    ? pilot.reduce((n, r) => n + r.seconds, 0) / pilot.length
+    : 40;
   return { kbps, secondsPerRecording: seconds };
 }
 
@@ -79,7 +98,14 @@ export function fromPilot(pilot) {
  *   darkRest: { layout: string, seconds: number }[], kbps?: Record<string, number>, others?: number }} o
  * @returns {{ ok: boolean, crf: number | null, phases: string[], projected: number, reason: string }}
  */
-export function planRecordings({ budget, light, darkSet, darkRest, kbps = MEASURED_KBPS, others = otherParts() }) {
+export function planRecordings({
+  budget,
+  light,
+  darkSet,
+  darkRest,
+  kbps = MEASURED_KBPS,
+  others = otherParts(),
+}) {
   if (budget < BUDGET.minimum)
     return {
       ok: false,
@@ -102,7 +128,13 @@ export function planRecordings({ budget, light, darkSet, darkRest, kbps = MEASUR
         phases.push('dark-rest');
       }
     }
-    return { ok: true, crf, phases, projected: used, reason: crf === 32 ? '' : 'light fits only at CRF 34' };
+    return {
+      ok: true,
+      crf,
+      phases,
+      projected: used,
+      reason: crf === 32 ? '' : 'light fits only at CRF 34',
+    };
   }
   return {
     ok: false,

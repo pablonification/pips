@@ -125,7 +125,9 @@ export const FLOWS: Flow[] = [
     id: 'phone-browser',
     title: 'A phone browser that hasn’t installed PIPS!',
     area: 'access',
-    variants: [{ key: 'nadia', persona: 'anggota', who: 'Nadia, not installed' }],
+    variants: [
+      { key: 'nadia', persona: 'anggota', who: 'Nadia, not installed' },
+    ],
     layouts: ['phone', 'tablet'],
     themes: BOTH,
     darkSet: false,
@@ -162,10 +164,30 @@ export const FLOWS: Flow[] = [
     title: 'Pasang PIPS! on each platform',
     area: 'access',
     variants: [
-      { key: 'android', persona: 'anggota', who: 'Nadia on Android Chrome', layouts: ['phone'] },
-      { key: 'iphone', persona: 'anggota', who: 'Nadia on an iPhone', layouts: ['phone'] },
-      { key: 'line', persona: 'anggota', who: 'Nadia in LINE’s in-app browser', layouts: ['phone'] },
-      { key: 'desktop', persona: 'anggota', who: 'Nadia on a desktop browser', layouts: ['desktop'] },
+      {
+        key: 'android',
+        persona: 'anggota',
+        who: 'Nadia on Android Chrome',
+        layouts: ['phone'],
+      },
+      {
+        key: 'iphone',
+        persona: 'anggota',
+        who: 'Nadia on an iPhone',
+        layouts: ['phone'],
+      },
+      {
+        key: 'line',
+        persona: 'anggota',
+        who: 'Nadia in LINE’s in-app browser',
+        layouts: ['phone'],
+      },
+      {
+        key: 'desktop',
+        persona: 'anggota',
+        who: 'Nadia on a desktop browser',
+        layouts: ['desktop'],
+      },
     ],
     layouts: ['phone', 'desktop'],
     themes: BOTH,
@@ -325,7 +347,9 @@ export const FLOWS: Flow[] = [
     id: 'beranda-no-courses',
     title: 'Beranda with no courses this semester',
     area: 'beranda',
-    variants: [{ key: 'nadia', persona: 'anggota', who: 'Nadia, no courses (override)' }],
+    variants: [
+      { key: 'nadia', persona: 'anggota', who: 'Nadia, no courses (override)' },
+    ],
     layouts: ALL,
     themes: BOTH,
     darkSet: false,
@@ -365,7 +389,12 @@ export const FLOWS: Flow[] = [
     startsAt: '/pengumuman',
     check:
       'Gold bars mark the unread posts; Belum dibaca shows only them; opening p1 marks it read and the badge drops from 3 to 2; its menu marks it unread again. Nadia sees p3 (for angkatan 2025), not p5 (for the akademik group).',
-    locked: ['anggota-pengumuman', 'anggota-post', 'anggota-pop-menu', 'i-post-detail'],
+    locked: [
+      'anggota-pengumuman',
+      'anggota-post',
+      'anggota-pop-menu',
+      'i-post-detail',
+    ],
   },
   {
     id: 'pengumuman-filter',
@@ -408,7 +437,8 @@ export const FLOWS: Flow[] = [
     stories: [48],
     owners: ['P1-B'],
     startsAt: '/pengumuman/p404',
-    check: 'A link to a post that no longer exists says so and leads back to Pengumuman.',
+    check:
+      'A link to a post that no longer exists says so and leads back to Pengumuman.',
     locked: [],
   },
   {
@@ -437,7 +467,8 @@ export const FLOWS: Flow[] = [
     stories: [49],
     owners: ['P1-B', 'P0-B'],
     startsAt: '/pengumuman/tulis',
-    check: 'Text, a link and a photo shared from another app open the composer filled in.',
+    check:
+      'Text, a link and a photo shared from another app open the composer filled in.',
     locked: ['anggota-tulis'],
   },
   {
@@ -484,7 +515,12 @@ export const FLOWS: Flow[] = [
     startsAt: '/kalender',
     check:
       'The month on today; Jumat 9; Deadline Tugas Besar 1’s detail (time in WIB, course, description, the H-1 reminder state, Google Calendar, Ding Dong, Testi Matkul); the legend; the next month loading; Hari ini; the side panel on desktop. Only this semester’s courses’ Akademik events. Nadia has no Tambah acara.',
-    locked: ['anggota-kalender', 'anggota-ov-event', 'i-event-sheet', 'i-tablet-sheet'],
+    locked: [
+      'anggota-kalender',
+      'anggota-ov-event',
+      'i-event-sheet',
+      'i-tablet-sheet',
+    ],
   },
   {
     id: 'kalender-tambah-acara',
@@ -499,15 +535,28 @@ export const FLOWS: Flow[] = [
     startsAt: '/kalender',
     check:
       'Adding is locked design: the empty-title error; Kuis 2 for IF3170 on Selasa 13 Oktober appears on the day and in search. Ubah acara and Hapus acara are P3-B’s proposals (D9). Also from Layanan’s Kelola row Tambah acara Akademik (it forwards to /kalender?tambah=acara).',
-    locked: ['pengurus-kalender', 'pengurus-ov-addev', 'i-desk-addev', 'i-desk-kalender-after'],
+    locked: [
+      'pengurus-kalender',
+      'pengurus-ov-addev',
+      'i-desk-addev',
+      'i-desk-kalender-after',
+    ],
   },
   {
     id: 'kalender-himpunan',
     title: 'Tambah acara Himpunan',
     area: 'kalender',
     variants: [
-      { key: 'ring1', persona: 'pengurus', who: 'Raka with only ring1 (roles override)' },
-      { key: 'both', persona: 'pengurus', who: 'Raka with akademik and ring1 (roles override)' },
+      {
+        key: 'ring1',
+        persona: 'pengurus',
+        who: 'Raka with only ring1 (roles override)',
+      },
+      {
+        key: 'both',
+        persona: 'pengurus',
+        who: 'Raka with akademik and ring1 (roles override)',
+      },
     ],
     layouts: ALL,
     themes: BOTH,
@@ -599,7 +648,13 @@ export const FLOWS: Flow[] = [
     id: 'info-lomba',
     title: 'Info Lomba',
     area: 'layanan',
-    variants: [{ key: 'nadia', persona: 'anggota', who: 'Nadia, 12 competitions (override)' }],
+    variants: [
+      {
+        key: 'nadia',
+        persona: 'anggota',
+        who: 'Nadia, 12 competitions (override)',
+      },
+    ],
     layouts: ALL,
     themes: BOTH,
     darkSet: false,
@@ -713,7 +768,13 @@ export const FLOWS: Flow[] = [
     id: 'curhat-inbox',
     title: 'Welfare’s inbox',
     area: 'curhat',
-    variants: [{ key: 'welfare', persona: 'pengurus', who: 'Raka with curhatadmin (roles override)' }],
+    variants: [
+      {
+        key: 'welfare',
+        persona: 'pengurus',
+        who: 'Raka with curhatadmin (roles override)',
+      },
+    ],
     layouts: ALL,
     themes: BOTH,
     darkSet: false,
@@ -761,8 +822,17 @@ export const FLOWS: Flow[] = [
     area: 'profil',
     variants: [
       { key: 'nadia', persona: 'anggota', who: 'Nadia' },
-      { key: 'blocked', persona: 'anggota', who: 'Nadia, the browser blocks notifications' },
-      { key: 'iphone', persona: 'anggota', who: 'Nadia on an iPhone browser', layouts: ['phone'] },
+      {
+        key: 'blocked',
+        persona: 'anggota',
+        who: 'Nadia, the browser blocks notifications',
+      },
+      {
+        key: 'iphone',
+        persona: 'anggota',
+        who: 'Nadia on an iPhone browser',
+        layouts: ['phone'],
+      },
     ],
     layouts: ALL,
     themes: BOTH,
@@ -824,7 +894,13 @@ export const FLOWS: Flow[] = [
     id: 'kelola-lomba',
     title: 'Tambah, ubah and hapus lomba',
     area: 'kelola',
-    variants: [{ key: 'cnc', persona: 'pengurus', who: 'Raka with cnc (roles override)' }],
+    variants: [
+      {
+        key: 'cnc',
+        persona: 'pengurus',
+        who: 'Raka with cnc (roles override)',
+      },
+    ],
     layouts: ALL,
     themes: BOTH,
     darkSet: false,
@@ -900,5 +976,12 @@ export const recordingsPerTheme = (f: Flow) =>
   f.variants.reduce((n, v) => n + variantLayouts(f, v).length, 0);
 
 /** The file name of a recording, without the extension: `<layout>-<theme>` plus `-<variant>` with two or more. */
-export const recordingName = (f: Flow, layout: Layout, theme: Theme, variant: string) =>
-  f.variants.length > 1 ? `${layout}-${theme}-${variant}` : `${layout}-${theme}`;
+export const recordingName = (
+  f: Flow,
+  layout: Layout,
+  theme: Theme,
+  variant: string,
+) =>
+  f.variants.length > 1
+    ? `${layout}-${theme}-${variant}`
+    : `${layout}-${theme}`;

@@ -147,7 +147,12 @@ export class Recorder {
         ? (JSON.parse(body.toString()) as {
             failures: string[];
             axe: {
-              violations: { id: string; impact: string; help: string; targets: string[] }[];
+              violations: {
+                id: string;
+                impact: string;
+                help: string;
+                targets: string[];
+              }[];
             };
           })
         : null;
@@ -181,7 +186,11 @@ export async function settleMotion(page: Page) {
   await page.evaluate(async () => {
     const finite = document.getAnimations().filter((a) => {
       const end = a.effect?.getComputedTiming().endTime;
-      return a.playState === 'running' && typeof end === 'number' && Number.isFinite(end);
+      return (
+        a.playState === 'running' &&
+        typeof end === 'number' &&
+        Number.isFinite(end)
+      );
     });
     await Promise.race([
       Promise.all(finite.map((a) => a.finished.catch(() => undefined))),
@@ -215,7 +224,10 @@ export function flow(
   variantKey: string,
   use: UseOptions,
   body: Body,
-  opts: { fails?: string; failsWhere?: { layouts?: Layout[]; themes?: Theme[] } } = {},
+  opts: {
+    fails?: string;
+    failsWhere?: { layouts?: Layout[]; themes?: Theme[] };
+  } = {},
 ) {
   const entry = flowById(id);
   const variant = entry.variants.find((v) => v.key === variantKey);
@@ -227,10 +239,11 @@ export function flow(
       ...(variant.persona !== undefined ? { persona: variant.persona } : {}),
       ...use,
     });
-    test(`${entry.title} [${id}:${variantKey}] @flow:${id}`, async (
-      { page, api, db },
-      testInfo,
-    ) => {
+    test(`${entry.title} [${id}:${variantKey}] @flow:${id}`, async ({
+      page,
+      api,
+      db,
+    }, testInfo) => {
       const where = projectLayout(testInfo.project.name);
       test.skip(
         !where ||
@@ -240,8 +253,10 @@ export function flow(
       );
       const fails =
         !!opts.fails &&
-        (!opts.failsWhere?.layouts || opts.failsWhere.layouts.includes(where!.layout)) &&
-        (!opts.failsWhere?.themes || opts.failsWhere.themes.includes(where!.theme));
+        (!opts.failsWhere?.layouts ||
+          opts.failsWhere.layouts.includes(where!.layout)) &&
+        (!opts.failsWhere?.themes ||
+          opts.failsWhere.themes.includes(where!.theme));
       if (fails) test.fail(true, opts.fails);
       const f = new Recorder(page, testInfo, entry, variant);
       let error: string | null = null;
@@ -257,7 +272,14 @@ export function flow(
         if (fails) await saveTrace(page, testInfo);
         throw e;
       } finally {
-        writeRecord(f, api, testInfo, where!, error, fails ? opts.fails! : null);
+        writeRecord(
+          f,
+          api,
+          testInfo,
+          where!,
+          error,
+          fails ? opts.fails! : null,
+        );
       }
     });
   });
@@ -301,7 +323,11 @@ function writeRecord(
     gates: f.gates,
     guard: {
       answered:
-        by('explicit') + by('default') + by('socket') + by('media') + by('upload'),
+        by('explicit') +
+        by('default') +
+        by('socket') +
+        by('media') +
+        by('upload'),
       blocked: by('blocked'),
       unhandled: by('unhandled') + by('unmocked-write'),
       writes: api.writes.length,

@@ -16,13 +16,18 @@ for (const s of STILL_STATES)
   test.describe(s.id, () => {
     test.use({ persona: s.persona, signedIn: s.signedIn ?? true });
     test(`${s.title} [${s.owner}]`, async ({ page, api, db }, testInfo) => {
-      const m = /^review-stills-(phone|tablet|desktop)-(light|dark)$/.exec(testInfo.project.name);
+      const m = /^review-stills-(phone|tablet|desktop)-(light|dark)$/.exec(
+        testInfo.project.name,
+      );
       test.skip(!m, 'a review-stills project only');
       await s.setup?.({ api, db, page });
       await page.goto(s.path);
       await s.act?.(page);
       await expect(s.ready(page)).toBeVisible({ timeout: 20_000 });
       mkdirSync(dir!, { recursive: true });
-      writeFileSync(path.join(dir!, `${m![1]}-${s.id}-${m![2]}.png`), await stableScreenshot(page));
+      writeFileSync(
+        path.join(dir!, `${m![1]}-${s.id}-${m![2]}.png`),
+        await stableScreenshot(page),
+      );
     });
   });

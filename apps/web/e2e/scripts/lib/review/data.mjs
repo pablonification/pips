@@ -3,8 +3,15 @@
 import path from 'node:path';
 
 /** A recording's file name without its extension (flows.ts `recordingName`). @param {{ variants: unknown[] }} flow */
-export const recordingName = (flow, /** @type {string} */ layout, /** @type {string} */ theme, /** @type {string} */ variant) =>
-  flow.variants.length > 1 ? `${layout}-${theme}-${variant}` : `${layout}-${theme}`;
+export const recordingName = (
+  flow,
+  /** @type {string} */ layout,
+  /** @type {string} */ theme,
+  /** @type {string} */ variant,
+) =>
+  flow.variants.length > 1
+    ? `${layout}-${theme}-${variant}`
+    : `${layout}-${theme}`;
 
 /**
  * Every recording a flow makes in one theme: its variants at their layouts.
@@ -29,7 +36,8 @@ export function plannedRecordings(flow, theme) {
 }
 
 /** The grep that picks one flow's tests (titles end with `@flow:<id>`). @param {string} id */
-export const flowGrep = (id) => `@flow:${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`;
+export const flowGrep = (id) =>
+  `@flow:${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`;
 
 /**
  * Playwright's JSON report as one row per test run: project, title, status, expected status.
@@ -65,9 +73,15 @@ export function countsByProject(rows) {
   /** @type {Record<string, Record<string, number>>} */
   const out = {};
   for (const r of rows) {
-    const c = (out[r.project] ??= { passed: 0, failed: 0, skipped: 0, 'expected failures': 0 });
+    const c = (out[r.project] ??= {
+      passed: 0,
+      failed: 0,
+      skipped: 0,
+      'expected failures': 0,
+    });
     if (r.status === 'skipped') c.skipped++;
-    else if (r.expected === 'failed' && r.status === 'failed') c['expected failures']++;
+    else if (r.expected === 'failed' && r.status === 'failed')
+      c['expected failures']++;
     else if (r.status === r.expected) c.passed++;
     else c.failed++;
   }
@@ -80,7 +94,8 @@ export function countsByProject(rows) {
  */
 export function recordingStatus(row) {
   if (!row || row.status === 'skipped') return 'not recorded';
-  if (row.expected === 'failed') return row.status === 'failed' ? 'expected-failure' : 'failed';
+  if (row.expected === 'failed')
+    return row.status === 'failed' ? 'expected-failure' : 'failed';
   return row.status === 'passed' ? 'passed' : 'failed';
 }
 
@@ -95,14 +110,26 @@ export function flowOfTitle(title) {
  * @param {string} name e.g. `phone-anggota-beranda-light`, `i-palette`, `page-phone-light`
  */
 export function ownerOfScreen(name) {
-  const key = name.replace(/^(phone|tablet|desk)-/, '').replace(/-(light|dark)$/, '');
+  const key = name
+    .replace(/^(phone|tablet|desk)-/, '')
+    .replace(/-(light|dark)$/, '');
   if (/^system-(kit|cards)$/.test(key)) return 'P0-A';
-  if (/^page-|^narrow320-beranda$|^desk1024-beranda$/.test(key)) return 'P0-C and P1-A';
+  if (/^page-|^narrow320-beranda$|^desk1024-beranda$/.test(key))
+    return 'P0-C and P1-A';
   /** @type {[RegExp, string][]} */
   const table = [
-    [/^(anggota|pengurus)-(beranda|kalender)$|^anggota-ov-event$|^i-(event-sheet|tablet-sheet|palette|palette-phone)$/, 'P1-A'],
-    [/^(anggota|pengurus)-pengumuman$|^anggota-(post|tulis|ov-filter|pop-react|pop-menu)$|^pengurus-pop-menu-own$|^i-(feed-reacted|post-detail|filter-sheet|compose-anggota|desk-own-menu)$/, 'P1-B'],
-    [/^(anggota|pengurus)-(profil|layanan)$|^anggota-(matkul|matkul-add|notif|ov-push)$|^i-(matkul-add|push-dialog)$/, 'P1-C'],
+    [
+      /^(anggota|pengurus)-(beranda|kalender)$|^anggota-ov-event$|^i-(event-sheet|tablet-sheet|palette|palette-phone)$/,
+      'P1-A',
+    ],
+    [
+      /^(anggota|pengurus)-pengumuman$|^anggota-(post|tulis|ov-filter|pop-react|pop-menu)$|^pengurus-pop-menu-own$|^i-(feed-reacted|post-detail|filter-sheet|compose-anggota|desk-own-menu)$/,
+      'P1-B',
+    ],
+    [
+      /^(anggota|pengurus)-(profil|layanan)$|^anggota-(matkul|matkul-add|notif|ov-push)$|^i-(matkul-add|push-dialog)$/,
+      'P1-C',
+    ],
     [/^anggota-(form|fill)$|^pengurus-form-empty$|^i-form-/, 'P2-A'],
     [/^anggota-(dingdong|testi-list|testi-course|nim|lomba)$|^i-testi/, 'P2-B'],
     [/^anggota-(curhat|room)$|^pengurus-curhat-empty$|^i-curhat-room$/, 'P2-C'],
@@ -110,7 +137,8 @@ export function ownerOfScreen(name) {
     [/^pengurus-ov-addev$|^i-desk-(addev|kalender-after)$/, 'P3-B'],
   ];
   // The confirmation sheet: P1-C on phones and tablets (sign-out), P2-A on desktop (send the form).
-  if (key === 'anggota-ov-confirm') return name.startsWith('desk-') ? 'P2-A' : 'P1-C';
+  if (key === 'anggota-ov-confirm')
+    return name.startsWith('desk-') ? 'P2-A' : 'P1-C';
   for (const [re, owner] of table) if (re.test(key)) return owner;
   return 'unknown';
 }
@@ -121,19 +149,27 @@ export function ownerOfScreen(name) {
  * @param {string} name @param {{ text: string, kind: string, source: { file: string } }[]} items the report items
  */
 export function deviationFor(name, items) {
-  const key = name.replace(/^(phone|tablet|desk)-/, '').replace(/-(light|dark)$/, '');
+  const key = name
+    .replace(/^(phone|tablet|desk)-/, '')
+    .replace(/-(light|dark)$/, '');
   const route = key.replace(/^(anggota|pengurus)-/, '');
   const hit = items.find(
     (i) =>
       (i.kind === 'deviation' || i.kind === 'for-owner') &&
-      (i.text.includes(key) || new RegExp(`\\b${route.replace(/[-]/g, '[- ]')}\\b`, 'i').test(i.text) && route.length > 5),
+      (i.text.includes(key) ||
+        (new RegExp(`\\b${route.replace(/[-]/g, '[- ]')}\\b`, 'i').test(
+          i.text,
+        ) &&
+          route.length > 5)),
   );
   return hit ? `${hit.text} (${path.basename(hit.source.file)})` : null;
 }
 
 /** The median of the numbers given, ignoring nulls. @param {(number | null | undefined)[]} xs */
 export function median(xs) {
-  const v = /** @type {number[]} */ (xs.filter((x) => typeof x === 'number' && Number.isFinite(x))).sort((a, b) => a - b);
+  const v = /** @type {number[]} */ (
+    xs.filter((x) => typeof x === 'number' && Number.isFinite(x))
+  ).sort((a, b) => a - b);
   if (!v.length) return null;
   const mid = Math.floor(v.length / 2);
   return v.length % 2 ? v[mid] : (v[mid - 1] + v[mid]) / 2;
@@ -152,10 +188,42 @@ export const LAB_BUDGETS = {
 };
 /** Today's app on the old server against live staging (ops/ui-revamp-review/reports/performance.md, phone, medians). */
 export const TODAY = {
-  login: { fcp: 7700, lcp: 7700, cls: 0, tbt: 104, longestTask: 2245, requests: 11, kib: 867 },
-  beranda: { fcp: 6600, lcp: 10500, cls: 0.01, tbt: 1241, longestTask: 2159, requests: 21, kib: 1231 },
-  pengumuman: { fcp: 6900, lcp: 8100, cls: 0.003, tbt: 870, longestTask: 2123, requests: 10, kib: 724 },
-  kalender: { fcp: 6700, lcp: 8200, cls: 0.002, tbt: 1319, longestTask: 2124, requests: 12, kib: 724 },
+  login: {
+    fcp: 7700,
+    lcp: 7700,
+    cls: 0,
+    tbt: 104,
+    longestTask: 2245,
+    requests: 11,
+    kib: 867,
+  },
+  beranda: {
+    fcp: 6600,
+    lcp: 10500,
+    cls: 0.01,
+    tbt: 1241,
+    longestTask: 2159,
+    requests: 21,
+    kib: 1231,
+  },
+  pengumuman: {
+    fcp: 6900,
+    lcp: 8100,
+    cls: 0.003,
+    tbt: 870,
+    longestTask: 2123,
+    requests: 10,
+    kib: 724,
+  },
+  kalender: {
+    fcp: 6700,
+    lcp: 8200,
+    cls: 0.002,
+    tbt: 1319,
+    longestTask: 2124,
+    requests: 12,
+    kib: 724,
+  },
   layanan: null,
   tapToPaint: 712,
 };
@@ -190,18 +258,26 @@ export function labSummary(lines) {
     if (row.fcp != null && row.fcp > LAB_BUDGETS.fcp) over.push('FCP');
     if (row.lcp != null && row.lcp > LAB_BUDGETS.lcp) over.push('LCP');
     if (row.tbt != null && row.tbt > LAB_BUDGETS.tbt) over.push('TBT');
-    if (row.longestTask != null && row.longestTask > LAB_BUDGETS.longestTask) over.push('longest task');
+    if (row.longestTask != null && row.longestTask > LAB_BUDGETS.longestTask)
+      over.push('longest task');
     if (row.cls != null && row.cls > LAB_BUDGETS.cls) over.push('CLS');
-    if (row.tapToPaint != null && row.tapToPaint > LAB_BUDGETS.tapToPaint) over.push('tap to paint');
-    if (route === 'beranda' && row.requestsBeforeContent != null && row.requestsBeforeContent > LAB_BUDGETS.berandaRequests)
+    if (row.tapToPaint != null && row.tapToPaint > LAB_BUDGETS.tapToPaint)
+      over.push('tap to paint');
+    if (
+      route === 'beranda' &&
+      row.requestsBeforeContent != null &&
+      row.requestsBeforeContent > LAB_BUDGETS.berandaRequests
+    )
       over.push('requests before content');
     return { ...row, overBudget: over };
   });
   return {
-    profile: '390 × 844, CPU 4× slower, 1.6 Mbps down, 750 kbps up, 150 ms; a cold cache; median of 3 runs',
+    profile:
+      '390 × 844, CPU 4× slower, 1.6 Mbps down, 750 kbps up, 150 ms; a cold cache; median of 3 runs',
     throttleReachesMock: probe ? probe.reaches : null,
     mockLatencyAdded: probe ? !probe.reaches : null,
-    installedLaunch: 'not measured: the harness blocks service workers and its mock doesn’t answer a service worker’s own requests',
+    installedLaunch:
+      'not measured: the harness blocks service workers and its mock doesn’t answer a service worker’s own requests',
     comparison:
       'Today’s numbers were measured on the old server against the live staging API (performance.md, 2026-10-08), so the comparison is indicative, not like for like.',
     rows,

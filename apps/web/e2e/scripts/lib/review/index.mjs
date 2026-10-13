@@ -15,7 +15,13 @@ export const esc = (s) =>
  */
 export function rel(p) {
   const s = String(p);
-  if (!s || /^[a-z][a-z0-9+.-]*:/i.test(s) || s.startsWith('/') || s.startsWith('\\') || s.split('/').includes('..'))
+  if (
+    !s ||
+    /^[a-z][a-z0-9+.-]*:/i.test(s) ||
+    s.startsWith('/') ||
+    s.startsWith('\\') ||
+    s.split('/').includes('..')
+  )
     throw new Error(`index: not a path inside the package: ${s}`);
   return s
     .split('/')
@@ -25,7 +31,10 @@ export function rel(p) {
 
 /** JSON for a <script type="application/json"> block: nothing in it can close the script. @param {unknown} v */
 export const jsonBlock = (v) =>
-  JSON.stringify(v).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
+  JSON.stringify(v)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
 
 const STATUS_WORD = /** @type {Record<string, string>} */ ({
   passed: 'Passed',
@@ -55,7 +64,15 @@ const STATUS_WORD = /** @type {Record<string, string>} */ ({
 });
 /** Status as word plus mark plus colour (the app's own rule, kept in the package). @param {string} s */
 export const tag = (s) => {
-  const good = ['passed', 'close', 'green', 'decided', 'shown', 'checked', 'paired'];
+  const good = [
+    'passed',
+    'close',
+    'green',
+    'decided',
+    'shown',
+    'checked',
+    'paired',
+  ];
   const bad = ['failed', 'unexplained', 'red', 'missing', 'expected-failure'];
   const cls = good.includes(s) ? 'ok' : bad.includes(s) ? 'bad' : 'neutral';
   const mark = cls === 'ok' ? '✓' : cls === 'bad' ? '✕' : '•';
@@ -68,7 +85,8 @@ const fmtTime = (/** @type {number} */ t) => {
 };
 
 /** A media element's placeholder text when media/ isn't in this copy. @param {string} release */
-const missingLine = (release) => `Not in this copy: download ${release} from the release and unzip it here as media/.`;
+const missingLine = (release) =>
+  `Not in this copy: download ${release} from the release and unzip it here as media/.`;
 
 /** @param {string} file @param {string} alt @param {string} release @param {string} [cls] */
 const img = (file, alt, release, cls = '') =>
@@ -79,19 +97,31 @@ function summary(d) {
   const flows = d.flows.flows;
   const recs = flows.flatMap((/** @type {any} */ f) => f.recordings);
   const failing = flows.filter((/** @type {any} */ f) =>
-    f.recordings.some((/** @type {any} */ r) => r.status === 'failed' || r.status === 'expected-failure'),
+    f.recordings.some(
+      (/** @type {any} */ r) =>
+        r.status === 'failed' || r.status === 'expected-failure',
+    ),
   );
   const fid = d.fidelity.summary ?? {};
   const ba = d.beforeAfter.totals ?? {};
   const checks = d.checks.checks ?? [];
-  const count = (/** @type {string} */ st) => checks.filter((/** @type {any} */ c) => c.status === st).length;
+  const count = (/** @type {string} */ st) =>
+    checks.filter((/** @type {any} */ c) => c.status === st).length;
   const red = checks.filter((/** @type {any} */ c) => c.status === 'red');
-  const unexplained = (d.fidelity.screens ?? []).filter((/** @type {any} */ s) => s.status === 'unexplained');
+  const unexplained = (d.fidelity.screens ?? []).filter(
+    (/** @type {any} */ s) => s.status === 'unexplained',
+  );
   const q = d.questions.groups ?? [];
   const blockers = [
-    ...failing.map((/** @type {any} */ f) => `Flow “${f.title}” fails${f.knownFailure ? `: ${f.knownFailure}` : ''}`),
+    ...failing.map(
+      (/** @type {any} */ f) =>
+        `Flow “${f.title}” fails${f.knownFailure ? `: ${f.knownFailure}` : ''}`,
+    ),
     ...red.map((/** @type {any} */ c) => `Check “${c.title}” is red`),
-    ...unexplained.map((/** @type {any} */ s) => `Screen ${s.name} differs from the prototype with no reason given`),
+    ...unexplained.map(
+      (/** @type {any} */ s) =>
+        `Screen ${s.name} differs from the prototype with no reason given`,
+    ),
     ...(d.findings ?? []).map((/** @type {any} */ f) => `${f.id}: ${f.title}`),
   ];
   return `<section id="summary" aria-labelledby="summary-h">
@@ -116,13 +146,17 @@ function flowsPage(d) {
     ...a,
     flows: d.flows.flows.filter((/** @type {any} */ f) => f.area === a.id),
   }));
-  const pairsByState = new Map((d.beforeAfter.pairs ?? []).map((/** @type {any} */ p) => [p.id, p]));
+  const pairsByState = new Map(
+    (d.beforeAfter.pairs ?? []).map((/** @type {any} */ p) => [p.id, p]),
+  );
   return `<section id="flows" aria-labelledby="flows-h">
 <h2 id="flows-h">Flows</h2>
 <nav aria-label="Areas"><ul class="inline">${byArea.map((/** @type {any} */ a) => `<li><a href="#area-${esc(a.id)}">${esc(a.title)}</a></li>`).join('')}</ul></nav>
 ${byArea
   .map(
-    (/** @type {any} */ a) => `<section id="area-${esc(a.id)}" aria-labelledby="area-${esc(a.id)}-h">
+    (
+      /** @type {any} */ a,
+    ) => `<section id="area-${esc(a.id)}" aria-labelledby="area-${esc(a.id)}-h">
 <h3 id="area-${esc(a.id)}-h">${esc(a.title)}</h3>
 ${a.flows.map((/** @type {any} */ f) => flowCard(f, d, release, pairsByState)).join('\n')}
 </section>`,
@@ -146,21 +180,33 @@ function flowCard(f, d, release, pairsByState) {
   const video = first?.file
     ? `<video data-media controls preload="none" playsinline poster="${rel(first.poster)}" src="${rel(first.file)}" aria-label="${esc(`Recording of ${f.title}`)}" data-missing="${esc(missingLine(release))}"></video>`
     : `<p class="muted">Not recorded yet.</p>`;
-  const select = recs.length > 1
-    ? `<label>Recording <select data-recordings="${esc(id)}">${recs
-        .map((/** @type {any} */ r, /** @type {number} */ i) => `<option value="${i}">${esc(`${r.layout} · ${r.theme}${f.variants.length > 1 ? ` · ${r.who ?? r.variant}` : ''}`)}${r.file ? '' : ' (not recorded)'}</option>`)
-        .join('')}</select></label>`
-    : '';
+  const select =
+    recs.length > 1
+      ? `<label>Recording <select data-recordings="${esc(id)}">${recs
+          .map(
+            (/** @type {any} */ r, /** @type {number} */ i) =>
+              `<option value="${i}">${esc(`${r.layout} · ${r.theme}${f.variants.length > 1 ? ` · ${r.who ?? r.variant}` : ''}`)}${r.file ? '' : ' (not recorded)'}</option>`,
+          )
+          .join('')}</select></label>`
+      : '';
   const steps = recs
     .map(
-      (/** @type {any} */ r, /** @type {number} */ i) => `<ol class="steps" data-steps="${i}"${i === 0 ? '' : ' hidden'}>${(r.steps ?? [])
-        .map((/** @type {any} */ s) => `<li><button type="button" class="link" data-t="${Number(s.at) || 0}">${esc(fmtTime(s.at))}</button> ${esc(s.title)}</li>`)
-        .join('')}</ol>`,
+      (/** @type {any} */ r, /** @type {number} */ i) =>
+        `<ol class="steps" data-steps="${i}"${i === 0 ? '' : ' hidden'}>${(
+          r.steps ?? []
+        )
+          .map(
+            (/** @type {any} */ s) =>
+              `<li><button type="button" class="link" data-t="${Number(s.at) || 0}">${esc(fmtTime(s.at))}</button> ${esc(s.title)}</li>`,
+          )
+          .join('')}</ol>`,
     )
     .join('');
   const locked = (f.locked ?? [])
     .map((/** @type {string} */ name) => {
-      const s = (d.fidelity.screens ?? []).find((/** @type {any} */ x) => x.name.includes(name) && x.sideBySide);
+      const s = (d.fidelity.screens ?? []).find(
+        (/** @type {any} */ x) => x.name.includes(name) && x.sideBySide,
+      );
       return s
         ? `<li><a href="${rel(s.sideBySide)}">${img(s.sideBySide, `${s.name}: prototype, app, difference`, release, 'thumb')}<span>${esc(name)}</span></a></li>`
         : `<li>${esc(name)}</li>`;
@@ -169,9 +215,14 @@ function flowCard(f, d, release, pairsByState) {
   const pairs = (f.beforeAfter ?? [])
     .map((/** @type {string} */ sid) => pairsByState.get(sid))
     .filter(Boolean)
-    .map((/** @type {any} */ p) => `<li>${p.image ? `<a href="${rel(p.image)}">${esc(p.title)}</a>` : esc(p.title)}</li>`)
+    .map(
+      (/** @type {any} */ p) =>
+        `<li>${p.image ? `<a href="${rel(p.image)}">${esc(p.title)}</a>` : esc(p.title)}</li>`,
+    )
     .join('');
-  const qs = (f.questions ?? []).map((/** @type {string} */ q) => `<li>${esc(q)}</li>`).join('');
+  const qs = (f.questions ?? [])
+    .map((/** @type {string} */ q) => `<li>${esc(q)}</li>`)
+    .join('');
   return `<article class="flow" id="${esc(id)}" data-flow="${esc(f.id)}" aria-labelledby="${esc(id)}-h">
 <h4 id="${esc(id)}-h">${esc(f.title)} ${tag(status)}</h4>
 <p class="meta">${esc(f.variants.map((/** @type {any} */ v) => v.who).join('; '))} · stories ${esc(f.stories.join(', '))} · built by ${esc(f.owners.join(', '))} · starts at <code>${esc(f.startsAt)}</code></p>
@@ -182,7 +233,24 @@ ${f.knownFailure ? `<p class="fails">${esc(f.knownFailure)}</p>` : ''}
 <details><summary>Steps</summary>${steps || '<p class="muted">No steps recorded yet.</p>'}</details>
 <details><summary>Result and checks</summary><ul>${recs
     .map(
-      (/** @type {any} */ r) => `<li>${esc(`${r.layout} · ${r.theme}${f.variants.length > 1 ? ` · ${r.who ?? r.variant}` : ''}`)}: ${tag(r.status)}${r.guard ? ` · ${esc(`${r.guard.answered} requests answered by the mock, ${r.guard.blocked} outside requests blocked, ${r.guard.unhandled} unanswered`)}` : ''}${(r.gates ?? []).length ? ` · ${esc(`${r.gates.length} screens audited`)}${r.gates.some((/** @type {any} */ g) => g.failures.length) ? `: ${esc(r.gates.filter((/** @type {any} */ g) => g.failures.length).map((/** @type {any} */ g) => `${g.name} (${g.failures.join('; ')})`).join(', '))}` : ''}` : ''}</li>`,
+      (/** @type {any} */ r) =>
+        `<li>${esc(`${r.layout} · ${r.theme}${f.variants.length > 1 ? ` · ${r.who ?? r.variant}` : ''}`)}: ${tag(r.status)}${r.guard ? ` · ${esc(`${r.guard.answered} requests answered by the mock, ${r.guard.blocked} outside requests blocked, ${r.guard.unhandled} unanswered`)}` : ''}${
+          (r.gates ?? []).length
+            ? ` · ${esc(`${r.gates.length} screens audited`)}${
+                r.gates.some((/** @type {any} */ g) => g.failures.length)
+                  ? `: ${esc(
+                      r.gates
+                        .filter((/** @type {any} */ g) => g.failures.length)
+                        .map(
+                          (/** @type {any} */ g) =>
+                            `${g.name} (${g.failures.join('; ')})`,
+                        )
+                        .join(', '),
+                    )}`
+                  : ''
+              }`
+            : ''
+        }</li>`,
     )
     .join('')}</ul></details>
 ${locked ? `<details><summary>Locked screens it passes</summary><ul class="thumbs">${locked}</ul></details>` : ''}
@@ -199,16 +267,25 @@ ${qs ? `<details><summary>Deviations and open questions</summary><ul>${qs}</ul><
 /** @param {any} d */
 function fidelityPage(d) {
   const screens = d.fidelity.screens ?? [];
-  const values = (/** @type {string} */ k) => [...new Set(screens.map((/** @type {any} */ s) => s[k]).filter(Boolean))].sort();
+  const values = (/** @type {string} */ k) =>
+    [
+      ...new Set(screens.map((/** @type {any} */ s) => s[k]).filter(Boolean)),
+    ].sort();
   const filter = (/** @type {string} */ k, /** @type {string} */ label) =>
-    `<label>${esc(label)} <select data-filter="${k}" data-scope="fidelity"><option value="">All</option>${values(k).map((v) => `<option>${esc(v)}</option>`).join('')}</select></label>`;
+    `<label>${esc(label)} <select data-filter="${k}" data-scope="fidelity"><option value="">All</option>${values(
+      k,
+    )
+      .map((v) => `<option>${esc(v)}</option>`)
+      .join('')}</select></label>`;
   return `<section id="fidelity" aria-labelledby="fidelity-h">
 <h2 id="fidelity-h">Prototype versus app</h2>
 <p>Each locked screen next to the app and their difference. “Close” means a similarity score (SSIM, 1 is identical) of 0.95 or more. A difference with no reason in its task’s report is “unexplained”.</p>
 <div class="filters">${filter('layout', 'Layout')}${filter('theme', 'Theme')}${filter('persona', 'Persona')}${filter('status', 'Status')}${filter('owner', 'Built by')}<span class="muted" aria-live="polite"><span data-count="fidelity"></span> shown</span></div>
 <ul class="cards">${screens
     .map(
-      (/** @type {any} */ s) => `<li class="card" data-scope="fidelity" data-layout="${esc(s.layout)}" data-theme="${esc(s.theme)}" data-persona="${esc(s.persona)}" data-status="${esc(s.status)}" data-owner="${esc(s.owner)}">
+      (
+        /** @type {any} */ s,
+      ) => `<li class="card" data-scope="fidelity" data-layout="${esc(s.layout)}" data-theme="${esc(s.theme)}" data-persona="${esc(s.persona)}" data-status="${esc(s.status)}" data-owner="${esc(s.owner)}">
 <h3>${esc(s.name)} ${tag(s.status)}</h3>
 <p class="meta">${s.ssim != null ? esc(`SSIM ${Number(s.ssim).toFixed(3)} · ${(Number(s.changed) * 100).toFixed(1)} % of pixels differ · `) : ''}${esc(s.owner)}</p>
 ${s.sideBySide ? `<a href="${rel(s.sideBySide)}">${img(s.sideBySide, `${s.name}: prototype, app and difference`, d.release)}</a>` : `<p class="muted">${esc(s.status === 'prototype only' ? 'The prototype’s own screen: never built.' : 'No capture.')}</p>`}
@@ -223,13 +300,19 @@ ${s.deviation ? `<p class="meta">Reason given: ${esc(s.deviation)}</p>` : ''}
 function beforeAfterPage(d) {
   const t = d.beforeAfter.totals ?? {};
   const m = (/** @type {any} */ x) =>
-    x ? esc(`axe critical ${x.axe?.critical ?? 0}, serious ${x.axe?.serious ?? 0} · overflow ${x.overflowX ?? 0} px · text under 12 px ${x.smallText ?? 0}${x.minPx ? ` (smallest ${x.minPx} px)` : ''} · lang "${x.lang ?? ''}"`) : '–';
+    x
+      ? esc(
+          `axe critical ${x.axe?.critical ?? 0}, serious ${x.axe?.serious ?? 0} · overflow ${x.overflowX ?? 0} px · text under 12 px ${x.smallText ?? 0}${x.minPx ? ` (smallest ${x.minPx} px)` : ''} · lang "${x.lang ?? ''}"`,
+        )
+      : '–';
   return `<section id="before-after" aria-labelledby="ba-h">
 <h2 id="ba-h">Before and after</h2>
 <p>Today’s app (recorded 2026-10-12) next to the redesign, at the same sizes, in light and dark. Totals: today ${esc(`${t.before?.critical ?? '–'} critical and ${t.before?.serious ?? '–'} serious`)} accessibility problems over ${esc(t.before?.captures ?? 200)} captures; the redesign ${esc(`${t.after?.critical ?? '–'} critical and ${t.after?.serious ?? '–'} serious`)}.</p>
 <ul class="cards">${(d.beforeAfter.pairs ?? [])
     .map(
-      (/** @type {any} */ p) => `<li class="card"><h3>${esc(p.title)} <span class="muted">${esc(p.variant)}</span> ${tag(p.status)}</h3>
+      (
+        /** @type {any} */ p,
+      ) => `<li class="card"><h3>${esc(p.title)} <span class="muted">${esc(p.variant)}</span> ${tag(p.status)}</h3>
 ${p.image ? `<a href="${rel(p.image)}">${img(p.image, `${p.title}: before and after`, d.release)}</a>` : `<p class="muted">${esc(p.reason ?? '')}</p>`}
 <p class="meta">Before: ${m(p.before)}</p><p class="meta">After: ${m(p.after)}</p></li>`,
     )
@@ -245,7 +328,9 @@ function stillsPage(d) {
 <p>States the prototype doesn’t show, built from its parts (D2, D3, D5, D7–D10), and P3-B’s and P3-C’s proposals, at phone, tablet and desktop size, light and dark.</p>
 ${(s.stills ?? [])
   .map(
-    (/** @type {any} */ x) => `<article class="still" aria-labelledby="still-${esc(x.id)}"><h3 id="still-${esc(x.id)}">${esc(x.title)}</h3>
+    (
+      /** @type {any} */ x,
+    ) => `<article class="still" aria-labelledby="still-${esc(x.id)}"><h3 id="still-${esc(x.id)}">${esc(x.title)}</h3>
 <p class="meta">${esc(x.owner)} · ${esc(x.source)}</p>
 <ul class="thumbs">${(x.images ?? []).map((/** @type {any} */ i) => `<li><a href="${rel(i.file)}">${img(i.file, `${x.title}, ${i.layout}, ${i.theme}`, d.release, 'thumb')}</a><span>${esc(`${i.layout} · ${i.theme}`)}</span></li>`).join('')}</ul></article>`,
   )
@@ -258,7 +343,9 @@ ${(s.oldFiles ?? []).length ? `<p>Old files nothing uses, kept by C1 until HMIF�
 
 /** @param {any} d */
 function newCopyPage(d) {
-  const items = (d.questions.groups ?? []).flatMap((/** @type {any} */ g) => g.items).filter((/** @type {any} */ i) => i.kind === 'new-copy');
+  const items = (d.questions.groups ?? [])
+    .flatMap((/** @type {any} */ g) => g.items)
+    .filter((/** @type {any} */ i) => i.kind === 'new-copy');
   return `<section id="new-copy" aria-labelledby="copy-h">
 <h2 id="copy-h">New copy</h2>
 <p>Every string with no prototype wording, by task, quoted as the app shows it. They need your eye.</p>
@@ -273,7 +360,21 @@ function checksPage(d) {
 <table><caption>Every check on the final commit</caption><thead><tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Counts</th><th scope="col">Command and date</th></tr></thead><tbody>
 ${(d.checks.checks ?? [])
   .map(
-    (/** @type {any} */ c) => `<tr><th scope="row">${esc(c.title)}</th><td>${tag(c.status)}${(c.failures ?? []).length ? `<ul>${c.failures.slice(0, 20).map((/** @type {string} */ x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${c.note ? `<p class="meta">${esc(c.note)}</p>` : ''}</td><td>${esc(c.counts ? Object.entries(c.counts).map(([k, v]) => `${k} ${v}`).join(', ') : '')}</td><td><code>${esc(c.command ?? '')}</code><br><span class="meta">${esc([c.date, c.commit].filter(Boolean).join(' · '))}</span></td></tr>`,
+    (/** @type {any} */ c) =>
+      `<tr><th scope="row">${esc(c.title)}</th><td>${tag(c.status)}${
+        (c.failures ?? []).length
+          ? `<ul>${c.failures
+              .slice(0, 20)
+              .map((/** @type {string} */ x) => `<li>${esc(x)}</li>`)
+              .join('')}</ul>`
+          : ''
+      }${c.note ? `<p class="meta">${esc(c.note)}</p>` : ''}</td><td>${esc(
+        c.counts
+          ? Object.entries(c.counts)
+              .map(([k, v]) => `${k} ${v}`)
+              .join(', ')
+          : '',
+      )}</td><td><code>${esc(c.command ?? '')}</code><br><span class="meta">${esc([c.date, c.commit].filter(Boolean).join(' · '))}</span></td></tr>`,
   )
   .join('\n')}
 </tbody></table>
@@ -285,14 +386,27 @@ function questionsPage(d) {
   return `<section id="questions" aria-labelledby="questions-h">
 <h2 id="questions-h">Open questions and decisions</h2>
 <p>Grouped by who decides. Each has the default that was built, where to see it and where it comes from. Items tagged security are still open in production: take them out before this package is shown to anyone but you.</p>
-<div class="filters"><label>Status <select data-filter="status" data-scope="question"><option value="">All</option><option>open</option><option>decided</option><option>found</option></select></label><label>Kind <select data-filter="kind" data-scope="question"><option value="">All</option>${[...new Set((d.questions.groups ?? []).flatMap((/** @type {any} */ g) => g.items.map((/** @type {any} */ i) => i.kind)))].sort().map((k) => `<option>${esc(k)}</option>`).join('')}</select></label><span class="muted" aria-live="polite"><span data-count="question"></span> shown</span></div>
+<div class="filters"><label>Status <select data-filter="status" data-scope="question"><option value="">All</option><option>open</option><option>decided</option><option>found</option></select></label><label>Kind <select data-filter="kind" data-scope="question"><option value="">All</option>${[
+    ...new Set(
+      (d.questions.groups ?? []).flatMap((/** @type {any} */ g) =>
+        g.items.map((/** @type {any} */ i) => i.kind),
+      ),
+    ),
+  ]
+    .sort()
+    .map((k) => `<option>${esc(k)}</option>`)
+    .join(
+      '',
+    )}</select></label><span class="muted" aria-live="polite"><span data-count="question"></span> shown</span></div>
 ${(d.questions.groups ?? [])
   .map(
-    (/** @type {any} */ g) => `<h3>${esc(g.who)} (${g.items.length})</h3><ul class="list">${g.items
-      .map(
-        (/** @type {any} */ i) => `<li class="question" data-scope="question" data-status="${esc(i.status)}" data-kind="${esc(i.kind)}">${i.id ? `<strong>${esc(i.id)}</strong> ` : ''}${tag(i.status)}${(i.tags ?? []).includes('security') ? ' <span class="tag bad">security</span>' : ''} ${esc(i.question)}${i.built ? `<br><span class="meta">Built: ${esc(i.built)}</span>` : ''}${i.decision ? `<br><span class="meta">Decided by ${esc(i.decision.by)}${i.decision.date ? `, ${esc(i.decision.date)}` : ''}</span>` : ''}${(i.flows ?? []).length ? `<br><span class="meta">See: ${esc(i.flows.join(', '))}</span>` : ''}<br><span class="meta">From: ${esc(i.sources.map((/** @type {any} */ s) => `${s.file}${s.line ? `:${s.line}` : ''}`).join('; '))}</span></li>`,
-      )
-      .join('')}</ul>`,
+    (/** @type {any} */ g) =>
+      `<h3>${esc(g.who)} (${g.items.length})</h3><ul class="list">${g.items
+        .map(
+          (/** @type {any} */ i) =>
+            `<li class="question" data-scope="question" data-status="${esc(i.status)}" data-kind="${esc(i.kind)}">${i.id ? `<strong>${esc(i.id)}</strong> ` : ''}${tag(i.status)}${(i.tags ?? []).includes('security') ? ' <span class="tag bad">security</span>' : ''} ${esc(i.question)}${i.built ? `<br><span class="meta">Built: ${esc(i.built)}</span>` : ''}${i.decision ? `<br><span class="meta">Decided by ${esc(i.decision.by)}${i.decision.date ? `, ${esc(i.decision.date)}` : ''}</span>` : ''}${(i.flows ?? []).length ? `<br><span class="meta">See: ${esc(i.flows.join(', '))}</span>` : ''}<br><span class="meta">From: ${esc(i.sources.map((/** @type {any} */ s) => `${s.file}${s.line ? `:${s.line}` : ''}`).join('; '))}</span></li>`,
+        )
+        .join('')}</ul>`,
   )
   .join('\n')}
 </section>`;
@@ -305,7 +419,8 @@ function coveragePage(d) {
 <table><caption>SPEC’s 157 user stories</caption><thead><tr><th scope="col">Story</th><th scope="col">Status</th><th scope="col">Where to see it, or why not</th></tr></thead><tbody>
 ${(d.coverage ?? [])
   .map(
-    (/** @type {any} */ c) => `<tr><th scope="row">${esc(c.story)}</th><td>${tag(c.status)}</td><td>${(c.flows ?? []).map((/** @type {string} */ f) => `<a href="#flow-${esc(f)}">${esc(f)}</a>`).join(', ')}${c.checks?.length ? `${c.flows?.length ? '; ' : ''}${esc(c.checks.join(', '))}` : ''}${c.reason ? `${c.flows?.length || c.checks?.length ? ' · ' : ''}${esc(c.reason)}` : ''}</td></tr>`,
+    (/** @type {any} */ c) =>
+      `<tr><th scope="row">${esc(c.story)}</th><td>${tag(c.status)}</td><td>${(c.flows ?? []).map((/** @type {string} */ f) => `<a href="#flow-${esc(f)}">${esc(f)}</a>`).join(', ')}${c.checks?.length ? `${c.flows?.length ? '; ' : ''}${esc(c.checks.join(', '))}` : ''}${c.reason ? `${c.flows?.length || c.checks?.length ? ' · ' : ''}${esc(c.reason)}` : ''}</td></tr>`,
   )
   .join('\n')}
 </tbody></table>
@@ -315,7 +430,8 @@ ${(d.coverage ?? [])
 /** @param {any} d */
 function sizesPage(d) {
   const s = d.sizes ?? {};
-  const mib = (/** @type {number} */ b) => `${(b / 1024 / 1024).toFixed(1)} MiB`;
+  const mib = (/** @type {number} */ b) =>
+    `${(b / 1024 / 1024).toFixed(1)} MiB`;
   return `<section id="sizes" aria-labelledby="sizes-h">
 <h2 id="sizes-h">Sizes</h2>
 ${s.parts ? `<table><caption>The package against its budget (${esc(s.budget ? mib(s.budget) : '–')})</caption><thead><tr><th scope="col">Part</th><th scope="col">Size</th><th scope="col">Ceiling</th></tr></thead><tbody>${s.parts.map((/** @type {any} */ p) => `<tr><th scope="row">${esc(p.title)}</th><td>${esc(mib(p.bytes ?? 0))}</td><td>${esc(p.max ? mib(p.max) : '–')}</td></tr>`).join('')}</tbody></table>` : '<p>Not measured yet.</p>'}

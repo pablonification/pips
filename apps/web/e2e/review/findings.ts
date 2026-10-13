@@ -27,7 +27,8 @@ export interface FailsWhere {
 export const FINDINGS: Finding[] = [
   {
     id: 'F1-1',
-    title: 'Global search with no result fails axe: an element that needs children of a given role has none',
+    title:
+      'Global search with no result fails axe: an element that needs children of a given role has none',
     flows: ['search'],
     layouts: ['phone', 'tablet', 'desktop'],
     themes: ['light', 'dark'],
@@ -37,7 +38,8 @@ export const FINDINGS: Finding[] = [
   },
   {
     id: 'F1-2',
-    title: 'In dark, the error page of a page that failed to load fails contrast: its "Ke Beranda" button',
+    title:
+      'In dark, the error page of a page that failed to load fails contrast: its "Ke Beranda" button',
     flows: ['errors-offline'],
     layouts: ['phone', 'tablet', 'desktop'],
     themes: ['dark'],

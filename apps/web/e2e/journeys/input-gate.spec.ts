@@ -14,6 +14,9 @@ test('Buat pengumuman’s hidden photo input doesn’t count; a text field under
   await expect(title).toBeVisible();
   await expect(page.locator('input[type="file"]')).toBeAttached();
   expect(await touchInputsUnder16(page)).toEqual([]);
-  await page.addStyleTag({ content: 'input[type="text"], input:not([type]) { font-size: 14px !important; }' });
+  await page.addStyleTag({
+    content:
+      'input[type="text"], input:not([type]) { font-size: 14px !important; }',
+  });
   expect((await touchInputsUnder16(page)).length).toBeGreaterThan(0);
 });

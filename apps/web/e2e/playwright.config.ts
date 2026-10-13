@@ -148,30 +148,30 @@ function reviewProjects(): Project[] {
         theme,
       })),
     ),
-    { name: 'review-narrow320-light', size: NARROW320, theme: 'light' as const },
-  ].map(
-    ({ name, size, theme }): Project => ({
-      name,
-      testDir: './review/flows',
-      testMatch: /\.flow\.ts$/,
-      use: {
-        ...size,
-        colorScheme: theme,
-        reducedMotion: 'no-preference',
-        video: video(size.viewport),
-        motion: 'on',
-      } as Project['use'],
-    }),
-  );
+    {
+      name: 'review-narrow320-light',
+      size: NARROW320,
+      theme: 'light' as const,
+    },
+  ].map(({ name, size, theme }): Project => ({
+    name,
+    testDir: './review/flows',
+    testMatch: /\.flow\.ts$/,
+    use: {
+      ...size,
+      colorScheme: theme,
+      reducedMotion: 'no-preference',
+      video: video(size.viewport),
+      motion: 'on',
+    } as Project['use'],
+  }));
   const stills = (['phone', 'tablet', 'desktop'] as const).flatMap((layout) =>
-    THEMES.map(
-      (theme): Project => ({
-        name: `review-stills-${layout}-${theme}`,
-        testDir: './review',
-        testMatch: /stills\.spec\.ts$/,
-        use: { ...sizes[layout], colorScheme: theme },
-      }),
-    ),
+    THEMES.map((theme): Project => ({
+      name: `review-stills-${layout}-${theme}`,
+      testDir: './review',
+      testMatch: /stills\.spec\.ts$/,
+      use: { ...sizes[layout], colorScheme: theme },
+    })),
   );
   // The sweep's widths (SPEC story 146): touch below 1024 px; 200 % zoom on a 1440 × 900 window is 720 × 450 CSS px.
   const SWEEP = {
@@ -180,17 +180,19 @@ function reviewProjects(): Project[] {
     '768': { ...TABLET, viewport: { width: 768, height: 1024 } },
     '1024': { ...DESKTOP, viewport: { width: 1024, height: 768 } },
     '1440': DESKTOP,
-    zoom200: { ...DESKTOP, viewport: { width: 720, height: 450 }, deviceScaleFactor: 2 },
+    zoom200: {
+      ...DESKTOP,
+      viewport: { width: 720, height: 450 },
+      deviceScaleFactor: 2,
+    },
   };
   const sweep = Object.entries(SWEEP).flatMap(([width, size]) =>
-    THEMES.map(
-      (theme): Project => ({
-        name: `review-sweep-${width}-${theme}`,
-        testDir: './review',
-        testMatch: /sweep\.spec\.ts$/,
-        use: { ...size, colorScheme: theme },
-      }),
-    ),
+    THEMES.map((theme): Project => ({
+      name: `review-sweep-${width}-${theme}`,
+      testDir: './review',
+      testMatch: /sweep\.spec\.ts$/,
+      use: { ...size, colorScheme: theme },
+    })),
   );
   return [
     ...flows,

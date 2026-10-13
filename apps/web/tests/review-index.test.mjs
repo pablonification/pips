@@ -4,7 +4,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fakeData } from '../e2e/scripts/lib/review/fake.mjs';
-import { JS, buildIndex, esc, jsonBlock, rel, tag } from '../e2e/scripts/lib/review/index.mjs';
+import {
+  JS,
+  buildIndex,
+  esc,
+  jsonBlock,
+  rel,
+  tag,
+} from '../e2e/scripts/lib/review/index.mjs';
 
 const html = buildIndex(/** @type {any} */ (fakeData()));
 
@@ -17,12 +24,26 @@ test('text is escaped: no tag from the data reaches the page', () => {
 });
 
 test('links and sources are paths inside the package; anything else is refused', () => {
-  assert.equal(rel('media/flows/beranda/phone light.mp4'), 'media/flows/beranda/phone%20light.mp4');
-  for (const bad of ['https://example.org/x.png', 'http://x', '/etc/passwd', '../outside.png', 'media/../../x', 'file:///x', 'javascript:alert(1)'])
+  assert.equal(
+    rel('media/flows/beranda/phone light.mp4'),
+    'media/flows/beranda/phone%20light.mp4',
+  );
+  for (const bad of [
+    'https://example.org/x.png',
+    'http://x',
+    '/etc/passwd',
+    '../outside.png',
+    'media/../../x',
+    'file:///x',
+    'javascript:alert(1)',
+  ])
     assert.throws(() => rel(bad), /inside the package/, bad);
-  const targets = [...html.matchAll(/\b(?:src|href|poster)="([^"]*)"/g)].map((m) => m[1]);
+  const targets = [...html.matchAll(/\b(?:src|href|poster)="([^"]*)"/g)].map(
+    (m) => m[1],
+  );
   assert.ok(targets.length > 10);
-  for (const t of targets) assert.ok(t.startsWith('#') || !/^[a-z][a-z0-9+.-]*:|^\//i.test(t), t);
+  for (const t of targets)
+    assert.ok(t.startsWith('#') || !/^[a-z][a-z0-9+.-]*:|^\//i.test(t), t);
 });
 
 test('nothing loads over http or https: no external fonts, scripts, styles or images', () => {
@@ -33,17 +54,29 @@ test('nothing loads over http or https: no external fonts, scripts, styles or im
 });
 
 test('each video and image carries its placeholder line naming the release file', () => {
-  const media = [...html.matchAll(/<(img|video)\b[^>]*data-media[^>]*>/g)].map((m) => m[0]);
+  const media = [...html.matchAll(/<(img|video)\b[^>]*data-media[^>]*>/g)].map(
+    (m) => m[0],
+  );
   assert.ok(media.length >= 6);
-  for (const m of media) assert.match(m, /data-missing="Not in this copy: download review-2026-10-14\.zip from the release/);
+  for (const m of media)
+    assert.match(
+      m,
+      /data-missing="Not in this copy: download review-2026-10-14\.zip from the release/,
+    );
   assert.ok(html.includes('data-release="review-2026-10-14.zip"'));
   assert.ok(JS.includes("probe.src = 'media/present.webp'"));
   assert.ok(html.includes('preload="none"'));
 });
 
 test('each step jumps to its time', () => {
-  assert.ok(html.includes('<button type="button" class="link" data-t="0">0:00</button> Beranda opens'));
-  assert.ok(html.includes('data-t="1.2">0:01</button> Sabtu shows Bakti Sosial HMIF'));
+  assert.ok(
+    html.includes(
+      '<button type="button" class="link" data-t="0">0:00</button> Beranda opens',
+    ),
+  );
+  assert.ok(
+    html.includes('data-t="1.2">0:01</button> Sabtu shows Bakti Sosial HMIF'),
+  );
 });
 
 test('a data block can’t close its script; status is a word and a mark, not colour alone', () => {

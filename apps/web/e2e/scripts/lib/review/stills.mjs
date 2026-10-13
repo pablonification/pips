@@ -17,6 +17,7 @@ export function parseStill(source, file) {
   const re = STILL_NAMES[source];
   const m = re ? re.exec(file) : null;
   if (!m) return null;
-  if (source === 'P2-A') return { layout: m[1], state: `${m[4]}-${m[3]}`, theme: m[2] };
+  if (source === 'P2-A')
+    return { layout: m[1], state: `${m[4]}-${m[3]}`, theme: m[2] };
   return { layout: LAYOUT(m[1]), state: m[2], theme: m[3] };
 }

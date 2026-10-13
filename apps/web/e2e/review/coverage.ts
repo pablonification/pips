@@ -15,15 +15,18 @@ export const CHECKS = {
   repo: 'Repository checks: type check, lint, unit tests, builds (pnpm check, test, build)',
   bundle: 'The production bundle, precache and service-worker checks',
   journeys: 'The whole journey suite, strict gates',
-  sweep: 'The sweep: every route at 320, 390, 768, 1024, 1440 px and 200 % zoom, light and dark',
+  sweep:
+    'The sweep: every route at 320, 390, 768, 1024, 1440 px and 200 % zoom, light and dark',
   contrast: 'Contrast: the token tests and axe’s colour-contrast results',
-  budgets: 'Budgets: JS before first render per route, precache, fonts; Beranda’s first load, CLS, hidden DOM',
+  budgets:
+    'Budgets: JS before first render per route, precache, fonts; Beranda’s first load, CLS, hidden DOM',
   lab: 'Lab speed on SPEC’s lab phone (FCP, LCP, CLS, TBT, tap to paint)',
   visual: 'Visual references (e2e/visual), on the Mac and in CI',
   fidelity: 'Prototype versus app (every locked screen)',
   beforeAfter: 'Before and after (the 200 captures of today’s app)',
   stills: 'Screens with no locked target, and the app’s icons',
-  people: 'Screen readers (TalkBack, VoiceOver, NVDA) and the usability test: need a person',
+  people:
+    'Screen readers (TalkBack, VoiceOver, NVDA) and the usability test: need a person',
 } as const;
 export type CheckId = keyof typeof CHECKS;
 
@@ -37,32 +40,40 @@ export interface CoverageRow {
 }
 
 /** Stories decided by something other than the catalogue: not built, out of scope, checked, or partly built. */
-const NOTES: Record<number, Omit<CoverageRow, 'story' | 'flows'> & { flows?: string[] }> = {
+const NOTES: Record<
+  number,
+  Omit<CoverageRow, 'story' | 'flows'> & { flows?: string[] }
+> = {
   6: { status: 'shown', checks: [] },
   35: {
     status: 'not built',
     checks: [],
-    reason: 'Campaign banners: no locked design (P1-A brief, "Not in this task"; OPEN-QUESTIONS D5).',
+    reason:
+      'Campaign banners: no locked design (P1-A brief, "Not in this task"; OPEN-QUESTIONS D5).',
   },
   36: {
     status: 'not built',
     checks: [],
-    reason: 'Testi Matkul during course registration: no locked design (P1-A brief, "Not in this task"; D5).',
+    reason:
+      'Testi Matkul during course registration: no locked design (P1-A brief, "Not in this task"; D5).',
   },
   37: {
     status: 'not built',
     checks: [],
-    reason: 'UTS and UAS standing out: no locked design (P1-A brief, "Not in this task"; D5).',
+    reason:
+      'UTS and UAS standing out: no locked design (P1-A brief, "Not in this task"; D5).',
   },
   38: {
     status: 'shown',
     checks: [],
-    reason: 'The admin’s live count is built; Welfare’s line in the Kelola summary is not (P1-A report; D5).',
+    reason:
+      'The admin’s live count is built; Welfare’s line in the Kelola summary is not (P1-A report; D5).',
   },
   50: {
     status: 'not built',
     checks: [],
-    reason: 'The composer has no autosaved draft (P1-B report; OPEN-QUESTIONS A5).',
+    reason:
+      'The composer has no autosaved draft (P1-B report; OPEN-QUESTIONS A5).',
   },
   53: {
     status: 'shown',
@@ -72,17 +83,20 @@ const NOTES: Record<number, Omit<CoverageRow, 'story' | 'flows'> & { flows?: str
   62: {
     status: 'out of scope',
     checks: [],
-    reason: 'Campus labels need a backend field (SPEC "Out of Scope": the campus field; P1-A brief).',
+    reason:
+      'Campus labels need a backend field (SPEC "Out of Scope": the campus field; P1-A brief).',
   },
   68: {
     status: 'not built',
     checks: [],
-    reason: '"Masuk dengan email std ITB" on services: not in the prototype (P1-C report, open question 8).',
+    reason:
+      '"Masuk dengan email std ITB" on services: not in the prototype (P1-C report, open question 8).',
   },
   69: {
     status: 'not built',
     checks: [],
-    reason: 'Pinning and reordering services: not in the prototype (P1-A brief; P1-C report, open question 8).',
+    reason:
+      'Pinning and reordering services: not in the prototype (P1-A brief; P1-C report, open question 8).',
   },
   74: {
     status: 'shown',
@@ -94,16 +108,26 @@ const NOTES: Record<number, Omit<CoverageRow, 'story' | 'flows'> & { flows?: str
   95: {
     status: 'not built',
     checks: [],
-    reason: 'Crisis help waits on HMIF Welfare’s wording and contacts (P2-C brief; SPEC "Still open").',
+    reason:
+      'Crisis help waits on HMIF Welfare’s wording and contacts (P2-C brief; SPEC "Still open").',
   },
   100: { status: 'shown', checks: [], reason: 'No labels (P3-C report; D9).' },
-  105: { status: 'shown', checks: [], reason: 'The test notification is local; no server push (A4).' },
-  112: { status: 'shown', checks: [], reason: 'Editing the course catalogue isn’t built (A10).' },
+  105: {
+    status: 'shown',
+    checks: [],
+    reason: 'The test notification is local; no server push (A4).',
+  },
+  112: {
+    status: 'shown',
+    checks: [],
+    reason: 'Editing the course catalogue isn’t built (A10).',
+  },
   118: {
     status: 'checked',
     checks: ['repo', 'journeys'],
     flows: ['tulis-anggota', 'tulis-pengurus'],
-    reason: 'Already data (categories.roles_allowed), honoured by the API and the composer; no admin screen (P3-A brief).',
+    reason:
+      'Already data (categories.roles_allowed), honoured by the API and the composer; no admin screen (P3-A brief).',
   },
   120: { status: 'checked', checks: ['fidelity', 'sweep'] },
   121: { status: 'checked', checks: ['fidelity', 'stills'], flows: ['profil'] },
@@ -118,7 +142,8 @@ const NOTES: Record<number, Omit<CoverageRow, 'story' | 'flows'> & { flows?: str
   137: {
     status: 'not built',
     checks: [],
-    reason: 'No brief or report covers images sized for the screen in modern formats; F2 to confirm.',
+    reason:
+      'No brief or report covers images sized for the screen in modern formats; F2 to confirm.',
   },
   138: { status: 'checked', checks: ['bundle'] },
   139: { status: 'checked', checks: ['journeys', 'sweep', 'people'] },
@@ -144,13 +169,22 @@ const NOTES: Record<number, Omit<CoverageRow, 'story' | 'flows'> & { flows?: str
 export function coverage(): CoverageRow[] {
   return Array.from({ length: 157 }, (_, i) => {
     const story = i + 1;
-    const flows = FLOWS.filter((f) => f.stories.includes(story)).map((f) => f.id);
+    const flows = FLOWS.filter((f) => f.stories.includes(story)).map(
+      (f) => f.id,
+    );
     const note = NOTES[story];
     if (note)
       return {
         story,
         status: note.status,
-        flows: [...new Set([...(note.flows ?? []), ...(note.status === 'not built' || note.status === 'out of scope' ? [] : flows)])],
+        flows: [
+          ...new Set([
+            ...(note.flows ?? []),
+            ...(note.status === 'not built' || note.status === 'out of scope'
+              ? []
+              : flows),
+          ]),
+        ],
         checks: note.checks,
         ...(note.reason ? { reason: note.reason } : {}),
       };
@@ -161,7 +195,8 @@ export function coverage(): CoverageRow[] {
           status: 'not built' as const,
           flows: [],
           checks: [],
-          reason: 'No flow shows it and no check proves it: F1 to add one (unit test review-coverage fails).',
+          reason:
+            'No flow shows it and no check proves it: F1 to add one (unit test review-coverage fails).',
         };
   });
 }
