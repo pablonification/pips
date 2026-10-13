@@ -264,6 +264,46 @@ test.describe('Raka', () => {
     await confirm(page).getByRole('button', { name: 'Keluar' }).click();
     await expect(page).toHaveURL(/\/login$/);
   });
+
+  test('regression: when the device can’t be unlinked, Keluar still signs out and ends the browser’s subscription', async ({
+    page,
+    api,
+    db,
+  }) => {
+    api.on('PUT /api/push/logout', reply.status(500));
+    api.on('POST /api/logout', writes.logout);
+    db.pushSubscriptions = [E2E_SUBSCRIPTION];
+    await page.goto('/profil');
+    await main(page).getByRole('button', { name: 'Keluar' }).click();
+    await confirm(page).getByRole('button', { name: 'Keluar' }).click();
+    await expect(page).toHaveURL(/\/login$/);
+    const order = api.writes.map((w) => `${w.method} ${w.path}`);
+    expect(order).toEqual(['PUT /api/push/logout', 'POST /api/logout']);
+    // Notifications stop on this device all the same: the browser's subscription is gone.
+    expect((await pushDevice(page)).subscribed).toBe(false);
+    expect((await pushDevice(page)).asks).toBe(0);
+  });
+
+  test('when both the unlink and the sign-out fail, the session stays and the device subscribes and links again', async ({
+    page,
+    api,
+    db,
+  }) => {
+    api.on('PUT /api/push/logout', reply.status(500));
+    api.on('POST /api/logout', reply.status(500));
+    api.on('POST /api/push/register', writes.registerPush);
+    db.pushSubscriptions = [];
+    await page.goto('/profil');
+    await main(page).getByRole('button', { name: 'Keluar' }).click();
+    await confirm(page).getByRole('button', { name: 'Keluar' }).click();
+    await expect(
+      toastText(page, 'Gagal keluar. Periksa koneksimu, lalu coba lagi.'),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/profil$/);
+    await expect.poll(() => db.pushSubscriptions).toEqual([E2E_SUBSCRIPTION]);
+    expect((await pushDevice(page)).subscribed).toBe(true);
+    expect((await pushDevice(page)).asks).toBe(0);
+  });
 });
 
 test('Keluar: Batal and Escape keep you signed in, with focus back on Keluar', async ({

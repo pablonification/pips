@@ -132,15 +132,44 @@ export async function registerExistingPush() {
 
 /**
  * Unlinks this device from the member at sign-out (`PUT /api/push/logout`), when it has a subscription. True when it
- * unlinked one, so a sign-out that then fails can link it again (`registerExistingPush`).
+ * unlinked one, so a sign-out that then fails can link it again (`relinkPush`).
+ *
+ * When the server can't unlink it, the browser's subscription is ended here instead, which also stops this device's
+ * notifications, and the sign-out goes on: a failing push endpoint must never keep a member signed in on a shared
+ * device (review m4).
  */
 export async function unlinkPushAtLogout(): Promise<boolean> {
   const subscription = await existingPushSubscription();
   if (!subscription) return false;
-  await api.push.logoutPush({
-    requestBody: { endpoint: subscription.endpoint },
-  });
+  try {
+    await api.push.logoutPush({
+      requestBody: { endpoint: subscription.endpoint },
+    });
+  } catch {
+    await subscription.unsubscribe().catch(() => false);
+  }
   return true;
+}
+
+/**
+ * After a failed sign-out: links this device again. If the sign-out ended the browser's subscription, it subscribes
+ * again without asking (permission is already granted), then registers.
+ */
+export async function relinkPush() {
+  try {
+    let sub = await existingPushSubscription();
+    if (!sub && Notification.permission === 'granted') {
+      const registration = await readyRegistration(5_000);
+      sub = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: import.meta.env.VITE_VAPID_KEY,
+      });
+    }
+    if (sub)
+      await api.push.registerPush({ requestBody: subscriptionBody(sub) });
+  } catch {
+    // Best effort: Profil › Notifikasi still offers to turn it on.
+  }
 }
 
 /**
