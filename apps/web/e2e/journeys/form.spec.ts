@@ -120,6 +120,17 @@ test.describe('the list', () => {
     await expect(card).toContainText('Isi sekarang');
     await expect(card).toContainText('Bantu HMIF kenalan lebih dekat');
     await expect(card).toContainText('5 bagian');
+    // The status tag spans the card's width, as in the locked capture (the prototype's grid stretches it).
+    const widths = await card.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const inner =
+        el.clientWidth -
+        parseFloat(cs.paddingLeft) -
+        parseFloat(cs.paddingRight);
+      const tag = el.querySelector('.g-tag')!.getBoundingClientRect().width;
+      return { inner: Math.round(inner), tag: Math.round(tag) };
+    });
+    expect(widths.tag).toBe(widths.inner);
     await expect(page).toHaveTitle('Form · PIPS!');
     if (layoutOf(testInfo) !== 'desktop')
       await expect(

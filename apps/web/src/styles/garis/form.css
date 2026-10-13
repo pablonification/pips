@@ -24,9 +24,6 @@
   a.g-fcard:hover {
     background: var(--bg-hover);
   }
-  .g-fcard > .g-tag {
-    justify-self: start;
-  }
   .g-clamp2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
