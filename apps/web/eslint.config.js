@@ -10,60 +10,12 @@ import tseslint from 'typescript-eslint';
 import garis from './eslint-rules/garis.mjs';
 
 /**
- * The redesign's folders, where only the Garis design system may be used (SPEC story 150). Each redesign task adds
- * the folders it creates; C1 makes the rules global once the old screens are gone.
+ * Where only the Garis design system may be used (SPEC story 150): all of the app's code since C1 deleted today's
+ * screens. The generated API client is the one exception; the token source is CSS (styles/garis/tokens.css), and
+ * real content images are allowed by name in `garis/no-img-icon` below.
  */
-export const GARIS_FILES = [
-  'src/components/garis/**/*.{ts,tsx}',
-  'src/components/icons/**/*.{ts,tsx}',
-  'src/lib/theme/**/*.{ts,tsx}',
-  'src/routes/dev/**/*.{ts,tsx}',
-  'src/dev/**/*.{ts,tsx}',
-  // P0-C: the app shell.
-  'src/components/shell/**/*.{ts,tsx}',
-  'src/lib/shell/**/*.{ts,tsx}',
-  // P1-C: push, Profil, Layanan, sign-in and first run.
-  'src/components/push/**/*.{ts,tsx}',
-  'src/features/**/*.{ts,tsx}',
-  // P1-A: Beranda, Kalender, search's sources, and the shared WIB days.
-  'src/features/beranda/**/*.{ts,tsx}',
-  'src/features/kalender/**/*.{ts,tsx}',
-  'src/features/cari/**/*.{ts,tsx}',
-  'src/lib/days.ts',
-  'src/routes/_app/_left-navbar/index.tsx',
-  'src/routes/_app/kalender.tsx',
-  'src/routes/_app/kalender/index.tsx',
-  // P1-B: Pengumuman, and the shared date words.
-  'src/features/pengumuman/**/*.{ts,tsx}',
-  'src/lib/dates.ts',
-  'src/routes/_app/_left-navbar/pengumuman/route.tsx',
-  'src/routes/_app/_left-navbar/pengumuman/index.tsx',
-  'src/routes/_app/_left-navbar/pengumuman/$id/index.tsx',
-  'src/routes/_app/_left-navbar/pengumuman/tulis/index.tsx',
-  // P2-A: Form and Magang SPARTA.
-  'src/components/form/**/*.{ts,tsx}',
-  'src/lib/form/**/*.{ts,tsx}',
-  'src/routes/_app/_left-navbar/layanan/form/index.tsx',
-  'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
-  'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
-  // P3-A: Kelola, Live Counting, Rekap Form and Data SPARTA Magang.
-  'src/routes/_app/_left-navbar/kelola/index.tsx',
-  'src/routes/_app/_left-navbar/kelola/live/index.tsx',
-  'src/routes/_app/_left-navbar/kelola/live/$formId/index.tsx',
-  'src/routes/_app/_left-navbar/kelola/live/$formId/rekap.tsx',
-  'src/routes/_app/_left-navbar/kelola/sparta/index.tsx',
-  'src/routes/_app/_left-navbar/kelola/sparta/$submissionId.tsx',
-  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba (every feature folder, Curhat's too).
-  'src/features/**/*.{ts,tsx}',
-  // P2-C: Curhat Yuk! for members.
-  'src/routes/_app/_left-navbar/layanan/curhat/route.tsx',
-  'src/routes/_app/_left-navbar/layanan/curhat/index.tsx',
-  'src/routes/_app/_left-navbar/layanan/curhat/$roomId.tsx',
-  // P3-C: Curhat Yuk!'s inbox for Welfare.
-  'src/routes/_app/_left-navbar/kelola/curhat/route.tsx',
-  'src/routes/_app/_left-navbar/kelola/curhat/index.tsx',
-  'src/routes/_app/_left-navbar/kelola/curhat/$roomId.tsx',
-];
+export const GARIS_FILES = ['src/**/*.{ts,tsx}'];
+export const GARIS_IGNORES = ['src/api/generated/**'];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
 export default defineConfig([
@@ -105,7 +57,11 @@ export default defineConfig([
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
       'react-refresh/only-export-components': 'off',
-      '@typescript-eslint/no-unused-vars': 'warn',
+      // A rest sibling drops a field on purpose (`({ secret, ...rest }) => rest`).
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { ignoreRestSiblings: true },
+      ],
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
       // New in eslint-plugin-tailwindcss 4's recommended set; not among today's rules.
       'tailwindcss/enforces-canonical-classname': 'off',
@@ -114,6 +70,7 @@ export default defineConfig([
   },
   {
     files: GARIS_FILES,
+    ignores: GARIS_IGNORES,
     plugins: { garis },
     rules: {
       'garis/no-raw-colour': 'error',
