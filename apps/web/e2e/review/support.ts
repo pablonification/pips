@@ -63,6 +63,12 @@ export interface StepRecord {
   at: number;
 }
 
+export interface GateRecord {
+  name: string;
+  failures: string[];
+  serious: { id: string; impact: string; help: string; targets: string[] }[];
+}
+
 export interface FlowRecord {
   flow: string;
   variant: string;
@@ -76,7 +82,7 @@ export interface FlowRecord {
   error: string | null;
   durationMs: number;
   steps: StepRecord[];
-  gates: string[];
+  gates: GateRecord[];
   guard: {
     answered: number;
     blocked: number;
@@ -90,7 +96,7 @@ export interface FlowRecord {
 
 export class Recorder {
   readonly steps: StepRecord[] = [];
-  readonly gates: string[] = [];
+  readonly gates: GateRecord[] = [];
   readonly t0 = Date.now();
   private chaptered = false;
 
@@ -127,10 +133,30 @@ export class Recorder {
     if (PACE.step) await this.page.waitForTimeout(PACE.step);
   }
 
-  /** The strict audit on the screen as it is (no resize, no Tab). */
+  /** The strict audit on the screen as it is (no resize, no Tab). Its result goes into the flow's record. */
   async gate(name: string) {
-    this.gates.push(name);
-    await strictAudit(this.page, this.testInfo, name);
+    try {
+      await strictAudit(this.page, this.testInfo, name);
+    } finally {
+      const body = this.testInfo.attachments.find(
+        (a) => a.name === `strict-gates-${name}.json`,
+      )?.body;
+      const result = body
+        ? (JSON.parse(body.toString()) as {
+            failures: string[];
+            axe: {
+              violations: { id: string; impact: string; help: string; targets: string[] }[];
+            };
+          })
+        : null;
+      this.gates.push({
+        name,
+        failures: result?.failures ?? ['the audit did not finish'],
+        serious: (result?.axe.violations ?? []).filter(
+          (v) => v.impact === 'serious' || v.impact === 'critical',
+        ),
+      });
+    }
   }
 
   /** Type into a field the way a person does (paced) or at once (checks). Clears it first. */
@@ -184,7 +210,6 @@ export function flow(
     test.use({
       ...(variant.persona !== undefined ? { persona: variant.persona } : {}),
       ...use,
-      ...(opts.fails ? { trace: 'on' as const } : {}),
     });
     test(`${entry.title} [${id}:${variantKey}] @flow:${id}`, async (
       { page, api, db },
@@ -207,12 +232,27 @@ export function flow(
         );
       } catch (e) {
         error = e instanceof Error ? e.message.split('\n')[0] : String(e);
+        // The config keeps a trace only on an unexpected failure, so a known one saves its own (F1 brief, step 4).
+        // `trace: 'on'` can't be set per flow: it forces a new worker, which Playwright refuses inside a group.
+        if (opts.fails) await saveTrace(page, testInfo);
         throw e;
       } finally {
         writeRecord(f, api, testInfo, where!, error, opts.fails ?? null);
       }
     });
   });
+}
+
+/** The trace so far, as `known-failure-trace.zip` in the test's output folder; tracing goes on after it. */
+export const KNOWN_FAILURE_TRACE = 'known-failure-trace.zip';
+async function saveTrace(page: Page, testInfo: TestInfo) {
+  const tracing = page.context().tracing;
+  try {
+    await tracing.stopChunk({ path: testInfo.outputPath(KNOWN_FAILURE_TRACE) });
+    await tracing.startChunk();
+  } catch {
+    // Tracing wasn't running (trace: 'off'): there is nothing to keep.
+  }
 }
 
 function writeRecord(
