@@ -307,6 +307,9 @@ test.describe('cnc', () => {
       await expect(
         hapusConfirm(page).getByRole('button', { name: 'Hapus' }),
       ).not.toHaveAttribute('aria-disabled', 'true');
+      // Behind the confirmation the page is hidden from assistive tech: close it, then look.
+      await hapusConfirm(page).getByRole('button', { name: 'Batal' }).click();
+      await expect(hapusConfirm(page)).toBeHidden();
       expect(await names(page)).toContain('Gemastik XIX');
       await expectStillSignedIn(page);
     });
