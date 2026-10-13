@@ -994,23 +994,47 @@ test('no member name, NIM or email anywhere in the page or in what it sends', as
  * gates measure the room's own targets, so the scroll is moved up just enough that no control straddles the edge.
  */
 async function clearTopBarEdge(page: Page) {
-  await page.evaluate(() => {
-    const scroller = document.querySelector<HTMLElement>(
-      '[data-scroll-restoration-id="isi"]',
-    );
-    const bar = document.querySelector<HTMLElement>('.g-top');
-    if (!scroller || !bar) return;
-    const edge = bar.getBoundingClientRect().bottom;
-    let shift = 0;
-    for (const el of document.querySelectorAll<HTMLElement>(
-      'main a, main button',
-    )) {
-      const r = el.getBoundingClientRect();
-      if (r.top < edge && r.bottom > edge)
-        shift = Math.max(shift, edge - r.top);
-    }
-    scroller.scrollTop -= Math.ceil(shift);
-  });
+  // First let the room finish following the newest message (the bar grows with the reply chip a frame later).
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const el = document.querySelector<HTMLElement>(
+          '[data-scroll-restoration-id="isi"]',
+        );
+        let last = -1;
+        let same = 0;
+        const tick = () => {
+          const top = el?.scrollTop ?? 0;
+          same = top === last ? same + 1 : 0;
+          last = top;
+          if (same >= 5) resolve();
+          else requestAnimationFrame(tick);
+        };
+        tick();
+      }),
+  );
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const scroller = document.querySelector<HTMLElement>(
+          '[data-scroll-restoration-id="isi"]',
+        );
+        const bar = document.querySelector<HTMLElement>('.g-top');
+        if (!scroller || !bar) return 0;
+        const edge = bar.getBoundingClientRect().bottom;
+        let shift = 0;
+        for (const el of document.querySelectorAll<HTMLElement>(
+          'main a, main button',
+        )) {
+          const r = el.getBoundingClientRect();
+          if (r.top < edge && r.bottom > edge)
+            shift = Math.max(shift, edge - r.top);
+        }
+        scroller.scrollTop -= Math.ceil(shift);
+        return shift;
+      }),
+    )
+    .toBe(0);
 }
 
 test.describe('gates at every size', () => {
