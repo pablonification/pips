@@ -130,14 +130,17 @@ export async function registerExistingPush() {
   }
 }
 
-/** Unlinks this device from the member at sign-out (`PUT /api/push/logout`), when it has a subscription. */
-export async function unlinkPushAtLogout() {
+/**
+ * Unlinks this device from the member at sign-out (`PUT /api/push/logout`), when it has a subscription. True when it
+ * unlinked one, so a sign-out that then fails can link it again (`registerExistingPush`).
+ */
+export async function unlinkPushAtLogout(): Promise<boolean> {
   const subscription = await existingPushSubscription();
-  if (subscription) {
-    await api.push.logoutPush({
-      requestBody: { endpoint: subscription.endpoint },
-    });
-  }
+  if (!subscription) return false;
+  await api.push.logoutPush({
+    requestBody: { endpoint: subscription.endpoint },
+  });
+  return true;
 }
 
 /**
