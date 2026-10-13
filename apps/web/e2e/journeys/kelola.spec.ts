@@ -57,6 +57,29 @@ test("Beranda's Kelola section leads to the hub", async ({ page }) => {
   ).toBeVisible();
 });
 
+// Regression (review P3-A m6): Beranda's card and the live page read one count, so a live event shows on both.
+test("Beranda's Kelola card and the live page share one count", async ({
+  page,
+  api,
+  db,
+}) => {
+  await page.goto('/');
+  const card = page.locator('.g-kelola').locator('visible=true');
+  await expect(card.locator('.g-kelola-n')).toContainText('142');
+  await card.click();
+  await expect(page).toHaveURL(/\/kelola\/live\/pixel$/);
+  await expect(plaque(page).locator('.t-figure-xl')).toHaveText('142');
+  // The live page needed no count request of its own.
+  expect(api.calls('GET /api/form/:formId/responses/count')).toHaveLength(1);
+  await socketReady(api);
+  expect(
+    newResponse(api, db, { nim: '13525243', fullName: 'Pengisi Baru' }),
+  ).toBe(1);
+  await expect(plaque(page).locator('.t-figure-xl')).toHaveText('143');
+  await page.goBack();
+  await expect(card.locator('.g-kelola-n')).toContainText('143');
+});
+
 /** The live page's socket is in the form's admin room. */
 async function socketReady(api: ApiMock, formId = 'pixel') {
   await expect

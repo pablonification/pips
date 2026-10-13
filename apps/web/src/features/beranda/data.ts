@@ -6,7 +6,7 @@
  */
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { api } from '~/api/client';
-import { CHATROOMS_QUERY_KEY, FORM_QUERY_KEY } from '~/api/constants';
+import { CHATROOMS_QUERY_KEY } from '~/api/constants';
 import { chatroomsQuery, formListQuery, unreadInfosQuery } from '~/api/queries';
 
 /** Unread Curhat messages per room. Under the chatrooms key, so Curhat's own refreshes renew it too. */
@@ -16,19 +16,14 @@ export const curhatUnreadQuery = () =>
     queryFn: () => api.curhat.unreadCountChatroomMessages(),
   });
 
-/** Every active form, for the Kelola summary (admin only). */
-export const adminFormsQuery = () =>
-  queryOptions({
-    queryKey: [FORM_QUERY_KEY, 'admin-list'],
-    queryFn: () => api.form.listAllForms().then((r) => r.forms),
-  });
-
-export const responsesCountQuery = (formId: string) =>
-  queryOptions({
-    queryKey: [FORM_QUERY_KEY, 'responses-count', formId],
-    queryFn: () =>
-      api.form.getFormResponsesCount({ formId }).then((r) => r.total),
-  });
+/**
+ * The Kelola summary's forms and count (admin only) are Kelola's own queries (review P3-A m6): one request serves
+ * both screens, and a live event on the live page refreshes the card's number too.
+ */
+export {
+  adminFormsQuery,
+  formResponsesCountQuery as responsesCountQuery,
+} from '~/features/kelola/queries';
 
 export const useChatrooms = () => useQuery(chatroomsQuery());
 export const useCurhatUnread = () => useQuery(curhatUnreadQuery());
