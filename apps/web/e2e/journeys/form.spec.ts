@@ -602,6 +602,44 @@ test.describe('send failures keep everything', () => {
     });
   }
 
+  test('Coba lagi sends the answers as they are now, not as they were when the send failed', async ({
+    page,
+    api,
+  }) => {
+    await page.goto('/layanan/form/pixel');
+    await fillPixelUpTo(page, 5);
+    api.on('POST /api/form/:formId/response', reply.status(503));
+    await page.getByRole('button', { name: 'Kirim jawaban' }).click();
+    await confirmSheet(page)
+      .getByRole('button', { name: 'Kirim', exact: true })
+      .click();
+    const toast = page
+      .locator('.g-toasts [aria-live="assertive"]')
+      .filter({ hasText: 'Jawabanmu belum terkirim.' });
+    await expect(toast).toBeVisible();
+    // The member changes the rating, back on the check page, before pressing Coba lagi.
+    await page
+      .getByRole('button', {
+        name: 'Ubah jawaban bagian Feedback Welcoming Party 2025',
+      })
+      .click();
+    await page.getByRole('radio', { name: '2', exact: true }).check();
+    await page.getByRole('button', { name: 'Kembali ke ringkasan' }).click();
+    await expect(main(page).getByText('2 dari 5')).toBeVisible();
+    await expect(toast).toBeVisible();
+    api.on('POST /api/form/:formId/response', writes.submitForm);
+    await toast.getByRole('button', { name: 'Coba lagi' }).click();
+    await expect(plaque(page)).toBeVisible();
+    const posts = api.calls('POST /api/form/pixel/response');
+    expect(posts).toHaveLength(2);
+    const last = Object.fromEntries(
+      (
+        posts[1].body as { answers: { questionId: string; answer: unknown }[] }
+      ).answers.map((a) => [a.questionId, a.answer]),
+    );
+    expect(last.q29).toBe('2');
+  });
+
   test('409: sent before, so the thank-you', async ({ page, api, db }) => {
     api.on(
       'POST /api/form/:formId/response',

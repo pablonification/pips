@@ -310,7 +310,19 @@ function Filler({
   const titleRef = useRef<HTMLHeadingElement>(null);
   const sender = useSendForm(form.id);
   const failedToast = useRef<number | null>(null);
+  // The answers as they are now, and whether a send is under way: a failed send's toast stays, and its Coba lagi
+  // must send what is on screen when it is pressed, not what was there when the send failed.
+  const latest = useRef(answers);
+  const sending = useRef(false);
   const review = sec >= n;
+
+  // A failed send's toast doesn't outlive the screen it would send from.
+  useEffect(
+    () => () => {
+      if (failedToast.current !== null) toast.dismiss(failedToast.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!focus) return;
@@ -327,7 +339,8 @@ function Filler({
   }, [focus]);
 
   const change = (id: string, value: AnswerValue) => {
-    const next = { ...answers, [id]: value };
+    const next = { ...latest.current, [id]: value };
+    latest.current = next;
     setAnswers(next);
     setErrs((e) => (e.includes(id) ? e.filter((x) => x !== id) : e));
     draft.save(next);
@@ -355,10 +368,13 @@ function Filler({
   };
 
   const submit = async () => {
-    if (sender.pending) return;
+    if (sending.current) return;
+    sending.current = true;
     if (failedToast.current !== null) toast.dismiss(failedToast.current);
     failedToast.current = null;
+    const answers = latest.current;
     const outcome = await sender.send(answersToSend(sections, answers));
+    sending.current = false;
     setConfirming(false);
     if (outcome === 'sent') {
       await draft.clear();

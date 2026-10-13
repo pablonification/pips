@@ -365,6 +365,8 @@ function Steps({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saving = useRef<Promise<unknown>>(Promise.resolve());
   const sentToast = useRef<number | null>(null);
+  // Whether a send is under way: the failed send's toast stays, so its Coba lagi can't lean on a render's state.
+  const sending = useRef(false);
 
   // Saves run one after another, always with the latest answers.
   const saveNow = useCallback(() => {
@@ -398,6 +400,8 @@ function Steps({
 
   useEffect(
     () => () => {
+      // A failed send's toast doesn't outlive the screen it would send from.
+      if (sentToast.current !== null) toast.dismiss(sentToast.current);
       if (timer.current) {
         clearTimeout(timer.current);
         void writes.saveDraft(toRequest(latest.current, divisions));
@@ -443,13 +447,17 @@ function Steps({
     go(fromReview ? N : step + 1);
   };
 
+  // Sends the choices as they are now (`latest`), also from the failed send's toast after the member changed them.
   const submit = async () => {
-    if (writes.sending) return;
+    if (sending.current) return;
+    sending.current = true;
     if (sentToast.current !== null) toast.dismiss(sentToast.current);
     sentToast.current = null;
     if (timer.current) clearTimeout(timer.current);
     await saving.current;
+    const draft = latest.current;
     const outcome = await writes.submit(toRequest(draft, divisions));
+    sending.current = false;
     setConfirming(false);
     if (outcome === 'ok') toast.success(copy.kirim.berhasil);
     else if (outcome === 'closed') onClosed(draft);

@@ -101,6 +101,39 @@ function openSeason(db: Db, { keepDraft = false } = {}) {
   ];
 }
 
+/** From the start to Pertanyaan divisi: Info umum filled, the four divisions in their listed order. */
+async function toQuestions(page: Page) {
+  await page.getByRole('button', { name: /^(Mulai|Lanjutkan)$/ }).click();
+  await page.getByLabel('Kelas').fill('K-02');
+  await page.getByLabel('ID LINE').fill('nadia.putri');
+  await lanjut(page).click();
+  await lanjut(page).click();
+  for (const name of [
+    'Media dan Komunikasi',
+    'Akademik',
+    'Welfare',
+    'Competition and Community',
+  ])
+    await page.getByRole('checkbox', { name }).check();
+  await lanjut(page).click();
+  await expect(heading(page, 'Pertanyaan divisi')).toBeFocused();
+}
+
+/** Pertanyaan divisi answered, then on to the check page. */
+async function toReview(page: Page) {
+  await toQuestions(page);
+  await page.getByRole('checkbox', { name: 'Figma' }).check();
+  await page
+    .getByLabel('Ceritakan pengalamanmu mendengarkan teman.')
+    .fill('Teman sekamar');
+  await page
+    .getByLabel('Kenapa kamu tertarik di Akademik?')
+    .fill('Suka mengajar');
+  await page.getByLabel('Lomba apa yang pernah kamu ikuti?').fill('Gemastik');
+  await lanjut(page).click();
+  await expect(heading(page, 'Periksa pilihanmu')).toBeFocused();
+}
+
 test('closed: the closing time, Nadia’s draft read-only, nothing to send', async ({
   page,
   api,
@@ -489,4 +522,42 @@ test('each open step at 320 px: nothing overflows, the step line fits @phone-onl
   await gates(page, testInfo, 'sparta-step-3-320');
   await lanjut(page).click();
   await gates(page, testInfo, 'sparta-step-4-320');
+});
+
+test('Coba lagi on a failed send sends the choices as they are now', async ({
+  page,
+  api,
+  db,
+}) => {
+  openSeason(db);
+  api.on('PUT /api/internship/submission', writes.saveSpartaDraft);
+  api.on('POST /api/internship/submission/submit', reply.status(503));
+  await page.goto('/layanan/sparta');
+  await toReview(page);
+  await page.getByRole('button', { name: 'Kirim pilihan' }).click();
+  await page
+    .getByRole('alertdialog', { name: 'Kirim pilihan divisi?' })
+    .getByRole('button', { name: 'Kirim', exact: true })
+    .click();
+  const toast = page
+    .locator('.g-toasts [aria-live="assertive"]')
+    .filter({ hasText: 'Pilihanmu belum terkirim.' });
+  await expect(toast).toBeVisible();
+  // Kelas changes before Coba lagi.
+  await page
+    .getByRole('button', { name: 'Ubah jawaban bagian Info umum' })
+    .click();
+  await page.getByLabel('Kelas').fill('K-09');
+  await page.getByRole('button', { name: 'Kembali ke ringkasan' }).click();
+  await expect(main(page).getByText('K-09')).toBeVisible();
+  await expect(toast).toBeVisible();
+  api.on('POST /api/internship/submission/submit', writes.submitSparta);
+  await toast.getByRole('button', { name: 'Coba lagi' }).click();
+  await expect(main(page).getByText('Sudah dikirim')).toBeVisible();
+  const sends = api.calls('POST /api/internship/submission/submit');
+  expect(sends).toHaveLength(2);
+  expect((sends[1].body as { kelas: string }).kelas).toBe('K-09');
+  expect(
+    db.internshipSubmissions.find((s) => s.userId === db.me!.id)?.kelas,
+  ).toBe('K-09');
 });
