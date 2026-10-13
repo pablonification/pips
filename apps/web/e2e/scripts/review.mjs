@@ -520,6 +520,7 @@ function reportItems() {
 
 function fidelity() {
   needTools();
+  const d = dump();
   diskGuard('fidelity');
   const r = spawnSync('node', ['e2e/scripts/fidelity.mjs'], {
     cwd: appDir,
@@ -559,13 +560,17 @@ function fidelity() {
         ? Math.round((sbs.width * (protoH / 2 + 32)) / (drawn + 32))
         : undefined;
     webp(path.join(dir, s.sideBySide), path.join(PKG, out), width);
+    // A hand-checked note (review/fidelity-notes.ts) wins over the text search in the owner's Deviations.
+    const note = d.fidelityNotes.find((n) => n.screens.includes(s.name));
     const deviation =
-      s.status === 'different'
-        ? deviationFor(
-            s.name,
-            items.filter((i) => i.source.file.includes(owner.split(' ')[0])),
-          )
-        : null;
+      s.status !== 'different'
+        ? null
+        : note
+          ? `${note.reason} (${note.source})`
+          : deviationFor(
+              s.name,
+              items.filter((i) => i.source.file.includes(owner.split(' ')[0])),
+            );
     screens.push({
       ...row,
       sideBySide: out,

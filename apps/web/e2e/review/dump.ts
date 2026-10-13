@@ -1,9 +1,10 @@
 /**
  * Prints the review's TypeScript data as one JSON object, for scripts/review.mjs (plain Node, which can't import
  * TypeScript): the catalogue, the story coverage, the findings, the checks' names, the stills' sources and states,
- * the app's icons and the swept routes. Run with tsx: `tsx e2e/review/dump.ts`.
+ * the app's icons, the swept routes and the hand-checked fidelity notes. Run with tsx: `tsx e2e/review/dump.ts`.
  */
 import { CHECKS, COVERAGE } from './coverage';
+import { FIDELITY_NOTES } from './fidelity-notes';
 import { FINDINGS } from './findings';
 import { AREAS, FLOWS, variantLayouts } from './flows';
 import { FORWARDING, ROUTES } from './routes';
@@ -18,6 +19,7 @@ const out = {
   coverage: COVERAGE,
   checks: CHECKS,
   findings: FINDINGS,
+  fidelityNotes: FIDELITY_NOTES,
   stillSources: STILL_SOURCES.map((s) => ({ ...s, parse: undefined })),
   stillStates: STILL_STATES.map(({ id, title, owner, source }) => ({
     id,
