@@ -80,6 +80,7 @@
   .g-bubble .tm .g-ic {
     display: inline-block;
     vertical-align: -3px;
+    margin-block: -2px;
     margin-right: 3px;
   }
   .g-bubble .quote {

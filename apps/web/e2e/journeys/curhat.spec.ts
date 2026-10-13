@@ -337,6 +337,11 @@ test.describe('a room', () => {
     await expect(log(page).getByRole('button', { name: 'Balas' })).toHaveCount(
       5,
     );
+    // Regression: the delivered message grows (Terkirim, then Balas) and the room stays at its end.
+    await expect(
+      log(page).getByRole('button', { name: 'Balas' }).last(),
+    ).toBeInViewport({ ratio: 1 });
+    await expect(composer(page)).toBeInViewport({ ratio: 1 });
   });
 
   test('Batal membalas clears the reply and returns focus to the composer', async ({

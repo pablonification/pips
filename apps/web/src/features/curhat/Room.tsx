@@ -202,11 +202,11 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
-  const count = items.length;
+  // On every change of the thread, not just its length: a delivered message grows (Terkirim, then Balas).
   useLayoutEffect(() => {
     if (stick.current || nearEnd.current) scrollToEnd();
     stick.current = false;
-  }, [count]);
+  }, [items]);
 
   // A failure is said once, politely (status is also icon, word and colour on the bubble).
   const failed = mine.filter((e) => e.status === 'failed').length;
