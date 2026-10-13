@@ -91,11 +91,16 @@ jobs:
           docker logs api 2>&1 | tail -n 80 || true
 
   e2e:
-    name: e2e (web journeys)
-    # The browser journeys run on pull requests to main and redesign.
+    name: e2e shard ${{ matrix.shard }}/4
+    # The browser journeys run on pull requests to main and redesign, split in four so each part finishes in time
+    # (the whole suite passed 30 minutes on one runner by 2026-10-13).
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
       # pnpm's version comes from packageManager in package.json.
@@ -108,15 +113,25 @@ jobs:
       - name: Install Chromium for Playwright
         run: pnpm --filter web exec playwright install --with-deps chromium
       - name: Journeys (builds the app for production and serves it with vite preview)
-        run: pnpm --filter web e2e
+        run: pnpm --filter web run e2e --shard=${{ matrix.shard }}/4
         env:
           E2E_WORKERS: 2
       - name: Keep the report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-report
+          name: e2e-report-${{ matrix.shard }}
           path: |
             apps/web/e2e/.report
             apps/web/e2e/.results
           retention-days: 14
+
+  e2e-result:
+    name: e2e (web journeys)
+    # One result for the four shards, under the check name the merge protocol reads.
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every shard passed
+        run: test "${{ needs.e2e.result }}" = "success"
