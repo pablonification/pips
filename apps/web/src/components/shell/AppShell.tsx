@@ -340,7 +340,11 @@ function Frame({
       </div>
       {desk || route.meta.focused ? null : (
         <TabBar
-          active={route.path ? activeItem(route.path, 'touch', lastRoot) : null}
+          active={
+            route.path
+              ? activeItem(route.path, 'touch', lastRoot, route.params)
+              : null
+          }
           badges={badges}
         />
       )}
@@ -514,7 +518,9 @@ function Sidebar({
 }) {
   const me = useMe();
   const user = useSession();
-  const active = route.path ? activeItem(route.path, 'desk', lastRoot) : null;
+  const active = route.path
+    ? activeItem(route.path, 'desk', lastRoot, route.params)
+    : null;
   const kelola = servicesByGroup(user).some((g) => g.group === 'Kelola');
   const mod = modKeyLabel(navigator.platform);
 

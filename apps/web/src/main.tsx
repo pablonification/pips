@@ -7,6 +7,8 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { registerSW } from 'virtual:pwa-register';
 import { RootErrorFallback } from './components/error-fallback';
 import './index.css';
+// Features that title their pages from the URL register those rules with the shell (src/lib/shell/routes.ts).
+import './features/testi/shell';
 
 // Import the generated route tree
 import { router } from './router';
