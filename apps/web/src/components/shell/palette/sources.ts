@@ -4,7 +4,8 @@
  * them (src/lib/shell/palette.ts). Sources, in order:
  * - Tindakan: Buat pengumuman and Tambah mata kuliah to start; Nyalakan notifikasi while it's off on this device, and
  *   the switch to the other theme, only when the query finds them (P1-A);
- * - Layanan: the service registry, the pinned ones as "Pintasan" to start (P0-C);
+ * - Layanan: the service registry, the pinned ones as "Pintasan" to start (P0-C), without a member row a Kelola row
+ *   replaces (`searchableServices`: Welfare finds Curhat Yuk! once, as the inbox; P3-C);
  * - Pengumuman: `GET /info?search=` from 3 characters (P1-A);
  * - Kalender: your events in the next 21 days (P1-A);
  * - Mata kuliah: this semester's courses, opening their Ding Dong folder (P1-A);
@@ -36,7 +37,11 @@ import useSession from '~/hooks/auth/useSession';
 import { rel } from '~/lib/dates';
 import { dayKeyOf, daysFrom, monthsOf } from '~/lib/days';
 import type { PaletteItem } from '~/lib/shell/palette';
-import { PINNED_SERVICES, visibleServices, type Service } from '~/lib/services';
+import {
+  PINNED_SERVICES,
+  searchableServices,
+  type Service,
+} from '~/lib/services';
 import { useTheme } from '~/lib/theme/useTheme';
 
 /** Opens a service: its page, or an external site in a new tab (PIPS! stays open). */
@@ -54,7 +59,7 @@ function useServiceItems(): PaletteItem[] {
   const navigate = useNavigate();
   return useMemo(
     () =>
-      visibleServices(user).map((s) => ({
+      searchableServices(user).map((s) => ({
         id: `layanan:${s.id}`,
         group: common.palette.layanan,
         label: s.label,

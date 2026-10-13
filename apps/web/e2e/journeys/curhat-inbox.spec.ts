@@ -189,6 +189,31 @@ test.describe('ways in', () => {
     await expect(page).toHaveURL(/\/kelola\/curhat$/);
   });
 
+  // Review, deviation 5 (Dev 1's decision): Welfare saw "Curhat Yuk!" twice, both leading to the inbox.
+  test('global search lists Curhat Yuk! once for Welfare: the inbox row', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: /^Halo/ })).toBeVisible();
+    await page.keyboard.press('ControlOrMeta+k');
+    const palette = page.getByRole('dialog', { name: 'Pencarian global' });
+    await palette
+      .getByRole('combobox', { name: 'Cari di PIPS!' })
+      .fill('curhat');
+    const options = palette
+      .getByRole('option')
+      .filter({ hasText: 'Curhat Yuk!' });
+    await expect(options).toHaveCount(1);
+    await expect(options).toContainText('Balas ruang curhat anggota');
+    await expect(
+      palette.getByRole('option').filter({
+        hasText: 'Ngobrol anonim dengan tim Welfare HMIF',
+      }),
+    ).toHaveCount(0);
+    await options.click();
+    await expect(page).toHaveURL(/\/kelola\/curhat$/);
+  });
+
   test.describe('a Welfare member with no other tool', () => {
     test.use({ roles: { only: ['curhatadmin'] } });
 
@@ -241,6 +266,25 @@ test.describe('who gets in', () => {
       expect(noInboxSocket(api)).toEqual([]);
       expect(api.calls('GET /api/curhat/chatrooms')).toEqual([]);
       expect(api.writes).toEqual([]);
+    });
+
+    test('global search still lists the member Curhat Yuk!', async ({
+      page,
+    }) => {
+      await page.goto('/');
+      await expect(page.getByRole('heading', { name: /^Halo/ })).toBeVisible();
+      await page.keyboard.press('ControlOrMeta+k');
+      const palette = page.getByRole('dialog', { name: 'Pencarian global' });
+      await palette
+        .getByRole('combobox', { name: 'Cari di PIPS!' })
+        .fill('curhat');
+      const options = palette
+        .getByRole('option')
+        .filter({ hasText: 'Curhat Yuk!' });
+      await expect(options).toHaveCount(1);
+      await expect(options).toContainText(
+        'Ngobrol anonim dengan tim Welfare HMIF',
+      );
     });
   });
 

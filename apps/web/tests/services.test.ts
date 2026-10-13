@@ -7,6 +7,7 @@ import {
   SERVICE_GROUPS,
   SERVICES,
   isServiceActive,
+  searchableServices,
   searchServices,
   servicesByGroup,
   type Service,
@@ -209,4 +210,25 @@ test("SPARTA's registry deadline is the server's closing time", () => {
   const closesAt = /closesAt: new Date\('([^']+)'\)/.exec(server)?.[1];
   assert.ok(closesAt, 'SPARTA_WINDOW.closesAt in sparta-window.ts');
   assert.equal(Date.parse(sparta.validUntil!), Date.parse(closesAt));
+});
+
+// P3-C review, deviation 5: Welfare saw "Curhat Yuk!" twice in global search, both leading to the inbox.
+test('Welfare finds Curhat Yuk! once in global search, as the inbox; Layanan and members keep the member row', () => {
+  const welfare = { roles: ['curhatadmin'] };
+  assert.deepEqual(
+    searchServices('curhat', welfare, NOW).map((s) => s.id),
+    ['curhat-inbox'],
+  );
+  assert.ok(!searchableServices(welfare, NOW).some((s) => s.id === 'curhat'));
+  // Layanan still lists the member row for Welfare.
+  assert.ok(visibleServices(welfare, NOW).some((s) => s.id === 'curhat'));
+  for (const user of [nadia, raka])
+    assert.deepEqual(
+      searchServices('curhat', user, NOW).map((s) => s.id),
+      ['curhat'],
+    );
+  assert.deepEqual(
+    searchableServices(raka, NOW).map((s) => s.id),
+    visibleServices(raka, NOW).map((s) => s.id),
+  );
 });
