@@ -34,6 +34,11 @@ export function AddEventButton() {
   const himpunan = can(user, 'createHimpunanEvent');
   if (!akademik && !himpunan) return null;
 
+  const choose = (c: CalendarCategory) => {
+    // Today's desktop dialog keeps itself inside the page area (its drag constraint), found as it opens.
+    constraint.current = document.getElementById('isi');
+    setCategory(c);
+  };
   const trigger = (
     <Button
       variant="gold"
@@ -41,7 +46,7 @@ export function AddEventButton() {
       onClick={
         akademik && himpunan
           ? undefined
-          : () => setCategory(akademik ? 'akademik' : 'himpunan')
+          : () => choose(akademik ? 'akademik' : 'himpunan')
       }
     >
       <IconTambah size={16} />
@@ -51,17 +56,14 @@ export function AddEventButton() {
   const open = (o: boolean) => {
     if (!o) setCategory(null);
   };
-  // Today's desktop dialog keeps itself inside the page area (its drag constraint).
-  constraint.current = document.getElementById('isi');
-
   return (
     <>
       {akademik && himpunan ? (
         <Menu trigger={trigger}>
-          <MenuItem onSelect={() => setCategory('himpunan')}>
+          <MenuItem onSelect={() => choose('himpunan')}>
             {t.legenda.himpunan}
           </MenuItem>
-          <MenuItem onSelect={() => setCategory('akademik')}>
+          <MenuItem onSelect={() => choose('akademik')}>
             {t.legenda.akademik}
           </MenuItem>
         </Menu>

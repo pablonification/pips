@@ -158,6 +158,15 @@ export default defineConfig([
     },
   },
   {
+    // P1-A: no reading or writing refs during render (React's rule; review m9 found one in Tambah acara).
+    files: [
+      'src/features/beranda/**/*.{ts,tsx}',
+      'src/features/kalender/**/*.{ts,tsx}',
+      'src/features/cari/**/*.{ts,tsx}',
+    ],
+    rules: { 'react-hooks/refs': 'error' },
+  },
+  {
     // Playwright's fixtures call \`use()\`, which react-hooks 7 takes for React 19's \`use\`. The e2e code isn't React.
     files: ['e2e/**/*.ts'],
     rules: { 'react-hooks/rules-of-hooks': 'off' },
