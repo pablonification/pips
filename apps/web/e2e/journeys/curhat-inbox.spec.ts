@@ -566,6 +566,9 @@ test.describe('pins', () => {
     await expect(main(page).getByRole('heading', { level: 2 })).toHaveCount(0);
 
     api.on('PUT /api/curhat/chatroom/:chatroomId/pin', reply.status(500));
+    // The closed menu hands focus back to its button first (Radix does it in a timer, which the fake clock can hold
+    // back under load); opening the next menu before that, the late hand-back closed it (full run, round 2).
+    await expect(options(page, 'Amber Heron')).toBeFocused();
     await options(page, 'Teal Koala').click();
     await page.getByRole('menuitem', { name: 'Sematkan ruang' }).click();
     await expect(
@@ -586,6 +589,8 @@ test.describe('pins', () => {
     expect(
       api.calls('PUT /api/curhat/chatroom/:chatroomId/pin').map((c) => c.path),
     ).toEqual(['/api/curhat/chatroom/r1/pin']);
+    // The closed menu has handed focus back to its button before it opens again.
+    await expect(roomOptions(page, testInfo)).toBeFocused();
     await roomOptions(page, testInfo).click();
     await expect(
       page.getByRole('menuitem', { name: 'Lepas sematan' }),
