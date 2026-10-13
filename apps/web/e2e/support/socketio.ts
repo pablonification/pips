@@ -8,7 +8,8 @@
  * - push an event to the app: `api.socket.emit('reply', payload, (s) => s.auth.chatroomId === 'r1')`;
  * - drop every connection: `api.socket.drop()`, after which new connections fail until `api.socket.restore()`;
  * - change how an acknowledgement is answered: `api.socket.answer('message', () => ({ ok: false, error: 'server' }))`,
- *   or never answered (`() => undefined`), for the delivery states.
+ *   or never answered (`() => undefined`), for the delivery states;
+ * - answer one held-back acknowledgement later: `api.socket.ack(api.socket.emitted('message')[0], payload)` (P2-C).
  *
  * Acknowledgements default to what the API answers (`apps/api/src/websocket/curhat.ts`), on the test's data:
  * `message` is refused without a session (`unauthorized`), outside your rooms (`forbidden`), with empty text or a
@@ -43,6 +44,8 @@ export interface Emitted {
   auth: Record<string, unknown>;
   /** Set when the app asked for an acknowledgement. */
   ackId?: number;
+  /** The connection that sent it (P2-C: `ack()` answers it there). */
+  sid?: string;
 }
 /** Answers an acknowledgement; `undefined` means never answer. */
 export type AckAnswer = (data: unknown, socket: FakeSocket) => unknown;
@@ -64,6 +67,22 @@ export class FakeSocketServer {
   /** Answer `event`'s acknowledgements with `fn` from now on (return `undefined` to never answer). */
   answer(event: string, fn: AckAnswer): void {
     this.answers.set(event, fn);
+  }
+
+  /**
+   * Answer one acknowledgement by hand (P2-C): `entry` is what `emitted()` recorded, `payload` the answer, sent as
+   * `43<id>[payload]` to the connection that asked. Use it after `answer(event, () => undefined)` held the answer
+   * back, for a late or lost acknowledgement. Returns whether that connection was still there to receive it.
+   */
+  ack(entry: Emitted, payload: unknown): boolean {
+    if (entry.ackId === undefined)
+      throw new Error(
+        `socket.ack: "${entry.event}" asked for no acknowledgement`,
+      );
+    const s = entry.sid ? this.sessions.get(entry.sid) : undefined;
+    if (!s?.connected) return false;
+    this.push(s, `43${entry.ackId}${JSON.stringify([payload])}`);
+    return true;
   }
 
   /** Events the app emitted, optionally only one name. */
@@ -188,7 +207,13 @@ export class FakeSocketServer {
       const ackId = start > 0 ? Number(rest.slice(0, start)) : undefined;
       const [event, data] = JSON.parse(rest.slice(start)) as [string, unknown];
       if (this.closed) return;
-      this.received.push({ event, data, auth: session.auth, ackId });
+      this.received.push({
+        event,
+        data,
+        auth: session.auth,
+        ackId,
+        sid: session.sid,
+      });
       const answer = this.answers.get(event)?.(data, session);
       if (ackId !== undefined && answer !== undefined)
         this.push(session, `43${ackId}${JSON.stringify([answer])}`);
