@@ -159,8 +159,7 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
         .getByRole('dialog', { name: 'Pencarian global' })
         .filter({ has: p.getByRole('option', { name: /^Bayar Kas!/ }) }),
   },
-  // P1-C: "IF2211" typed and K2 picked. i-push-dialog waits for P1-A's Beranda (the prompt over it); until then the
-  // ov-push captures compare the prompt over Notifikasi.
+  // P1-C: "IF2211" typed and K2 picked.
   'i-matkul-add': {
     path: '/profil/matkul/tambah',
     act: async (p) => {
@@ -182,6 +181,20 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
       p
         .getByRole('button', { name: /^Tambahkan \(1\)/ })
         .locator('visible=true'),
+  },
+  // P1-C's prompt over P1-A's Beranda: Nyalakan on "Notifikasi belum menyala", as garis-check.mjs section 4c presses
+  // it (Playwright scrolls the row into view, as the prototype's click does). Mapped by F1 (brief, step 5).
+  'i-push-dialog': {
+    path: '/',
+    act: async (p) => {
+      await p
+        .getByRole('main')
+        .locator('.g-att')
+        .filter({ hasText: 'Notifikasi belum menyala' })
+        .getByRole('button', { name: 'Nyalakan' })
+        .click();
+    },
+    ready: (p) => p.getByRole('dialog', { name: 'Nyalakan notifikasi?' }),
   },
   // P0-A: the design-system gallery, against the prototype's design-system page.
   'system-cards': {
