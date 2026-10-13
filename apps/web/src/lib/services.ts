@@ -244,6 +244,19 @@ export const SERVICES = [
     synonyms: ['acara', 'kalender', 'tambah'],
     icon: 'kalender',
   },
+  // P3-C: Welfare's inbox (a proposal, OPEN-QUESTIONS D9); the description is new copy.
+  {
+    id: 'curhat-inbox',
+    label: 'Curhat Yuk!',
+    description: 'Balas ruang curhat anggota',
+    group: 'Kelola',
+    kind: 'internal',
+    destination: '/kelola/curhat',
+    owner: 'welfare',
+    capability: 'respondCurhat',
+    synonyms: ['curhat', 'welfare', 'balas'],
+    icon: 'curhat',
+  },
 ] as const satisfies readonly Service[];
 
 export type ServiceId = (typeof SERVICES)[number]['id'];
