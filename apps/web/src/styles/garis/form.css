@@ -193,13 +193,13 @@
     box-shadow: inset 0 0 0 1.5px var(--text);
     font-size: 15px;
   }
-  .g-prio > li > .n {
+  .g-prio-n {
     flex: none;
     width: 20px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
-  .g-prio > li > .name {
+  .g-prio-name {
     flex: 1;
     min-width: 0;
   }
@@ -207,6 +207,17 @@
     display: flex;
     flex: none;
     gap: 4px;
+  }
+  /* Penjelasan divisi: each division's name, then its description. */
+  .g-div-list dt {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .g-div-list dd {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-2);
   }
   .g-kesibukan {
     display: grid;

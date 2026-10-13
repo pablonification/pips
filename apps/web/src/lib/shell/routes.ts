@@ -102,7 +102,7 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   '/layanan/sparta': {
     title: svc('sparta'),
     parent: '/layanan',
-    legacy: true,
+    focused: true,
   },
   '/layanan/testi': { title: svc('testi'), parent: '/layanan', legacy: true },
   '/layanan/testi/$type': {
