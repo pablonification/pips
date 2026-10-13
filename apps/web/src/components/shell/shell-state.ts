@@ -46,17 +46,27 @@ const listeners = new Set<() => void>();
 const get = () => (state ??= load());
 
 let writeTimer: ReturnType<typeof setTimeout> | null = null;
+function write() {
+  writeTimer = null;
+  try {
+    sessionStorage.setItem(KEY, JSON.stringify(get()));
+  } catch {
+    /* storage blocked: remembered for this page only */
+  }
+}
 function save() {
   if (writeTimer) return;
-  writeTimer = setTimeout(() => {
-    writeTimer = null;
-    try {
-      sessionStorage.setItem(KEY, JSON.stringify(get()));
-    } catch {
-      /* storage blocked: remembered for this page only */
-    }
-  }, 200);
+  writeTimer = setTimeout(write, 200);
 }
+// A reload or another page within the 200 ms would lose the waiting write (the last tab, back's entries): write it
+// as the page goes (P1-A round 2; seen once pages loaded fast enough).
+if (typeof window !== 'undefined')
+  window.addEventListener('pagehide', () => {
+    if (writeTimer) {
+      clearTimeout(writeTimer);
+      write();
+    }
+  });
 
 /** Forgets every title, the history entries and the last tab, in memory and in the tab's storage. */
 export function forgetShell() {

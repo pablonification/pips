@@ -17,6 +17,16 @@ Object.defineProperty(globalThis, 'sessionStorage', {
   },
 });
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+// The page going away (P1-A round 2): the shell writes what is waiting then.
+const pagehide: (() => void)[] = [];
+Object.defineProperty(globalThis, 'window', {
+  configurable: true,
+  value: {
+    addEventListener: (type: string, listener: () => void) => {
+      if (type === 'pagehide') pagehide.push(listener);
+    },
+  },
+});
 
 const shell = await import('../src/components/shell/shell-state');
 
@@ -54,4 +64,13 @@ test('components subscribed to titles see them cleared', () => {
   shell.forgetShell();
   assert.notEqual(shell.titlesSnapshot(), before);
   assert.deepEqual(shell.titlesSnapshot(), {});
+});
+
+test('a write still waiting when the page goes is written then, not lost (a reload right after a tab change)', () => {
+  shell.forgetShell();
+  shell.setLastRoot('kalender');
+  // Within the 200 ms the write waits.
+  assert.equal(map.has('pips:shell'), false);
+  pagehide.forEach((l) => l());
+  assert.equal(JSON.parse(map.get('pips:shell')!).lastRoot, 'kalender');
 });
