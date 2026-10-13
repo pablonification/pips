@@ -82,6 +82,16 @@ for (const state of VISUAL_STATES) {
       await page.goto(state.path);
       await state.act?.(page, { api, context });
       await expect(state.ready(page)).toBeVisible();
+      // The same picture on every run and machine (CI records the Linux references): the web fonts and every image
+      // on the page are in before the screenshot, not a fallback face or an empty logo.
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        await Promise.all(
+          [...document.images].map((img) =>
+            img.complete ? null : img.decode().catch(() => null),
+          ),
+        );
+      });
       await expect(page).toHaveScreenshot(`${state.id}.png`, {
         animations: 'disabled',
         caret: 'hide',
