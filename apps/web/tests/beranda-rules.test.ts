@@ -13,6 +13,7 @@ import {
   attentionItems,
   kelolaForm,
   postTitle,
+  sourceState,
   unreadTop,
   welfareRooms,
 } from '../src/features/beranda/rules';
@@ -257,4 +258,25 @@ test('unread list: the three newest unread, a post without a title by its text',
   );
   assert.deepEqual(unreadTop(undefined), []);
   assert.equal(postTitle(info('p6', '2026-10-01T00:00', false, '')), 'Isi p6');
+});
+
+test('a source without data is offline when the browser is or its query is paused, never loading forever', () => {
+  const q = (
+    data: unknown,
+    isError: boolean,
+    fetchStatus: 'fetching' | 'paused' | 'idle',
+  ) => ({ data, isError, fetchStatus });
+  // Data, even kept on the device or stale behind a failed refresh, is shown.
+  assert.equal(sourceState(q([], false, 'idle'), true), 'ready');
+  assert.equal(sourceState(q([], true, 'idle'), false), 'ready');
+  assert.equal(sourceState(q([], false, 'paused'), false), 'ready');
+  // Loading, then failed once the retries are spent (a retry from Coba lagi is loading again).
+  assert.equal(sourceState(q(undefined, false, 'fetching'), true), 'waiting');
+  assert.equal(sourceState(q(undefined, true, 'idle'), true), 'failed');
+  assert.equal(sourceState(q(undefined, true, 'fetching'), true), 'waiting');
+  // Offline: paused queries wait for the network forever; a cold start offline fails its fetches instead.
+  assert.equal(sourceState(q(undefined, false, 'paused'), true), 'offline');
+  assert.equal(sourceState(q(undefined, false, 'paused'), false), 'offline');
+  assert.equal(sourceState(q(undefined, false, 'fetching'), false), 'offline');
+  assert.equal(sourceState(q(undefined, true, 'idle'), false), 'offline');
 });

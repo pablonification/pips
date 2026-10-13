@@ -92,6 +92,7 @@ import {
   attentionItems,
   kelolaForm,
   postTitle,
+  sourceState,
   unreadTop,
   welfareRooms,
   type AttentionItem,
@@ -128,6 +129,7 @@ export function BerandaScreen({ hari, acara }: BerandaSearch) {
   const courses = useCourses();
   const push = usePushState();
   const online = useOnline();
+  const unread = useUnreadInfos();
 
   // An event link on desktop opens Kalender's side column (the prototype's `openEvent`).
   useEffect(() => {
@@ -148,9 +150,14 @@ export function BerandaScreen({ hari, acara }: BerandaSearch) {
       now={now}
     />
   );
+  // Offline with something kept on screen: when the oldest of it was last updated.
+  const kept = [
+    agenda.ready ? agenda.updatedAt : null,
+    unread.data !== undefined ? unread.dataUpdatedAt : null,
+  ].filter((t): t is number => t !== null);
   const offline =
-    !online && agenda.ready ? (
-      <OfflineBanner updatedAt={hm(agenda.updatedAt)} />
+    !online && kept.length ? (
+      <OfflineBanner updatedAt={hm(Math.min(...kept))} />
     ) : null;
   const sheet = (
     <EventSheet
@@ -411,11 +418,13 @@ function Attention({
   const unread = useCurhatUnread();
   const forms = useForms();
   const push = usePushState();
+  const online = useOnline();
   const sources = [rooms, unread, forms, courses];
-  const failed = sources.filter((q) => q.isError && q.data === undefined);
-  const waiting =
-    sources.some((q) => q.data === undefined && !q.isError) || push.loading;
-  const late = useDelayed(waiting && failed.length === 0);
+  const states = sources.map((q) => sourceState(q, online));
+  const failed = sources.filter((_, i) => states[i] === 'failed');
+  const offline = sources.filter((_, i) => states[i] === 'offline');
+  const waiting = states.includes('waiting') || push.loading;
+  const late = useDelayed(waiting);
 
   const items = attentionItems({
     now,
@@ -429,16 +438,26 @@ function Attention({
       push.status !== 'tidak-didukung',
   });
 
+  // The rows whose signals are known (rule 6), then one line for the sources that failed or aren't kept offline.
+  const gap = failed.length ? (
+    <ErrorState
+      className="g-sec-error"
+      title={items.length ? t.perlu.sebagianGagal : undefined}
+      text={k.periksaKoneksi}
+      onRetry={() => failed.forEach((q) => void q.refetch())}
+    />
+  ) : offline.length ? (
+    <ErrorState
+      className="g-sec-error"
+      title={
+        items.length ? t.perlu.sebagianBelumTersimpan : t.perlu.belumTersimpan
+      }
+      text={k.sambungkan}
+      onRetry={() => offline.forEach((q) => void q.refetch())}
+    />
+  ) : null;
   let body: ReactNode;
-  if (failed.length)
-    body = (
-      <ErrorState
-        className="g-sec-error"
-        text={k.periksaKoneksi}
-        onRetry={() => failed.forEach((q) => void q.refetch())}
-      />
-    );
-  else if (waiting)
+  if (waiting)
     body = late ? (
       <Skeleton label={t.perlu.memuat}>
         <SkeletonRow />
@@ -447,23 +466,27 @@ function Attention({
     ) : null;
   else if (items.length)
     body = (
-      <RuledList>
-        {items.map((it) => (
-          <AttentionRow
-            key={
-              it.kind === 'deadline'
-                ? it.event.id
-                : it.kind === 'form'
-                  ? it.form.id
-                  : it.kind
-            }
-            item={it}
-            courses={courses.byId}
-            now={now}
-          />
-        ))}
-      </RuledList>
+      <>
+        <RuledList>
+          {items.map((it) => (
+            <AttentionRow
+              key={
+                it.kind === 'deadline'
+                  ? it.event.id
+                  : it.kind === 'form'
+                    ? it.form.id
+                    : it.kind
+              }
+              item={it}
+              courses={courses.byId}
+              now={now}
+            />
+          ))}
+        </RuledList>
+        {gap}
+      </>
     );
+  else if (gap) body = gap;
   else body = <p className="g-empty-line t-sm text-fg-2">{t.perlu.kosong}</p>;
 
   return (
@@ -619,10 +642,20 @@ function DeadlineTitle({ event, code }: { event: CalEvent; code?: string }) {
 
 function Unread({ desk = false }: { desk?: boolean }) {
   const q = useUnreadInfos();
-  const late = useDelayed(q.data === undefined && !q.isError);
+  const state = sourceState(q, useOnline());
+  const late = useDelayed(state === 'waiting');
   const list = unreadTop(q.data);
   let body: ReactNode;
-  if (q.data === undefined && q.isError)
+  if (state === 'offline')
+    body = (
+      <ErrorState
+        className="g-sec-error"
+        title={t.belumDibaca.belumTersimpan}
+        text={k.sambungkan}
+        onRetry={() => void q.refetch()}
+      />
+    );
+  else if (state === 'failed')
     body = (
       <ErrorState
         className="g-sec-error"
@@ -631,7 +664,7 @@ function Unread({ desk = false }: { desk?: boolean }) {
         onRetry={() => void q.refetch()}
       />
     );
-  else if (q.data === undefined)
+  else if (state === 'waiting')
     body = late ? (
       <Skeleton label={t.belumDibaca.memuat}>
         <SkeletonRow tile={false} lines={['88%', '60%']} />

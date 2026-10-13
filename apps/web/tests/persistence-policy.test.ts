@@ -191,3 +191,14 @@ test('stored as plain data, without the last refresh’s error or fetch state', 
 test('kept at most 7 days', () => {
   assert.equal(PERSIST_MAX_AGE, 7 * 24 * 60 * 60 * 1000);
 });
+
+// P1-A round 2: Beranda's unread list is the feed's first page, unread only; kept so Beranda opens offline with it.
+test('Beranda’s unread list is kept like the feed’s first page; search results are not', () => {
+  assert.equal(shouldPersistKey(['infos', 'beranda-unread'], NOW), true);
+  for (const key of [
+    ['infos', 'search', 'gemastik'],
+    ['infos', 'beranda-unread', 'extra'],
+    ['infos', 'other'],
+  ])
+    assert.equal(shouldPersistKey(key, NOW), false, JSON.stringify(key));
+});

@@ -24,6 +24,10 @@ export const beranda = {
     // The deadline's and the Welfare reply's line: "Besok, 23.59".
     waktu: '{hari}, {jam}',
     memuat: 'Memuat yang perlu ditindaklanjuti…',
+    // P1-A round 2: the rows that are known stay; one line for the sources that failed or aren't kept offline.
+    sebagianGagal: 'Sebagian gagal dimuat.',
+    belumTersimpan: 'Bagian ini belum tersimpan di perangkat ini.',
+    sebagianBelumTersimpan: 'Sebagian belum tersimpan di perangkat ini.',
   },
   belumDibaca: {
     judul: 'Pengumuman belum dibaca',
@@ -32,6 +36,7 @@ export const beranda = {
     tandaBelum: '(belum dibaca)',
     memuat: 'Memuat pengumuman…',
     gagal: 'Pengumuman gagal dimuat.',
+    belumTersimpan: 'Pengumuman belum tersimpan di perangkat ini.',
   },
   kelola: {
     judul: 'Kelola',

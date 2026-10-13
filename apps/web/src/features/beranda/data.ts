@@ -10,6 +10,7 @@ import {
   CHATROOMS_QUERY_KEY,
   FORM_QUERY_KEY,
   INFO_LIST_QUERY_KEY,
+  UNREAD_INFOS_KEY_PART,
 } from '~/api/constants';
 import { chatroomsQuery, formListQuery } from '~/api/queries';
 
@@ -20,10 +21,13 @@ export const curhatUnreadQuery = () =>
     queryFn: () => api.curhat.unreadCountChatroomMessages(),
   });
 
-/** The newest unread posts (the feed's first page, unread only). Under the feed's key, so read marks refresh it. */
+/**
+ * The newest unread posts (the feed's first page, unread only). Under the feed's key, so read marks refresh it, and
+ * kept on the device like that page (persistence-policy.ts), so Beranda opens offline with it.
+ */
 export const unreadInfosQuery = () =>
   queryOptions({
-    queryKey: [INFO_LIST_QUERY_KEY, 'beranda-unread'],
+    queryKey: [INFO_LIST_QUERY_KEY, UNREAD_INFOS_KEY_PART],
     queryFn: () =>
       api.info
         .getListInfo({ unread: 'true', sort: 'newest' })

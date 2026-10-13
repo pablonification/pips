@@ -115,3 +115,25 @@ export function unreadTop(infos: readonly Info[] | undefined): Info[] {
 
 /** A post's line on Beranda: its title, or its text when it has none. */
 export const postTitle = (i: Info) => i.title || i.content;
+
+/** What a section shows for one of its sources: its data, a skeleton, the error, or the offline state. */
+export type SourceState = 'ready' | 'waiting' | 'failed' | 'offline';
+
+/**
+ * One source's state (P1-A round 2). Without data: offline when the browser is offline or the query is paused (it
+ * would wait for the network forever), failed once its retries are spent, otherwise still loading. Data, even stale
+ * or kept on the device, is always shown.
+ */
+export function sourceState(
+  q: {
+    data: unknown;
+    isError: boolean;
+    fetchStatus: 'fetching' | 'paused' | 'idle';
+  },
+  online: boolean,
+): SourceState {
+  if (q.data !== undefined) return 'ready';
+  if (!online || q.fetchStatus === 'paused') return 'offline';
+  if (q.isError && q.fetchStatus !== 'fetching') return 'failed';
+  return 'waiting';
+}

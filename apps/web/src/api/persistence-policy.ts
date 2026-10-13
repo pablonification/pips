@@ -4,12 +4,14 @@ import {
   CURRENT_COURSES_QUERY_KEY,
   INFO_LIST_QUERY_KEY,
   ME_QUERY_KEY,
+  UNREAD_INFOS_KEY_PART,
   USER_ACADEMIC_QUERY_KEY,
 } from './constants';
 
 /*
  * What the query cache keeps on the device between visits (SPEC "Performance architecture and budgets"):
- * exactly the profile, calendar events for today ±7 days, the first page of announcements and the courses,
+ * exactly the profile, calendar events for today ±7 days, the first page of announcements (and Beranda's unread
+ * list, the same page unread only) and the courses,
  * kept at most 7 days. The service registry is code (src/lib/services.ts), so it is always there.
  * Pure, so tests/persistence-policy.test.ts can check it.
  */
@@ -55,8 +57,11 @@ export function shouldPersistKey(key: Key, now: Date = new Date()): boolean {
       );
     }
     case INFO_LIST_QUERY_KEY:
-      // The feed as it opens: no search, filter or sort.
-      return key.slice(1).every(isEmpty);
+      // The feed as it opens: no search, filter or sort. Beranda's unread list is that first page, unread only.
+      return (
+        key.slice(1).every(isEmpty) ||
+        (key.length === 2 && key[1] === UNREAD_INFOS_KEY_PART)
+      );
     default:
       return false;
   }

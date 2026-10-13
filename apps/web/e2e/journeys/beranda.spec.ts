@@ -39,6 +39,43 @@ const section = (page: Page, name: string) =>
   main(page).getByRole('heading', { name, exact: true }).locator('xpath=../..');
 const unreadSection = (page: Page) => section(page, 'Pengumuman belum dibaca');
 
+/** Every API request Beranda makes for Nadia. */
+const BERANDA_API = [
+  'GET /api/me',
+  'GET /api/calendar/me',
+  'GET /api/course/take/current',
+  'GET /api/curhat/chatrooms',
+  'GET /api/curhat/chatrooms/unread',
+  'GET /api/form',
+  'GET /api/info',
+];
+
+/** The query keys of the cache kept on the device (P0-B's persister), or none yet. */
+const storedKeys = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<unknown[][]>((resolve) => {
+        const open = indexedDB.open('pips-query-cache');
+        // Read only: never create the database before the app does.
+        open.onupgradeneeded = () => open.transaction?.abort();
+        open.onerror = () => resolve([]);
+        open.onsuccess = () => {
+          const db = open.result;
+          if (!db.objectStoreNames.contains('cache')) return resolve([]);
+          const get = db
+            .transaction('cache')
+            .objectStore('cache')
+            .get('client');
+          get.onsuccess = () => {
+            const queries: { queryKey: unknown[] }[] =
+              get.result?.clientState?.queries ?? [];
+            resolve(queries.map((q) => q.queryKey));
+            db.close();
+          };
+        };
+      }),
+  );
+
 /** An extra event in WIB wall time. */
 const event = (
   id: string,
@@ -590,6 +627,117 @@ test.describe('states', () => {
     });
     await failed.getByRole('button', { name: 'Coba lagi' }).click();
     await expect(agendaRows(page).first()).toHaveText('Kuis 2');
+  });
+
+  test('one failing source leaves the other follow-ups, and only it says so', async ({
+    page,
+    api,
+  }) => {
+    api.on('GET /api/form', reply.status(503));
+    await page.goto('/');
+    await expect
+      .poll(() => attentionTitles(page))
+      .toEqual([
+        'Deadline Tugas Besar 1 · IF2110',
+        'Balasan baru dari Welfare',
+        'Notifikasi belum menyala',
+      ]);
+    const gap = section(page, 'Perlu ditindaklanjuti').getByRole('alert');
+    // The client retries a 5xx three times (1, 2 and 4 s) before it says so.
+    await expect(gap).toContainText('Sebagian gagal dimuat.', {
+      timeout: 15_000,
+    });
+    api.on('GET /api/form', ({ db }) => ({ forms: db.forms }));
+    await gap.getByRole('button', { name: 'Coba lagi' }).click();
+    await expect
+      .poll(() => attentionTitles(page))
+      .toContain('Form Analisis Kondisi PIXEL');
+    await expect(gap).toHaveCount(0);
+  });
+
+  test('opened with no signal: what the device kept shows at once, the rest says it isn’t kept', async ({
+    page,
+    api,
+  }, testInfo) => {
+    await page.goto('/');
+    await expect(agendaRows(page).first()).toHaveText('Kuis 2');
+    await expect(
+      unreadSection(page).getByRole('link', { name: /\(belum dibaca\)$/ }),
+    ).toHaveCount(3);
+    // The cache is written to the device at most once a second.
+    await expect
+      .poll(() => storedKeys(page))
+      .toContainEqual(['infos', 'beranda-unread']);
+    // The installed app opened offline: the service worker serves its code (blocked in the harness, so the page
+    // still loads), the browser says it is offline, and every API request fails.
+    await page.addInitScript(() =>
+      Object.defineProperty(Navigator.prototype, 'onLine', {
+        configurable: true,
+        get: () => false,
+      }),
+    );
+    for (const spec of BERANDA_API)
+      api.on(spec, reply.abort('internetdisconnected'));
+    await page.reload();
+    await expect(agendaRows(page).first()).toHaveText('Kuis 2');
+    // Not after the client's retries (7 s): straight away.
+    const soon = { timeout: 3_000 };
+    await expect(
+      main(page)
+        .getByRole('status')
+        .filter({ hasText: /^Offline · diperbarui 13\.35$/ }),
+    ).toBeVisible(soon);
+    await expect(
+      unreadSection(page).getByRole('link', { name: /\(belum dibaca\)$/ }),
+    ).toHaveCount(3, soon);
+    await expect
+      .poll(() => attentionTitles(page), soon)
+      .toEqual(['Deadline Tugas Besar 1 · IF2110', 'Notifikasi belum menyala']);
+    await expect(
+      section(page, 'Perlu ditindaklanjuti').getByRole('alert'),
+    ).toContainText('Sebagian belum tersimpan di perangkat ini.', soon);
+    await expect(page.getByRole('status', { name: /^Memuat/ })).toHaveCount(0);
+    await strictGates(page, testInfo, 'beranda-offline-start');
+  });
+
+  test('gone offline before the follow-ups arrived: the offline line, never a skeleton forever', async ({
+    page,
+    api,
+  }) => {
+    await page.addInitScript(() =>
+      Object.defineProperty(Navigator.prototype, 'onLine', {
+        configurable: true,
+        get: () => !(window as { pipsOffline?: boolean }).pipsOffline,
+      }),
+    );
+    await page.goto('/kalender');
+    await expect(main(page).getByText('Kuis 2').first()).toBeVisible();
+    // The browser reports the lost signal: the client pauses what it hasn't fetched yet, until it is back.
+    await page.evaluate(() => {
+      (window as { pipsOffline?: boolean }).pipsOffline = true;
+      window.dispatchEvent(new Event('offline'));
+    });
+    await navLink(page, 'Beranda').click();
+    await expect(agendaRows(page).first()).toHaveText('Kuis 2');
+    await expect(
+      section(page, 'Perlu ditindaklanjuti').getByRole('alert'),
+    ).toContainText('Sebagian belum tersimpan di perangkat ini.');
+    await expect(unreadSection(page).getByRole('alert')).toContainText(
+      'Pengumuman belum tersimpan di perangkat ini.',
+    );
+    await expect(page.getByRole('status', { name: /^Memuat/ })).toHaveCount(0);
+    // Back online: everything arrives.
+    await page.evaluate(() => {
+      (window as { pipsOffline?: boolean }).pipsOffline = false;
+      window.dispatchEvent(new Event('online'));
+    });
+    await expect
+      .poll(() => attentionTitles(page))
+      .toContain('Form Analisis Kondisi PIXEL');
+    await expect(
+      unreadSection(page).getByRole('link', { name: /\(belum dibaca\)$/ }),
+    ).toHaveCount(3);
+    expect(api.calls('GET /api/curhat/chatrooms').length).toBe(1);
   });
 
   test('offline: what was kept stays, under the offline line', async ({
