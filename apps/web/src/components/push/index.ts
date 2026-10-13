@@ -7,7 +7,7 @@
  * - `openPushPrompt()`: opens "Nyalakan notifikasi?" and resolves with how it ended (`'aktif'`, `'nanti'`,
  *   `'diblokir'`, `'gagal'`, `'tutup'`). Call it only from a tap: the prompt's Nyalakan is the one place that asks
  *   the browser for permission.
- * - `<PushPrompt />`: mounted once at the root (routes/__root.tsx).
+ * - `<PushPrompt />`: mounted at the root by `RootOverlays` (routes/__root.tsx) on its first opening.
  * - `pushStatusWords`: the Profil row's words and tone for a status.
  *
  * In journeys, the harness's `push` option sets the device (`'off'`, `'on'`, `'blocked'`; e2e/support/push.ts).

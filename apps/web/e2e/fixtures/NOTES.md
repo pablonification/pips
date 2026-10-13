@@ -47,7 +47,7 @@ fixtures follow the API, as listed here.
 - **Reactions** become `ReactionAggregate` (`reactionsCount` in the prototype's reaction order).
 - **Comment ids** are `<post>-c<n>`.
 - **Authors** (since P0-D round 2, as the API): a post's or comment's `creator` is `authorOf(user)`, only `id`,
-  `fullName`, `picture` and `email`, never the whole user record.
+  `fullName` and `picture` (P1-B dropped `email`, OPEN-QUESTIONS C10), never the whole user record.
 
 ## Calendar
 

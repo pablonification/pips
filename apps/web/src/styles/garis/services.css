@@ -1,0 +1,90 @@
+/*
+  Ding Dong, Testi Matkul, NIM Finder and Info Lomba (P2-B), ported from the locked prototype's garis/garis.css
+  (".svc-row", ".lomba" and its parts, ".testi-card", ".byline", ".pager") with the `g-` prefix. Colours come only
+  from tokens.css.
+*/
+@layer components {
+  /* A service, course or member row: tile, text, then what ends the row (the same as P1-C's `.g-svc-row`). */
+  .g-svc-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  /* An Info Lomba card: name, organiser, categories, the deadline and fee, then Daftar and Sumber. */
+  .g-lomba {
+    display: grid;
+    gap: 2px;
+    padding: 14px 0;
+  }
+  .g-lomba-cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .g-lomba-cats .g-tag {
+    white-space: normal;
+    height: auto;
+    min-height: 24px;
+    padding: 4px 8px;
+    line-height: 1.3;
+  }
+  .g-lomba-facts {
+    display: grid;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .g-lomba-fact {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  /* Three days or fewer left: the date and time stay the information, the colour adds emphasis. */
+  .g-lomba-fact.urgent {
+    color: var(--text-danger);
+  }
+  .g-lomba-acts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  /* A testimonial: the byline, then its sections. */
+  .g-testi-card {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+  }
+  .g-byline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .g-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  /* Kept text in a testimonial: its own line breaks. */
+  .g-pre-line {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+  /* On the narrowest phones the pager keeps its arrows and drops the words (the prototype's `.lbl`). */
+  @media (max-width: 340px) {
+    .g-pager .lbl {
+      display: none;
+    }
+    .g-pager .g-btn:has(.lbl) {
+      padding: 0 10px;
+    }
+  }
+}

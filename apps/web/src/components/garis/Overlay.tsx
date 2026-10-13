@@ -24,6 +24,11 @@ export interface OverlayProps {
   role?: 'dialog' | 'alertdialog';
   /** Where focus goes when it opens (default: the first focusable element). */
   onOpenAutoFocus?: (e: Event) => void;
+  /**
+   * When it closes. By default focus goes back to the control that opened it; `e.preventDefault()` leaves focus where
+   * the screen put it (a composer that closes onto what it just made).
+   */
+  onCloseAutoFocus?: (e: Event) => void;
   className?: string;
   closeLabel?: string;
 }
@@ -54,6 +59,7 @@ function Shell({
   small,
   role = 'dialog',
   onOpenAutoFocus,
+  onCloseAutoFocus,
   className,
   closeLabel = common.actions.tutup,
 }: OverlayProps & { kind: 'sheet' | 'dialog' }) {
@@ -87,6 +93,8 @@ function Shell({
           onCloseAutoFocus={(e) => {
             const el = returnTo.current;
             returnTo.current = null;
+            onCloseAutoFocus?.(e);
+            if (e.defaultPrevented) return;
             if (el && el.isConnected) {
               e.preventDefault();
               el.focus();

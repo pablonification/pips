@@ -17,9 +17,11 @@ const rakaRow = {
   lastLoginAt: new Date('2026-10-08T01:00:00Z'),
 };
 
-const AUTHOR_KEYS = ['email', 'fullName', 'id', 'picture'];
+const AUTHOR_KEYS = ['fullName', 'id', 'picture'];
 /** Fields of a member that no post, comment or reaction may carry, at any depth. */
 const PRIVATE_KEYS = [
+  // OPEN-QUESTIONS C10: bylines show no email (the locked prototype's byline is avatar, name and time).
+  'email',
   'nim',
   'gender',
   'region',
@@ -36,12 +38,11 @@ function assertOnlyAuthor(body: unknown, creators: unknown[]) {
   }
 }
 
-test('an author is an allow-list: id, name, photo and email, nothing else', () => {
+test('an author is an allow-list: id, name and photo, nothing else', () => {
   assert.deepEqual(toAuthor(rakaRow), {
     id: raka.id,
     fullName: raka.fullName,
     picture: null,
-    email: raka.email,
   });
   assert.deepEqual(Object.keys(AUTHOR_COLUMNS).sort(), AUTHOR_KEYS);
 });
@@ -65,14 +66,14 @@ test('the feed and a post read only the author columns from users', async () => 
     .toSQL();
   const creator = /"infos_creator"\."data" as "creator"/.test(sql);
   assert.ok(creator, 'the creator is selected');
-  // The creator's sub-select names exactly its four columns.
+  // The creator's sub-select names exactly its three columns.
   const sub = sql.match(
     /select json_build_array\(([^)]*)\) as "data" from \(select \* from "users" "infos_creator"/,
   );
   assert.ok(sub, sql);
   assert.deepEqual(
     [...sub[1].matchAll(/"infos_creator"\."(\w+)"/g)].map((m) => m[1]),
-    ['id', 'full_name', 'picture', 'email'],
+    ['id', 'full_name', 'picture'],
   );
 });
 
@@ -83,7 +84,7 @@ test('the comment list reads only the author columns from users', async () => {
   const selected = sql.slice(0, sql.indexOf(' from '));
   assert.deepEqual(
     [...selected.matchAll(/"users"\."(\w+)"/g)].map((m) => m[1]),
-    ['id', 'full_name', 'picture', 'email'],
+    ['id', 'full_name', 'picture'],
   );
 });
 

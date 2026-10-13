@@ -222,8 +222,13 @@ test.describe('Nadia', () => {
       .getByRole('link', { name: 'NIM Finder' })
       .click();
     await expect(page).toHaveURL(/\/layanan\/nim$/);
+    // The page's h1 (P2-B's NIM Finder has no heading inside the page: the top bar is the h1 on phones and
+    // tablets), and the page's body, not only the top bar (carried over from home.spec.ts).
     await expect(
-      main(page).getByRole('heading', { name: 'NIM Finder' }),
+      page.getByRole('heading', { level: 1, name: 'NIM Finder' }),
+    ).toBeVisible();
+    await expect(
+      main(page).getByRole('searchbox', { name: 'Cari nama atau NIM' }),
     ).toBeVisible();
   });
 

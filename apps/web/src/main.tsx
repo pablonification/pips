@@ -9,6 +9,11 @@ import { queryClient } from './api/client';
 import { RootErrorFallback } from './components/error-fallback';
 import { runWhenSettled } from './lib/sw-register';
 import './index.css';
+// Features register with the shell at start, so it imports no feature code: Testi Matkul titles its pages from
+// the URL (src/lib/shell/routes.ts), and Pengumuman counts its unread posts for the navigation badge
+// (src/components/shell/nav-badges.ts).
+import './features/testi/shell';
+import './features/pengumuman/shell';
 
 // Import the generated route tree
 import { router } from './router';

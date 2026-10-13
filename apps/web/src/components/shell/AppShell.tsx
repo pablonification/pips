@@ -65,7 +65,7 @@ import {
 import { currentTheme, subscribe as onThemeChange } from '~/lib/theme/theme';
 import { THEME_COLORS } from '~/lib/theme/theme-core.mjs';
 import { cn } from '~/lib/utils';
-import { useNavBadges, type NavBadges } from './nav-badges';
+import { badgeText, useNavBadges, type NavBadges } from './nav-badges';
 import { focusAfterNavigation } from './focus';
 import { LegacyScreen, OwnTitle, TopBarSlot } from './page';
 import { openPalette, usePaletteOpen } from './palette/palette-store';
@@ -169,7 +169,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     () =>
       router.subscribe('onRendered', (e) => {
         if (!e.fromLocation || !e.pathChanged) return;
-        focusAfterNavigation();
+        focusAfterNavigation(e.toLocation.pathname);
       }),
     [router],
   );
@@ -340,7 +340,11 @@ function Frame({
       </div>
       {desk || route.meta.focused ? null : (
         <TabBar
-          active={route.path ? activeItem(route.path, 'touch', lastRoot) : null}
+          active={
+            route.path
+              ? activeItem(route.path, 'touch', lastRoot, route.params)
+              : null
+          }
           badges={badges}
         />
       )}
@@ -359,7 +363,7 @@ function TopBar({
   onSlot,
 }: {
   route: ShellRoute;
-  lastRoot: Destination;
+  lastRoot: Destination | null;
   me: { name: string; initials: string };
   /** The screen shows its own title (`PageTitle`): this one is plain text, hidden from screen readers. */
   ownTitle: boolean;
@@ -415,11 +419,13 @@ function BackButton({
   lastRoot,
 }: {
   route: ShellRoute;
-  lastRoot: Destination;
+  lastRoot: Destination | null;
 }) {
   const router = useRouter();
   const prev = route.index > 0 ? entryAt(route.index - 1) : undefined;
-  const parent = route.path ? parentOf(route.path, lastRoot) : '/';
+  const parent = route.path
+    ? parentOf(route.path, lastRoot, route.params)
+    : '/';
   const parentHref = (parent && fillPath(parent, route.params)) ?? '/';
   const parentTitle =
     route.titles[parentHref] ??
@@ -472,6 +478,13 @@ function TabBar({
             to={to}
             className="g-tab"
             aria-current={on ? 'page' : undefined}
+            // The name in one piece ("Pengumuman, 4 belum dibaca"): a hidden span inside would add a space before
+            // the comma in the computed name.
+            aria-label={
+              n > 0
+                ? `${common.nav[d]}, ${fill(common.shell.belumDibaca, { jumlah: badgeText(n) })}`
+                : undefined
+            }
             activeOptions={{ exact: true }}
             onClick={onClick}
           >
@@ -480,17 +493,10 @@ function TabBar({
             </span>
             {n > 0 ? (
               <span className="g-badge-n" aria-hidden="true">
-                {n}
+                {badgeText(n)}
               </span>
             ) : null}
-            <span>
-              {common.nav[d]}
-              {n > 0 ? (
-                <span className="sr-only">
-                  {`, ${fill(common.shell.belumDibaca, { jumlah: n })}`}
-                </span>
-              ) : null}
-            </span>
+            <span>{common.nav[d]}</span>
           </Link>
         );
       })}
@@ -507,12 +513,14 @@ function Sidebar({
   badges,
 }: {
   route: ShellRoute;
-  lastRoot: Destination;
+  lastRoot: Destination | null;
   badges: NavBadges;
 }) {
   const me = useMe();
   const user = useSession();
-  const active = route.path ? activeItem(route.path, 'desk', lastRoot) : null;
+  const active = route.path
+    ? activeItem(route.path, 'desk', lastRoot, route.params)
+    : null;
   const kelola = servicesByGroup(user).some((g) => g.group === 'Kelola');
   const mod = modKeyLabel(navigator.platform);
 
@@ -546,9 +554,9 @@ function Sidebar({
               <span>{common.nav[d]}</span>
               {n > 0 ? (
                 <span className="n">
-                  <span aria-hidden="true">{n}</span>
+                  <span aria-hidden="true">{badgeText(n)}</span>
                   <span className="sr-only">
-                    {fill(common.shell.belumDibaca, { jumlah: n })}
+                    {fill(common.shell.belumDibaca, { jumlah: badgeText(n) })}
                   </span>
                 </span>
               ) : null}

@@ -5,7 +5,7 @@
  * "@phone-only" journeys run on phones and tablets (the touch layouts), "@desktop-only" ones on desktop.
  */
 import AxeBuilder from '@axe-core/playwright';
-import type { Page, TestInfo } from '@playwright/test';
+import type { Locator, Page, TestInfo } from '@playwright/test';
 import { greeting, layoutOf } from '../support/app';
 import { AXE_TAGS } from '../support/audit';
 import { expect, test } from '../support/test';
@@ -74,6 +74,37 @@ async function expectFits(page: Page, where: string) {
   expect(m, where).toEqual({ doc: 0, scroller: 0, small: [] });
 }
 
+/**
+ * The navigation's destinations in order: each one's visible label, and its name. Pengumuman adds its unread count
+ * (P1-B): a visible badge, and in the name ", 4 belum dibaca" on the tab bar and rail, " 4 belum dibaca" in the
+ * sidebar (its words are a hidden span after the label).
+ */
+async function expectDestinations(
+  nav: Locator,
+  names: string[],
+  layout: ReturnType<typeof layoutOf>,
+  unread: number,
+) {
+  const links = nav.getByRole('link');
+  await expect(links).toHaveCount(names.length);
+  for (const [i, name] of names.entries()) {
+    const link = links.nth(i);
+    await expect(link.getByText(name, { exact: true })).toBeVisible();
+    const counted = name === 'Pengumuman' && unread > 0;
+    await expect(link).toHaveAccessibleName(
+      !counted
+        ? name
+        : layout === 'desktop'
+          ? `${name} ${unread} belum dibaca`
+          : `${name}, ${unread} belum dibaca`,
+    );
+    if (counted)
+      await expect(link.locator('[aria-hidden="true"]').last()).toHaveText(
+        String(unread),
+      );
+  }
+}
+
 test.describe('navigation', () => {
   test('the four destinations, the one you are on lit, in the layout’s own navigation', async ({
     page,
@@ -83,12 +114,13 @@ test.describe('navigation', () => {
     const layout = layoutOf(testInfo);
     const nav = mainNav(page);
     await expect(nav).toHaveCount(1);
-    await expect(nav.getByRole('link')).toHaveText([
-      'Beranda',
-      'Pengumuman',
-      'Kalender',
-      'Layanan',
-    ]);
+    // Since P1-B, Pengumuman carries Nadia's unread count.
+    await expectDestinations(
+      nav,
+      ['Beranda', 'Pengumuman', 'Kalender', 'Layanan'],
+      layout,
+      4,
+    );
     const box = (await nav.boundingBox())!;
     const vp = page.viewportSize()!;
     if (layout === 'phone') {
@@ -282,10 +314,10 @@ test.describe('today’s screens inside the shell', () => {
   test('a screen that fills the window fits between the bars, its own scrolling intact', async ({
     page,
   }) => {
-    // Info Lomba is still today's screen (h-screen); Form was until P2-A replaced it.
-    await page.goto('/layanan/lomba');
+    // Curhat is still today's screen (h-screen) until P2-C; Form was until P2-A replaced it, Info Lomba until P2-B.
+    await page.goto('/layanan/curhat');
     await expect(
-      page.getByRole('main').getByText('Find IT! 2026').first(),
+      page.getByRole('main').getByRole('heading', { name: 'Amber Heron' }),
     ).toBeVisible();
     const overflow = await page
       .locator('[data-scroll-restoration-id="isi"]')
@@ -430,9 +462,12 @@ test.describe('global search', () => {
     await expect(palette(page)).toHaveCount(0);
     await expect(page).toHaveURL(/\/layanan\/nim$/);
     await expect(page).toHaveTitle('NIM Finder · PIPS!');
-    // Focus moves to the new page's title (phones and tablets) or its main landmark (desktop, today's screen).
+    // Focus moves to the new page's title: the top bar's on phones and tablets, the page head on desktop (P2-B's
+    // NIM Finder has one; today's screen didn't, so focus went to the main landmark).
     if (layoutOf(testInfo) === 'desktop')
-      await expect(page.locator('#isi')).toBeFocused();
+      await expect(
+        page.getByRole('heading', { level: 1, name: 'NIM Finder' }),
+      ).toBeFocused();
     else await expect(topTitle(page)).toBeFocused();
   });
 
@@ -505,8 +540,13 @@ test.describe('global search', () => {
       ['https://s.hmif.dev/BayarKasHMIF', '_blank', 'noopener,noreferrer'],
     ]);
     await expect(page).toHaveURL(/\/layanan$/);
-    // Review m1: focus was left on nothing. Opened from the keyboard, it goes to the page.
-    await expect(page.locator('#isi')).toBeFocused();
+    // Review m1: focus was left on nothing. Opened from the keyboard, it goes to the page's title (Layanan has its
+    // own since P1-C; before, the page had none and focus went to main#isi).
+    await expect(
+      page
+        .getByRole('heading', { level: 1, name: 'Layanan' })
+        .locator('visible=true'),
+    ).toBeFocused();
   });
 
   test('opening something that leaves you on this page gives focus back to what opened search', async ({
@@ -571,13 +611,13 @@ test.describe('Kelola', () => {
   }) => {
     await page.goto('/');
     await expect(greeting(page, 'Raka')).toBeVisible();
-    await expect(mainNav(page).getByRole('link')).toHaveText([
-      'Beranda',
-      'Pengumuman',
-      'Kalender',
-      'Layanan',
-      'Kelola',
-    ]);
+    // Raka has 1 unread post.
+    await expectDestinations(
+      mainNav(page),
+      ['Beranda', 'Pengumuman', 'Kalender', 'Layanan', 'Kelola'],
+      'desktop',
+      1,
+    );
     await navItem(page, 'Kelola').click();
     await expect(page).toHaveURL(/\/kelola$/);
     await expectLit(page, 'Kelola');

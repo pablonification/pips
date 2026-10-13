@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppLeftNavbarRouteImport } from './routes/_app/_left-navbar'
 import { Route as AppKalenderRouteImport } from './routes/_app/kalender'
+import { Route as AppMulaiRouteImport } from './routes/_app/mulai'
 import { Route as DevGarisRouteImport } from './routes/dev/garis'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as AppLeftNavbarIndexRouteImport } from './routes/_app/_left-navbar/index'
+import { Route as AppLeftNavbarPengumumanRouteRouteImport } from './routes/_app/_left-navbar/pengumuman/route'
 import { Route as AppLeftNavbarProfilRouteImport } from './routes/_app/_left-navbar/profil'
 import { Route as AppDevShellRouteImport } from './routes/_app/dev/shell'
 import { Route as AppKalenderIndexRouteImport } from './routes/_app/kalender/index'
@@ -63,6 +65,11 @@ const AppKalenderRoute = AppKalenderRouteImport.update({
   path: '/kalender',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMulaiRoute = AppMulaiRouteImport.update({
+  id: '/mulai',
+  path: '/mulai',
+  getParentRoute: () => AppRoute,
+} as any)
 const DevGarisRoute = DevGarisRouteImport.update({
   id: '/dev/garis',
   path: '/dev/garis',
@@ -78,6 +85,12 @@ const AppLeftNavbarIndexRoute = AppLeftNavbarIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppLeftNavbarRoute,
 } as any)
+const AppLeftNavbarPengumumanRouteRoute =
+  AppLeftNavbarPengumumanRouteRouteImport.update({
+    id: '/pengumuman',
+    path: '/pengumuman',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
 const AppLeftNavbarProfilRoute = AppLeftNavbarProfilRouteImport.update({
   id: '/profil',
   path: '/profil',
@@ -131,9 +144,9 @@ const AppLeftNavbarLayananTestiRoute =
   } as any)
 const AppLeftNavbarPengumumanIndexRoute =
   AppLeftNavbarPengumumanIndexRouteImport.update({
-    id: '/pengumuman/',
-    path: '/pengumuman/',
-    getParentRoute: () => AppLeftNavbarRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppLeftNavbarPengumumanRouteRoute,
   } as any)
 const AppLeftNavbarProfilIndexRoute =
   AppLeftNavbarProfilIndexRouteImport.update({
@@ -220,15 +233,15 @@ const AppLeftNavbarLayananTestiIndexRoute =
   } as any)
 const AppLeftNavbarPengumumanIdIndexRoute =
   AppLeftNavbarPengumumanIdIndexRouteImport.update({
-    id: '/pengumuman/$id/',
-    path: '/pengumuman/$id/',
-    getParentRoute: () => AppLeftNavbarRoute,
+    id: '/$id/',
+    path: '/$id/',
+    getParentRoute: () => AppLeftNavbarPengumumanRouteRoute,
   } as any)
 const AppLeftNavbarPengumumanTulisIndexRoute =
   AppLeftNavbarPengumumanTulisIndexRouteImport.update({
-    id: '/pengumuman/tulis/',
-    path: '/pengumuman/tulis/',
-    getParentRoute: () => AppLeftNavbarRoute,
+    id: '/tulis/',
+    path: '/tulis/',
+    getParentRoute: () => AppLeftNavbarPengumumanRouteRoute,
   } as any)
 const AppLeftNavbarKelolaLiveFormIdIndexRoute =
   AppLeftNavbarKelolaLiveFormIdIndexRouteImport.update({
@@ -282,8 +295,10 @@ const AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppLeftNavbarIndexRoute
   '/kalender': typeof AppKalenderRouteWithChildren
+  '/mulai': typeof AppMulaiRoute
   '/dev/garis': typeof DevGarisRoute
   '/login/': typeof LoginIndexRoute
+  '/pengumuman': typeof AppLeftNavbarPengumumanRouteRouteWithChildren
   '/profil': typeof AppLeftNavbarProfilRouteWithChildren
   '/dev/shell': typeof AppDevShellRoute
   '/kalender/': typeof AppKalenderIndexRoute
@@ -320,6 +335,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppLeftNavbarIndexRoute
+  '/mulai': typeof AppMulaiRoute
   '/dev/garis': typeof DevGarisRoute
   '/login': typeof LoginIndexRoute
   '/dev/shell': typeof AppDevShellRoute
@@ -359,8 +375,10 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/_left-navbar': typeof AppLeftNavbarRouteWithChildren
   '/_app/kalender': typeof AppKalenderRouteWithChildren
+  '/_app/mulai': typeof AppMulaiRoute
   '/dev/garis': typeof DevGarisRoute
   '/login/': typeof LoginIndexRoute
+  '/_app/_left-navbar/pengumuman': typeof AppLeftNavbarPengumumanRouteRouteWithChildren
   '/_app/_left-navbar/profil': typeof AppLeftNavbarProfilRouteWithChildren
   '/_app/dev/shell': typeof AppDevShellRoute
   '/_app/_left-navbar/': typeof AppLeftNavbarIndexRoute
@@ -402,8 +420,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/kalender'
+    | '/mulai'
     | '/dev/garis'
     | '/login/'
+    | '/pengumuman'
     | '/profil'
     | '/dev/shell'
     | '/kalender/'
@@ -440,6 +460,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/mulai'
     | '/dev/garis'
     | '/login'
     | '/dev/shell'
@@ -478,8 +499,10 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_app/_left-navbar'
     | '/_app/kalender'
+    | '/_app/mulai'
     | '/dev/garis'
     | '/login/'
+    | '/_app/_left-navbar/pengumuman'
     | '/_app/_left-navbar/profil'
     | '/_app/dev/shell'
     | '/_app/_left-navbar/'
@@ -546,6 +569,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppKalenderRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/mulai': {
+      id: '/_app/mulai'
+      path: '/mulai'
+      fullPath: '/mulai'
+      preLoaderRoute: typeof AppMulaiRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/dev/garis': {
       id: '/dev/garis'
       path: '/dev/garis'
@@ -565,6 +595,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppLeftNavbarIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/pengumuman': {
+      id: '/_app/_left-navbar/pengumuman'
+      path: '/pengumuman'
+      fullPath: '/pengumuman'
+      preLoaderRoute: typeof AppLeftNavbarPengumumanRouteRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
     '/_app/_left-navbar/profil': {
@@ -632,10 +669,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/_left-navbar/pengumuman/': {
       id: '/_app/_left-navbar/pengumuman/'
-      path: '/pengumuman'
+      path: '/'
       fullPath: '/pengumuman/'
       preLoaderRoute: typeof AppLeftNavbarPengumumanIndexRouteImport
-      parentRoute: typeof AppLeftNavbarRoute
+      parentRoute: typeof AppLeftNavbarPengumumanRouteRoute
     }
     '/_app/_left-navbar/profil/': {
       id: '/_app/_left-navbar/profil/'
@@ -737,17 +774,17 @@ declare module '@tanstack/react-router' {
     }
     '/_app/_left-navbar/pengumuman/$id/': {
       id: '/_app/_left-navbar/pengumuman/$id/'
-      path: '/pengumuman/$id'
+      path: '/$id'
       fullPath: '/pengumuman/$id/'
       preLoaderRoute: typeof AppLeftNavbarPengumumanIdIndexRouteImport
-      parentRoute: typeof AppLeftNavbarRoute
+      parentRoute: typeof AppLeftNavbarPengumumanRouteRoute
     }
     '/_app/_left-navbar/pengumuman/tulis/': {
       id: '/_app/_left-navbar/pengumuman/tulis/'
-      path: '/pengumuman/tulis'
+      path: '/tulis'
       fullPath: '/pengumuman/tulis/'
       preLoaderRoute: typeof AppLeftNavbarPengumumanTulisIndexRouteImport
-      parentRoute: typeof AppLeftNavbarRoute
+      parentRoute: typeof AppLeftNavbarPengumumanRouteRoute
     }
     '/_app/_left-navbar/kelola/live/$formId/': {
       id: '/_app/_left-navbar/kelola/live/$formId/'
@@ -808,6 +845,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppLeftNavbarPengumumanRouteRouteChildren {
+  AppLeftNavbarPengumumanIndexRoute: typeof AppLeftNavbarPengumumanIndexRoute
+  AppLeftNavbarPengumumanIdIndexRoute: typeof AppLeftNavbarPengumumanIdIndexRoute
+  AppLeftNavbarPengumumanTulisIndexRoute: typeof AppLeftNavbarPengumumanTulisIndexRoute
+}
+
+const AppLeftNavbarPengumumanRouteRouteChildren: AppLeftNavbarPengumumanRouteRouteChildren =
+  {
+    AppLeftNavbarPengumumanIndexRoute: AppLeftNavbarPengumumanIndexRoute,
+    AppLeftNavbarPengumumanIdIndexRoute: AppLeftNavbarPengumumanIdIndexRoute,
+    AppLeftNavbarPengumumanTulisIndexRoute:
+      AppLeftNavbarPengumumanTulisIndexRoute,
+  }
+
+const AppLeftNavbarPengumumanRouteRouteWithChildren =
+  AppLeftNavbarPengumumanRouteRoute._addFileChildren(
+    AppLeftNavbarPengumumanRouteRouteChildren,
+  )
+
 interface AppLeftNavbarProfilSettingsItemRouteChildren {
   AppLeftNavbarProfilSettingsItemKreditIndexRoute: typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
   AppLeftNavbarProfilSettingsItemMatkulIndexRoute: typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
@@ -867,6 +923,7 @@ const AppLeftNavbarLayananTestiRouteWithChildren =
   )
 
 interface AppLeftNavbarRouteChildren {
+  AppLeftNavbarPengumumanRouteRoute: typeof AppLeftNavbarPengumumanRouteRouteWithChildren
   AppLeftNavbarProfilRoute: typeof AppLeftNavbarProfilRouteWithChildren
   AppLeftNavbarIndexRoute: typeof AppLeftNavbarIndexRoute
   AppLeftNavbarKelolaAcaraRoute: typeof AppLeftNavbarKelolaAcaraRoute
@@ -875,7 +932,6 @@ interface AppLeftNavbarRouteChildren {
   AppLeftNavbarLayananTestiRoute: typeof AppLeftNavbarLayananTestiRouteWithChildren
   AppLeftNavbarKelolaIndexRoute: typeof AppLeftNavbarKelolaIndexRoute
   AppLeftNavbarLayananIndexRoute: typeof AppLeftNavbarLayananIndexRoute
-  AppLeftNavbarPengumumanIndexRoute: typeof AppLeftNavbarPengumumanIndexRoute
   AppLeftNavbarKelolaSpartaSubmissionIdRoute: typeof AppLeftNavbarKelolaSpartaSubmissionIdRoute
   AppLeftNavbarLayananCurhatRoomIdRoute: typeof AppLeftNavbarLayananCurhatRoomIdRoute
   AppLeftNavbarLayananFormFormIdRoute: typeof AppLeftNavbarLayananFormFormIdRoute
@@ -887,13 +943,13 @@ interface AppLeftNavbarRouteChildren {
   AppLeftNavbarLayananLombaIndexRoute: typeof AppLeftNavbarLayananLombaIndexRoute
   AppLeftNavbarLayananNimIndexRoute: typeof AppLeftNavbarLayananNimIndexRoute
   AppLeftNavbarLayananSpartaIndexRoute: typeof AppLeftNavbarLayananSpartaIndexRoute
-  AppLeftNavbarPengumumanIdIndexRoute: typeof AppLeftNavbarPengumumanIdIndexRoute
-  AppLeftNavbarPengumumanTulisIndexRoute: typeof AppLeftNavbarPengumumanTulisIndexRoute
   AppLeftNavbarKelolaLiveFormIdIndexRoute: typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute: typeof AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute
 }
 
 const AppLeftNavbarRouteChildren: AppLeftNavbarRouteChildren = {
+  AppLeftNavbarPengumumanRouteRoute:
+    AppLeftNavbarPengumumanRouteRouteWithChildren,
   AppLeftNavbarProfilRoute: AppLeftNavbarProfilRouteWithChildren,
   AppLeftNavbarIndexRoute: AppLeftNavbarIndexRoute,
   AppLeftNavbarKelolaAcaraRoute: AppLeftNavbarKelolaAcaraRoute,
@@ -902,7 +958,6 @@ const AppLeftNavbarRouteChildren: AppLeftNavbarRouteChildren = {
   AppLeftNavbarLayananTestiRoute: AppLeftNavbarLayananTestiRouteWithChildren,
   AppLeftNavbarKelolaIndexRoute: AppLeftNavbarKelolaIndexRoute,
   AppLeftNavbarLayananIndexRoute: AppLeftNavbarLayananIndexRoute,
-  AppLeftNavbarPengumumanIndexRoute: AppLeftNavbarPengumumanIndexRoute,
   AppLeftNavbarKelolaSpartaSubmissionIdRoute:
     AppLeftNavbarKelolaSpartaSubmissionIdRoute,
   AppLeftNavbarLayananCurhatRoomIdRoute: AppLeftNavbarLayananCurhatRoomIdRoute,
@@ -916,9 +971,6 @@ const AppLeftNavbarRouteChildren: AppLeftNavbarRouteChildren = {
   AppLeftNavbarLayananLombaIndexRoute: AppLeftNavbarLayananLombaIndexRoute,
   AppLeftNavbarLayananNimIndexRoute: AppLeftNavbarLayananNimIndexRoute,
   AppLeftNavbarLayananSpartaIndexRoute: AppLeftNavbarLayananSpartaIndexRoute,
-  AppLeftNavbarPengumumanIdIndexRoute: AppLeftNavbarPengumumanIdIndexRoute,
-  AppLeftNavbarPengumumanTulisIndexRoute:
-    AppLeftNavbarPengumumanTulisIndexRoute,
   AppLeftNavbarKelolaLiveFormIdIndexRoute:
     AppLeftNavbarKelolaLiveFormIdIndexRoute,
   AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute:
@@ -944,12 +996,14 @@ const AppKalenderRouteWithChildren = AppKalenderRoute._addFileChildren(
 interface AppRouteChildren {
   AppLeftNavbarRoute: typeof AppLeftNavbarRouteWithChildren
   AppKalenderRoute: typeof AppKalenderRouteWithChildren
+  AppMulaiRoute: typeof AppMulaiRoute
   AppDevShellRoute: typeof AppDevShellRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppLeftNavbarRoute: AppLeftNavbarRouteWithChildren,
   AppKalenderRoute: AppKalenderRouteWithChildren,
+  AppMulaiRoute: AppMulaiRoute,
   AppDevShellRoute: AppDevShellRoute,
 }
 

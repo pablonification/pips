@@ -55,18 +55,19 @@ export async function createUserCourse(
   return userCourse;
 }
 
-export async function batchCreateOrUpdateUserCourse(
+/**
+ * The upsert behind `PUT /api/course/take/batch`, as a query: adds the courses to this semester, or updates them when
+ * the member already has them.
+ */
+export function batchUpsertUserCourseQuery(
   db: Database,
   data: z.infer<typeof BatchCreateOrUpdateUserCourseSchema>,
   userId: string,
 ) {
-  if (!data.length) {
-    return [];
-  }
   const { semesterCodeTaken, semesterYearTaken } =
     getCurrentSemesterCodeAndYear();
 
-  const newUserCourses = await db
+  return db
     .insert(userCourses)
     .values(
       data.map((d) => ({
@@ -78,12 +79,26 @@ export async function batchCreateOrUpdateUserCourse(
     )
     .onConflictDoUpdate({
       target: [userCourses.userId, userCourses.courseId],
+      // A course taken in an earlier semester and added again moves to this semester, so it shows in this
+      // semester's courses and leaves the catalogue (OPEN-QUESTIONS C2). The row is one per member and course.
       set: {
         class: sql`excluded.class`,
+        semesterCodeTaken: sql`excluded.semester_code_taken`,
+        semesterYearTaken: sql`excluded.semester_year_taken`,
       },
     })
     .returning();
-  return newUserCourses;
+}
+
+export async function batchCreateOrUpdateUserCourse(
+  db: Database,
+  data: z.infer<typeof BatchCreateOrUpdateUserCourseSchema>,
+  userId: string,
+) {
+  if (!data.length) {
+    return [];
+  }
+  return await batchUpsertUserCourseQuery(db, data, userId);
 }
 
 export async function getUserCourse(

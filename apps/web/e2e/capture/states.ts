@@ -7,7 +7,7 @@
  */
 import type { BrowserContext, Locator, Page } from '@playwright/test';
 import type { PersonaKey } from '../fixtures/api';
-import { navLink, timelineTitle, visibleText } from '../support/app';
+import { navLink, visibleText } from '../support/app';
 import { fillPixelUpTo } from '../support/flows';
 import { reply, type ApiMock } from '../support/mock';
 import * as writes from '../support/writes';
@@ -58,7 +58,8 @@ export const STATES: CaptureState[] = [
     title: 'Sign-in',
     signedIn: false,
     path: '/login',
-    ready: (p) => visibleText(p, 'Log in with your std email to get you in'),
+    // P1-C replaced today's sign-in ("Log in with your std email to get you in").
+    ready: (p) => p.getByRole('button', { name: 'Masuk dengan Google' }),
   },
   {
     id: 'install-prompt',
@@ -122,19 +123,19 @@ export const STATES: CaptureState[] = [
         .filter({ has: p.getByText('142', { exact: true }) }),
   },
 
-  // Timeline (announcements)
+  // Timeline (announcements). Since P1-B these reach the same states in the redesigned Pengumuman.
   {
     id: 'timeline',
     title: 'Timeline',
     path: '/pengumuman',
-    ready: (p) => heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4),
+    ready: (p) => visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar'),
   },
   {
     id: 'timeline-loading',
     title: 'Timeline loading',
     path: '/pengumuman',
     mock: (api) => api.on('GET /api/info', reply.hang()),
-    ready: timelineTitle,
+    ready: (p) => p.getByRole('status', { name: 'Memuat pengumuman…' }).first(),
   },
   {
     id: 'timeline-error',
@@ -146,14 +147,14 @@ export const STATES: CaptureState[] = [
       for (let i = 0; i < 100 && api.calls('GET /api/info').length < 4; i++)
         await new Promise((r) => setTimeout(r, 200));
     },
-    ready: timelineTitle,
+    ready: (p) => visibleText(p, 'Pengumuman gagal dimuat.'),
   },
   {
     id: 'timeline-empty',
     title: 'Timeline with no posts',
     path: '/pengumuman',
     mock: (api) => api.on('GET /api/info', { infos: [] }),
-    ready: timelineTitle,
+    ready: (p) => visibleText(p, 'Tidak ada yang ditampilkan'),
   },
   {
     id: 'timeline-offline',
@@ -171,7 +172,7 @@ export const STATES: CaptureState[] = [
       await api.setOffline(true);
       await navLink(p, 'Pengumuman').click();
     },
-    ready: timelineTitle,
+    ready: (p) => p.getByRole('heading', { level: 1, name: 'Pengumuman' }),
   },
   {
     id: 'timeline-unread',
@@ -180,14 +181,14 @@ export const STATES: CaptureState[] = [
     title: 'Timeline, unread only',
     path: '/pengumuman',
     act: async (p) => {
-      await heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4).waitFor();
-      await p
-        .getByRole('button', { name: 'A button' })
-        .locator('visible=true')
-        .first()
-        .click();
+      await visibleText(
+        p,
+        'Jadwal UTS Ganjil 2026/2027 sudah keluar',
+      ).waitFor();
+      await p.getByRole('button', { name: /^Belum dibaca/ }).click();
+      await p.waitForURL(/unread=true/);
     },
-    ready: (p) => heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4),
+    ready: (p) => visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar'),
   },
   {
     id: 'timeline-filter',
@@ -196,34 +197,31 @@ export const STATES: CaptureState[] = [
     title: 'Timeline filter open',
     path: '/pengumuman',
     act: async (p) => {
-      await heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4).waitFor();
-      await p
-        .getByRole('button', { name: 'A button' })
-        .locator('visible=true')
-        .nth(1)
-        .click();
+      await visibleText(
+        p,
+        'Jadwal UTS Ganjil 2026/2027 sudah keluar',
+      ).waitFor();
+      await p.getByRole('button', { name: /^Kategori/ }).click();
     },
-    ready: (p) => p.getByRole('dialog').locator('visible=true').first(),
+    ready: (p) => p.getByRole('dialog', { name: 'Kategori yang ditampilkan' }),
   },
   {
     id: 'timeline-card-menu',
     title: 'Timeline, a post’s menu open',
     path: '/pengumuman',
     act: async (p) => {
-      await heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4).waitFor();
-      // The menu button of the first post's card (on desktop the composer also opens a dialog).
+      await visibleText(
+        p,
+        'Jadwal UTS Ganjil 2026/2027 sudah keluar',
+      ).waitFor();
       await p
-        .locator('div')
-        .filter({
-          has: heading(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar', 4),
+        .getByRole('button', {
+          name: 'Opsi untuk Jadwal UTS Ganjil 2026/2027 sudah keluar',
         })
-        .filter({ has: p.locator('button[aria-haspopup="dialog"]') })
-        .last()
-        .locator('button[aria-haspopup="dialog"]')
         .first()
         .click();
     },
-    ready: (p) => p.getByRole('button', { name: /Mark as (un)?read/ }).first(),
+    ready: (p) => p.getByRole('menuitem', { name: 'Tandai sudah dibaca' }),
   },
   {
     id: 'post',
@@ -238,28 +236,24 @@ export const STATES: CaptureState[] = [
     path: '/pengumuman/p2',
     mock: readPosts,
     act: async (p) => {
-      await heading(p, 'Cari tim Gemastik XIX? Isi form ini', 1).waitFor();
-      await p.getByRole('button', { name: 'like' }).first().click();
+      await visibleText(p, 'Cari tim Gemastik XIX? Isi form ini').waitFor();
+      await p.getByRole('button', { name: 'Beri reaksi', exact: true }).click();
     },
-    ready: (p) => p.getByRole('button', { name: 'party' }),
+    ready: (p) => p.getByRole('group', { name: 'Pilih reaksi' }),
   },
   {
     id: 'composer',
     title: 'New announcement',
     path: '/pengumuman/tulis',
-    ready: (p) =>
-      p.getByPlaceholder('What do you want announce?').locator('visible=true'),
+    ready: (p) => p.getByRole('textbox', { name: 'Isi pengumuman' }),
   },
   {
     id: 'composer-categories',
     title: 'New announcement, categories open',
     path: '/pengumuman/tulis',
-    act: async (p) =>
-      p
-        .getByRole('button', { name: 'Enter Categories' })
-        .locator('visible=true')
-        .click(),
-    ready: (p) => p.getByText('Umum').locator('visible=true').first(),
+    // The redesign shows the categories as chips; an empty submit shows what is missing.
+    act: async (p) => p.getByRole('button', { name: 'Umumkan' }).click(),
+    ready: (p) => p.getByText('Pilih minimal satu kategori.'),
   },
 
   // Calendar
@@ -292,7 +286,8 @@ export const STATES: CaptureState[] = [
     id: 'dingdong',
     title: 'Ding Dong',
     path: '/layanan/dingdong',
-    ready: (p) => visibleText(p, 'IF2110 Algoritma dan Pemrograman II'),
+    // P2-B: the redesigned row shows the code over the name, so the row is found by its link.
+    ready: (p) => p.getByRole('link', { name: /^IF2110\s*Algoritma/ }),
   },
   {
     id: 'testi-programs',
@@ -304,7 +299,11 @@ export const STATES: CaptureState[] = [
     id: 'testi-courses',
     title: 'Testi Matkul: IF semester 3',
     path: '/layanan/testi/teknik-informatika/3',
-    ready: (p) => visibleText(p, 'Sistem Operasi'),
+    // Every row's count has arrived (P2-B: each row asks for its own; a skeleton line stands in until then).
+    ready: (p) =>
+      p
+        .locator('main:not(:has(.g-skel-bar))')
+        .getByRole('link', { name: /^IF2130 Sistem Operasi/ }),
   },
   {
     id: 'testi-course',
@@ -432,12 +431,8 @@ export const STATES: CaptureState[] = [
     id: 'settings',
     title: 'Settings',
     path: '/profil',
-    ready: (p) =>
-      p
-        .getByRole('listitem')
-        .filter({ hasText: '13525045' })
-        .locator('visible=true')
-        .first(),
+    // P1-C replaced today's settings (a list item with the NIM): Profil once its counts have loaded.
+    ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 18 SKS'),
   },
   {
     id: 'settings-courses',
@@ -502,5 +497,60 @@ export const STATES: CaptureState[] = [
     persona: 'pengurus',
     path: '/kelola/sparta/sub-13525071',
     ready: (p) => visibleText(p, 'Prioritas 1: Akademik'),
+  },
+  // P2-B: the redesigned services' finished states (for VISUAL_STATES once recorded in the CI container).
+  {
+    id: 'dingdong-empty',
+    title: 'Ding Dong, no courses set',
+    path: '/layanan/dingdong',
+    mock: (api) => api.on('GET /api/course/take/current', []),
+    ready: (p) => p.getByRole('main').getByText('Belum ada mata kuliah'),
+  },
+  {
+    id: 'dingdong-loading',
+    title: 'Ding Dong, loading',
+    path: '/layanan/dingdong',
+    mock: (api) => api.on('GET /api/course/take/current', reply.hang()),
+    ready: (p) => p.getByRole('status', { name: 'Memuat mata kuliahmu…' }),
+  },
+  {
+    id: 'dingdong-error',
+    title: 'Ding Dong, failed to load',
+    path: '/layanan/dingdong',
+    mock: (api) => api.on('GET /api/course/take/current', reply.status(503)),
+    ready: (p) => p.getByRole('main').getByText('Mata kuliahmu gagal dimuat.'),
+  },
+  {
+    id: 'dingdong-offline',
+    title: 'Ding Dong, offline with the kept list',
+    path: '/layanan/dingdong',
+    act: async (p, { api }) => {
+      await p.getByRole('link', { name: /^IF2110\s*Algoritma/ }).waitFor();
+      await p.waitForLoadState('networkidle');
+      await api.setOffline(true);
+    },
+    ready: (p) => p.getByRole('main').getByText(/^Offline · diperbarui/),
+  },
+  {
+    id: 'testi-search',
+    title: 'Testi Matkul, searching “if2110”',
+    path: '/layanan/testi?q=if2110',
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .getByRole('link', { name: /^IF2110 .* 3 testimoni$/ }),
+  },
+  {
+    id: 'testi-course-empty',
+    title: 'Testi Matkul, a course with no testimonials',
+    path: '/layanan/testi/teknik-informatika/3/course-IF2120',
+    ready: (p) => p.getByRole('main').getByText('Belum ada testimoni'),
+  },
+  {
+    id: 'lomba-error',
+    title: 'Info Lomba, failed to load',
+    path: '/layanan/lomba',
+    mock: (api) => api.on('GET /api/competitions', reply.status(503)),
+    ready: (p) => p.getByRole('main').getByText('Lomba gagal dimuat.'),
   },
 ];

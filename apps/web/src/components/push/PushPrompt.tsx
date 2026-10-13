@@ -3,6 +3,7 @@ import { Button, Modal, toast } from '~/components/garis';
 import { focusPageTitle } from '~/components/shell/focus';
 import { common } from '~/copy/common';
 import { push as copy } from '~/copy/push';
+import { openInstallSheet } from '~/features/profil/install-store';
 import {
   pushStore,
   settlePushPrompt,
@@ -93,6 +94,17 @@ export function PushPrompt() {
               {pending ? copy.prompt.menyalakan : copy.prompt.nyalakan}
             </Button>
           </>
+        ) : status === 'perlu-pasang' ? (
+          // As the Notifikasi card: on an iPhone outside the installed app, the way on is Pasang PIPS! (review m9).
+          <Button
+            variant="paper"
+            onClick={() => {
+              close('tutup');
+              openInstallSheet();
+            }}
+          >
+            {copy.kartu.pasang}
+          </Button>
         ) : null
       }
     >

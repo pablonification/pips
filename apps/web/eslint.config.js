@@ -24,6 +24,7 @@ export const GARIS_FILES = [
   'src/lib/shell/**/*.{ts,tsx}',
   // P1-C: push, Profil, Layanan, sign-in and first run.
   'src/components/push/**/*.{ts,tsx}',
+  'src/features/**/*.{ts,tsx}',
   // P1-A: Beranda, Kalender, search's sources, and the shared WIB days.
   'src/features/beranda/**/*.{ts,tsx}',
   'src/features/kalender/**/*.{ts,tsx}',
@@ -32,12 +33,21 @@ export const GARIS_FILES = [
   'src/routes/_app/_left-navbar/index.tsx',
   'src/routes/_app/kalender.tsx',
   'src/routes/_app/kalender/index.tsx',
+  // P1-B: Pengumuman, and the shared date words.
+  'src/features/pengumuman/**/*.{ts,tsx}',
+  'src/lib/dates.ts',
+  'src/routes/_app/_left-navbar/pengumuman/route.tsx',
+  'src/routes/_app/_left-navbar/pengumuman/index.tsx',
+  'src/routes/_app/_left-navbar/pengumuman/$id/index.tsx',
+  'src/routes/_app/_left-navbar/pengumuman/tulis/index.tsx',
   // P2-A: Form and Magang SPARTA.
   'src/components/form/**/*.{ts,tsx}',
   'src/lib/form/**/*.{ts,tsx}',
   'src/routes/_app/_left-navbar/layanan/form/index.tsx',
   'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
   'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
+  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba.
+  'src/features/**/*.{ts,tsx}',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
@@ -96,11 +106,12 @@ export default defineConfig([
       'garis/no-transition-all': 'error',
       'garis/no-img-icon': [
         'error',
-        // The logo is only ever the official image; Media is the one way to show a picture.
+        // The logo is only ever the official image; Media shows a picture, Avatar a person's photo.
         {
           allow: [
             'src/components/garis/HmifLogo.tsx',
             'src/components/garis/Surface.tsx',
+            'src/components/garis/Avatar.tsx',
           ],
         },
       ],
@@ -132,7 +143,9 @@ export default defineConfig([
             // The shell's parts (src/styles/garis/shell.css) and the theme scopes.
             'cap|sub|s|lap|label|c2|theme-light|theme-dark',
             // P1-A: Beranda's and Kalender's parts (src/features/beranda/beranda.css, kalender/kalender.css).
-            'time|wd|dn|key|out|today|akademik|himpunan|point|past|h|d|tm|ttl|draw|two|grow|brief|prev|ext',
+            'time|wd|dn|key|out|today|akademik|himpunan|point|past|h|d|tm|draw|two|grow|brief|prev|ext',
+            // Pengumuman's parts (src/features/pengumuman/pengumuman.css).
+            'who|meta|z|end|many|host|ttl|lbl|in|state|bar|del|opt|body|read|unread|lead|desk|failed',
           ],
         },
       ],

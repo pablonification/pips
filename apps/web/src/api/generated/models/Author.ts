@@ -6,6 +6,5 @@ export type Author = {
   id: string;
   fullName: string;
   picture: string | null;
-  email: string;
 };
 

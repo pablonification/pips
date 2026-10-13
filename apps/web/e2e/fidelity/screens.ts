@@ -16,6 +16,8 @@ import * as writes from '../support/writes';
 
 export interface FidelityScreen {
   path: string;
+  /** Another URL for some layouts (the desktop split shows a post at `/pengumuman`, without opening it). */
+  paths?: Partial<Record<'phone' | 'tablet' | 'desk', string>>;
   layouts?: ('phone' | 'tablet' | 'desk')[];
   mock?: (api: ApiMock) => void;
   act?: (
@@ -27,6 +29,14 @@ export interface FidelityScreen {
 
 type Key = `anggota-${string}` | `pengurus-${string}`;
 
+const P1_TITLE = 'Jadwal UTS Ganjil 2026/2027 sudah keluar';
+const P2_TITLE = 'Cari tim Gemastik XIX? Isi form ini';
+/** P1-B: the feed; on desktop with p1 beside it, not marked read. */
+const pengumumanFeed: FidelityScreen = {
+  path: '/pengumuman',
+  ready: (p) => visibleText(p, P1_TITLE),
+};
+
 /**
  * One entry, or several when layouts differ (each with its `layouts`): `anggota-ov-confirm` is the sign-out sheet on
  * phones and tablets (P1-C) and the form's send dialog on desktop (P2-A).
@@ -34,49 +44,22 @@ type Key = `anggota-${string}` | `pengurus-${string}`;
 export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
   {
     // Today's app (before the redesign).
-    'anggota-pengumuman': {
-      path: '/pengumuman',
-      ready: (p) => visibleText(p, 'Jadwal UTS Ganjil 2026/2027 sudah keluar'),
-    },
-    'anggota-post': {
-      path: '/pengumuman/p1',
-      mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
-      ready: (p) =>
-        visibleText(p, 'Kak, IF2123 K01 sama K02 ruangnya beda ya?'),
-    },
-    'anggota-dingdong': {
-      path: '/layanan/dingdong',
-      ready: (p) => visibleText(p, 'IF2110 Algoritma dan Pemrograman II'),
-    },
-    'anggota-nim': {
-      path: '/layanan/nim',
-      ready: (p) =>
-        p.getByPlaceholder('Ketik nama atau NIM').locator('visible=true'),
-    },
-    'anggota-lomba': {
-      path: '/layanan/lomba',
-      ready: (p) => visibleText(p, 'Find IT! 2026'),
-    },
     'anggota-curhat': {
       path: '/layanan/curhat',
       ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
     },
+    // P1-C: Profil, Mata kuliahku and Notifikasi, redesigned in place.
     'anggota-profil': {
       path: '/profil',
-      ready: (p) =>
-        p
-          .getByRole('listitem')
-          .filter({ hasText: '13525045' })
-          .locator('visible=true')
-          .first(),
+      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 18 SKS'),
     },
     'anggota-matkul': {
       path: '/profil/matkul',
-      ready: (p) => p.getByText('Jumlah SKS').locator('visible=true').first(),
+      ready: (p) => p.getByRole('main').getByText('Jumlah SKS'),
     },
     'anggota-notif': {
       path: '/profil/notifikasi',
-      ready: (p) => p.getByRole('switch').locator('visible=true').last(),
+      ready: (p) => p.getByRole('main').getByRole('switch', { name: 'Lomba' }),
     },
     'pengurus-kelola': {
       path: '/kelola',
@@ -111,6 +94,24 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
           await p.getByRole('button', { name: 'Kirim jawaban' }).click();
         },
         ready: (p) => p.getByRole('alertdialog', { name: 'Kirim jawaban?' }),
+      },
+      // P1-C: Keluar's confirmation on phones and tablets.
+      {
+        path: '/profil',
+        layouts: ['phone', 'tablet'],
+        act: async (p) => {
+          await p
+            .getByRole('main')
+            .getByText('6 mata kuliah · 18 SKS')
+            .waitFor();
+          // Clicked in place, as the prototype's capture: the page stays at its top behind the sheet.
+          await p
+            .getByRole('main')
+            .getByRole('button', { name: 'Keluar' })
+            .evaluate((b: HTMLElement) => b.click());
+        },
+        ready: (p) =>
+          p.getByRole('alertdialog', { name: 'Keluar dari PIPS!?' }),
       },
     ],
 
@@ -174,5 +175,134 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
           : p
               .getByRole('dialog', { name: 'Detail acara' })
               .filter({ has: p.getByText('Determinan dan balikan matriks.') }),
+    },
+
+    // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba (the states garis-check.mjs ROUTES gives them).
+    'anggota-dingdong': {
+      path: '/layanan/dingdong',
+      ready: (p) => p.getByRole('link', { name: /^IF2180 Socio-informatika/ }),
+    },
+    'anggota-testi-list': {
+      path: '/layanan/testi/teknik-informatika/3',
+      // Every row's count has arrived.
+      ready: (p) =>
+        p
+          .getByRole('main')
+          .getByRole('link', { name: /^IF2150 .* 1 testimoni$/ }),
+    },
+    'anggota-testi-course': {
+      path: '/layanan/testi/teknik-informatika/3/course-IF2110',
+      ready: (p) => p.getByRole('article', { name: 'Testimoni 1 dari 3' }),
+    },
+    'anggota-nim': {
+      path: '/layanan/nim',
+      ready: (p) =>
+        p.getByRole('status').filter({ hasText: 'Ketik minimal 3 huruf' }),
+    },
+    'anggota-lomba': {
+      path: '/layanan/lomba',
+      ready: (p) => p.getByRole('heading', { name: 'Find IT! 2026' }),
+    },
+    // P1-C: Raka's Profil, Tambah mata kuliah, the push prompt and Layanan.
+    'pengurus-profil': {
+      path: '/profil',
+      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 19 SKS'),
+    },
+    'anggota-matkul-add': {
+      path: '/profil/matkul/tambah',
+      ready: (p) => p.getByRole('main').getByText('Strategi Algoritma'),
+    },
+    'anggota-ov-push': {
+      path: '/profil/notifikasi',
+      act: async (p) => {
+        await p
+          .getByRole('main')
+          .getByRole('switch', { name: 'Lomba' })
+          .waitFor();
+        await p
+          .getByRole('main')
+          .getByRole('button', { name: 'Nyalakan notifikasi' })
+          .click();
+      },
+      ready: (p) => p.getByRole('dialog', { name: 'Nyalakan notifikasi?' }),
+    },
+    'anggota-layanan': {
+      path: '/layanan',
+      ready: (p) => p.getByRole('main').getByText('1 belum diisi'),
+    },
+    'pengurus-layanan': {
+      path: '/layanan',
+      ready: (p) => p.getByRole('main').getByText('Tambah acara Akademik'),
+    },
+
+    // P1-B: Pengumuman. The phone and tablet captures of the locked `post` were set without opening p1, so they show 4
+    // unread where the app (which marks it read) shows 3.
+    'anggota-pengumuman': pengumumanFeed,
+    'pengurus-pengumuman': pengumumanFeed,
+    'anggota-post': {
+      path: '/pengumuman/p1',
+      paths: { desk: '/pengumuman' },
+      mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
+      ready: (p) =>
+        p
+          .locator('article.g-detail')
+          .getByText('Komentar', { exact: false })
+          .first(),
+    },
+    'anggota-tulis': {
+      path: '/pengumuman/tulis',
+      ready: (p) => p.getByRole('textbox', { name: 'Isi pengumuman' }),
+    },
+    'anggota-ov-filter': {
+      path: '/pengumuman',
+      act: async (p) => {
+        await visibleText(p, P1_TITLE).waitFor();
+        await p.getByRole('button', { name: /^Kategori/ }).click();
+      },
+      ready: (p) =>
+        p.getByRole('dialog', { name: 'Kategori yang ditampilkan' }),
+    },
+    'anggota-pop-react': {
+      path: '/pengumuman',
+      act: async (p) => {
+        await visibleText(p, P1_TITLE).waitFor();
+        const desk = (p.viewportSize()?.width ?? 0) >= 1024;
+        const scope = desk
+          ? p.locator('article.g-detail')
+          : p.getByRole('article', { name: new RegExp(`^${P1_TITLE}`) });
+        await scope
+          .getByRole('button', { name: /Beri reaksi$|Ganti reaksi$/ })
+          .last()
+          .click();
+      },
+      ready: (p) => p.getByRole('group', { name: 'Pilih reaksi' }),
+    },
+    'anggota-pop-menu': {
+      path: '/pengumuman',
+      act: async (p) => {
+        await visibleText(p, P1_TITLE).waitFor();
+        const desk = (p.viewportSize()?.width ?? 0) >= 1024;
+        await p
+          .getByRole('button', {
+            name: `Opsi untuk ${desk ? P1_TITLE : P2_TITLE}`,
+          })
+          .first()
+          .click();
+      },
+      ready: (p) => p.getByRole('menu'),
+    },
+    'pengurus-pop-menu-own': {
+      path: '/pengumuman/p1',
+      paths: { desk: '/pengumuman/p5' },
+      mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
+      act: async (p) => {
+        const desk = (p.viewportSize()?.width ?? 0) >= 1024;
+        const title = desk ? 'Rapat koordinasi divisi Akademik' : P1_TITLE;
+        await p
+          .getByRole('button', { name: `Opsi untuk ${title}` })
+          .first()
+          .click();
+      },
+      ready: (p) => p.getByRole('menu'),
     },
   };

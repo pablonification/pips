@@ -14,9 +14,9 @@
  * Captures of the app area ('app') and of the window ('page') are viewport screenshots; for an 'element' screen,
  * `target` names the element. Unmapped screens show as "not built yet" in the report; PROTOTYPE_ONLY are skipped.
  */
-import type { Locator } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { pixelSections } from '../support/flows';
+import { visibleText } from '../support/app';
 import * as writes from '../support/writes';
 import type { FidelityScreen } from './screens';
 
@@ -159,6 +159,30 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
         .getByRole('dialog', { name: 'Pencarian global' })
         .filter({ has: p.getByRole('option', { name: /^Bayar Kas!/ }) }),
   },
+  // P1-C: "IF2211" typed and K2 picked. i-push-dialog waits for P1-A's Beranda (the prompt over it); until then the
+  // ov-push captures compare the prompt over Notifikasi.
+  'i-matkul-add': {
+    path: '/profil/matkul/tambah',
+    act: async (p) => {
+      const main = p.getByRole('main');
+      await main.getByText('Strategi Algoritma').waitFor();
+      await main
+        .getByRole('searchbox', { name: 'Cari mata kuliah' })
+        .fill('IF2211');
+      await main
+        .getByRole('radiogroup', { name: 'Kelas IF2211' })
+        .getByRole('radio', { name: 'K2' })
+        .click();
+      // The prototype's capture shows no focus ring: the search field and chip were used by pointer.
+      await p.evaluate(() =>
+        (document.activeElement as HTMLElement | null)?.blur(),
+      );
+    },
+    ready: (p) =>
+      p
+        .getByRole('button', { name: /^Tambahkan \(1\)/ })
+        .locator('visible=true'),
+  },
   // P0-A: the design-system gallery, against the prototype's design-system page.
   'system-cards': {
     path: '/dev/garis',
@@ -171,6 +195,92 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
     persona: null,
     ready: (p) => p.getByTestId('garis-kit'),
     target: (p) => p.getByTestId('garis-kit'),
+  },
+  // P1-B: Pengumuman, reached as garis-check.mjs sections 4a and 4c reach them.
+  'i-feed-reacted': {
+    path: '/pengumuman',
+    mock: (api) => api.on('PUT /api/reaction', writes.react),
+    act: async (p) => {
+      await visibleText(p, P1_TITLE).waitFor();
+      const card = p.getByRole('article', {
+        name: new RegExp(`^${P1_TITLE}`),
+      });
+      // The prototype's picker brings the card to the top of the page.
+      await card.evaluate((el) => el.scrollIntoView({ block: 'start' }));
+      await card.getByRole('button', { name: /Beri reaksi$/ }).click();
+      await p
+        .getByRole('group', { name: 'Pilih reaksi' })
+        .getByRole('button', { name: 'Keren' })
+        .click();
+    },
+    ready: (p) =>
+      p
+        .getByRole('article', { name: new RegExp(`^${P1_TITLE}`) })
+        .getByRole('button', { name: /^Reaksimu Keren/ }),
+  },
+  'i-post-detail': {
+    path: '/pengumuman/p1',
+    mock: (api) => {
+      api.on('POST /api/info/:infoId/read', writes.markRead);
+      api.on('POST /api/comment', writes.comment);
+      api.on('PUT /api/reaction', writes.react);
+    },
+    act: async (p) => {
+      // Continues from i-feed-reacted: Keren is Nadia's.
+      await p.getByRole('button', { name: 'Beri reaksi', exact: true }).click();
+      await p
+        .getByRole('group', { name: 'Pilih reaksi' })
+        .getByRole('button', { name: 'Keren' })
+        .click();
+      await p
+        .getByRole('button', { name: 'Ganti reaksi', exact: true })
+        .waitFor();
+      const field = p.getByRole('textbox', { name: 'Tulis komentar' });
+      await field.fill('Kak, IF2120 K02 di ruang mana?');
+      await p.getByRole('button', { name: 'Kirim komentar' }).click();
+    },
+    ready: (p) =>
+      p.getByRole('main').getByText('Kak, IF2120 K02 di ruang mana?').first(),
+  },
+  'i-filter-sheet': {
+    path: '/pengumuman',
+    act: async (p) => {
+      await visibleText(p, P1_TITLE).waitFor();
+      await p.getByRole('button', { name: /^Kategori/ }).click();
+      await p
+        .getByRole('dialog', { name: 'Kategori yang ditampilkan' })
+        .getByRole('switch', { name: 'Akademik' })
+        .click();
+    },
+    ready: (p) =>
+      p
+        .getByRole('dialog', { name: 'Kategori yang ditampilkan' })
+        .getByRole('switch', { name: 'Akademik', checked: false }),
+  },
+  'i-compose-anggota': {
+    path: '/pengumuman/tulis',
+    act: async (p) => {
+      await p.getByRole('button', { name: 'Umumkan' }).click();
+      await p
+        .getByRole('textbox', { name: 'Isi pengumuman' })
+        .fill(
+          'Ada yang mau bareng ke Jatinangor Sabtu pagi? Berangkat dari Ganesha 06.30.',
+        );
+      await p.getByRole('checkbox', { name: 'Umum' }).click();
+    },
+    ready: (p) => p.getByRole('checkbox', { name: 'Umum', checked: true }),
+  },
+  'i-desk-own-menu': {
+    path: '/pengumuman/p1',
+    persona: 'pengurus',
+    mock: (api) => api.on('POST /api/info/:infoId/read', writes.markRead),
+    act: async (p) => {
+      await p
+        .locator('article.g-detail')
+        .getByRole('button', { name: `Opsi untuk ${P1_TITLE}` })
+        .click();
+    },
+    ready: (p) => p.getByRole('menuitem', { name: /Bisa lagi mulai 15\.30/ }),
   },
   // P2-A: the form's interaction captures (phone, light, Nadia).
   'i-form-required': {
@@ -209,4 +319,31 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
     },
     ready: (p) => p.getByText('Form berhasil dikirim!'),
   },
+  // P2-B: Testi Matkul on phones. The locked captures still show a toast from the prototype's previous step
+  // ("1 mata kuliah ditambahkan…"); the app has none here (a known difference, in the P2-B report).
+  'i-testi': {
+    path: '/layanan/testi',
+    act: async (p) => {
+      const main = p.getByRole('main');
+      await main.getByRole('link', { name: 'Teknik Informatika' }).click();
+      await main.getByRole('link', { name: 'Semester 3' }).click();
+      await main.getByRole('link', { name: /^IF2110 / }).click();
+      await main.getByRole('button', { name: 'Testimoni berikutnya' }).click();
+    },
+    ready: (p) => p.getByRole('article', { name: 'Testimoni 2 dari 3' }),
+  },
+  'i-testi-search': {
+    path: '/layanan/testi',
+    act: async (p) => {
+      await p
+        .getByRole('searchbox', { name: 'Cari mata kuliah' })
+        .fill('if2110');
+    },
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .getByRole('link', { name: /^IF2110 .* 3 testimoni$/ }),
+  },
 };
+
+const P1_TITLE = 'Jadwal UTS Ganjil 2026/2027 sudah keluar';

@@ -49,10 +49,10 @@ test('every parent is a route of its own, and following parents always reaches a
       isRootPage(p) || parent,
       `${p} is neither a tab's page nor below one`,
     );
-    // Lit item on phones: always one of the four tabs.
+    // Lit item on phones, once a tab has been opened: always one of the four tabs.
     assert.ok(
       ['beranda', 'pengumuman', 'kalender', 'layanan'].includes(
-        activeItem(p, 'touch', 'kalender'),
+        activeItem(p, 'touch', 'kalender') ?? '',
       ),
       p,
     );
@@ -72,11 +72,13 @@ test('titles: members’ service names and the prototype’s page names', () => 
   for (const p of PATHS) assert.ok(titleOf(p, { id: 'x' }).length > 0, p);
 });
 
-test('focused flows are the form, the composer, a Curhat room and Magang SPARTA (SPEC story 19; P2-A brief)', () => {
+test('focused flows are the form, the composer, a Curhat room and Magang SPARTA (SPEC story 19; P2-A brief), and first run (P1-C)', () => {
   assert.deepEqual(PATHS.filter((p) => ROUTE_META[p].focused).sort(), [
     '/layanan/curhat/$roomId',
     '/layanan/form/$formId',
     '/layanan/sparta',
+    // First run: a one-off checklist that ends on Beranda, with its own two ways out.
+    '/mulai',
     '/pengumuman/tulis',
   ]);
 });
@@ -97,12 +99,19 @@ test('the lit item: the tab a page is under; Kelola and Profil have their own on
     'kalender',
   );
   assert.equal(activeItem('/profil/notifikasi', 'desk', 'kalender'), 'profil');
+  // Opened directly (no tab yet this visit), Profil and its pages light no tab, as the locked screens (Dev 1's
+  // decision; P0-C lit Beranda). Desktop still lights your name.
+  assert.equal(activeItem('/profil', 'touch'), null);
+  assert.equal(activeItem('/profil/matkul/tambah', 'touch', null), null);
+  assert.equal(activeItem('/profil', 'desk'), 'profil');
+  assert.equal(activeItem('/', 'touch', null), 'beranda');
 });
 
 test('back without history goes up: Profil to the tab you were last on, Kelola to Layanan', () => {
   assert.equal(parentOf('/layanan/dingdong'), '/layanan');
   assert.equal(parentOf('/profil', 'pengumuman'), '/pengumuman');
   assert.equal(parentOf('/profil'), '/');
+  assert.equal(parentOf('/profil', null), '/');
   assert.equal(parentOf('/kelola'), '/layanan');
   assert.equal(parentOf('/layanan/curhat/$roomId'), '/layanan/curhat');
   assert.equal(parentOf('/kalender'), null);
