@@ -196,3 +196,10 @@ test('competitions: cnc adds, changes and deletes; nobody else', () => {
   assert.equal(can(raka, 'manageCompetition'), false);
   assert.equal(can(raka, 'createCompetition'), false);
 });
+
+test('testimonials: akademik adds them; admin alone and members don’t (the API allows akademik only)', () => {
+  assert.equal(can({ roles: ['akademik'] }, 'createTestimonial'), true);
+  assert.equal(can(raka, 'createTestimonial'), true);
+  assert.equal(can({ roles: ['admin'] }, 'createTestimonial'), false);
+  assert.equal(can({ roles: [] }, 'createTestimonial'), false);
+});
