@@ -5,10 +5,15 @@ import { expect, test } from '../support/test';
 test.use({ persona: 'pengurus' });
 
 test('the Admin hub lists what Raka manages', async ({ page }, testInfo) => {
+  // Beranda's Kelola section (P1-A; today's Home had an Admin tile) leads to the hub.
   await page.goto('/');
-  await expect(visibleText(page, 'Admin')).toBeVisible();
-  // The phone tile is an unnamed icon button, so the hub is opened by its URL.
-  await page.goto('/kelola');
+  await page
+    .getByRole('main')
+    .getByRole('heading', { name: 'Kelola', exact: true })
+    .locator('xpath=../..')
+    .getByRole('link', { name: /^Semua/ })
+    .click();
+  await expect(page).toHaveURL(/\/kelola$/);
   await expect(
     page.getByRole('link', { name: /Live Counting & Rekap Form/ }),
   ).toBeVisible();

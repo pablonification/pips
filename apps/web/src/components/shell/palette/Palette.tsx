@@ -10,6 +10,7 @@ import { ICONS } from '~/components/icons/registry';
 import { IconCari } from '~/components/icons/cari';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
+import { chosenResult } from '~/features/cari/rules';
 import { paletteResults, type PaletteItem } from '~/lib/shell/palette';
 import { closePalette, closePaletteAfterRun } from './palette-store';
 import { usePaletteItems } from './sources';
@@ -17,19 +18,23 @@ import { usePaletteItems } from './sources';
 const t = common.palette;
 
 export default function Palette() {
-  const items = usePaletteItems();
   const [query, setQuery] = useState('');
+  const { items, pending } = usePaletteItems(query);
   const groups = useMemo(
     () => paletteResults(items, query, t.pintasan),
     [items, query],
   );
-  const first = groups[0]?.items[0]?.id ?? '';
-  const [chosen, setChosen] = useState<string>(first);
+  // The highlight follows the first result (results from the API can arrive above it) until the member moves it.
+  const [moved, setMoved] = useState<string | null>(null);
+  const chosen = chosenResult(
+    moved,
+    groups.flatMap((g) => g.items.map((i) => i.id)),
+  );
   // A new query starts at its first result again.
   const [forQuery, setForQuery] = useState(query);
   if (forQuery !== query) {
     setForQuery(query);
-    setChosen(first);
+    setMoved(null);
   }
 
   const run = (item: PaletteItem) => {
@@ -51,7 +56,9 @@ export default function Palette() {
           <Command
             shouldFilter={false}
             value={chosen}
-            onValueChange={setChosen}
+            onValueChange={(v) => {
+              if (v && v !== chosen) setMoved(v);
+            }}
           >
             <div className="g-pal-in">
               <IconCari size={18} />
@@ -91,7 +98,8 @@ export default function Palette() {
                   })}
                 </Command.Group>
               ))}
-              {groups.length === 0 ? (
+              {/* Not while the API's results are on their way: that isn't "no results" yet. */}
+              {groups.length === 0 && !pending ? (
                 <div className="g-pal-empty" role="status">
                   <p className="t-sm">{fill(t.tidakAda, { kata: query })}</p>
                   <p className="t-sm text-fg-2" style={{ marginTop: 4 }}>
