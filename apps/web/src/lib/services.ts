@@ -48,7 +48,10 @@ interface ServiceBase {
    * app's maintainers). Unconfirmed by HMIF; see the P0-B report.
    */
   owner: string;
-  /** ISO date-times (WIB offset). Outside the window the service is hidden from lists; its route still exists. */
+  /**
+   * ISO date-times (WIB offset): from `validFrom`, up to but not including `validUntil`, as the server's windows
+   * open and close. Outside them the service is hidden from lists; its route still exists.
+   */
   validFrom?: string;
   validUntil?: string;
   /** Extra words global search matches, lower case. */
@@ -151,7 +154,8 @@ export const SERVICES = [
     kind: 'internal',
     destination: '/layanan/sparta',
     owner: 'peoplemanage',
-    validUntil: '2026-08-23T23:59:59+07:00',
+    // SPARTA's closing time on the server (apps/api/src/lib/sparta-window.ts), from which it is closed.
+    validUntil: '2026-08-23T23:59:00+07:00',
     synonyms: ['sparta', 'magang', 'divisi'],
     icon: 'kelola',
   },
@@ -271,7 +275,7 @@ export function serviceById(id: ServiceId): Service {
 export function isServiceActive(service: Service, now: Date = new Date()) {
   const t = now.getTime();
   if (service.validFrom && t < Date.parse(service.validFrom)) return false;
-  if (service.validUntil && t > Date.parse(service.validUntil)) return false;
+  if (service.validUntil && t >= Date.parse(service.validUntil)) return false;
   return true;
 }
 

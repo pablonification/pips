@@ -2,16 +2,32 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { DraftInternshipSubmission } from '../models/DraftInternshipSubmission';
 import type { InternshipAnswer } from '../models/InternshipAnswer';
 import type { InternshipDepartment } from '../models/InternshipDepartment';
 import type { InternshipDivision } from '../models/InternshipDivision';
 import type { InternshipKesibukan } from '../models/InternshipKesibukan';
 import type { InternshipQuestion } from '../models/InternshipQuestion';
 import type { InternshipSubmission } from '../models/InternshipSubmission';
+import type { InternshipWindow } from '../models/InternshipWindow';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class InternshipService {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
+  /**
+   * SPARTA's window on the server's clock, and whether the signed-in member may take part. Open to every member.
+   * @returns InternshipWindow SPARTA's window for you
+   * @throws ApiError
+   */
+  public getInternshipWindow(): CancelablePromise<InternshipWindow> {
+    return this.httpRequest.request({
+      method: 'GET',
+      url: '/api/internship/window',
+      errors: {
+        401: `Error`,
+      },
+    });
+  }
   /**
    * @returns any List of internship departments with divisions
    * @throws ApiError
@@ -205,26 +221,13 @@ export class InternshipService {
     });
   }
   /**
-   * @returns InternshipSubmission Saved submission draft
+   * @returns InternshipSubmission Saved submission draft. Kelas and ID Line may be empty and up to 4 choices; /submit checks it all.
    * @throws ApiError
    */
   public upsertMyInternshipSubmission({
     requestBody,
   }: {
-    requestBody?: {
-      kelas: string;
-      idLine: string;
-      pengalamanOrganisasi?: string;
-      kesibukan?: Array<InternshipKesibukan>;
-      /**
-       * Pilihan divisi berdasarkan prioritas, wajib tepat 4
-       */
-      choices: Array<{
-        divisionId: string;
-        priorityOrder: number;
-        answers: Array<InternshipAnswer>;
-      }>;
-    },
+    requestBody?: DraftInternshipSubmission,
   }): CancelablePromise<InternshipSubmission> {
     return this.httpRequest.request({
       method: 'PUT',
@@ -234,6 +237,7 @@ export class InternshipService {
       errors: {
         400: `Bad request`,
         401: `Error`,
+        403: `Outside SPARTA's window (src/lib/sparta-window.ts)`,
         409: `Submission already locked/finalized`,
       },
     });
@@ -268,6 +272,7 @@ export class InternshipService {
       errors: {
         400: `Bad request`,
         401: `Error`,
+        403: `Outside SPARTA's window (src/lib/sparta-window.ts)`,
         409: `Submission already locked/finalized`,
       },
     });

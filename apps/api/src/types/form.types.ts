@@ -12,6 +12,8 @@ export const FormQuestionSchema = z
       .object({ questionId: z.string(), value: z.string() })
       .optional(),
     optional: z.boolean().optional(),
+    /** The app starts the answer with the member's own name or NIM; they may change it. */
+    prefill: z.enum(['fullName', 'nim']).optional(),
   })
   .openapi('FormQuestion');
 
@@ -30,20 +32,20 @@ export const FormAnswerSchema = z
   })
   .openapi('FormAnswer');
 
-export const FormStatusSchema = z.enum([
-  'not_opened',
-  'open',
-  'already_responded',
-]);
+/** In order of precedence: already_responded, closed (switched off or past closesAt), not_opened, open. */
+export const FormStatusSchema = z
+  .enum(['not_opened', 'open', 'already_responded', 'closed'])
+  .openapi('FormStatus');
 
 export const FormListItemSchema = createSelectSchema(forms, {
   eligibleAngkatan: z.array(z.number()),
   sections: z.array(FormSectionSchema),
   opensAt: z.union([z.string(), z.date()]),
+  closesAt: z.date().nullable(),
   createdAt: z.union([z.string(), z.date()]),
 })
   .omit({ sections: true })
-  .extend({ status: FormStatusSchema })
+  .extend({ status: FormStatusSchema, sectionCount: z.number().int() })
   .openapi('FormListItem');
 
 export const ListFormsSchema = z.object({
@@ -54,6 +56,7 @@ export const AdminFormListItemSchema = createSelectSchema(forms, {
   eligibleAngkatan: z.array(z.number()),
   sections: z.array(FormSectionSchema),
   opensAt: z.union([z.string(), z.date()]),
+  closesAt: z.date().nullable(),
   createdAt: z.union([z.string(), z.date()]),
 })
   .omit({ sections: true })
@@ -67,8 +70,11 @@ export const FormDetailSchema = createSelectSchema(forms, {
   eligibleAngkatan: z.array(z.number()),
   sections: z.array(FormSectionSchema).nullable(),
   opensAt: z.union([z.string(), z.date()]),
+  closesAt: z.date().nullable(),
   createdAt: z.union([z.string(), z.date()]),
-}).openapi('FormDetail');
+})
+  .extend({ status: FormStatusSchema })
+  .openapi('FormDetail');
 
 export const FormIdParamSchema = z.object({
   formId: z.string().openapi({

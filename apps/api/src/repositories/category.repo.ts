@@ -1,4 +1,4 @@
-import { asc, eq, exists, isNull, or, sql } from 'drizzle-orm';
+import { asc, eq, exists, inArray, isNull, or, sql } from 'drizzle-orm';
 import { Database } from '~/db/drizzle';
 import { angkatan, categories, UserRolesEnum } from '~/db/schema';
 
@@ -72,4 +72,12 @@ export async function getInfoCategoryList(
 
 export async function getListAngkatan(db: Database) {
   return await db.select().from(angkatan).orderBy(asc(angkatan.year));
+}
+
+export async function getCategoriesByIds(db: Database, ids: string[]) {
+  if (ids.length === 0) return [];
+  return await db
+    .select({ id: categories.id, rolesAllowed: categories.rolesAllowed })
+    .from(categories)
+    .where(inArray(categories.id, ids));
 }

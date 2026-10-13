@@ -2,20 +2,20 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { User } from '../models/User';
+import type { NimFinderResult } from '../models/NimFinderResult';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class UserFinderService {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
   /**
-   * @returns User Get user By Nim or Full Name
+   * @returns NimFinderResult Members whose NIM or name contains the search (taken literally), closest NIM matches first, at most 30. Only name, NIM, programme and photo.
    * @throws ApiError
    */
   public getUser({
     search,
   }: {
     search: string,
-  }): CancelablePromise<Array<User>> {
+  }): CancelablePromise<Array<NimFinderResult>> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/api/user/nim',

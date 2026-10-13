@@ -72,6 +72,15 @@ export const createInfoRoute = createRoute({
         },
       },
     },
+    403: {
+      description:
+        "A chosen category is closed to the poster (its rolesAllowed doesn't include any of their roles)",
+      content: {
+        'application/json': {
+          schema: ErrorSchema,
+        },
+      },
+    },
   },
 });
 

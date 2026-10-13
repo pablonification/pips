@@ -15,7 +15,7 @@ export type InternshipSubmission = {
   pengalamanOrganisasi: string | null;
   kesibukan: Array<InternshipKesibukan>;
   isLocked: boolean;
-  submittedAt: string;
+  submittedAt: string | null;
   createdAt: string;
   updatedAt: string;
   choices?: Array<InternshipSubmissionChoice>;

@@ -158,7 +158,7 @@ export class ApiMock {
     baseURL: string,
   ) {
     this.origin = new URL(baseURL).origin;
-    this.socket = new FakeSocketServer();
+    this.socket = new FakeSocketServer(db);
     for (const [spec, handler] of Object.entries(defaultHandlers))
       this.register(spec, handler, false);
   }

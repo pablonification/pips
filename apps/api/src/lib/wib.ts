@@ -6,3 +6,8 @@ export function currentWibMonthYear(now: number = Date.now()) {
   const wib = new Date(now + WIB_OFFSET_MS);
   return { month: wib.getUTCMonth() + 1, year: wib.getUTCFullYear() };
 }
+
+/** The month (1–12) and year an instant falls in, in WIB, whatever time zone the server runs in. */
+export function wibMonthYear(date: Date | string | number) {
+  return currentWibMonthYear(new Date(date).getTime());
+}

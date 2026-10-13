@@ -12,5 +12,6 @@ export type FormQuestion = {
     value: string;
   };
   optional?: boolean;
+  prefill?: 'fullName' | 'nim';
 };
 

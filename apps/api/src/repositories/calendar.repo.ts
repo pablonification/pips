@@ -1,3 +1,4 @@
+import { eventsInMonth } from '~/lib/calendar-month';
 import { and, asc, eq, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { Database } from '~/db/drizzle';
@@ -262,16 +263,7 @@ export async function getPersonalCalendar(
   // console.log(himpunanCalendarId);
   // console.log(himpunanEvents);
 
-  const result = [...academicEvents, ...himpunanEvents]
-    .filter((c) => {
-      const date = new Date(c.start);
-      return (
-        date.getMonth() + 1 === query.month && date.getFullYear() === query.year
-      );
-    })
-    .sort((a, b) => a.start.getTime() - b.start.getTime());
-
-  return result;
+  return eventsInMonth([...academicEvents, ...himpunanEvents], query);
 }
 
 export async function getCalendarEventsByTime(db: Database, date: Date) {
