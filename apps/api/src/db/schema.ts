@@ -11,6 +11,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import type webpush from 'web-push';
 import { rolesEnums } from './roles-group';
@@ -755,22 +756,39 @@ export const chatroomsRelation = relations(chatrooms, ({ many, one }) => ({
   labels: many(chatroomLabelsManyToMany),
 }));
 
-export const chatroomMessages = pgTable('chatroom_messages', {
-  id: text('id').primaryKey().$defaultFn(createId),
-  chatroomId: text('chatroom_id')
-    .references(() => chatrooms.id, { onDelete: 'cascade' })
-    .notNull(),
-  userId: text('user_id')
-    .references(() => users.id, { onDelete: 'cascade' })
-    .notNull(),
-  replyId: text('reply_id').references((): AnyPgColumn => chatroomMessages.id, {
-    onDelete: 'cascade',
+export const chatroomMessages = pgTable(
+  'chatroom_messages',
+  {
+    id: text('id').primaryKey().$defaultFn(createId),
+    chatroomId: text('chatroom_id')
+      .references(() => chatrooms.id, { onDelete: 'cascade' })
+      .notNull(),
+    userId: text('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    replyId: text('reply_id').references(
+      (): AnyPgColumn => chatroomMessages.id,
+      {
+        onDelete: 'cascade',
+      },
+    ),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+    /**
+     * The id the sender's device gave the message (a UUID), so a resend after a lost acknowledgement is matched to the
+     * saved message instead of saved twice (P2-C). Null for messages from older clients.
+     */
+    clientMessageId: text('client_message_id'),
+  },
+  (t) => ({
+    clientMessageIdx: uniqueIndex('chatroom_messages_client_message_idx').on(
+      t.chatroomId,
+      t.clientMessageId,
+    ),
   }),
-  content: text('content').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-    .notNull()
-    .defaultNow(),
-});
+);
 
 export type ChatroomMessage = InferSelectModel<typeof chatroomMessages>;
 

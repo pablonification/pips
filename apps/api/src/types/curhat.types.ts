@@ -18,6 +18,7 @@ export const ChatroomMessageSchema = createSelectSchema(chatroomMessages)
     reply: createSelectSchema(chatroomMessages)
       .omit({
         userId: true,
+        clientMessageId: true,
       })
       .optional(),
   })
@@ -86,6 +87,11 @@ export const CurhatMessagePayloadSchema = z
     chatroomId: z.string().min(1),
     message: z.string(),
     replyId: z.string().min(1).nullish(),
+    /**
+     * The device's id for this message (a UUID, P2-C). Sending it again with the same id, after a lost
+     * acknowledgement, saves nothing new: the acknowledgement carries the message saved the first time.
+     */
+    clientMessageId: z.string().uuid().nullish(),
   })
   .openapi('CurhatMessagePayload');
 
@@ -115,6 +121,8 @@ const CurhatQuotedMessageSchema = z.object({
 
 export const CurhatSocketMessageSchema = CurhatQuotedMessageSchema.extend({
   isSender: z.boolean(),
+  /** The device's id for the message, only for its sender (`isSender`); null for everyone else and older clients. */
+  clientMessageId: z.string().nullable(),
   reply: CurhatQuotedMessageSchema.optional(),
 }).openapi('CurhatSocketMessage');
 

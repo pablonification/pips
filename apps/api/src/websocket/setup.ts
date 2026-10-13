@@ -53,16 +53,7 @@ export default function setupWebsocket(httpServer: ServerType) {
           await getOwnedChatroomIds(db, userId),
         getMessage: async (messageId) =>
           await getChatroomMessageById(db, messageId),
-        saveMessage: async ({ userId, chatroomId, content, replyId }) => {
-          const [saved] = await saveMessage(
-            db,
-            userId,
-            chatroomId,
-            content,
-            replyId,
-          );
-          return saved;
-        },
+        saveMessage: async (message) => await saveMessage(db, message),
         notifyParticipants: sendNotification,
         onError: (error) => Sentry.captureException(error),
       },
