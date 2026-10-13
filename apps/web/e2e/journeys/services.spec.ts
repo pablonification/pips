@@ -41,20 +41,23 @@ test('Info Lomba lists open competitions', async ({ page }, testInfo) => {
   await checkGates(page, testInfo, 'competition');
 });
 
-test('external services keep their s.hmif.dev links', async ({ page }) => {
+test('external services keep their s.hmif.dev links, now over https in a new tab', async ({
+  page,
+}, testInfo) => {
+  // Regression (P1-A rule 15): today's Home opened Mading Beasiswa and Bayar Kas! in the same tab, two over plain
+  // http. Beranda's tiles (phones and tablets) and Pintasan (desktop) open them over https in a new tab.
   await page.goto('/');
-  // Stand in for the external site, so the test never leaves this machine.
-  await page.route('http://s.hmif.dev/**', (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'text/html',
-      body: '<title>Mading Beasiswa</title>',
-    }),
-  );
-  await page
-    .getByRole('button', { name: 'Mading Beasiswa' })
-    .locator('visible=true')
-    .click();
-  // Today's app opens it in the same tab, over plain http.
-  await expect(page).toHaveURL('http://s.hmif.dev/MadingBeasiswa');
+  const desk = testInfo.project.name.startsWith('desktop');
+  const links = desk
+    ? [['Bayar Kas! (situs luar)', 'https://s.hmif.dev/BayarKasHMIF']]
+    : [
+        ['Beasiswa (situs luar)', 'https://s.hmif.dev/MadingBeasiswa'],
+        ['Bayar Kas! (situs luar)', 'https://s.hmif.dev/BayarKasHMIF'],
+      ];
+  for (const [name, href] of links) {
+    const link = page.getByRole('main').getByRole('link', { name });
+    await expect(link).toHaveAttribute('href', href);
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', /noopener/);
+  }
 });

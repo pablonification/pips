@@ -215,8 +215,9 @@ test.describe('back', () => {
     await page.goto('/kalender');
     await page.getByRole('button', { name: 'Cari di PIPS!' }).click();
     await palette(page).getByRole('combobox').fill('ding');
+    // The service, not a course whose hint is "Ding Dong" (P1-A's Mata kuliah results).
     await palette(page)
-      .getByRole('option', { name: /Ding Dong/ })
+      .getByRole('option', { name: /^Ding Dong/ })
       .click();
     await expect(page).toHaveURL(/\/layanan\/dingdong$/);
     await expectLit(page, 'Layanan');
@@ -380,7 +381,7 @@ test.describe('Beranda’s gold header', () => {
 });
 
 test.describe('global search', () => {
-  test('opens from the keyboard, starts with Pintasan, finds a service and opens it', async ({
+  test('opens from the keyboard, starts with Tindakan and Pintasan, finds a service and opens it', async ({
     page,
   }, testInfo) => {
     await page.goto('/pengumuman');
@@ -395,18 +396,23 @@ test.describe('global search', () => {
       'placeholder',
       'Cari layanan, pengumuman, acara, orang…',
     );
+    // P1-A's starting actions (Tindakan), then the four Pintasan.
     await expect(palette(page).getByRole('option')).toHaveText([
+      /^Buat pengumuman/,
+      /^Tambah mata kuliah/,
       /^Ding Dong/,
       /^Testi Matkul/,
       /^NIM Finder/,
       /^Bayar Kas!Situs luar$/,
     ]);
+    await expect(palette(page).getByText('Tindakan')).toBeVisible();
     await expect(palette(page).getByText('Pintasan')).toBeVisible();
     // Key hints on desktop; phones and tablets have Tutup instead.
     const hints = palette(page).getByText('Enter buka');
     if (layoutOf(testInfo) === 'desktop') await expect(hints).toBeVisible();
     else await expect(hints).toBeHidden();
-    await field.fill('kas');
+    // "kas" alone also finds "Nyalakan notifikasi" (notifiKASi) and posts from the API since P1-A, as the prototype.
+    await field.fill('bayar kas');
     await expect(palette(page).getByRole('option')).toHaveText([/^Bayar Kas!/]);
     await field.fill('nim');
     await expect(palette(page).getByRole('option').first()).toHaveText(
@@ -463,7 +469,9 @@ test.describe('global search', () => {
     await expect(options.nth(0)).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('ArrowDown');
     await expect(options.nth(1)).toHaveAttribute('aria-selected', 'true');
-    await page.keyboard.press('ArrowDown');
+    // Past P1-A's two starting actions and Ding Dong and Testi Matkul to NIM Finder, the fifth.
+    for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowDown');
+    await expect(options.nth(4)).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/layanan\/nim$/);
   });
