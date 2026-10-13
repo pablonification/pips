@@ -421,9 +421,12 @@ test.describe('global search', () => {
     await expect(palette(page)).toHaveCount(0);
     await expect(page).toHaveURL(/\/layanan\/nim$/);
     await expect(page).toHaveTitle('NIM Finder · PIPS!');
-    // Focus moves to the new page's title (phones and tablets) or its main landmark (desktop, today's screen).
+    // Focus moves to the new page's title: the top bar's on phones and tablets, the page head on desktop (P2-B's
+    // NIM Finder has one; today's screen didn't, so focus went to the main landmark).
     if (layoutOf(testInfo) === 'desktop')
-      await expect(page.locator('#isi')).toBeFocused();
+      await expect(
+        page.getByRole('heading', { level: 1, name: 'NIM Finder' }),
+      ).toBeFocused();
     else await expect(topTitle(page)).toBeFocused();
   });
 
