@@ -1,0 +1,51 @@
+name: visual references
+
+# Records the Linux reference screenshots for the e2e harness's visual-* projects on a branch, in the same
+# container CI's journeys run in, and commits them to that branch. References are per platform
+# (`…-linux.png` here, `…-darwin.png` from a Mac), so CI compares against pictures rendered on Linux.
+# Run it from the Actions tab or `gh workflow run visual-references.yml -f branch=rd/<task>`.
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to record the Linux visual references on (a task branch, never main or redesign)
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    name: record Linux visual references
+    if: inputs.branch != 'main' && inputs.branch != 'redesign'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+      # pnpm's version comes from packageManager in package.json.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium for Playwright
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Record the references (builds the app for production)
+        run: pnpm --filter web e2e:update
+        env:
+          E2E_WORKERS: 2
+      - name: Commit them to the branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- 'apps/web/e2e/**/*-linux.png'
+          if git diff --cached --quiet; then
+            echo "The Linux references are already up to date."
+            exit 0
+          fi
+          git commit -m "test(e2e): record the Linux visual references" -m "Recorded by the visual references workflow in CI's container."
+          git push origin "HEAD:${{ inputs.branch }}"
