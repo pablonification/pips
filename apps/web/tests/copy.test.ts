@@ -7,6 +7,7 @@ import {
   ACRONYMS,
   BANNED_TERMS,
   HOUSE_TERMS,
+  PRODUCT_NAMES,
   PROPER_NOUNS,
 } from '../src/copy/glossary';
 import { SERVICES } from '../src/lib/services';
@@ -39,7 +40,9 @@ const letters = (s: string) => s.replace(/[^\p{L}\p{N}]/gu, '').toLowerCase();
 /** Problems in one string; empty when it follows the glossary. */
 export function glossaryProblems(text: string): string[] {
   const problems: string[] = [];
-  const plain = text.replace(/\{\w+\}/g, ' '); // placeholders aren't words
+  let plain = text.replace(/\{\w+\}/g, ' '); // placeholders aren't words
+  // Other products' names are taken whole ("Google Calendar"); a banned word inside one isn't the app's word.
+  for (const name of PRODUCT_NAMES) plain = plain.split(name).join(' ');
 
   for (const [banned, use] of BANNED_TERMS) {
     const re = new RegExp(
@@ -168,6 +171,9 @@ test('the check catches what it is for', () => {
   assert.ok(caught('Mata Kuliahku Semester Ini'));
   assert.ok(caught('KIRIM JAWABAN'));
   assert.ok(caught('Simpan Draf'));
+  // A product's name is allowed whole, never its banned word alone.
+  assert.ok(caught('Buka Calendar'));
+  assert.ok(caught('Google calendar'));
 });
 
 test('…and lets good copy through', () => {
@@ -184,6 +190,7 @@ test('…and lets good copy through', () => {
     'Ke Beranda',
     'Live Counting & Rekap Form',
     'Data SPARTA Magang',
+    'Google Calendar',
   ]) {
     assert.deepEqual(glossaryProblems(text), [], text);
   }

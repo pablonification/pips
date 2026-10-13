@@ -216,3 +216,83 @@ test('posts and comments carry only the author fields: id, name, photo', () => {
   }) as unknown as { creator: object };
   assert.deepEqual(Object.keys(posted.creator).sort(), AUTHOR_KEYS);
 });
+
+// P3-A: as the API since then (formQuestionsVisible), the questions go only to the form's angkatan or a form admin.
+test('form detail: questions for the angkatan and for an admin, not for other members', () => {
+  const nadia = buildDb('anggota');
+  const forNadia = call(get('/api/form/:formId'), nadia, {
+    params: { formId: 'pixel' },
+  });
+  assert.ok(Array.isArray(forNadia.sections));
+  const raka = buildDb('pengurus');
+  assert.ok(
+    Array.isArray(
+      call(get('/api/form/:formId'), raka, { params: { formId: 'pixel' } })
+        .sections,
+    ),
+  );
+  const rakaNoAdmin = buildDb('pengurus', { only: ['akademik'] });
+  const outside = call(get('/api/form/:formId'), rakaNoAdmin, {
+    params: { formId: 'pixel' },
+  });
+  assert.equal(outside.sections, null);
+  assert.equal(outside.title, raka.formDetails.pixel.title);
+});
+
+// Harness bug (P3-A): the admin list answered 403 and the other admin endpoints checked no role at all; the API's
+// roleMiddleware answers 401 { error: 'Unauthorized' } for a missing role.
+test('admin endpoints answer 401 without the role, as roleMiddleware', () => {
+  const nadia = buildDb('anggota');
+  const raka = buildDb('pengurus');
+  const people = buildDb('pengurus', { only: ['peoplemanage'] });
+  const form = { params: { formId: 'pixel' } };
+  const sub = { params: { id: raka.internshipSubmissions[0].id } };
+  const formAdmin = [
+    ['/api/form/admin/list', {}],
+    ['/api/form/:formId/responses', form],
+    ['/api/form/:formId/responses/count', form],
+    ['/api/form/:formId/analytics', form],
+  ] as const;
+  const spartaAdmin = [
+    ['/api/internship/submissions', {}],
+    ['/api/internship/submissions/:id', sub],
+  ] as const;
+  for (const [route, opts] of formAdmin) {
+    for (const db of [nadia, people]) {
+      const res = call(get(route), db, opts);
+      assert.equal(res.status, 401, `${route} for ${db.me!.roles}`);
+      assert.deepEqual(res.body, { error: 'Unauthorized' });
+    }
+    assert.equal(call(get(route), raka, opts).status, undefined, route);
+  }
+  for (const [route, opts] of spartaAdmin) {
+    assert.equal(call(get(route), nadia, opts).status, 401, route);
+    assert.equal(call(get(route), raka, opts).status, undefined, route);
+    assert.equal(call(get(route), people, opts).status, undefined, route);
+  }
+});
+
+// Harness bug (P3-A): SPARTA's submissions came 50 a page; the API pages by 20 (SUBMISSIONS_PER_PAGE), oldest first.
+test('SPARTA submissions page by 20, as the API', () => {
+  const db = buildDb('pengurus');
+  const base = db.internshipSubmissions[0];
+  db.internshipSubmissions = Array.from({ length: 25 }, (_, i) => ({
+    ...base,
+    id: `sub-${i}`,
+  }));
+  const page = (offset: number) =>
+    (
+      call(get('/api/internship/submissions'), db, {
+        query: `offset=${offset}`,
+      }) as unknown as { submissions: { id: string }[] }
+    ).submissions.map((s) => s.id);
+  assert.equal(page(0).length, 20);
+  assert.deepEqual(page(20), [
+    'sub-20',
+    'sub-21',
+    'sub-22',
+    'sub-23',
+    'sub-24',
+  ]);
+  assert.deepEqual(page(40), []);
+});

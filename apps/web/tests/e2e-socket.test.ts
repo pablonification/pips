@@ -133,3 +133,19 @@ test('a held-back acknowledgement is answered later with ack(), on the connectio
     /no acknowledgement/,
   );
 });
+
+// P3-A: Live Counting's room joins admins only, as websocket/connection.ts.
+test('formAdminId joins form-admin:{formId} for an admin only', () => {
+  const raka = new FakeSocketServer(buildDb('pengurus'));
+  assert.ok(
+    connect(raka, { formAdminId: 'pixel' }).s.rooms.has('form-admin:pixel'),
+  );
+  const nadia = new FakeSocketServer(buildDb('anggota'));
+  assert.equal(connect(nadia, { formAdminId: 'pixel' }).s.rooms.size, 0);
+  const out = buildDb('pengurus');
+  out.signedIn = false;
+  assert.equal(
+    connect(new FakeSocketServer(out), { formAdminId: 'pixel' }).s.rooms.size,
+    0,
+  );
+});

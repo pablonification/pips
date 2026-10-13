@@ -160,13 +160,17 @@ function reactionAggregate(
   };
 }
 
-function canSee(post: ProtoPost, persona: PersonaKey): boolean {
+function canSee(
+  post: ProtoPost,
+  persona: PersonaKey,
+  roles: readonly string[],
+): boolean {
   const me = PERSONAS[persona];
   if (post.by === PERSON_OF[persona]) return true;
   if (post.aud.type === 'angkatan')
     return post.aud.values.includes(me.angkatan);
   if (post.aud.type === 'group')
-    return post.aud.values.some((r) => me.roles.includes(r));
+    return post.aud.values.some((r) => roles.includes(r));
   return true;
 }
 
@@ -643,11 +647,53 @@ const internshipDepartments: InternshipDepartment[] = [
       },
     ],
   },
+  {
+    id: 'dept-cardev',
+    name: 'Career Development',
+    order: 3,
+    divisions: [
+      {
+        id: 'div-cardev',
+        departmentId: 'dept-cardev',
+        name: 'Career Development',
+        quotaMin: 2,
+        quotaIdeal: 3,
+        quotaMax: 5,
+        questions: [
+          {
+            id: 'dq4',
+            label: 'Acara karier apa yang ingin kamu buat?',
+            type: 'textarea',
+            required: true,
+          },
+        ],
+        questionsRaw: null,
+        description: 'Mengelola LowonginAja! dan acara karier.',
+        order: 1,
+      },
+    ],
+  },
 ];
+/** Each division's first question, answered in the locked submissions' choices. */
+const SPARTA_ANSWERS: Record<string, [string, string]> = {
+  'div-akademik': ['dq1', 'Aku ingin bantu rekap jadwal ujian angkatan.'],
+  'div-welfare': ['dq2', 'Sering jadi tempat cerita teman sekamar.'],
+  'div-cnc': ['dq3', 'Gemastik 2025, kategori pengembangan perangkat lunak.'],
+  'div-cardev': ['dq4', 'Webinar persiapan magang untuk angkatan.'],
+};
+
+/**
+ * Bima and Tasya sent theirs (locked, four choices, as the API requires). Nadia's is a partial draft as P2-A saves
+ * them: three choices, not sent (no submittedAt).
+ */
 function internshipSubmissions(): InternshipSubmission[] {
   const people: PersonKey[] = ['bima', 'tasya', 'nadia'];
   return people.map((k, i) => {
     const p = PEOPLE[k];
+    const locked = i < 2;
+    const divisions = locked
+      ? ['div-akademik', 'div-welfare', 'div-cnc', 'div-cardev']
+      : ['div-akademik', 'div-welfare', 'div-cnc'];
     return {
       id: `sub-${p.nim}`,
       userId: userId(p.nim),
@@ -658,19 +704,24 @@ function internshipSubmissions(): InternshipSubmission[] {
       idLine: `e2e.${k}`,
       pengalamanOrganisasi: i === 0 ? 'Panitia SPARTA 2025' : null,
       kesibukan: [],
-      isLocked: i < 2,
-      submittedAt: wib(8, 20 + i, 21),
+      isLocked: locked,
+      submittedAt: locked ? wib(8, 20 + i, 21) : null,
       createdAt: wib(8, 15 + i, 10),
       updatedAt: wib(8, 20 + i, 21),
-      choices: ['div-akademik', 'div-welfare', 'div-cnc'].map(
-        (divisionId, order) => ({
-          id: `choice-${p.nim}-${order}`,
-          submissionId: `sub-${p.nim}`,
-          divisionId,
-          priorityOrder: order + 1,
-          answers: [],
-        }),
-      ),
+      choices: divisions.map((divisionId, order) => ({
+        id: `choice-${p.nim}-${order}`,
+        submissionId: `sub-${p.nim}`,
+        divisionId,
+        priorityOrder: order + 1,
+        answers: locked
+          ? [
+              {
+                questionId: SPARTA_ANSWERS[divisionId][0],
+                answer: SPARTA_ANSWERS[divisionId][1],
+              },
+            ]
+          : [],
+      })),
     };
   });
 }
@@ -736,9 +787,32 @@ export interface Db {
   }>;
 }
 
+/**
+ * P3-A: the harness's `roles` option. A list adds roles to the persona's own; `{ only }` replaces them. Applied
+ * when the db is built, so `GET /api/me`, the seeded session, groups, postable categories, audiences and the admin
+ * form list all agree.
+ */
+export type RolesOption = readonly string[] | { only: readonly string[] };
+
+/** The persona's roles after the `roles` option, without duplicates, in a stable order. */
+export function applyRoles(
+  own: readonly string[],
+  option: RolesOption | null | undefined,
+): UserWithRoles['roles'] {
+  if (!option) return [...own] as UserWithRoles['roles'];
+  const next = 'only' in option ? option.only : [...own, ...option];
+  return [...new Set(next)] as UserWithRoles['roles'];
+}
+
 /** A fresh copy of one persona's data, or of a signed-out visitor's (`null`). */
-export function buildDb(persona: PersonaKey | null): Db {
-  const me = persona ? personaUser(persona) : null;
+export function buildDb(
+  persona: PersonaKey | null,
+  rolesOption?: RolesOption | null,
+): Db {
+  const base = persona ? personaUser(persona) : null;
+  const me = base
+    ? { ...base, roles: applyRoles(base.roles, rolesOption) }
+    : null;
   const roles = me?.roles ?? [];
   const isAdmin = roles.includes('admin');
   const myCodes = persona ? MY_COURSES[persona].map(([code]) => code) : [];
@@ -764,7 +838,9 @@ export function buildDb(persona: PersonaKey | null): Db {
     ).map((c) => categories.find((x) => x.id === c.id)!),
     mutedCategoryIds: [],
     infos: persona
-      ? POSTS.filter((p) => canSee(p, persona)).map((p) => toInfo(p, persona))
+      ? POSTS.filter((p) => canSee(p, persona, roles)).map((p) =>
+          toInfo(p, persona),
+        )
       : [],
     comments: Object.fromEntries(POSTS.map((p) => [p.id, toComments(p)])),
     events: EVENTS.filter(

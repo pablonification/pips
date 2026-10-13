@@ -1,14 +1,16 @@
 import { queryOptions, type QueryKey } from '@tanstack/react-query';
-import { CURHAT_UNREAD_KEY } from '~/lib/curhat-unread';
 import { api, queryClient } from './client';
 import {
   CALENDAR_EVENTS_QUERY_KEY,
   CHATROOMS_QUERY_KEY,
   CREDITS_QUERY_KEY,
   CURRENT_COURSES_QUERY_KEY,
+  CURHAT_UNREAD_KEY,
   FORM_QUERY_KEY,
+  INFO_LIST_QUERY_KEY,
   INFO_QUERY_KEY,
   ME_QUERY_KEY,
+  UNREAD_INFOS_KEY_PART,
   USER_ACADEMIC_QUERY_KEY,
 } from './constants';
 
@@ -78,6 +80,21 @@ export const creditsQuery = () =>
   queryOptions({
     queryKey: [CREDITS_QUERY_KEY],
     queryFn: () => api.markdown.getCredits(),
+  });
+
+/**
+ * The newest unread posts, the feed's first page with only unread posts: Beranda's "Pengumuman belum dibaca", and the
+ * first page the navigation badge counts (src/features/pengumuman/unread-query.ts), so a cold Beranda asks for it
+ * once. Under the feed's key, so read marks refresh it, and kept on the device like that page
+ * (persistence-policy.ts), so Beranda opens offline with it.
+ */
+export const unreadInfosQuery = () =>
+  queryOptions({
+    queryKey: [INFO_LIST_QUERY_KEY, UNREAD_INFOS_KEY_PART],
+    queryFn: () =>
+      api.info
+        .getListInfo({ unread: 'true', sort: 'newest' })
+        .then((r) => r.infos),
   });
 
 export const infoDetailQuery = (infoId: string) =>

@@ -109,13 +109,19 @@ fixtures follow the API, as listed here.
 - **Live Counting:** the prototype has a count (142) and four latest submitters. The fixtures add 138 more
   deterministic fictional responses so the recap table pages work, and analytics for q4 and q16 from the
   prototype's numbers.
-- **SPARTA Magang** isn't in the prototype's data at all. The fixtures invent two departments, three divisions
-  and three submissions (Bima, Tasya, Nadia), enough for the admin table and the detail page.
+- **SPARTA Magang** isn't in the prototype's data at all. The fixtures invent three departments, four divisions
+  and three submissions, enough for the admin table and the detail page. Bima's and Tasya's are sent (locked,
+  four choices as the API requires, each with an answer to its division's question). Since P3-A, Nadia's is a
+  partial draft as P2-A saves them: three choices, no answers, not sent (`submittedAt: null`).
 - **SPARTA for members** (since P0-D, as the API): `GET /api/internship/window` answers SPARTA's window
   (`db.spartaWindow`: closed since Minggu, 23 Agustus 2026, 23.59 WIB) and `eligible` (angkatan 2025 or the three
   listed NIMs: Nadia yes, Raka no). `GET /api/internship/submission` is `200 null` without a submission and 401
   for a member SPARTA isn't for. `writes.saveSpartaDraft` (partial drafts) and `writes.submitSparta` (everything,
   then locked) answer 403 while the window is closed: open it with `db.spartaWindow`.
+- **Roles per test** (P3-A): the `roles` option in `support/test.ts`. `roles: ['peoplemanage']` adds a role to the
+  persona, `roles: { only: ['peoplemanage'] }` replaces them. `buildDb(persona, roles)` applies it before anything
+  is derived, so `GET /api/me`, the seeded session, `groups`, `postableCategories`, group audiences and
+  `adminForms` agree (`tests/e2e-roles.test.ts`).
 
 ## Credits
 

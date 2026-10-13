@@ -25,6 +25,14 @@ export const GARIS_FILES = [
   // P1-C: push, Profil, Layanan, sign-in and first run.
   'src/components/push/**/*.{ts,tsx}',
   'src/features/**/*.{ts,tsx}',
+  // P1-A: Beranda, Kalender, search's sources, and the shared WIB days.
+  'src/features/beranda/**/*.{ts,tsx}',
+  'src/features/kalender/**/*.{ts,tsx}',
+  'src/features/cari/**/*.{ts,tsx}',
+  'src/lib/days.ts',
+  'src/routes/_app/_left-navbar/index.tsx',
+  'src/routes/_app/kalender.tsx',
+  'src/routes/_app/kalender/index.tsx',
   // P1-B: Pengumuman, and the shared date words.
   'src/features/pengumuman/**/*.{ts,tsx}',
   'src/lib/dates.ts',
@@ -38,6 +46,13 @@ export const GARIS_FILES = [
   'src/routes/_app/_left-navbar/layanan/form/index.tsx',
   'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
   'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
+  // P3-A: Kelola, Live Counting, Rekap Form and Data SPARTA Magang.
+  'src/routes/_app/_left-navbar/kelola/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/$formId/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/$formId/rekap.tsx',
+  'src/routes/_app/_left-navbar/kelola/sparta/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/sparta/$submissionId.tsx',
   // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba (every feature folder, Curhat's too).
   'src/features/**/*.{ts,tsx}',
   // P2-C: Curhat Yuk! for members.
@@ -138,10 +153,14 @@ export default defineConfig([
             'accent|success|inverse|outlined|error|dialog|handle|rule|hint|dis-ic|msg|t-ic|act|sq|bars',
             // The shell's parts (src/styles/garis/shell.css) and the theme scopes.
             'cap|sub|s|lap|label|c2|theme-light|theme-dark',
+            // P1-A: Beranda's and Kalender's parts (src/features/beranda/beranda.css, kalender/kalender.css).
+            'time|wd|dn|key|out|today|akademik|himpunan|point|past|h|d|tm|draw|two|grow|brief|prev|ext',
             // Pengumuman's parts (src/features/pengumuman/pengumuman.css).
             'who|meta|z|end|many|host|ttl|lbl|in|state|bar|del|opt|body|read|unread|lead|desk|failed',
             // Curhat's parts (src/features/curhat/curhat.css): a bubble's side, time line and quote.
             'me|them|tm|quote',
+            // Kelola's parts (src/styles/garis/kelola.css, P3-A).
+            'nim|name|v|trk|flip|top',
           ],
         },
       ],
@@ -165,6 +184,15 @@ export default defineConfig([
         },
       ],
     },
+  },
+  {
+    // P1-A: no reading or writing refs during render (React's rule; review m9 found one in Tambah acara).
+    files: [
+      'src/features/beranda/**/*.{ts,tsx}',
+      'src/features/kalender/**/*.{ts,tsx}',
+      'src/features/cari/**/*.{ts,tsx}',
+    ],
+    rules: { 'react-hooks/refs': 'error' },
   },
   {
     // Playwright's fixtures call \`use()\`, which react-hooks 7 takes for React 19's \`use\`. The e2e code isn't React.
