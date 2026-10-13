@@ -283,7 +283,8 @@ export const STATES: CaptureState[] = [
     only: 'desktop',
     path: '/kalender',
     act: async (p) => p.getByRole('button', { name: 'Tambah acara' }).click(),
-    ready: (p) => p.getByRole('dialog'),
+    // Today's desktop form (unchanged until P3-B) isn't a dialog; before, the role came from the category popover.
+    ready: (p) => p.getByPlaceholder('Add Title').locator('visible=true'),
   },
 
   // Services
