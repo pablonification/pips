@@ -65,7 +65,14 @@ const ku1101 = course('KU1101', 'Pengantar Rekayasa dan Desain', {
 const catalogue = [if2130, ii2110, if4010, dp3011, if2110, ku1101, if2210];
 
 test('regression: a course is found by its code in any case, and by its name', () => {
-  for (const q of ['if2110', 'IF2110', 'If2110', 'algoritma', '  IF2110 ', 'if2110 algo'])
+  for (const q of [
+    'if2110',
+    'IF2110',
+    'If2110',
+    'algoritma',
+    '  IF2110 ',
+    'if2110 algo',
+  ])
     assert.equal(matchCourse(if2110, q), true, q);
   assert.equal(matchCourse(if2110, 'if2130'), false);
   // Today's rule: the query lowercased, the code compared as stored (upper case). It never matched a code.
@@ -94,7 +101,10 @@ test('course lists: a semester is its mandatory courses; Pilihan and Mata Kuliah
     listCourses(catalogue, 'IF', 3).map((c) => c.code),
     ['IF2110', 'IF2130'],
   );
-  assert.deepEqual(listCourses(catalogue, 'IF', 4).map((c) => c.code), ['IF2210']);
+  assert.deepEqual(
+    listCourses(catalogue, 'IF', 4).map((c) => c.code),
+    ['IF2210'],
+  );
   assert.deepEqual(listCourses(catalogue, 'IF', 7), []);
   assert.deepEqual(
     listCourses(catalogue, 'IF', 'pilihan').map((c) => c.code),
@@ -106,8 +116,14 @@ test('course lists: a semester is its mandatory courses; Pilihan and Mata Kuliah
   );
   assert.equal(inList(ii2110, 'IF', 3), false, 'other programmes stay out');
   // The list's own search filters from the first character, by code too.
-  assert.deepEqual(listCourses(catalogue, 'IF', 3, 'i').map((c) => c.code), ['IF2110', 'IF2130']);
-  assert.deepEqual(listCourses(catalogue, 'IF', 3, 'if2130').map((c) => c.code), ['IF2130']);
+  assert.deepEqual(
+    listCourses(catalogue, 'IF', 3, 'i').map((c) => c.code),
+    ['IF2110', 'IF2130'],
+  );
+  assert.deepEqual(
+    listCourses(catalogue, 'IF', 3, 'if2130').map((c) => c.code),
+    ['IF2130'],
+  );
 });
 
 test('URL slugs: today’s programme and list values; anything else is unknown', () => {
@@ -134,7 +150,10 @@ test('titles (testiTitle)', () => {
   assert.equal(testiTitle({ major: 'STI' }), 'Sistem dan Teknologi Informasi');
   assert.equal(testiTitle({ major: 'IF', list: 3 }), 'IF · Semester 3');
   assert.equal(testiTitle({ major: 'STI', list: 'pilihan' }), 'STI · Pilihan');
-  assert.equal(testiTitle({ major: 'OTHER', list: 'pilihan' }), 'Mata Kuliah Umum');
+  assert.equal(
+    testiTitle({ major: 'OTHER', list: 'pilihan' }),
+    'Mata Kuliah Umum',
+  );
   assert.equal(testiTitle({ major: 'IF', list: 3, code: 'IF2110' }), 'IF2110');
 });
 
@@ -172,7 +191,9 @@ test('sections per programme; empty ones left out; the other programme’s after
     titles('STI', t({ impressions: 'a', challenges: 'b', advice: 'c' })),
     ['Kesan', 'Tantangan', 'Saran'],
   );
-  assert.deepEqual(titles('OTHER', t({ overview: 'a', advice: ' ' })), ['Overview']);
+  assert.deepEqual(titles('OTHER', t({ overview: 'a', advice: ' ' })), [
+    'Overview',
+  ]);
   assert.deepEqual(
     titles('STI', t({ impressions: 'a', overview: 'b', lecturer: 'Dr. Rina' })),
     ['Kesan', 'Overview', 'Dosen'],
@@ -185,7 +206,10 @@ test('sections per programme; empty ones left out; the other programme’s after
 test('authors: null, empty and "Anonim" are Anonim with "?"; others show initials of the first two words', () => {
   for (const n of [null, undefined, '', '  ', 'Anonim', 'anonim'])
     assert.deepEqual(authorOf(n), { name: 'Anonim', initials: '?' }, String(n));
-  assert.deepEqual(authorOf('Fikri, IF 2023'), { name: 'Fikri, IF 2023', initials: 'FI' });
+  assert.deepEqual(authorOf('Fikri, IF 2023'), {
+    name: 'Fikri, IF 2023',
+    initials: 'FI',
+  });
   assert.deepEqual(authorOf('nabila'), { name: 'nabila', initials: 'N' });
 });
 

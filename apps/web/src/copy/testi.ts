@@ -50,7 +50,6 @@ export const testi = {
   // New copy: loading and failures.
   memuatMatkul: 'Memuat mata kuliah…',
   memuatTestimoni: 'Memuat testimoni…',
-  memuatJumlah: 'Memuat jumlah testimoni…',
   gagalMatkul: 'Mata kuliah gagal dimuat.',
   gagalTestimoni: 'Testimoni gagal dimuat.',
   periksaKoneksi: 'Periksa koneksimu, lalu coba lagi.',

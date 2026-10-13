@@ -42,9 +42,10 @@ test('exact NIM, then NIM prefixes, then other NIM matches, then names; A–Z wi
 
 test('names A–Z when nothing matches a NIM', () => {
   assert.deepEqual(
-    rankMembers([m('Rakai Prasetyo', '13525001'), m('Raka Pratama', '18224045')], 'rak').map(
-      (x) => x.fullName,
-    ),
+    rankMembers(
+      [m('Rakai Prasetyo', '13525001'), m('Raka Pratama', '18224045')],
+      'rak',
+    ).map((x) => x.fullName),
     ['Raka Pratama', 'Rakai Prasetyo'],
   );
 });
@@ -58,8 +59,14 @@ test('the 3-character rule is on the trimmed query', () => {
 });
 
 test('status wording, as nimResults words it', () => {
-  assert.equal(nimStatus({ kind: 'short' }), 'Ketik minimal 3 huruf nama atau angka NIM.');
-  assert.equal(nimStatus({ kind: 'done', count: 2, typed: 'rak' }), '2 hasil. Pilih untuk menyalin NIM.');
+  assert.equal(
+    nimStatus({ kind: 'short' }),
+    'Ketik minimal 3 huruf nama atau angka NIM.',
+  );
+  assert.equal(
+    nimStatus({ kind: 'done', count: 2, typed: 'rak' }),
+    '2 hasil. Pilih untuk menyalin NIM.',
+  );
   assert.equal(
     nimStatus({ kind: 'done', count: 0, typed: 'Zzz ' }),
     'Tidak ada anggota dengan nama atau NIM “Zzz ”.',
