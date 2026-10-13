@@ -67,21 +67,22 @@
     border-bottom-right-radius: 3px;
   }
   .g-bubble .tm {
-    display: block;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 3px;
+    height: 12px;
     margin-top: 4px;
     font-size: 12px;
     line-height: 1;
     opacity: 0.8;
-    text-align: right;
     font-variant-numeric: tabular-nums;
     white-space: normal;
   }
-  /* New (D7): the delivery state in the time line, icon then word ("Mengirim", "Terkirim · 13.35"). */
+  /* New (D7): the delivery state in the time line, icon then word ("Mengirim", "Terkirim · 13.35"); the 16 px icon
+     overhangs the 12 px line, so the bubble keeps the prototype's height. */
   .g-bubble .tm .g-ic {
-    display: inline-block;
-    vertical-align: -3px;
-    margin-block: -2px;
-    margin-right: 3px;
+    flex: none;
   }
   .g-bubble .quote {
     display: block;
