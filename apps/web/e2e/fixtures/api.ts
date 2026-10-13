@@ -287,7 +287,8 @@ function toChatrooms(persona: PersonaKey): ListChatroom {
       }));
     const chatroom: Chatroom = {
       id: room.id,
-      title: room.title,
+      // The API names rooms in lower case ("teal koala"); the app shows each word capitalised (P2-C).
+      title: room.title.toLowerCase(),
       messages,
       labels: [],
       isPinned: false,
