@@ -1,5 +1,6 @@
 import { greeting, inMain, navLink, visibleText } from '../support/app';
 import { reply } from '../support/mock';
+import { strictAudit } from '../support/strict';
 import { expect, test } from '../support/test';
 
 /*
@@ -172,7 +173,7 @@ test.describe('with no cached user', () => {
     page,
     api,
     db,
-  }) => {
+  }, testInfo) => {
     db.signedIn = true;
     let down = true;
     api.on('GET /api/me', () => (down ? reply.status(503) : db.me));
@@ -185,6 +186,9 @@ test.describe('with no cached user', () => {
       ),
     ).toBeVisible();
     await expect(page).toHaveURL(/\/$/);
+    // C1: the screen used the old shadcn button, styled only by the palette C1 deleted; it now uses the Garis
+    // button, and the gates (axe with contrast, text size, overflow) hold in both themes.
+    await strictAudit(page, testInfo, 'session error');
     down = false;
     await retry.click();
     await expect(greeting(page)).toBeVisible();
