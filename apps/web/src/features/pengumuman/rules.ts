@@ -51,9 +51,14 @@ export interface FeedView {
  * The view in its one canonical form: the default view is all `undefined`, which is also the query key the
  * device keeps for offline use (api/persistence-policy.ts keeps the feed "with no search, filter or sort").
  */
-export function canonicalView(view: FeedView): Required<{
-  [K in keyof FeedView]: FeedView[K] | undefined;
-}> & { sort: 'oldest' | undefined } {
+export interface CanonicalView {
+  search: string | undefined;
+  unread: true | undefined;
+  excludeCategories: string[] | undefined;
+  sort: 'oldest' | undefined;
+}
+
+export function canonicalView(view: FeedView): CanonicalView {
   const search = view.search?.trim() ? view.search : undefined;
   const hidden = [...new Set(view.excludeCategories ?? [])].sort();
   return {
@@ -144,7 +149,11 @@ export async function pageUnreadIds(
 }
 
 /** The unread ids after marking one read or unread. */
-export function withReadState(ids: readonly string[], id: string, read: boolean) {
+export function withReadState(
+  ids: readonly string[],
+  id: string,
+  read: boolean,
+) {
   if (read) return ids.filter((x) => x !== id);
   return ids.includes(id) ? [...ids] : [id, ...ids];
 }
@@ -195,7 +204,10 @@ export function applyReaction(
 ): ReactionAggregate {
   const counts = new Map(agg.reactionsCount.map((r) => [r.reaction, r.count]));
   if (agg.userReaction)
-    counts.set(agg.userReaction, Math.max(0, (counts.get(agg.userReaction) ?? 1) - 1));
+    counts.set(
+      agg.userReaction,
+      Math.max(0, (counts.get(agg.userReaction) ?? 1) - 1),
+    );
   if (next) counts.set(next, (counts.get(next) ?? 0) + 1);
   const reactionsCount = [...counts]
     .filter(([, c]) => c > 0)
@@ -273,12 +285,19 @@ export interface MenuModel {
   remove: null | 'own' | 'admin';
 }
 
-export function menuModel(info: Pick<Info, 'creatorId' | 'isRead'>, me: Me): MenuModel {
+export function menuModel(
+  info: Pick<Info, 'creatorId' | 'isRead'>,
+  me: Me,
+): MenuModel {
   const own = !!me && me.id === info.creatorId;
   return {
     mark: info.isRead ? 'unread' : 'read',
     renotify: own,
-    remove: canDeleteContent(me, info.creatorId) ? (own ? 'own' : 'admin') : null,
+    remove: canDeleteContent(me, info.creatorId)
+      ? own
+        ? 'own'
+        : 'admin'
+      : null,
   };
 }
 
@@ -303,11 +322,14 @@ export function audText(info: Pick<Info, 'infoAngkatan' | 'infoGroups'>) {
   return t.post.untukSemua;
 }
 
-export const isForEveryone = (info: Pick<Info, 'infoAngkatan' | 'infoGroups'>) =>
-  !info.infoAngkatan?.length && !info.infoGroups?.length;
+export const isForEveryone = (
+  info: Pick<Info, 'infoAngkatan' | 'infoGroups'>,
+) => !info.infoAngkatan?.length && !info.infoGroups?.length;
 
 /** Whom the re-announcement reached, for its toast: "semua anggota", "angkatan 2025 · PIXEL". */
-export const audienceWords = (info: Pick<Info, 'infoAngkatan' | 'infoGroups'>) => {
+export const audienceWords = (
+  info: Pick<Info, 'infoAngkatan' | 'infoGroups'>,
+) => {
   const text = audText(info);
   return text.replace(/^Untuk /, '');
 };
@@ -436,7 +458,8 @@ export type UploadState =
 
 /** Why Umumkan is blocked by the photos, or null when it isn't. */
 export function uploadsBlock(uploads: readonly UploadState[]) {
-  if (uploads.some((u) => u.status === 'uploading')) return t.tulis.menungguFoto;
+  if (uploads.some((u) => u.status === 'uploading'))
+    return t.tulis.menungguFoto;
   if (uploads.some((u) => u.status === 'failed')) return t.tulis.fotoGagal;
   return null;
 }
@@ -480,6 +503,17 @@ export function hostOf(url: string) {
 
 /* ================= Text ================= */
 
+/**
+ * The post's text as shown: links left alone on its last lines are dropped, since their cards follow right below
+ * (the prototype keeps a post's link apart from its text). Links inside the text stay, made links.
+ */
+export function displayText(content: string) {
+  const lines = content.replace(/\s+$/, '').split('\n');
+  const bare = /^\s*(?:https?:\/\/|www\.)?[\w.-]+\.[a-z]{2,}(?:\/\S*)?\s*$/i;
+  while (lines.length > 1 && bare.test(lines[lines.length - 1])) lines.pop();
+  return lines.join('\n').replace(/\s+$/, '');
+}
+
 /** A post's name where it has no title: "Opsi untuk pengumuman Dimas Aditya", "Pengumuman dari Dimas Aditya". */
 export const menuLabel = (info: Pick<Info, 'title' | 'creator'>) =>
   fill(t.post.menu, {
@@ -491,6 +525,9 @@ export const menuLabel = (info: Pick<Info, 'title' | 'creator'>) =>
 /** A comment's reaction button's name. */
 export function commentReactLabel(mine: PixelReactionKey | null, name: string) {
   return mine
-    ? fill(t.reaksi.komentarMilikmu, { reaksi: reactionLabel(mine), nama: name })
+    ? fill(t.reaksi.komentarMilikmu, {
+        reaksi: reactionLabel(mine),
+        nama: name,
+      })
     : fill(t.reaksi.komentar, { nama: name });
 }

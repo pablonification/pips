@@ -141,7 +141,8 @@ export const pengumuman = {
     errAngkatan: 'Pilih minimal satu angkatan, atau ganti ke Semua.',
     errGrup: 'Pilih minimal satu grup, atau ganti ke Semua.',
     // notifyLine (garis/screens-core.js): who gets the push, and who sees the post.
-    notifikasi: 'Notifikasi dikirim ke {siapa}, kecuali yang mematikan kategori {kategori}.',
+    notifikasi:
+      'Notifikasi dikirim ke {siapa}, kecuali yang mematikan kategori {kategori}.',
     hanyaMereka: ' Pengumuman ini hanya terlihat oleh mereka.',
     keSemua: 'semua anggota',
     keAngkatan: 'angkatan {daftar}',

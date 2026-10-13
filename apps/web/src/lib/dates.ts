@@ -14,7 +14,8 @@ const { hari, hariPendek, bulan, bulanPendek } = tanggal;
 
 type DateLike = Date | string | number;
 
-const ms = (d: DateLike) => (d instanceof Date ? d.getTime() : new Date(d).getTime());
+const ms = (d: DateLike) =>
+  d instanceof Date ? d.getTime() : new Date(d).getTime();
 
 /** The calendar fields of an instant in WIB. */
 export function wib(d: DateLike) {
