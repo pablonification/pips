@@ -286,7 +286,11 @@ export const STATES: CaptureState[] = [
     id: 'testi-courses',
     title: 'Testi Matkul: IF semester 3',
     path: '/layanan/testi/teknik-informatika/3',
-    ready: (p) => visibleText(p, 'Sistem Operasi'),
+    // Every row's count has arrived (P2-B: each row asks for its own; a skeleton line stands in until then).
+    ready: (p) =>
+      p
+        .locator('main:not(:has(.g-skel-bar))')
+        .getByRole('link', { name: /^IF2130 Sistem Operasi/ }),
   },
   {
     id: 'testi-course',
