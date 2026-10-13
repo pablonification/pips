@@ -960,6 +960,18 @@ test.describe('Data SPARTA Magang', () => {
       /^Competition and Community · Competition and Community\s*3$/,
       /^Career Development · Career Development\s*2$/,
     ]);
+    // Regression: at 320 px the long labels' column left the bars a few pixels wide; the label now sits above.
+    const size = page.viewportSize()!;
+    await page.setViewportSize({ width: 320, height: size.height });
+    await expect
+      .poll(() =>
+        bars
+          .first()
+          .locator('.trk')
+          .evaluate((el) => el.clientWidth),
+      )
+      .toBeGreaterThan(150);
+    await page.setViewportSize(size);
     // It counts what matches the status filter.
     await main(page).getByRole('radio', { name: 'Draf' }).check();
     await expect(bars).toHaveText([
