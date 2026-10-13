@@ -1,5 +1,9 @@
 import type { JSX } from 'react';
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  Outlet,
+  useRouterState,
+} from '@tanstack/react-router';
 import UserInfo from '~/components/user/user-info';
 import useSession from '~/hooks/auth/useSession';
 
@@ -10,6 +14,13 @@ export const Route = createFileRoute(
 });
 
 function SettingsItemLayout(): JSX.Element {
+  const { pathname } = useRouterState().location;
+  // Redesigned pages (P1-C) render on their own.
+  if (pathname === '/profil/notifikasi') return <Outlet />;
+  return <TodaySettingsItemLayout />;
+}
+
+function TodaySettingsItemLayout(): JSX.Element {
   const user = useSession();
 
   return (

@@ -106,7 +106,13 @@ export async function enablePush(): Promise<EnableOutcome> {
       userVisibleOnly: true,
       applicationServerKey: import.meta.env.VITE_VAPID_KEY,
     }));
-  await api.push.registerPush({ requestBody: subscriptionBody(sub) });
+  try {
+    await api.push.registerPush({ requestBody: subscriptionBody(sub) });
+  } catch (e) {
+    // The server doesn't know this device: don't leave it looking on. Coba lagi subscribes again, without asking.
+    await sub.unsubscribe().catch(() => false);
+    throw e;
+  }
   return 'aktif';
 }
 

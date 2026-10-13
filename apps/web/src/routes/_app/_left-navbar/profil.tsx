@@ -17,7 +17,17 @@ export const Route = createFileRoute('/_app/_left-navbar/profil')({
   component: SettingsLayout,
 });
 
+/** Profil pages already redesigned (P1-C): they render on their own, without today's settings layout. */
+export const REDESIGNED_PROFIL = ['/profil/notifikasi'];
+
 function SettingsLayout() {
+  const routerState = useRouterState();
+  if (REDESIGNED_PROFIL.includes(routerState.location.pathname))
+    return <Outlet />;
+  return <TodaySettingsLayout />;
+}
+
+function TodaySettingsLayout() {
   const router = useRouter();
   const routerState = useRouterState();
   const selectedSettings = settingsOptions.find((option) =>
