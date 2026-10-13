@@ -4,12 +4,15 @@
  * catches any other write.
  */
 import type {
+  CalendarEvent,
   CommentWithReactions,
+  Competition,
   DraftInternshipSubmission,
   FormAnswer,
   Info,
   InternshipSubmission,
   ReactionAggregate,
+  Testimoni,
 } from '../../src/api/generated';
 import {
   NOW,
@@ -486,4 +489,148 @@ export const presign: Handler = ({ body }) => {
     mediaUrl: `/__e2e__/media/${name.replace(/\.[^.]+$/, '')}.svg`,
     expiresIn: 60,
   };
+};
+
+// P3-B: managing events, competitions and testimonials, as `apps/api/src/controllers/{calendar,competitions,
+// testimoni}.controller.ts`. Events check the role by category and answer 403; competitions (`cnc`) and
+// testimonials (`akademik`) sit behind roleMiddleware, which answers 401 "Unauthorized".
+
+const hasRole = (db: Db, role: string) =>
+  (db.me!.roles as string[]).includes(role);
+const eventRole = (category: string) =>
+  category === 'akademik' ? 'akademik' : 'ring1';
+const forbidden = () =>
+  reply.status(403, { error: 'You are not allowed to manage this event' });
+const unauthorized = () => reply.status(401, { error: 'Unauthorized' });
+const endsBeforeStart = (start: string, end: string) =>
+  Date.parse(end) < Date.parse(start);
+
+/**
+ * POST /api/calendar/event — 201 with the event and its Google Calendar link. `akademik` events need the role and a
+ * course with a calendar group; `himpunan` events need `ring1`. It joins `db.events` (GET /api/calendar/me) when it
+ * is in your own calendar: Himpunan, or one of your courses.
+ */
+export const createEvent: Handler = ({ db, body }) => {
+  const b = body as {
+    title: string;
+    description?: string;
+    start: string;
+    end: string;
+    category: 'akademik' | 'himpunan';
+    courseId?: string;
+  };
+  if (!hasRole(db, eventRole(b.category))) return forbidden();
+  if (b.category === 'akademik' && !b.courseId)
+    return reply.status(400, { error: 'Course ID is required' });
+  if (endsBeforeStart(b.start, b.end))
+    return reply.status(400, { error: 'The event ends before it starts' });
+  const course =
+    b.category === 'akademik'
+      ? db.courses.find((c) => c.id === b.courseId)
+      : null;
+  if (b.category === 'akademik' && !course)
+    return reply.status(404, { error: 'Calendar group not found' });
+  const id = `e2e-event-${db.events.length + 1}-${Date.parse(b.start)}`;
+  const event: CalendarEvent = {
+    id,
+    calendarGroupId: course ? `group-${course.code}` : 'group-himpunan',
+    courseId: course?.id ?? null,
+    title: b.title,
+    description: b.description ?? '',
+    category: b.category,
+    academicYear: db.academic.semesterYear,
+    academicSemesterCode: db.academic.semesterCode,
+    start: b.start,
+    end: b.end,
+    googleCalendarUrl: `https://calendar.google.com/calendar/event?eid=${id}`,
+    googleCalendarId: id,
+  };
+  if (!course || db.myCourses.some((m) => m.courseId === course.id))
+    db.events.push(event);
+  return reply.json(event, 201);
+};
+
+/** PUT /api/calendar/event/:eventId — title, description, start and end; the role of the event's category. */
+export const updateEvent: Handler = ({ db, params, body }) => {
+  const event = db.events.find((e) => e.id === params.eventId);
+  if (!event) return reply.status(404, { error: 'Event not found' });
+  if (!hasRole(db, eventRole(event.category))) return forbidden();
+  const b = body as Partial<
+    Pick<CalendarEvent, 'title' | 'description' | 'start' | 'end'>
+  >;
+  const next = { ...event, ...b };
+  if (endsBeforeStart(next.start, next.end))
+    return reply.status(400, { error: 'The event ends before it starts' });
+  Object.assign(event, b);
+  return { ...event };
+};
+
+/** DELETE /api/calendar/event/:eventId — 204; the role of the event's category. */
+export const deleteEvent: Handler = ({ db, params }) => {
+  const event = db.events.find((e) => e.id === params.eventId);
+  if (!event) return reply.status(404, { error: 'Event not found' });
+  if (!hasRole(db, eventRole(event.category))) return forbidden();
+  db.events = db.events.filter((e) => e.id !== event.id);
+  return reply.text('', 204);
+};
+
+/** POST /api/competitions — `cnc`; 201 with the competition. */
+export const createCompetition: Handler = ({ db, body }) => {
+  if (!hasRole(db, 'cnc')) return unauthorized();
+  const b = body as Omit<Competition, 'id' | 'createdAt' | 'medias'>;
+  const competition: Competition = {
+    ...b,
+    id: `e2e-competition-${db.competitions.length + 1}`,
+    createdAt: NOW,
+    medias: [],
+  };
+  db.competitions.push(competition);
+  return reply.json(competition, 201);
+};
+
+/** PUT /api/competitions/:id — `cnc`; the fields sent replace the stored ones (a sent `mediaUrls` replaces posters). */
+export const updateCompetition: Handler = ({ db, params, body }) => {
+  if (!hasRole(db, 'cnc')) return unauthorized();
+  const c = db.competitions.find((x) => x.id === params.id);
+  if (!c) return reply.status(404, { error: 'Competition not found' });
+  const { mediaUrls, ...rest } = body as Partial<Competition> & {
+    mediaUrls?: string[];
+  };
+  Object.assign(c, rest);
+  if (mediaUrls) c.medias = [];
+  return { ...c };
+};
+
+/** DELETE /api/competitions/:competitionId — `cnc`; 200 with the deleted competition. */
+export const deleteCompetition: Handler = ({ db, params }) => {
+  if (!hasRole(db, 'cnc')) return unauthorized();
+  const c = db.competitions.find((x) => x.id === params.competitionId);
+  if (!c) return reply.status(404, { error: 'Competition not found' });
+  db.competitions = db.competitions.filter((x) => x.id !== c.id);
+  return { ...c };
+};
+
+/** POST /api/testimoni — `akademik` only (not `admin`); 200 with the testimonial, last in its course's list. */
+export const createTestimonial: Handler = ({ db, body }) => {
+  if (!hasRole(db, 'akademik')) return unauthorized();
+  const b = body as Partial<Testimoni> & { courseId: string };
+  const blank = {
+    userName: null,
+    impressions: null,
+    challenges: null,
+    advice: null,
+    overview: null,
+    assignments: null,
+    lecturer_review: null,
+    lecturer: null,
+  };
+  const t: Testimoni = {
+    ...blank,
+    ...b,
+    id: `e2e-testimoni-${db.testimonials.length + 1}`,
+    userId: db.me!.id,
+    createdAt: NOW,
+  };
+  db.testimonials.push(t);
+  return t;
 };
