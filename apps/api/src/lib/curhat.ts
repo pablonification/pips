@@ -8,7 +8,8 @@ export const CURHAT_ADMIN_ROLE = 'curhatadmin';
 
 /**
  * The socket.io room every Welfare socket of the Curhat area joins (P3-C), so a room a member starts later can be
- * joined by all of them at once (`socketsJoin`). Room ids are UUIDs, so it can't clash with one.
+ * joined by all of them at once (`socketsJoin`). Room ids come from `createId` (`db/schema.ts`), which never makes a
+ * colon, so it can't clash with one, and naming it in `curhat:join` or a handshake finds no room and is refused.
  */
 export const CURHAT_WELFARE_ROOM = 'curhat:welfare';
 

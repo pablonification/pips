@@ -225,8 +225,9 @@ export function registerCurhatSocket(
     // and the Welfare group room, through which a room started later is joined (`curhat.controller.ts`).
     if (auth.curhat === true) {
       if (isCurhatAdmin(s.roles)) {
-        const every = await deps.getAllChatroomIds();
-        await socket.join([CURHAT_WELFARE_ROOM, ...every]);
+        // The group room first: a room created while the list is read is then joined through it (`welfareJoin`).
+        await socket.join(CURHAT_WELFARE_ROOM);
+        await socket.join(await deps.getAllChatroomIds());
       } else {
         const owned = await deps.getOwnedChatroomIds(s.userId);
         if (owned.length) await socket.join(owned);

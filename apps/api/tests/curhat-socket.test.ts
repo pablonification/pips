@@ -44,6 +44,8 @@ let rooms: Array<{ id: string; userId: string | null }>;
 let messages: ChatroomMessage[];
 let notified: Array<{ chatroomId: string; senderId: string; content: string }>;
 let failSaves: boolean;
+/** Runs after Welfare's handshake has read the room list, before it returns: a room created in that window. */
+let whileListingRooms: (() => Promise<void> | void) | undefined;
 
 beforeEach(() => {
   rooms = [
@@ -73,6 +75,7 @@ beforeEach(() => {
   ];
   notified = [];
   failSaves = false;
+  whileListingRooms = undefined;
 });
 
 let http: HttpServer;
@@ -91,7 +94,11 @@ before(async () => {
         getChatroom: async (id) => rooms.find((r) => r.id === id),
         getOwnedChatroomIds: async (userId) =>
           rooms.filter((r) => r.userId === userId).map((r) => r.id),
-        getAllChatroomIds: async () => rooms.map((r) => r.id),
+        getAllChatroomIds: async () => {
+          const ids = rooms.map((r) => r.id);
+          await whileListingRooms?.();
+          return ids;
+        },
         getMessage: async (id) => messages.find((m) => m.id === id),
         // As the unique index on (chatroom_id, client_message_id) does: a repeat in the same room saves nothing.
         saveMessage: async ({
@@ -533,6 +540,48 @@ test("a Welfare curhat handshake joins every room and Welfare's group room; a me
   );
   assert.deepEqual(await roomsOf(member.id!), ['r9']);
   assert.deepEqual(await roomsOf(notWelfare.id!), []);
+});
+
+// Review m1 (round 2): the handshake read the room list, then joined the group room; a room created in between was
+// joined (`welfareJoin`) before this socket was in the group room, and so missed.
+test('a room created while a Welfare handshake reads the room list still reaches that socket', async () => {
+  whileListingRooms = () => {
+    rooms.push({ id: 'r-new', userId: nadia.id });
+    // What `welfareJoin` does for the create route.
+    io.in(CURHAT_WELFARE_ROOM).socketsJoin('r-new');
+  };
+  const staff = await client(welfare, { curhat: true });
+  await settled();
+  assert.deepEqual(
+    await roomsOf(staff.id!),
+    [CURHAT_WELFARE_ROOM, 'r-new', 'r1', 'r2', 'r9'].sort(),
+  );
+});
+
+// Review m2 (round 2): the group room's name can't be a room id (`createId` makes no colon), so a member can't reach
+// it by naming it.
+test("a member can't join Welfare's group room, by curhat:join, a message or the handshake", async () => {
+  const joiner = await client(nadia, { curhat: true });
+  await settled();
+  assert.deepEqual(
+    await joiner
+      .timeout(2000)
+      .emitWithAck('curhat:join', { chatroomId: CURHAT_WELFARE_ROOM }),
+    { ok: false, error: 'forbidden' },
+  );
+  assert.deepEqual(
+    await send(joiner, { chatroomId: CURHAT_WELFARE_ROOM, message: 'x' }),
+    { ok: false, error: 'forbidden' },
+  );
+  const handshake = await client(nadia, { chatroomId: CURHAT_WELFARE_ROOM });
+  await settled();
+  assert.deepEqual(await roomsOf(joiner.id!), ['r1', 'r2']);
+  assert.deepEqual(await roomsOf(handshake.id!), []);
+  const inGroup = await io.in(CURHAT_WELFARE_ROOM).fetchSockets();
+  assert.deepEqual(
+    inGroup.filter((x) => x.id === joiner.id || x.id === handshake.id),
+    [],
+  );
 });
 
 test('a room a member starts after Welfare connected reaches Welfare live, through the create route', async () => {
