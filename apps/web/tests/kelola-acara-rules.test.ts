@@ -99,6 +99,7 @@ test('a new draft: the chosen day, 13.00 to 15.00', () => {
     date: '2026-10-08',
     start: '13:00',
     end: '15:00',
+    endDays: 0,
     description: '',
   });
 });
@@ -182,9 +183,10 @@ test('changing an event: filled in WIB; only title, description, start and end a
     date: '2026-10-08',
     start: '10:00',
     end: '11:00',
+    endDays: 0,
     description: 'Pencarian dan heuristik.',
   });
-  assert.deepEqual(updateBody({ ...d, date: '2026-11-02' }), {
+  assert.deepEqual(updateBody({ ...d, date: '2026-11-02' }, e), {
     title: 'Kuis 1',
     description: 'Pencarian dan heuristik.',
     start: '2026-11-02T03:00:00.000Z',
@@ -274,4 +276,50 @@ test('writes never sign out: 401 and 403 are "no access"; anything else is "not 
   for (const text of Object.values(kelolaTulis)) {
     assert.doesNotMatch(text, /authorized|Unauthorized|!/);
   }
+});
+
+test('regression (review m2): an event that ends on a later day keeps its days when edited', () => {
+  // Rapat Kerja, Selasa 13 to Kamis 15 Oktober, 09.00 to 17.00 WIB.
+  const e: CalendarEvent = {
+    id: 'h1',
+    calendarGroupId: 'group-himpunan',
+    courseId: null,
+    title: 'Rapat Kerja',
+    description: '',
+    category: 'himpunan',
+    academicYear: null,
+    academicSemesterCode: null,
+    start: '2026-10-13T02:00:00.000Z',
+    end: '2026-10-15T10:00:00.000Z',
+    googleCalendarUrl: 'https://calendar.google.com/h',
+    googleCalendarId: 'h',
+  };
+  const d = draftOf(e);
+  assert.deepEqual(validateEvent(d), {});
+  // Only the title changed: no start or end is sent, so the API keeps both.
+  assert.deepEqual(updateBody({ ...d, title: 'Rapat Kerja HMIF' }, e), {
+    title: 'Rapat Kerja HMIF',
+    description: '',
+  });
+  // A moved date keeps the end two days after the start.
+  assert.deepEqual(updateBody({ ...d, date: '2026-10-20' }, e), {
+    title: 'Rapat Kerja',
+    description: '',
+    start: '2026-10-20T02:00:00.000Z',
+    end: '2026-10-22T10:00:00.000Z',
+  });
+  // So does a changed time.
+  assert.deepEqual(updateBody({ ...d, start: '08:00' }, e), {
+    title: 'Rapat Kerja',
+    description: '',
+    start: '2026-10-13T01:00:00.000Z',
+    end: '2026-10-15T10:00:00.000Z',
+  });
+  // Overnight, 20.00 to 02.00 the next day: valid as it is.
+  const night = draftOf({
+    ...e,
+    start: '2026-10-13T13:00:00.000Z',
+    end: '2026-10-13T19:00:00.000Z',
+  });
+  assert.deepEqual(validateEvent(night), {});
 });

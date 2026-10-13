@@ -8,7 +8,9 @@ import { fill } from '~/copy/fill';
 import { kelolaAcara as t } from '~/copy/kelola-acara';
 import type { EventCategory } from '~/lib/capabilities';
 import {
+  addDays,
   dayKeyOf,
+  daysBetween,
   monthOf,
   wibOf,
   wibToIso,
@@ -25,6 +27,8 @@ export interface EventDraft {
   date: DayKey;
   start: TimeKey;
   end: TimeKey;
+  /** The end's day, in days after the start's: 0 for the form's own events, more for one across midnight or days. */
+  endDays: number;
   description: string;
 }
 
@@ -69,6 +73,7 @@ export function newDraft(
     date: day,
     start: '13:00',
     end: '15:00',
+    endDays: 0,
     description: '',
   };
 }
@@ -83,9 +88,18 @@ export function draftOf(e: CalendarEvent): EventDraft {
     title: e.title,
     date: s.day,
     start: s.time,
-    // An event across midnight keeps its end time; the form has one date (the API's events are within a day).
+    // The form shows one date; an event the API stored across midnight or days keeps its end's day (review m2).
     end: en.time,
+    endDays: Math.max(0, daysBetween(s.day, en.day)),
     description: e.description,
+  };
+}
+
+/** The draft's start and end as ISO, the end `endDays` after the start's date (null when not a real date or time). */
+function instants(d: EventDraft) {
+  return {
+    start: wibToIso(d.date, d.start),
+    end: d.date ? wibToIso(addDays(d.date, d.endDays), d.end) : null,
   };
 }
 
@@ -99,8 +113,7 @@ export function validateEvent(d: EventDraft): EventErrors {
   const missing = (['date', 'start', 'end'] as const).find((k) => !d[k]);
   if (missing) errors[missing] = t.galat.waktu;
   else {
-    const start = wibToIso(d.date, d.start);
-    const end = wibToIso(d.date, d.end);
+    const { start, end } = instants(d);
     if (!start)
       errors[wibToIso(d.date, '00:00') ? 'start' : 'date'] = t.galat.waktu;
     else if (!end) errors.end = t.galat.waktu;
@@ -119,18 +132,23 @@ export function createBody(d: EventDraft) {
     ...(d.category === 'akademik' ? { courseId: d.courseId } : {}),
     title: d.title.trim(),
     description: d.description.trim(),
-    start: wibToIso(d.date, d.start)!,
-    end: wibToIso(d.date, d.end)!,
+    start: instants(d).start!,
+    end: instants(d).end!,
   };
 }
 
-/** `PUT /calendar/event/{id}`: only what the API can change (the course and category stay). */
-export function updateBody(d: EventDraft) {
+/**
+ * `PUT /calendar/event/{id}`: only what the API can change (the course and category stay). The start and end go only
+ * when the date or a time changed, so an event the form can't show whole (across days) isn't cut to one (review m2).
+ */
+export function updateBody(d: EventDraft, e: CalendarEvent) {
+  const was = draftOf(e);
+  const moved =
+    d.date !== was.date || d.start !== was.start || d.end !== was.end;
   return {
     title: d.title.trim(),
     description: d.description.trim(),
-    start: wibToIso(d.date, d.start)!,
-    end: wibToIso(d.date, d.end)!,
+    ...(moved ? { start: instants(d).start!, end: instants(d).end! } : {}),
   };
 }
 

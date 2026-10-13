@@ -118,7 +118,7 @@ export default function EventDialog({
       mode.kind === 'edit'
         ? api.calendar.updateCalendarEvent({
             eventId: mode.event.id,
-            requestBody: updateBody(d),
+            requestBody: updateBody(d, mode.event),
           })
         : api.calendar.postCalendarEvent({ requestBody: createBody(d) }),
   });
