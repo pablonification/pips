@@ -24,6 +24,7 @@ export const GARIS_FILES = [
   'src/lib/shell/**/*.{ts,tsx}',
   // P1-C: push, Profil, Layanan, sign-in and first run.
   'src/components/push/**/*.{ts,tsx}',
+  'src/features/**/*.{ts,tsx}',
   // P1-B: Pengumuman, and the shared date words.
   'src/features/pengumuman/**/*.{ts,tsx}',
   'src/lib/dates.ts',

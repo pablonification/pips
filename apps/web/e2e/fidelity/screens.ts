@@ -66,22 +66,18 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       path: '/layanan/curhat',
       ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
     },
+    // P1-C: Profil, Mata kuliahku and Notifikasi, redesigned in place.
     'anggota-profil': {
       path: '/profil',
-      ready: (p) =>
-        p
-          .getByRole('listitem')
-          .filter({ hasText: '13525045' })
-          .locator('visible=true')
-          .first(),
+      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 18 SKS'),
     },
     'anggota-matkul': {
       path: '/profil/matkul',
-      ready: (p) => p.getByText('Jumlah SKS').locator('visible=true').first(),
+      ready: (p) => p.getByRole('main').getByText('Jumlah SKS'),
     },
     'anggota-notif': {
       path: '/profil/notifikasi',
-      ready: (p) => p.getByRole('switch').locator('visible=true').last(),
+      ready: (p) => p.getByRole('main').getByRole('switch', { name: 'Lomba' }),
     },
     'pengurus-kelola': {
       path: '/kelola',
@@ -117,7 +113,56 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
         },
         ready: (p) => p.getByRole('alertdialog', { name: 'Kirim jawaban?' }),
       },
+      // P1-C: Keluar's confirmation on phones and tablets.
+      {
+        path: '/profil',
+        layouts: ['phone', 'tablet'],
+        act: async (p) => {
+          await p
+            .getByRole('main')
+            .getByText('6 mata kuliah · 18 SKS')
+            .waitFor();
+          // Clicked in place, as the prototype's capture: the page stays at its top behind the sheet.
+          await p
+            .getByRole('main')
+            .getByRole('button', { name: 'Keluar' })
+            .evaluate((b: HTMLElement) => b.click());
+        },
+        ready: (p) =>
+          p.getByRole('alertdialog', { name: 'Keluar dari PIPS!?' }),
+      },
     ],
+    // P1-C: Raka's Profil, Tambah mata kuliah, the push prompt and Layanan.
+    'pengurus-profil': {
+      path: '/profil',
+      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 19 SKS'),
+    },
+    'anggota-matkul-add': {
+      path: '/profil/matkul/tambah',
+      ready: (p) => p.getByRole('main').getByText('Strategi Algoritma'),
+    },
+    'anggota-ov-push': {
+      path: '/profil/notifikasi',
+      act: async (p) => {
+        await p
+          .getByRole('main')
+          .getByRole('switch', { name: 'Lomba' })
+          .waitFor();
+        await p
+          .getByRole('main')
+          .getByRole('button', { name: 'Nyalakan notifikasi' })
+          .click();
+      },
+      ready: (p) => p.getByRole('dialog', { name: 'Nyalakan notifikasi?' }),
+    },
+    'anggota-layanan': {
+      path: '/layanan',
+      ready: (p) => p.getByRole('main').getByText('1 belum diisi'),
+    },
+    'pengurus-layanan': {
+      path: '/layanan',
+      ready: (p) => p.getByRole('main').getByText('Tambah acara Akademik'),
+    },
 
     // P1-B: Pengumuman. The phone and tablet captures of the locked `post` were set without opening p1, so they show 4
     // unread where the app (which marks it read) shows 3.

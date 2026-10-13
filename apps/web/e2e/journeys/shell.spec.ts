@@ -529,8 +529,13 @@ test.describe('global search', () => {
       ['https://s.hmif.dev/BayarKasHMIF', '_blank', 'noopener,noreferrer'],
     ]);
     await expect(page).toHaveURL(/\/layanan$/);
-    // Review m1: focus was left on nothing. Opened from the keyboard, it goes to the page.
-    await expect(page.locator('#isi')).toBeFocused();
+    // Review m1: focus was left on nothing. Opened from the keyboard, it goes to the page's title (Layanan has its
+    // own since P1-C; before, the page had none and focus went to main#isi).
+    await expect(
+      page
+        .getByRole('heading', { level: 1, name: 'Layanan' })
+        .locator('visible=true'),
+    ).toBeFocused();
   });
 
   test('opening something that leaves you on this page gives focus back to what opened search', async ({
