@@ -279,9 +279,10 @@ test.describe('today’s screens inside the shell', () => {
   test('a screen that fills the window fits between the bars, its own scrolling intact', async ({
     page,
   }) => {
-    await page.goto('/layanan/form');
+    // Info Lomba is still today's screen (h-screen); Form was until P2-A replaced it.
+    await page.goto('/layanan/lomba');
     await expect(
-      page.getByRole('main').getByText('Form Analisis Kondisi PIXEL').first(),
+      page.getByRole('main').getByText('Find IT! 2026').first(),
     ).toBeVisible();
     const overflow = await page
       .locator('[data-scroll-restoration-id="isi"]')
