@@ -69,10 +69,15 @@ test.describe('catching up (Nadia)', () => {
     if (isDesk(testInfo)) {
       // The row keeps focus; the list stays.
       await expectFocused(postInList(page, testInfo, 'p1'));
-      // Its URL is now the page's ("true" while it was only the default selection).
+      // Its URL is now the page's ("true" while it was only the default selection), and it still looks selected
+      // (regression: the highlight followed only "true").
       await expect(postInList(page, testInfo, 'p1')).toHaveAttribute(
         'aria-current',
         'page',
+      );
+      await expect(postInList(page, testInfo, 'p1')).toHaveCSS(
+        'box-shadow',
+        /inset/,
       );
     } else {
       // The post is the page: its title is the h1, and focus is on it.
@@ -219,6 +224,24 @@ test.describe('catching up (Nadia)', () => {
       detail(page).getByRole('button', { name: 'Keren, 18 orang' }),
     ).toHaveAttribute('aria-pressed', 'false');
     await strictGates(page, testInfo, 'reaction-error');
+  });
+
+  test('a sent comment keeps the focused field in view (regression: it slid below the window)', async ({
+    page,
+    api,
+  }) => {
+    api
+      .on('POST /api/info/:infoId/read', writes.markRead)
+      .on('POST /api/comment', writes.comment);
+    await page.goto('/pengumuman/p1');
+    const field = page.getByRole('textbox', { name: 'Tulis komentar' });
+    await field.fill('Kak, IF2120 K02 di ruang mana?');
+    await page.getByRole('button', { name: 'Kirim komentar' }).click();
+    await expect(
+      detail(page).getByText('Kak, IF2120 K02 di ruang mana?'),
+    ).toBeVisible();
+    await expectFocused(field);
+    await expect(field).toBeInViewport({ ratio: 1 });
   });
 
   test('commenting, then deleting your own comment through the confirmation', async ({
