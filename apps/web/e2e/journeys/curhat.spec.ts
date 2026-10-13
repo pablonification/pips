@@ -289,6 +289,28 @@ test.describe('a room', () => {
     );
   });
 
+  test('regression: the composer stays at the bottom of the window while you read back', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    await openR1(page);
+    await page
+      .locator('[data-scroll-restoration-id="isi"]')
+      .evaluate((el) => (el.scrollTop = 0));
+    await expect(bubble(page, M1)).toBeInViewport();
+    await expect(composer(page)).toBeInViewport({ ratio: 1 });
+    await expect(sendButton(page)).toBeInViewport({ ratio: 1 });
+    // A reply chip and a long draft grow the bar upwards; it stays whole on screen.
+    await log(page).getByRole('button', { name: 'Balas' }).first().click();
+    await composer(page).fill('satu\ndua\ntiga\nempat');
+    await page
+      .locator('[data-scroll-restoration-id="isi"]')
+      .evaluate((el) => (el.scrollTop = 0));
+    await expect(chip(page)).toBeInViewport({ ratio: 1 });
+    await expect(composer(page)).toBeInViewport({ ratio: 1 });
+  });
+
   test('a room without unread messages isn’t marked read again', async ({
     page,
     api,
