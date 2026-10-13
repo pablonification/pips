@@ -38,6 +38,8 @@ export const GARIS_FILES = [
   'src/routes/_app/_left-navbar/layanan/form/index.tsx',
   'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
   'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
+  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba.
+  'src/features/**/*.{ts,tsx}',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
@@ -96,11 +98,12 @@ export default defineConfig([
       'garis/no-transition-all': 'error',
       'garis/no-img-icon': [
         'error',
-        // The logo is only ever the official image; Media is the one way to show a picture.
+        // The logo is only ever the official image; Media shows a picture, Avatar a person's photo.
         {
           allow: [
             'src/components/garis/HmifLogo.tsx',
             'src/components/garis/Surface.tsx',
+            'src/components/garis/Avatar.tsx',
           ],
         },
       ],
