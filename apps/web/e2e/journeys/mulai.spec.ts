@@ -89,6 +89,10 @@ test.describe('a new member', () => {
     const courses = step(page, 'Atur mata kuliah semester ini');
     await expect(courses).toContainText('Selesai');
     await expect(courses).toContainText('2 mata kuliah · 6 SKS');
+    // Regression (review M1): Tambahkan went forward to /mulai, so Back returned to an empty Tambah mata kuliah.
+    await expect(
+      page.getByRole('button', { name: 'Kembali ke Tambah mata kuliah' }),
+    ).toHaveCount(0);
 
     await step(page, 'Notifikasi belum menyala')
       .getByRole('button', { name: 'Nyalakan' })

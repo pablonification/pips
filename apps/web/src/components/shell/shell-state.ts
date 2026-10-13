@@ -117,3 +117,12 @@ export function setLastRoot(root: Destination) {
 export function useLastRoot(): Destination {
   return useSyncExternalStore(subscribe, lastRoot, () => 'beranda' as const);
 }
+
+/**
+ * Whether the history entry before this one is `pathname`, so a page that is done can go back to it instead of
+ * adding an entry (Tambahkan in Tambah mata kuliah: the prototype's `back(m)`; review M1).
+ */
+export function previousEntryIs(state: unknown, pathname: string): boolean {
+  const index = (state as { __TSR_index?: number } | null)?.__TSR_index ?? 0;
+  return index > 0 && entryAt(index - 1)?.pathname === pathname;
+}

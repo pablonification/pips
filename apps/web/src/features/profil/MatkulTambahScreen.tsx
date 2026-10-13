@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { api } from '~/api/client';
 import { COURSE_CATALOGUE_QUERY_KEY } from '~/api/constants';
@@ -16,6 +16,7 @@ import {
 } from '~/components/garis';
 import { IconTambah } from '~/components/icons/tambah';
 import { DeskHead, PageBody, TopBarActions } from '~/components/shell/page';
+import { previousEntryIs } from '~/components/shell/shell-state';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
 import { profil } from '~/copy/profil';
@@ -73,7 +74,7 @@ export function MatkulTambahScreen({
 }) {
   const me = useSession();
   const qc = useQueryClient();
-  const navigate = useNavigate();
+  const router = useRouter();
   const academic = useQuery(userAcademicQuery());
   const mine = useQuery(currentCoursesQuery());
   const catalogue = useQuery(catalogueQuery());
@@ -112,7 +113,12 @@ export function MatkulTambahScreen({
     refreshCourses(qc);
     setPicks({});
     toast.success(fill(copy.ditambahkan, { jumlah: count }));
-    await navigate({ to: fromFirstRun ? '/mulai' : '/profil/matkul' });
+    // Back to the page Tambah mata kuliah came from, as the prototype's `back(m)`: going forward to it would leave
+    // this page in history, and Back would return to an empty Tambah mata kuliah (review M1).
+    const to = fromFirstRun ? '/mulai' : '/profil/matkul';
+    if (previousEntryIs(router.history.location.state, to))
+      router.history.back();
+    else await router.navigate({ to, replace: true });
   };
 
   const addButton = (

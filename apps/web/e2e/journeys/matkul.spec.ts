@@ -237,6 +237,51 @@ test.describe('Tambah mata kuliah', () => {
     await expect.poll(() => sks(page)).toBe('21');
   });
 
+  test('regression: Tambahkan goes back to Mata kuliahku, so Back then leaves for Profil, not an empty Tambah mata kuliah', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api.on('PUT /api/course/take/batch', writes.takeCourses);
+    await page.goto('/profil');
+    await main(page)
+      .getByRole('link', { name: /^Mata kuliahku/ })
+      .click();
+    await expect(page).toHaveURL(/\/profil\/matkul$/);
+    await main(page).getByRole('link', { name: 'Tambah mata kuliah' }).click();
+    await search(page).fill('IF2211');
+    await kelas(page, 'IF2211').getByRole('radio', { name: 'K2' }).click();
+    await addButton(page).click();
+    await expect(page).toHaveURL(/\/profil\/matkul$/);
+    await expect.poll(() => codes(page)).toHaveLength(7);
+    if (layoutOf(testInfo) !== 'desktop')
+      await expect(
+        page.getByRole('banner').getByRole('button', { name: /^Kembali ke / }),
+      ).toHaveAccessibleName('Kembali ke Profil');
+    await page.goBack();
+    await expect(page).toHaveURL(/\/profil$/);
+  });
+
+  test('regression: opened directly, Tambahkan replaces it with Mata kuliahku', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api.on('PUT /api/course/take/batch', writes.takeCourses);
+    await page.goto('/profil');
+    await page.goto('/profil/matkul/tambah');
+    await search(page).fill('IF2211');
+    await kelas(page, 'IF2211').getByRole('radio', { name: 'K2' }).click();
+    await addButton(page).click();
+    await expect(page).toHaveURL(/\/profil\/matkul$/);
+    await expect.poll(() => codes(page)).toHaveLength(7);
+    if (layoutOf(testInfo) !== 'desktop')
+      await expect(
+        page.getByRole('banner').getByRole('button', { name: /^Kembali ke / }),
+      ).toHaveAccessibleName('Kembali ke Profil');
+    // The browser's back leaves Mata kuliahku for the page before Tambah mata kuliah.
+    await page.goBack();
+    await expect(page).toHaveURL(/\/profil$/);
+  });
+
   test('re-choosing a class clears it; with no picks Tambahkan only says what to do', async ({
     page,
     api,
