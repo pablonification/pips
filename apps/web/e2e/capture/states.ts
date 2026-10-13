@@ -50,7 +50,8 @@ export const STATES: CaptureState[] = [
     title: 'Sign-in',
     signedIn: false,
     path: '/login',
-    ready: (p) => visibleText(p, 'Log in with your std email to get you in'),
+    // P1-C replaced today's sign-in ("Log in with your std email to get you in").
+    ready: (p) => p.getByRole('button', { name: 'Masuk dengan Google' }),
   },
   {
     id: 'install-prompt',
@@ -408,12 +409,8 @@ export const STATES: CaptureState[] = [
     id: 'settings',
     title: 'Settings',
     path: '/profil',
-    ready: (p) =>
-      p
-        .getByRole('listitem')
-        .filter({ hasText: '13525045' })
-        .locator('visible=true')
-        .first(),
+    // P1-C replaced today's settings (a list item with the NIM): Profil once its counts have loaded.
+    ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 18 SKS'),
   },
   {
     id: 'settings-courses',
