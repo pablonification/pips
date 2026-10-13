@@ -198,6 +198,7 @@ function Dialogs({ target, onClose }: { target: Target; onClose: () => void }) {
       cancelLabel={t.batal}
       confirmLabel={t.hapusTombol}
       danger
+      busy={remove.isPending}
       onConfirm={() => {
         if (remove.isPending) return;
         remove.mutate(undefined, {
