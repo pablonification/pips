@@ -59,6 +59,10 @@ export const GARIS_FILES = [
   'src/routes/_app/_left-navbar/layanan/curhat/route.tsx',
   'src/routes/_app/_left-navbar/layanan/curhat/index.tsx',
   'src/routes/_app/_left-navbar/layanan/curhat/$roomId.tsx',
+  // P3-C: Curhat Yuk!'s inbox for Welfare.
+  'src/routes/_app/_left-navbar/kelola/curhat/route.tsx',
+  'src/routes/_app/_left-navbar/kelola/curhat/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/curhat/$roomId.tsx',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
