@@ -169,7 +169,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     () =>
       router.subscribe('onRendered', (e) => {
         if (!e.fromLocation || !e.pathChanged) return;
-        focusAfterNavigation();
+        focusAfterNavigation(e.toLocation.pathname);
       }),
     [router],
   );
@@ -472,6 +472,13 @@ function TabBar({
             to={to}
             className="g-tab"
             aria-current={on ? 'page' : undefined}
+            // The name in one piece ("Pengumuman, 4 belum dibaca"): a hidden span inside would add a space before
+            // the comma in the computed name.
+            aria-label={
+              n > 0
+                ? `${common.nav[d]}, ${fill(common.shell.belumDibaca, { jumlah: badgeText(n) })}`
+                : undefined
+            }
             activeOptions={{ exact: true }}
             onClick={onClick}
           >
@@ -483,14 +490,7 @@ function TabBar({
                 {badgeText(n)}
               </span>
             ) : null}
-            <span>
-              {common.nav[d]}
-              {n > 0 ? (
-                <span className="sr-only">
-                  {`, ${fill(common.shell.belumDibaca, { jumlah: badgeText(n) })}`}
-                </span>
-              ) : null}
-            </span>
+            <span>{common.nav[d]}</span>
           </Link>
         );
       })}

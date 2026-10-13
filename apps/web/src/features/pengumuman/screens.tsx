@@ -21,6 +21,7 @@ import {
   SkeletonRow,
 } from '~/components/garis';
 import { DESKTOP_QUERY, useMediaQuery } from '~/components/garis/useMediaQuery';
+import { keepFocusOnNavigationTo } from '~/components/shell/focus';
 import { PageBody, PageTitle } from '~/components/shell/page';
 import { pengumuman as t } from '~/copy/pengumuman';
 import { useFeed, useInfo, useMarkRead } from './data';
@@ -79,12 +80,15 @@ function ListColumn({
   desk: boolean;
   selected: string | null;
 }) {
-  const keepFocus = (id: string) =>
+  // Choosing a row opens its post beside the list; focus stays on the row (the shell would move it to the title).
+  const keepFocus = (id: string) => {
+    keepFocusOnNavigationTo(`/pengumuman/${encodeURIComponent(id)}`);
     focusSoon(() =>
       document.querySelector<HTMLElement>(
         `[data-post-row="${CSS.escape(id)}"]`,
       ),
     );
+  };
   // One element on every layout, so the list (and the search being typed) survives crossing 1024 px.
   return (
     <div className={desk ? 'in' : 'g-body g-feed-page'}>
