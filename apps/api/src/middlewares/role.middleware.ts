@@ -17,8 +17,8 @@ const factory = createFactory<{
  */
 export const roleMiddleware = (
   accessRoles: UserRolesEnum[],
-  getRoles: (userId: string) => Promise<UserRolesEnum[]> = (userId) =>
-    getUserRoles(db, userId),
+  getRoles: (userId: string) => Promise<UserRolesEnum[]> = async (userId) =>
+    await getUserRoles(db, userId),
 ) => {
   return factory.createMiddleware(async (c, next) => {
     const roles = await getRoles(c.var.user.id);

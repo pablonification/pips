@@ -63,8 +63,13 @@ function setup(
   const deleted: string[] = [];
   const deps: CalendarDeps = {
     getUserRoles: async () => roles,
-    getCalendarGroupByCourseId: async () => group('akademik'),
-    getCalendarGroupByCategory: async (category) => group(category),
+    // The repository returns a Drizzle query (awaitable); a promise stands in for it.
+    getCalendarGroupByCourseId: (async () =>
+      group(
+        'akademik',
+      )) as unknown as CalendarDeps['getCalendarGroupByCourseId'],
+    getCalendarGroupByCategory: (async (category: 'akademik' | 'himpunan') =>
+      group(category)) as unknown as CalendarDeps['getCalendarGroupByCategory'],
     createCalendarEvent: async (data) =>
       ({
         id: 'ev-new',
