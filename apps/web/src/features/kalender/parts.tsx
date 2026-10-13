@@ -37,6 +37,7 @@ import {
   timeLine,
   type CalEvent,
 } from './rules';
+import { EventOptions } from '~/features/kelola-acara/EventOptions';
 import './kalender.css';
 
 /** Up to three bars for a day's events: solid Akademik, hatched Himpunan, short for a deadline. Decorative. */
@@ -234,11 +235,13 @@ export function EventInfo({
   const himpunan = isHimpunan(e);
   return (
     <>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         <Tag tone={himpunan ? 'accent' : 'default'}>
           {himpunan ? t.detail.himpunan : t.detail.akademik}
         </Tag>
         {isEnded(e, now) ? <Tag>{t.detail.sudahLewat}</Tag> : null}
+        {/* P3-B: Ubah acara and Hapus acara, for whoever may manage this category. */}
+        <EventOptions event={e} />
       </div>
       <div>
         {course ? (
