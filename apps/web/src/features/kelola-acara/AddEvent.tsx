@@ -15,7 +15,7 @@ import { calendarEventsQuery, currentCoursesQuery } from '~/api/queries';
 import { DESKTOP_QUERY, toast, useMediaQuery } from '~/components/garis';
 import { focusPageTitle } from '~/components/shell/focus';
 import useSession from '~/hooks/auth/useSession';
-import { can, type EventCategory } from '~/lib/capabilities';
+import { eventCategoriesFor } from '~/lib/capabilities';
 import { monthOf, type DayKey } from '~/lib/days';
 import { useDeskPick } from '~/features/kalender/desk-pick';
 import { reportWriteFailure } from '~/features/kelola-tulis/write';
@@ -44,9 +44,7 @@ export function myCourseIds(taken: readonly UserCourse[] | undefined) {
 
 export function AddEventHost({ open, day }: { open: boolean; day: DayKey }) {
   const user = useSession();
-  const categories: EventCategory[] = can(user, 'createAkademikEvent')
-    ? ['akademik']
-    : [];
+  const categories = eventCategoriesFor(user);
   const navigate = useNavigate();
   const router = useRouter();
   const qc = useQueryClient();
