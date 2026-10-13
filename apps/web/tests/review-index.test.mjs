@@ -91,3 +91,15 @@ test('the summary lists blockers without recommending; security items are tagged
   assert.ok(html.includes('Flow “Global search” fails: F1-1: fake'));
   assert.match(html, /C3<\/strong>.*security/);
 });
+
+test('a finding a later merge fixed is no blocker (F1-2, fixed by C1)', () => {
+  const d = /** @type {any} */ (fakeData());
+  d.findings = [
+    { id: 'F1-7', title: 'Still broken', flows: [] },
+    { id: 'F1-8', title: 'Fixed since', flows: [], fixed: 'Fixed by C1.' },
+  ];
+  const page = buildIndex(d);
+  const blockers = page.slice(page.indexOf('Blockers and findings'));
+  assert.ok(blockers.includes('F1-7: Still broken'));
+  assert.ok(!blockers.includes('F1-8: Fixed since'));
+});

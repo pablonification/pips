@@ -311,7 +311,7 @@ export const SECURITY_IDS = ['C3', 'C10', 'A12', 'A14', 'C13'];
  * The questions file: OPEN-QUESTIONS first (with ids), then every report's, brief's and note's items, then the log's
  * decisions and F1's own findings. Equal items (same text once plain) are merged, their sources kept.
  * @param {{ openQuestions: string, plan: string, files: { path: string, text: string }[],
- *   findings?: { id: string, title: string, detail: string, owner: string, flows: string[], security?: boolean }[] }} o
+ *   findings?: { id: string, title: string, detail: string, owner: string, flows: string[], security?: boolean, fixed?: string }[] }} o
  */
 export function buildQuestions({ openQuestions, plan, files, findings = [] }) {
   /** @type {Map<string, any>} */
@@ -389,8 +389,8 @@ export function buildQuestions({ openQuestions, plan, files, findings = [] }) {
       group: 'F1 findings',
       question: `${f.title}. ${f.detail}`,
       who: 'Dev 1',
-      status: 'open',
-      decision: null,
+      status: f.fixed ? 'decided' : 'open',
+      decision: f.fixed ?? null,
       built: null,
       from: 'F1',
       tags: f.security ? ['security', 'finding'] : ['finding'],

@@ -122,7 +122,9 @@ function summary(d) {
       (/** @type {any} */ s) =>
         `Screen ${s.name} differs from the prototype with no reason given`,
     ),
-    ...(d.findings ?? []).map((/** @type {any} */ f) => `${f.id}: ${f.title}`),
+    ...(d.findings ?? [])
+      .filter((/** @type {any} */ f) => !f.fixed)
+      .map((/** @type {any} */ f) => `${f.id}: ${f.title}`),
   ];
   return `<section id="summary" aria-labelledby="summary-h">
 <h2 id="summary-h">Summary for the decision</h2>

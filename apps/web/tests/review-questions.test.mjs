@@ -174,9 +174,20 @@ test('duplicates merge with every source kept; groups by who decides; security t
         owner: 'P1-A',
         flows: ['beranda'],
       },
+      {
+        id: 'F1-10',
+        title: 'A fixed bug',
+        detail: 'Seen.',
+        owner: 'P0-B',
+        flows: [],
+        fixed: 'Fixed by C1.',
+      },
     ],
   });
   const all = q.groups.flatMap((g) => g.items);
+  assert.equal(all.find((i) => i.id === 'F1-10').status, 'decided');
+  assert.equal(all.find((i) => i.id === 'F1-10').decision, 'Fixed by C1.');
+  assert.equal(all.find((i) => i.id === 'F1-9').status, 'open');
   const mig = all.filter((i) => i.question.startsWith('Apply migration'));
   assert.equal(mig.length, 1);
   assert.deepEqual(

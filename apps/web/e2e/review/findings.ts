@@ -16,6 +16,8 @@ export interface Finding {
   /** The task that owns the screen. */
   owner: string;
   security?: boolean;
+  /** Set when a later merge fixed it: what fixed it. The finding stays listed, shown as fixed, not as a blocker. */
+  fixed?: string;
 }
 
 /** Where a finding fails its flows: every recording, or only these layouts or themes. */
@@ -40,12 +42,14 @@ export const FINDINGS: Finding[] = [
     id: 'F1-2',
     title:
       'In dark, the error page of a page that failed to load fails contrast: its "Ke Beranda" button',
-    flows: ['errors-offline'],
+    flows: [],
     layouts: ['phone', 'tablet', 'desktop'],
     themes: ['dark'],
     detail:
-      'When a page\'s code fails to load, the shell shows "Bagian ini gagal dimuat." with Coba lagi and Ke Beranda (src/components/error-fallback.tsx, RouteErrorFallback). It is built from today\'s Button (components/ui/button.tsx, variant "outlined"), not Garis components, and in dark axe reports color-contrast (serious) on the outlined Ke Beranda button (.border): its words are dark on the dark page and can hardly be read, and Coba lagi is a black button. Light passes. The still `route-error` shows it. No journey reaches this state. C1 may touch the old Button; check again after C1.',
+      'Found in part 1 on 6bbbbd8: when a page\'s code fails to load, the shell shows "Bagian ini gagal dimuat." with Coba lagi and Ke Beranda (src/components/error-fallback.tsx, RouteErrorFallback), then built from today\'s Button; in dark, axe reported color-contrast (serious) on the outlined Ke Beranda. The flow errors-offline carried test.fail in dark.',
     owner: 'P0-B',
+    fixed:
+      'Fixed by C1 (fc60b01, merged into redesign as 5a23c22): the fallbacks use the Garis Button. After the merge the dark errors-offline flow passed its strict audit, so its test.fail marker was removed (part 2).',
   },
 ];
 
