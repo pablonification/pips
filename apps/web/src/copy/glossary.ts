@@ -106,6 +106,8 @@ export const PROPER_NOUNS = [
   'Magang',
   'Data',
   'Pasang',
+  // P1-B: the composer's audience choice, named in its errors ("atau ganti ke Semua").
+  'Semua',
 ] as const;
 
 /** All-capitals words the app may show. Anything else in capitals is capitals the app added itself. */
