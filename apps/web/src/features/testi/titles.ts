@@ -50,7 +50,15 @@ export function testiTitle(p: {
 }): string | null {
   if (p.code) return p.code;
   if (p.major && p.list != null) {
-    if (p.major === 'OTHER') return copy.program.OTHER;
+    // Mata Kuliah Umum's own list is its electives (the start screen's row). Its mandatory courses, reached
+    // through search, sit in a semester list, titled so it isn't taken for the other (P2-B review, finding 7).
+    if (p.major === 'OTHER')
+      return p.list === 'pilihan'
+        ? copy.program.OTHER
+        : fill(copy.judulSemester, {
+            program: copy.program.OTHER,
+            semester: p.list,
+          });
     return p.list === 'pilihan'
       ? fill(copy.judulPilihan, { program: p.major })
       : fill(copy.judulSemester, { program: p.major, semester: p.list });

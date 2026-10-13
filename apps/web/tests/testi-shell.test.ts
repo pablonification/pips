@@ -74,6 +74,20 @@ test('Layanan stays lit on every level', () => {
   }
 });
 
+test('Mata Kuliah Umum’s semester list has a title that names it, unlike its electives list', () => {
+  // P2-B review, finding 7: a mandatory MKU course (KU1101) goes back to /mata-kuliah-umum/1, which was titled
+  // "Mata Kuliah Umum" like the start row's electives list.
+  assert.equal(
+    titleOf(LIST, { type: 'mata-kuliah-umum', semester: '1' }),
+    'Mata Kuliah Umum · Semester 1',
+  );
+  assert.equal(titleOf(LIST, MKU), 'Mata Kuliah Umum');
+  assert.equal(
+    parentOf(LIST, 'beranda', { type: 'mata-kuliah-umum', semester: '1' }),
+    '/layanan/testi',
+  );
+});
+
 test('the lit item follows a parent that depends on the URL', () => {
   // P2-B review, finding 6: activeItem dropped the params, so a URL-dependent parent was asked with none.
   const seen: Record<string, string>[] = [];

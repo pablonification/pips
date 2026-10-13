@@ -159,6 +159,35 @@ test.describe('Testi Matkul by browsing', () => {
     await expect(page).toHaveURL(/\/layanan\/testi\/mata-kuliah-umum\/other$/);
   });
 
+  test('a mandatory Mata Kuliah Umum course goes back to a list whose title names it', async ({
+    page,
+    db,
+  }, testInfo) => {
+    // P2-B review, finding 7: KU1101 (OTHER, mandatory, semester 1) is reached only through search, and its list
+    // was titled "Mata Kuliah Umum", like the electives list the start screen opens.
+    const base = db.courses.find((c) => c.code === 'DP3011')!;
+    db.courses.push({
+      ...base,
+      id: 'course-KU1101',
+      code: 'KU1101',
+      name: 'Pengantar Rekayasa dan Desain',
+      type: 'Mandatory',
+      semester: 1,
+      semesterCode: 'Ganjil',
+    });
+    await page.goto('/layanan/testi/mata-kuliah-umum/1/course-KU1101');
+    await expect(
+      main(page).getByText('Pengantar Rekayasa dan Desain'),
+    ).toBeVisible();
+    await expectUpTo(page, testInfo, 'Mata Kuliah Umum · Semester 1');
+    await page.goto('/layanan/testi/mata-kuliah-umum/1');
+    await expect(page).toHaveTitle('Mata Kuliah Umum · Semester 1 · PIPS!');
+    await expect(
+      main(page).getByRole('link', { name: /^KU1101 / }),
+    ).toBeVisible();
+    await expectUpTo(page, testInfo, 'Testi Matkul');
+  });
+
   test('Buka Ding Dong opens the folder in a new tab, or says a course has none', async ({
     page,
   }) => {
