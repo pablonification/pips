@@ -319,23 +319,28 @@ function FeedList({
       />
     );
 
-  if (!posts.length)
+  if (!posts.length) {
+    // With nothing narrowing the list there's no reason to give and nothing for Tampilkan semua to reset.
+    const why = emptyReason(view);
     return (
       <EmptyState
         title={t.feed.kosong}
-        text={emptyReason(view)}
+        text={why ?? undefined}
         action={
-          <Button
-            variant="paper"
-            size="sm"
-            className="mt-2.5"
-            onClick={() => setView(null)}
-          >
-            {t.feed.tampilkanSemua}
-          </Button>
+          why ? (
+            <Button
+              variant="paper"
+              size="sm"
+              className="mt-2.5"
+              onClick={() => setView(null)}
+            >
+              {t.feed.tampilkanSemua}
+            </Button>
+          ) : undefined
         }
       />
     );
+  }
 
   const search = view;
   return (

@@ -159,7 +159,7 @@ test('visibility is the server’s: no rule here looks at angkatan or groups', (
   }
 });
 
-test('the empty list says why: the search, then unread only, then the categories', () => {
+test('the empty list says why: the search, then unread only, then the categories; nothing when the view is the default', () => {
   assert.equal(
     emptyReason({ search: 'zzz', unread: true }),
     'Tidak ada pengumuman yang cocok dengan “zzz”.',
@@ -172,6 +172,10 @@ test('the empty list says why: the search, then unread only, then the categories
     emptyReason({ excludeCategories: ['Umum'] }),
     'Tidak ada pengumuman di kategori yang ditampilkan.',
   );
+  // Nothing narrows the list (the order doesn't): no reason, and no Tampilkan semua (review minor 3).
+  assert.equal(emptyReason({}), null);
+  assert.equal(emptyReason({ sort: 'oldest' }), null);
+  assert.equal(emptyReason({ search: '   ', excludeCategories: [] }), null);
 });
 
 /* ================= The unread count ================= */

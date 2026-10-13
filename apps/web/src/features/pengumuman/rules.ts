@@ -112,12 +112,16 @@ export function toggleHidden(hidden: readonly string[], name: string) {
     : [...hidden, name];
 }
 
-/** Why the list is empty (`feedList`): the search first, then unread only, else the hidden categories. */
-export function emptyReason(view: FeedView) {
+/**
+ * Why the list is empty (`feedList`): the search first, then unread only, then the hidden categories. Null when
+ * nothing narrows the list (there are no posts at all): then there's no reason to give and nothing to reset.
+ */
+export function emptyReason(view: FeedView): string | null {
   const v = canonicalView(view);
   if (v.search) return fill(t.feed.kosongCari, { kata: v.search.trim() });
   if (v.unread) return t.feed.kosongBelumDibaca;
-  return t.feed.kosongKategori;
+  if (v.excludeCategories) return t.feed.kosongKategori;
+  return null;
 }
 
 /* ================= The unread count ================= */

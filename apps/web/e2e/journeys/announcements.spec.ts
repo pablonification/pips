@@ -828,6 +828,13 @@ test.describe('states', () => {
     api.on('GET /api/info', { infos: [] });
     await page.goto('/pengumuman');
     await expect(page.getByText('Tidak ada yang ditampilkan')).toBeVisible();
+    // Nothing is hidden, so no reason about categories and no Tampilkan semua that would do nothing.
+    await expect(
+      page.getByText('Tidak ada pengumuman di kategori yang ditampilkan.'),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Tampilkan semua' }),
+    ).toHaveCount(0);
     await expectUnread(page, 0);
     await strictGates(page, testInfo, 'feed-empty');
   });
