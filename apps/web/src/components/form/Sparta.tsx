@@ -605,8 +605,12 @@ function Steps({
       </Page>
     );
 
-  const set = (patch: Partial<SpartaDraft>, now = false) =>
-    change({ ...draft, ...patch }, { now });
+  // Every change builds on the latest answers, not this render's: a file upload that finishes later must keep what
+  // was typed while it ran.
+  const set = (
+    patch: (cur: SpartaDraft) => Partial<SpartaDraft>,
+    now = false,
+  ) => change({ ...latest.current, ...patch(latest.current) }, { now });
 
   let content: React.ReactNode;
   if (SPARTA_STEPS[step] === 'umum') {
@@ -617,7 +621,7 @@ function Steps({
           sk="kelas"
           label={copy.umum.kelas}
           value={draft.kelas}
-          onChange={(kelas) => set({ kelas })}
+          onChange={(kelas) => set(() => ({ kelas }))}
           missing={isMissing('kelas')}
         />
         <TextField
@@ -625,7 +629,7 @@ function Steps({
           sk="idLine"
           label={copy.umum.idLine}
           value={draft.idLine}
-          onChange={(idLine) => set({ idLine })}
+          onChange={(idLine) => set(() => ({ idLine }))}
           missing={isMissing('idLine')}
         />
         <TextField
@@ -633,7 +637,9 @@ function Steps({
           sk="pengalaman"
           label={copy.umum.pengalaman}
           value={draft.pengalamanOrganisasi}
-          onChange={(pengalamanOrganisasi) => set({ pengalamanOrganisasi })}
+          onChange={(pengalamanOrganisasi) =>
+            set(() => ({ pengalamanOrganisasi }))
+          }
           optional
           long
         />
@@ -654,7 +660,9 @@ function Steps({
                   aria-label={fill(copy.umum.hapusKesibukan, { nomor: i + 1 })}
                   onClick={() =>
                     set(
-                      { kesibukan: draft.kesibukan.filter((_, j) => j !== i) },
+                      (cur) => ({
+                        kesibukan: cur.kesibukan.filter((_, j) => j !== i),
+                      }),
                       true,
                     )
                   }
@@ -671,11 +679,11 @@ function Steps({
                   value={k[part]}
                   missing={isMissing(`kesibukan-${i}-${part}`)}
                   onChange={(v) =>
-                    set({
-                      kesibukan: draft.kesibukan.map((x, j) =>
+                    set((cur) => ({
+                      kesibukan: cur.kesibukan.map((x, j) =>
                         j === i ? { ...x, [part]: v } : x,
                       ),
-                    })
+                    }))
                   }
                 />
               ))}
@@ -686,12 +694,12 @@ function Steps({
               variant="paper"
               size="sm"
               onClick={() =>
-                set({
+                set((cur) => ({
                   kesibukan: [
-                    ...draft.kesibukan,
+                    ...cur.kesibukan,
                     { jabatan: '', organisasi: '', periode: '' },
                   ],
-                })
+                }))
               }
             >
               <IconTambah size={16} />
@@ -735,7 +743,7 @@ function Steps({
         moved={moved}
         onChange={(choices, announce) => {
           setMoved(announce ?? '');
-          set({ choices }, true);
+          set(() => ({ choices }), true);
         }}
       />
     );
@@ -775,12 +783,12 @@ function Steps({
                   missing={isMissing(`q-${id}-${q.id}`)}
                   onChange={(v) =>
                     set(
-                      {
+                      (cur) => ({
                         answers: {
-                          ...draft.answers,
-                          [id]: { ...draft.answers[id], [q.id]: v },
+                          ...cur.answers,
+                          [id]: { ...cur.answers[id], [q.id]: v },
                         },
-                      },
+                      }),
                       q.type === 'file' || q.type === 'select',
                     )
                   }

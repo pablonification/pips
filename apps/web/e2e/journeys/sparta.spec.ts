@@ -686,3 +686,67 @@ test('a file answer: Unggah file, Mengunggah…, then a link to the file, saved 
   ).toHaveCount(0);
   await gates(page, testInfo, 'sparta-review-file');
 });
+
+test('a file upload finishing doesn’t overwrite what was typed meanwhile', async ({
+  page,
+  api,
+  db,
+}) => {
+  openSeason(db);
+  api.on('PUT /api/internship/submission', writes.saveSpartaDraft);
+  const release = holdUpload(api);
+  await page.goto('/layanan/sparta');
+  await toQuestions(page);
+  const chooser = page.waitForEvent('filechooser');
+  await page
+    .getByRole('button', { name: 'Unggah file untuk Portofolio desainmu' })
+    .click();
+  await (
+    await chooser
+  ).setFiles({
+    name: 'portofolio.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4'),
+  });
+  await expect(
+    main(page).getByRole('status').filter({ hasText: 'Mengunggah…' }),
+  ).toBeVisible();
+  // While it uploads, the member answers another division's question, and that is saved.
+  const welfare = page.getByLabel('Ceritakan pengalamanmu mendengarkan teman.');
+  await welfare.fill('Teman sekamar');
+  await expect
+    .poll(() =>
+      JSON.stringify(
+        lastPut(api)?.choices.find((c) => c.divisionId === 'div-welfare'),
+      ),
+    )
+    .toContain('Teman sekamar');
+  release();
+  await expect(
+    main(page).getByRole('link', { name: 'Lihat file yang terunggah' }),
+  ).toBeVisible();
+  await expect(welfare).toHaveValue('Teman sekamar');
+  // The save after the upload holds both answers.
+  await expect
+    .poll(
+      () =>
+        lastPut(api)?.choices.find((c) => c.divisionId === 'div-medkom')
+          ?.answers.length,
+    )
+    .toBe(1);
+  const last = lastPut(api)!;
+  expect(
+    last.choices.find((c) => c.divisionId === 'div-welfare')?.answers,
+  ).toEqual([{ questionId: 'dq2', answer: 'Teman sekamar' }]);
+  // And so does the server's copy.
+  const stored = db.internshipSubmissions.find((s) => s.userId === db.me!.id);
+  expect(stored?.choices?.map((c) => [c.divisionId, c.answers])).toEqual([
+    [
+      'div-medkom',
+      [{ questionId: 'mq3', answer: '/__e2e__/media/portofolio.svg' }],
+    ],
+    ['div-akademik', []],
+    ['div-welfare', [{ questionId: 'dq2', answer: 'Teman sekamar' }]],
+    ['div-cnc', []],
+  ]);
+});
