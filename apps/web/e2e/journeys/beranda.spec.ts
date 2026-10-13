@@ -148,6 +148,21 @@ test.describe('Nadia', () => {
     await strictGates(page, testInfo, 'beranda-nadia');
   });
 
+  test('the gold bar keeps its height under a long page: 60 px, the field 8 px from its top @phone-only', async ({
+    page,
+  }) => {
+    // Regression: the top bar is a flex item of the scrolling column; with only a min-height it shrank to 58 px
+    // under Beranda's long page, moving everything up 2 px from the locked screens.
+    await page.goto('/');
+    await expect.poll(() => attentionTitles(page)).toHaveLength(4);
+    const bar = await page.locator('.g-top.gold').boundingBox();
+    const field = await page
+      .getByRole('button', { name: 'Cari di PIPS!' })
+      .boundingBox();
+    expect(bar!.height).toBe(60);
+    expect(field!.y - bar!.y).toBe(8);
+  });
+
   test('external tiles open over https in a new tab; a tile opens its service @phone-only', async ({
     page,
   }) => {
