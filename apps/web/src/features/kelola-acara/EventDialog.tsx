@@ -5,7 +5,14 @@
  * Loaded on demand (members never download it). The screen that opens it decides what happens after a save.
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useId, useMemo, useRef, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from 'react';
 import { api } from '~/api/client';
 import type { CalendarEvent, Course } from '~/api/generated';
 import { currentCoursesQuery } from '~/api/queries';
@@ -92,6 +99,19 @@ export default function EventDialog({
     akademik && adding && (!catalogue.data || !mine.data);
   const catalogueFailed =
     catalogueMissing && (catalogue.isError || mine.isError);
+
+  // Opened before the course catalogue arrived, the dialog had no field to focus (`focusOv` focuses the first
+  // one): move focus there once the fields appear, unless the member has already moved it to a field.
+  const fieldsShown = useRef(!catalogueMissing);
+  useEffect(() => {
+    if (catalogueMissing || fieldsShown.current) return;
+    fieldsShown.current = true;
+    const active = document.activeElement;
+    if (active?.matches('input, select, textarea')) return;
+    form.current
+      ?.querySelector<HTMLElement>('input, select, textarea')
+      ?.focus();
+  }, [catalogueMissing]);
 
   const save = useMutation({
     mutationFn: (d: EventDraft) =>
