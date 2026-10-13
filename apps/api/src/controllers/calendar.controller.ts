@@ -2,6 +2,11 @@ import { GaxiosError } from 'gaxios';
 import { calendar, type calendar_v3 } from 'googleapis/build/src/apis/calendar';
 import postgres from 'postgres';
 import { calendarEvent, CalendarGroup } from '~/db/schema';
+import {
+  ENDS_BEFORE_START,
+  endsBeforeStart,
+  googleEventGone,
+} from '~/lib/calendar-event';
 import { googleAuth } from '~/lib/googleapi';
 import {
   createCalendarEvent,
@@ -135,6 +140,10 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       calendarGroup = await deps.getCalendarGroupByCategory(category);
     }
 
+    if (endsBeforeStart(start, end)) {
+      return c.json({ error: ENDS_BEFORE_START }, 400);
+    }
+
     // 1. Check if calendar group exists
     if (!calendarGroup?.googleCalendarUrl) {
       return c.json({ error: 'Calendar group not found' }, 404);
@@ -255,6 +264,11 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       }
     }
 
+    // Only one end may be sent: check it against the other end as stored.
+    if (endsBeforeStart(start ?? eventDB.start, end ?? eventDB.end)) {
+      return c.json({ error: ENDS_BEFORE_START }, 400);
+    }
+
     if (eventDB.calendarGroup.googleCalendarUrl === null) {
       // Buat type check aja kalo calendar group url exists
       return c.json(
@@ -340,10 +354,15 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
         }
       }
 
-      await deps.google.remove(
-        eventDB.calendarGroup.googleCalendarUrl,
-        eventDB.googleCalendarId,
-      );
+      try {
+        await deps.google.remove(
+          eventDB.calendarGroup.googleCalendarUrl,
+          eventDB.googleCalendarId,
+        );
+      } catch (error) {
+        // Already removed in Google Calendar: remove the row too, or the event could never be deleted (C6).
+        if (!googleEventGone(error)) throw error;
+      }
       const event = await deps.deleteCalendarEvent(eventId);
       if (!event) {
         return c.json({ error: 'Event not found' }, 404);
