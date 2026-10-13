@@ -40,6 +40,7 @@ import { dFull, rel } from '~/lib/dates';
 import { initialsOf } from '~/lib/shell/names';
 import { cn } from '~/lib/utils';
 import {
+  statusOf,
   useComments,
   useDeleteComment,
   usePostComment,
@@ -354,9 +355,10 @@ function CommentItem({
               toast.success(t.komentar.dihapus);
               focusSoon(() => field.current);
             },
-            onError: () => {
+            onError: (e) => {
               setConfirm(false);
-              toast.error(t.menu.gagal);
+              // As a post's delete says it (PostMenu): refused, or anything else.
+              toast.error(statusOf(e) === 403 ? t.menu.ditolak : t.menu.gagal);
             },
           })
         }
