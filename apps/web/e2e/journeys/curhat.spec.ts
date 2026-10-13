@@ -232,19 +232,25 @@ test.describe('starting a room', () => {
     await expect(page).toHaveURL(/\/layanan\/curhat$/);
   });
 
-  test('the server’s 400 shows the same toast and fetches the rooms again; another failure the error toast', async ({
+  test('a failure shows the error toast; the server’s 400 the full toast, and the rooms are fetched again', async ({
     page,
     api,
     db,
   }) => {
+    await page.goto('/layanan/curhat');
+    await expect(main(page).getByText('2 dari 3 ruang dipakai')).toBeVisible();
+    api.on('POST /api/curhat/chatroom', reply.status(500));
+    await newRoom(page).click();
+    await expect(
+      toastText(page, 'Ruang baru gagal dibuat. Coba lagi.'),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/layanan\/curhat$/);
     api.on(
       'POST /api/curhat/chatroom',
       reply.status(400, {
         error: 'You have reached the maximum chatrooms limit',
       }),
     );
-    await page.goto('/layanan/curhat');
-    await expect(main(page).getByText('2 dari 3 ruang dipakai')).toBeVisible();
     // Review minor 4: a third room was started on another device; the list catches up after the 400.
     db.chatrooms.r3 = {
       id: 'r3',
@@ -260,12 +266,6 @@ test.describe('starting a room', () => {
     ).toBeVisible();
     await expect(main(page).getByText('3 dari 3 ruang dipakai')).toBeVisible();
     await expect(row(page, 'Coral Otter')).toBeVisible();
-    delete db.chatrooms.r3;
-    api.on('POST /api/curhat/chatroom', reply.status(500));
-    await newRoom(page).click();
-    await expect(
-      toastText(page, 'Ruang baru gagal dibuat. Coba lagi.'),
-    ).toBeVisible();
     await expect(page).toHaveURL(/\/layanan\/curhat$/);
   });
 });
