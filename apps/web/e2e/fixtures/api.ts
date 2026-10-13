@@ -287,11 +287,14 @@ function toChatrooms(persona: PersonaKey): ListChatroom {
       .map((m) => ({
         ...plain(m.id),
         isSender: m.me,
+        // Sample history carries no device id (sent before P2-C's round 2, or by Welfare).
+        clientMessageId: null,
         ...(m.reply ? { reply: plain(m.reply) } : {}),
       }));
     const chatroom: Chatroom = {
       id: room.id,
-      title: room.title,
+      // The API names rooms in lower case ("teal koala"); the app shows each word capitalised (P2-C).
+      title: room.title.toLowerCase(),
       messages,
       labels: [],
       isPinned: false,
@@ -644,11 +647,53 @@ const internshipDepartments: InternshipDepartment[] = [
       },
     ],
   },
+  {
+    id: 'dept-cardev',
+    name: 'Career Development',
+    order: 3,
+    divisions: [
+      {
+        id: 'div-cardev',
+        departmentId: 'dept-cardev',
+        name: 'Career Development',
+        quotaMin: 2,
+        quotaIdeal: 3,
+        quotaMax: 5,
+        questions: [
+          {
+            id: 'dq4',
+            label: 'Acara karier apa yang ingin kamu buat?',
+            type: 'textarea',
+            required: true,
+          },
+        ],
+        questionsRaw: null,
+        description: 'Mengelola LowonginAja! dan acara karier.',
+        order: 1,
+      },
+    ],
+  },
 ];
+/** Each division's first question, answered in the locked submissions' choices. */
+const SPARTA_ANSWERS: Record<string, [string, string]> = {
+  'div-akademik': ['dq1', 'Aku ingin bantu rekap jadwal ujian angkatan.'],
+  'div-welfare': ['dq2', 'Sering jadi tempat cerita teman sekamar.'],
+  'div-cnc': ['dq3', 'Gemastik 2025, kategori pengembangan perangkat lunak.'],
+  'div-cardev': ['dq4', 'Webinar persiapan magang untuk angkatan.'],
+};
+
+/**
+ * Bima and Tasya sent theirs (locked, four choices, as the API requires). Nadia's is a partial draft as P2-A saves
+ * them: three choices, not sent (no submittedAt).
+ */
 function internshipSubmissions(): InternshipSubmission[] {
   const people: PersonKey[] = ['bima', 'tasya', 'nadia'];
   return people.map((k, i) => {
     const p = PEOPLE[k];
+    const locked = i < 2;
+    const divisions = locked
+      ? ['div-akademik', 'div-welfare', 'div-cnc', 'div-cardev']
+      : ['div-akademik', 'div-welfare', 'div-cnc'];
     return {
       id: `sub-${p.nim}`,
       userId: userId(p.nim),
@@ -659,19 +704,24 @@ function internshipSubmissions(): InternshipSubmission[] {
       idLine: `e2e.${k}`,
       pengalamanOrganisasi: i === 0 ? 'Panitia SPARTA 2025' : null,
       kesibukan: [],
-      isLocked: i < 2,
-      submittedAt: wib(8, 20 + i, 21),
+      isLocked: locked,
+      submittedAt: locked ? wib(8, 20 + i, 21) : null,
       createdAt: wib(8, 15 + i, 10),
       updatedAt: wib(8, 20 + i, 21),
-      choices: ['div-akademik', 'div-welfare', 'div-cnc'].map(
-        (divisionId, order) => ({
-          id: `choice-${p.nim}-${order}`,
-          submissionId: `sub-${p.nim}`,
-          divisionId,
-          priorityOrder: order + 1,
-          answers: [],
-        }),
-      ),
+      choices: divisions.map((divisionId, order) => ({
+        id: `choice-${p.nim}-${order}`,
+        submissionId: `sub-${p.nim}`,
+        divisionId,
+        priorityOrder: order + 1,
+        answers: locked
+          ? [
+              {
+                questionId: SPARTA_ANSWERS[divisionId][0],
+                answer: SPARTA_ANSWERS[divisionId][1],
+              },
+            ]
+          : [],
+      })),
     };
   });
 }

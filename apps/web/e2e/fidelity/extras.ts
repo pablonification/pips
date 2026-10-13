@@ -18,7 +18,7 @@ import type { Locator, Page } from '@playwright/test';
 import { pixelSections } from '../support/flows';
 import { visibleText } from '../support/app';
 import * as writes from '../support/writes';
-import type { FidelityScreen } from './screens';
+import { liveAsLocked, type FidelityScreen } from './screens';
 
 export interface ExtraCapture extends FidelityScreen {
   persona?: 'anggota' | 'pengurus' | null;
@@ -319,6 +319,63 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
     },
     ready: (p) => p.getByText('Form berhasil dikirim!'),
   },
+  // P2-C: in r1, Balas on m4, type and send, acknowledged (garis-check.mjs's Curhat flow).
+  'i-curhat-room': {
+    path: '/layanan/curhat/r1',
+    mock: (api) =>
+      api.on('POST /api/curhat/chatroom/:chatroomId/read', writes.readRoom),
+    act: async (p) => {
+      const log = p.getByRole('log', { name: 'Percakapan Teal Koala' });
+      await log.getByRole('button', { name: 'Balas' }).last().click();
+      const field = p.getByRole('textbox', {
+        name: 'Tulis pesan untuk tim Welfare',
+      });
+      await field.fill('Mau kak, makasih!');
+      await p.getByRole('button', { name: 'Kirim pesan' }).click();
+      await log.getByText('Terkirim · 13.35').waitFor();
+      // The prototype's field keeps focus after sending, with its ring.
+      await field.focus();
+    },
+    ready: (p) =>
+      p
+        .getByRole('log', { name: 'Percakapan Teal Koala' })
+        .getByText('Mau kak, makasih!'),
+  },
+  // P3-A: Live Counting after one live event (desktop, light, Raka): 143 and the new top row at 13.32.
+  'i-desk-live': {
+    path: '/kelola/live/pixel',
+    persona: 'pengurus',
+    mock: liveAsLocked,
+    act: async (p, { api }) => {
+      await p.getByRole('main').getByText('Tidak tertarik').waitFor();
+      await expectSocket(api);
+      const event = {
+        total: 143,
+        nim: '13525243',
+        fullName: 'Pengisi baru (contoh)',
+        submittedAt: '2026-10-08T06:32:00.000Z',
+      };
+      api.db.adminResponses.pixel.unshift({
+        id: 'resp-live',
+        userId: 'user-13525243',
+        major: 'IF',
+        angkatan: 2025,
+        answers: [],
+        nim: event.nim,
+        fullName: event.fullName,
+        submittedAt: event.submittedAt,
+      });
+      api.socket.emit('form:new-response', event, (s) =>
+        s.rooms.has('form-admin:pixel'),
+      );
+    },
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .locator('li')
+        .first()
+        .getByText('Pengisi baru (contoh)'),
+  },
   // P2-B: Testi Matkul on phones. The locked captures still show a toast from the prototype's previous step
   // ("1 mata kuliah ditambahkan…"); the app has none here (a known difference, in the P2-B report).
   'i-testi': {
@@ -387,6 +444,20 @@ async function addKuis2(p: Page, send: boolean) {
       'Acara ditambahkan ke kalender anggota IF3170 dan Google Calendar-nya.',
     )
     .waitFor();
+}
+
+/** The live page's socket is in the PIXEL form's admin room. */
+async function expectSocket(api: import('../support/mock').ApiMock) {
+  for (let i = 0; i < 100; i++) {
+    if (
+      [...api.socket.sessions.values()].some(
+        (s) => s.connected && s.rooms.has('form-admin:pixel'),
+      )
+    )
+      return;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  throw new Error('the live page never joined form-admin:pixel');
 }
 
 const P1_TITLE = 'Jadwal UTS Ganjil 2026/2027 sudah keluar';

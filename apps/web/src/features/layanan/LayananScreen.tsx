@@ -1,30 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
 import { formListQuery } from '~/api/queries';
-import {
-  Count,
-  RowButton,
-  RuledList,
-  SectionHead,
-  Tag,
-  Tile,
-} from '~/components/garis';
-import { IconLanjut } from '~/components/icons/lanjut';
-import { IconLuar } from '~/components/icons/luar';
-import { ICONS } from '~/components/icons/registry';
+import { Count, RuledList, SectionHead, Tag } from '~/components/garis';
 import { DeskHead, PageBody, PageTitle } from '~/components/shell/page';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
 import { layanan as copy } from '~/copy/layanan';
 import useSession from '~/hooks/auth/useSession';
-import { servicesByGroup, type Service, type ServiceId } from '~/lib/services';
-import { curhatUnreadQuery } from './queries';
-import {
-  curhatUnreadTotal,
-  openFormsCount,
-  serviceBadge,
-  type ServiceBadge,
-} from './rules';
+import { curhatUnreadQuery } from '~/api/queries';
+import { totalUnread } from '~/lib/curhat-unread';
+import { servicesByGroup, type ServiceId } from '~/lib/services';
+import { ServiceRow } from './ServiceRow';
+import { openFormsCount, serviceBadge, type ServiceBadge } from './rules';
 
 function Badge({ badge }: { badge: ServiceBadge | null }) {
   if (!badge) return null;
@@ -40,53 +26,6 @@ function Badge({ badge }: { badge: ServiceBadge | null }) {
   );
 }
 
-/** One service (garis/screens-more.js `svcRow`): icon tile, the members' name, its description, then a badge and a
- * chevron, or the external mark for a site outside PIPS! (a new tab). */
-function ServiceRow({
-  service: s,
-  badge,
-}: {
-  service: Service;
-  badge: ServiceBadge | null;
-}) {
-  const Icon = ICONS[s.icon];
-  const inner = (
-    <span className="g-svc-row">
-      <Tile>
-        <Icon size={20} />
-      </Tile>
-      <span className="min-w-0 flex-1">
-        <span className="block t-sub">{s.label}</span>
-        <span className="block t-cap text-fg-2">{s.description}</span>
-      </span>
-      <Badge badge={badge} />
-      {s.kind === 'external' ? (
-        <span className="g-chev text-fg-3">
-          <IconLuar size={16} />
-          <span className="sr-only"> {common.shell.situsLuar}</span>
-        </span>
-      ) : (
-        <span className="g-chev text-fg-3">
-          <IconLanjut size={18} />
-        </span>
-      )}
-    </span>
-  );
-  return (
-    <li>
-      <RowButton asChild>
-        {s.kind === 'external' ? (
-          <a href={s.destination} target="_blank" rel="noopener">
-            {inner}
-          </a>
-        ) : (
-          <Link to={s.destination}>{inner}</Link>
-        )}
-      </RowButton>
-    </li>
-  );
-}
-
 /**
  * Layanan (garis/screens-more.js `scrLayanan`, `serviceGroups`): the registry's groups in order, then Kelola for
  * pengurus through the capability map. No search box (owner, 2026-10-12): global search finds services too. One
@@ -98,7 +37,7 @@ export function LayananScreen() {
   const forms = useQuery(formListQuery());
   const groups = servicesByGroup(me);
   const data = {
-    unread: unread.data ? curhatUnreadTotal(unread.data) : undefined,
+    unread: unread.data ? totalUnread(unread.data) : undefined,
     openForms: forms.data ? openFormsCount(forms.data.forms) : undefined,
   };
 
@@ -116,7 +55,9 @@ export function LayananScreen() {
                   <ServiceRow
                     key={s.id}
                     service={s}
-                    badge={serviceBadge(s.id as ServiceId, data)}
+                    badge={
+                      <Badge badge={serviceBadge(s.id as ServiceId, data)} />
+                    }
                   />
                 ))}
               </RuledList>

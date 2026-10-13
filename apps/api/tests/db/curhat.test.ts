@@ -188,3 +188,55 @@ test('the SQL unread count agrees with countUnread', async () => {
     ],
   );
 });
+
+// P2-C round 2 (OPEN-QUESTIONS A11): a resend after a lost acknowledgement carries the same device id. Sent again,
+// or sent twice at once, it is saved once, and every send gets that one message back.
+test('a message id is saved once per room, even when the sends race', async () => {
+  const schema = await import('../../src/db/schema');
+  const { saveMessage } = await import('../../src/repositories/chatroom.repo');
+  const { eq } = await import('drizzle-orm');
+  await db.insert(schema.chatrooms).values([
+    { id: 'cr1', title: 'a', userId: 'u-nadia' },
+    { id: 'cr2', title: 'b', userId: 'u-other' },
+  ]);
+  const id = '7f3c2a10-5b1e-4c8d-9a6f-0e2b4d6c8a11';
+  const send = () =>
+    saveMessage(db, {
+      userId: 'u-nadia',
+      chatroomId: 'cr1',
+      content: 'Mau kak, makasih!',
+      replyId: null,
+      clientMessageId: id,
+    });
+
+  const results = await Promise.all(Array.from({ length: 8 }, send));
+  assert.equal(results.filter((r) => r.created).length, 1);
+  assert.equal(new Set(results.map((r) => r.message.id)).size, 1);
+  const again = await send();
+  assert.equal(again.created, false);
+  assert.equal(again.message.id, results[0].message.id);
+
+  // The same id in another room is another message; no id at all (older clients) is never deduplicated.
+  const other = await saveMessage(db, {
+    userId: 'u-other',
+    chatroomId: 'cr2',
+    content: 'lain',
+    replyId: null,
+    clientMessageId: id,
+  });
+  assert.equal(other.created, true);
+  for (let i = 0; i < 2; i++)
+    await saveMessage(db, {
+      userId: 'u-nadia',
+      chatroomId: 'cr1',
+      content: 'lama',
+      replyId: null,
+      clientMessageId: null,
+    });
+  const rows = await db
+    .select()
+    .from(schema.chatroomMessages)
+    .where(eq(schema.chatroomMessages.chatroomId, 'cr1'));
+  assert.equal(rows.filter((r) => r.clientMessageId === id).length, 1);
+  assert.equal(rows.filter((r) => r.clientMessageId === null).length, 2);
+});

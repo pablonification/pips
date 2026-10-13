@@ -5,6 +5,7 @@ import {
   CHATROOMS_QUERY_KEY,
   CREDITS_QUERY_KEY,
   CURRENT_COURSES_QUERY_KEY,
+  CURHAT_UNREAD_KEY,
   FORM_QUERY_KEY,
   INFO_LIST_QUERY_KEY,
   INFO_QUERY_KEY,
@@ -60,6 +61,13 @@ export const formListQuery = () =>
   queryOptions({
     queryKey: [FORM_QUERY_KEY, 'list'],
     queryFn: () => api.form.listForms(),
+  });
+
+/** One definition for Curhat's list, Layanan's count and Beranda's row (review of P2-C, minor 7). */
+export const curhatUnreadQuery = () =>
+  queryOptions({
+    queryKey: CURHAT_UNREAD_KEY,
+    queryFn: () => api.curhat.unreadCountChatroomMessages(),
   });
 
 export const chatroomsQuery = () =>

@@ -19,6 +19,7 @@ Object.assign(process.env, {
   VITE_FORCE_MOBILE: '',
   VITE_FORCE_IOS: '',
   VITE_ENABLE_TEST_LOGIN: 'false',
+  VITE_MEDIA_URL: 'https://media.pips.test', // P3-A: the file storage; only files there link from a SPARTA answer
 });
 
 const reuse =

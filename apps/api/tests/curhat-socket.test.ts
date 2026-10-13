@@ -52,6 +52,7 @@ beforeEach(() => {
       replyId: null,
       content: 'Halo, ada yang bisa dibantu?',
       createdAt: new Date('2026-10-07T03:00:00Z'),
+      clientMessageId: null,
     },
     {
       id: 'm9',
@@ -60,6 +61,7 @@ beforeEach(() => {
       replyId: null,
       content: 'Pesan orang lain',
       createdAt: new Date('2026-10-07T03:00:00Z'),
+      clientMessageId: null,
     },
   ];
   notified = [];
@@ -83,8 +85,23 @@ before(async () => {
         getOwnedChatroomIds: async (userId) =>
           rooms.filter((r) => r.userId === userId).map((r) => r.id),
         getMessage: async (id) => messages.find((m) => m.id === id),
-        saveMessage: async ({ userId, chatroomId, content, replyId }) => {
+        // As the unique index on (chatroom_id, client_message_id) does: a repeat in the same room saves nothing.
+        saveMessage: async ({
+          userId,
+          chatroomId,
+          content,
+          replyId,
+          clientMessageId,
+        }) => {
           if (failSaves) throw new Error('database down');
+          const first = clientMessageId
+            ? messages.find(
+                (m) =>
+                  m.chatroomId === chatroomId &&
+                  m.clientMessageId === clientMessageId,
+              )
+            : undefined;
+          if (first) return { message: first, created: false };
           const saved: ChatroomMessage = {
             id: `s${messages.length + 1}`,
             chatroomId,
@@ -92,9 +109,10 @@ before(async () => {
             replyId,
             content,
             createdAt: new Date('2026-10-08T06:35:00Z'),
+            clientMessageId,
           };
           messages.push(saved);
-          return saved;
+          return { message: saved, created: true };
         },
         notifyParticipants: async (m) => {
           notified.push(m);
@@ -386,6 +404,106 @@ test('reply reaches the other sockets in that room only, without any userId', as
   assert.deepEqual(pathsOfKey(toMember[0], 'userId'), []);
 });
 
+// --- the device's message id (P2-C round 2, OPEN-QUESTIONS A11) ---
+
+const CLIENT_ID = '7f3c2a10-5b1e-4c8d-9a6f-0e2b4d6c8a11';
+
+test('a repeat of a message id saves once and answers with the message saved the first time', async () => {
+  const member = await client(nadia, { curhat: true });
+  const staff = await client(welfare, { chatroomId: 'r1' });
+  await settled();
+  const toStaff = collect(staff, 'reply');
+  const before = messages.length;
+  const payload = {
+    chatroomId: 'r1',
+    message: 'Mau kak, makasih!',
+    replyId: 'm1',
+    clientMessageId: CLIENT_ID,
+  };
+  const first = await send(member, payload);
+  // Kirim ulang after the acknowledgement was lost: the same id again.
+  const again = await send(member, payload);
+  await settled();
+  assert.equal(messages.length, before + 1, 'saved once');
+  assert.deepEqual(again, first, 'answered with the same message');
+  assert.equal(first.ok, true);
+  assert.equal(first.message.clientMessageId, CLIENT_ID);
+  assert.equal(first.message.reply.id, 'm1');
+  assert.deepEqual(CurhatMessageAckSchema.parse(again), again);
+  assert.equal(toStaff.length, 1, 'relayed once');
+  assert.equal(notified.length, 1, 'notified once');
+});
+
+test("a message id is never matched to another member's message, in another room or in the same one", async () => {
+  const member = await client(nadia, { curhat: true });
+  const outsider = await client(other, { curhat: true });
+  const staff = await client(welfare, { chatroomId: 'r1' });
+  await settled();
+  const mine = await send(member, {
+    chatroomId: 'r1',
+    message: 'punya Nadia',
+    clientMessageId: CLIENT_ID,
+  });
+  assert.equal(mine.ok, true);
+
+  // The same id in another member's room is their own new message.
+  const theirs = await send(outsider, {
+    chatroomId: 'r9',
+    message: 'punya orang lain',
+    clientMessageId: CLIENT_ID,
+  });
+  assert.equal(theirs.ok, true);
+  assert.notEqual(theirs.message.id, mine.message.id);
+  assert.equal(theirs.message.content, 'punya orang lain');
+  assert.equal(
+    messages.filter((m) => m.clientMessageId === CLIENT_ID).length,
+    2,
+  );
+
+  // The same id from someone else in Nadia's room never answers with her message.
+  const clash = await send(staff, {
+    chatroomId: 'r1',
+    message: 'dari Welfare',
+    clientMessageId: CLIENT_ID,
+  });
+  assert.deepEqual(clash, { ok: false, error: 'invalid' });
+  assert.deepEqual(pathsOfKey(clash, 'message'), []);
+});
+
+test("the message id goes only to its sender: Welfare's reply event carries none", async () => {
+  const member = await client(nadia, { curhat: true });
+  const staff = await client(welfare, { chatroomId: 'r1' });
+  await settled();
+  const toStaff = collect(staff, 'reply');
+  await send(member, {
+    chatroomId: 'r1',
+    message: 'Halo Welfare',
+    clientMessageId: CLIENT_ID,
+  });
+  await settled();
+  assert.equal(toStaff.length, 1);
+  assert.equal(
+    (toStaff[0] as { clientMessageId: unknown }).clientMessageId,
+    null,
+  );
+});
+
+test('a message id that is not a UUID is invalid, and none at all still saves (older clients)', async () => {
+  const member = await client(nadia, { curhat: true });
+  assert.deepEqual(
+    await send(member, {
+      chatroomId: 'r1',
+      message: 'halo',
+      clientMessageId: 'Nadia 13525001',
+    }),
+    { ok: false, error: 'invalid' },
+  );
+  const before = messages.length;
+  await send(member, { chatroomId: 'r1', message: 'halo' });
+  await send(member, { chatroomId: 'r1', message: 'halo' });
+  assert.equal(messages.length, before + 2);
+});
+
 // --- one connection for the whole area ---
 
 test('a curhat handshake joins every room the member owns, and nothing else', async () => {
@@ -470,4 +588,31 @@ test("Live Counting's formAdminId room still joins admins only", async () => {
   assert.deepEqual(await roomsOf(adminSocket.id!), [formAdminRoom('pixel')]);
   assert.deepEqual(await roomsOf(memberSocket.id!), []);
   assert.deepEqual(await roomsOf(anon.id!), []);
+});
+
+// P3-A: what Live Counting relies on. A new response is announced to the form's admin room only.
+test('form:new-response reaches an admin socket, not a member or an anonymous one', async () => {
+  const heard = {
+    admin: [] as unknown[],
+    member: [] as unknown[],
+    anon: [] as unknown[],
+  };
+  const adminSocket = await client(admin, { formAdminId: 'pixel' });
+  const memberSocket = await client(nadia, { formAdminId: 'pixel' });
+  const anon = await client(null, { formAdminId: 'pixel' });
+  adminSocket.on('form:new-response', (e: unknown) => heard.admin.push(e));
+  memberSocket.on('form:new-response', (e: unknown) => heard.member.push(e));
+  anon.on('form:new-response', (e: unknown) => heard.anon.push(e));
+  await settled();
+  const event = {
+    total: 143,
+    nim: '13525243',
+    fullName: 'Pengisi baru',
+    submittedAt: '2026-10-08T06:32:00.000Z',
+  };
+  io.to(formAdminRoom('pixel')).emit('form:new-response', event);
+  await settled();
+  assert.deepEqual(heard.admin, [event]);
+  assert.deepEqual(heard.member, []);
+  assert.deepEqual(heard.anon, []);
 });

@@ -46,8 +46,19 @@ export const GARIS_FILES = [
   'src/routes/_app/_left-navbar/layanan/form/index.tsx',
   'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
   'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
-  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba.
+  // P3-A: Kelola, Live Counting, Rekap Form and Data SPARTA Magang.
+  'src/routes/_app/_left-navbar/kelola/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/$formId/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/$formId/rekap.tsx',
+  'src/routes/_app/_left-navbar/kelola/sparta/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/sparta/$submissionId.tsx',
+  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba (every feature folder, Curhat's too).
   'src/features/**/*.{ts,tsx}',
+  // P2-C: Curhat Yuk! for members.
+  'src/routes/_app/_left-navbar/layanan/curhat/route.tsx',
+  'src/routes/_app/_left-navbar/layanan/curhat/index.tsx',
+  'src/routes/_app/_left-navbar/layanan/curhat/$roomId.tsx',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
@@ -146,6 +157,10 @@ export default defineConfig([
             'time|wd|dn|key|out|today|akademik|himpunan|point|past|h|d|tm|draw|two|grow|brief|prev|ext',
             // Pengumuman's parts (src/features/pengumuman/pengumuman.css).
             'who|meta|z|end|many|host|ttl|lbl|in|state|bar|del|opt|body|read|unread|lead|desk|failed',
+            // Curhat's parts (src/features/curhat/curhat.css): a bubble's side, time line and quote.
+            'me|them|tm|quote',
+            // Kelola's parts (src/styles/garis/kelola.css, P3-A).
+            'nim|name|v|trk|flip|top',
           ],
         },
       ],

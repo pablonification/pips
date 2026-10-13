@@ -8,14 +8,18 @@
  * - push an event to the app: `api.socket.emit('reply', payload, (s) => s.auth.chatroomId === 'r1')`;
  * - drop every connection: `api.socket.drop()`, after which new connections fail until `api.socket.restore()`;
  * - change how an acknowledgement is answered: `api.socket.answer('message', () => ({ ok: false, error: 'server' }))`,
- *   or never answered (`() => undefined`), for the delivery states.
+ *   or never answered (`() => undefined`), for the delivery states;
+ * - answer one held-back acknowledgement later: `api.socket.ack(api.socket.emitted('message')[0], payload)` (P2-C).
  *
  * Acknowledgements default to what the API answers (`apps/api/src/websocket/curhat.ts`), on the test's data:
  * `message` is refused without a session (`unauthorized`), outside your rooms (`forbidden`), with empty text or a
  * reply to a message outside the room (`invalid`); otherwise the message is saved in `db.chatrooms` and
- * acknowledged as `{ ok: true, message }` (`isSender: true`, no `userId`). `curhat:join` checks the same access.
+ * acknowledged as `{ ok: true, message }` (`isSender: true`, no `userId`); a repeat of a `clientMessageId` in the
+ * room saves nothing and is answered with the first copy, as the API's unique index does. `curhat:join` checks the
+ * same access.
  * A handshake with `auth.curhat` joins every room in `db.chatrooms`; one with `auth.chatroomId` joins that room if
- * it's yours. As the API does, a `message` without an acknowledgement is still saved.
+ * it's yours. One with `auth.formAdminId` joins `form-admin:{formId}` when the member is an admin (Live Counting:
+ * `api.socket.emit('form:new-response', event, (s) => s.rooms.has('form-admin:pixel'))`). As the API does, a `message` without an acknowledgement is still saved.
  */
 import type { Route } from '@playwright/test';
 import type {
@@ -26,6 +30,8 @@ import type {
 import { NOW, type Db } from '../fixtures/api';
 
 const SEP = '\x1e';
+/** The API takes a message's device id only as a UUID (`CurhatMessagePayloadSchema`). */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const POLL_HOLD_MS = 15_000;
 
 export interface FakeSocket {
@@ -43,6 +49,8 @@ export interface Emitted {
   auth: Record<string, unknown>;
   /** Set when the app asked for an acknowledgement. */
   ackId?: number;
+  /** The connection that sent it (P2-C: `ack()` answers it there). */
+  sid?: string;
 }
 /** Answers an acknowledgement; `undefined` means never answer. */
 export type AckAnswer = (data: unknown, socket: FakeSocket) => unknown;
@@ -61,9 +69,46 @@ export class FakeSocketServer {
     this.answers.set('curhat:join', (data, s) => this.join(data, s));
   }
 
+  /** Answer `event`'s acknowledgements as the API does again, after `answer()` changed them (P2-C). */
+  answerAsApi(event: 'message' | 'curhat:join'): void {
+    this.answers.set(
+      event,
+      event === 'message'
+        ? (data, s) => this.saveMessage(data, s)
+        : (data, s) => this.join(data, s),
+    );
+  }
+
+  /**
+   * Save every `message` as the API does but never answer it (P2-C): the acknowledgement is lost after the save, as
+   * when a phone network drops it. `ack()` can still answer one later; `answerAsApi('message')` undoes it.
+   */
+  saveWithoutAnswer(): void {
+    this.answers.set('message', (data, s) => {
+      this.saveMessage(data, s);
+      return undefined;
+    });
+  }
+
   /** Answer `event`'s acknowledgements with `fn` from now on (return `undefined` to never answer). */
   answer(event: string, fn: AckAnswer): void {
     this.answers.set(event, fn);
+  }
+
+  /**
+   * Answer one acknowledgement by hand (P2-C): `entry` is what `emitted()` recorded, `payload` the answer, sent as
+   * `43<id>[payload]` to the connection that asked. Use it after `answer(event, () => undefined)` held the answer
+   * back, for a late or lost acknowledgement. Returns whether that connection was still there to receive it.
+   */
+  ack(entry: Emitted, payload: unknown): boolean {
+    if (entry.ackId === undefined)
+      throw new Error(
+        `socket.ack: "${entry.event}" asked for no acknowledgement`,
+      );
+    const s = entry.sid ? this.sessions.get(entry.sid) : undefined;
+    if (!s?.connected) return false;
+    this.push(s, `43${entry.ackId}${JSON.stringify([payload])}`);
+    return true;
   }
 
   /** Events the app emitted, optionally only one name. */
@@ -95,6 +140,19 @@ export class FakeSocketServer {
 
   restore(): void {
     this.down = false;
+  }
+
+  /**
+   * The API ends every connection itself, as it does when a session expires (`socket.disconnect(true)`: the client
+   * hears `io server disconnect` and doesn't reconnect by itself). The transport stays up (P2-C).
+   */
+  endSessions(): void {
+    for (const s of this.sessions.values()) {
+      if (!s.connected) continue;
+      s.connected = false;
+      s.rooms.clear();
+      this.push(s, '41');
+    }
   }
 
   close(): void {
@@ -188,7 +246,13 @@ export class FakeSocketServer {
       const ackId = start > 0 ? Number(rest.slice(0, start)) : undefined;
       const [event, data] = JSON.parse(rest.slice(start)) as [string, unknown];
       if (this.closed) return;
-      this.received.push({ event, data, auth: session.auth, ackId });
+      this.received.push({
+        event,
+        data,
+        auth: session.auth,
+        ackId,
+        sid: session.sid,
+      });
       const answer = this.answers.get(event)?.(data, session);
       if (ackId !== undefined && answer !== undefined)
         this.push(session, `43${ackId}${JSON.stringify([answer])}`);
@@ -205,6 +269,14 @@ export class FakeSocketServer {
     const room = session.auth.chatroomId;
     if (typeof room === 'string' && mine.includes(room))
       session.rooms.add(room);
+    // P3-A: Live Counting's room, as the API (websocket/connection.ts): `form-admin:{formId}`, for admins only.
+    const form = session.auth.formAdminId;
+    if (
+      typeof form === 'string' &&
+      this.db?.signedIn &&
+      this.db.me?.roles.includes('admin')
+    )
+      session.rooms.add(`form-admin:${form}`);
   }
 
   private join(data: unknown, session: FakeSocket): CurhatJoinAck {
@@ -218,14 +290,20 @@ export class FakeSocketServer {
 
   private saveMessage(data: unknown, session: FakeSocket): CurhatMessageAck {
     if (!this.db?.signedIn) return { ok: false, error: 'unauthorized' };
-    const { chatroomId, message, replyId } = (data ?? {}) as {
+    const { chatroomId, message, replyId, clientMessageId } = (data ?? {}) as {
       chatroomId?: unknown;
       message?: unknown;
       replyId?: unknown;
+      clientMessageId?: unknown;
     };
     if (typeof chatroomId !== 'string' || typeof message !== 'string')
       return { ok: false, error: 'invalid' };
     if (!message.trim()) return { ok: false, error: 'invalid' };
+    if (
+      clientMessageId != null &&
+      (typeof clientMessageId !== 'string' || !UUID.test(clientMessageId))
+    )
+      return { ok: false, error: 'invalid' };
     const room = this.db.chatrooms[chatroomId];
     if (!room) return { ok: false, error: 'forbidden' };
     const quoted =
@@ -234,6 +312,15 @@ export class FakeSocketServer {
         : undefined;
     if (typeof replyId === 'string' && replyId && !quoted)
       return { ok: false, error: 'invalid' };
+    // As the API's unique (chatroom_id, client_message_id): a resend with the same id answers the first copy.
+    const first =
+      typeof clientMessageId === 'string'
+        ? room.messages?.find((m) => m.clientMessageId === clientMessageId)
+        : undefined;
+    if (first) {
+      session.rooms.add(chatroomId);
+      return { ok: true, message: { ...first, isSender: true } };
+    }
     const saved: CurhatSocketMessage = {
       id: `e2e-message-${++this.saved}`,
       chatroomId,
@@ -241,6 +328,8 @@ export class FakeSocketServer {
       content: message,
       createdAt: NOW,
       isSender: true,
+      clientMessageId:
+        typeof clientMessageId === 'string' ? clientMessageId : null,
       ...(quoted
         ? {
             reply: {

@@ -6,5 +6,6 @@ export type CurhatMessagePayload = {
   chatroomId: string;
   message: string;
   replyId?: string | null;
+  clientMessageId?: string | null;
 };
 

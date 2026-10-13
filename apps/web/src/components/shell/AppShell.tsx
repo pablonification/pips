@@ -57,6 +57,7 @@ import {
   deskCrumbs,
   ROUTE_META,
   shellPath,
+  documentTitleOf,
   titleOf,
   type Destination,
   type RouteMeta,
@@ -96,6 +97,8 @@ interface ShellRoute {
   params: Record<string, string>;
   pathname: string;
   title: string;
+  /** The browser tab's name (`documentTitleOf`). */
+  documentTitle: string;
   /** This entry's place in the tab's history (TanStack Router's `__TSR_index`). */
   index: number;
   titles: Record<string, string>;
@@ -117,6 +120,7 @@ function useShellRoute(): ShellRoute {
     params,
     pathname: location.pathname,
     title,
+    documentTitle: documentTitleOf(path, params, titles[location.pathname]),
     index: (location.state as { __TSR_index?: number }).__TSR_index ?? 0,
     titles,
   };
@@ -130,8 +134,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   // "Mata kuliahku · PIPS!" in the browser tab and history (SPEC story 25).
   useEffect(() => {
-    document.title = fill(common.shell.judulDokumen, { judul: route.title });
-  }, [route.title]);
+    document.title = fill(common.shell.judulDokumen, {
+      judul: route.documentTitle,
+    });
+  }, [route.documentTitle]);
 
   // What back on the next page says and whether history leads somewhere in the app.
   useEffect(() => {

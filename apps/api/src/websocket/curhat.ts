@@ -23,12 +23,17 @@ export interface CurhatSocketDeps {
   ) => Promise<{ id: string; userId: string | null } | undefined>;
   getOwnedChatroomIds: (userId: string) => Promise<string[]>;
   getMessage: (messageId: string) => Promise<ChatroomMessage | undefined>;
+  /**
+   * Saves a message once per `clientMessageId` in its room: a repeat saves nothing and gives back the first copy with
+   * `created: false` (`repositories/chatroom.repo.ts`).
+   */
   saveMessage: (message: {
     userId: string;
     chatroomId: string;
     content: string;
     replyId: string | null;
-  }) => Promise<ChatroomMessage>;
+    clientMessageId: string | null;
+  }) => Promise<{ message: ChatroomMessage; created: boolean }>;
   /** Tells the room's other participants (owner and Welfare), never the sender. */
   notifyParticipants: (message: {
     chatroomId: string;
@@ -62,7 +67,8 @@ function onTheWire(message: ChatroomMessageResponse) {
 /**
  * Curhat on one socket. The member is the signed-in session, never an id the client sends; every join and every
  * message checks `canAccessChatroom`. Old clients still work: a handshake `chatroomId` joins that room after the
- * check, and `message` without an acknowledgement callback is still saved and relayed.
+ * check, and `message` without an acknowledgement callback is still saved and relayed. A `clientMessageId` (the
+ * device's id for the message) makes sending it again safe: the repeat is answered with the copy already saved.
  *
  * Handlers are registered at once and wait for the session, so nothing sent right after connecting is lost.
  */
@@ -117,12 +123,31 @@ export function registerCurhatSocket(
       if (!quoted || quoted.chatroomId !== chatroomId) return refuse('invalid');
     }
 
-    const saved = await deps.saveMessage({
+    const { message: saved, created } = await deps.saveMessage({
       userId: s.userId,
       chatroomId,
       content,
       replyId,
+      clientMessageId: parsed.data.clientMessageId ?? null,
     });
+
+    if (!created) {
+      // A resend after a lost acknowledgement (P2-C): answer with the copy saved the first time; it was relayed and
+      // notified then. An id that is someone else's in this room is never answered with their message.
+      if (saved.userId !== s.userId) return refuse('invalid');
+      const firstQuote = saved.replyId
+        ? await deps.getMessage(saved.replyId)
+        : undefined;
+      return {
+        ok: true,
+        message: onTheWire(
+          toChatroomMessageResponse(
+            { ...saved, reply: firstQuote ?? null },
+            s.userId,
+          ),
+        ),
+      };
+    }
 
     await socket.join(chatroomId);
     const receivers = await socket.nsp.in(chatroomId).fetchSockets();

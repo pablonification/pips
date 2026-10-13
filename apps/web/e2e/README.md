@@ -124,14 +124,21 @@ test('…', async ({ page, api, db }) => {
 
 ### Sockets
 
-The app opens one socket.io connection per Curhat room (`auth.chatroomId`) and one for Live Counting
-(`auth.formAdminId`). The fake accepts them, records what the app emits, and lets a test push events:
+Members' Curhat opens one socket.io connection for the whole area (`auth: { curhat: true }`, P2-C); Welfare's
+screen (until P3-C) opens one per room (`auth.chatroomId`), and Live Counting one with `auth.formAdminId`. The fake
+speaks P0-D's protocol: the handshake joins your rooms (`FakeSocket.rooms`), `curhat:join` adds one, and `message`
+is acknowledged as the API does. It records what the app emits, and lets a test push events and steer answers:
 
 ```ts
 expect(api.socket.emitted('message').map((e) => e.data)).toEqual([...]);
-api.socket.emit('reply', message, (s) => s.auth.chatroomId === 'r1');
+api.socket.emit('reply', message, (s) => s.rooms.has('r1'));
+api.socket.answer('message', () => undefined); // hold acknowledgements back (a lost or late one)
+api.socket.ack(api.socket.emitted('message')[0], { ok: true, message }); // answer a held one by hand
+api.socket.answerAsApi('message'); // answer as the API again
 api.socket.drop();     // the connection drops; reconnects fail until api.socket.restore()
 ```
+
+The app waits 10 s for an acknowledgement; move the clock with `page.clock.fastForward()` instead of waiting.
 
 ## Adding a journey
 

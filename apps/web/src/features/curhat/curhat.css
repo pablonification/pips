@@ -1,0 +1,187 @@
+/*
+  Curhat Yuk! (P2-C): the room list and a room. Ported from the prototype's garis/garis.css (`.svc-row`, `.room-av`,
+  `.chat`, `.bubble*`, `.bubble-tools`, `.chat-day`, `.chat-bar`, `.reply-chip`, `.composer`) with the `g-` prefix,
+  values unchanged. The delivery states and the growing composer are new (OPEN-QUESTIONS D7), built from the bubble's
+  time line and the Balas line. Tokens only; loaded with the Curhat routes. tests/curhat-css.test.mjs checks it.
+*/
+@layer components {
+  /* ============ The list ============ */
+  .g-svc-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+  }
+  .g-room-av {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    flex: none;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  .g-room-end {
+    display: grid;
+    justify-items: end;
+    gap: 4px;
+  }
+  .g-room-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  /* ============ A room ============ */
+  .g-chat {
+    display: grid;
+    gap: 10px;
+    align-content: end;
+  }
+  .g-bubble {
+    max-width: 82%;
+    padding: 9px 12px 7px;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+  .g-bubble.them {
+    justify-self: start;
+    background: var(--bg-surface);
+    box-shadow: inset 0 0 0 1px var(--border);
+    border-bottom-left-radius: 3px;
+  }
+  .g-bubble.me {
+    justify-self: end;
+    background: var(--gold);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+    border-bottom-right-radius: 3px;
+  }
+  .g-bubble .tm {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 3px;
+    height: 12px;
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0.8;
+    font-variant-numeric: tabular-nums;
+    white-space: normal;
+  }
+  /* New (D7): the delivery state in the time line, icon then word ("Mengirim", "Terkirim · 13.35"); the 16 px icon
+     overhangs the 12 px line, so the bubble keeps the prototype's height. */
+  .g-bubble .tm .g-ic {
+    flex: none;
+  }
+  .g-bubble .quote {
+    display: block;
+    margin-bottom: 6px;
+    padding: 5px 8px;
+    border-left: 3px solid currentColor;
+    border-radius: 3px;
+    background: var(--quote-tint);
+    font-size: 13px;
+    opacity: 0.9;
+  }
+  .g-bubble-tools {
+    justify-self: end;
+    margin-top: -6px;
+    min-height: 32px;
+    padding: 0 6px;
+    color: var(--text-3);
+    font-weight: 500;
+  }
+  .g-bubble-tools:hover {
+    color: var(--text-accent);
+  }
+  .g-bubble-tools.them {
+    justify-self: start;
+  }
+  /* New (D7): a failed message's line: "Gagal" (icon, word, danger colour) and Kirim ulang. */
+  .g-bubble-fail {
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: -6px;
+    min-height: 32px;
+    padding: 0 6px;
+  }
+  .g-bubble-fail .g-err {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .g-chat-day {
+    justify-self: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-3);
+    padding: 6px 0;
+  }
+  .g-chat-first {
+    text-align: center;
+    padding: 24px 0;
+  }
+  .g-chat-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    display: grid;
+    gap: 8px;
+    padding: 10px 0 4px;
+    background: var(--bg-app);
+  }
+  .g-reply-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 6px 6px 10px;
+    border-radius: 8px;
+    background: var(--bg-muted);
+    box-shadow: inset 3px 0 0 var(--mark);
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .g-composer {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .g-composer .g-field {
+    flex: 1;
+  }
+  /* New (story 98): a textarea that looks like the one-line field at rest (44 px) and grows to 5 lines. */
+  .g-composer textarea.g-field {
+    display: block;
+    min-height: 44px;
+    max-height: 140px;
+    padding: 10px 12px;
+    line-height: 1.5;
+    resize: none;
+    overflow-y: hidden;
+  }
+  .g-composer textarea.g-field.full {
+    overflow-y: auto;
+  }
+  .g-composer .g-btn.square {
+    align-self: flex-end;
+  }
+  /* The page's gaps (the prototype's `body(m, inner, 14)` for the list, 10 for a room). */
+  .g-curhat-page {
+    gap: 14px;
+  }
+  .g-room-page {
+    gap: 10px;
+  }
+}

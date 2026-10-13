@@ -38,16 +38,39 @@ const pengumumanFeed: FidelityScreen = {
 };
 
 /**
+ * P3-A: Live Counting as the locked screens show it. Only here, not in the journeys: the newest-five request answers
+ * the prototype's four (`LIVE.latest`; the fixture has 142, so the app would show five), and the second chart's
+ * label is the prototype's shortened one (the API sends the question's full label).
+ */
+export function liveAsLocked(api: ApiMock) {
+  const analytics = structuredClone(api.db.formAnalytics.pixel);
+  analytics.questions[1].label =
+    'Tertarik jalan-jalan bareng HMIF setelah libur semester?';
+  api.on('GET /api/form/:formId/analytics', analytics);
+  api.on('GET /api/form/:formId/responses', (req) => {
+    const all = api.db.adminResponses[req.params.formId] ?? [];
+    const page = Number(req.query.get('page') ?? 1);
+    const limit = Number(req.query.get('limit') ?? 20);
+    // The prototype's four, plus any response added since (i-desk-live), up to five.
+    const latest = all.slice(0, Math.min(5, 4 + Math.max(0, all.length - 142)));
+    return limit === 5
+      ? { responses: latest, total: all.length, page, limit }
+      : {
+          responses: all.slice((page - 1) * limit, page * limit),
+          total: all.length,
+          page,
+          limit,
+        };
+  });
+}
+
+/**
  * One entry, or several when layouts differ (each with its `layouts`): `anggota-ov-confirm` is the sign-out sheet on
  * phones and tablets (P1-C) and the form's send dialog on desktop (P2-A).
  */
 export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
   {
     // Today's app (before the redesign).
-    'anggota-curhat': {
-      path: '/layanan/curhat',
-      ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
-    },
     // P1-C: Profil, Mata kuliahku and Notifikasi, redesigned in place.
     'anggota-profil': {
       path: '/profil',
@@ -61,13 +84,18 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       path: '/profil/notifikasi',
       ready: (p) => p.getByRole('main').getByRole('switch', { name: 'Lomba' }),
     },
+    // P3-A: Kelola and Live Counting.
     'pengurus-kelola': {
       path: '/kelola',
-      ready: (p) => p.getByRole('link', { name: /Data SPARTA Magang/ }),
+      ready: (p) =>
+        p
+          .getByRole('main')
+          .getByRole('link', { name: /^Tambah acara Akademik/ }),
     },
     'pengurus-live': {
       path: '/kelola/live/pixel',
-      ready: (p) => visibleText(p, 'Halaman 1 dari 8'),
+      mock: liveAsLocked,
+      ready: (p) => p.getByRole('main').getByText('Tidak tertarik'),
     },
     // P2-A: Form (PIXEL).
     'anggota-form': {
@@ -233,6 +261,23 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
     'pengurus-layanan': {
       path: '/layanan',
       ready: (p) => p.getByRole('main').getByText('Tambah acara Akademik'),
+    },
+
+    // P2-C: Curhat Yuk! for members. A pengurus without rooms sees the member side, empty (not the Welfare inbox).
+    'anggota-curhat': {
+      path: '/layanan/curhat',
+      ready: (p) =>
+        p.getByRole('main').getByRole('link', { name: /^Amber Heron/ }),
+    },
+    'anggota-room': {
+      path: '/layanan/curhat/r1',
+      mock: (api) =>
+        api.on('POST /api/curhat/chatroom/:chatroomId/read', writes.readRoom),
+      ready: (p) => p.getByRole('log', { name: 'Percakapan Teal Koala' }),
+    },
+    'pengurus-curhat-empty': {
+      path: '/layanan/curhat',
+      ready: (p) => p.getByRole('main').getByText('Belum ada ruang cerita'),
     },
 
     // P1-B: Pengumuman. The phone and tablet captures of the locked `post` were set without opening p1, so they show 4

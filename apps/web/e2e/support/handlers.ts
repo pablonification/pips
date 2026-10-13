@@ -41,6 +41,21 @@ const signedIn: (h: Handler) => Handler = (h) => (req) =>
   req.db.signedIn && req.db.me
     ? h(req)
     : reply.status(401, { message: 'Unauthorized' });
+/** As the API's `roleMiddleware`: a member without one of `roles` gets 401 `{ error: 'Unauthorized' }` (not 403). */
+const withRole: (roles: readonly string[], h: Handler) => Handler = (
+  roles,
+  h,
+) =>
+  signedIn((req) =>
+    req.db.me!.roles.some((r) => roles.includes(r))
+      ? h(req)
+      : reply.status(401, { error: 'Unauthorized' }),
+  );
+/** `form.controller.ts` FORM_ADMIN_ROLES and `internship.controller.ts` SPARTA_ADMIN_ROLES. */
+const FORM_ADMIN = ['admin'];
+const SPARTA_ADMIN = ['peoplemanage', 'admin'];
+/** `internship.repo.ts` SUBMISSIONS_PER_PAGE. */
+const SUBMISSIONS_PER_PAGE = 20;
 const notFound = (what: string) =>
   reply.status(404, { message: `${what} not found` });
 const includes = (hay: string | null | undefined, needle: string) =>
@@ -330,10 +345,8 @@ export const defaultHandlers: Record<string, Handler> = {
   'GET /api/form': signedIn(({ db }) =>
     ok<R<FormService['listForms']>>({ forms: db.forms }),
   ),
-  'GET /api/form/admin/list': signedIn(({ db }) =>
-    db.me!.roles.includes('admin')
-      ? ok<R<FormService['listAllForms']>>({ forms: db.adminForms })
-      : reply.status(403),
+  'GET /api/form/admin/list': withRole(FORM_ADMIN, ({ db }) =>
+    ok<R<FormService['listAllForms']>>({ forms: db.adminForms }),
   ),
   // As the API answers: the member's status, and no questions until the form opens, even if switched off (kept once it closes).
   'GET /api/form/:formId': signedIn(({ db, params }) => {
@@ -346,9 +359,14 @@ export const defaultHandlers: Record<string, Handler> = {
       responded: !!db.myResponses[form.id],
       nim,
     });
+    // P3-A: the questions only for the form's angkatan or a form admin (form.controller.ts, formQuestionsVisible).
+    const forMe =
+      form.eligibleAngkatan.includes(db.me!.angkatan) ||
+      db.me!.roles.includes('admin');
     return ok<R<FormService['getForm']>>({
       ...form,
-      sections: formSectionsVisibleFor(form, nim) ? form.sections : null,
+      sections:
+        forMe && formSectionsVisibleFor(form, nim) ? form.sections : null,
       status,
     });
   }),
@@ -360,29 +378,35 @@ export const defaultHandlers: Record<string, Handler> = {
         db.myResponses[params.formId] ?? null,
       ),
   ),
-  'GET /api/form/:formId/responses': signedIn(({ db, params, query }) => {
-    const all = db.adminResponses[params.formId] ?? [];
-    const search = query.get('search')?.trim();
-    const list = search
-      ? all.filter(
-          (r) => includes(r.fullName, search) || r.nim.includes(search),
-        )
-      : all;
-    const page = Number(query.get('page') ?? 1);
-    const limit = Number(query.get('limit') ?? 20);
-    return ok<R<FormService['listFormResponses']>>({
-      responses: list.slice((page - 1) * limit, page * limit),
-      total: list.length,
-      page,
-      limit,
-    });
-  }),
-  'GET /api/form/:formId/responses/count': signedIn(({ db, params }) =>
-    ok<R<FormService['getFormResponsesCount']>>({
-      total: db.adminResponses[params.formId]?.length ?? 0,
-    }),
+  'GET /api/form/:formId/responses': withRole(
+    FORM_ADMIN,
+    ({ db, params, query }) => {
+      const all = db.adminResponses[params.formId] ?? [];
+      const search = query.get('search')?.trim();
+      const list = search
+        ? all.filter(
+            (r) => includes(r.fullName, search) || r.nim.includes(search),
+          )
+        : all;
+      const page = Number(query.get('page') ?? 1);
+      const limit = Number(query.get('limit') ?? 20);
+      return ok<R<FormService['listFormResponses']>>({
+        responses: list.slice((page - 1) * limit, page * limit),
+        total: list.length,
+        page,
+        limit,
+      });
+    },
   ),
-  'GET /api/form/:formId/analytics': signedIn(
+  'GET /api/form/:formId/responses/count': withRole(
+    FORM_ADMIN,
+    ({ db, params }) =>
+      ok<R<FormService['getFormResponsesCount']>>({
+        total: db.adminResponses[params.formId]?.length ?? 0,
+      }),
+  ),
+  'GET /api/form/:formId/analytics': withRole(
+    FORM_ADMIN,
     ({ db, params }) =>
       ok<R<FormService['getFormAnalytics']> | undefined>(
         db.formAnalytics[params.formId],
@@ -408,17 +432,18 @@ export const defaultHandlers: Record<string, Handler> = {
   'GET /api/internship/window': signedIn(({ db }) =>
     ok<R<InternshipService['getInternshipWindow']>>(spartaWindowFor(db)),
   ),
-  'GET /api/internship/submissions': signedIn(({ db, query }) => {
+  'GET /api/internship/submissions': withRole(SPARTA_ADMIN, ({ db, query }) => {
     const locked = query.get('locked');
     const list = db.internshipSubmissions.filter(
       (s) => locked == null || String(s.isLocked) === locked,
     );
     const offset = Number(query.get('offset') ?? 0);
     return ok<R<InternshipService['listInternshipSubmissions']>>({
-      submissions: list.slice(offset, offset + 50),
+      submissions: list.slice(offset, offset + SUBMISSIONS_PER_PAGE),
     });
   }),
-  'GET /api/internship/submissions/:id': signedIn(
+  'GET /api/internship/submissions/:id': withRole(
+    SPARTA_ADMIN,
     ({ db, params }) =>
       ok<R<InternshipService['getInternshipSubmissionById']> | undefined>(
         db.internshipSubmissions.find((s) => s.id === params.id),

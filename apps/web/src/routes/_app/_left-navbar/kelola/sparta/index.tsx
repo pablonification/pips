@@ -1,242 +1,27 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
-import { ChevronLeft, Download } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { InternshipSubmission } from '~/api/generated';
-import AdminResponsiveTable, {
-  AdminTableColumn,
-} from '~/components/admin/AdminResponsiveTable';
-import { Button } from '~/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select';
-import useSession from '~/hooks/auth/useSession';
-import { isInRoles } from '~/lib/roles';
-import {
-  useAllInternshipSubmissions,
-  useInternshipDepartments,
-} from '../../layanan/sparta/-useInternshipData';
-import { InternshipStatsCharts } from './-components/InternshipStatsCharts';
-import { exportSubmissionsToCsv } from './-exportSubmissions';
+import { createFileRoute } from '@tanstack/react-router';
+import { queryClient } from '~/api/client';
+import { prefetch } from '~/api/queries';
+import { spartaDepartmentsQuery } from '~/components/form/sparta-data';
+import { KelolaGate } from '~/features/kelola/KelolaGate';
+import { mayLoad, spartaSubmissionsQuery } from '~/features/kelola/queries';
+import { SpartaScreen } from '~/features/kelola/SpartaScreen';
+import { spartaDataSearchSchema } from '~/lib/search-params';
 
 export const Route = createFileRoute('/_app/_left-navbar/kelola/sparta/')({
-  component: InternshipAdminPage,
+  validateSearch: (search) => spartaDataSearchSchema.parse(search),
+  loader: () => {
+    if (!mayLoad(queryClient, 'sparta')) return;
+    prefetch(spartaDepartmentsQuery());
+    prefetch(spartaSubmissionsQuery());
+  },
+  component: SpartaRoute,
 });
 
-const PRIORITY_OPTIONS = [1, 2, 3, 4] as const;
-
-function InternshipAdminPage() {
-  const router = useRouter();
-  const user = useSession();
-  const isAdmin = isInRoles(user, ['peoplemanage', 'admin']);
-
-  const [divisionId, setDivisionId] = useState<string>('all');
-  const [locked, setLocked] = useState<'all' | 'true' | 'false'>('all');
-  const [priority, setPriority] = useState<string>('all');
-
-  const { data: departmentsData } = useInternshipDepartments();
-  const departments = departmentsData?.departments ?? [];
-  const divisions = departments.flatMap((d) =>
-    (d.divisions ?? []).map((div) => ({
-      id: div.id,
-      name: div.name,
-      departmentId: div.departmentId,
-      departmentName: d.name,
-    })),
-  );
-  const divisionById = new Map(divisions.map((d) => [d.id, d]));
-  const divisionEntityById = new Map(
-    departments.flatMap((d) =>
-      (d.divisions ?? []).map((div) => [div.id, div] as const),
-    ),
-  );
-
-  const { data: allSubmissions, isLoading } = useAllInternshipSubmissions(
-    locked,
-    isAdmin,
-  );
-
-  const filteredSubmissions = useMemo(() => {
-    const submissions = allSubmissions ?? [];
-    const priorityNum = priority === 'all' ? undefined : Number(priority);
-
-    return submissions.filter((sub) => {
-      if (priorityNum !== undefined) {
-        const choiceAtPriority = sub.choices?.find(
-          (c) => c.priorityOrder === priorityNum,
-        );
-        if (!choiceAtPriority) return false;
-        if (
-          divisionId !== 'all' &&
-          choiceAtPriority.divisionId !== divisionId
-        ) {
-          return false;
-        }
-      } else if (divisionId !== 'all') {
-        if (!sub.choices?.some((c) => c.divisionId === divisionId))
-          return false;
-      }
-      return true;
-    });
-  }, [allSubmissions, divisionId, priority]);
-
-  if (!isAdmin) {
-    return (
-      <div className="flex size-full h-screen flex-col items-center justify-center gap-2 bg-green-50">
-        <p className="text-lg font-semibold">Akses ditolak</p>
-        <p className="text-sm text-neutral-darker">
-          Halaman ini hanya untuk tim People Management.
-        </p>
-      </div>
-    );
-  }
-
+function SpartaRoute() {
+  const filters = Route.useSearch();
   return (
-    <div className="flex size-full h-screen flex-col overflow-hidden bg-green-50">
-      <div className="relative mx-auto flex max-h-screen w-full flex-col items-center overflow-auto lg:max-w-(--breakpoint-lg) lg:px-8">
-        <Button
-          variant="link"
-          className="my-6 w-full justify-start gap-8 p-0 text-2xl font-medium lg:text-3xl"
-          onClick={() => router.history.back()}
-        >
-          <ChevronLeft className="size-8" />
-          <span>Back</span>
-        </Button>
-
-        <div className="flex w-full flex-col gap-4 px-4 pb-24 lg:px-0">
-          <h1 className="text-3xl font-bold">Data Pilihan Magang SPARTA</h1>
-
-          <InternshipStatsCharts
-            submissions={allSubmissions ?? []}
-            divisions={divisions}
-            departments={departments.map((d) => ({ id: d.id, name: d.name }))}
-          />
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Select value={divisionId} onValueChange={setDivisionId}>
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder="Filter divisi" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Divisi</SelectItem>
-                {divisions.map((div) => (
-                  <SelectItem key={div.id} value={div.id}>
-                    {div.departmentName} - {div.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="Filter pilihan ke-" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Pilihan</SelectItem>
-                {PRIORITY_OPTIONS.map((p) => (
-                  <SelectItem key={p} value={String(p)}>
-                    Pilihan {p}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={locked}
-              onValueChange={(v) => setLocked(v as typeof locked)}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="true">Sudah Terkunci</SelectItem>
-                <SelectItem value="false">Draft</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <span className="text-sm text-neutral-darker">
-              {filteredSubmissions.length} submission
-            </span>
-
-            <Button
-              type="button"
-              variant="outlined"
-              size="sm"
-              className="ml-auto gap-2"
-              disabled={filteredSubmissions.length === 0}
-              onClick={() =>
-                exportSubmissionsToCsv(
-                  filteredSubmissions,
-                  divisions,
-                  divisionEntityById,
-                )
-              }
-            >
-              <Download className="size-4" />
-              Export CSV
-            </Button>
-          </div>
-
-          <AdminResponsiveTable
-            columns={
-              [
-                { key: 'fullName', header: 'Nama', render: (s) => s.fullName },
-                { key: 'nim', header: 'NIM', render: (s) => s.nim },
-                { key: 'jurusan', header: 'Jurusan', render: (s) => s.jurusan },
-                { key: 'kelas', header: 'Kelas', render: (s) => s.kelas },
-                {
-                  key: 'status',
-                  header: 'Status',
-                  render: (s) =>
-                    s.isLocked ? (
-                      <span className="rounded-full bg-green-200 px-2 py-1 text-xs">
-                        Terkunci
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-yellow-200 px-2 py-1 text-xs">
-                        Draft
-                      </span>
-                    ),
-                },
-                ...PRIORITY_OPTIONS.map((p) => ({
-                  key: `priority-${p}`,
-                  header: `Pilihan ${p}`,
-                  render: (s: InternshipSubmission) => {
-                    const choice = s.choices?.find(
-                      (c) => c.priorityOrder === p,
-                    );
-                    const division = choice
-                      ? divisionById.get(choice.divisionId)
-                      : undefined;
-                    return division ? division.name : '-';
-                  },
-                })),
-                {
-                  key: 'detail',
-                  header: '',
-                  render: (s) => (
-                    <Link
-                      to="/kelola/sparta/$submissionId"
-                      params={{ submissionId: s.id }}
-                      className="text-blue-600 underline"
-                    >
-                      Detail
-                    </Link>
-                  ),
-                },
-              ] satisfies AdminTableColumn<InternshipSubmission>[]
-            }
-            rows={filteredSubmissions}
-            rowKey={(s) => s.id}
-            isLoading={isLoading}
-            emptyMessage="Belum ada submission."
-          />
-        </div>
-      </div>
-    </div>
+    <KelolaGate page="sparta">
+      <SpartaScreen filters={filters} />
+    </KelolaGate>
   );
 }

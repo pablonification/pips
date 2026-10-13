@@ -197,6 +197,13 @@
       "when": 1791842861831,
       "tag": "0027_programme_windows",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791883010177,
+      "tag": "0028_chatroom_client_message_id",
+      "breakpoints": true
     }
   ]
 }

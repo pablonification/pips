@@ -1,10 +1,7 @@
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
-import {
-  curhatUnreadTotal,
-  openFormsCount,
-  serviceBadge,
-} from '../src/features/layanan/rules';
+import { openFormsCount, serviceBadge } from '../src/features/layanan/rules';
+import { totalUnread } from '../src/lib/curhat-unread';
 import { servicesByGroup } from '../src/lib/services';
 
 /* Layanan (P1-C brief, "Rules to unit-test"): group order, Kelola per role, expired entries, badge counts. */
@@ -69,14 +66,10 @@ test('an entry past validUntil is hidden, and shown before it', () => {
 
 test('badges: Curhat’s unread summed, Form’s open count, none at 0 or while unknown', () => {
   assert.equal(
-    curhatUnreadTotal([
-      { unreadCount: 2 },
-      { unreadCount: 1 },
-      { unreadCount: 0 },
-    ]),
+    totalUnread([{ unreadCount: 2 }, { unreadCount: 1 }, { unreadCount: 0 }]),
     3,
   );
-  assert.equal(curhatUnreadTotal(undefined), 0);
+  assert.equal(totalUnread(undefined), 0);
   assert.equal(
     openFormsCount([
       { status: 'open' },

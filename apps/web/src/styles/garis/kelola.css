@@ -1,0 +1,220 @@
+/*
+  Kelola (P3-A), ported exactly from the locked prototype's garis.css: `.live` and `blink`, `.hbars`, `.hbar`,
+  `.pager`, and the inline styles of `scrLive` (garis/screens-more.js). The plaque, rows, tags and fields are P0-A's
+  (components.css). Data SPARTA Magang (no locked design) is built from the same pieces: a hairline table from
+  1024 px, labelled rows below. Colours only from tokens. Loaded with Kelola's code, not globally.
+*/
+@layer components {
+  /* Live Counting's plaque (scrLive): the live square and the form's title, the count, the line under it. */
+  .g-live-plaque {
+    display: grid;
+    gap: 8px;
+    padding: 18px 18px 16px;
+  }
+  .g-live-plaque .sub {
+    color: color-mix(in srgb, var(--ink) 82%, transparent);
+  }
+  .g-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  /* Blinks four times, then stays still; base.css stops it under reduced motion. */
+  .g-live i {
+    width: 8px;
+    height: 8px;
+    background: currentColor;
+    flex: none;
+    animation: g-blink 1s step-end 4;
+  }
+
+  /* Pengisi terbaru and Rekap Form: NIM (tabular, 84 px), name, then major, angkatan and time on the right. */
+  .g-resp .nim {
+    width: 84px;
+    flex: none;
+  }
+  .g-resp .name {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* Analitik jawaban: one CSS bar per option (no chart library). */
+  .g-hbars {
+    display: grid;
+    gap: 10px;
+  }
+  .g-hbar {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr) 40px;
+    gap: 10px;
+    align-items: center;
+    font-size: 13px;
+  }
+  .g-hbar > span:first-child {
+    overflow-wrap: anywhere;
+  }
+  .g-hbar .trk {
+    height: 12px;
+    background: var(--bg-muted);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .g-hbar .trk i {
+    display: block;
+    height: 100%;
+    background: var(--text);
+  }
+  .g-hbar .v {
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Data SPARTA Magang's labels ("Welfare and Academics · Akademik") are longer than an answer's: above the bar on
+     phones, a 220 px column from 640 px. */
+  .g-hbars.wide .g-hbar {
+    grid-template-columns: minmax(0, 1fr) 40px;
+    row-gap: 6px;
+  }
+  .g-hbars.wide .g-hbar > span:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .g-live-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* Testi Matkul's pager. */
+  .g-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .g-pager .flip {
+    display: inline-grid;
+    rotate: 180deg;
+  }
+
+  /* Data SPARTA Magang: the toolbar. */
+  .g-sparta-tools {
+    display: grid;
+    gap: 12px;
+  }
+  .g-sparta-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+  .g-sparta-count {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .g-segs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+
+  /* The table from 1024 px, labelled rows below: one tree, picked by the screen (DESKTOP_QUERY). */
+  .g-sparta-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .g-sparta-table th {
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    padding: 10px 12px 10px 0;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .g-sparta-table td {
+    padding: 12px 12px 12px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .g-sparta-table td.num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .g-sparta-table a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--border-strong);
+    text-underline-offset: 3px;
+  }
+  .g-sparta-table a:hover {
+    text-decoration-color: currentColor;
+  }
+  .g-sparta-row {
+    display: grid;
+    gap: 10px;
+    padding: 14px 0;
+  }
+  .g-sparta-row .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .g-sparta-row .top > :first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .g-facts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 16px;
+  }
+  .g-facts-grid > div {
+    min-width: 0;
+  }
+  .g-facts-grid dd {
+    overflow-wrap: anywhere;
+  }
+
+  /* One submission: a card per choice. */
+  .g-choice-card {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-surface);
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .g-choice-card dl {
+    display: grid;
+    gap: 12px;
+  }
+  .g-pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 640px) {
+    .g-hbars.wide .g-hbar {
+      grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 40px;
+    }
+    .g-hbars.wide .g-hbar > span:first-child {
+      grid-column: auto;
+    }
+    .g-sparta-filters {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .g-facts-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}

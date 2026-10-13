@@ -76,6 +76,7 @@ fixtures follow the API, as listed here.
 
 ## Curhat Yuk!
 
+- Room names are in lower case ("teal koala"), as the API stores them; the app shows them as "Teal Koala" (P2-C).
 - Rooms come back as the API's map keyed by room id, messages newest first with `isSender`, and `reply` filled
   for replies (m4 replies to m3). No `userId` anywhere, as the API now sends them (P0-D).
 - `db.chatroomReads` holds the read marks: every Welfare message except m4 (the prototype's unread one).
@@ -85,7 +86,8 @@ fixtures follow the API, as listed here.
   goes), `writes.deleteRoom`.
 - The fake socket answers acknowledgements as the API does (see `support/socketio.ts`): a `message` in your room
   is saved into `db.chatrooms` and acknowledged `{ ok: true, message }`; `api.socket.answer()` changes or withholds
-  the answer for the delivery states.
+  the answer for the delivery states, `api.socket.ack()` answers a withheld one later, and `api.socket.answerAsApi()`
+  goes back to the API's answers (P2-C).
 
 ## Forms
 
@@ -107,8 +109,10 @@ fixtures follow the API, as listed here.
 - **Live Counting:** the prototype has a count (142) and four latest submitters. The fixtures add 138 more
   deterministic fictional responses so the recap table pages work, and analytics for q4 and q16 from the
   prototype's numbers.
-- **SPARTA Magang** isn't in the prototype's data at all. The fixtures invent two departments, three divisions
-  and three submissions (Bima, Tasya, Nadia), enough for the admin table and the detail page.
+- **SPARTA Magang** isn't in the prototype's data at all. The fixtures invent three departments, four divisions
+  and three submissions, enough for the admin table and the detail page. Bima's and Tasya's are sent (locked,
+  four choices as the API requires, each with an answer to its division's question). Since P3-A, Nadia's is a
+  partial draft as P2-A saves them: three choices, no answers, not sent (`submittedAt: null`).
 - **SPARTA for members** (since P0-D, as the API): `GET /api/internship/window` answers SPARTA's window
   (`db.spartaWindow`: closed since Minggu, 23 Agustus 2026, 23.59 WIB) and `eligible` (angkatan 2025 or the three
   listed NIMs: Nadia yes, Raka no). `GET /api/internship/submission` is `200 null` without a submission and 401

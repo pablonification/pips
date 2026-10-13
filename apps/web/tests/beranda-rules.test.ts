@@ -74,6 +74,7 @@ const room = (
     id: `${id}-m${i}`,
     chatroomId: id,
     replyId: null,
+    clientMessageId: null,
     content: 'rahasia',
     createdAt: wib(at),
     isSender,

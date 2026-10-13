@@ -74,6 +74,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chat, onBack, socket }) => {
         chatroomId: chat.id,
         replyId: replyMessage?.id || null,
         isSender: true,
+        clientMessageId: null,
       },
       ...prev,
     ]);
