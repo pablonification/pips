@@ -123,10 +123,11 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
             .getByRole('main')
             .getByText('6 mata kuliah · 18 SKS')
             .waitFor();
+          // Clicked in place, as the prototype's capture: the page stays at its top behind the sheet.
           await p
             .getByRole('main')
             .getByRole('button', { name: 'Keluar' })
-            .click();
+            .evaluate((b: HTMLElement) => b.click());
         },
         ready: (p) =>
           p.getByRole('alertdialog', { name: 'Keluar dari PIPS!?' }),
