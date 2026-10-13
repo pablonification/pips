@@ -143,6 +143,7 @@ function Options({ c }: { c: Competition }) {
         cancelLabel={t.batal}
         confirmLabel={t.hapusTombol}
         danger
+        busy={remove.isPending}
         onConfirm={() => {
           if (remove.isPending) return;
           remove.mutate(undefined, {
