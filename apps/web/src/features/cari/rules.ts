@@ -19,6 +19,19 @@ export const UPCOMING_DAYS = 21;
 /** Whether a query is long enough to ask the API (trimmed, as the API trims it). */
 export const asksApi = (query: string) => query.trim().length >= REMOTE_MIN;
 
+/**
+ * Whether the API's results for `query` are still on their way (P1-A round 2): typing hasn't paused yet (`settled`
+ * is the query the API was last asked about), or a request is out. Until then an empty list isn't "no results".
+ */
+export function remotePending(
+  query: string,
+  settled: string,
+  fetching: readonly boolean[],
+): boolean {
+  if (!asksApi(query)) return false;
+  return query.trim() !== settled.trim() || fetching.some(Boolean);
+}
+
 /** Upcoming events within 21 days, by start (the prototype's `up`). */
 export function upcomingEvents(
   events: readonly CalEvent[],

@@ -18,7 +18,7 @@ const t = common.palette;
 
 export default function Palette() {
   const [query, setQuery] = useState('');
-  const items = usePaletteItems(query);
+  const { items, pending } = usePaletteItems(query);
   const groups = useMemo(
     () => paletteResults(items, query, t.pintasan),
     [items, query],
@@ -91,7 +91,8 @@ export default function Palette() {
                   })}
                 </Command.Group>
               ))}
-              {groups.length === 0 ? (
+              {/* Not while the API's results are on their way: that isn't "no results" yet. */}
+              {groups.length === 0 && !pending ? (
                 <div className="g-pal-empty" role="status">
                   <p className="t-sm">{fill(t.tidakAda, { kata: query })}</p>
                   <p className="t-sm text-fg-2" style={{ marginTop: 4 }}>

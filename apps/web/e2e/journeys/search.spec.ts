@@ -6,6 +6,7 @@
 import type { Page } from '@playwright/test';
 import type { CalendarEvent } from '../../src/api/generated';
 import { layoutOf } from '../support/app';
+import { defaultHandlers } from '../support/handlers';
 import { reply } from '../support/mock';
 import { strictGates } from '../support/p1a';
 import { expect, test } from '../support/test';
@@ -170,6 +171,33 @@ test('announcements and people come from the API from 3 characters', async ({
   ).toBe(true);
   await nadia.click();
   await expect(page).toHaveURL(/\/layanan\/nim\?q=Nadia(\+|%20)Putri$/);
+});
+
+test('while people are on their way, search never says nothing was found', async ({
+  page,
+  api,
+}) => {
+  const people = defaultHandlers['GET /api/user/nim'];
+  api.on('GET /api/user/nim', (ctx) => reply.delay(1500, people(ctx)));
+  await openSearch(page);
+  // Notes whether the empty result ever shows, however briefly.
+  await page.evaluate(() => {
+    const w = window as { sawEmpty?: boolean };
+    w.sawEmpty = false;
+    new MutationObserver(() => {
+      if (document.querySelector('.g-pal-empty')) w.sawEmpty = true;
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+  await field(page).fill('nadia');
+  await expect(options(page).filter({ hasText: 'Nadia Putri' })).toBeVisible();
+  expect(
+    await page.evaluate(() => (window as { sawEmpty?: boolean }).sawEmpty),
+  ).toBe(false);
+  // Once nothing is on its way, an empty result still says so.
+  await field(page).fill('zzzz');
+  await expect(
+    palette(page).getByText('Tidak ada hasil untuk “zzzz”.'),
+  ).toBeVisible();
 });
 
 test('a course opens its Ding Dong folder in a new tab', async ({ page }) => {

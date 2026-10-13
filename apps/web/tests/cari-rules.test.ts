@@ -8,6 +8,7 @@ import {
   eventHint,
   personHint,
   postLabel,
+  remotePending,
   upcomingEvents,
 } from '../src/features/cari/rules';
 import { paletteResults, type PaletteItem } from '../src/lib/shell/palette';
@@ -138,4 +139,12 @@ test('at most 12 results, from every source', () => {
     groups.map((g) => g.heading),
     ['Pengumuman', 'Orang'],
   );
+});
+
+test('the API’s results are pending until typing pauses and every request is back', () => {
+  assert.equal(remotePending('na', 'na', [false, false]), false, 'under 3');
+  assert.equal(remotePending('nadia', 'na', [false, false]), true, 'typing');
+  assert.equal(remotePending('nadia', 'nadia', [false, true]), true);
+  assert.equal(remotePending('nadia ', 'nadia', [false, false]), false);
+  assert.equal(remotePending('nadia', 'nadia', [false, false]), false);
 });

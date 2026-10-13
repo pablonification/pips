@@ -21,6 +21,7 @@ import { cari } from '~/copy/cari';
 import { common } from '~/copy/common';
 import {
   asksApi,
+  remotePending,
   eventHint,
   personHint,
   postLabel,
@@ -134,7 +135,10 @@ function useDebounced(value: string, ms: number): string {
   return settled;
 }
 
-function usePostItems(query: string): PaletteItem[] {
+function usePostItems(query: string): {
+  items: PaletteItem[];
+  fetching: boolean;
+} {
   const navigate = useNavigate();
   const q = query.trim();
   const found = useQuery({
@@ -143,7 +147,7 @@ function usePostItems(query: string): PaletteItem[] {
     enabled: asksApi(q),
     retry: false,
   });
-  return useMemo(
+  const items = useMemo(
     () =>
       asksApi(q) && found.data
         ? found.data.map((p) => ({
@@ -160,6 +164,7 @@ function usePostItems(query: string): PaletteItem[] {
         : [],
     [found.data, navigate, q],
   );
+  return { items, fetching: found.isFetching };
 }
 
 function useEventItems(): PaletteItem[] {
@@ -217,7 +222,10 @@ function useCourseItems(): PaletteItem[] {
   );
 }
 
-function usePeopleItems(query: string): PaletteItem[] {
+function usePeopleItems(query: string): {
+  items: PaletteItem[];
+  fetching: boolean;
+} {
   const navigate = useNavigate();
   const q = query.trim();
   const found = useQuery({
@@ -226,7 +234,7 @@ function usePeopleItems(query: string): PaletteItem[] {
     enabled: asksApi(q),
     retry: false,
   });
-  return useMemo(
+  const items = useMemo(
     () =>
       asksApi(q) && found.data
         ? found.data.map((p) => ({
@@ -242,10 +250,17 @@ function usePeopleItems(query: string): PaletteItem[] {
         : [],
     [found.data, navigate, q],
   );
+  return { items, fetching: found.isFetching };
 }
 
-/** Every source's items for `query`, in the prototype's order. */
-export function usePaletteItems(query = ''): PaletteItem[] {
+/**
+ * Every source's items for `query`, in the prototype's order, and whether the API's are still on their way (so an
+ * empty list isn't yet "no results").
+ */
+export function usePaletteItems(query = ''): {
+  items: PaletteItem[];
+  pending: boolean;
+} {
   const remote = useDebounced(query, REMOTE_DEBOUNCE_MS);
   const actions = useActionItems();
   const services = useServiceItems();
@@ -253,8 +268,19 @@ export function usePaletteItems(query = ''): PaletteItem[] {
   const events = useEventItems();
   const courses = useCourseItems();
   const people = usePeopleItems(remote);
-  return useMemo(
-    () => [...actions, ...services, ...posts, ...events, ...courses, ...people],
-    [actions, services, posts, events, courses, people],
+  const items = useMemo(
+    () => [
+      ...actions,
+      ...services,
+      ...posts.items,
+      ...events,
+      ...courses,
+      ...people.items,
+    ],
+    [actions, services, posts.items, events, courses, people.items],
   );
+  return {
+    items,
+    pending: remotePending(query, remote, [posts.fetching, people.fetching]),
+  };
 }
