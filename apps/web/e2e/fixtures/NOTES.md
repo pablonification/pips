@@ -88,6 +88,19 @@ fixtures follow the API, as listed here.
   is saved into `db.chatrooms` and acknowledged `{ ok: true, message }`; `api.socket.answer()` changes or withholds
   the answer for the delivery states, `api.socket.ack()` answers a withheld one later, and `api.socket.answerAsApi()`
   goes back to the API's answers (P2-C).
+- Every message carries `fromOwner` (P3-C): true when the room's owner wrote it. In a member's own view that is
+  every message of theirs.
+- **Welfare's view** (P3-C): when the roles include `curhatadmin` (Raka with `roles: ['curhatadmin']`, or
+  `{ only: ['curhatadmin'] }` for a Welfare member with no other tool), `db.chatrooms` holds every room in `ROOMS`
+  (Nadia's r1 and r2), each with `canDelete: false`. The member's messages are `isSender: false, fromOwner: true`;
+  the prototype's Welfare messages count as the signed-in Welfare member's (`isSender: true, fromOwner: false`).
+  A teammate's message (`isSender: false, fromOwner: false`) is added by override in the test that needs one.
+- Welfare's read marks (`WELFARE_READS`): m5 is read, m1 and m3 aren't, so Teal Koala counts 2 and Amber Heron none,
+  and Belum dibaca keeps only Teal Koala.
+- A Welfare `curhat` handshake joins every room in `db.chatrooms` and the Welfare group room `curhat:welfare`, as
+  the API does; a test adds a room started later to the sessions in that group. A message Welfare sends is saved
+  with `fromOwner: false`.
+- `writes.pinRoom` (opt in): pins or unpins for the signed-in member, 401 without `curhatadmin`, as the API.
 
 ## Forms
 
