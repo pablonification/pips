@@ -15,12 +15,13 @@ import {
 import { IconKas } from '~/components/icons/kas';
 import { IconLuar } from '~/components/icons/luar';
 import { IconTenggat } from '~/components/icons/tenggat';
-import { DeskHead, PageBody } from '~/components/shell/page';
+import { DeskHead, PageBody, TopBarActions } from '~/components/shell/page';
 import { fill } from '~/copy/fill';
 import { lomba as copy } from '~/copy/lomba';
 import { serviceById } from '~/lib/services';
 import { cn } from '~/lib/utils';
 import { NewTab, useOnline } from '~/features/layanan-svc/parts';
+import { TambahLomba } from '~/features/kelola-lomba/Manage';
 import { offlineUpdatedAt } from '~/features/layanan-svc/updated';
 import { deadlineLine, isOpen, isUrgent, rupiah, withScheme } from './rules';
 import { competitionsQuery } from './queries';
@@ -96,7 +97,7 @@ function LombaCard({ c, now }: { c: Competition; now: number }) {
 /**
  * Info Lomba for members (garis/screens-more.js `scrLomba`): open competitions, soonest deadline first, one clear
  * deadline each. Every page is reachable (SPEC story 78): more load when the list's end scrolls into view, and
- * **Muat lagi** does the same from the keyboard. No add button here: P3-B adds Tambah lomba for cnc.
+ * **Muat lagi** does the same from the keyboard. P3-B adds Tambah lomba, for cnc only.
  */
 export function LombaScreen() {
   const online = useOnline();
@@ -210,7 +211,10 @@ export function LombaScreen() {
 
   return (
     <>
-      <DeskHead title={serviceById('lomba').label} />
+      <DeskHead title={serviceById('lomba').label} actions={<TambahLomba />} />
+      <TopBarActions>
+        <TambahLomba />
+      </TopBarActions>
       <PageBody id={bodyId} className="gap-2.5">
         {content}
       </PageBody>
