@@ -53,16 +53,14 @@ function listInfos(infos: Info[], q: URLSearchParams): Info[] {
   const offset = Number(q.get('offset') ?? 0);
   return infos
     .filter((i) => q.get('unread') !== 'true' || !i.isRead)
+    // As the API (info.repo.ts): `excludeCategory` takes category names, and a post is left out when any of its
+    // categories is excluded; `search` matches the title and the content, never the author (P1-B).
     .filter(
       (i) =>
         !excluded.length ||
-        !i.infoCategories?.some((c) => excluded.includes(c.categoryId)),
+        !i.infoCategories?.some((c) => excluded.includes(c.category.name)),
     )
-    .filter(
-      (i) =>
-        !search ||
-        includes(`${i.title} ${i.content} ${i.creator.fullName}`, search),
-    )
+    .filter((i) => !search || includes(`${i.title} ${i.content}`, search))
     .sort(
       (a, b) =>
         (sort === 'oldest' ? 1 : -1) *
