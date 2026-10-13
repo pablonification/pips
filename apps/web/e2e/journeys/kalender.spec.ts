@@ -419,9 +419,9 @@ test.describe('Raka, akademik', () => {
         }),
       ).toBeVisible();
     await main(page).getByRole('button', { name: 'Tambah acara' }).click();
-    // Today's form, unchanged until P3-B: a drawer on phones and tablets, a panel on desktop; Raka adds Akademik events.
+    // P3-B's dialog (the locked `OV.addev`): a sheet on phones, a panel on tablets and desktop; Raka adds Akademik events.
     await expect(
-      page.getByPlaceholder('Add Title').locator('visible=true'),
+      page.getByRole('dialog', { name: 'Tambah acara Akademik' }),
     ).toBeVisible();
   });
 });
