@@ -116,6 +116,10 @@ const STI_FIELDS: [Field, string][] = [
   ['advice', copy.bagian.saran],
 ];
 
+/** A programme's own sections, in order, with their titles: what Tambah testimoni (P3-B) asks for. */
+export const sectionFields = (major: Major): readonly [Field, string][] =>
+  major === 'STI' ? STI_FIELDS : IF_FIELDS;
+
 /**
  * A testimonial's sections: STI courses ask Kesan, Tantangan and Saran; every other programme Overview, Tugas and
  * Review Dosen. Empty ones are left out. Today's app shows every filled field whatever the programme, so the other

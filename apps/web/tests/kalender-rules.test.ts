@@ -423,5 +423,8 @@ test('desktop’s default event: today the first not ended; a chosen day its fir
   );
   assert.equal(deskDefaultEvent(EVENTS, '2026-10-09', NOW, 'first'), 'a3');
   assert.equal(deskDefaultEvent(EVENTS, '2026-10-09', NOW, 'auto'), null);
+  // P3-B: after adding an event outside your calendar, or deleting one, the column chooses nothing.
+  assert.equal(deskDefaultEvent(EVENTS, '2026-10-08', NOW, 'none'), null);
+  assert.equal(deskDefaultEvent(EVENTS, '2026-10-09', NOW, 'none'), null);
   assert.equal(deskDefaultEvent(EVENTS, '2026-10-11', NOW, 'first'), null);
 });

@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { RoutePlaceholder } from '~/components/route-placeholder';
-import { common } from '~/copy/common';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
+// P3-B: testimonials are added on a Testi Matkul course page, for akademik.
 export const Route = createFileRoute('/_app/_left-navbar/kelola/testi')({
-  component: () => <RoutePlaceholder title={common.nav.kelola} />,
+  beforeLoad: () => {
+    throw redirect({ to: '/layanan/testi', replace: true });
+  },
 });

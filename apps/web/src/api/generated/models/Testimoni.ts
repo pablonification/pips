@@ -4,7 +4,6 @@
 /* eslint-disable */
 export type Testimoni = {
   id: string;
-  userId: string | null;
   courseId: string;
   userName: string | null;
   impressions: string | null;

@@ -272,8 +272,11 @@ export const STATES: CaptureState[] = [
     only: 'desktop',
     path: '/kalender',
     act: async (p) => p.getByRole('button', { name: 'Tambah acara' }).click(),
-    // Today's desktop form (unchanged until P3-B) isn't a dialog; before, the role came from the category popover.
-    ready: (p) => p.getByPlaceholder('Add Title').locator('visible=true'),
+    // P3-B replaced today's desktop form (the before set's state) with the locked dialog, once its courses load.
+    ready: (p) =>
+      p
+        .getByRole('dialog', { name: 'Tambah acara Akademik' })
+        .getByLabel('Mata kuliah'),
   },
 
   // Services

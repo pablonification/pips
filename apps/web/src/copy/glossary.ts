@@ -128,6 +128,15 @@ export const PROPER_NOUNS = [
   'Pilihan',
   // P1-B: the composer's audience choice, named in its errors ("atau ganti ke Semua").
   'Semua',
+  // P3-B: event titles the prototype's add-event form quotes as examples ("Kuis 2", "Deadline Tugas Besar 1",
+  // "Rapat Anggota HMIF"), and Testi Matkul's author name for an unnamed one ("Anonim").
+  'Kuis',
+  'Deadline',
+  'Tugas',
+  'Besar',
+  'Rapat',
+  'Anggota',
+  'Anonim',
 ] as const;
 
 /**

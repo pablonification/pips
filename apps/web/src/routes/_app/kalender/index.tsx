@@ -15,6 +15,6 @@ export const Route = createFileRoute('/_app/kalender/')({
 });
 
 function Kalender() {
-  const { hari, acara } = Route.useSearch();
-  return <KalenderScreen hari={hari} acara={acara} />;
+  const { hari, acara, tambah } = Route.useSearch();
+  return <KalenderScreen hari={hari} acara={acara} tambah={tambah} />;
 }

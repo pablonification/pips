@@ -11,9 +11,17 @@ const factory = createFactory<{
   };
 }>();
 
-export const roleMiddleware = (accessRoles: UserRolesEnum[]) => {
+/**
+ * Lets only members holding one of `accessRoles` through; anyone else gets 401 "Unauthorized". `getRoles` reads a
+ * member's roles (the database by default; route tests pass a fake).
+ */
+export const roleMiddleware = (
+  accessRoles: UserRolesEnum[],
+  getRoles: (userId: string) => Promise<UserRolesEnum[]> = async (userId) =>
+    await getUserRoles(db, userId),
+) => {
   return factory.createMiddleware(async (c, next) => {
-    const roles = await getUserRoles(db, c.var.user.id);
+    const roles = await getRoles(c.var.user.id);
 
     if (!roles.some((r) => accessRoles.includes(r))) {
       return c.json({ error: 'Unauthorized' }, 401);

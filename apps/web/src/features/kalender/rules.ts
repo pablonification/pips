@@ -267,7 +267,8 @@ export function moveFocus(day: DayKey, key: string): DayKey | null {
  * event; otherwise, on today, the first event not yet ended (Kuis 2 for Nadia at 13.35, the Sharing Session for Raka);
  * on any other day none (changing the month clears it).
  */
-export type DeskPick = 'first' | 'auto';
+/** How the day was chosen; `none` (P3-B): after adding or deleting, the column chooses nothing. */
+export type DeskPick = 'first' | 'auto' | 'none';
 
 export function deskDefaultEvent(
   events: readonly CalEvent[],
@@ -275,6 +276,7 @@ export function deskDefaultEvent(
   now: number,
   pick: DeskPick,
 ): string | null {
+  if (pick === 'none') return null;
   const list = eventsOn(events, day);
   if (pick === 'first' && list.length) return list[0].id;
   if (day === dayKeyOf(now))
