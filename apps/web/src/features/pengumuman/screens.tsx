@@ -106,7 +106,9 @@ function DefaultSelection() {
   const view = useFeedView();
   const feed = useFeed(view);
   const first = feed.data?.pages[0]?.[0];
-  if (feed.isPending) return <DetailSkeleton desk />;
+  // Offline with nothing kept, the list says so; the pane doesn't load forever beside it.
+  if (feed.isPending)
+    return feed.fetchStatus === 'paused' ? null : <DetailSkeleton desk />;
   if (!first) return <EmptyState title={t.feed.pilih} />;
   return <PostDetail info={first} desk search={view} />;
 }
