@@ -42,19 +42,6 @@ export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
     path: '/kalender',
     ready: (p) => visibleText(p, 'Sharing Session: Magang di Startup'),
   },
-  'anggota-dingdong': {
-    path: '/layanan/dingdong',
-    ready: (p) => visibleText(p, 'IF2110 Algoritma dan Pemrograman II'),
-  },
-  'anggota-nim': {
-    path: '/layanan/nim',
-    ready: (p) =>
-      p.getByPlaceholder('Ketik nama atau NIM').locator('visible=true'),
-  },
-  'anggota-lomba': {
-    path: '/layanan/lomba',
-    ready: (p) => visibleText(p, 'Find IT! 2026'),
-  },
   'anggota-curhat': {
     path: '/layanan/curhat',
     ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
@@ -91,5 +78,31 @@ export const SCREENS: Partial<Record<Key, FidelityScreen>> = {
   'pengurus-form-empty': {
     path: '/layanan/form',
     ready: (p) => visibleText(p, 'Belum ada form untuk kamu'),
+  },
+  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba (the states garis-check.mjs ROUTES gives them).
+  'anggota-dingdong': {
+    path: '/layanan/dingdong',
+    ready: (p) => p.getByRole('link', { name: /^IF2180 Socio-informatika/ }),
+  },
+  'anggota-testi-list': {
+    path: '/layanan/testi/teknik-informatika/3',
+    // Every row's count has arrived.
+    ready: (p) =>
+      p
+        .getByRole('main')
+        .getByRole('link', { name: /^IF2150 .* 1 testimoni$/ }),
+  },
+  'anggota-testi-course': {
+    path: '/layanan/testi/teknik-informatika/3/course-IF2110',
+    ready: (p) => p.getByRole('article', { name: 'Testimoni 1 dari 3' }),
+  },
+  'anggota-nim': {
+    path: '/layanan/nim',
+    ready: (p) =>
+      p.getByRole('status').filter({ hasText: 'Ketik minimal 3 huruf' }),
+  },
+  'anggota-lomba': {
+    path: '/layanan/lomba',
+    ready: (p) => p.getByRole('heading', { name: 'Find IT! 2026' }),
   },
 };
