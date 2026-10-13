@@ -61,6 +61,12 @@ test('a service tile opens the service', async ({ page }) => {
   await expect(
     page.getByRole('heading', { level: 1, name: 'NIM Finder' }),
   ).toBeVisible();
+  // And the page's body rendered, not only the shell's top bar (as strong as the check before P2-B).
+  await expect(
+    page
+      .getByRole('main')
+      .getByRole('searchbox', { name: 'Cari nama atau NIM' }),
+  ).toBeVisible();
 });
 
 test.describe('Raka, pengurus', () => {
