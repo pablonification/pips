@@ -2,6 +2,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Outlet, createRootRoute, redirect } from '@tanstack/react-router';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { Toaster } from 'react-hot-toast';
+import { Toaster as GarisToaster } from '~/components/garis';
+import { PushPrompt } from '~/components/push';
 import { queryClient } from '~/api/client';
 import {
   PERSIST_BUSTER,
@@ -43,6 +45,9 @@ function RootComponent() {
     >
       <Toaster />
       <Outlet />
+      {/* P1-C: the Garis toasts and the push prompt, for every page including sign-in and first run. */}
+      <GarisToaster />
+      <PushPrompt />
       <ReactQueryDevtools />
     </PersistQueryClientProvider>
   );

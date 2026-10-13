@@ -106,6 +106,18 @@ export const PROPER_NOUNS = [
   'Magang',
   'Data',
   'Pasang',
+  // P1-C: browsers and devices named in the push and Pasang PIPS! copy, and iOS's own menu words.
+  'Chrome',
+  'Edge',
+  'Firefox',
+  'Safari',
+  'Android',
+  'Bagikan',
+  'Tambahkan',
+  'Layar',
+  'Utama',
+  // The day-before reminder, as the prototype writes it ("pengingat H-1").
+  'H-1',
   // P1-B: the composer's audience choice, named in its errors ("atau ganti ke Semua").
   'Semua',
 ] as const;
@@ -129,4 +141,6 @@ export const ACRONYMS = [
   'UI',
   'UX',
   'IT',
+  // P1-C: the LINE app, whose in-app browser can't install PIPS!.
+  'LINE',
 ] as const;

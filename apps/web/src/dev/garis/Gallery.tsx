@@ -88,7 +88,6 @@ import {
   Tag,
   Textarea,
   Tile,
-  Toaster,
   Wordmark,
   toast,
 } from '~/components/garis';
@@ -1539,7 +1538,7 @@ export default function Gallery() {
           <Interactive />
         </section>
       </main>
-      <Toaster />
+      {/* The toasts come from the app root's Toaster (one per page), like every other screen. */}
     </div>
   );
 }
