@@ -1,7 +1,6 @@
 /*
-  Global base styles from the prototype (garis/garis.css): Geist for all text, smoothing, the focus ring and reduced
-  motion. They apply to today's screens too (P0-A report lists what changed). The page background stays the old
-  screens' until each is replaced: the redesign's shell paints --bg-app itself (P0-C).
+  Global base styles from the prototype (garis/garis.css): the page's colours, Geist for all text, smoothing, the
+  focus ring and reduced motion.
 */
 @layer base {
   html {
@@ -11,6 +10,8 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
+    background: var(--bg-page);
+    color: var(--text);
     font-family: var(--font-text);
   }
   :focus-visible {

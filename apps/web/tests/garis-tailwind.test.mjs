@@ -44,14 +44,26 @@ test('backgrounds, text and lines are separate scales: a text token is not a bac
   assert.equal(rule(out, 'border-fg'), null);
 });
 
-test('today’s screens keep their colours: the old shadcn classes no longer share the Garis names', async () => {
-  const out = await css(['border-border', 'bg-sc-accent', 'bg-sc-muted']);
-  assert.match(rule(out, 'border-border'), /hsl\(var\(--sc-border\)\)/);
-  assert.match(rule(out, 'bg-sc-accent'), /hsl\(var\(--accent\)\)/);
-  assert.match(rule(out, 'bg-sc-muted'), /hsl\(var\(--muted\)\)/);
-  // The Garis --border is a colour; the old value lives on as --sc-border.
+// C1: Tailwind's own palette, font stacks, text sizes, radii and shadows are reset (src/index.css), so only the
+// Garis tokens exist; the old shadcn and Tailwind 3 classes went with tailwind.config.js.
+test('only the Garis tokens exist: Tailwind’s defaults and the old classes compile to nothing', async () => {
+  const gone = ['bg-white', 'text-gray-500', 'bg-green-300', 'text-neutral-black', 'text-sm', 'text-xl', 'rounded-md', 'shadow-sm', 'font-sans', 'font-mono', 'font-inter', 'border-border', 'bg-background', 'bg-sc-accent', 'text-heading-md', 'text-body-xl'];
+  const out = await css(gone);
+  for (const cls of gone) assert.equal(rule(out, cls), null, cls);
+  // The token utilities in the same namespaces still compile.
+  const kept = await css(['rounded-card', 'shadow-raised', 'bg-muted', 'text-fg-2', 'border-line', 'font-semibold']);
+  assert.match(rule(kept, 'rounded-card'), /border-radius: 12px/);
+  assert.match(rule(kept, 'shadow-raised'), /var\(--shadow-raised\)/);
+  assert.match(rule(kept, 'font-semibold'), /font-weight/);
   const index = fs.readFileSync(path.join(appDir, 'src/index.css'), 'utf8');
-  assert.doesNotMatch(index, /^\s*--border:/m);
+  assert.doesNotMatch(index, /@config|hsl\(|--background:|scrollbar/);
+});
+
+test('the body takes the page’s colours from the tokens, as garis.css does', () => {
+  const base = fs.readFileSync(path.join(appDir, 'src/styles/garis/base.css'), 'utf8');
+  const body = base.slice(base.indexOf('  body {'), base.indexOf('}', base.indexOf('  body {')));
+  assert.match(body, /background: var\(--bg-page\);/);
+  assert.match(body, /color: var\(--text\);/);
 });
 
 test('the type styles compile exactly as garis.css sets them', async () => {
@@ -90,14 +102,4 @@ test('reduced motion removes all motion; nothing uses transition: all', () => {
   const comp = ['components.css', 'shell.css'].map((f) => fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8')).join('\n');
   assert.doesNotMatch(comp, /transition:\s*all|transition-property:\s*all/);
   assert.match(comp, /prefers-reduced-motion: reduce/);
-});
-
-// Review m5: Inter is no longer loaded (no Google Fonts), so old screens' `font-inter` fell back to the system font next
-// to Geist everywhere else. Until C1 deletes those screens, it means the app's text face.
-test('the old font-inter class sets Geist, the app’s text face, not an Inter that is never loaded', async () => {
-  const out = await css(['font-inter']);
-  const r = rule(out, 'font-inter');
-  assert.ok(r, 'font-inter compiles');
-  assert.match(r, /font-family: var\(--font-text\)/);
-  assert.doesNotMatch(r, /Inter/);
 });
