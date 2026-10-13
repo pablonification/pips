@@ -109,7 +109,9 @@ function Options({ c }: { c: Competition }) {
           </IconButton>
         }
       >
-        <MenuItem onSelect={() => setOpen('ubah')}>{t.ubah}</MenuItem>
+        <MenuItem inset onSelect={() => setOpen('ubah')}>
+          {t.ubah}
+        </MenuItem>
         <MenuItem
           danger
           icon={<IconHapus size={20} />}
