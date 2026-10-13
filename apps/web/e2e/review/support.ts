@@ -135,6 +135,8 @@ export class Recorder {
 
   /** The strict audit on the screen as it is (no resize, no Tab). Its result goes into the flow's record. */
   async gate(name: string) {
+    // With the app's motion on, a menu or sheet may still be fading in; axe would read its colours half-way.
+    await settleMotion(this.page);
     try {
       await strictAudit(this.page, this.testInfo, name);
     } finally {
@@ -172,6 +174,20 @@ export class Recorder {
   async hold(ms = PACE.hold) {
     if (ms) await this.page.waitForTimeout(ms);
   }
+}
+
+/** Waits (at most 2 s) for running finite animations and transitions to end. Spinners and other endless ones stay. */
+export async function settleMotion(page: Page) {
+  await page.evaluate(async () => {
+    const finite = document.getAnimations().filter((a) => {
+      const end = a.effect?.getComputedTiming().endTime;
+      return a.playState === 'running' && typeof end === 'number' && Number.isFinite(end);
+    });
+    await Promise.race([
+      Promise.all(finite.map((a) => a.finished.catch(() => undefined))),
+      new Promise((r) => setTimeout(r, 2000)),
+    ]);
+  });
 }
 
 type Body = (
