@@ -84,6 +84,13 @@ jobs:
           # Routes that need the database answer; /api/me without a session is 401 before any query.
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5000/api/me)" = 401
           test "$(docker inspect -f '{{.State.Running}}' api)" = true
+          # Regression (2026-10-13): the calendar cron runs every minute, and its first run with no database used
+          # to end the API. Wait for that run, then the API must still answer and have logged the failure.
+          for i in $(seq 1 75); do docker logs api 2>&1 | grep -q 'Calendar cron failed:' && break; sleep 1; done
+          docker logs api 2>&1 | grep -q 'Calendar cron failed:'
+          sleep 2
+          test "$(docker inspect -f '{{.State.Running}}' api)" = true
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5000/api/me)" = 401
       - name: Container logs
         if: always()
         run: |

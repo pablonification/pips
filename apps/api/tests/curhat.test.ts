@@ -61,6 +61,7 @@ function room(
       replyId: m.replyId ?? null,
       content: `text ${m.id}`,
       createdAt: at(`2026-10-0${i + 1}T03:00:00Z`),
+      clientMessageId: null,
     })),
   };
 }
@@ -120,6 +121,7 @@ test('a room leaves the API without its owner or any sender id, at any depth', (
     ]);
     assert.deepEqual(Object.keys(out.messages![1]).sort(), [
       'chatroomId',
+      'clientMessageId',
       'content',
       'createdAt',
       'id',
@@ -158,6 +160,69 @@ test('the read mark is one statement that skips your own messages and is safe to
   assert.match(sql, /"chatroom_messages"\."user_id" <> \$\d/);
   assert.match(sql, /on conflict do nothing$/);
   assert.deepEqual(query.params, [nadia.id, 'r1', nadia.id]);
+});
+
+test("a message's device id goes only to its sender, and never inside a quote", () => {
+  const r = room('r1', nadia.id, [
+    { id: 'm1', userId: nadia.id },
+    { id: 'm2', userId: welfare.id, replyId: 'm1' },
+  ]);
+  r.messages[0] = { ...r.messages[0], clientMessageId: 'id-nadia' };
+  r.messages[1] = {
+    ...r.messages[1],
+    clientMessageId: 'id-welfare',
+    reply: { ...r.messages[0] },
+  } as (typeof r.messages)[number];
+  const mine = toChatroomResponse(r, nadia.id);
+  assert.deepEqual(
+    mine.messages!.map((m) => m.clientMessageId),
+    ['id-nadia', null],
+  );
+  assert.deepEqual(pathsOfKey(mine.messages![1].reply, 'clientMessageId'), []);
+  const welfareView = toChatroomResponse(r, welfare.id);
+  assert.deepEqual(
+    welfareView.messages!.map((m) => m.clientMessageId),
+    [null, 'id-welfare'],
+  );
+});
+
+test('a message is saved once per device id in its room: the insert skips a repeat', async () => {
+  usePlaceholderEnv();
+  const { db } = await import('../src/db/drizzle');
+  const { insertMessageQuery } =
+    await import('../src/repositories/chatroom.repo');
+  const query = insertMessageQuery(db, {
+    userId: nadia.id,
+    chatroomId: 'r1',
+    content: 'halo',
+    replyId: null,
+    clientMessageId: '7f3c2a10-5b1e-4c8d-9a6f-0e2b4d6c8a11',
+  }).toSQL();
+  const sql = query.sql.replace(/\s+/g, ' ');
+  assert.match(sql, /^insert into "chatroom_messages" \(/);
+  assert.match(sql, /"client_message_id"/);
+  assert.match(
+    sql,
+    /on conflict \("chatroom_id","client_message_id"\) do nothing returning/,
+  );
+  assert.ok(query.params.includes('7f3c2a10-5b1e-4c8d-9a6f-0e2b4d6c8a11'));
+});
+
+test('the migration adds a nullable device id with a unique index on (room, device id)', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const sql = await readFile(
+    new URL('../drizzle/0028_chatroom_client_message_id.sql', import.meta.url),
+    'utf8',
+  );
+  assert.match(
+    sql,
+    /ALTER TABLE "chatroom_messages" ADD COLUMN "client_message_id" text;/,
+  );
+  assert.doesNotMatch(sql, /NOT NULL|DROP|DEFAULT/);
+  assert.match(
+    sql,
+    /CREATE UNIQUE INDEX IF NOT EXISTS "chatroom_messages_client_message_idx" ON "chatroom_messages" USING btree \("chatroom_id","client_message_id"\);/,
+  );
 });
 
 // --- the routes, through the real router with storage faked ---

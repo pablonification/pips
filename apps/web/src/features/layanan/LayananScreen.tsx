@@ -6,15 +6,11 @@ import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
 import { layanan as copy } from '~/copy/layanan';
 import useSession from '~/hooks/auth/useSession';
+import { curhatUnreadQuery } from '~/api/queries';
+import { totalUnread } from '~/lib/curhat-unread';
 import { servicesByGroup, type ServiceId } from '~/lib/services';
-import { curhatUnreadQuery } from './queries';
 import { ServiceRow } from './ServiceRow';
-import {
-  curhatUnreadTotal,
-  openFormsCount,
-  serviceBadge,
-  type ServiceBadge,
-} from './rules';
+import { openFormsCount, serviceBadge, type ServiceBadge } from './rules';
 
 function Badge({ badge }: { badge: ServiceBadge | null }) {
   if (!badge) return null;
@@ -41,7 +37,7 @@ export function LayananScreen() {
   const forms = useQuery(formListQuery());
   const groups = servicesByGroup(me);
   const data = {
-    unread: unread.data ? curhatUnreadTotal(unread.data) : undefined,
+    unread: unread.data ? totalUnread(unread.data) : undefined,
     openForms: forms.data ? openFormsCount(forms.data.forms) : undefined,
   };
 

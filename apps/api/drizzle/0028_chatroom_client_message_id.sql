@@ -1,0 +1,2 @@
+ALTER TABLE "chatroom_messages" ADD COLUMN "client_message_id" text;--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "chatroom_messages_client_message_idx" ON "chatroom_messages" USING btree ("chatroom_id","client_message_id");

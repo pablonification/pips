@@ -5,13 +5,6 @@ import type { ServiceId } from '~/lib/services';
  * Kelola per role and expired entries come from the registry's `servicesByGroup`.
  */
 
-/** Curhat Yuk!'s count: unread messages summed over your rooms. */
-export function curhatUnreadTotal(
-  rooms: ReadonlyArray<{ unreadCount: number }> | undefined,
-): number {
-  return (rooms ?? []).reduce((n, r) => n + Math.max(0, r.unreadCount), 0);
-}
-
 /** Form's tag: forms open for you that you haven't answered (`status: 'open'`). */
 export function openFormsCount(
   forms: ReadonlyArray<{ status: string }> | undefined,

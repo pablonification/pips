@@ -13,6 +13,8 @@ export const COURSE_CATALOGUE_QUERY_KEY = 'courses';
 export const ANGKATAN_QUERY_KEY = 'angkatan';
 export const UNSUBSCRIBED_QUERY_KEY = 'unsubscribe';
 export const CHATROOMS_QUERY_KEY = 'chatrooms';
+/** Unread Curhat messages per room. Under the chatrooms key, so Curhat's own refreshes renew it too. */
+export const CURHAT_UNREAD_KEY = [CHATROOMS_QUERY_KEY, 'unread'] as const;
 export const FORM_QUERY_KEY = 'form';
 export const CREDITS_QUERY_KEY = 'credits';
 /** Beranda's unread list, under the feed's key (P1-A); kept on the device like the feed's first page. */

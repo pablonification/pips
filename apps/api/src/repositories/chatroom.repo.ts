@@ -81,24 +81,48 @@ export async function getWelfareChatrooms(db: Database, userId: string) {
   return processChatrooms(crms, pinned);
 }
 
+export interface NewChatroomMessage {
+  userId: string;
+  chatroomId: string;
+  content: string;
+  replyId: string | null;
+  /** The sender's device id for the message (P2-C); null from older clients. */
+  clientMessageId: string | null;
+}
+
+/**
+ * The insert behind `saveMessage`: a message whose `clientMessageId` the room already has is skipped
+ * (`chatroom_messages_client_message_idx`, unique on room and device id; NULLs never conflict). Exported for its SQL.
+ */
+export function insertMessageQuery(db: Database, message: NewChatroomMessage) {
+  return db
+    .insert(chatroomMessages)
+    .values(message)
+    .onConflictDoNothing({
+      target: [chatroomMessages.chatroomId, chatroomMessages.clientMessageId],
+    })
+    .returning();
+}
+
+/**
+ * Saves a message once per device id (P2-C): a resend with a `clientMessageId` the room already has saves nothing
+ * and gives back the message saved the first time, with `created: false`. Two sends racing with the same id are
+ * settled by the unique index: the second waits for the first, skips, then reads it.
+ */
 export async function saveMessage(
   db: Database,
-  userId: string,
-  chatroomId: string,
-  message: string,
-  replyId: string | null,
-) {
-  return await db.transaction(async (tx) => {
-    return await tx
-      .insert(chatroomMessages)
-      .values({
-        chatroomId,
-        userId,
-        content: message,
-        replyId,
-      })
-      .returning();
+  message: NewChatroomMessage,
+): Promise<{ message: ChatroomMessage; created: boolean }> {
+  const [inserted] = await insertMessageQuery(db, message);
+  if (inserted) return { message: inserted, created: true };
+  const existing = await db.query.chatroomMessages.findFirst({
+    where: and(
+      eq(chatroomMessages.chatroomId, message.chatroomId),
+      eq(chatroomMessages.clientMessageId, message.clientMessageId ?? ''),
+    ),
   });
+  if (!existing) throw new Error('A skipped message was not found');
+  return { message: existing, created: false };
 }
 
 export async function getChatroomById(db: Database, chatroomId: string) {

@@ -90,16 +90,15 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   },
   '/layanan/nim': { title: svc('nim'), parent: '/layanan' },
   '/layanan/lomba': { title: svc('lomba'), parent: '/layanan' },
+  // P2-C: redesigned; Welfare's screen (until P3-C) wraps itself in LegacyScreen.
   '/layanan/curhat': {
     title: svc('curhat'),
     parent: '/layanan',
-    legacy: true,
   },
   '/layanan/curhat/$roomId': {
     title: common.shell.ruang,
     parent: '/layanan/curhat',
     focused: true,
-    legacy: true,
   },
   '/layanan/form': { title: svc('form'), parent: '/layanan' },
   '/layanan/form/$formId': {

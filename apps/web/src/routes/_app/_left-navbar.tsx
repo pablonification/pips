@@ -7,7 +7,9 @@ export const Route = createFileRoute('/_app/_left-navbar')({
 function LeftNavbarLayout() {
   return (
     // Today's screens, inside the new shell (P0-C) until their redesign replaces them; the shell owns navigation.
-    <div className="flex h-full flex-auto flex-col overflow-x-hidden lg:block">
+    // `g-page-wrap` clips sideways with `clip`, not `hidden`: hidden made this a second scrolling box inside the
+    // shell's, so a sticky composer (Curhat's chat bar) stuck to this box instead of the window (P2-C).
+    <div className="g-page-wrap flex h-full flex-auto flex-col lg:block">
       <Outlet />
     </div>
   );

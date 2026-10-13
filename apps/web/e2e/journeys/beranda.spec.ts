@@ -17,6 +17,7 @@ import {
   strictGates,
 } from '../support/p1a';
 import { expect, test } from '../support/test';
+import * as writes from '../support/writes';
 
 const main = (page: Page) => page.getByRole('main');
 const agenda = (page: Page) =>
@@ -359,8 +360,11 @@ test.describe('Nadia', () => {
 
   test('every follow-up’s button: Lihat, Buka, Isi and Nyalakan', async ({
     page,
+    api,
   }, testInfo) => {
     const desk = layoutOf(testInfo) === 'desktop';
+    // Curhat's room (P2-C) marks the room read when it opens.
+    api.on('POST /api/curhat/chatroom/:chatroomId/read', writes.readRoom);
     await page.goto('/');
     await attentionRow(page, 'Deadline Tugas')
       .getByRole('button', { name: 'Lihat' })
@@ -379,6 +383,11 @@ test.describe('Nadia', () => {
       .getByRole('link', { name: 'Buka' })
       .click();
     await expect(page).toHaveURL(/\/layanan\/curhat\/r1$/);
+    await expect
+      .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
+      .toEqual([
+        expect.objectContaining({ path: '/api/curhat/chatroom/r1/read' }),
+      ]);
     await page.goto('/');
     await attentionRow(page, 'PIXEL')
       .getByRole('link', { name: 'Isi' })

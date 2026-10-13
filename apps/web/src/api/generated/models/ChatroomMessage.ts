@@ -8,6 +8,7 @@ export type ChatroomMessage = {
   replyId: string | null;
   content: string;
   createdAt: string;
+  clientMessageId: string | null;
   isSender?: boolean;
   reply?: {
     id: string;

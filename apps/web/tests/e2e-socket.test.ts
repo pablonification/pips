@@ -105,6 +105,35 @@ test('curhat:join checks access, and a test can change or withhold an answer', (
   );
 });
 
+// P2-C: a lost or late acknowledgement. The test holds the answer back, then answers it by hand.
+test('a held-back acknowledgement is answered later with ack(), on the connection that asked', () => {
+  const db = buildDb('anggota');
+  const server = new FakeSocketServer(db);
+  const { s, send } = connect(server, { curhat: true });
+  server.sessions.set(s.sid, s);
+  server.answer('message', () => undefined);
+  assert.equal(
+    send('message', { chatroomId: 'r1', message: 'halo' }, 7),
+    undefined,
+  );
+  const [entry] = server.emitted('message');
+  assert.equal(entry.ackId, 7);
+  assert.equal(entry.sid, 'test');
+  s.queue.length = 0;
+  assert.equal(server.ack(entry, { ok: false, error: 'server' }), true);
+  assert.deepEqual(s.queue, ['437[{"ok":false,"error":"server"}]']);
+  // The connection has gone: nobody to answer.
+  s.connected = false;
+  assert.equal(server.ack(entry, { ok: true }), false);
+  // An event sent without asking for an acknowledgement can't be answered.
+  s.connected = true;
+  send('message', { chatroomId: 'r1', message: 'tanpa jawaban' });
+  assert.throws(
+    () => server.ack(server.emitted('message')[1], {}),
+    /no acknowledgement/,
+  );
+});
+
 // P3-A: Live Counting's room joins admins only, as websocket/connection.ts.
 test('formAdminId joins form-admin:{formId} for an admin only', () => {
   const raka = new FakeSocketServer(buildDb('pengurus'));

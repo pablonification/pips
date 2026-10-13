@@ -28,7 +28,7 @@ export function canCreateChatroom(roomCount: number): boolean {
 type StoredMessage = Pick<
   ChatroomMessage,
   'id' | 'chatroomId' | 'replyId' | 'content' | 'createdAt'
-> & { userId?: string | null };
+> & { userId?: string | null; clientMessageId?: string | null };
 
 /** A message as it leaves the API: an allow-list, so the sender's id never does. */
 export interface ChatroomMessageResponse {
@@ -38,7 +38,12 @@ export interface ChatroomMessageResponse {
   content: string;
   createdAt: Date;
   isSender?: boolean;
-  reply?: Omit<ChatroomMessageResponse, 'isSender' | 'reply'>;
+  /** The sender's device id for the message (P2-C), shown only to the sender; null for everyone else. */
+  clientMessageId: string | null;
+  reply?: Omit<
+    ChatroomMessageResponse,
+    'isSender' | 'reply' | 'clientMessageId'
+  >;
 }
 
 function messageFields(message: StoredMessage) {
@@ -51,14 +56,19 @@ function messageFields(message: StoredMessage) {
   };
 }
 
-/** Serialises a message for `viewerId`: `isSender` says whether they wrote it; the quoted message comes without its sender. */
+/**
+ * Serialises a message for `viewerId`: `isSender` says whether they wrote it; the quoted message comes without its
+ * sender. The device's id for the message goes only to its sender, who matches it to what they sent (P2-C).
+ */
 export function toChatroomMessageResponse(
   message: StoredMessage & { reply?: StoredMessage | null },
   viewerId: string,
 ): ChatroomMessageResponse {
+  const isSender = message.userId === viewerId;
   const response: ChatroomMessageResponse = {
     ...messageFields(message),
-    isSender: message.userId === viewerId,
+    isSender,
+    clientMessageId: isSender ? (message.clientMessageId ?? null) : null,
   };
   if (message.reply) response.reply = messageFields(message.reply);
   return response;

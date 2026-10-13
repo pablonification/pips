@@ -330,32 +330,33 @@ export const STATES: CaptureState[] = [
     path: '/layanan/lomba',
     ready: (p) => visibleText(p, 'Find IT! 2026'),
   },
+  // P2-C: the redesigned member screens (rows are links; the room reads its unread message on opening).
   {
     id: 'curhat',
     title: 'Curhat Yuk! rooms',
     path: '/layanan/curhat',
-    ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
+    ready: (p) =>
+      p.getByRole('main').getByRole('link', { name: /^Amber Heron/ }),
   },
   {
     id: 'curhat-room',
     title: 'Curhat Yuk! room',
     path: '/layanan/curhat',
-    act: async (p) => p.getByRole('heading', { name: 'Teal Koala' }).click(),
-    ready: (p) =>
-      visibleText(
-        p,
-        'Oke, coba kita susun bareng ya. Mau aku bantu bikin jadwal mingguan sampai UTS?',
-      ),
+    mock: (api) =>
+      api.on('POST /api/curhat/chatroom/:chatroomId/read', writes.readRoom),
+    act: async (p) =>
+      p
+        .getByRole('main')
+        .getByRole('link', { name: /^Teal Koala/ })
+        .click(),
+    ready: (p) => p.getByRole('log', { name: 'Percakapan Teal Koala' }),
   },
   {
     id: 'curhat-empty',
     title: 'Curhat Yuk! with no rooms (Raka)',
     persona: 'pengurus',
     path: '/layanan/curhat',
-    ready: (p) =>
-      p
-        .getByRole('button', { name: 'create chatroom' })
-        .locator('visible=true'),
+    ready: (p) => p.getByRole('main').getByText('Belum ada ruang cerita'),
   },
 
   // Form (PIXEL)
