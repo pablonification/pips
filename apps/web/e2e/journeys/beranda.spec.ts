@@ -420,7 +420,7 @@ test.describe('Nadia', () => {
     });
   });
 
-  test('the agenda card never waits for the follow-ups or the unread list, and loads in at most 15 requests', async ({
+  test('the agenda card never waits for the follow-ups or the unread list, and needs at most 15 API requests', async ({
     page,
     api,
   }) => {
