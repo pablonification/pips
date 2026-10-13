@@ -33,7 +33,8 @@ test('forgetShell: no title, no back history, nothing in the tab, and nothing wr
   assert.equal(shell.titleFor('/layanan/curhat/r1'), undefined);
   assert.equal(shell.titleFor('/layanan/form/pixel'), undefined);
   assert.equal(shell.entryAt(3), undefined);
-  assert.equal(shell.lastRoot(), 'beranda');
+  // No tab this visit until the member opens one: Profil then lights none (Dev 1's decision, P1-C round 2).
+  assert.equal(shell.lastRoot(), null);
   assert.equal(map.has('pips:shell'), false);
   await wait(300);
   assert.equal(map.has('pips:shell'), false);

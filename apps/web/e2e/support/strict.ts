@@ -168,7 +168,8 @@ export async function expectVisibleFocus(page: Page, max = 30) {
 
 /**
  * The navigation lights exactly the item for this route. Profil has no tab: on phones and tablets the tab you came
- * from stays lit (one item), on desktop your name at the sidebar's foot is the current page.
+ * from stays lit, and none when Profil was opened directly (Dev 1's decision, as the locked screens show); on
+ * desktop your name at the sidebar's foot is the current page.
  */
 export async function expectLit(page: Page, testInfo: TestInfo, name: Lit) {
   const lit = page
@@ -180,7 +181,43 @@ export async function expectLit(page: Page, testInfo: TestInfo, name: Lit) {
       await expect(
         page.getByRole('link', { name: / Profil$/ }),
       ).toHaveAttribute('aria-current', 'page');
-    } else await expect(lit).toHaveCount(1);
+      return;
+    }
+    // The shell's memory of the last tab this visit (src/components/shell/shell-state.ts, saved a moment after a
+    // change), against the tabs lit: none, or exactly that one.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            let cameFrom: string | null = null;
+            try {
+              cameFrom =
+                (
+                  JSON.parse(sessionStorage.getItem('pips:shell') ?? '{}') as {
+                    lastRoot?: string | null;
+                  }
+                ).lastRoot ?? null;
+            } catch {
+              // nothing remembered
+            }
+            const lit = [
+              ...document.querySelectorAll(
+                'nav[aria-label="Navigasi utama"] [aria-current="page"]',
+              ),
+            ]
+              .filter((el) => (el as HTMLElement).checkVisibility())
+              .map((el) => el.textContent?.trim() ?? '');
+            const want = cameFrom
+              ? [`${cameFrom[0].toUpperCase()}${cameFrom.slice(1)}`]
+              : [];
+            return lit.length === want.length &&
+              lit.every((t, i) => t.startsWith(want[i]))
+              ? 'ok'
+              : `lit ${JSON.stringify(lit)}, expected ${JSON.stringify(want)}`;
+          }),
+        { message: 'the tab lit on Profil' },
+      )
+      .toBe('ok');
     return;
   }
   await expect(lit).toHaveCount(1);

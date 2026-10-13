@@ -359,7 +359,7 @@ function TopBar({
   onSlot,
 }: {
   route: ShellRoute;
-  lastRoot: Destination;
+  lastRoot: Destination | null;
   me: { name: string; initials: string };
   /** The screen shows its own title (`PageTitle`): this one is plain text, hidden from screen readers. */
   ownTitle: boolean;
@@ -415,7 +415,7 @@ function BackButton({
   lastRoot,
 }: {
   route: ShellRoute;
-  lastRoot: Destination;
+  lastRoot: Destination | null;
 }) {
   const router = useRouter();
   const prev = route.index > 0 ? entryAt(route.index - 1) : undefined;
@@ -507,7 +507,7 @@ function Sidebar({
   badges,
 }: {
   route: ShellRoute;
-  lastRoot: Destination;
+  lastRoot: Destination | null;
   badges: NavBadges;
 }) {
   const me = useMe();

@@ -1,7 +1,7 @@
 /**
  * What the shell remembers between pages, outside React: titles screens gave themselves, the history entries this
  * visit has seen (for back's label and whether history leads to a page of the app) and the last tab you were on
- * (Profil's back target on phones). Kept in sessionStorage, so a reload in the middle of a visit keeps them.
+ * (Profil's back target on phones, and the tab Profil keeps lit; none when Profil was opened directly). Kept in sessionStorage, so a reload in the middle of a visit keeps them.
  * Titles from data can be the member's (a Curhat room, a form), so `forgetShell()` clears all of it whenever the
  * member's data goes: at sign-out, on a 401 and when someone signs in (src/lib/forget-member.ts, review M5). Signing
  * in also starts back's history afresh, so back never follows an entry from before.
@@ -16,14 +16,15 @@ interface Saved {
   titles: Record<string, string>;
   /** Each history entry this visit: its index → the pathname and title shown. */
   entries: Record<number, { pathname: string; title: string }>;
-  lastRoot: Destination;
+  /** The tab you were last on this visit; null until you have been on one. */
+  lastRoot: Destination | null;
 }
 
 function load(): Saved {
   const empty: Saved = {
     titles: {},
     entries: {},
-    lastRoot: 'beranda',
+    lastRoot: null,
   };
   try {
     const raw = sessionStorage.getItem(KEY);
@@ -34,7 +35,7 @@ function load(): Saved {
       entries: v.entries ?? {},
       lastRoot: DESTINATIONS.includes(v.lastRoot as Destination)
         ? (v.lastRoot as Destination)
-        : 'beranda',
+        : null,
     };
   } catch {
     return empty;
@@ -62,7 +63,7 @@ function save() {
 export function forgetShell() {
   if (writeTimer) clearTimeout(writeTimer);
   writeTimer = null;
-  state = { titles: {}, entries: {}, lastRoot: 'beranda' };
+  state = { titles: {}, entries: {}, lastRoot: null };
   try {
     sessionStorage.removeItem(KEY);
   } catch {
@@ -114,8 +115,8 @@ export const lastRoot = () => get().lastRoot;
 export function setLastRoot(root: Destination) {
   if (get().lastRoot !== root) change((s) => ({ ...s, lastRoot: root }));
 }
-export function useLastRoot(): Destination {
-  return useSyncExternalStore(subscribe, lastRoot, () => 'beranda' as const);
+export function useLastRoot(): Destination | null {
+  return useSyncExternalStore(subscribe, lastRoot, () => null);
 }
 
 /**

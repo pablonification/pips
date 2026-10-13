@@ -459,3 +459,40 @@ test.describe('Kredit', () => {
     ).toBeVisible();
   });
 });
+
+test('opened directly, Profil and its pages light no tab; reached from a tab, that tab stays lit', async ({
+  page,
+}, testInfo) => {
+  const lit = page
+    .getByRole('navigation', { name: 'Navigasi utama' })
+    .locator('[aria-current="page"]');
+  const desktop = layoutOf(testInfo) === 'desktop';
+  for (const path of ['/profil', '/profil/matkul', '/profil/notifikasi']) {
+    await page.goto(path);
+    await expect(
+      page.getByRole('heading', { level: 1 }).locator('visible=true').first(),
+    ).toBeVisible();
+    if (desktop) {
+      // Desktop: your name at the sidebar's foot is the page, as before; no destination is lit.
+      await expect(lit).toHaveCount(0);
+      await expect(
+        page.getByRole('link', { name: / Profil$/ }),
+      ).toHaveAttribute('aria-current', 'page');
+    } else {
+      // Phones and tablets: the locked screens light no tab (Dev 1's decision; P0-C lit Beranda).
+      await expect(lit).toHaveCount(0);
+    }
+  }
+  if (desktop) return;
+  await page.goto('/kalender');
+  await page.getByRole('link', { name: 'Profil, Nadia Putri' }).click();
+  await expect(page).toHaveURL(/\/profil$/);
+  await expect(lit).toHaveCount(1);
+  await expect(lit).toHaveAccessibleName(/^Kalender/);
+  await page
+    .getByRole('main')
+    .getByRole('link', { name: /^Mata kuliahku/ })
+    .click();
+  await expect(page).toHaveURL(/\/profil\/matkul$/);
+  await expect(lit).toHaveAccessibleName(/^Kalender/);
+});

@@ -208,27 +208,28 @@ export function fillPath(
   return missing ? null : out;
 }
 
-/** The page above `path`, with `LAST_ROOT` resolved to the destination you were last on. */
+/** The page above `path`, with `LAST_ROOT` resolved to the destination you were last on (Beranda when none). */
 export function parentOf(
   path: ShellPath,
-  lastRoot: Destination = 'beranda',
+  lastRoot: Destination | null = null,
 ): ShellPath | null {
   const p = ROUTE_META[path].parent;
   if (!p) return null;
-  return p === LAST_ROOT ? DESTINATION_PATH[lastRoot] : p;
+  return p === LAST_ROOT ? DESTINATION_PATH[lastRoot ?? 'beranda'] : p;
 }
 
 export type Layout = 'touch' | 'desk';
 
 /**
  * Which navigation item is lit: on phones and tablets one of the four tabs (Kelola belongs to Layanan, Profil to
- * where you came from); on desktop also Kelola and Profil, which have their own place in the sidebar.
+ * where you came from, and to no tab when it was opened directly, as the locked screens show); on desktop also
+ * Kelola and Profil, which have their own place in the sidebar.
  */
 export function activeItem(
   path: ShellPath,
   layout: Layout,
-  lastRoot: Destination = 'beranda',
-): Destination | 'kelola' | 'profil' {
+  lastRoot: Destination | null = null,
+): Destination | 'kelola' | 'profil' | null {
   let p: ShellPath | null = path;
   for (let i = 0; p && i < 12; i++) {
     const meta: RouteMeta = ROUTE_META[p];
