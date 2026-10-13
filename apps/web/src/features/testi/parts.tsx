@@ -70,8 +70,12 @@ export function CourseRow({
                   {countLine(list.data.length)}
                 </span>
               ) : list.isError ? null : (
-                // Decoration while the count loads; the row's name is already complete without it.
-                <span className="block pt-1.5 pb-0.5" aria-hidden="true">
+                // Decoration while the count loads; the row's name is already complete without it. Exactly one
+                // count line tall, so the rows don't move when the counts arrive.
+                <span
+                  className="flex h-[1.4em] items-center t-cap"
+                  aria-hidden="true"
+                >
                   <SkeletonBar width="34%" />
                 </span>
               )}
