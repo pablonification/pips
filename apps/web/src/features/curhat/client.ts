@@ -183,10 +183,10 @@ export class CurhatClient {
   }
 
   private emit(entry: OutboxEntry) {
-    const fail = () => {
+    const fail = (refusal?: Refusal) => {
       const now = this.state.outbox.find((e) => e.localId === entry.localId);
       if (now?.status !== 'pending') return;
-      this.dispatch({ type: 'failed', localId: entry.localId });
+      this.dispatch({ type: 'failed', localId: entry.localId, refusal });
       this.events.onFailed?.(entry);
     };
     // Down now: fail at once rather than let socket.io hold it and send it later.
@@ -209,7 +209,7 @@ export class CurhatClient {
         // `err`: no answer in time, or the connection dropped first.
         const outcome = err ? { ok: false as const } : ackOutcome(answer);
         if (!outcome.ok) {
-          fail();
+          fail(outcome.error);
           if (outcome.error === 'unauthorized' || outcome.error === 'forbidden')
             this.events.onRefused?.(outcome.error);
           return;
