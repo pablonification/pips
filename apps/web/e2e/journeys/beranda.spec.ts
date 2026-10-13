@@ -7,6 +7,7 @@
 import type { Page } from '@playwright/test';
 import type { CalendarEvent } from '../../src/api/generated';
 import { greeting, layoutOf, navLink } from '../support/app';
+import { defaultHandlers } from '../support/handlers';
 import { reply } from '../support/mock';
 import {
   expectFits,
@@ -787,6 +788,15 @@ test.describe('states', () => {
         get: () => !(window as { pipsOffline?: boolean }).pipsOffline,
       }),
     );
+    // The unread posts haven't arrived when the signal goes: since round 3 the navigation badge asks for them on
+    // every page (the same query as Beranda's list), so they are held until the signal is back.
+    let signalBack!: () => void;
+    const held = new Promise<void>((resolve) => (signalBack = resolve));
+    const posts = defaultHandlers['GET /api/info'];
+    api.on('GET /api/info', async (ctx) => {
+      await held;
+      return posts(ctx);
+    });
     await page.goto('/kalender');
     await expect(main(page).getByText('Kuis 2').first()).toBeVisible();
     // The browser reports the lost signal: the client pauses what it hasn't fetched yet, until it is back.
@@ -804,6 +814,7 @@ test.describe('states', () => {
     );
     await expect(page.getByRole('status', { name: /^Memuat/ })).toHaveCount(0);
     // Back online: everything arrives.
+    signalBack();
     await page.evaluate(() => {
       (window as { pipsOffline?: boolean }).pipsOffline = false;
       window.dispatchEvent(new Event('online'));
