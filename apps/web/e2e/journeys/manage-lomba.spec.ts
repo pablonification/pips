@@ -7,6 +7,7 @@ import type { Page } from '@playwright/test';
 import {
   dialog,
   expectStillSignedIn,
+  FAILED,
   expectTitleFocused,
   failWith,
   FAILURES,
@@ -70,9 +71,9 @@ test.describe('cnc', () => {
     await expect(d.getByLabel('Nama lomba')).toBeFocused();
     expect(posts(api)).toHaveLength(0);
     await strictGates(page, testInfo, 'tambah-lomba-errors', null);
-    // The gates resize the window; across 1024 px Tambah lomba moves between the top bar and the desktop head, which
-    // closes the dialog it opened. Open it again.
-    if (!(await d.isVisible())) await tambahLomba(page).click();
+    // The gates resize the window across 1024 px, where Tambah lomba moves between the top bar and the desktop head:
+    // the dialog stays open (review m3).
+    await expect(d).toBeVisible();
 
     await fillHology(page);
     // The deadline before the opening, then already past.
@@ -223,6 +224,140 @@ test.describe('cnc', () => {
     await expect(toastText(page, 'Lomba dihapus.')).toBeVisible();
     await expect.poll(() => names(page)).not.toContain('Gemastik XIX');
     await expectTitleFocused(page);
+  });
+
+  const openOpsi = async (page: Page, item: string) => {
+    await main(page)
+      .getByRole('button', { name: 'Opsi untuk Gemastik XIX' })
+      .click();
+    await page.getByRole('menuitem', { name: item }).click();
+  };
+  const hapusConfirm = (page: Page) =>
+    page.getByRole('alertdialog', { name: 'Hapus lomba ini?' });
+
+  test('regression (review M1): Ubah lomba with nothing changed sends nothing and closes, with no error', async ({
+    page,
+    api,
+  }) => {
+    api.on('PUT /api/competitions/:id', writes.updateCompetition);
+    await page.goto('/layanan/lomba');
+    await openOpsi(page, 'Ubah lomba');
+    const d = dialog(page, 'Ubah lomba');
+    await expect(d.getByLabel('Nama lomba')).toHaveValue('Gemastik XIX');
+    await d.getByRole('button', { name: 'Simpan' }).click();
+    await expect(d).toBeHidden();
+    expect(api.calls('PUT /api/competitions/:id')).toHaveLength(0);
+    await expect(toastText(page, FAILED.gagal)).toHaveCount(0);
+    await expect(toastText(page, 'Lomba diperbarui.')).toHaveCount(0);
+    // As Batal: focus back on the card's options button.
+    await expect(
+      main(page).getByRole('button', { name: 'Opsi untuk Gemastik XIX' }),
+    ).toBeFocused();
+  });
+
+  test('regression (review m9): in the options menu, Ubah lomba lines up with Hapus lomba', async ({
+    page,
+  }) => {
+    await page.goto('/layanan/lomba');
+    await main(page)
+      .getByRole('button', { name: 'Opsi untuk Gemastik XIX' })
+      .click();
+    const x = async (name: string) =>
+      (await page
+        .getByRole('menuitem', { name })
+        .getByText(name, { exact: true })
+        .boundingBox())!.x;
+    expect(
+      Math.abs((await x('Ubah lomba')) - (await x('Hapus lomba'))),
+    ).toBeLessThan(1);
+  });
+
+  test('regression (review m4): Hapus lomba while its request runs: Hapus is busy and deletes once', async ({
+    page,
+    api,
+  }) => {
+    api.on(
+      'DELETE /api/competitions/:competitionId',
+      slow(writes.deleteCompetition),
+    );
+    await page.goto('/layanan/lomba');
+    await openOpsi(page, 'Hapus lomba');
+    const button = hapusConfirm(page).getByRole('button', { name: 'Hapus' });
+    await button.click();
+    await expect(button).toHaveAttribute('aria-disabled', 'true');
+    await button.click({ force: true });
+    await expect(hapusConfirm(page)).toBeHidden();
+    await expect(toastText(page, 'Lomba dihapus.')).toBeVisible();
+    expect(api.calls('DELETE /api/competitions/:competitionId')).toHaveLength(
+      1,
+    );
+  });
+
+  for (const { status, says } of FAILURES)
+    test(`Hapus lomba answered ${status}: the confirmation stays, the error toast, the card stays, still signed in`, async ({
+      page,
+      api,
+    }) => {
+      api.on('DELETE /api/competitions/:competitionId', failWith(status));
+      await page.goto('/layanan/lomba');
+      await openOpsi(page, 'Hapus lomba');
+      await hapusConfirm(page).getByRole('button', { name: 'Hapus' }).click();
+      await expect(toastText(page, says)).toBeVisible();
+      await expect(hapusConfirm(page)).toBeVisible();
+      await expect(
+        hapusConfirm(page).getByRole('button', { name: 'Hapus' }),
+      ).not.toHaveAttribute('aria-disabled', 'true');
+      expect(await names(page)).toContain('Gemastik XIX');
+      await expectStillSignedIn(page);
+    });
+
+  test('regression (review m3): resizing across 1024 px (a tablet turned) keeps Tambah lomba open with what was typed', async ({
+    page,
+  }) => {
+    await page.goto('/layanan/lomba');
+    await tambahLomba(page).click();
+    await add(page).getByLabel('Nama lomba').fill('Hology 8');
+    await add(page).getByRole('checkbox', { name: 'UI/UX' }).click();
+    const size = page.viewportSize()!;
+    await page.setViewportSize(
+      size.width >= 1024
+        ? { width: 834, height: 1112 }
+        : { width: 1194, height: 834 },
+    );
+    await expect(add(page)).toBeVisible();
+    await expect(add(page).getByLabel('Nama lomba')).toHaveValue('Hology 8');
+    await page.setViewportSize(size);
+    await expect(add(page)).toBeVisible();
+    await expect(add(page).getByLabel('Nama lomba')).toHaveValue('Hology 8');
+    await expect(
+      add(page).getByRole('checkbox', { name: 'UI/UX' }),
+    ).toBeChecked();
+  });
+
+  test('cnc taken away mid-session: Tambahkan is refused, nobody is signed out, and the actions go', async ({
+    page,
+    api,
+    db,
+  }) => {
+    api.on('POST /api/competitions', writes.createCompetition);
+    await page.goto('/layanan/lomba');
+    await tambahLomba(page).click();
+    await fillHology(page);
+    const checks = api.calls('GET /api/me').length;
+    // An admin takes the role away; the next write answers 401 (roleMiddleware).
+    db.me!.roles = db.me!.roles.filter((r) => r !== 'cnc');
+    await add(page).getByRole('button', { name: 'Tambahkan' }).click();
+    await expect(toastText(page, FAILED.tanpaAkses)).toBeVisible();
+    await expect
+      .poll(() => api.calls('GET /api/me').length)
+      .toBeGreaterThan(checks);
+    await expect(
+      page.getByRole('button', { name: 'Tambah lomba' }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: /^Opsi untuk / }),
+    ).toHaveCount(0);
+    await expectStillSignedIn(page);
   });
 });
 
