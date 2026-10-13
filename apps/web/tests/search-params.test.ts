@@ -30,10 +30,16 @@ test('a bad value is dropped, never an error page', () => {
     {},
   );
   assert.deepEqual(defined(kalenderSearchSchema.parse({ hari: 20261008 })), {});
-  assert.deepEqual(defined(querySearchSchema.parse({ q: 123 })), {});
+  assert.deepEqual(defined(querySearchSchema.parse({ q: { a: 1 } })), {});
   assert.deepEqual(defined(querySearchSchema.parse({ q: 'nadia' })), {
     q: 'nadia',
   });
+});
+
+test('regression: a NIM in a link is a query, though the router reads it as a number', () => {
+  // P2-B round 2: `/layanan/nim?q=13524087` opened an empty NIM Finder (`q` parsed as 13524087 and dropped).
+  assert.deepEqual(querySearchSchema.parse({ q: 13524087 }), { q: '13524087' });
+  assert.deepEqual(querySearchSchema.parse({ q: 135 }), { q: '135' });
 });
 
 test('a redirected old link with a bad value opens the page, never an error page', async () => {

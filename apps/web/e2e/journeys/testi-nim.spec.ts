@@ -528,6 +528,19 @@ test.describe('NIM Finder', () => {
     expect(api.calls('GET /api/user/nim')).toHaveLength(1);
   });
 
+  test('regression: a link with a NIM opens it filled in', async ({ page }) => {
+    // The router reads `?q=18225012` as a number; it was dropped and the page opened empty (P2-B round 2).
+    await page.goto('/layanan/nim?q=18225012');
+    await expect(
+      main(page).getByRole('searchbox', { name: 'Cari nama atau NIM' }),
+    ).toHaveValue('18225012');
+    await expect(
+      main(page).getByRole('button', {
+        name: 'Salin NIM 18225012, Tasya Amelia',
+      }),
+    ).toBeVisible();
+  });
+
   test('regression: fast typing sends one request, for the final query', async ({
     page,
     api,
