@@ -124,7 +124,7 @@ function CategorySwitch({
   return (
     <li>
       <Item center>
-        <span className="grow">
+        <span className="min-w-0 flex-1">
           <span className="block t-sub" id={id}>
             {row.name}
           </span>

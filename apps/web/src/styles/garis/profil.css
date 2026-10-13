@@ -43,6 +43,15 @@
     font-weight: 600;
   }
 
+  /* The prototype's "■" before this device's notification state, as a square of the text's colour. */
+  .g-sq {
+    display: inline-block;
+    width: 0.76em;
+    height: 0.76em;
+    vertical-align: -0.06em;
+    background: currentColor;
+  }
+
   /* A service row and a course row. */
   .g-svc-row,
   .g-course {

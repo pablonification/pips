@@ -155,7 +155,7 @@ export function MatkulScreen() {
                   {list.map((c) => (
                     <li key={c.courseId} className="g-course">
                       <SksMark sks={c.course?.credits ?? 0} />
-                      <span className="min-w-0 grow">
+                      <span className="min-w-0 flex-1">
                         <span className="block t-label strong code">
                           {c.course?.code}
                         </span>

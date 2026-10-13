@@ -27,7 +27,7 @@ export function LoginScreen({ redirectTo }: { redirectTo: string | null }) {
 
   return (
     <div className="grid min-h-dvh place-items-center bg-app px-5 py-10 text-fg">
-      <main id="isi" className="grid w-full max-w-[400px] gap-6">
+      <main id="isi" className="grid w-full max-w-100 gap-6">
         <div className="g-side-brand">
           <HmifLogo width={54} />
           <div>

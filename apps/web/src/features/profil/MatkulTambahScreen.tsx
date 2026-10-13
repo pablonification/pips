@@ -152,7 +152,7 @@ export function MatkulTambahScreen({
               results.map((c) => (
                 <li key={c.id} className="g-course wrap">
                   <SksMark sks={c.credits ?? 0} />
-                  <span className="min-w-0 grow">
+                  <span className="min-w-0 flex-1">
                     <span className="block t-label strong code">{c.code}</span>
                     <span className="block t-sm">{c.name}</span>
                   </span>

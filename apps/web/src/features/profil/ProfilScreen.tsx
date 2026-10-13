@@ -37,6 +37,7 @@ import { profil as copy } from '~/copy/profil';
 import useLogout from '~/hooks/auth/useLogout';
 import useSession from '~/hooks/auth/useSession';
 import { useTheme } from '~/lib/theme/useTheme';
+import { cn } from '~/lib/utils';
 import { openInstallSheet } from './install-store';
 import { angkatanQuery, groupsQuery } from './queries';
 import {
@@ -89,7 +90,7 @@ function SettingRow({
   const inner = (
     <Item center>
       <Tile>{icon}</Tile>
-      <span className="min-w-0 grow">
+      <span className="min-w-0 flex-1">
         <span className="block t-sub">{title}</span>
         {sub ? <span className="block t-cap text-fg-2">{sub}</span> : null}
       </span>
@@ -117,18 +118,18 @@ function PushRowState() {
   const { text, tone } = pushStatusWords(status);
   return (
     <>
+      {/* The prototype's "■", drawn: the app's Geist subset has no geometric shapes. */}
       <span
         aria-hidden="true"
-        className={
+        className={cn(
+          'g-sq',
           tone === 'success'
             ? 'text-success'
             : tone === 'danger'
               ? 'text-danger'
-              : 'text-fg-3'
-        }
-      >
-        ■
-      </span>{' '}
+              : 'text-fg-3',
+        )}
+      />{' '}
       {text}
     </>
   );
@@ -236,7 +237,7 @@ export function ProfilScreen() {
             <FactsList facts={facts} />
           </Disclosure>
         </div>
-        <div className="grid gap-5 lg:max-w-[520px] lg:gap-3">
+        <div className="grid gap-5 lg:max-w-130 lg:gap-3">
           <RuledList>
             <SettingRow
               icon={<IconMatkul size={20} />}
@@ -255,7 +256,7 @@ export function ProfilScreen() {
                 <Tile>
                   <IconSistem size={20} />
                 </Tile>
-                <span className="grow t-sub">{copy.baris.tampilan}</span>
+                <span className="flex-1 t-sub">{copy.baris.tampilan}</span>
                 <Seg
                   full
                   label={copy.baris.tampilanLabel}

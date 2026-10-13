@@ -53,7 +53,7 @@ function Step({
     <li>
       <Item center>
         <Tile gold={gold && !done}>{icon}</Tile>
-        <span className="min-w-0 grow">
+        <span className="min-w-0 flex-1">
           <span className="block t-sub">{title}</span>
           {sub ? <span className="block t-cap text-fg-2">{sub}</span> : null}
         </span>

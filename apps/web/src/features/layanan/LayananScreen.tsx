@@ -55,7 +55,7 @@ function ServiceRow({
       <Tile>
         <Icon size={20} />
       </Tile>
-      <span className="min-w-0 grow">
+      <span className="min-w-0 flex-1">
         <span className="block t-sub">{s.label}</span>
         <span className="block t-cap text-fg-2">{s.description}</span>
       </span>
