@@ -381,7 +381,9 @@ function CommentForm({
   // A sent comment lands above the field and pushes it down: keep the focused field in view.
   useEffect(() => {
     if (document.activeElement === field.current)
-      field.current?.scrollIntoView({ block: 'nearest' });
+      (field.current?.closest('form') ?? field.current)?.scrollIntoView({
+        block: 'nearest',
+      });
   }, [count, field]);
   const post = usePostComment(infoId);
   const send = (content: string) =>
