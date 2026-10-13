@@ -56,7 +56,7 @@ export const getFormRoute = createRoute({
   responses: {
     200: {
       description:
-        'Form detail with your `status`. `sections` is null until the form opens; a closed form still has them, for a read-only view.',
+        "Form detail with your `status`. `sections` is null until the form opens, and for a member outside `eligibleAngkatan` who isn't a form admin; a closed form still has them, for a read-only view.",
       content: { 'application/json': { schema: FormDetailSchema } },
     },
     401: errorResponse,

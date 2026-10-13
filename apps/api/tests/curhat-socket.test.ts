@@ -471,3 +471,30 @@ test("Live Counting's formAdminId room still joins admins only", async () => {
   assert.deepEqual(await roomsOf(memberSocket.id!), []);
   assert.deepEqual(await roomsOf(anon.id!), []);
 });
+
+// P3-A: what Live Counting relies on. A new response is announced to the form's admin room only.
+test('form:new-response reaches an admin socket, not a member or an anonymous one', async () => {
+  const heard = {
+    admin: [] as unknown[],
+    member: [] as unknown[],
+    anon: [] as unknown[],
+  };
+  const adminSocket = await client(admin, { formAdminId: 'pixel' });
+  const memberSocket = await client(nadia, { formAdminId: 'pixel' });
+  const anon = await client(null, { formAdminId: 'pixel' });
+  adminSocket.on('form:new-response', (e: unknown) => heard.admin.push(e));
+  memberSocket.on('form:new-response', (e: unknown) => heard.member.push(e));
+  anon.on('form:new-response', (e: unknown) => heard.anon.push(e));
+  await settled();
+  const event = {
+    total: 143,
+    nim: '13525243',
+    fullName: 'Pengisi baru',
+    submittedAt: '2026-10-08T06:32:00.000Z',
+  };
+  io.to(formAdminRoom('pixel')).emit('form:new-response', event);
+  await settled();
+  assert.deepEqual(heard.admin, [event]);
+  assert.deepEqual(heard.member, []);
+  assert.deepEqual(heard.anon, []);
+});

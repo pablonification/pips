@@ -46,6 +46,13 @@ export const GARIS_FILES = [
   'src/routes/_app/_left-navbar/layanan/form/index.tsx',
   'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
   'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
+  // P3-A: Kelola, Live Counting, Rekap Form and Data SPARTA Magang.
+  'src/routes/_app/_left-navbar/kelola/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/$formId/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/$formId/rekap.tsx',
+  'src/routes/_app/_left-navbar/kelola/sparta/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/sparta/$submissionId.tsx',
   // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba.
   'src/features/**/*.{ts,tsx}',
 ];
@@ -146,6 +153,8 @@ export default defineConfig([
             'time|wd|dn|key|out|today|akademik|himpunan|point|past|h|d|tm|draw|two|grow|brief|prev|ext',
             // Pengumuman's parts (src/features/pengumuman/pengumuman.css).
             'who|meta|z|end|many|host|ttl|lbl|in|state|bar|del|opt|body|read|unread|lead|desk|failed',
+            // Kelola's parts (src/styles/garis/kelola.css, P3-A).
+            'nim|name|v|trk|flip|top',
           ],
         },
       ],

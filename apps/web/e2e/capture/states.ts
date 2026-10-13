@@ -43,11 +43,6 @@ const berandaReady = (p: Page) =>
     .filter({ has: p.getByText('Notifikasi belum menyala') })
     .filter({ has: p.getByText('PIXEL, isi Form Analisis Kondisi ya!') });
 
-const heading = (page: Page, name: string, level?: number) =>
-  page
-    .getByRole('heading', { name, exact: true, level })
-    .locator('visible=true')
-    .first();
 const readPosts = (api: ApiMock) =>
   api.on('POST /api/info/:infoId/read', writes.markRead);
 
@@ -472,14 +467,16 @@ export const STATES: CaptureState[] = [
     title: 'Admin: forms',
     persona: 'pengurus',
     path: '/kelola/live',
-    ready: (p) => heading(p, 'Form Analisis Kondisi PIXEL', 2),
+    // P3-A: one active form, so the forms entry forwards to its live page.
+    ready: (p) => p.locator('.g-live-plaque').getByText('142'),
   },
   {
     id: 'admin-live',
     title: 'Live Counting & Rekap Form',
     persona: 'pengurus',
     path: '/kelola/live/pixel',
-    ready: (p) => visibleText(p, 'Halaman 1 dari 8'),
+    // P3-A: the plaque, the newest five and both charts.
+    ready: (p) => p.locator('.g-hbars').nth(1),
   },
   {
     id: 'sparta-table',

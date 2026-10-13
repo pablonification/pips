@@ -30,7 +30,8 @@ const REDIRECTS: Array<[from: string, to: string]> = [
   ['/home/internship/admin', '/kelola/sparta'],
   ['/home/internship/admin/sub-13525071', '/kelola/sparta/sub-13525071'],
   ['/home/admin', '/kelola'],
-  ['/home/admin/forms', '/kelola/live'],
+  // P3-A: /kelola/live forwards to the only active form (replace), so the old link lands on its live page.
+  ['/home/admin/forms', '/kelola/live/pixel'],
   ['/home/admin/forms/pixel', '/kelola/live/pixel'],
   ['/home/rekomendasi/voucher-1', '/'],
   ['/socket', '/'],

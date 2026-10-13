@@ -12,10 +12,19 @@
  * - `push` (P1-C): this device's notifications, `'off'` (permission default, not subscribed), `'on'` (granted and
  *   subscribed) or `'blocked'` (denied); null (default) follows the persona as the prototype does: off for Nadia, on
  *   for Raka. See push.ts for the stub and its helpers (`answerPermission`, `pushDevice`).
+ * - `roles` (P3-A): the persona's roles for this test. A list adds roles (`roles: ['peoplemanage']`); `{ only: [...] }`
+ *   replaces them (`roles: { only: ['peoplemanage'] }` is a peoplemanage-only member). Applied in the `db` fixture
+ *   before the context seeds the session, so `GET /api/me` and the cached user agree. null (default) keeps them.
  * - `api`: the mock layer (mock.ts). Its guard fails the test after it ends if any request went unanswered.
  */
 import { test as base, expect } from '@playwright/test';
-import { buildDb, NOW, type Db, type PersonaKey } from '../fixtures/api';
+import {
+  buildDb,
+  NOW,
+  type Db,
+  type PersonaKey,
+  type RolesOption,
+} from '../fixtures/api';
 import { ApiMock } from './mock';
 import { installPushStub, type PushMode } from './push';
 
@@ -26,6 +35,7 @@ export interface HarnessOptions {
   now: string | null;
   platform: string | null;
   push: PushMode | null;
+  roles: RolesOption | null;
 }
 
 /** Freezes motion: no CSS animations or transitions, no smooth scrolling, no blinking caret. */
@@ -39,10 +49,11 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
   now: [NOW, { option: true }],
   platform: [null, { option: true }],
   push: [null, { option: true }],
+  roles: [null, { option: true }],
 
   /** This test's own copy of the persona's fixture data; the default handlers answer from it. */
-  db: async ({ persona, signedIn }, use) => {
-    const db = buildDb(persona);
+  db: async ({ persona, signedIn, roles }, use) => {
+    const db = buildDb(persona, roles);
     db.signedIn = signedIn && !!db.me;
     await use(db);
   },

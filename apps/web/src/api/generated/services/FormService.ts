@@ -43,7 +43,7 @@ export class FormService {
     });
   }
   /**
-   * @returns FormDetail Form detail with your `status`. `sections` is null until the form opens; a closed form still has them, for a read-only view.
+   * @returns FormDetail Form detail with your `status`. `sections` is null until the form opens, and for a member outside `eligibleAngkatan` who isn't a form admin; a closed form still has them, for a read-only view.
    * @throws ApiError
    */
   public getForm({
