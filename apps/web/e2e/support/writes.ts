@@ -157,6 +157,22 @@ export const deleteRoom: Handler = ({ db, params }) => {
   return { message: 'Chatroom deleted' };
 };
 
+/**
+ * PUT /api/curhat/chatroom/:chatroomId/pin — Welfare pins or unpins a room for themselves (P3-C); 401 without
+ * `curhatadmin`, as the controller answers a missing role.
+ */
+export const pinRoom: Handler = ({ db, params, body }) => {
+  if (!db.me?.roles.includes('curhatadmin'))
+    return reply.status(401, { error: 'Unauthorized' });
+  const isPinned = (body as { isPinned?: unknown } | null)?.isPinned;
+  if (typeof isPinned !== 'boolean')
+    return reply.status(400, { error: 'isPinned is required' });
+  const room = db.chatrooms[params.chatroomId];
+  if (!room) return reply.status(400, { error: 'Failed to pin chatroom' });
+  room.isPinned = isPinned;
+  return { message: isPinned ? 'Chatroom pinned' : 'Chatroom unpinned' };
+};
+
 // Magang SPARTA (as `apps/api/src/controllers/internship.controller.ts`).
 
 function saveSparta(db: Db, body: unknown, submit: boolean) {
