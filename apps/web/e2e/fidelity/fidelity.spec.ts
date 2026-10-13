@@ -8,7 +8,7 @@ import { stableElementScreenshot, stableScreenshot } from '../support/capture';
 import { expect, test } from '../support/test';
 import { EXTRAS } from './extras';
 import { EXTRA_SCREENS, PENGURUS_ROUTES, ROUTES } from './names.mjs';
-import { SCREENS, screenFor } from './screens';
+import { SCREENS } from './screens';
 
 const dir = process.env.E2E_FIDELITY_DIR;
 
@@ -21,7 +21,9 @@ for (const [persona, routes] of [
   ['pengurus', PENGURUS_ROUTES],
 ] as const) {
   for (const route of routes) {
-    if (!SCREENS[`${persona}-${route}`]) continue; // not built yet: the report lists it
+    const entry = SCREENS[`${persona}-${route}`];
+    if (!entry) continue; // not built yet: the report lists it
+    const entries = Array.isArray(entry) ? entry : [entry];
     test.describe(`${persona}-${route}`, () => {
       test.use({ persona });
       test(`${persona}-${route}`, async ({ page, api, context }, testInfo) => {
@@ -32,9 +34,8 @@ for (const [persona, routes] of [
         const [, layout, theme] = /^fidelity-(\w+)-(\w+)$/.exec(
           testInfo.project.name,
         )!;
-        const screen = screenFor(
-          `${persona}-${route}`,
-          layout as 'phone' | 'tablet' | 'desk',
+        const screen = entries.find(
+          (e) => !e.layouts || e.layouts.includes(layout as 'phone'),
         );
         if (!screen) return;
         screen.mock?.(api);

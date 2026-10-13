@@ -3,8 +3,7 @@
  *
  * A redesign task fills in the screens it builds: the URL, any mock overrides, steps to reach the state (open a
  * sheet, a popover, a dialog), and what is visible when it is ready. Screens without an entry show as "not built
- * yet" in the fidelity report. `layouts` limits an entry to some layouts when the others differ; a key can hold a
- * list of entries for different layouts.
+ * yet" in the fidelity report. `layouts` limits an entry to some layouts when the others differ.
  *
  * Today's entries point at today's app, where an equivalent screen exists, so the report shows them as
  * "different". The redesign replaces them (P0-B changes the URLs).
@@ -12,6 +11,7 @@
 import type { BrowserContext, Locator, Page } from '@playwright/test';
 import { visibleText } from '../support/app';
 import type { ApiMock } from '../support/mock';
+import { fillPixelUpTo } from '../support/flows';
 import * as writes from '../support/writes';
 
 export interface FidelityScreen {
@@ -28,8 +28,8 @@ export interface FidelityScreen {
 type Key = `anggota-${string}` | `pengurus-${string}`;
 
 /**
- * One entry per key, or several when layouts reach the state differently (`desk-anggota-ov-confirm` is P2-A's
- * send-form dialog, the phone and tablet ones P1-C's Keluar): each then names its `layouts`.
+ * One entry, or several when layouts differ (each with its `layouts`): `anggota-ov-confirm` is the sign-out sheet on
+ * phones and tablets (P1-C) and the form's send dialog on desktop (P2-A).
  */
 export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
   {
@@ -66,9 +66,18 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       path: '/layanan/curhat',
       ready: (p) => p.getByRole('heading', { name: 'Amber Heron' }),
     },
-    'anggota-form': {
-      path: '/layanan/form',
-      ready: (p) => visibleText(p, 'Form Analisis Kondisi PIXEL'),
+    // P1-C: Profil, Mata kuliahku and Notifikasi, redesigned in place.
+    'anggota-profil': {
+      path: '/profil',
+      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 18 SKS'),
+    },
+    'anggota-matkul': {
+      path: '/profil/matkul',
+      ready: (p) => p.getByRole('main').getByText('Jumlah SKS'),
+    },
+    'anggota-notif': {
+      path: '/profil/notifikasi',
+      ready: (p) => p.getByRole('main').getByRole('switch', { name: 'Lomba' }),
     },
     'pengurus-kelola': {
       path: '/kelola',
@@ -78,44 +87,34 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       path: '/kelola/live/pixel',
       ready: (p) => visibleText(p, 'Halaman 1 dari 8'),
     },
-    // P1-C: Profil, Mata kuliahku, Tambah mata kuliah, Notifikasi, the push prompt, Keluar and Layanan.
-    'anggota-profil': {
-      path: '/profil',
-      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 18 SKS'),
+    // P2-A: Form (PIXEL).
+    'anggota-form': {
+      path: '/layanan/form',
+      ready: (p) =>
+        p.getByRole('main').getByRole('link', { name: /Form Analisis/ }),
     },
-    'pengurus-profil': {
-      path: '/profil',
-      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 19 SKS'),
+    'anggota-fill': {
+      path: '/layanan/form/pixel',
+      ready: (p) =>
+        p.getByRole('main').getByRole('heading', { name: 'Identitas' }),
     },
-    'anggota-matkul': {
-      path: '/profil/matkul',
-      ready: (p) => p.getByRole('main').getByText('Jumlah SKS'),
+    'pengurus-form-empty': {
+      path: '/layanan/form',
+      ready: (p) => p.getByRole('main').getByText('Belum ada form untukmu'),
     },
-    'anggota-matkul-add': {
-      path: '/profil/matkul/tambah',
-      ready: (p) => p.getByRole('main').getByText('Strategi Algoritma'),
-    },
-    'anggota-notif': {
-      path: '/profil/notifikasi',
-      ready: (p) => p.getByRole('main').getByRole('switch', { name: 'Lomba' }),
-    },
-    'anggota-ov-push': {
-      path: '/profil/notifikasi',
-      act: async (p) => {
-        await p
-          .getByRole('main')
-          .getByRole('switch', { name: 'Lomba' })
-          .waitFor();
-        await p
-          .getByRole('main')
-          .getByRole('button', { name: 'Nyalakan notifikasi' })
-          .click();
-      },
-      ready: (p) => p.getByRole('dialog', { name: 'Nyalakan notifikasi?' }),
-    },
+    // The send dialog on desktop, over the check page (the locked capture has Profil behind it).
     'anggota-ov-confirm': [
       {
-        // Keluar's confirmation; on desktop this key is P2-A's send-form dialog.
+        path: '/layanan/form/pixel',
+        layouts: ['desk'],
+        act: async (p) => {
+          await fillPixelUpTo(p, 5);
+          await p.getByRole('button', { name: 'Kirim jawaban' }).click();
+        },
+        ready: (p) => p.getByRole('alertdialog', { name: 'Kirim jawaban?' }),
+      },
+      // P1-C: Keluar's confirmation on phones and tablets.
+      {
         path: '/profil',
         layouts: ['phone', 'tablet'],
         act: async (p) => {
@@ -133,6 +132,29 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
           p.getByRole('alertdialog', { name: 'Keluar dari PIPS!?' }),
       },
     ],
+    // P1-C: Raka's Profil, Tambah mata kuliah, the push prompt and Layanan.
+    'pengurus-profil': {
+      path: '/profil',
+      ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 19 SKS'),
+    },
+    'anggota-matkul-add': {
+      path: '/profil/matkul/tambah',
+      ready: (p) => p.getByRole('main').getByText('Strategi Algoritma'),
+    },
+    'anggota-ov-push': {
+      path: '/profil/notifikasi',
+      act: async (p) => {
+        await p
+          .getByRole('main')
+          .getByRole('switch', { name: 'Lomba' })
+          .waitFor();
+        await p
+          .getByRole('main')
+          .getByRole('button', { name: 'Nyalakan notifikasi' })
+          .click();
+      },
+      ready: (p) => p.getByRole('dialog', { name: 'Nyalakan notifikasi?' }),
+    },
     'anggota-layanan': {
       path: '/layanan',
       ready: (p) => p.getByRole('main').getByText('1 belum diisi'),
@@ -141,18 +163,4 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
       path: '/layanan',
       ready: (p) => p.getByRole('main').getByText('Tambah acara Akademik'),
     },
-    'pengurus-form-empty': {
-      path: '/layanan/form',
-      ready: (p) => visibleText(p, 'Belum ada form untuk kamu'),
-    },
   };
-
-/** The entry for a key at one layout, if any. */
-export function screenFor(
-  key: Key,
-  layout: 'phone' | 'tablet' | 'desk',
-): FidelityScreen | undefined {
-  return [SCREENS[key] ?? []]
-    .flat()
-    .find((s) => !s.layouts || s.layouts.includes(layout));
-}

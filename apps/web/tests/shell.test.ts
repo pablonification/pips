@@ -72,10 +72,11 @@ test('titles: members’ service names and the prototype’s page names', () => 
   for (const p of PATHS) assert.ok(titleOf(p, { id: 'x' }).length > 0, p);
 });
 
-test('focused flows are the form, the composer and a Curhat room (SPEC story 19), and first run (P1-C)', () => {
+test('focused flows are the form, the composer, a Curhat room and Magang SPARTA (SPEC story 19; P2-A brief), and first run (P1-C)', () => {
   assert.deepEqual(PATHS.filter((p) => ROUTE_META[p].focused).sort(), [
     '/layanan/curhat/$roomId',
     '/layanan/form/$formId',
+    '/layanan/sparta',
     // First run: a one-off checklist that ends on Beranda, with its own two ways out.
     '/mulai',
     '/pengumuman/tulis',

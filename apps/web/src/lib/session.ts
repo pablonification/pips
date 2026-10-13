@@ -4,6 +4,7 @@ import { clearPersistedQueries } from '~/api/persister';
 import { User, UserWithRoles } from '~/api/generated';
 import { forgetShell } from '~/components/shell/shell-state';
 import { forgetMember } from './forget-member';
+import { deleteAllDrafts } from './form/draft-store';
 import { isSignedOutError } from './session-policy';
 
 export { sessionRetry, sessionRetryDelay } from './session-policy';
@@ -30,6 +31,7 @@ export function forgetMemberOnDevice() {
     removePersisted: clearPersistedQueries,
     storage: localStorage,
     forgetShell,
+    removeFormDrafts: deleteAllDrafts,
   });
 }
 
