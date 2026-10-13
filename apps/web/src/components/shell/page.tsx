@@ -30,6 +30,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from '@tanstack/react-router';
+import { DESKTOP_QUERY, useMediaQuery } from '~/components/garis/useMediaQuery';
 import { cn } from '~/lib/utils';
 import { titleAppeared } from './focus';
 import { setTitleFor } from './shell-state';
@@ -86,7 +87,10 @@ export function DeskHead({
   title: ReactNode;
   actions?: ReactNode;
 }) {
-  // Hidden below 1024 px, where the top bar has the title: so it doesn't count as the screen's own title there.
+  // Desktop only: below 1024 px the top bar has the title and the actions (TopBarActions). Rendered only there, not
+  // hidden by CSS, so phones and tablets carry no second copy of the title and the actions (C1, SPEC hidden DOM).
+  const desk = useMediaQuery(DESKTOP_QUERY);
+  if (!desk) return null;
   return (
     <div className="g-d-head">
       <Heading className="t-display-l">{title}</Heading>
