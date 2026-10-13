@@ -39,23 +39,24 @@ export const flowGrep = (id) => `@flow:${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&
 export function resultsOf(report) {
   /** @type {{ project: string, title: string, file: string, status: string, expected: string, duration: number }[]} */
   const out = [];
-  /** @param {any} suite @param {string[]} titles */
-  const walk = (suite, titles) => {
+  /** @param {any} suite @param {string[]} titles @param {string} file */
+  const walk = (suite, titles, file) => {
+    const where = suite.file ?? file;
     for (const spec of suite.specs ?? [])
       for (const t of spec.tests ?? []) {
         const last = (t.results ?? []).at(-1);
         out.push({
           project: t.projectName,
           title: [...titles, spec.title].filter(Boolean).join(' › '),
-          file: spec.file ?? suite.file ?? '',
+          file: spec.file ?? where ?? '',
           status: last?.status ?? 'skipped',
           expected: t.expectedStatus ?? 'passed',
           duration: last?.duration ?? 0,
         });
       }
-    for (const s of suite.suites ?? []) walk(s, [...titles, s.title]);
+    for (const s of suite.suites ?? []) walk(s, [...titles, s.title], where);
   };
-  for (const s of report.suites ?? []) walk(s, []);
+  for (const s of report.suites ?? []) walk(s, [], '');
   return out;
 }
 

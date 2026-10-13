@@ -188,11 +188,17 @@ export function parseOpenQuestions(md, file = 'ops/redesign/OPEN-QUESTIONS.md') 
 /** "Decided 2026-10-13: build it", "Decided by Dev 1 2026-10-13 (…)": who, when and what. @param {string} text */
 export function decisionOf(text) {
   const t = plain(text);
-  const m = /decided(?: by ([^0-9(:]+?))?\s*(\d{4}-\d{2}-\d{2})?[:(]?\s*(.*)$/i.exec(t);
+  const m =
+    /decided by (.+?)\s+(\d{4}-\d{2}-\d{2})[:(]?\s*(.*)$/i.exec(t) ??
+    /decided()\s+(\d{4}-\d{2}-\d{2})[:(]?\s*(.*)$/i.exec(t) ??
+    /decided(?: by ([^:(]+?))?()[:(]\s*(.*)$/i.exec(t);
+  let what = (m?.[3] ?? t).trim();
+  // "(review of P2-C, M2): fix it." keeps its words; a lone closing bracket from "Decided … (…" goes.
+  if ((what.match(/\)/g) ?? []).length > (what.match(/\(/g) ?? []).length) what = what.replace(/\)\s*$/, '').trim();
   return {
     by: m?.[1]?.trim() || (/dev 1/i.test(t) ? 'Dev 1' : 'the owner'),
-    date: m?.[2] ?? null,
-    what: (m?.[3] ?? t).replace(/\)$/, '').trim(),
+    date: m?.[2] || null,
+    what,
   };
 }
 
