@@ -346,9 +346,14 @@ export const defaultHandlers: Record<string, Handler> = {
       responded: !!db.myResponses[form.id],
       nim,
     });
+    // P3-A: the questions only for the form's angkatan or a form admin (form.controller.ts, formQuestionsVisible).
+    const forMe =
+      form.eligibleAngkatan.includes(db.me!.angkatan) ||
+      db.me!.roles.includes('admin');
     return ok<R<FormService['getForm']>>({
       ...form,
-      sections: formSectionsVisibleFor(form, nim) ? form.sections : null,
+      sections:
+        forMe && formSectionsVisibleFor(form, nim) ? form.sections : null,
       status,
     });
   }),

@@ -216,3 +216,25 @@ test('posts and comments carry only the author fields: id, name, photo', () => {
   }) as unknown as { creator: object };
   assert.deepEqual(Object.keys(posted.creator).sort(), AUTHOR_KEYS);
 });
+
+// P3-A: as the API since then (formQuestionsVisible), the questions go only to the form's angkatan or a form admin.
+test('form detail: questions for the angkatan and for an admin, not for other members', () => {
+  const nadia = buildDb('anggota');
+  const forNadia = call(get('/api/form/:formId'), nadia, {
+    params: { formId: 'pixel' },
+  });
+  assert.ok(Array.isArray(forNadia.sections));
+  const raka = buildDb('pengurus');
+  assert.ok(
+    Array.isArray(
+      call(get('/api/form/:formId'), raka, { params: { formId: 'pixel' } })
+        .sections,
+    ),
+  );
+  const rakaNoAdmin = buildDb('pengurus', { only: ['akademik'] });
+  const outside = call(get('/api/form/:formId'), rakaNoAdmin, {
+    params: { formId: 'pixel' },
+  });
+  assert.equal(outside.sections, null);
+  assert.equal(outside.title, raka.formDetails.pixel.title);
+});
