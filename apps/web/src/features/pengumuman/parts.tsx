@@ -49,13 +49,14 @@ import {
 /* ================= Small hooks ================= */
 
 /** Whether the element has scrolled into view (once): previews and paging load then. */
-export function useInView<T extends Element>(
-  ref: RefObject<T | null>,
-  once = true,
-) {
+/**
+ * Whether the element is in view (or 200 px from it). Takes the element itself (a callback ref's state), so it
+ * starts watching when the element first renders, not only when the component mounts: the feed's end marker
+ * appears after the loading state.
+ */
+export function useElementInView(el: Element | null, once = true) {
   const [seen, setSeen] = useState(false);
   useEffect(() => {
-    const el = ref.current;
     if (!el) return;
     if (typeof IntersectionObserver === 'undefined') {
       setSeen(true);
@@ -71,7 +72,7 @@ export function useInView<T extends Element>(
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [ref, once]);
+  }, [el, once]);
   return seen;
 }
 
@@ -183,8 +184,8 @@ function LinkCard({
   url: string;
   onForm: (url: string, title: string) => void;
 }) {
-  const ref = useRef<HTMLAnchorElement & HTMLButtonElement>(null);
-  const seen = useInView(ref);
+  const [el, ref] = useState<Element | null>(null);
+  const seen = useElementInView(el);
   const { data } = useOpenGraph(url, seen);
   const og = data && 'success' in data && data.success ? data : null;
   const kind = linkKind(url, og as never);

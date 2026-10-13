@@ -29,7 +29,7 @@ import { pengumuman as t } from '~/copy/pengumuman';
 import { DEBOUNCE_TIME } from '~/lib/constants';
 import { hm } from '~/lib/dates';
 import { useCategories, useFeed, useUnreadIds } from './data';
-import { useDelayed, useInView, useOnline } from './parts';
+import { useDelayed, useElementInView, useOnline } from './parts';
 import { PostCard, PostRow } from './PostCard';
 import {
   AUTO_PAGES,
@@ -259,8 +259,9 @@ function FeedList({
   onOpenRow?: (id: string) => void;
 }) {
   const setView = useSetView();
-  const end = useRef<HTMLDivElement>(null);
-  const atEnd = useInView(end, false);
+  // A callback ref: the end marker first renders after the loading state.
+  const [end, setEnd] = useState<HTMLDivElement | null>(null);
+  const atEnd = useElementInView(end, false);
   const pages = feed.data?.pages.length ?? 0;
   const loading = feed.isPending;
   const showSkeleton = useDelayed(loading);
@@ -358,7 +359,7 @@ function FeedList({
           ))}
         </ul>
       )}
-      <div ref={end} aria-hidden="true" />
+      <div ref={setEnd} aria-hidden="true" />
       {feed.hasNextPage ? (
         <div className="g-more">
           <Button
