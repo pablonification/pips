@@ -38,6 +38,13 @@ export const GARIS_FILES = [
   'src/routes/_app/_left-navbar/layanan/form/index.tsx',
   'src/routes/_app/_left-navbar/layanan/form/$formId.tsx',
   'src/routes/_app/_left-navbar/layanan/sparta/index.tsx',
+  // P3-A: Kelola, Live Counting, Rekap Form and Data SPARTA Magang.
+  'src/routes/_app/_left-navbar/kelola/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/$formId/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/live/$formId/rekap.tsx',
+  'src/routes/_app/_left-navbar/kelola/sparta/index.tsx',
+  'src/routes/_app/_left-navbar/kelola/sparta/$submissionId.tsx',
 ];
 
 // The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
@@ -133,6 +140,8 @@ export default defineConfig([
             'cap|sub|s|lap|label|c2|theme-light|theme-dark',
             // Pengumuman's parts (src/features/pengumuman/pengumuman.css).
             'who|meta|z|end|many|host|ttl|lbl|in|state|bar|del|opt|body|read|unread|lead|desk|failed',
+            // Kelola's parts (src/styles/garis/kelola.css, P3-A).
+            'nim|name|v|trk|flip|top',
           ],
         },
       ],

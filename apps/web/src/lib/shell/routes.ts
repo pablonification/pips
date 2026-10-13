@@ -1,5 +1,6 @@
 import type { FileRouteTypes } from '~/routeTree.gen';
 import { common } from '~/copy/common';
+import { kelola } from '~/copy/kelola';
 import { mulai } from '~/copy/mulai';
 import { serviceById } from '~/lib/services';
 
@@ -126,27 +127,27 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: nav.kelola,
     parent: '/layanan',
     deskRoot: 'kelola',
-    legacy: true,
   },
+  // P3-A: a form's pages go back to the hub, never to /kelola/live, which forwards to the only form (a loop).
   '/kelola/live': {
     title: common.shell.liveCounting,
     parent: '/kelola',
-    legacy: true,
   },
   '/kelola/live/$formId': {
     title: common.shell.liveCounting,
-    parent: '/kelola/live',
-    legacy: true,
+    parent: '/kelola',
+  },
+  '/kelola/live/$formId/rekap': {
+    title: kelola.rekap.judul,
+    parent: '/kelola/live/$formId',
   },
   '/kelola/sparta': {
     title: svc('sparta-data'),
     parent: '/kelola',
-    legacy: true,
   },
   '/kelola/sparta/$submissionId': {
     title: svc('sparta-data'),
     parent: '/kelola/sparta',
-    legacy: true,
   },
   '/kelola/acara': { title: nav.kelola, parent: '/kelola', legacy: true },
   '/kelola/lomba': { title: nav.kelola, parent: '/kelola', legacy: true },

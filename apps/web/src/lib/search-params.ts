@@ -53,3 +53,20 @@ export const testiSearchSchema = z.object({
 export const matkulTambahSearchSchema = z.object({
   dari: z.literal('mulai').optional().catch(undefined),
 });
+
+/** Rekap Form (P3-A): the search (`q`) and the 1-based page (`halaman`). */
+export const rekapSearchSchema = z.object({
+  q: z.string().optional().catch(undefined),
+  halaman: z.number().int().min(1).optional().catch(undefined),
+});
+
+/** Data SPARTA Magang (P3-A): the search and every filter, so reload, Back and a shared link keep them. */
+export const spartaDataSearchSchema = z.object({
+  q: z.string().optional().catch(undefined),
+  divisi: z.string().min(1).optional().catch(undefined),
+  pilihan: z
+    .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
+    .optional()
+    .catch(undefined),
+  status: z.enum(['terkunci', 'draf']).optional().catch(undefined),
+});

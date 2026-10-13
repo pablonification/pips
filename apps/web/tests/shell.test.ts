@@ -133,10 +133,16 @@ test('the desktop breadcrumbs start at the sidebar item and end at the page', ()
     '/layanan',
     '/layanan/dingdong',
   ]);
+  // P3-A: "Kelola › Live Counting", as the locked desk-pengurus-live capture; /kelola/live forwards to the only
+  // form, so it is never a form page's parent.
   assert.deepEqual(trail('/kelola/live/$formId', { formId: 'pixel' }), [
     '/kelola',
-    '/kelola/live',
     '/kelola/live/pixel',
+  ]);
+  assert.deepEqual(trail('/kelola/live/$formId/rekap', { formId: 'pixel' }), [
+    '/kelola',
+    '/kelola/live/pixel',
+    '/kelola/live/pixel/rekap',
   ]);
   assert.deepEqual(trail('/profil/matkul/tambah'), [
     '/profil',

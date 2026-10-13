@@ -1,0 +1,110 @@
+/**
+ * Kelola (P3-A): the hub, Live Counting, Rekap Form and Data SPARTA Magang. Where the prototype has the words they
+ * are its own (garis/screens-more.js `scrLive`, `scrNim`, the Testi Matkul pager, garis/screens-core.js
+ * `kelolaSummary`), else today's admin screens' in sentence case; the rest is new and listed in the P3-A report for
+ * the owner (OPEN-QUESTIONS D8). The hub's rows come from the service registry.
+ */
+export const kelola = {
+  // The forms entry (/kelola/live) with two or more active forms; one forwards, none is today's empty line.
+  formulir: {
+    belumAda: 'Belum ada form',
+    dibuka: 'Dibuka {waktu}',
+    ditutup: 'Ditutup {waktu}',
+    memuat: 'Memuat form…',
+    gagal: 'Daftar form gagal dimuat.',
+  },
+  live: {
+    // The plaque (`scrLive`); "terakhir {hari}, {waktu} WIB" when the newest response isn't from today.
+    orangMengisi: 'orang sudah mengisi',
+    terakhir: 'terakhir {waktu} WIB',
+    terakhirHari: 'terakhir {hari}, {waktu} WIB',
+    pengisiTerbaru: 'Pengisi terbaru',
+    semua: 'Semua',
+    analitik: 'Analitik jawaban',
+    belumAdaPengisi: 'Belum ada yang mengisi form ini.',
+    memuat: 'Memuat Live Counting…',
+    gagalJumlah: 'Jumlah pengisi gagal dimuat.',
+    gagalPengisi: 'Pengisi terbaru gagal dimuat.',
+    gagalAnalitik: 'Analitik jawaban gagal dimuat.',
+    gagalForm: 'Form gagal dimuat.',
+    tidakDitemukan: 'Form tidak ditemukan',
+    tidakDitemukanIsi: 'Mungkin form ini sudah dihapus.',
+    keKelola: 'Ke Kelola',
+  },
+  ekspor: {
+    tombol: 'Export CSV',
+    mengekspor: 'Mengekspor…',
+    // The prototype's toast without its "Contoh: ".
+    jawaban: 'Rekap {jumlah} jawaban diunduh sebagai CSV.',
+    sparta: 'Data {jumlah} pendaftar diunduh sebagai CSV.',
+    gagal: 'CSV gagal diunduh.',
+  },
+  rekap: {
+    judul: 'Rekap Form',
+    // NIM Finder's search (`scrNim`), and the start of its result line.
+    cari: 'Cari nama atau NIM',
+    cariPlaceholder: 'Ketik nama atau NIM',
+    hasil: '{jumlah} hasil.',
+    tidakCocok: 'Tidak ada respon yang cocok.',
+    memuat: 'Memuat rekap…',
+    gagal: 'Rekap gagal dimuat.',
+    // Testi Matkul's pager.
+    sebelumnya: 'Sebelumnya',
+    berikutnya: 'Berikutnya',
+    halamanSebelumnya: 'Halaman sebelumnya',
+    halamanBerikutnya: 'Halaman berikutnya',
+    halaman: '{nomor} / {jumlah}',
+  },
+  sparta: {
+    memuat: 'Memuat data SPARTA…',
+    gagal: 'Data SPARTA gagal dimuat.',
+    divisi: 'Divisi',
+    semuaDivisi: 'Semua divisi',
+    divisiOpsi: '{departemen} · {divisi}',
+    pilihan: 'Pilihan',
+    semuaPilihan: 'Semua pilihan',
+    pilihanKe: 'Pilihan {nomor}',
+    status: 'Status',
+    semuaStatus: 'Semua',
+    terkunci: 'Terkunci',
+    draf: 'Draf',
+    jumlah: '{jumlah} pendaftar',
+    statistik: 'Statistik pilihan',
+    perDepartemen: 'Per departemen',
+    perDivisi: 'Per divisi',
+    pilihanPertama: 'Pilihan 1 saja',
+    semuaPilihanStat: 'Semua pilihan',
+    kelompok: 'Kelompokkan',
+    hitung: 'Hitung',
+    statistikKosong: 'Belum ada data pilihan untuk ditampilkan.',
+    tabel: 'Pendaftar Magang SPARTA',
+    nama: 'Nama',
+    nim: 'NIM',
+    jurusan: 'Jurusan',
+    kelas: 'Kelas',
+    kosong: 'Belum ada pendaftar',
+    kosongIsi:
+      'Pilihan divisi yang disimpan atau dikirim anggota muncul di sini.',
+    tidakCocok: 'Tidak ada pendaftar yang cocok',
+    tidakCocokIsi: 'Ubah pencarian atau filternya.',
+    hapusFilter: 'Hapus filter',
+    kosongTanda: '–',
+  },
+  // One submission, with today's labels in sentence case.
+  pendaftar: {
+    memuat: 'Memuat pendaftar…',
+    gagal: 'Data pendaftar gagal dimuat.',
+    ringkas: '{nim} · {jurusan} · {kelas}',
+    idLine: 'ID LINE',
+    pengalaman: 'Pengalaman organisasi',
+    kesibukan: 'Kesibukan saat ini',
+    kesibukanBaris: '{jabatan} · {organisasi} ({periode})',
+    pilihanDivisi: 'Pilihan divisi',
+    prioritas: 'Prioritas {nomor}: {divisi}',
+    divisiHilang: 'Divisi tidak ditemukan',
+    lihatFile: 'Lihat file',
+    tidakDitemukan: 'Pendaftar tidak ditemukan',
+    tidakDitemukanIsi: 'Mungkin datanya sudah dihapus.',
+    kembali: 'Ke Data SPARTA Magang',
+  },
+} as const;
