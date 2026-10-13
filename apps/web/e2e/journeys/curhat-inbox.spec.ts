@@ -1027,56 +1027,6 @@ test('no member name, NIM or email anywhere in the page or in what it sends', as
 
 // ---------------------------------------------------------------- Gates
 
-/**
- * The top bar is sticky and see-through (the locked design), so a scrolled page passes under it. Where a scroll ends
- * with a control straddling the bar's lower edge (at 768 px a Balas sits half under the back button at the newest
- * message), axe counts the two as overlapping targets. That happens in members' rooms too (reported to Dev 1). The
- * gates measure the room's own targets, so the scroll is moved up just enough that no control straddles the edge.
- */
-async function clearTopBarEdge(page: Page) {
-  // First let the room finish following the newest message (the bar grows with the reply chip a frame later).
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolve) => {
-        const el = document.querySelector<HTMLElement>(
-          '[data-scroll-restoration-id="isi"]',
-        );
-        let last = -1;
-        let same = 0;
-        const tick = () => {
-          const top = el?.scrollTop ?? 0;
-          same = top === last ? same + 1 : 0;
-          last = top;
-          if (same >= 5) resolve();
-          else requestAnimationFrame(tick);
-        };
-        tick();
-      }),
-  );
-  await expect
-    .poll(() =>
-      page.evaluate(() => {
-        const scroller = document.querySelector<HTMLElement>(
-          '[data-scroll-restoration-id="isi"]',
-        );
-        const bar = document.querySelector<HTMLElement>('.g-top');
-        if (!scroller || !bar) return 0;
-        const edge = bar.getBoundingClientRect().bottom;
-        let shift = 0;
-        for (const el of document.querySelectorAll<HTMLElement>(
-          'main a, main button',
-        )) {
-          const r = el.getBoundingClientRect();
-          if (r.top < edge && r.bottom > edge)
-            shift = Math.max(shift, edge - r.top);
-        }
-        scroller.scrollTop -= Math.ceil(shift);
-        return shift;
-      }),
-    )
-    .toBe(0);
-}
-
 test.describe('gates at every size', () => {
   const LONG =
     'Aku pengen cerita panjang soal minggu ini karena rasanya semua tenggat datang bersamaan dan aku belum tahu harus mulai dari mana, apalagi ada rapat kepanitiaan tiap Rabu malam yang selalu molor sampai larut.';
@@ -1116,7 +1066,7 @@ test.describe('gates at every size', () => {
       await expect(
         page.getByRole('button', { name: 'Batal membalas' }),
       ).toBeVisible();
-      await clearTopBarEdge(page);
+      // strictGates clears the sticky top bar's edge first (e2e/support/strict.ts, `clearTopBarEdge`).
       await strictGates(
         page,
         testInfo,
