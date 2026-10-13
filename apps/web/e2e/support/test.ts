@@ -15,6 +15,8 @@
  * - `roles` (P3-A): the persona's roles for this test. A list adds roles (`roles: ['peoplemanage']`); `{ only: [...] }`
  *   replaces them (`roles: { only: ['peoplemanage'] }` is a peoplemanage-only member). Applied in the `db` fixture
  *   before the context seeds the session, so `GET /api/me` and the cached user agree. null (default) keeps them.
+ * - `motion` (F1): `'off'` (default) adds the no-motion stylesheet below; `'on'` leaves the app's own transitions, for
+ *   the review recordings (pair it with `reducedMotion: 'no-preference'`).
  * - `api`: the mock layer (mock.ts). Its guard fails the test after it ends if any request went unanswered.
  */
 import { test as base, expect } from '@playwright/test';
@@ -36,6 +38,7 @@ export interface HarnessOptions {
   platform: string | null;
   push: PushMode | null;
   roles: RolesOption | null;
+  motion: 'off' | 'on';
 }
 
 /** Freezes motion: no CSS animations or transitions, no smooth scrolling, no blinking caret. */
@@ -50,6 +53,7 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
   platform: [null, { option: true }],
   push: [null, { option: true }],
   roles: [null, { option: true }],
+  motion: ['off', { option: true }],
 
   /** This test's own copy of the persona's fixture data; the default handlers answer from it. */
   db: async ({ persona, signedIn, roles }, use) => {
@@ -59,7 +63,7 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
   },
 
   context: async (
-    { context, db, installed, now, platform, push, persona },
+    { context, db, installed, now, platform, push, persona, motion },
     use,
   ) => {
     if (now) await context.clock.install({ time: new Date(now) });
@@ -90,6 +94,7 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
           style.textContent = css;
           document.head.appendChild(style);
         };
+        if (!css) return;
         if (document.head) addStyle();
         else
           document.addEventListener('DOMContentLoaded', addStyle, {
@@ -97,7 +102,7 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
           });
       },
       {
-        css: NO_MOTION_CSS,
+        css: motion === 'on' ? '' : NO_MOTION_CSS,
         installed,
         user: db.signedIn ? db.me : null,
         academic: db.academic,
