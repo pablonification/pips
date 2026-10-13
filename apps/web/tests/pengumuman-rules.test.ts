@@ -479,10 +479,18 @@ test('the shell’s first code loads only Pengumuman’s small modules (the badg
   assert.deepEqual(imports(read('features/pengumuman/unread.ts')), [
     '~/api/constants',
   ]);
+  // The first page is the shared query Beranda's list uses (P1-A round 3: one request for both), from the shared
+  // query options, which hold only the client and the keys and are part of the app's first code already.
   assert.deepEqual(imports(read('features/pengumuman/unread-query.ts')), [
     '@tanstack/react-query',
     '~/api/client',
+    '~/api/queries',
     './unread',
+  ]);
+  assert.deepEqual(imports(read('api/queries.ts')), [
+    '@tanstack/react-query',
+    './client',
+    './constants',
   ]);
   // The composer route's enter and leave hooks load its store with the app's first code: no rules, data or copy
   // (types only, which leave no code).

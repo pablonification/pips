@@ -212,11 +212,12 @@ export default defineConfig(({ mode }) => {
             groups: [
               // Everything the entry loads before any route, in the entry's own file.
               { name: 'app', tags: ['$initial'], priority: 4 },
-              // Small leaves most screens share: the Garis icons, the copy, and Kalender's pieces that Beranda,
-              // Kalender and search share (about 7 KiB gzip together).
+              // Small leaves most screens share: the Garis icons, the copy, Kalender's pieces that Beranda,
+              // Kalender and search share, and the push state and prompt (Beranda, first run, Notifikasi and search
+              // use them; on their own they were two more requests before Beranda's content).
               {
                 name: 'ui',
-                test: /[\\/]src[\\/](components[\\/]icons|copy|features[\\/]kalender)[\\/]/,
+                test: /[\\/]src[\\/](components[\\/](icons|push)|copy|features[\\/]kalender)[\\/]/,
                 minShareCount: 2,
                 priority: 3,
               },

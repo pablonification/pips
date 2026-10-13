@@ -519,6 +519,28 @@ test.describe('Nadia', () => {
       desktop ? 16 : 15,
     );
   });
+
+  test('regression: the first unread page is asked for once, for Beranda’s list and the navigation badge', async ({
+    page,
+    api,
+  }) => {
+    // After P1-B's badge joined Beranda, each asked for it on its own: one request over the budget.
+    await page.goto('/');
+    await expect(
+      unreadSection(page).getByRole('link', { name: /\(belum dibaca\)$/ }),
+    ).toHaveCount(3);
+    // The badge counts all four, from the same first page.
+    await expect(
+      page
+        .getByRole('link', { name: /^Pengumuman,? 4 belum dibaca$/ })
+        .locator('visible=true'),
+    ).toBeVisible();
+    const firstPages = api.calls('GET /api/info').filter((c) => {
+      const q = new URLSearchParams(c.query);
+      return q.get('unread') === 'true' && (q.get('offset') ?? '0') === '0';
+    });
+    expect(firstPages).toHaveLength(1);
+  });
 });
 
 test.describe('the month’s end', () => {

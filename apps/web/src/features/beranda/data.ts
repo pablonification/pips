@@ -6,32 +6,14 @@
  */
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { api } from '~/api/client';
-import {
-  CHATROOMS_QUERY_KEY,
-  FORM_QUERY_KEY,
-  INFO_LIST_QUERY_KEY,
-  UNREAD_INFOS_KEY_PART,
-} from '~/api/constants';
-import { chatroomsQuery, formListQuery } from '~/api/queries';
+import { CHATROOMS_QUERY_KEY, FORM_QUERY_KEY } from '~/api/constants';
+import { chatroomsQuery, formListQuery, unreadInfosQuery } from '~/api/queries';
 
 /** Unread Curhat messages per room. Under the chatrooms key, so Curhat's own refreshes renew it too. */
 export const curhatUnreadQuery = () =>
   queryOptions({
     queryKey: [CHATROOMS_QUERY_KEY, 'unread'],
     queryFn: () => api.curhat.unreadCountChatroomMessages(),
-  });
-
-/**
- * The newest unread posts (the feed's first page, unread only). Under the feed's key, so read marks refresh it, and
- * kept on the device like that page (persistence-policy.ts), so Beranda opens offline with it.
- */
-export const unreadInfosQuery = () =>
-  queryOptions({
-    queryKey: [INFO_LIST_QUERY_KEY, UNREAD_INFOS_KEY_PART],
-    queryFn: () =>
-      api.info
-        .getListInfo({ unread: 'true', sort: 'newest' })
-        .then((r) => r.infos),
   });
 
 /** Every active form, for the Kelola summary (admin only). */
