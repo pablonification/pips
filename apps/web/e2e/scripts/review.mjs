@@ -433,6 +433,21 @@ function plan(d) {
 function record() {
   needTools();
   const d = dump();
+  // Nothing left to record (a rerun of the whole command, or after an interrupted one finished): keep the plan the
+  // recordings were made with instead of re-planning from today's free space, which can refuse with nothing to do.
+  const state = readJson(STATE, {});
+  const left = Object.values(recordingsByPhase(d))
+    .flat()
+    .flatMap(({ f, theme }) => plannedRecordings(f, theme))
+    .filter(
+      (p) =>
+        !existsSync(path.join(PKG, p.file)) || !state[`${p.flow}|${p.name}`],
+    );
+  if (VIDEO && !FORCE && !left.length) {
+    log('record: every recording exists; nothing to record');
+    writeFlowsJson();
+    return;
+  }
   const p = VIDEO
     ? plan(d)
     : {
