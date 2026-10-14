@@ -406,7 +406,7 @@ function plan(d) {
       .map((p) => ({ layout: p.layout, seconds: pilot.secondsPerRecording }));
   const phases = recordingsByPhase(d);
   const free = freeBytes();
-  const budget = packageBudget(free);
+  const budget = packageBudget(free, sizeOf(MEDIA));
   const p = planRecordings({
     budget,
     light: secs(phases.light),
@@ -418,6 +418,7 @@ function plan(d) {
     ...sizes,
     measuredAt: today,
     freeBytes: free,
+    mediaBytesAtPlan: sizeOf(MEDIA),
     budget,
     plan: p,
   });

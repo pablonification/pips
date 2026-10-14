@@ -38,13 +38,18 @@ export const MEASURED_KBPS = {
 export const SIZE_PER_CRF_STEP = 0.83;
 
 /**
- * The package budget for `freeBytes` free: free − floor − working peak − margin, capped. Never negative.
- * @param {number} freeBytes
+ * The package budget for `freeBytes` free: free − floor − working peak − margin, capped. Never negative. What the
+ * package already holds (`packageBytes`, its media so far) counts as free: it is part of the budget, not taken from
+ * it, so re-running `record` after some recordings exist doesn't count them twice (F1 part 2).
+ * @param {number} freeBytes @param {number} [packageBytes]
  */
-export function packageBudget(freeBytes, b = BUDGET) {
+export function packageBudget(freeBytes, packageBytes = 0, b = BUDGET) {
   return Math.max(
     0,
-    Math.min(b.cap, freeBytes - b.floor - b.workingPeak - b.margin),
+    Math.min(
+      b.cap,
+      freeBytes + packageBytes - b.floor - b.workingPeak - b.margin,
+    ),
   );
 }
 

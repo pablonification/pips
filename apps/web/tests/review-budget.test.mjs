@@ -24,6 +24,17 @@ test('the budget is free − 1 GiB floor − 250 MiB peak − 100 MiB margin, ca
   assert.equal(BUDGET.minimum, 210 * MiB);
 });
 
+test('the media the package already holds counts as free, not against the budget (F1 part 2)', () => {
+  // 1.5 GiB free with 110 MiB recorded is the same day as 1.61 GiB free before recording.
+  assert.equal(
+    packageBudget(1.5 * GiB, 110 * MiB),
+    packageBudget(1.5 * GiB + 110 * MiB),
+  );
+  // The bug: re-planning with only the free space dropped under the 210 MiB minimum.
+  assert.ok(packageBudget(1.5 * GiB) < BUDGET.minimum);
+  assert.ok(packageBudget(1.5 * GiB, 110 * MiB) >= BUDGET.minimum);
+});
+
 test('the other parts sum to their ceilings: 40 + 25 + 10 + 5 MiB', () => {
   assert.deepEqual(
     PARTS.map((p) => p.max / MiB),
