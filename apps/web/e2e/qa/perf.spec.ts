@@ -9,6 +9,7 @@
 import { appendFileSync } from 'node:fs';
 import type { CDPSession, Page } from '@playwright/test';
 import { expect, test } from '../support/test';
+import * as writes from '../support/writes';
 
 const OUT = process.env.QA_PERF_OUT;
 test.skip(!OUT, 'Set QA_PERF_OUT to run the lab profile.');
@@ -63,7 +64,7 @@ const PAGES: {
     id: 'live',
     url: '/kelola/live',
     persona: 'pengurus',
-    ready: (p) => p.getByText('orang sudah mengisi'),
+    ready: (p) => p.getByText('orang sudah mengisi').first(),
   },
 ];
 
@@ -133,8 +134,10 @@ for (const r of PAGES)
   for (let run = 1; run <= RUNS; run++)
     test.describe(`${r.id} run ${run}`, () => {
       test.use({ persona: r.persona });
-      test(`${r.id}, run ${run}`, async ({ page }, testInfo) => {
+      test(`${r.id}, run ${run}`, async ({ page, api }, testInfo) => {
         test.skip(testInfo.project.name !== 'qa-perf', 'qa-perf');
+        // Opening a post marks it read.
+        api.on('POST /api/info/:infoId/read', writes.markRead);
         await throttle(page);
         await page.route('**/api/**', async (route) => {
           await new Promise((res) => setTimeout(res, PROFILE.latencyMs));
