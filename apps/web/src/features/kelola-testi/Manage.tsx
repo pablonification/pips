@@ -6,7 +6,7 @@
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
-import { lazy, Suspense, useRef, useState } from 'react';
+import { lazy, Suspense, useRef, useState, type ReactNode } from 'react';
 import type { Course, Testimoni } from '~/api/generated';
 import { Button, toast } from '~/components/garis';
 import { IconTambah } from '~/components/icons/tambah';
@@ -22,17 +22,23 @@ const courseRoute = getRouteApi(
   '/_app/_left-navbar/layanan/testi_/$type/$semester/$courseId/',
 );
 
-export function TambahTestimoni({ course }: { course: Course }) {
+/**
+ * Tambah testimoni for a course: its button and its dialog. The page renders the button once, where its layout shows
+ * it (the desk head from 1024 px, the course's header row below: F2-003, it was rendered twice with one copy hidden
+ * by CSS), and the dialog once, apart from the button, so the dialog stays open with what was typed when a tablet
+ * turns across 1024 px and the button moves (P3-B). Nothing for anyone but `akademik`.
+ */
+export function useTambahTestimoni(course: Course | undefined): {
+  button: ReactNode;
+  dialog: ReactNode;
+} {
   const user = useSession();
-  if (!can(user, 'createTestimonial')) return null;
-  return <Tambah course={course} />;
-}
-
-function Tambah({ course }: { course: Course }) {
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
   const navigate = courseRoute.useNavigate();
   const saved = useRef(false);
+  if (!course || !can(user, 'createTestimonial'))
+    return { button: null, dialog: null };
 
   const done = async (created: Testimoni) => {
     saved.current = true;
@@ -50,28 +56,28 @@ function Tambah({ course }: { course: Course }) {
       });
   };
 
-  return (
-    <>
+  return {
+    button: (
       <Button variant="gold" size="sm" onClick={() => setOpen(true)}>
         <IconTambah size={16} />
         {t.tambah}
       </Button>
-      {open ? (
-        <Suspense fallback={null}>
-          <TestiDialog
-            course={course}
-            onOpenChange={setOpen}
-            onSaved={(x) => void done(x)}
-            onFailed={(e) => reportWriteFailure(e, qc)}
-            onCloseAutoFocus={(e) => {
-              if (!saved.current) return;
-              saved.current = false;
-              e.preventDefault();
-              requestAnimationFrame(focusPageTitle);
-            }}
-          />
-        </Suspense>
-      ) : null}
-    </>
-  );
+    ),
+    dialog: open ? (
+      <Suspense fallback={null}>
+        <TestiDialog
+          course={course}
+          onOpenChange={setOpen}
+          onSaved={(x) => void done(x)}
+          onFailed={(e) => reportWriteFailure(e, qc)}
+          onCloseAutoFocus={(e) => {
+            if (!saved.current) return;
+            saved.current = false;
+            e.preventDefault();
+            requestAnimationFrame(focusPageTitle);
+          }}
+        />
+      </Suspense>
+    ) : null,
+  };
 }

@@ -23,8 +23,9 @@ import {
 } from '~/components/garis';
 import { IconFolder } from '~/components/icons/folder';
 import { IconLanjut } from '~/components/icons/lanjut';
+import { DESKTOP_QUERY, useMediaQuery } from '~/components/garis/useMediaQuery';
 import { DeskHead, PageBody, usePageTitle } from '~/components/shell/page';
-import { TambahTestimoni } from '~/features/kelola-testi/Manage';
+import { useTambahTestimoni } from '~/features/kelola-testi/Manage';
 import { fill } from '~/copy/fill';
 import { testi as copy } from '~/copy/testi';
 import { DEBOUNCE_TIME } from '~/lib/constants';
@@ -432,6 +433,8 @@ export function TestiCourseScreen() {
   const course = listed ?? single.data;
   const online = useOnline();
   usePageTitle(course?.code);
+  const desk = useMediaQuery(DESKTOP_QUERY);
+  const tambah = useTambahTestimoni(course);
 
   if (!course) {
     const missing = !!catalogue.data && single.isError;
@@ -466,7 +469,7 @@ export function TestiCourseScreen() {
   return (
     <Page
       title={testiTitle({ code: course.code }) ?? SERVICE()}
-      actions={<TambahTestimoni course={course} />}
+      actions={desk ? tambah.button : undefined}
     >
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
@@ -474,12 +477,11 @@ export function TestiCourseScreen() {
           <h2 className="mt-0.5 t-title">{course.name}</h2>
         </div>
         {/* P3-B: phones and tablets put Tambah testimoni at the end of the course's header row. */}
-        <div className="lg:hidden">
-          <TambahTestimoni course={course} />
-        </div>
+        {desk ? null : tambah.button}
       </div>
       <Testimonials course={course} />
       <DingdongLink course={course} />
+      {tambah.dialog}
     </Page>
   );
 }
