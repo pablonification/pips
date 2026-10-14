@@ -62,3 +62,22 @@ export function RouteErrorFallback({ error, reset }: ErrorComponentProps) {
     </section>
   );
 }
+
+/**
+ * An address no page answers (F2-005; it was the router's bare English "Not Found", with no way back). In the frame
+ * of the app-wide fallback, with the document title every page has ("{Halaman} · PIPS!").
+ */
+export function NotFoundPage() {
+  useEffect(() => {
+    document.title = `${common.errors.tidakDitemukan} · PIPS!`;
+  }, []);
+  return (
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">
+      <h1 className="t-title">{common.errors.tidakDitemukan}</h1>
+      <p className="t-sm text-fg-2">{common.errors.tidakDitemukanIsi}</p>
+      <Button asChild variant="gold">
+        <a href="/">{common.actions.keBeranda}</a>
+      </Button>
+    </main>
+  );
+}
