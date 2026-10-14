@@ -104,10 +104,12 @@ const projects: Project[] = [
 ];
 
 /**
- * F1's review projects. The flows record a video at the viewport's size with the pointer drawn on each action, and
- * keep the app's own motion (`motion: 'on'`, no reduced motion). `REVIEW_VIDEO=off` runs the same flows as plain
- * tests (part 1, and any check without recording); `REVIEW_ACTIONS=off` drops the action annotations and
- * `REVIEW_STEP_TITLES=on` adds the step titles over the video (only if the pilot shows they cover nothing).
+ * F1's review projects. The flows record a video at the viewport's size and keep the app's own motion
+ * (`motion: 'on'`, no reduced motion). `REVIEW_VIDEO=off` runs the same flows as plain tests (part 1, and any check
+ * without recording). Both overlays are off by default, because the pilot (F1 part 2) showed each covering the app:
+ * `REVIEW_ACTIONS=on` draws the pointer with Playwright's action label (code such as "Check getByRole(…)", over the
+ * phone header's title and buttons; Playwright draws no pointer without it), and `REVIEW_STEP_TITLES=on` adds the
+ * step titles (with the spec's path and tags, over the tab bar). The index lists the steps with their times.
  */
 function reviewProjects(): Project[] {
   const video = (viewport: { width: number; height: number }) =>
@@ -117,7 +119,7 @@ function reviewProjects(): Project[] {
           mode: 'on' as const,
           size: viewport,
           show: {
-            ...(process.env.REVIEW_ACTIONS === 'off'
+            ...(process.env.REVIEW_ACTIONS !== 'on'
               ? {}
               : {
                   actions: {
