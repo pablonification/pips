@@ -32,3 +32,30 @@ export function ciStepsAfterBuild(yaml) {
     steps.push(/** @type {{ name: string, run: string }} */ (step));
   return steps;
 }
+
+/**
+ * The arguments for `bash ops/redesign/gh-retry.sh`: its time limit in minutes, `--`, then the gh command. Without
+ * `--` the script reads "gh" as the limit and never runs gh (F1 part 2).
+ * @param {string} script @param {string[]} args @param {number} [minutes]
+ */
+export const ghRetryArgs = (script, args, minutes = 5) => [
+  script,
+  String(minutes),
+  '--',
+  'gh',
+  ...args,
+];
+
+/**
+ * gh's JSON output, an array or an object, after anything printed before it; null when it isn't JSON.
+ * @param {string} out
+ */
+export function parseGhJson(out) {
+  const at = out.search(/[[{]/);
+  if (at < 0) return null;
+  try {
+    return JSON.parse(out.slice(at));
+  } catch {
+    return null;
+  }
+}

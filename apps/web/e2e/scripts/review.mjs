@@ -67,7 +67,11 @@ import {
   run,
   webpArgs,
 } from './lib/review/media.mjs';
-import { ciStepsAfterBuild } from './lib/review/ci.mjs';
+import {
+  ciStepsAfterBuild,
+  ghRetryArgs,
+  parseGhJson,
+} from './lib/review/ci.mjs';
 import { buildQuestions, extractItems } from './lib/review/questions.mjs';
 import { parseStill } from './lib/review/stills.mjs';
 
@@ -82,7 +86,7 @@ const PARTS_ORDER = [
   'questions',
   'index',
 ];
-const ALL_PARTS = ['build', 'pilot', ...PARTS_ORDER.slice(1)];
+const ALL_PARTS = ['build', 'pilot', 'ci', ...PARTS_ORDER.slice(1)];
 
 const args = process.argv.slice(2);
 const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
@@ -992,64 +996,7 @@ function checks() {
     note: 'axe’s colour-contrast results are in the sweep’s failures above.',
   });
   // CI, read only.
-  const retry = workspace ? path.join(workspace, 'gh-retry.sh') : null;
-  const ghRuns = retry
-    ? sh(
-        'bash',
-        [
-          retry,
-          'gh',
-          'run',
-          'list',
-          '--repo',
-          'pablonification/pips',
-          '--branch',
-          'redesign',
-          '--limit',
-          '5',
-          '--json',
-          'databaseId,conclusion,headSha,url,workflowName,createdAt',
-        ],
-        repoDir,
-      )
-    : { status: 1, out: '' };
-  const ghPrs = retry
-    ? sh(
-        'bash',
-        [
-          retry,
-          'gh',
-          'pr',
-          'list',
-          '--repo',
-          'pablonification/pips',
-          '--state',
-          'merged',
-          '--base',
-          'redesign',
-          '--limit',
-          '40',
-          '--json',
-          'number,title,url,mergedAt',
-        ],
-        repoDir,
-      )
-    : { status: 1, out: '' };
-  add({
-    id: 'ci',
-    title:
-      'CI on GitHub: the latest runs on redesign and every merged task’s pull request',
-    command: 'ops/redesign/gh-retry.sh gh run list / gh pr list (read only)',
-    status: ghRuns.status === 0 ? 'green' : 'slot',
-    note:
-      ghRuns.status === 0
-        ? 'A push to redesign runs check, test, build and the Docker images; journeys and visual references run only on pull requests (Linux references).'
-        : 'gh couldn’t read the runs here: Dev 1 fills this in.',
-    details: {
-      runs: ghRuns.status === 0 ? safeJson(ghRuns.out) : null,
-      pullRequests: ghPrs.status === 0 ? safeJson(ghPrs.out) : null,
-    },
-  });
+  add(ciCheck());
   add({
     id: 'staging',
     title: 'Staging smoke test (ops/redesign/smoke-staging.sh)',
@@ -1090,13 +1037,109 @@ function checks() {
       note: 'Not run by F1: it needs a person.',
     });
 }
-const safeJson = (s) => {
-  try {
-    return JSON.parse(s.slice(s.indexOf('[')));
-  } catch {
-    return null;
-  }
-};
+/** GitHub through ops/redesign/gh-retry.sh (read only), as JSON; null when it can't be read. */
+function gh(args) {
+  const retry = workspace ? path.join(workspace, 'gh-retry.sh') : null;
+  if (!retry) return null;
+  // gh-retry.sh takes its time limit, then `--`, then the command (without `--` it read "gh" as the limit).
+  const r = sh('bash', ghRetryArgs(retry, args), repoDir);
+  return r.status === 0 ? parseGhJson(r.out) : null;
+}
+
+/** The CI check: the latest runs on redesign, every merged task's pull request, and the last one's checks. */
+function ciCheck() {
+  const repo = ['--repo', 'pablonification/pips'];
+  const runs = gh([
+    'run',
+    'list',
+    ...repo,
+    '--branch',
+    'redesign',
+    '--limit',
+    '5',
+    '--json',
+    'databaseId,conclusion,headSha,url,workflowName,createdAt,event',
+  ]);
+  const pullRequests = gh([
+    'pr',
+    'list',
+    ...repo,
+    '--state',
+    'merged',
+    '--base',
+    'redesign',
+    '--limit',
+    '40',
+    '--json',
+    'number,title,url,mergedAt',
+  ]);
+  const last = Array.isArray(pullRequests)
+    ? [...pullRequests].sort((a, b) => (a.mergedAt < b.mergedAt ? 1 : -1))[0]
+    : null;
+  const lastPr = last
+    ? gh([
+        'pr',
+        'view',
+        String(last.number),
+        ...repo,
+        '--json',
+        'number,title,url,statusCheckRollup',
+      ])
+    : null;
+  // Check runs have name and conclusion; commit statuses (another app's) have context and state.
+  const checks = (lastPr?.statusCheckRollup ?? []).map((c) => ({
+    name: c.name ?? c.context,
+    conclusion: c.conclusion ?? c.state,
+    url: c.detailsUrl ?? c.targetUrl,
+  }));
+  const read = Array.isArray(runs) && Array.isArray(pullRequests);
+  const failing = checks.filter(
+    (c) =>
+      c.conclusion && !['SUCCESS', 'SKIPPED', 'NEUTRAL'].includes(c.conclusion),
+  );
+  return {
+    date: new Date().toISOString(),
+    commit: gitHead(),
+    id: 'ci',
+    title:
+      'CI on GitHub: the latest runs on redesign and every merged task’s pull request',
+    command:
+      'ops/redesign/gh-retry.sh 5 -- gh run list / gh pr list / gh pr view (read only)',
+    status: !read ? 'slot' : failing.length ? 'red' : 'green',
+    counts: read
+      ? {
+          'runs on redesign': runs.length,
+          'merged pull requests': pullRequests.length,
+          [`#${lastPr?.number ?? '?'} checks`]: `${checks.length - failing.length} passed, ${failing.length} failed`,
+        }
+      : undefined,
+    failures: failing.map(
+      (c) => `#${lastPr.number} › ${c.name}: ${c.conclusion}`,
+    ),
+    note: read
+      ? `A push to redesign runs check, test, build and the Docker images; the journeys and the Linux visual references run only on pull requests, so they come from the last merged pull request, #${lastPr?.number ?? '?'}.`
+      : 'gh couldn’t read GitHub here: Dev 1 fills this in.',
+    details: {
+      runs,
+      pullRequests,
+      lastPullRequest: lastPr ? { ...lastPr, statusCheckRollup: checks } : null,
+    },
+  };
+}
+
+/** `review ci`: refreshes only the CI check in checks.json. */
+function ci() {
+  const file = path.join(DATA, 'checks.json');
+  const c = readJson(file, { checks: [] });
+  const entry = ciCheck();
+  const at = c.checks.findIndex((x) => x.id === 'ci');
+  if (at >= 0) c.checks[at] = entry;
+  else c.checks.push(entry);
+  writeJson(file, c);
+  log(
+    `ci: ${entry.status}${entry.counts ? ` ${JSON.stringify(entry.counts)}` : ''}`,
+  );
+}
 
 // ---------------------------------------------------------------- lab
 
@@ -1311,6 +1354,7 @@ function sizeOfMatching(dir, re) {
 const STEPS = {
   build,
   pilot,
+  ci,
   record,
   fidelity,
   after,
@@ -1325,7 +1369,9 @@ log(
   `package: ${PKG}${only ? `; only ${only}` : ''}; video ${VIDEO ? 'on' : 'off'}; ${os.cpus().length} cores, ${WORKERS} workers`,
 );
 if (
-  parts.some((p) => p !== 'build' && p !== 'questions' && p !== 'index') &&
+  parts.some(
+    (p) => p !== 'build' && p !== 'questions' && p !== 'index' && p !== 'ci',
+  ) &&
   !parts.includes('build') &&
   !existsSync(path.join(appDir, 'e2e', '.build', 'index.html'))
 )

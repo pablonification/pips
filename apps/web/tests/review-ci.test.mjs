@@ -4,7 +4,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { ciStepsAfterBuild } from '../e2e/scripts/lib/review/ci.mjs';
+import {
+  ciStepsAfterBuild,
+  ghRetryArgs,
+  parseGhJson,
+} from '../e2e/scripts/lib/review/ci.mjs';
 
 const YAML = `jobs:
   check:
@@ -43,4 +47,25 @@ test('on the real check.yml: no Docker, no e2e shard, no browser install', () =>
   assert.ok(steps.length >= 1);
   for (const s of steps)
     assert.doesNotMatch(s.run, /docker|--shard|playwright install|\$\{\{/);
+});
+
+test('gh-retry.sh gets its limit and -- before gh (without them it never ran gh)', () => {
+  assert.deepEqual(ghRetryArgs('r.sh', ['pr', 'list']), [
+    'r.sh',
+    '5',
+    '--',
+    'gh',
+    'pr',
+    'list',
+  ]);
+});
+
+test('gh JSON: arrays and objects (gh pr view), after any text; null otherwise', () => {
+  assert.deepEqual(parseGhJson('[{"a":1}]'), [{ a: 1 }]);
+  // The old parse sliced from the first "[", which broke an object holding an array.
+  assert.deepEqual(parseGhJson('note\n{"n":21,"c":[{"x":1}]}'), {
+    n: 21,
+    c: [{ x: 1 }],
+  });
+  assert.equal(parseGhJson('gh-retry: gave up'), null);
 });
