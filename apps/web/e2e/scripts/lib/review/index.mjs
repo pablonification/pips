@@ -9,6 +9,15 @@ export const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 /**
+ * A table's opening, inside a scroll region the keyboard can reach: on a phone a wide table scrolls sideways, and
+ * axe's scrollable-region-focusable asks that the scroll area take focus (F1 part 2: the checks table at 390 px).
+ * Close it with `</table></div>`. `caption` is HTML, already escaped.
+ * @param {string} caption
+ */
+export const scrollTable = (caption) =>
+  `<div class="tscroll" role="region" tabindex="0" aria-label="${caption}"><table><caption>${caption}</caption>`;
+
+/**
  * A path inside the package, for src and href. Anything absolute, with a scheme, or leaving the folder is refused:
  * the page must load nothing from outside it.
  * @param {string} p
@@ -359,7 +368,7 @@ function newCopyPage(d) {
 function checksPage(d) {
   return `<section id="checks" aria-labelledby="checks-h">
 <h2 id="checks-h">Checks</h2>
-<table><caption>Every check on the final commit</caption><thead><tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Counts</th><th scope="col">Command and date</th></tr></thead><tbody>
+${scrollTable('Every check on the final commit')}<thead><tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Counts</th><th scope="col">Command and date</th></tr></thead><tbody>
 ${(d.checks.checks ?? [])
   .map(
     (/** @type {any} */ c) =>
@@ -379,7 +388,7 @@ ${(d.checks.checks ?? [])
       )}</td><td><code>${esc(c.command ?? '')}</code><br><span class="meta">${esc([c.date, c.commit].filter(Boolean).join(' · '))}</span></td></tr>`,
   )
   .join('\n')}
-</tbody></table>
+</tbody></table></div>
 </section>`;
 }
 
@@ -418,14 +427,14 @@ ${(d.questions.groups ?? [])
 function coveragePage(d) {
   return `<section id="coverage" aria-labelledby="coverage-h">
 <h2 id="coverage-h">Story coverage</h2>
-<table><caption>SPEC’s 157 user stories</caption><thead><tr><th scope="col">Story</th><th scope="col">Status</th><th scope="col">Where to see it, or why not</th></tr></thead><tbody>
+${scrollTable('SPEC’s 157 user stories')}<thead><tr><th scope="col">Story</th><th scope="col">Status</th><th scope="col">Where to see it, or why not</th></tr></thead><tbody>
 ${(d.coverage ?? [])
   .map(
     (/** @type {any} */ c) =>
       `<tr><th scope="row">${esc(c.story)}</th><td>${tag(c.status)}</td><td>${(c.flows ?? []).map((/** @type {string} */ f) => `<a href="#flow-${esc(f)}">${esc(f)}</a>`).join(', ')}${c.checks?.length ? `${c.flows?.length ? '; ' : ''}${esc(c.checks.join(', '))}` : ''}${c.reason ? `${c.flows?.length || c.checks?.length ? ' · ' : ''}${esc(c.reason)}` : ''}</td></tr>`,
   )
   .join('\n')}
-</tbody></table>
+</tbody></table></div>
 </section>`;
 }
 
@@ -436,7 +445,7 @@ function sizesPage(d) {
     `${(b / 1024 / 1024).toFixed(1)} MiB`;
   return `<section id="sizes" aria-labelledby="sizes-h">
 <h2 id="sizes-h">Sizes</h2>
-${s.parts ? `<table><caption>The package against its budget (${esc(s.budget ? mib(s.budget) : '–')})</caption><thead><tr><th scope="col">Part</th><th scope="col">Size</th><th scope="col">Ceiling</th></tr></thead><tbody>${s.parts.map((/** @type {any} */ p) => `<tr><th scope="row">${esc(p.title)}</th><td>${esc(mib(p.bytes ?? 0))}</td><td>${esc(p.max ? mib(p.max) : '–')}</td></tr>`).join('')}</tbody></table>` : '<p>Not measured yet.</p>'}
+${s.parts ? `${scrollTable(`The package against its budget (${esc(s.budget ? mib(s.budget) : '–')})`)}<thead><tr><th scope="col">Part</th><th scope="col">Size</th><th scope="col">Ceiling</th></tr></thead><tbody>${s.parts.map((/** @type {any} */ p) => `<tr><th scope="row">${esc(p.title)}</th><td>${esc(mib(p.bytes ?? 0))}</td><td>${esc(p.max ? mib(p.max) : '–')}</td></tr>`).join('')}</tbody></table></div>` : '<p>Not measured yet.</p>'}
 </section>`;
 }
 
@@ -503,7 +512,7 @@ header,main{max-width:1200px;margin:0 auto;padding:16px}
 h1{font-size:24px;margin:8px 0}h2{font-size:20px;margin:32px 0 8px;border-bottom:1px solid var(--line);padding-bottom:4px}h3{font-size:17px;margin:20px 0 8px}h4{font-size:16px;margin:0 0 4px}
 a{color:var(--accent)}code{font-size:14px}
 .skip{position:absolute;left:-9999px}.skip:focus{left:16px;top:8px;background:var(--card);padding:8px;z-index:2}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}.tscroll{overflow-x:auto;max-width:100%}
 .meta,.muted{color:var(--muted);font-size:14px}
 .inline{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:4px 16px}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.facts div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px}.facts dt{font-weight:600}.facts dd{margin:4px 0 0}
@@ -513,7 +522,7 @@ a{color:var(--accent)}code{font-size:14px}
 .player label{display:block;margin-top:8px;font-size:14px}
 .fails{color:var(--bad);font-weight:600}
 .steps{padding-left:20px}.steps li{margin:2px 0}
-button{font:inherit;min-height:32px;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+select{max-width:100%}main{overflow-wrap:break-word}button{font:inherit;min-height:32px;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
 button.link{border:0;background:none;color:var(--accent);text-decoration:underline;padding:0 4px;min-height:24px}
 .cards{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px}.card img{width:100%;height:auto;border:1px solid var(--line)}
 .thumbs{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px}.thumbs li{display:flex;flex-direction:column;font-size:13px}.thumb{width:160px;height:auto;border:1px solid var(--line)}.icon{width:64px;height:64px;object-fit:contain;border:1px solid var(--line)}
@@ -524,7 +533,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}th,td{border:1px solid 
 .list{padding-left:20px}.list li{margin:6px 0}
 .missing{color:var(--bad);font-size:14px;border:1px dashed var(--bad);padding:8px;border-radius:6px}
 [hidden]{display:none!important}
-@media (max-width:600px){header,main{padding:12px}.cards{grid-template-columns:1fr}table{display:block;overflow-x:auto}}
+@media (max-width:600px){header,main{padding:12px}.cards{grid-template-columns:1fr}}
 `;
 
 /** The page's small script: a classic script (no modules: they don't load from file:// in Chrome). */

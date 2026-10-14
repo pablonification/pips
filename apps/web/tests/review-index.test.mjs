@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fakeData } from '../e2e/scripts/lib/review/fake.mjs';
 import {
+  CSS,
   JS,
   buildIndex,
   esc,
@@ -102,4 +103,20 @@ test('a finding a later merge fixed is no blocker (F1-2, fixed by C1)', () => {
   const blockers = page.slice(page.indexOf('Blockers and findings'));
   assert.ok(blockers.includes('F1-7: Still broken'));
   assert.ok(!blockers.includes('F1-8: Fixed since'));
+});
+
+test('every table sits in a scroll region the keyboard can reach (axe scrollable-region-focusable at 390 px)', () => {
+  const tables = html.match(/<table>/g) ?? [];
+  const wrapped =
+    html.match(
+      /<div class="tscroll" role="region" tabindex="0" aria-label="[^"]+"><table>/g,
+    ) ?? [];
+  assert.ok(tables.length >= 1);
+  assert.equal(wrapped.length, tables.length);
+});
+
+test('a select never widens the page past a phone (F1 part 2: the recording switch at 390 px)', () => {
+  assert.match(CSS, /select\{max-width:100%\}/);
+  // Long paths in the open questions wrap instead of widening the list.
+  assert.match(CSS, /main\{overflow-wrap:break-word\}/);
 });
