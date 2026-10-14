@@ -122,6 +122,8 @@ export default defineConfig(({ mode }) => {
           name: appName,
           short_name: appName,
           description: 'Aplikasi resmi Himpunan Mahasiswa Informatika ITB',
+          // F2-007: the app is Indonesian (vite-plugin-pwa's default was "en").
+          lang: 'id',
           icons: [
             {
               src: '/android-chrome-192x192.png',
