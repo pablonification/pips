@@ -66,9 +66,30 @@ export function Composer({
   useLayoutEffect(() => {
     if (own.current) fit(own.current);
   }, [value]);
+  // The bar stays at the bottom over the thread, so a control focused by Tab must stop above it (WCAG 2.4.11, SPEC
+  // "Accessibility"; F2-006: a message's Balas went under it). The page's scroller keeps the bar's height as its
+  // bottom scroll padding (curhat.css), as the shell does for the top bar.
+  const bar = useRef<HTMLFormElement | null>(null);
+  useLayoutEffect(() => {
+    const el = bar.current;
+    const scroller = el?.closest<HTMLElement>(
+      '[data-scroll-restoration-id="isi"]',
+    );
+    if (!el || !scroller || typeof ResizeObserver === 'undefined') return;
+    const set = () =>
+      scroller.style.setProperty('--g-chat-bar-h', `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      scroller.style.removeProperty('--g-chat-bar-h');
+    };
+  }, []);
 
   return (
     <form
+      ref={bar}
       className="g-chat-bar"
       onSubmit={(e) => {
         e.preventDefault();
