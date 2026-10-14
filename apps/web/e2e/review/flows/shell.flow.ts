@@ -3,7 +3,6 @@ import type { Page } from '@playwright/test';
 import { greeting, navLink } from '../../support/app';
 import { focusIsVisible } from '../../support/p1a';
 import * as writes from '../../support/writes';
-import { failsWith } from '../findings';
 import { expect, flow } from '../support';
 
 const main = (page: Page) => page.getByRole('main');
@@ -139,128 +138,122 @@ flow('navigation', 'nadia', {}, async ({ page, f, api, layout }) => {
   );
 });
 
-flow(
-  'search',
-  'nadia',
-  {},
-  async ({ page, f, api, layout }) => {
-    api.on('POST /api/info/:infoId/read', writes.markRead);
-    const desk = layout === 'desktop';
-    const open = async () => {
-      if (desk) await page.keyboard.press('ControlOrMeta+k');
-      else await page.getByRole('button', { name: 'Cari di PIPS!' }).click();
-      await expect(palette(page)).toBeVisible();
-    };
-    await f.step(
-      desk
-        ? 'Ctrl/⌘ K opens search: Tindakan, then Pintasan'
-        : 'Cari di PIPS! opens search: Tindakan, then Pintasan',
-      async () => {
-        await f.open('/');
-        await expect(greeting(page)).toBeVisible();
-        await open();
-        await expect(field(page)).toBeFocused();
-        await expect(options(page)).toHaveText([
-          /^Buat pengumuman/,
-          /^Tambah mata kuliah/,
-          /^Ding Dong/,
-          /^Testi Matkul/,
-          /^NIM Finder/,
-          /^Bayar Kas!/,
-        ]);
-        await f.gate('search-start');
-        await f.hold();
-      },
-    );
-    await f.step('"kas" finds Bayar Kas!', async () => {
-      await f.type(field(page), 'kas');
-      await expect(
-        options(page).filter({ hasText: /^Bayar Kas!/ }),
-      ).toBeVisible();
-      await f.hold();
-    });
-    await f.step('"IF2110" finds the course', async () => {
-      await f.type(field(page), 'IF2110');
-      await expect(
-        options(page).filter({
-          hasText: 'IF2110 Algoritma dan Pemrograman II',
-        }),
-      ).toBeVisible();
-      await f.hold();
-    });
-    await f.step(
-      'Arrow keys move the highlight; up from the first goes back to the field',
-      async () => {
-        await f.type(field(page), 'uts');
-        await expect(options(page).first()).toHaveAttribute(
-          'aria-selected',
-          'true',
-        );
-        await page.keyboard.press('ArrowDown');
-        await expect(options(page).nth(1)).toHaveAttribute(
-          'aria-selected',
-          'true',
-        );
-        await page.keyboard.press('ArrowUp');
-        await expect(options(page).first()).toHaveAttribute(
-          'aria-selected',
-          'true',
-        );
-        await expect(field(page)).toBeFocused();
-      },
-    );
-    await f.step('An announcement opens with Enter', async () => {
-      await f.type(field(page), 'gemastik');
-      const post = options(page).filter({
-        hasText: 'Cari tim Gemastik XIX? Isi form ini',
-      });
-      await expect(post).toBeVisible();
-      await expect(post).toHaveAttribute('aria-selected', 'true');
-      await page.keyboard.press('Enter');
-      await expect(page).toHaveURL(/\/pengumuman\/p2$/);
-      await f.hold();
-    });
-    await f.step(
-      '"Rak" finds people; one opens NIM Finder filled in',
-      async () => {
-        await page.goBack();
-        await expect(greeting(page)).toBeVisible();
-        await open();
-        await f.type(field(page), 'Rak');
-        const raka = options(page).filter({ hasText: 'Raka Pratama' });
-        await expect(raka).toBeVisible();
-        await f.hold();
-        await raka.click();
-        await expect(page).toHaveURL(/\/layanan\/nim\?q=Raka(\+|%20)Pratama$/);
-        await expect(
-          main(page).getByRole('searchbox', { name: 'Cari nama atau NIM' }),
-        ).toHaveValue('Raka Pratama');
-        await f.hold();
-      },
-    );
-    if (desk)
-      await f.step('"/" opens search too, when not typing', async () => {
-        await page.locator('#isi').focus();
-        await page.keyboard.press('/');
-        await expect(palette(page)).toBeVisible();
-        await page.keyboard.press('Escape');
-      });
-    await f.step('A search with no result says so', async () => {
-      await page.goBack();
-      await expect(page).toHaveURL(/\/$/);
+flow('search', 'nadia', {}, async ({ page, f, api, layout }) => {
+  api.on('POST /api/info/:infoId/read', writes.markRead);
+  const desk = layout === 'desktop';
+  const open = async () => {
+    if (desk) await page.keyboard.press('ControlOrMeta+k');
+    else await page.getByRole('button', { name: 'Cari di PIPS!' }).click();
+    await expect(palette(page)).toBeVisible();
+  };
+  await f.step(
+    desk
+      ? 'Ctrl/⌘ K opens search: Tindakan, then Pintasan'
+      : 'Cari di PIPS! opens search: Tindakan, then Pintasan',
+    async () => {
+      await f.open('/');
+      await expect(greeting(page)).toBeVisible();
       await open();
-      await f.type(field(page), 'zzzz');
-      await expect(
-        palette(page).getByText('Tidak ada hasil untuk “zzzz”.'),
-      ).toBeVisible();
-      await f.gate('search-empty');
+      await expect(field(page)).toBeFocused();
+      await expect(options(page)).toHaveText([
+        /^Buat pengumuman/,
+        /^Tambah mata kuliah/,
+        /^Ding Dong/,
+        /^Testi Matkul/,
+        /^NIM Finder/,
+        /^Bayar Kas!/,
+      ]);
+      await f.gate('search-start');
       await f.hold();
-      await page.keyboard.press('Escape');
-      await expect(palette(page)).toHaveCount(0);
+    },
+  );
+  await f.step('"kas" finds Bayar Kas!', async () => {
+    await f.type(field(page), 'kas');
+    await expect(
+      options(page).filter({ hasText: /^Bayar Kas!/ }),
+    ).toBeVisible();
+    await f.hold();
+  });
+  await f.step('"IF2110" finds the course', async () => {
+    await f.type(field(page), 'IF2110');
+    await expect(
+      options(page).filter({
+        hasText: 'IF2110 Algoritma dan Pemrograman II',
+      }),
+    ).toBeVisible();
+    await f.hold();
+  });
+  await f.step(
+    'Arrow keys move the highlight; up from the first goes back to the field',
+    async () => {
+      await f.type(field(page), 'uts');
+      await expect(options(page).first()).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+      await page.keyboard.press('ArrowDown');
+      await expect(options(page).nth(1)).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+      await page.keyboard.press('ArrowUp');
+      await expect(options(page).first()).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+      await expect(field(page)).toBeFocused();
+    },
+  );
+  await f.step('An announcement opens with Enter', async () => {
+    await f.type(field(page), 'gemastik');
+    const post = options(page).filter({
+      hasText: 'Cari tim Gemastik XIX? Isi form ini',
     });
-  },
-  { fails: failsWith('F1-1') },
-);
+    await expect(post).toBeVisible();
+    await expect(post).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/pengumuman\/p2$/);
+    await f.hold();
+  });
+  await f.step(
+    '"Rak" finds people; one opens NIM Finder filled in',
+    async () => {
+      await page.goBack();
+      await expect(greeting(page)).toBeVisible();
+      await open();
+      await f.type(field(page), 'Rak');
+      const raka = options(page).filter({ hasText: 'Raka Pratama' });
+      await expect(raka).toBeVisible();
+      await f.hold();
+      await raka.click();
+      await expect(page).toHaveURL(/\/layanan\/nim\?q=Raka(\+|%20)Pratama$/);
+      await expect(
+        main(page).getByRole('searchbox', { name: 'Cari nama atau NIM' }),
+      ).toHaveValue('Raka Pratama');
+      await f.hold();
+    },
+  );
+  if (desk)
+    await f.step('"/" opens search too, when not typing', async () => {
+      await page.locator('#isi').focus();
+      await page.keyboard.press('/');
+      await expect(palette(page)).toBeVisible();
+      await page.keyboard.press('Escape');
+    });
+  await f.step('A search with no result says so', async () => {
+    await page.goBack();
+    await expect(page).toHaveURL(/\/$/);
+    await open();
+    await f.type(field(page), 'zzzz');
+    await expect(
+      palette(page).getByText('Tidak ada hasil untuk “zzzz”.'),
+    ).toBeVisible();
+    await f.gate('search-empty');
+    await f.hold();
+    await page.keyboard.press('Escape');
+    await expect(palette(page)).toHaveCount(0);
+  });
+});
 
 flow('theme', 'nadia', {}, async ({ page, f }) => {
   const seg = main(page).getByRole('group', { name: 'Tampilan aplikasi' });

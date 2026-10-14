@@ -37,6 +37,8 @@ export const FINDINGS: Finding[] = [
     detail:
       'Search for "zzzz": "Tidak ada hasil untuk “zzzz”." shows, and axe reports aria-required-children (critical) on the search dialog (#radix-…), the list of results left with no option. Strict gates fail. The journeys never audited the empty result (shell.spec.ts audits the start list only).',
     owner: 'P1-A',
+    fixed:
+      'Fixed by F2 (F2-001): with no result the empty list is hidden and the words show in its place; the search flow passes its strict audit at every layout and theme, so its test.fail marker was removed. Regression: search.spec.ts "regression (F2-001, F1-1)".',
   },
   {
     id: 'F1-2',
