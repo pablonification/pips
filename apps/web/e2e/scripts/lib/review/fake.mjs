@@ -69,6 +69,7 @@ export function fakeData() {
           check: 'Search.',
           locked: [],
           knownFailure: 'F1-1: fake',
+          rerecordedByF2: 'F2-001: <fixed> & re-recorded',
           recordings: [rec('search', 'expected-failure')],
           beforeAfter: [],
           questions: [],

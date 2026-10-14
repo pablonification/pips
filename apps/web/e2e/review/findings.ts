@@ -31,7 +31,7 @@ export const FINDINGS: Finding[] = [
     id: 'F1-1',
     title:
       'Global search with no result fails axe: an element that needs children of a given role has none',
-    flows: ['search'],
+    flows: [],
     layouts: ['phone', 'tablet', 'desktop'],
     themes: ['light', 'dark'],
     detail:

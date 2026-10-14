@@ -120,3 +120,12 @@ test('a select never widens the page past a phone (F1 part 2: the recording swit
   // Long paths in the open questions wrap instead of widening the list.
   assert.match(CSS, /main\{overflow-wrap:break-word\}/);
 });
+
+test('a flow F2 re-recorded says so, with the finding and what changed, escaped', () => {
+  assert.ok(
+    html.includes(
+      '<strong>Re-recorded by F2:</strong> F2-001: &#60;fixed&#62; &#38; re-recorded',
+    ),
+  );
+  assert.equal(html.match(/Re-recorded by F2:/g)?.length, 1);
+});
