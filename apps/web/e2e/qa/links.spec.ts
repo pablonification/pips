@@ -90,7 +90,12 @@ test.describe('the installed app', () => {
       theme_color: string;
       background_color: string;
       shortcuts: { name: string; url: string }[];
-      screenshots?: { src: string; label?: string }[];
+      screenshots?: {
+        src: string;
+        label?: string;
+        type: string;
+        sizes: string;
+      }[];
     };
     expect(manifest.start_url).toBe('/');
     expect(manifest.scope).toBe('/');
@@ -102,11 +107,20 @@ test.describe('the installed app', () => {
       await expect(page).toHaveURL(new RegExp(`${s.url}$`));
       await expect(page.locator('h1:visible')).toHaveCount(1);
     }
-    // An install screenshot shows the app as it is now, labelled in Indonesian.
-    for (const shot of manifest.screenshots ?? [])
+    // An install screenshot shows the app as it is now (F2-008: it was today's green English sign-in, "Login page"):
+    // labelled in Indonesian, a real JPEG or PNG of the size it says.
+    for (const shot of manifest.screenshots ?? []) {
       expect(shot.label ?? '', `screenshot ${shot.src}`).not.toMatch(
         /\b(login|page)\b/i,
       );
+      expect(shot.type).toMatch(/^image\/(jpeg|png)$/);
+      await page.goto(shot.src);
+      const size = await page.evaluate(() => {
+        const img = document.querySelector('img');
+        return img ? `${img.naturalWidth}x${img.naturalHeight}` : null;
+      });
+      expect(size).toBe(shot.sizes);
+    }
   });
 });
 

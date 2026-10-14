@@ -148,13 +148,15 @@ export default defineConfig(({ mode }) => {
               purpose: 'maskable',
             },
           ],
+          // F2-008: the install sheet's picture of the app is the redesigned sign-in (a capture at 390 × 844, 2×), not
+          // today's green English screen; its label is new copy, listed for the owner.
           screenshots: [
             {
-              sizes: '813x1446',
-              src: '/img/ss/login.jpg',
-              type: 'image/jpg',
+              sizes: '780x1688',
+              src: '/img/ss/masuk.jpg',
+              type: 'image/jpeg',
               form_factor: 'narrow',
-              label: 'Login page',
+              label: 'Halaman masuk PIPS!',
             },
           ],
           start_url: '/',
