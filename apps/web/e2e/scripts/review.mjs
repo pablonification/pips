@@ -1233,8 +1233,12 @@ function questions() {
 
 function index() {
   const d = dump();
-  // Again, so each flow carries the questions built since it was recorded.
-  writeFlowsJson();
+  // Again, so each flow carries the questions built since it was recorded. Only with the recordings' working state:
+  // after clean-up (e2e/.review deleted) the package's flows.json is the record, and rebuilding it would mark every
+  // recording "not recorded".
+  if (existsSync(STATE)) writeFlowsJson();
+  else
+    log('index: no e2e/.review/recordings.json; data/flows.json kept as it is');
   const data = {
     release: releaseName(today),
     createdAt: today.slice(0, 16).replace('T', ' '),
