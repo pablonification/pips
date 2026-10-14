@@ -111,7 +111,10 @@ export function Saved({
   className?: string;
 }) {
   return (
-    <span className={cn('g-saved t-cap text-fg-2', className)} role="status">
+    <span
+      className={cn('g-saved t-cap', className ?? 'text-fg-2')}
+      role="status"
+    >
       <IconCentang size={16} />
       {children}
     </span>
