@@ -230,6 +230,18 @@ export default defineConfig(({ mode }) => {
       // before its content to 4, and every route got lighter). Measured by the journey "a cold first load asks for at
       // most 15 resources of any kind" (e2e/journeys/beranda.spec.ts).
       rolldownOptions: {
+        // F2-004: the Garis components, the icons and the push module do nothing when imported (no CSS imports, no
+        // registration), so a page that imports one of them through an index (src/components/garis/index.ts,
+        // components/push/index.ts) no longer carries every other one, the dialogs, menus and popovers with Radix and
+        // Floating UI, before its first render. tests/garis-pure.test.mjs keeps them free of import-time effects.
+        treeshake: {
+          moduleSideEffects: [
+            {
+              test: /[\\/]src[\\/]components[\\/](garis|icons|push)[\\/][^\\/]+\.tsx?$/,
+              sideEffects: false,
+            },
+          ],
+        },
         output: {
           codeSplitting: {
             groups: [
