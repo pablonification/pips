@@ -52,6 +52,32 @@ for (const [path, route] of Object.entries(ROUTES)) {
       await openSettled(page, api, route.url);
       // Tab from the top of the page: focus the body for a moment, so the walk doesn't start after a field the page
       // focused itself (Buat pengumuman focuses its text).
+      // First let the page put focus where it wants (Buat pengumuman focuses its text a moment after it opens; on a
+      // busy machine that came after the reset below, so the walk began after the field): wait until focus has
+      // stayed on one element for 300 ms.
+      await page.evaluate(
+        () =>
+          new Promise<void>((resolve) => {
+            let last = document.activeElement;
+            let since = performance.now();
+            const tick = () => {
+              if (document.activeElement !== last) {
+                last = document.activeElement;
+                since = performance.now();
+              }
+              if (performance.now() - since >= 300) resolve();
+              else requestAnimationFrame(tick);
+            };
+            tick();
+          }),
+      );
+      // A page that opens with focus in a field of its own (Buat pengumuman's text) starts there for a keyboard
+      // user, not at the skip link.
+      const ownField = await page.evaluate(
+        () =>
+          !!document.activeElement?.matches('input, textarea, select') &&
+          !document.activeElement.closest('[role="dialog"]'),
+      );
       await page.evaluate(() => {
         (document.activeElement as HTMLElement | null)?.blur();
         document.body.tabIndex = -1;
@@ -66,7 +92,7 @@ for (const [path, route] of Object.entries(ROUTES)) {
         const stop = await readStop(page);
         if (!stop) continue;
         // A page that opens as a dialog (Buat pengumuman on tablets and desktop) keeps focus inside it.
-        if (i === 0 && !NO_SHELL.has(path) && !stop.inDialog)
+        if (i === 0 && !NO_SHELL.has(path) && !stop.inDialog && !ownField)
           expect(
             stop.skipLink,
             `the first stop is the skip link, not ${stop.name}`,
