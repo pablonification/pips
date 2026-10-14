@@ -120,6 +120,8 @@ for (const kind of ['503', 'dropped'] as const)
     });
   }
 
+// An unknown event id in Kalender's URL opens nothing and is dropped, by design (P1-A, kalender.spec.ts "an unknown
+// event id opens nothing and is dropped"): Kalender itself is the way back.
 const NOT_FOUND: {
   url: string;
   who: 'anggota' | 'pengurus';
@@ -130,7 +132,6 @@ const NOT_FOUND: {
   { url: '/layanan/curhat/tidak-ada', who: 'anggota' },
   { url: '/layanan/testi/teknik-informatika/3/tidak-ada', who: 'anggota' },
   { url: '/layanan/form/tidak-ada', who: 'anggota' },
-  { url: '/kalender?acara=tidak-ada', who: 'anggota' },
   { url: '/kelola/sparta/tidak-ada', who: 'pengurus' },
   { url: '/kelola/live/tidak-ada', who: 'pengurus' },
   { url: '/kelola/curhat/tidak-ada', who: 'pengurus', roles: ['curhatadmin'] },

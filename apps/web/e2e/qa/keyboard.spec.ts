@@ -65,7 +65,8 @@ for (const [path, route] of Object.entries(ROUTES)) {
         await page.keyboard.press('Tab');
         const stop = await readStop(page);
         if (!stop) continue;
-        if (i === 0 && !NO_SHELL.has(path))
+        // A page that opens as a dialog (Buat pengumuman on tablets and desktop) keeps focus inside it.
+        if (i === 0 && !NO_SHELL.has(path) && !stop.inDialog)
           expect(
             stop.skipLink,
             `the first stop is the skip link, not ${stop.name}`,
