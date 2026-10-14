@@ -67,6 +67,7 @@ import {
   run,
   webpArgs,
 } from './lib/review/media.mjs';
+import { ciStepsAfterBuild } from './lib/review/ci.mjs';
 import { buildQuestions, extractItems } from './lib/review/questions.mjs';
 import { parseStill } from './lib/review/stills.mjs';
 
@@ -872,12 +873,7 @@ function checks() {
     path.join(repoDir, '.github', 'workflows', 'check.yml'),
     'utf8',
   );
-  const afterBuild = ci.split(/- name: Production build/)[1] ?? '';
-  const steps = [
-    ...afterBuild.matchAll(
-      /- name: ([^\n]+)\n(?:\s+[a-z-]+:.*\n)*?\s+run: ([^\n]+)/g,
-    ),
-  ].map((m) => ({ name: m[1].trim(), run: m[2].trim() }));
+  const steps = ciStepsAfterBuild(ci);
   for (const s of steps.length
     ? steps
     : [
