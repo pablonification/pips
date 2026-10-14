@@ -1,6 +1,7 @@
 /**
  * Builds the app for production (unless E2E_REUSE_BUILD=1 and a build exists) and serves it with `vite preview`.
- * Playwright starts this as its web server. Run from apps/web.
+ * Playwright starts this as its web server. Run from apps/web. With E2E_BUILD_ONLY=1 it builds and exits (F1's
+ * `review` builds once per commit, then every part reuses the build).
  */
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -33,6 +34,8 @@ if (reuse) {
   );
   if (build.status !== 0) process.exit(build.status ?? 1);
 }
+
+if (process.env.E2E_BUILD_ONLY === '1') process.exit(0);
 
 const preview = spawn(
   vite,
