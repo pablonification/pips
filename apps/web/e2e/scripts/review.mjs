@@ -63,6 +63,7 @@ import {
   frameArgs,
   missingTools,
   mp4Args,
+  pickVideo,
   run,
   webpArgs,
 } from './lib/review/media.mjs';
@@ -297,7 +298,13 @@ function recordFlow(flow, theme, crf) {
     };
     if (rec && VIDEO) {
       const webm = existsSync(rec.outputDir)
-        ? readdirSync(rec.outputDir).find((f) => f.endsWith('.webm'))
+        ? pickVideo(
+            readdirSync(rec.outputDir).map((name) => ({
+              name,
+              size: statSync(path.join(rec.outputDir, name)).size,
+            })),
+            rec.videoFile,
+          )
         : null;
       if (webm) {
         const raw = path.join(rec.outputDir, webm);

@@ -92,6 +92,8 @@ export interface FlowRecord {
   };
   outputDir: string;
   video: boolean;
+  /** The main page's video file in `outputDir`: a flow that opens a new tab gets one video per tab. */
+  videoFile: string | null;
 }
 
 export class Recorder {
@@ -259,6 +261,7 @@ export function flow(
           opts.failsWhere.themes.includes(where!.theme));
       if (fails) test.fail(true, opts.fails);
       const f = new Recorder(page, testInfo, entry, variant);
+      const videoPath = recording ? await page.video()?.path() : undefined;
       let error: string | null = null;
       try {
         await body(
@@ -279,6 +282,7 @@ export function flow(
           where!,
           error,
           fails ? opts.fails! : null,
+          videoPath ? path.basename(videoPath) : null,
         );
       }
     });
@@ -304,6 +308,7 @@ function writeRecord(
   where: { layout: Layout; theme: Theme },
   error: string | null,
   knownFailure: string | null,
+  videoFile: string | null,
 ) {
   const by = (o: string) => api.requests.filter((r) => r.outcome === o).length;
   const record: FlowRecord = {
@@ -335,6 +340,7 @@ function writeRecord(
     },
     outputDir: testInfo.outputDir,
     video: recording,
+    videoFile,
   };
   mkdirSync(RUN_DIR, { recursive: true });
   writeFileSync(

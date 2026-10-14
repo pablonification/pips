@@ -105,3 +105,15 @@ export function durationOf(file, spawn = spawnSync) {
   const m = /Duration: (\d+):(\d+):(\d+(?:\.\d+)?)/.exec(r.stderr ?? '');
   return m ? Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]) : null;
 }
+
+/**
+ * The recording's video among the WebM files in a test's output folder: the main page's (`preferred`, from the flow's
+ * record) when it is there, else the largest. A flow that opens a link in a new tab gets one video per tab, and the
+ * new tab's is a second or so long (F1 part 2: Ding Dong, Info Lomba and Layanan came out 1 s long).
+ * @param {{ name: string, size: number }[]} files @param {string | null | undefined} preferred
+ */
+export function pickVideo(files, preferred) {
+  const webms = files.filter((f) => f.name.endsWith('.webm'));
+  if (preferred && webms.some((f) => f.name === preferred)) return preferred;
+  return webms.sort((a, b) => b.size - a.size)[0]?.name ?? null;
+}

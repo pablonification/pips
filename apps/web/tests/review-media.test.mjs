@@ -7,6 +7,7 @@ import {
   frameArgs,
   missingTools,
   mp4Args,
+  pickVideo,
   run,
   webpArgs,
 } from '../e2e/scripts/lib/review/media.mjs';
@@ -96,4 +97,17 @@ test('a tool is run with its argument array; a failure throws with its output', 
   assert.deepEqual(calls, [['/bin/tool', ['-a', 'b c']]]);
   const bad = () => ({ status: 1, stdout: '', stderr: 'boom' });
   assert.throws(() => run('/bin/tool', [], /** @type {any} */ (bad)), /boom/);
+});
+
+test('the recording is the main page’s video, not a new tab’s (F1 part 2: 1-second Ding Dong recordings)', () => {
+  const files = [
+    { name: 'b-popup.webm', size: 40_000 },
+    { name: 'a-main.webm', size: 900_000 },
+    { name: 'trace.zip', size: 5_000_000 },
+  ];
+  // The old pick, the first WebM in the folder's order, took the new tab's.
+  assert.equal(pickVideo(files, 'a-main.webm'), 'a-main.webm');
+  assert.equal(pickVideo(files, null), 'a-main.webm');
+  assert.equal(pickVideo(files, 'gone.webm'), 'a-main.webm');
+  assert.equal(pickVideo([{ name: 'trace.zip', size: 1 }], null), null);
 });
