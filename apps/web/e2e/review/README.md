@@ -27,7 +27,7 @@ Sizes, and the budget they were kept within, are on the page's Sizes section and
 - Every recording, capture and check ran against a production build of the app at the commit the page names, served on the owner's Mac.
 - Every request went to the harness's API mock (`apps/web/e2e/support/mock.ts`), answered from the locked prototype's sample people and posts (Nadia Putri, IF 2025 PIXEL; Raka Pratama, IF 2024 pengurus). No real member data, no secrets, no tokens. The mock's guard counted every request, and none left it.
 - The clock is fixed at **Kamis, 8 Oktober 2026, 13.35 WIB**.
-- The recordings keep the app's own motion. Each flow is also a test: every step asserts what it shows, and every screen passes the strict audit (axe, overflow, text size, `lang`).
+- The recordings keep the app's own motion. They show no pointer and no step captions: Playwright draws its pointer only with a code label ("Check getByRole(…)"), and both covered the app in the pilot. Each flow's steps are listed beside its video, and each jumps the video to its time. Each flow is also a test: every step asserts what it shows, and every screen passes the strict audit (axe, overflow, text size, `lang`).
 - A flow that shows a known bug stays failing and is marked so (`F1-<n>`), with its trace in `media/traces/`.
 
 The tooling is in `apps/web/e2e/`: the catalogue `review/flows.ts`, the flows `review/flows/*.flow.ts`, `review/coverage.ts`, `review/stills.ts`, `review/sweep.spec.ts`, `review/lab.spec.ts`, `review/package.spec.ts` and the command `scripts/review.mjs`.
@@ -40,7 +40,7 @@ From `apps/web` in a worktree of `pips` with its dependencies installed, after a
 pnpm --filter web review
 ```
 
-It builds the app once for the commit, then records, captures and checks everything, and writes this folder. Parts can run alone (`review record`, `fidelity`, `after`, `stills`, `checks`, `lab`, `questions`, `index`, and `pilot` to measure sizes first), and `review record --only <flow-id>` re-records one flow. An interrupted run picks up where it stopped (`REVIEW_FORCE=1` re-records). It stops before the disk falls under 1 GiB free. It needs `/opt/homebrew/bin/ffmpeg` and `/opt/homebrew/bin/cwebp`, and installs nothing.
+It builds the app once for the commit, then records, captures and checks everything, and writes this folder. Parts can run alone (`review record`, `fidelity`, `after`, `stills`, `checks`, `lab`, `questions`, `index`, `pilot` to measure sizes first, and `ci` to refresh only the GitHub check), and `review record --only <flow-id>` re-records one flow. An interrupted run picks up where it stopped (`REVIEW_FORCE=1` re-records). It stops before the disk falls under 1 GiB free. It needs `/opt/homebrew/bin/ffmpeg` and `/opt/homebrew/bin/cwebp`, and installs nothing.
 
 The whole run takes hours on the shared Mac, mostly the journey suite (`checks`). Run it in the background.
 
