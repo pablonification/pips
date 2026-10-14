@@ -3,12 +3,9 @@ import {
   lazyRouteComponent,
   redirect,
 } from '@tanstack/react-router';
-import { z } from 'zod';
+import { coerceNumber, object, string } from '~/lib/params';
 
-const probeSearchSchema = z.object({
-  judul: z.string().optional().catch(undefined),
-  lambat: z.coerce.number().optional().catch(undefined),
-});
+const probeSearchSchema = object({ judul: string, lambat: coerceNumber });
 
 /**
  * A page inside the shell that uses every slot a screen has (P0-C round 2): its own title, a title from data, top-bar

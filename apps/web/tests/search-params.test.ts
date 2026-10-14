@@ -1,6 +1,5 @@
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
-import { z } from 'zod';
 import {
   kalenderSearchSchema,
   querySearchSchema,
@@ -100,7 +99,8 @@ test('no route search schema throws, whatever the URL holds', async () => {
   const schemas = await import('../src/lib/search-params');
   const garbage = [{}, [], 'x', 0, -1, true, null, { a: { b: 1 } }];
   for (const [name, schema] of Object.entries(schemas)) {
-    if (!(schema instanceof z.ZodObject)) continue;
+    // Every object schema (F2-004: plain checks, src/lib/params.ts, no longer zod); `dayParam` is a single check.
+    if (typeof schema !== 'object' || !('shape' in schema)) continue;
     const keys = Object.keys(schema.shape);
     for (const value of garbage) {
       const search = Object.fromEntries(keys.map((key) => [key, value]));

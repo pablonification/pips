@@ -240,9 +240,6 @@ importers:
       workbox-window:
         specifier: ^7.4.1
         version: 7.4.1
-      zod:
-        specifier: ^3.23.4
-        version: 3.25.76
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.13.0
@@ -346,6 +343,9 @@ importers:
       workbox-routing:
         specifier: ^7.4.1
         version: 7.4.1
+      zod:
+        specifier: ^3.23.4
+        version: 3.25.76
 
 packages:
 
