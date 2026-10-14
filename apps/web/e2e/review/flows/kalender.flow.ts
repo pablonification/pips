@@ -23,11 +23,12 @@ flow('kalender', 'nadia', {}, async ({ page, f, api, layout }) => {
   const detail = () =>
     desk ? side(page) : page.getByRole('dialog', { name: 'Detail acara' });
   // The app fetches the next month ahead, so December (two months on) is the one that loads: it answers after a
-  // moment, so its loading state shows.
+  // moment, so its loading state shows. The fetch starts as November opens, so the delay must outlast the recording's
+  // hold on November (1.5 s plus the step's pause): at 1.5 s, recordings never showed the loading state (F1 part 2).
   const events = defaultHandlers['GET /api/calendar/me'];
   api.on('GET /api/calendar/me', (ctx) =>
     ctx.query.get('month') === '12'
-      ? reply.delay(1500, events(ctx))
+      ? reply.delay(5000, events(ctx))
       : events(ctx),
   );
   await f.step('Kalender opens on today’s month and day', async () => {
