@@ -251,10 +251,11 @@ export default defineConfig(({ mode }) => {
               { name: 'app', tags: ['$initial'], priority: 4 },
               // Small leaves most screens share: the Garis icons, the copy, Kalender's pieces that Beranda,
               // Kalender and search share, and the push state and prompt (Beranda, first run, Notifikasi and search
-              // use them; on their own they were two more requests before Beranda's content).
+              // use them; on their own they were two more requests before Beranda's content). F2-004: and Beranda's
+              // halftone, which on its own became one more request once the Garis components stopped riding in the entry.
               {
                 name: 'ui',
-                test: /[\\/]src[\\/](components[\\/](icons|push)|copy|features[\\/]kalender)[\\/]/,
+                test: /[\\/]src[\\/](components[\\/](icons|push)[\\/]|copy[\\/]|features[\\/]kalender[\\/]|components[\\/]garis[\\/](Halftone|halftone-geometry)\.tsx?$)/,
                 minShareCount: 2,
                 priority: 3,
               },
