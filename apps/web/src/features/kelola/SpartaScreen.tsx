@@ -428,7 +428,10 @@ function SubmissionsRows({ rows, divisionById }: ListProps) {
                 ).map(([label, value]) => (
                   <div key={label}>
                     <dt className="t-cap text-fg-3">{label}</dt>
-                    <dd className="t-sm">{value}</dd>
+                    {/* F2-011: the NIM in tabular figures, as everywhere else. */}
+                    <dd className={label === s.nim ? 't-sm num' : 't-sm'}>
+                      {value}
+                    </dd>
                   </div>
                 ))}
               </dl>
