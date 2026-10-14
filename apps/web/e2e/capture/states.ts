@@ -86,7 +86,8 @@ export const STATES: CaptureState[] = [
       await p.addInitScript(() => localStorage.removeItem('user'));
     },
     mock: (api) => api.on('GET /api/me', reply.hang()),
-    ready: (p) => p.getByText('Loading...'),
+    // F2-002: the Garis loading status, named "Memuat…" (it was an English "Loading...").
+    ready: (p) => p.getByRole('status', { name: 'Memuat…' }),
   },
 
   // Beranda (P1-A reaches today's Home states on it)

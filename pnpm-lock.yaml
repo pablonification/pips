@@ -228,9 +228,6 @@ importers:
       socket.io-client:
         specifier: ^4.8.0
         version: 4.8.4
-      tailwind-merge:
-        specifier: ^3.7.0
-        version: 3.7.0
       vite-plugin-radar:
         specifier: ^0.11.0
         version: 0.11.0(vite@8.3.4(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
@@ -240,9 +237,6 @@ importers:
       workbox-window:
         specifier: ^7.4.1
         version: 7.4.1
-      zod:
-        specifier: ^3.23.4
-        version: 3.25.76
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.13.0
@@ -346,6 +340,9 @@ importers:
       workbox-routing:
         specifier: ^7.4.1
         version: 7.4.1
+      zod:
+        specifier: ^3.23.4
+        version: 3.25.76
 
 packages:
 
@@ -5716,9 +5713,6 @@ packages:
     resolution: {integrity: sha512-KpzUHkH1ug1sq4394SLJX38ZtpeTiqQ1RVyFTTSY2XuHsNSTWUkRo108KmyyrMWdDbQrLYkSHaNKj/a3bmA4sQ==}
     peerDependencies:
       tailwindcss: ^3.3.0 || ^4.0.0 || ^4.0.0-beta
-
-  tailwind-merge@3.7.0:
-    resolution: {integrity: sha512-XPPUyAc+cvspz3lHTcR/QgPfW2A0lv/xQNIjX3HGhLR+Nq2lHaLq5MtTesHn8GUr3W3DguT2KT5x3NVgRtYwmA==}
 
   tailwindcss@4.3.3:
     resolution: {integrity: sha512-gOhV3P7ufE62QDGg1zVaTgCR+EtPv92k2nIhVcVKcLmxT1sUBsQGhnZj175j+MqRt4zLF7ic+sCYjfhxMxj7YQ==}
@@ -11911,8 +11905,6 @@ snapshots:
       jiti: 2.7.0
       local-pkg: 1.2.1
       tailwindcss: 4.3.3
-
-  tailwind-merge@3.7.0: {}
 
   tailwindcss@4.3.3: {}
 

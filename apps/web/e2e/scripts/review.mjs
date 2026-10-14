@@ -362,7 +362,7 @@ function writeFlowsJson() {
           },
       );
     const ids = [...new Set(f.check.match(/\b[ADC]\d{1,2}\b/g) ?? [])];
-    const finding = d.findings.find((x) => x.flows.includes(f.id));
+    const finding = d.findings.find((x) => x.flows.includes(f.id) && !x.fixed);
     return {
       ...f,
       knownFailure: finding ? `${finding.id}: ${finding.title}` : null,

@@ -101,7 +101,76 @@ const projects: Project[] = [
     })),
   ),
   ...reviewProjects(),
+  ...qaProjects(),
 ];
+
+/**
+ * F2's cross-cutting checks (e2e/qa, see its README). In CI's `e2e` script: qa-<layout>-<theme> (the fixed rules, the
+ * Tab walk, errors, links and roles on every page), qa-reflow (400 % zoom), qa-motion (the app's own motion under
+ * reduced motion), qa-sw (the service worker: the installed app offline, the share target) and qa-london (the
+ * time-heavy journeys in another device time zone). qa-perf (SPEC's lab phone) and qa-copy-<layout> (the text against
+ * the served prototype) run by hand only.
+ */
+function qaProjects(): Project[] {
+  const SPECIAL = /(reflow|motion|sw|perf|copy)\.spec\.ts$/;
+  return [
+    ...(['phone', 'tablet', 'desktop'] as const).flatMap((size) =>
+      THEMES.map((theme) => ({
+        name: `qa-${size}-${theme}`,
+        testDir: './qa',
+        testIgnore: SPECIAL,
+        use: { ...JOURNEY_SIZES[size], colorScheme: theme },
+      })),
+    ),
+    {
+      // 400 % zoom: a 1280 × 1024 window at 400 % is 320 × 256 CSS px (accessibility.md A12).
+      name: 'qa-reflow',
+      testDir: './qa',
+      testMatch: /reflow\.spec\.ts$/,
+      use: {
+        ...PHONE,
+        viewport: { width: 320, height: 256 },
+        deviceScaleFactor: 4,
+        colorScheme: 'light',
+      },
+    },
+    {
+      name: 'qa-motion',
+      testDir: './qa',
+      testMatch: /motion\.spec\.ts$/,
+      use: { ...PHONE, colorScheme: 'light', motion: 'on' } as Project['use'],
+    },
+    {
+      name: 'qa-sw',
+      testDir: './qa',
+      testMatch: /sw\.spec\.ts$/,
+      use: { ...PHONE, colorScheme: 'light', serviceWorkers: 'allow' },
+    },
+    {
+      name: 'qa-perf',
+      testDir: './qa',
+      testMatch: /perf\.spec\.ts$/,
+      fullyParallel: false,
+      use: { ...PHONE, colorScheme: 'light' },
+    },
+    // The copy check against the served prototype (qa/copy.spec.ts), by hand: the prototype isn't in Git.
+    ...(['phone', 'tablet', 'desk'] as const).map((layout): Project => ({
+      name: `qa-copy-${layout}`,
+      testDir: './qa',
+      testMatch: /copy\.spec\.ts$/,
+      use: { ...FIDELITY[layout], colorScheme: 'light' },
+    })),
+    {
+      // Times must show in WIB whatever the device's zone (SPEC "Copy and language"; brief "The matrix").
+      name: 'qa-london-phone-light',
+      testDir: './journeys',
+      testMatch:
+        /(kalender|beranda|lomba|form|compose|announcements)\.spec\.ts$/,
+      grepInvert: /@desktop-only/,
+      use: { ...PHONE, colorScheme: 'light', timezoneId: 'Europe/London' },
+    },
+  ];
+}
 
 /**
  * F1's review projects. The flows record a video at the viewport's size and keep the app's own motion

@@ -122,6 +122,8 @@ export default defineConfig(({ mode }) => {
           name: appName,
           short_name: appName,
           description: 'Aplikasi resmi Himpunan Mahasiswa Informatika ITB',
+          // F2-007: the app is Indonesian (vite-plugin-pwa's default was "en").
+          lang: 'id',
           icons: [
             {
               src: '/android-chrome-192x192.png',
@@ -146,13 +148,15 @@ export default defineConfig(({ mode }) => {
               purpose: 'maskable',
             },
           ],
+          // F2-008: the install sheet's picture of the app is the redesigned sign-in (a capture at 390 × 844, 2×), not
+          // today's green English screen; its label is new copy, listed for the owner.
           screenshots: [
             {
-              sizes: '813x1446',
-              src: '/img/ss/login.jpg',
-              type: 'image/jpg',
+              sizes: '780x1688',
+              src: '/img/ss/masuk.jpg',
+              type: 'image/jpeg',
               form_factor: 'narrow',
-              label: 'Login page',
+              label: 'Halaman masuk PIPS!',
             },
           ],
           start_url: '/',
@@ -228,6 +232,18 @@ export default defineConfig(({ mode }) => {
       // before its content to 4, and every route got lighter). Measured by the journey "a cold first load asks for at
       // most 15 resources of any kind" (e2e/journeys/beranda.spec.ts).
       rolldownOptions: {
+        // F2-004: the Garis components, the icons and the push module do nothing when imported (no CSS imports, no
+        // registration), so a page that imports one of them through an index (src/components/garis/index.ts,
+        // components/push/index.ts) no longer carries every other one, the dialogs, menus and popovers with Radix and
+        // Floating UI, before its first render. tests/garis-pure.test.mjs keeps them free of import-time effects.
+        treeshake: {
+          moduleSideEffects: [
+            {
+              test: /[\\/]src[\\/]components[\\/](garis|icons|push)[\\/][^\\/]+\.tsx?$/,
+              sideEffects: false,
+            },
+          ],
+        },
         output: {
           codeSplitting: {
             groups: [
@@ -235,10 +251,11 @@ export default defineConfig(({ mode }) => {
               { name: 'app', tags: ['$initial'], priority: 4 },
               // Small leaves most screens share: the Garis icons, the copy, Kalender's pieces that Beranda,
               // Kalender and search share, and the push state and prompt (Beranda, first run, Notifikasi and search
-              // use them; on their own they were two more requests before Beranda's content).
+              // use them; on their own they were two more requests before Beranda's content). F2-004: and Beranda's
+              // halftone, which on its own became one more request once the Garis components stopped riding in the entry.
               {
                 name: 'ui',
-                test: /[\\/]src[\\/](components[\\/](icons|push)|copy|features[\\/]kalender)[\\/]/,
+                test: /[\\/]src[\\/](components[\\/](icons|push)[\\/]|copy[\\/]|features[\\/]kalender[\\/]|components[\\/]garis[\\/](Halftone|halftone-geometry)\.tsx?$)/,
                 minShareCount: 2,
                 priority: 3,
               },

@@ -76,6 +76,9 @@ export const common = {
     halaman: 'Halaman ini gagal dimuat.',
     bagian: 'Bagian ini gagal dimuat.',
     sesi: 'PIPS! belum bisa terhubung. Periksa koneksimu, lalu coba lagi.',
+    // F2-005: an address no page answers (new copy, worded as Testi Matkul's "Mata kuliah tidak ditemukan").
+    tidakDitemukan: 'Halaman tidak ditemukan',
+    tidakDitemukanIsi: 'Tautannya mungkin salah atau sudah tidak berlaku.',
   },
   offline: {
     banner: 'Offline · diperbarui {waktu}',

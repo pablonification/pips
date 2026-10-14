@@ -146,6 +146,14 @@ test.describe('Nadia', () => {
   });
 });
 
+test('regression (F2-003, F1-5): one h1 in the page at every layout, none hidden by CSS', async ({
+  page,
+}) => {
+  await page.goto('/layanan');
+  await expect(page.locator('h1:visible')).toHaveCount(1);
+  await expect(page.locator('h1')).toHaveCount(1);
+});
+
 test.describe('Raka', () => {
   test.use({ persona: 'pengurus', push: 'on' });
 

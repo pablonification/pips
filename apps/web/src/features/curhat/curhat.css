@@ -133,6 +133,10 @@
     text-align: center;
     padding: 24px 0;
   }
+  /* F2-006: a control brought into view by Tab stops above the chat bar (its height from Composer.tsx). */
+  [data-scroll-restoration-id='isi']:has(.g-chat-bar) {
+    scroll-padding-bottom: calc(var(--g-chat-bar-h, 0px) + 8px);
+  }
   .g-chat-bar {
     position: sticky;
     bottom: 0;

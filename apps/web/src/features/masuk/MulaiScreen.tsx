@@ -116,6 +116,9 @@ export function MulaiScreen() {
                 ) : (
                   copy.matkulIsi
                 )
+              ) : courses.isError ? (
+                // F2-009: the courses didn't load; Atur still opens Tambah mata kuliah.
+                profil.matkul.gagalMuat
               ) : (
                 <SkeletonBar width="50%" />
               )

@@ -152,6 +152,44 @@ test.describe('Raka (akademik)', () => {
   });
 });
 
+test.describe('Raka (akademik), one Tambah testimoni', () => {
+  test.use({ persona: 'pengurus' });
+  test('regression (F2-003, F1-5): Tambah testimoni is in the page once, where the layout shows it', async ({
+    page,
+  }) => {
+    await page.goto(IF2110);
+    await expect(tambah(page)).toHaveCount(1);
+    // Before the fix a second copy stayed in the page, hidden by CSS (the header row's on desktop, the desk head's
+    // below 1024 px).
+    await expect(
+      page.locator('button', { hasText: 'Tambah testimoni' }),
+    ).toHaveCount(1);
+  });
+
+  test('regression (F2-003): turning a tablet across 1024 px keeps Tambah testimoni open with what was typed', async ({
+    page,
+  }) => {
+    await page.goto(IF2110);
+    await tambah(page).click();
+    const box = add(page).getByRole('textbox').first();
+    await box.fill('Tetap di sini');
+    const size = page.viewportSize()!;
+    await page.setViewportSize(
+      size.width >= 1024
+        ? { width: 834, height: 1112 }
+        : { width: 1280, height: 900 },
+    );
+    await expect(add(page)).toBeVisible();
+    await expect(add(page).getByRole('textbox').first()).toHaveValue(
+      'Tetap di sini',
+    );
+    await page.setViewportSize(size);
+    await expect(add(page).getByRole('textbox').first()).toHaveValue(
+      'Tetap di sini',
+    );
+  });
+});
+
 test.describe('admin only', () => {
   test.use({ persona: 'pengurus', roles: { only: ['admin'] } });
   test('no Tambah testimoni (the API allows akademik alone)', async ({

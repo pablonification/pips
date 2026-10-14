@@ -12,6 +12,7 @@ import {
   Chip,
   Chips,
   Dialog,
+  ErrorState,
   IconButton,
   Input,
   LinkButton,
@@ -99,7 +100,8 @@ export function ComposeForm({
   const { draft, photos, errors } = useCompose();
   const ids = useId();
   const id = (k: string) => `${ids}-${k}`;
-  const { data: cats } = usePostableCategories();
+  const categories = usePostableCategories();
+  const cats = categories.data;
   const { data: angkatan } = useAngkatan();
   const { data: groups } = useGroups();
   const create = useCreateInfo();
@@ -289,6 +291,13 @@ export function ComposeForm({
             </Chip>
           ))}
         </Chips>
+        {/* F2-010: the categories didn't load, so nothing could be chosen and nothing said why. */}
+        {categories.isError && !cats ? (
+          <ErrorState
+            onRetry={() => void categories.refetch()}
+            retrying={categories.isFetching}
+          />
+        ) : null}
         {err('cats')}
       </div>
 

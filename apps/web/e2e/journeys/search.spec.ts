@@ -10,6 +10,7 @@ import { defaultHandlers } from '../support/handlers';
 import { reply } from '../support/mock';
 import * as writes from '../support/writes';
 import { strictGates } from '../support/p1a';
+import { strictAudit } from '../support/strict';
 import { expect, test } from '../support/test';
 
 const palette = (page: Page) =>
@@ -331,4 +332,22 @@ test('nothing found says so; a failing API leaves the local groups', async ({
   await expect.poll(() => groups(page)).toContain('Kalender');
   expect(await groups(page)).not.toContain('Pengumuman');
   expect(await groups(page)).not.toContain('Orang');
+});
+
+test('regression (F2-001, F1-1): a search with no result passes axe, with the field still naming its list', async ({
+  page,
+}, testInfo) => {
+  await openSearch(page);
+  await field(page).fill('zzzz');
+  await expect(
+    palette(page).getByText('Tidak ada hasil untuk “zzzz”.'),
+  ).toBeVisible();
+  // Before the fix the list stayed in the page as an empty listbox: axe's aria-required-children (critical).
+  await strictAudit(page, testInfo, 'search with no result');
+  const controls = await field(page).getAttribute('aria-controls');
+  expect(controls).toBeTruthy();
+  await expect(page.locator(`[id="${controls}"]`)).toHaveCount(1);
+  // A new query that finds something brings the list back, and Enter still opens the first result.
+  await field(page).fill('kalender');
+  await expect(options(page).first()).toBeVisible();
 });

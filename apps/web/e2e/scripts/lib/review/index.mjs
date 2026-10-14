@@ -239,6 +239,7 @@ function flowCard(f, d, release, pairsByState) {
 <p class="meta">${esc(f.variants.map((/** @type {any} */ v) => v.who).join('; '))} · stories ${esc(f.stories.join(', '))} · built by ${esc(f.owners.join(', '))} · starts at <code>${esc(f.startsAt)}</code></p>
 <p class="check"><strong>What to check:</strong> ${esc(f.check)}</p>
 ${f.knownFailure ? `<p class="fails">${esc(f.knownFailure)}</p>` : ''}
+${f.rerecordedByF2 ? `<p class="rerecorded"><strong>Re-recorded by F2:</strong> ${esc(f.rerecordedByF2)}</p>` : ''}
 <div class="player" data-player="${esc(id)}">${video}${select}</div>
 <script type="application/json" data-recordings-of="${esc(id)}">${jsonBlock(recs.map((/** @type {any} */ r) => ({ file: r.file ? rel(r.file) : null, poster: r.poster ? rel(r.poster) : null })))}</script>
 <details><summary>Steps</summary>${steps || '<p class="muted">No steps recorded yet.</p>'}</details>

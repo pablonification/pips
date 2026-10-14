@@ -1,5 +1,5 @@
 import { createRouter } from '@tanstack/react-router';
-import { RouteErrorFallback } from './components/error-fallback';
+import { NotFoundPage, RouteErrorFallback } from './components/error-fallback';
 import { routeTree } from './routeTree.gen';
 
 // Create a new router instance
@@ -13,6 +13,8 @@ export const router = createRouter({
   scrollToTopSelectors: ['[data-scroll-restoration-id="isi"]'],
   // Every route gets its own error boundary; the root route has the app-wide one (Muat ulang, Ke Beranda).
   defaultErrorComponent: RouteErrorFallback,
+  // An address no route answers: an Indonesian page with Ke Beranda (F2-005).
+  defaultNotFoundComponent: NotFoundPage,
   // Hovering or touching a link starts loading its route's code and data; the query cache decides freshness.
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,

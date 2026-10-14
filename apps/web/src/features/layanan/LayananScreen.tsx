@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { formListQuery } from '~/api/queries';
 import { Count, RuledList, SectionHead, Tag } from '~/components/garis';
+import { DESKTOP_QUERY, useMediaQuery } from '~/components/garis/useMediaQuery';
 import { DeskHead, PageBody, PageTitle } from '~/components/shell/page';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
@@ -36,6 +37,8 @@ export function LayananScreen() {
   const unread = useQuery(curhatUnreadQuery());
   const forms = useQuery(formListQuery());
   const groups = servicesByGroup(me);
+  // The page's title once: the desk head's from 1024 px, this one below (F2-003; it was hidden by CSS on desktop).
+  const desk = useMediaQuery(DESKTOP_QUERY);
   const data = {
     unread: unread.data ? totalUnread(unread.data) : undefined,
     openForms: forms.data ? openFormsCount(forms.data.forms) : undefined,
@@ -45,7 +48,7 @@ export function LayananScreen() {
     <>
       <DeskHead title={common.nav.layanan} />
       <PageBody wide className="gap-5">
-        <PageTitle className="lg:hidden">{common.nav.layanan}</PageTitle>
+        {desk ? null : <PageTitle>{common.nav.layanan}</PageTitle>}
         <div className="g-svc-cols">
           {groups.map((g) => (
             <div key={g.group}>

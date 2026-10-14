@@ -72,7 +72,14 @@ export default function Palette() {
               />
               <D.Close className="g-pal-close">{common.actions.tutup}</D.Close>
             </div>
-            <Command.List className="g-pal-res" label={t.hasil}>
+            {/* With no result the list leaves the accessibility tree (hidden): an empty listbox is an ARIA error
+                (axe aria-required-children, F2-001), and the field's aria-controls still points at it. The words
+                then show in the list's own box, so nothing on screen moves. */}
+            <Command.List
+              className="g-pal-res"
+              label={t.hasil}
+              hidden={groups.length === 0}
+            >
               {groups.map((g) => (
                 <Command.Group
                   key={g.heading}
@@ -98,16 +105,20 @@ export default function Palette() {
                   })}
                 </Command.Group>
               ))}
-              {/* Not while the API's results are on their way: that isn't "no results" yet. */}
-              {groups.length === 0 && !pending ? (
-                <div className="g-pal-empty" role="status">
-                  <p className="t-sm">{fill(t.tidakAda, { kata: query })}</p>
-                  <p className="t-sm text-fg-2" style={{ marginTop: 4 }}>
-                    {t.coba}
-                  </p>
-                </div>
-              ) : null}
             </Command.List>
+            {groups.length === 0 ? (
+              <div className="g-pal-res">
+                {/* Not while the API's results are on their way: that isn't "no results" yet. */}
+                {!pending ? (
+                  <div className="g-pal-empty" role="status">
+                    <p className="t-sm">{fill(t.tidakAda, { kata: query })}</p>
+                    <p className="t-sm text-fg-2" style={{ marginTop: 4 }}>
+                      {t.coba}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <div className="g-pal-foot" aria-hidden="true">
               <span>{t.pilih}</span>
               <span>{t.buka}</span>

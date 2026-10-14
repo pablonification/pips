@@ -82,6 +82,8 @@ export interface Flow {
   locked: string[];
   /** Added by F1 because a report shows a use case the brief's tables miss: the source. */
   addedFrom?: string;
+  /** Re-recorded by F2 after a fix changed what it shows: which finding, and what changed. */
+  rerecordedByF2?: string;
 }
 
 const NADIA: Variant = { key: 'nadia', persona: 'anggota', who: 'Nadia' };
@@ -254,6 +256,8 @@ export const FLOWS: Flow[] = [
   },
   {
     id: 'search',
+    rerecordedByF2:
+      'F2-001 (F1-1): a search with no result no longer leaves an empty list behind; the flow passes its strict audit at every layout and theme, so it no longer carries a known failure.',
     title: 'Global search',
     area: 'shell',
     variants: [NADIA],
@@ -571,6 +575,8 @@ export const FLOWS: Flow[] = [
   // Layanan
   {
     id: 'layanan',
+    rerecordedByF2:
+      "F2-003 (F1-5): Layanan's title is in the page once on desktop (it was also there hidden by CSS). Nothing on screen changed.",
     title: 'Layanan',
     area: 'layanan',
     variants: [NADIA, RAKA],
@@ -737,6 +743,8 @@ export const FLOWS: Flow[] = [
   },
   {
     id: 'curhat-room',
+    rerecordedByF2:
+      'F2-006: a control reached by Tab stops above the composer instead of under it.',
     title: 'A Curhat room',
     area: 'curhat',
     variants: [NADIA],
@@ -766,6 +774,8 @@ export const FLOWS: Flow[] = [
   },
   {
     id: 'curhat-inbox',
+    rerecordedByF2:
+      'F2-006: a control reached by Tab stops above the composer instead of under it.',
     title: 'Welfare’s inbox',
     area: 'curhat',
     variants: [
@@ -913,6 +923,8 @@ export const FLOWS: Flow[] = [
   },
   {
     id: 'kelola-testi',
+    rerecordedByF2:
+      'F2-003 (F1-5): Tambah testimoni is in the page once, where the layout shows it (a second copy was hidden by CSS). Nothing on screen changed.',
     title: 'Tambah testimoni',
     area: 'kelola',
     variants: [RAKA],

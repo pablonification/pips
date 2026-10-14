@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { userSchema } from './member-schema';
 import { api, queryClient } from '~/api/client';
 import { clearPersistedQueries } from '~/api/persister';
 import { User, UserWithRoles } from '~/api/generated';
@@ -47,22 +47,6 @@ export function invalidateSession(user?: User | null) {
     queryClient.setQueryData(['me'], user);
   }
 }
-
-const userSchema = z
-  .object({
-    id: z.string(),
-    nim: z.string(),
-    email: z.string(),
-    fullName: z.string(),
-    major: z.union([z.literal('IF'), z.literal('STI')]),
-    region: z.union([z.literal('Ganesha'), z.literal('Jatinangor')]),
-    angkatan: z.number(),
-    gender: z.union([z.literal('F'), z.literal('M')]),
-    membershipStatus: z.string(),
-    picture: z.string(),
-    roles: z.array(z.string()),
-  })
-  .nullable();
 
 export function loadUserCache() {
   const queryClientUser = queryClient.getQueryData<UserWithRoles | null>([

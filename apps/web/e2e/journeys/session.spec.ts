@@ -195,6 +195,23 @@ test.describe('with no cached user', () => {
   });
 });
 
+test.describe('with no cached user, while the session check is on its way', () => {
+  test.use({ signedIn: false });
+
+  test('regression (F2-002, F1-4): the app says it is loading in Indonesian, as a status, never "Loading..."', async ({
+    page,
+    api,
+    db,
+  }, testInfo) => {
+    db.signedIn = true;
+    api.on('GET /api/me', reply.hang());
+    await page.goto('/');
+    await expect(page.getByRole('status', { name: 'Memuat…' })).toBeVisible();
+    await expect(page.getByText('Loading...')).toHaveCount(0);
+    await strictAudit(page, testInfo, 'session loading');
+  });
+});
+
 test('the first page of announcements and the agenda come back from the device when the network hangs', async ({
   page,
   api,
