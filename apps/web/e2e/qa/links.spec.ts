@@ -149,14 +149,19 @@ test.describe('the theme colour', () => {
     const dark = testInfo.project.name.endsWith('-dark');
     // The member chose the opposite of the system's setting: the first frame must follow the choice. Before the
     // stylesheet the browser paints its own canvas by `color-scheme`, so that and the theme class are what count.
+    // The state is read the moment <body> is created, before anything of the page can be drawn. Not in a
+    // requestAnimationFrame: the harness's fake clock (context.clock) drives those, and about 1 in 40 loads it never
+    // ran one, so the check read nothing (CI on #23, then 3 of 120 local runs).
     await page.addInitScript(
       (choice) => {
         localStorage.setItem('pips:theme', choice);
         const w = window as unknown as { __firstFrame?: string };
-        requestAnimationFrame(() => {
+        new MutationObserver((_, observer) => {
+          if (!document.body) return;
           const root = document.documentElement;
           w.__firstFrame = `${root.classList.contains('dark')}|${root.style.colorScheme}`;
-        });
+          observer.disconnect();
+        }).observe(document, { childList: true, subtree: true });
       },
       dark ? 'light' : 'dark',
     );
