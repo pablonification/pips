@@ -281,7 +281,7 @@ flow('kelola-lomba', 'cnc', { roles: ['cnc'] }, async ({ page, f, api }) => {
   const add = dialog(page, 'Tambah lomba');
   await f.step('Info Lomba with Tambah lomba, for cnc only', async () => {
     await f.open('/layanan/lomba');
-    await expect.poll(names).toHaveLength(4);
+    await expect.poll(names).toHaveLength(6);
     await page
       .getByRole('button', { name: 'Tambah lomba' })
       .locator('visible=true')

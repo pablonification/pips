@@ -658,7 +658,7 @@ export const FLOWS: Flow[] = [
       {
         key: 'nadia',
         persona: 'anggota',
-        who: 'Nadia, 12 competitions (override)',
+        who: 'Nadia, 14 competitions (override)',
       },
     ],
     layouts: ALL,
