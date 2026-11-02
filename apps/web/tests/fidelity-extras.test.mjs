@@ -1,5 +1,5 @@
 // The fidelity tool's non-route screens (e2e/fidelity/names.mjs): every locked PNG that isn't a route screen is
-// either an app task's (EXTRA_SCREENS, 35) or the prototype's own (PROTOTYPE_ONLY, 11), never both, with the
+// either an app task's (EXTRA_SCREENS, 35, plus V5's 24 Masuk screens) or the prototype's own (PROTOTYPE_ONLY, 11), never both, with the
 // project and viewport garis-check.mjs took it at.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,11 +10,12 @@ import { lockedScreensDir } from '../e2e/scripts/lib/paths.mjs';
 
 const appDir = path.resolve(import.meta.dirname, '..');
 
-test('35 app-owned and 11 prototype-only non-route screens, all distinct', () => {
+test('59 app-owned (24 of them Masuk) and 11 prototype-only non-route screens, all distinct', () => {
   const names = EXTRA_SCREENS.map((e) => e.name);
-  assert.equal(names.length, 35);
+  assert.equal(names.length, 59);
+  assert.equal(names.filter((n) => n.startsWith('masuk-')).length, 24);
   assert.equal(PROTOTYPE_ONLY.length, 11);
-  assert.equal(new Set([...names, ...PROTOTYPE_ONLY]).size, 46);
+  assert.equal(new Set([...names, ...PROTOTYPE_ONLY]).size, 70);
   const routes = new Set(screenNames().map((s) => s.name));
   for (const n of names) assert.ok(!routes.has(n), n);
 });
@@ -25,7 +26,9 @@ test('each extra has a project, a theme from its name and the viewport it was ta
     assert.equal(e.theme, e.name.endsWith('-dark') ? 'dark' : 'light', e.name);
     assert.ok(['app', 'page', 'element'].includes(e.capture), e.name);
     const { width, height } = e.viewport;
-    if (e.layout === 'phone') assert.ok(width <= 390 && [800, 844].includes(height), e.name);
+    // The short phone (320 × 568) is its app area, 524 px under the prototype's 44 px bar.
+    const short = e.name === 'masuk-phone320x568-a-light';
+    if (e.layout === 'phone') assert.ok(width <= 390 && (short ? height === 524 : [800, 844].includes(height)), e.name);
     if (e.layout === 'tablet') assert.ok(width >= 640 && width < 1024, e.name);
     if (e.layout === 'desk') assert.ok(width >= 1024, e.name);
   }
@@ -33,7 +36,7 @@ test('each extra has a project, a theme from its name and the viewport it was ta
   assert.deepEqual(kit, { name: 'system-kit', layout: 'desk', theme: 'light', viewport: { width: 1440, height: 1000 }, capture: 'element', note: kit.note });
 });
 
-test('the locked screens, where present, are exactly the route screens plus these 46', (t) => {
+test('the locked screens, where present, are exactly the route screens plus these 70', (t) => {
   const dir = lockedScreensDir();
   // The locked screens live in the workspace repo, not in pips: CI has only the lists above.
   if (!dir) return t.diagnostic('locked screens not on this machine; lists checked above');

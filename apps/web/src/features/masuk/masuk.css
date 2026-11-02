@@ -467,6 +467,17 @@
   .g-mk-brand {
     padding: 0;
   }
+  /* v5's brand (garis.css `.side-brand`): the wordmark and "HMIF ITB" fill exactly the logo's height (54 px wide,
+     36 px tall), PIPS!'s top on the logo's top and HMIF ITB's baseline on its bottom. */
+  .g-mk-brand > div {
+    display: grid;
+    align-content: space-between;
+    height: 36px;
+  }
+  .g-mk-brand .sub {
+    margin-top: 0;
+    line-height: 1;
+  }
   .g-mk-intro {
     display: grid;
     gap: 10px;

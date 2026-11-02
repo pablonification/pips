@@ -14,11 +14,19 @@
  * Captures of the app area ('app') and of the window ('page') are viewport screenshots; for an 'element' screen,
  * `target` names the element. Unmapped screens show as "not built yet" in the report; PROTOTYPE_ONLY are skipped.
  */
-import type { Locator, Page } from '@playwright/test';
+import {
+  expect,
+  type BrowserContext,
+  type Locator,
+  type Page,
+} from '@playwright/test';
 import { pixelSections } from '../support/flows';
 import * as writes from '../support/writes';
 import { liveAsLocked, type FidelityScreen } from './screens';
 import { inFeed } from '../support/pengumuman';
+import { fakeGoogle, googleAnswers, googleRequests } from '../support/google';
+import { reply } from '../support/mock';
+import { MASUK_ERRORS } from './names.mjs';
 
 export interface ExtraCapture extends FidelityScreen {
   persona?: 'anggota' | 'pengurus' | null;
@@ -78,7 +86,97 @@ const deadlineSheet: ExtraCapture = {
     }),
 };
 
+/**
+ * V5 Masuk: signed out at /login, ready once the header has answered the first slide (at once under reduced motion;
+ * the prototype's captures wait out its entrance). The errors and loading are reached as the real app reaches them
+ * (garis-check.mjs uses `&hasil=`): Google's fake script answers, or doesn't load at all for "skrip".
+ */
+const masukButton = (p: Page) =>
+  p.getByRole('button', { name: /^Masuk dengan Google$|^Masuk…$/ });
+const masukMain = (p: Page) =>
+  p
+    .getByRole('main')
+    .filter({ has: p.locator('.g-mk-key.on') })
+    .filter({ has: masukButton(p) });
+const masuk: ExtraCapture = {
+  path: '/login',
+  persona: null,
+  ready: masukMain,
+};
+async function masukPress(
+  p: Page,
+  ctx: { api: import('../support/mock').ApiMock; context: BrowserContext },
+  hasil: (typeof MASUK_ERRORS)[number] | 'loading',
+) {
+  if (hasil !== 'skrip') {
+    await fakeGoogle(ctx.context);
+    await p.reload();
+    await expect
+      .poll(async () => (await googleRequests(p)).clients.length)
+      .toBe(1);
+  }
+  const answer = {
+    '401': writes.loginNotAMember,
+    gagal: writes.loginServerError,
+    loading: reply.hang(),
+  } as const;
+  if (hasil in answer)
+    ctx.api.on(
+      'POST /api/auth/login/accesstoken',
+      answer[hasil as keyof typeof answer],
+    );
+  if (hasil === 'popup') await googleAnswers(p, 'blocked');
+  await masukButton(p).click();
+}
+const MASUK_MESSAGES = {
+  '401':
+    'Akun ini belum bisa masuk. Pakai email mahasiswa (NIM@std.stei.itb.ac.id); kalau sudah, akunmu mungkin belum ada di daftar anggota HMIF.',
+  gagal: 'PIPS! belum bisa memproses masuk. Periksa koneksimu, lalu coba lagi.',
+  popup:
+    'Jendela masuk Google diblokir browser. Izinkan pop-up untuk PIPS!, lalu coba lagi.',
+  skrip: 'PIPS! belum bisa memproses masuk. Periksa koneksimu, lalu coba lagi.',
+} as const;
+const masukError = (hasil: (typeof MASUK_ERRORS)[number]): ExtraCapture => ({
+  ...masuk,
+  act: (p, ctx) => masukPress(p, ctx, hasil),
+  ready: (p) => {
+    const shown = masukMain(p).filter({
+      has: p.getByRole('alert').getByText(MASUK_MESSAGES[hasil]),
+    });
+    // Coba lagi only where the app has it: a failed connection or server, and Google's script not loaded.
+    return hasil === 'gagal' || hasil === 'skrip'
+      ? shown.filter({ has: p.getByRole('button', { name: 'Coba lagi' }) })
+      : shown;
+  },
+});
+const MASUK_EXTRAS: Record<string, ExtraCapture> = {
+  'masuk-phone320x568-a-light': masuk,
+  'masuk-phone-loading': {
+    ...masuk,
+    act: (p, ctx) => masukPress(p, ctx, 'loading'),
+    ready: (p) =>
+      masukMain(p).filter({
+        has: p.getByRole('button', { name: 'Masuk…' }),
+      }),
+  },
+  ...Object.fromEntries(
+    (['light', 'dark'] as const).flatMap((t) => [
+      ...(['phone', 'tablet', 'desk'] as const).map((l) => [
+        `masuk-${l}-${t}`,
+        masuk,
+      ]),
+      ...MASUK_ERRORS.flatMap((e) =>
+        (['phone', 'desk'] as const).map((l) => [
+          `masuk-${l}-error-${e}-${t}`,
+          masukError(e),
+        ]),
+      ),
+    ]),
+  ),
+};
+
 export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
+  ...MASUK_EXTRAS,
   'page-phone-light': beranda,
   'page-phone-dark': beranda,
   'page-narrow320-light': beranda,
