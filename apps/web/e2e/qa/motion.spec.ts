@@ -166,6 +166,14 @@ test.describe('no preference', () => {
 
   test('overlays open in SPEC’s times and close faster', async ({ page }) => {
     await page.goto('/profil');
+    // Garis v5's member card sweeps its sheen once on arrival (1.1 s); let it end, so only the overlay is timed.
+    await page.waitForFunction(
+      () =>
+        !!document.querySelector('.g-m-sheen') &&
+        !document
+          .getAnimations()
+          .some((a) => (a as CSSAnimation).animationName === 'g-m-sweep'),
+    );
     await page.getByRole('button', { name: 'Keluar' }).click();
     const openMs = await page.evaluate(() =>
       Math.max(
