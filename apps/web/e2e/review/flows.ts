@@ -329,7 +329,7 @@ export const FLOWS: Flow[] = [
     owners: ['P1-A'],
     startsAt: '/',
     check:
-      'The agenda card on today (Kuis 2, Sharing Session), Sabtu (Bakti Sosial HMIF), Minggu ("Tidak ada acara."); Perlu ditindaklanjuti most urgent first from real signals only (the deadline, "Balasan baru dari Welfare" without the message, the PIXEL form with Isi, "Notifikasi belum menyala"); the eight tiles in the real Home’s order (Pintasan on desktop); three unread titles.',
+      'The agenda card on today (Kuis 2, Sharing Session), Sabtu (Bakti Sosial HMIF), Minggu ("Tidak ada acara."); Perlu ditindaklanjuti most urgent first from real signals only (the deadline, "Balasan baru dari Welfare" without the message, the PIXEL form with Isi, "Notifikasi belum menyala"); the eight tiles in the real Home’s order on every layout; three unread titles (on desktop up to five, with their excerpts, Garis v5).',
     locked: ['anggota-beranda', 'anggota-ov-event', 'i-event-sheet'],
   },
   {
@@ -344,7 +344,7 @@ export const FLOWS: Flow[] = [
     owners: ['P1-A'],
     startsAt: '/',
     check:
-      'Raka sees his own courses’ events (Kuis 1, IF3170), not Nadia’s; the Kelola card with the live count of the open form; Pintasan on desktop. No Welfare line in the Kelola card (not built, D5).',
+      'Raka sees his own courses’ events (Kuis 1, IF3170), not Nadia’s; the Kelola card with the live count of the open form; on desktop beside the tiles from 1280 px. No Welfare line in the Kelola card (not built, D5).',
     locked: ['pengurus-beranda'],
   },
   {
