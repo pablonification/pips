@@ -63,6 +63,19 @@ const beranda: ExtraCapture = {
       .filter({ has: p.getByText('PIXEL, isi Form Analisis Kondisi ya!') }),
 };
 
+/** Garis v5: Raka's desktop Beranda, ready as screens.ts's `pengurus-beranda`. */
+const berandaRaka: ExtraCapture = {
+  persona: 'pengurus',
+  path: '/',
+  ready: (p) =>
+    p
+      .getByRole('main')
+      .filter({ has: p.getByText('IF3170 Inteligensi Buatan') })
+      .filter({ has: p.getByText('Deadline Tugas Besar 1 · IF3110') })
+      .filter({ has: p.getByText('Cari tim Gemastik XIX? Isi form ini') })
+      .filter({ has: p.getByText('142', { exact: true }) }),
+};
+
 /** P1-A: Nadia's Kalender on Jumat 9 Oktober with Deadline Tugas Besar 1 open (a sheet, a centred panel on tablets). */
 const deadlineSheet: ExtraCapture = {
   path: '/kalender?hari=2026-10-09',
@@ -90,6 +103,12 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
   'page-desktop1024-light': beranda,
   'narrow320-beranda': beranda,
   'desk1024-beranda': beranda,
+  ...Object.fromEntries(
+    [1024, 1280, 1440, 1920].flatMap((w) => [
+      [`desk${w}-anggota-beranda`, beranda],
+      [`desk${w}-pengurus-beranda`, berandaRaka],
+    ]),
+  ),
   // P1-A: the event sheet, and search.
   'i-event-sheet': deadlineSheet,
   'i-tablet-sheet': deadlineSheet,

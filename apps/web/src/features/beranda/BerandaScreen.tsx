@@ -66,7 +66,6 @@ import {
 } from '~/features/kalender/data';
 import { EventSheet } from '~/features/kalender/EventSheet';
 import { useOpenEvent } from '~/features/kalender/open';
-import { displayText } from '~/features/pengumuman/rules';
 import { DayBars, DayListState, EventRows } from '~/features/kalender/parts';
 import {
   capFirst,
@@ -666,23 +665,36 @@ function Unread({ desk = false }: { desk?: boolean }) {
   );
 }
 
-/** `excerpt` (desktop): a titled post's text under its title, two lines, as on Pengumuman. A post with no title is
- *  already its own text. */
+/**
+ * `excerpt` (desktop): a titled post's text under its title, two lines, as on Pengumuman. A post with no title is
+ * already its own text. The link is named by its title; the excerpt describes it. The text is the post's own, as
+ * Beranda shows an untitled post's (Pengumuman's `displayText` would add three script requests to the first load).
+ */
 function UnreadRow({ info, excerpt }: { info: Info; excerpt: boolean }) {
+  const id = useId();
+  const more = excerpt && !!info.title;
   return (
     <li>
       <RowButton asChild>
-        <Link to="/pengumuman/$id" params={{ id: info.id }}>
+        <Link
+          to="/pengumuman/$id"
+          params={{ id: info.id }}
+          aria-labelledby={more ? `${id}-t` : undefined}
+          aria-describedby={more ? `${id}-x` : undefined}
+        >
           <span className="g-item brief">
             <UnreadBar unread />
             <span className="grow">
-              <span className="g-clamp2 block t-sub">
+              <span className="g-clamp2 t-sub" id={`${id}-t`}>
                 {postTitle(info)}
                 <span className="sr-only"> {t.belumDibaca.tandaBelum}</span>
               </span>
-              {excerpt && info.title ? (
-                <span className="g-hd-excerpt g-clamp2 block t-sm text-fg-2">
-                  {displayText(info.content)}
+              {more ? (
+                <span
+                  className="g-hd-excerpt g-clamp2 t-sm text-fg-2"
+                  id={`${id}-x`}
+                >
+                  {info.content}
                 </span>
               ) : null}
             </span>
