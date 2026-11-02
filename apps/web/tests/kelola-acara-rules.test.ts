@@ -125,7 +125,7 @@ test('validation: a title, a date and both times; an end before the start; equal
   assert.deepEqual(validateEvent({ ...ok, start: '15:00', end: '13:00' }), {
     end: 'Jam selesai tidak boleh sebelum jam mulai.',
   });
-  // A deadline: Selesai equal to Mulai shows "Batas" in Kalender.
+  // A deadline: Selesai equal to Mulai is a deadline, one time in Kalender.
   assert.deepEqual(validateEvent({ ...ok, start: '23:59', end: '23:59' }), {});
   // Several at once: focus goes to the first, top to bottom.
   const all = validateEvent({ ...ok, title: '', start: '15:00', end: '13:00' });

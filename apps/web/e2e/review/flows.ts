@@ -329,7 +329,7 @@ export const FLOWS: Flow[] = [
     owners: ['P1-A'],
     startsAt: '/',
     check:
-      'The agenda card on today (Kuis 2, Sharing Session), Sabtu (Bakti Sosial HMIF), Minggu ("Tidak ada acara."); Perlu ditindaklanjuti most urgent first from real signals only (the deadline, "Balasan baru dari Welfare" without the message, the PIXEL form with Isi, "Notifikasi belum menyala"); the eight tiles in the real Home’s order (Pintasan on desktop); three unread titles.',
+      'The agenda card on today (Kuis 2, Sharing Session), Sabtu (Bakti Sosial HMIF), Minggu ("Tidak ada acara."); Perlu ditindaklanjuti most urgent first from real signals only (the deadline, "Balasan baru dari Welfare" without the message, the PIXEL form with Isi, "Notifikasi belum menyala"); the eight tiles in the real Home’s order on every layout; three unread titles (on desktop up to five, with their excerpts, Garis v5).',
     locked: ['anggota-beranda', 'anggota-ov-event', 'i-event-sheet'],
   },
   {
@@ -344,7 +344,7 @@ export const FLOWS: Flow[] = [
     owners: ['P1-A'],
     startsAt: '/',
     check:
-      'Raka sees his own courses’ events (Kuis 1, IF3170), not Nadia’s; the Kelola card with the live count of the open form; Pintasan on desktop. No Welfare line in the Kelola card (not built, D5).',
+      'Raka sees his own courses’ events (Kuis 1, IF3170), not Nadia’s; the Kelola card with the live count of the open form; on desktop beside the tiles from 1280 px. No Welfare line in the Kelola card (not built, D5).',
     locked: ['pengurus-beranda'],
   },
   {
@@ -617,7 +617,7 @@ export const FLOWS: Flow[] = [
     owners: ['P2-B'],
     startsAt: '/layanan/testi',
     check:
-      'IF, Semester 3, IF2110; the pager from 1 / 3 to 2 / 3; an STI course’s sections (II2110: Kesan, Tantangan, Saran); a course with none (IF2120) and the Akademik note; Buka Ding Dong.',
+      'IF, Semester 3, IF2110: every testimonial at once (Garis v5, no pager), Buka Ding Dong in the header, a long one folded behind Baca selengkapnya; an STI course’s sections (II2110: Kesan, Tantangan, Saran); a course with none (IF2120) and the Akademik note.',
     locked: ['anggota-testi-list', 'anggota-testi-course', 'i-testi'],
   },
   {
@@ -658,7 +658,7 @@ export const FLOWS: Flow[] = [
       {
         key: 'nadia',
         persona: 'anggota',
-        who: 'Nadia, 12 competitions (override)',
+        who: 'Nadia, 14 competitions (override)',
       },
     ],
     layouts: ALL,
@@ -668,7 +668,7 @@ export const FLOWS: Flow[] = [
     owners: ['P2-B'],
     startsAt: '/layanan/lomba',
     check:
-      'Soonest deadline first; the danger line within 3 days; "Gratis" and "Rp150.000"; Daftar and Sumber in a new tab; the second page by scrolling and by Muat lagi. No posters (D6).',
+      'Soonest deadline first; the danger line within 3 days; "Gratis" and "Rp150.000"; Daftar and Sumber in a new tab; a poster opened large and closed with focus back on it (Garis v5); the second page by scrolling and by Muat lagi.',
     locked: ['anggota-lomba'],
   },
   // Form and Magang SPARTA
@@ -823,7 +823,7 @@ export const FLOWS: Flow[] = [
     owners: ['P1-C'],
     startsAt: '/profil/matkul',
     check:
-      'The semester line, "Dipakai untuk apa?", the total SKS; remove IF2180 then Urungkan; add IF2211 K2 from search (Enter doesn’t reload); back with the new total.',
+      'The semester line, "Dipakai untuk apa?", the total SKS; remove IF2180 then Urungkan; pick IF2211 by its row from search (Enter doesn’t reload); back with the new total.',
     locked: ['anggota-matkul', 'anggota-matkul-add', 'i-matkul-add'],
   },
   {

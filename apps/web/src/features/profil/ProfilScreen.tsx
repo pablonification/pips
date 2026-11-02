@@ -10,6 +10,7 @@ import {
   Disclosure,
   ErrorState,
   FactsList,
+  Halftone,
   HmifLogo,
   Item,
   OfflineBanner,
@@ -40,6 +41,7 @@ import useSession from '~/hooks/auth/useSession';
 import { useTheme } from '~/lib/theme/useTheme';
 import { cn } from '~/lib/utils';
 import { openInstallSheet } from './install-store';
+import { leanCard, motionReduced, settleCard } from './member-tilt';
 import { angkatanQuery, groupsQuery } from './queries';
 import {
   angkatanLabel,
@@ -50,15 +52,27 @@ import {
 } from './rules';
 import { jamWib, useOnline } from './useOnline';
 
-/** The member card (garis/screens-more.js `memberCard`): status, name, NIM, programme and angkatan, the logo. */
+/**
+ * The member card (garis/screens-more.js `memberCard`): status, name, NIM, programme and angkatan, the logo. Garis v5
+ * adds PIPS!'s halftone across the lower right, below the logo, and a light sheen that sweeps once when the card
+ * appears, then follows the pointer or a finger as the card tilts (member-tilt.ts). The logo sits above both,
+ * untouched. Reduced motion: no tilt, sweep or sheen.
+ */
 export function MemberCard({ me }: { me: UserWithRoles }) {
   const angkatan = useQuery(angkatanQuery());
   return (
     <Plaque
       className="g-member"
       role="figure"
+      data-card=""
       aria-label={fill(copy.kartu.label, { nama: me.fullName, nim: me.nim })}
+      onPointerMove={(e) => {
+        if (!motionReduced()) leanCard(e.currentTarget, e.clientX, e.clientY);
+      }}
+      onPointerLeave={(e) => settleCard(e.currentTarget)}
     >
+      <Halftone length={224} className="g-m-ht" />
+      <span className="g-m-sheen" aria-hidden="true" />
       <div className="g-m-top">
         <p className="t-cap strong">{me.membershipStatus}</p>
         <HmifLogo width={72} plate />

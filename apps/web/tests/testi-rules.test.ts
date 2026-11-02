@@ -3,11 +3,12 @@ import { test } from 'node:test';
 import type { Course, Testimoni } from '../src/api/generated';
 import {
   authorOf,
-  clampIndex,
   codeLine,
+  columnsFor,
   countLine,
   courseParams,
   inList,
+  isLong,
   linkSegments,
   listCourses,
   listOfSlug,
@@ -16,10 +17,11 @@ import {
   searchCourses,
   sections,
   testiTitle,
+  TESTI_LONG,
 } from '../src/features/testi/rules';
 
 /* Testi Matkul (P2-B brief, "Tests"): matching (the code bug), the course-list mapping, sections, authors, titles,
-   the pager clamp. */
+   the fold and the column count (Garis v5). */
 
 const course = (
   code: string,
@@ -212,16 +214,16 @@ test('authors: null, empty and "Anonim" are Anonim with "?"; others show initial
   assert.deepEqual(authorOf('nabila'), { name: 'nabila', initials: 'N' });
 });
 
-test('the pager clamps a 1-based page from the URL into range', () => {
-  assert.equal(clampIndex(undefined, 3), 0);
-  assert.equal(clampIndex(1, 3), 0);
-  assert.equal(clampIndex(2, 3), 1);
-  assert.equal(clampIndex(3, 3), 2);
-  assert.equal(clampIndex(9, 3), 2);
-  assert.equal(clampIndex(0, 3), 0);
-  assert.equal(clampIndex(-4, 3), 0);
-  assert.equal(clampIndex(2.7, 3), 1);
-  assert.equal(clampIndex(5, 0), 0);
+test('Garis v5: a section folds only past 280 characters, and a page uses one to three columns', () => {
+  assert.equal(TESTI_LONG, 280);
+  assert.equal(isLong('a'.repeat(280)), false);
+  assert.equal(isLong('a'.repeat(281)), true);
+  assert.equal(isLong(''), false);
+  assert.equal(columnsFor(0), 1);
+  assert.equal(columnsFor(1), 1);
+  assert.equal(columnsFor(2), 2);
+  assert.equal(columnsFor(3), 3);
+  assert.equal(columnsFor(6), 3);
 });
 
 test('links in a testimonial are found as today’s app finds them, punctuation kept outside', () => {

@@ -32,7 +32,6 @@ import {
   Card,
   Checkbox,
   Chip,
-  ChipGroup,
   Chips,
   Due,
   FactsList,
@@ -602,7 +601,6 @@ function SystemCards() {
         <h3 className="t-heading">Pil, chip, dan lencana</h3>
         <div className="wrap" style={{ gap: 8 }}>
           <Tag>Akademik</Tag>
-          <Tag>Kelas 02</Tag>
           <StatusTag status="open" />
           <StatusTag status="soon" />
           <StatusTag status="done" />
@@ -881,7 +879,6 @@ function KitPanel({
           <span className="block t-label num">IF2110</span>
           <span className="block t-sm">Algoritma dan Pemrograman II</span>
         </span>
-        <Tag tone="outlined">Kelas 02</Tag>
       </Card>
       <Skeleton label="Memuat pengumuman">
         <SkeletonRow />
@@ -1024,7 +1021,6 @@ function Interactive() {
   const [menuResult, setMenuResult] = useState('');
   const [deletePost, setDeletePost] = useState(false);
   const [cats, setCats] = useState<string[]>(['akademik']);
-  const [kelas, setKelas] = useState<number | null>(null);
   const [myReaction, setMyReaction] = useState<PixelReactionKey | null>('fire');
   const [rating, setRating] = useState<number | null>(null);
   return (
@@ -1265,13 +1261,6 @@ function Interactive() {
             </Chip>
           ))}
         </Chips>
-        <ChipGroup
-          label="Kelas IF2110"
-          value={kelas}
-          onChange={setKelas}
-          deselectable
-          options={[1, 2, 3].map((k) => ({ value: k, label: `K${k}` }))}
-        />
         <Saved />
       </div>
       <div className="sys-card">

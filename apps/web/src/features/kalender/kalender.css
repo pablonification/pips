@@ -21,10 +21,6 @@
     box-shadow: inset 0 0 0 1px var(--mark);
     height: 4px;
   }
-  .g-mbars i.point {
-    width: 9px;
-    justify-self: center;
-  }
 
   /* ============ One event row ============ */
   .g-agenda-item {
@@ -47,10 +43,6 @@
   .g-kbar.himpunan {
     background: var(--hatch);
     box-shadow: inset 0 0 0 1.5px var(--mark);
-  }
-  .g-kbar.point {
-    background: none;
-    box-shadow: inset 0 0 0 1.5px var(--text);
   }
   .g-kbar.past {
     opacity: 0.4;
@@ -79,13 +71,6 @@
   .g-legend i.h {
     background: var(--hatch);
     box-shadow: inset 0 0 0 1.5px var(--mark);
-  }
-  .g-legend i.d {
-    width: 8px;
-    background: none;
-    box-shadow: inset 0 0 0 1.5px var(--text);
-    rotate: 45deg;
-    scale: 0.8;
   }
 
   /* ============ Phones and tablets: the month ============ */
@@ -284,11 +269,6 @@
     background: var(--gold);
     color: var(--ink);
     box-shadow: inset 0 0 0 1.5px var(--ink);
-  }
-  .g-dchip.point {
-    background: var(--bg-surface);
-    color: var(--text);
-    box-shadow: inset 0 0 0 1.5px var(--text);
   }
   .g-dchip .tm {
     display: block;

@@ -9,7 +9,6 @@ import {
   picksBody,
   programName,
   semesterLabel,
-  setPick,
   togglePick,
   totalSks,
 } from '../src/features/profil/rules';
@@ -171,28 +170,26 @@ test('catalogue: at most 10', () => {
   assert.equal(out[0].code, 'IF3000');
 });
 
-test('picks: choosing, re-choosing clears, the count, the request body', () => {
-  let picks = togglePick({}, 'c1', 2);
-  assert.deepEqual(picks, { c1: 2 });
-  picks = togglePick(picks, 'c1', 3);
-  assert.deepEqual(picks, { c1: 3 });
-  picks = togglePick(picks, 'c2', 1);
-  assert.equal(Object.keys(picks).length, 2);
-  // Re-choosing the chosen class clears it.
-  picks = togglePick(picks, 'c1', 3);
-  assert.deepEqual(picks, { c2: 1 });
-  assert.deepEqual(picksBody(setPick(picks, 'c5', 2)), [
-    { courseId: 'c2', class: 1 },
-    { courseId: 'c5', class: 2 },
-  ]);
-  assert.deepEqual(setPick(picks, 'c2', null), {});
+test('picks: tapping a row picks it, tapping again drops it, the count, the request body (v5: no class)', () => {
+  let picks = togglePick([], 'c1');
+  assert.deepEqual(picks, ['c1']);
+  picks = togglePick(picks, 'c2');
+  assert.equal(picks.length, 2);
+  // Tapping a picked row drops it; the other pick stays.
+  picks = togglePick(picks, 'c1');
+  assert.deepEqual(picks, ['c2']);
+  picks = togglePick(picks, 'c5');
+  // The body names courses only: the API stores its default class.
+  assert.deepEqual(picksBody(picks), [{ courseId: 'c2' }, { courseId: 'c5' }]);
+  assert.ok(picksBody(picks).every((b) => !('class' in b)));
+  assert.deepEqual(togglePick(togglePick(picks, 'c2'), 'c5'), []);
 });
 
 test('picks survive a new search: they are kept by course, not by result', () => {
-  const picks = togglePick({}, 'c1', 2);
+  const picks = togglePick([], 'c1');
   const shown = catalogueResults(catalogue, [], 'basis', nadia);
   assert.ok(!shown.some((c) => c.id === 'c1'));
-  assert.deepEqual(picksBody(picks), [{ courseId: 'c1', class: 2 }]);
+  assert.deepEqual(picksBody(picks), [{ courseId: 'c1' }]);
 });
 
 /* ---- Pasang PIPS! ---- */

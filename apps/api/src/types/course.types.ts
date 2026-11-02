@@ -57,7 +57,16 @@ export const UserCourseSchema = createSelectSchema(userCourses)
 
 export const ListUserCourseSchema = z.array(UserCourseSchema);
 
-export const CreateUserCourseSchema = createInsertSchema(userCourses).omit({
+/**
+ * The class a course is stored with when the request names none. Garis v5 dropped the class from Mata kuliahku
+ * (nothing in the app used it), so today's app sends only `courseId`; the column stays `NOT NULL`, so no migration is
+ * needed. Older clients that still send a class keep it.
+ */
+export const DEFAULT_COURSE_CLASS = 1;
+
+export const CreateUserCourseSchema = createInsertSchema(userCourses, {
+  class: (s) => s.class.default(DEFAULT_COURSE_CLASS),
+}).omit({
   semesterCodeTaken: true,
   semesterYearTaken: true,
   userId: true,

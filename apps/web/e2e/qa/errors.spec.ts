@@ -111,11 +111,24 @@ for (const kind of ['503', 'dropped'] as const)
           'no programmer’s text on screen',
         ).not.toMatch(PROGRAMMER);
         failing = false;
+        // One Coba lagi can bring back a page's other failed parts too (Pengumuman's list and post on desktop), so a
+        // second button may vanish under the click: that click gives up quickly, and the count below decides.
         for (let i = 0; i < 5 && (await retry.count()); i++) {
-          await retry.first().click();
+          await retry
+            .first()
+            .click({ timeout: 3_000 })
+            .catch(() => undefined);
           await page.waitForTimeout(300);
         }
         await expect(retry).toHaveCount(0, { timeout: 15_000 });
+        // …and it stays gone once loading ends: a read still failing would bring it back after its own retries
+        // (the count above also reads 0 while the retried reads load).
+        await expect(page.getByRole('status', { name: /^Memuat/ })).toHaveCount(
+          0,
+          { timeout: 30_000 },
+        );
+        await page.waitForTimeout(500);
+        await expect(retry).toHaveCount(0);
       });
     });
   }

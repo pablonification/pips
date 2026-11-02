@@ -11,9 +11,19 @@ import type { Locator, Page } from '@playwright/test';
 import { greeting, isPhone } from '../support/app';
 import { expect, test } from '../support/test';
 import * as writes from '../support/writes';
+import { fakeGoogle, googleRequests } from '../support/google';
+import { reply } from '../support/mock';
 import { moved, type MotionSample } from './lib';
 
 test.use({ motion: 'on' });
+
+/** Presses a header key and reads, on the next frame, whether it shows pressed (for 160 ms only). */
+const pressKey = (key: Locator) =>
+  key.evaluate(async (k) => {
+    k.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+    return k.classList.contains('down');
+  });
 
 /** Animations and transitions running now with a duration, by what they animate. */
 const running = (page: Page) =>
@@ -129,6 +139,48 @@ test.describe('reduced motion', () => {
     }
   });
 
+  // V5 Masuk: garis-check.mjs's reduced-motion check, in the app.
+  test.describe('signed out', () => {
+    test.use({ signedIn: false });
+    test('Masuk: no entrance, no rising reaction, no typing keys or blinking loader; slides change at once', async ({
+      page,
+      api,
+    }) => {
+      await fakeGoogle(page.context());
+      api.on('POST /api/auth/login/accesstoken', reply.hang());
+      await page.goto('/login');
+      const rows = page.locator('.g-mk-rows');
+      await still(page, rows, 'Masuk after first paint');
+      // The first slide's key is lit at once, with no wait for an entrance.
+      await expect(page.locator('.g-mk-key.on')).toHaveAttribute(
+        'data-key',
+        'pengumuman',
+      );
+      await page
+        .locator('.g-mk-key[data-key="nim"]')
+        .dispatchEvent('pointerdown');
+      await expect(page.locator('.g-mk-float')).toHaveCount(0);
+      await page
+        .getByRole('region', { name: 'Kenalan dengan PIPS!' })
+        .getByRole('button', { name: 'Kalender', exact: true })
+        .click();
+      expect(
+        await page
+          .locator('.g-mk-track')
+          .evaluate((t) => Math.abs(t.scrollLeft - t.clientWidth) < 2),
+        'the slide changed at once',
+      ).toBe(true);
+      await expect
+        .poll(async () => (await googleRequests(page)).clients.length)
+        .toBe(1);
+      await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+      await expect(page.getByRole('main')).toHaveClass(/\bbusy\b/);
+      await still(page, rows, 'the keys while signing in');
+      await still(page, page.locator('.g-mk-load'), 'the loader');
+      expect(await page.locator('.g-mk-float').count()).toBe(0);
+    });
+  });
+
   test.describe('Raka', () => {
     test.use({ persona: 'pengurus' });
     test('the Live Counting square doesn’t blink', async ({ page }) => {
@@ -164,8 +216,66 @@ test.describe('no preference', () => {
     expect(shell).toEqual([]);
   });
 
+  // V5 Masuk: an entrance of about a second, a reaction for the first slide and for a tapped key, the keys typing
+  // while signing in; nothing loops for more than a few seconds except that wave.
+  test.describe('signed out', () => {
+    test.use({ signedIn: false });
+    test('Masuk: the entrance plays once, reactions rise, then everything is still', async ({
+      page,
+      api,
+    }) => {
+      await fakeGoogle(page.context());
+      api.on('POST /api/auth/login/accesstoken', reply.hang());
+      // Every animation that starts, recorded from the first paint on.
+      await page.addInitScript(() => {
+        const w = window as unknown as { __mkStarted: string[] };
+        w.__mkStarted = [];
+        document.addEventListener('animationstart', (e) =>
+          w.__mkStarted.push(e.animationName),
+        );
+      });
+      await page.goto('/login');
+      await expect(page.locator('.g-mk-key.on')).toHaveCount(1);
+      const names = await page.evaluate(
+        () => (window as unknown as { __mkStarted: string[] }).__mkStarted,
+      );
+      for (const n of ['g-mk-drop', 'g-mk-pop', 'g-mk-up', 'g-mk-slide-l'])
+        expect(names, `the entrance's ${n}`).toContain(n);
+      // After the entrance the first slide's key lights and a reaction rises from it, then fades away.
+      await expect(page.locator('.g-mk-key.on')).toHaveAttribute(
+        'data-key',
+        'pengumuman',
+      );
+      await expect(page.locator('.g-mk-float')).toHaveCount(1);
+      await expect(page.locator('.g-mk-float')).toHaveCount(0);
+      // A tapped key presses down and sends one up.
+      const nim = page.locator('.g-mk-key[data-key="nim"]');
+      expect(await pressKey(nim), 'the key pressed down').toBe(true);
+      await expect(page.locator('.g-mk-float')).toHaveCount(1);
+      // Then nothing moves: the last pixel reaction's bob ends 6.6 s after first paint.
+      await page.waitForTimeout(6000);
+      await expect.poll(() => running(page), { timeout: 5000 }).toEqual([]);
+      // Signing in: the keys type in a wave and the loader blinks while it waits.
+      await expect
+        .poll(async () => (await googleRequests(page)).clients.length)
+        .toBe(1);
+      await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+      await expect
+        .poll(async () => (await running(page)).join())
+        .toMatch(/g-mk-type.*g-mk-blink|g-mk-blink.*g-mk-type/);
+    });
+  });
+
   test('overlays open in SPEC’s times and close faster', async ({ page }) => {
     await page.goto('/profil');
+    // Garis v5's member card sweeps its sheen once on arrival (1.1 s); let it end, so only the overlay is timed.
+    await page.waitForFunction(
+      () =>
+        !!document.querySelector('.g-m-sheen') &&
+        !document
+          .getAnimations()
+          .some((a) => (a as CSSAnimation).animationName === 'g-m-sweep'),
+    );
     await page.getByRole('button', { name: 'Keluar' }).click();
     const openMs = await page.evaluate(() =>
       Math.max(

@@ -122,30 +122,17 @@ export function catalogueResults<
     .slice(0, CATALOGUE_LIMIT);
 }
 
-/** Picks: course id → class 1–3. */
-export type Picks = Readonly<Record<string, number>>;
+/** Picks: the course ids picked in Tambah mata kuliah, in the order they were picked. Garis v5 has no class. */
+export type Picks = readonly string[];
 
-/** Choosing a class (`pick-k`): choosing the chosen one again clears it. */
-export function togglePick(picks: Picks, courseId: string, k: number): Picks {
-  return setPick(picks, courseId, picks[courseId] === k ? null : k);
+/** Tapping a course row (`pick-c`): picks it, or drops it when it is picked already; the other picks stay. */
+export function togglePick(picks: Picks, courseId: string): Picks {
+  return picks.includes(courseId)
+    ? picks.filter((id) => id !== courseId)
+    : [...picks, courseId];
 }
 
-/** Sets or clears one course's class; the other picks stay. */
-export function setPick(
-  picks: Picks,
-  courseId: string,
-  k: number | null,
-): Picks {
-  const next = { ...picks };
-  if (k === null) delete next[courseId];
-  else next[courseId] = k;
-  return next;
-}
-
-/** The `PUT /api/course/take/batch` body for the picks. */
+/** The `PUT /api/course/take/batch` body for the picks: course ids only (the API stores its default class). */
 export function picksBody(picks: Picks) {
-  return Object.entries(picks).map(([courseId, k]) => ({
-    courseId,
-    class: k,
-  }));
+  return picks.map((courseId) => ({ courseId }));
 }

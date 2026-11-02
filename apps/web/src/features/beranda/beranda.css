@@ -1,9 +1,9 @@
 /*
   Beranda (P1-A): the agenda card, the service tiles, the cards under the hairline headings, the follow-up rows, the
   Kelola card and desktop's two columns. Ported from the prototype's garis/garis.css (`.home-body`, `.agenda`,
-  `.ag-*`, `.tiles`, `.tile-btn`, `.home-card`, `.att`, `.item.brief`, `.svc-grid`, `.svc`, `.live`, `.d-grid`,
-  `.stack`, the `draw` keyframes, and the tablet and 340 px rules) with the `g-` prefix, values unchanged. Tokens only;
-  part of the app's one stylesheet (vite.config.ts). tests/beranda-kalender-css.test.mjs checks it.
+  `.ag-*`, `.tiles`, `.tile-btn`, `.home-card`, `.att`, `.item.brief`, `.live`, `.d-grid`,
+  `.stack`, the `draw` keyframes, and the tablet and 340 px rules; Garis v5's desktop from `v5-beranda.css`) with the
+  `g-` prefix, values unchanged. Tokens only; part of the app's one stylesheet (vite.config.ts). tests/beranda-kalender-css.test.mjs checks it.
 */
 @layer components {
   /* ============ Phones and tablets: the body under the gold header ============ */
@@ -255,61 +255,95 @@
     animation: g-blink 1s step-end 4;
   }
 
-  /* ============ Desktop: two columns, Pintasan ============ */
-  .g-d-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
-    gap: 32px;
-    padding: 0 36px 36px;
-    align-items: start;
-    max-width: 1180px;
-  }
-  .g-d-stack {
-    display: grid;
-    gap: 30px;
-    align-content: start;
-    min-width: 0;
-  }
-  .g-svc-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-top: 10px;
-  }
-  .g-svc {
-    position: relative;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    justify-items: start;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    border: 0;
-    border-radius: 10px;
-    background: var(--bg-surface);
-    box-shadow: 0 0 0 1px var(--border);
-    cursor: pointer;
-    font-size: 13px;
-    line-height: 1.25;
-    font-weight: 500;
-    text-align: left;
-    text-decoration: none;
-    color: var(--text);
-    transition: background-color 100ms ease-out;
-  }
-  .g-svc:hover {
-    background: var(--bg-hover);
-  }
-  .g-svc .ext {
-    display: inline-block;
-    vertical-align: -2px;
-    color: var(--text-3);
-  }
-
   /* ============ Tablet: the tiles in one row of eight beside the rail ============ */
   @media (min-width: 640px) {
     .g-tiles {
       grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+  }
+
+  /* ============ Desktop (Garis v5, garis/v5-beranda.css): what phones and tablets show, sized to the window ============ */
+  /* One column below 1280 px, in the phone's order (agenda, tiles, follow-ups, announcements, Kelola), 800 px at
+     most. The markup is in reading order for two columns (agenda, side column, announcements), so only Kelola
+     moves: to the end. */
+  .g-home-desk {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+    padding: 0 36px 36px;
+    align-items: start;
+    max-width: 800px;
+  }
+  .g-hd-agenda {
+    display: grid;
+    gap: 36px;
+    min-width: 0;
+  }
+  .g-hd-side {
+    display: contents;
+    gap: 36px;
+    align-content: start;
+    min-width: 0;
+  }
+  .g-hd-kelola {
+    order: 1;
+  }
+  .g-hd-excerpt {
+    margin-top: 3px;
+  }
+  /* The agenda card: taller days and a larger date, the chosen day's events with wider margins. */
+  .g-home-desk .g-ag-strip {
+    gap: 4px;
+    padding: 10px;
+  }
+  .g-home-desk .g-ag-day {
+    min-height: 88px;
+    padding: 14px 0 12px;
+    gap: 4px;
+  }
+  .g-home-desk .g-ag-day .dn {
+    font-size: 20px;
+  }
+  .g-home-desk .g-ag-day .g-mbars {
+    width: min(32px, 50%);
+  }
+  .g-home-desk .g-ag-list {
+    padding: 4px 20px 6px;
+  }
+  .g-home-desk .g-ag-empty {
+    padding: 20px;
+  }
+  .g-home-desk .g-ag-state .g-day-skel {
+    padding: 0 20px;
+  }
+  .g-home-desk .g-tiles {
+    gap: 20px 8px;
+  }
+  /* From 1280 px: two columns up to 1440 px. The agenda and the announcements under it on the left; the side column
+     (tiles level with the agenda, then follow-ups and Kelola) spans both rows on the right. The second row is
+     flexible, so a tall side column never pushes the announcements away from the agenda. */
+  @media (min-width: 1280px) {
+    .g-home-desk {
+      grid-template-columns: minmax(0, 1fr) clamp(344px, 30%, 400px);
+      grid-template-rows: auto 1fr;
+      gap: 36px 40px;
+      max-width: 1440px;
+    }
+    .g-hd-agenda {
+      grid-area: 1 / 1;
+    }
+    .g-hd-unread {
+      grid-area: 2 / 1;
+    }
+    .g-hd-side {
+      display: grid;
+      grid-area: 1 / 2 / 3;
+    }
+    .g-hd-kelola {
+      order: 0;
+    }
+    .g-home-desk .g-tiles {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 

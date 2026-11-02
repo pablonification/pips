@@ -254,6 +254,15 @@ test.describe('Raka', () => {
     await expect(
       page.getByRole('button', { name: 'Masuk dengan Google' }),
     ).toBeVisible();
+    // V5: it ends on the Masuk screen, its keyboard header back on the first slide.
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Halo, Pips!' }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByRole('region', { name: 'Kenalan dengan PIPS!' })
+        .getByRole('button', { name: 'Pengumuman', exact: true }),
+    ).toHaveAttribute('aria-current', 'true');
     // The order: the device first (it needs no session), then the session.
     const order = api.writes.map((w) => `${w.method} ${w.path}`);
     expect(order).toEqual(['PUT /api/push/logout', 'POST /api/logout']);
@@ -495,4 +504,259 @@ test('opened directly, Profil and its pages light no tab; reached from a tab, th
     .click();
   await expect(page).toHaveURL(/\/profil\/matkul$/);
   await expect(lit).toHaveAccessibleName(/^Kalender/);
+});
+
+/* ---- Garis v5: the member card's halftone, sheen and tilt ---- */
+
+/** Records every CSS animation that starts, from the first paint (the sheen's sweep starts 250 ms in). */
+const recordAnimations = (page: Page) =>
+  page.addInitScript(() => {
+    const w = window as unknown as { __started: string[] };
+    w.__started = [];
+    document.addEventListener(
+      'animationstart',
+      (e) => w.__started.push(e.animationName),
+      true,
+    );
+  });
+const started = (page: Page) =>
+  page.evaluate(() => (window as unknown as { __started: string[] }).__started);
+const cardOf = (page: Page) =>
+  card(page, 'Nadia Putri', '13525045').and(page.locator('.g-member'));
+/** The card's tilt and light: its custom properties, transform and the sheen's opacity. */
+const cardState = (page: Page) =>
+  cardOf(page).evaluate((c) => {
+    const s = getComputedStyle(c);
+    const sheen = c.querySelector('.g-m-sheen')!;
+    return {
+      rx: c.style.getPropertyValue('--rx'),
+      ry: c.style.getPropertyValue('--ry'),
+      mx: c.style.getPropertyValue('--mx'),
+      lit: c.classList.contains('lit'),
+      transform: s.transform,
+      sheen: getComputedStyle(sheen).opacity,
+      sheenShown: getComputedStyle(sheen).display !== 'none',
+    };
+  });
+
+/** The logo, whole and on top: every point of it is the logo itself, even with the halftone and sheen made hit-able. */
+async function logoUncovered(page: Page) {
+  const c = cardOf(page);
+  const logo = c.locator('img');
+  await expect(logo).toHaveAttribute('src', '/logo/hmif.png');
+  const result = await c.evaluate((card) => {
+    const img = card.querySelector('img')!;
+    const layers = [
+      ...card.querySelectorAll<HTMLElement>('.g-m-ht, .g-m-sheen'),
+    ];
+    // Hit-testing skips pointer-events: none, so let the halftone and sheen take hits while we look.
+    for (const l of layers) l.style.pointerEvents = 'auto';
+    const r = img.getBoundingClientRect();
+    const misses: string[] = [];
+    for (const fx of [0.05, 0.5, 0.95])
+      for (const fy of [0.05, 0.5, 0.95]) {
+        const hit = document.elementFromPoint(
+          r.left + r.width * fx,
+          r.top + r.height * fy,
+        );
+        if (hit !== img)
+          misses.push(`${fx},${fy}: ${hit?.className || hit?.tagName}`);
+      }
+    for (const l of layers) l.style.pointerEvents = '';
+    const s = getComputedStyle(img);
+    return {
+      misses,
+      filter: s.filter,
+      opacity: s.opacity,
+      natural: img.naturalWidth,
+      // Its own width, not the box a tilt projects.
+      w: img.offsetWidth,
+    };
+  });
+  expect(result.misses).toEqual([]);
+  expect(result.filter).toBe('none');
+  expect(result.opacity).toBe('1');
+  expect(result.natural).toBe(800);
+  expect(result.w).toBe(72);
+}
+
+test.describe('the member card (v5)', () => {
+  test.use({ motion: 'on', reducedMotion: 'no-preference' });
+
+  test('the halftone sits across the lower right, below the logo; the logo stays uncovered', async ({
+    page,
+  }, testInfo) => {
+    await page.goto('/profil');
+    const c = cardOf(page);
+    await expect(c).toBeVisible();
+    const ht = c.locator('.g-m-ht');
+    await expect(ht.locator('svg rect').first()).toBeAttached();
+    const geo = await c.evaluate((card) => {
+      const box = (el: Element) => el.getBoundingClientRect();
+      const cr = box(card);
+      const ht = card.querySelector('.g-m-ht')!;
+      const hr = box(ht);
+      const lr = box(card.querySelector('.g-logo-plate')!);
+      const s = getComputedStyle(ht);
+      return {
+        htTop: hr.top,
+        htRight: Math.round(cr.right - hr.right),
+        htBottom: Math.round(cr.bottom - hr.bottom),
+        htWidth: hr.width / cr.width,
+        logoBottom: lr.bottom,
+        logoLeft: lr.left,
+        color: s.color,
+        z: s.zIndex,
+        hidden: ht.getAttribute('aria-hidden'),
+      };
+    });
+    // Below the logo, never over it; flush with the card's right and bottom edges, 62 % of its width.
+    expect(geo.htTop).toBeGreaterThanOrEqual(geo.logoBottom);
+    expect(geo.htRight).toBe(0);
+    expect(geo.htBottom).toBe(0);
+    expect(geo.htWidth).toBeCloseTo(0.62, 2);
+    // Ink at 13 % in both themes: the card is gold in both.
+    expect(geo.color).toBe('rgba(27, 21, 8, 0.13)');
+    expect(geo.z).toBe('0');
+    expect(geo.hidden).toBe('true');
+    await logoUncovered(page);
+    await strictAudit(page, testInfo, 'profil-card-v5');
+  });
+
+  test('the sheen sweeps once on arrival; the card tilts toward the pointer (at most 8°), the sheen follows, and it settles back', async ({
+    page,
+  }, testInfo) => {
+    await recordAnimations(page);
+    await page.goto('/profil');
+    const c = cardOf(page);
+    await expect(c).toBeVisible();
+    // The sweep: once, when the card appears.
+    await expect.poll(() => started(page)).toContain('g-m-sweep');
+    await page.waitForTimeout(1500);
+    expect((await started(page)).filter((n) => n === 'g-m-sweep')).toHaveLength(
+      1,
+    );
+    // Its light: white, softer in dark mode.
+    const sheenBg = await c
+      .locator('.g-m-sheen')
+      .evaluate((s) => getComputedStyle(s).backgroundImage);
+    expect(sheenBg).toContain(
+      testInfo.project.name.includes('dark')
+        ? 'rgba(255, 255, 255, 0.28)'
+        : 'rgba(255, 255, 255, 0.38)',
+    );
+    let at = await cardState(page);
+    expect(at.lit).toBe(false);
+    expect(at.sheen).toBe('0');
+
+    // The pointer toward the top left corner (a tenth in, so the tipped card stays under it): the card leans that
+    // way and lights up.
+    const box = (await c.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.move(box.x + box.width * 0.1, box.y + box.height * 0.1, {
+      steps: 5,
+    });
+    await expect.poll(async () => (await cardState(page)).lit).toBe(true);
+    at = await cardState(page);
+    const rx = parseFloat(at.rx);
+    const ry = parseFloat(at.ry);
+    expect(rx).toBeCloseTo(-6.4, 0);
+    expect(ry).toBeCloseTo(4.8, 0);
+    expect(parseFloat(at.mx)).toBeCloseTo(10, -1);
+    await expect.poll(async () => (await cardState(page)).sheen).toBe('1');
+    expect(at.transform).not.toBe('none');
+    // The sheen follows the pointer to the right.
+    await page.mouse.move(box.x + box.width * 0.9, box.y + box.height / 2, {
+      steps: 5,
+    });
+    await expect
+      .poll(async () => parseFloat((await cardState(page)).mx))
+      .toBeGreaterThan(85);
+    expect(parseFloat((await cardState(page)).rx)).toBeLessThanOrEqual(8);
+    // The logo is still on top while the card is lit and tilted.
+    await logoUncovered(page);
+
+    // Away from the card: it settles back flat and the sheen fades.
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height + 120, {
+      steps: 3,
+    });
+    await expect.poll(async () => (await cardState(page)).lit).toBe(false);
+    at = await cardState(page);
+    expect(at.rx).toBe('');
+    expect(at.ry).toBe('');
+    await expect
+      .poll(async () => (await cardState(page)).transform)
+      // Flat again: no turn left, only the perspective (its −1/700 term).
+      .toMatch(
+        /^matrix3d\(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -0\.00142857, 0, 0, 0, 1\)$/,
+      );
+    await expect.poll(async () => (await cardState(page)).sheen).toBe('0');
+  });
+
+  test('a finger tilts it too, and lifting it away settles the card', async ({
+    page,
+  }) => {
+    await page.goto('/profil');
+    const c = cardOf(page);
+    await expect(c).toBeVisible();
+    const box = (await c.boundingBox())!;
+    // A touch drag as the browser reports it: pointer events of type touch over the card, then out of it.
+    await c.evaluate((card, b) => {
+      const at = (x: number, y: number, type: string, related?: Element) =>
+        card.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            pointerType: 'touch',
+            isPrimary: true,
+            clientX: x,
+            clientY: y,
+            relatedTarget: related ?? null,
+          }),
+        );
+      at(b.x + b.width / 2, b.y + b.height / 2, 'pointerover');
+      at(b.x + b.width - 2, b.y + b.height - 2, 'pointermove');
+    }, box);
+    let at = await cardState(page);
+    expect(at.lit).toBe(true);
+    expect(parseFloat(at.rx)).toBeGreaterThan(7);
+    expect(parseFloat(at.ry)).toBeLessThan(-5);
+    await c.evaluate((card) =>
+      card.dispatchEvent(
+        new PointerEvent('pointerout', {
+          bubbles: true,
+          pointerType: 'touch',
+          relatedTarget: document.body,
+        }),
+      ),
+    );
+    at = await cardState(page);
+    expect(at.lit).toBe(false);
+    expect(at.rx).toBe('');
+  });
+});
+
+test.describe('the member card under reduced motion (v5)', () => {
+  test.use({ motion: 'on', reducedMotion: 'reduce' });
+
+  test('no sweep, no sheen and no tilt; the halftone stays and the logo is uncovered', async ({
+    page,
+  }) => {
+    await recordAnimations(page);
+    await page.goto('/profil');
+    const c = cardOf(page);
+    await expect(c).toBeVisible();
+    await expect(c.locator('.g-m-ht svg')).toBeAttached();
+    await page.waitForTimeout(1500);
+    expect(await started(page)).not.toContain('g-m-sweep');
+    const box = (await c.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.move(box.x + 4, box.y + 4, { steps: 5 });
+    await page.waitForTimeout(200);
+    const at = await cardState(page);
+    expect(at.lit).toBe(false);
+    expect(at.rx).toBe('');
+    expect(at.transform).toBe('none');
+    expect(at.sheenShown).toBe(false);
+    await logoUncovered(page);
+  });
 });

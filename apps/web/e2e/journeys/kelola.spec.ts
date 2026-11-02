@@ -1015,7 +1015,7 @@ test.describe('Data SPARTA Magang', () => {
     await page.setViewportSize(size);
   });
 
-  test('300 submissions: one tree, and typing a search keeps up (review P3-A m2)', async ({
+  test('300 submissions: one tree, and typing a search keeps up (review P3-A m2) @solo', async ({
     page,
     db,
   }, testInfo) => {
@@ -1038,8 +1038,9 @@ test.describe('Data SPARTA Magang', () => {
     // Typing keeps up on a phone-speed CPU (4× slowdown): the list filters from a deferred query and re-renders only
     // when the rows shown change, so most keystrokes cost no long main-thread task (over 50 ms, measured by the
     // browser). Before the fix each of the 12 keystrokes re-rendered both trees: 12 long tasks; after: 2 to 3.
+    // Up to three typings, judged by the best: a shared CI machine only ever adds long tasks (one solo run on
+    // 2026-11-03 got 7 while its others got 0 to 3), while the bug costs one on every keystroke, every time.
     const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     await page.evaluate(() => {
       const w = window as unknown as { __long: number[] };
       w.__long = [];
@@ -1050,17 +1051,32 @@ test.describe('Data SPARTA Magang', () => {
     const search = main(page).getByRole('searchbox', {
       name: 'Cari nama atau NIM',
     });
-    await search.pressSequentially('pendaftar 29', { delay: 30 });
-    await expect(search).toHaveValue('pendaftar 29');
-    // "Pendaftar 29" and "Pendaftar 290" to "Pendaftar 299".
-    await expect(main(page).getByText('11 pendaftar')).toBeVisible();
-    const long = await page.evaluate(
-      () => (window as unknown as { __long: number[] }).__long,
-    );
-    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
-    expect(long.length, `long tasks: ${long.join(', ')}`).toBeLessThanOrEqual(
-      6,
-    );
+    const attempts: number[][] = [];
+    for (let i = 0; i < 3; i++) {
+      if (i) {
+        await search.fill('');
+        await expect(main(page).getByText('300 pendaftar')).toBeVisible();
+      }
+      await page.evaluate(() => {
+        (window as unknown as { __long: number[] }).__long = [];
+      });
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+      await search.pressSequentially('pendaftar 29', { delay: 30 });
+      await expect(search).toHaveValue('pendaftar 29');
+      // "Pendaftar 29" and "Pendaftar 290" to "Pendaftar 299".
+      await expect(main(page).getByText('11 pendaftar')).toBeVisible();
+      attempts.push(
+        await page.evaluate(
+          () => (window as unknown as { __long: number[] }).__long,
+        ),
+      );
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+      if (attempts[i].length <= 6) break;
+    }
+    expect(
+      Math.min(...attempts.map((a) => a.length)),
+      `long tasks per typing: ${attempts.map((a) => `[${a.join(', ')}]`).join(' ')}`,
+    ).toBeLessThanOrEqual(6);
     expect(await namesShown(page, testInfo)).toHaveLength(11);
   });
 

@@ -1,17 +1,16 @@
 /**
  * Testi Matkul (garis/screens-more.js `scrTesti` and its helpers): read-only testimonials, by programme → semester →
  * course, or by searching every course by code or name from the start. Programme, list and course are path params
- * (P0-B, today's values, which P1-A links to); the searches are `q` and the testimonial is `page` (1-based).
+ * (P0-B, today's values, which P1-A links to); the searches are `q`. Since Garis v5 a course page shows every
+ * testimonial at once, read by scrolling; today's `page` is still accepted so old links open, and changes nothing.
  */
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi, Link, Navigate } from '@tanstack/react-router';
-import type { ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { ApiError, type Course } from '~/api/generated';
+import { ApiError, type Course, type Testimoni } from '~/api/generated';
 import {
   Avatar,
-  Button,
-  Card,
   EmptyState,
   ErrorState,
   LinkButton,
@@ -22,7 +21,6 @@ import {
   SkeletonBlock,
 } from '~/components/garis';
 import { IconFolder } from '~/components/icons/folder';
-import { IconLanjut } from '~/components/icons/lanjut';
 import { DESKTOP_QUERY, useMediaQuery } from '~/components/garis/useMediaQuery';
 import { DeskHead, PageBody, usePageTitle } from '~/components/shell/page';
 import { useTambahTestimoni } from '~/features/kelola-testi/Manage';
@@ -30,6 +28,7 @@ import { fill } from '~/copy/fill';
 import { testi as copy } from '~/copy/testi';
 import { DEBOUNCE_TIME } from '~/lib/constants';
 import { serviceById } from '~/lib/services';
+import { cn } from '~/lib/utils';
 import { noFolderToast } from '~/features/dingdong/no-folder';
 import {
   Loaded,
@@ -42,8 +41,9 @@ import { catalogueQuery, courseQuery, testimoniQuery } from './queries';
 import { CourseRow, CourseSkeleton, FolderRowContent, NotFound } from './parts';
 import {
   authorOf,
-  clampIndex,
   codeLine,
+  columnsFor,
+  isLong,
   linkSegments,
   listCourses,
   listOfSlug,
@@ -74,11 +74,14 @@ const SERVICE = () => serviceById('testi').label;
 function Page({
   title,
   gap = 'gap-4',
+  wide = false,
   actions,
   children,
 }: {
   title: string;
   gap?: string;
+  /** Desktop's 1,180 px column (a course page's testimonials, Garis v5's `testi-wide`). */
+  wide?: boolean;
   /** Desktop's header actions (P3-B's Tambah testimoni). */
   actions?: ReactNode;
   children: ReactNode;
@@ -86,7 +89,9 @@ function Page({
   return (
     <>
       <DeskHead title={title} actions={actions} />
-      <PageBody className={gap}>{children}</PageBody>
+      <PageBody wide={wide} className={gap}>
+        {children}
+      </PageBody>
     </>
   );
 }
@@ -278,99 +283,94 @@ export function TestiListScreen() {
   );
 }
 
-/** **Buka Ding Dong IF2110**: the course's folder in a new tab, or the toast when it has none. */
+/** **Buka Ding Dong IF2110**, in the course's header (Garis v5): the folder in a new tab, or the toast when it has none. */
 function DingdongLink({ course }: { course: Course }) {
   const label = fill(copy.bukaDingdong, { kode: course.code });
-  return (
-    <p>
-      {course.dingdongUrl ? (
-        <LinkButton asChild>
-          <a
-            href={course.dingdongUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <IconFolder size={16} />
-            {label}
-            <NewTab />
-          </a>
-        </LinkButton>
-      ) : (
-        <LinkButton onClick={() => noFolderToast(course.code)}>
-          <IconFolder size={16} />
-          {label}
-        </LinkButton>
-      )}
-    </p>
+  return course.dingdongUrl ? (
+    <LinkButton asChild>
+      <a href={course.dingdongUrl} target="_blank" rel="noopener noreferrer">
+        <IconFolder size={16} />
+        {label}
+        <NewTab />
+      </a>
+    </LinkButton>
+  ) : (
+    <LinkButton onClick={() => noFolderToast(course.code)}>
+      <IconFolder size={16} />
+      {label}
+    </LinkButton>
   );
 }
 
-/** Text as written, line breaks kept, its links opening in a new tab. */
+/** Text as written, line breaks kept (on the parent), its links opening in a new tab. */
 function Kept({ text }: { text: string }) {
-  return (
-    <p className="g-pre-line mt-0.5 t-sm">
-      {linkSegments(text).map((s, i) =>
-        s.href ? (
-          <a
-            key={i}
-            href={s.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-accent underline underline-offset-2"
-          >
-            {s.text}
-            <NewTab />
-          </a>
-        ) : (
-          s.text
-        ),
-      )}
-    </p>
+  return linkSegments(text).map((s, i) =>
+    s.href ? (
+      <a
+        key={i}
+        href={s.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-accent underline underline-offset-2"
+      >
+        {s.text}
+        <NewTab />
+      </a>
+    ) : (
+      s.text
+    ),
   );
 }
 
-function Pager({ index, count }: { index: number; count: number }) {
-  const navigate = courseRoute.useNavigate();
-  const go = (to: number) => {
-    if (to < 0 || to >= count) return;
-    void navigate({
-      search: (prev) => ({ ...prev, page: to + 1 }),
-      replace: true,
-    });
-  };
-  const first = index === 0;
-  const last = index >= count - 1;
+/**
+ * One testimonial (Garis v5's `testiCard`): the author, then the programme's sections and Dosen. A section over 280
+ * characters folds to six lines behind **Baca selengkapnya**, which becomes **Ringkas lagi** once open.
+ */
+function TestiCard({ major, t }: { major: Course['major']; t: Testimoni }) {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  const by = authorOf(t.userName);
+  const secs = sections(major, t);
+  const long = secs.some((s) => isLong(s.text));
   return (
-    <div className="g-pager">
-      <Button
-        variant="paper"
-        size="sm"
-        aria-label={copy.sebelumnyaLabel}
-        aria-disabled={first || undefined}
-        onClick={() => go(index - 1)}
-      >
-        <IconLanjut size={16} className="rotate-180" />
-        <span className="lbl">{copy.sebelumnya}</span>
-      </Button>
-      <span className="t-cap text-fg-2 num">
-        {fill(copy.posisi, { ke: index + 1, jumlah: count })}
-      </span>
-      <Button
-        variant="paper"
-        size="sm"
-        aria-label={copy.berikutnyaLabel}
-        aria-disabled={last || undefined}
-        onClick={() => go(index + 1)}
-      >
-        <span className="lbl">{copy.berikutnya}</span>
-        <IconLanjut size={16} />
-      </Button>
-    </div>
+    <li className="g-card g-testi-card">
+      <div className="g-byline">
+        <Avatar initials={by.initials} />
+        <h3 className="t-label strong">{by.name}</h3>
+      </div>
+      <dl className="g-testi-secs" id={id}>
+        {secs.map((s) => (
+          <div key={s.key}>
+            <dt className="t-label strong text-accent">{s.title}</dt>
+            <dd
+              className={cn(
+                'g-pre-line t-sm',
+                long && !open && isLong(s.text) && 'fold',
+              )}
+            >
+              <Kept text={s.text} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {long ? (
+        <LinkButton
+          aria-expanded={open}
+          aria-controls={id}
+          onClick={() => setOpen((o) => !o)}
+        >
+          {open ? copy.ringkasLagi : copy.bacaSelengkapnya}
+        </LinkButton>
+      ) : null}
+    </li>
   );
 }
 
+/**
+ * Every testimonial at once, in the API's order (Garis v5): one stack on phones, columns of at least 300 px wider up
+ * (two on tablets and 1024 px desktops, three at 1440). Columns read top to bottom, as the keyboard does.
+ */
 function Testimonials({ course }: { course: Course }) {
-  const { page } = courseRoute.useSearch();
   const list = useQuery(testimoniQuery(course.id));
   return (
     <Loaded
@@ -383,44 +383,22 @@ function Testimonials({ course }: { course: Course }) {
         </Skeleton>
       }
     >
-      {(all) => {
-        if (!all.length)
-          return (
-            <EmptyState title={copy.belumAdaTestimoni} text={copy.kosongIsi} />
-          );
-        const i = clampIndex(page, all.length);
-        const t = all[i];
-        const by = authorOf(t.userName);
-        return (
-          <>
-            <Card
-              className="g-testi-card"
-              role="article"
-              aria-label={fill(copy.testimoniKe, {
-                ke: i + 1,
-                jumlah: all.length,
-              })}
-            >
-              <div className="g-byline">
-                <Avatar initials={by.initials} />
-                <p className="t-label strong">{by.name}</p>
-              </div>
-              {sections(course.major, t).map((s) => (
-                <div key={s.key}>
-                  <h3 className="t-label strong text-accent">{s.title}</h3>
-                  <Kept text={s.text} />
-                </div>
-              ))}
-            </Card>
-            <Pager index={i} count={all.length} />
-          </>
-        );
-      }}
+      {(all) =>
+        all.length ? (
+          <ul className="g-testi-grid" data-n={columnsFor(all.length)}>
+            {all.map((t) => (
+              <TestiCard key={t.id} major={course.major} t={t} />
+            ))}
+          </ul>
+        ) : (
+          <EmptyState title={copy.belumAdaTestimoni} text={copy.kosongIsi} />
+        )
+      }
     </Loaded>
   );
 }
 
-/** A course's page (`scrTesti` with a code): code and credits, the name, one testimonial and the pager. */
+/** A course's page (`scrTesti` with a code): code and credits, the name and Buka Ding Dong, then every testimonial. */
 export function TestiCourseScreen() {
   const { courseId } = courseRoute.useParams();
   const catalogue = useQuery(catalogueQuery());
@@ -469,18 +447,22 @@ export function TestiCourseScreen() {
   return (
     <Page
       title={testiTitle({ code: course.code }) ?? SERVICE()}
+      gap="g-testi-page"
+      wide
       actions={desk ? tambah.button : undefined}
     >
-      <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="t-cap text-fg-2 num">{codeLine(course)}</p>
-          <h2 className="mt-0.5 t-title">{course.name}</h2>
+      <div className="g-testi-head">
+        <div className="flex min-w-0 flex-auto items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="t-cap text-fg-2 num">{codeLine(course)}</p>
+            <h2 className="mt-0.5 t-title">{course.name}</h2>
+          </div>
+          {/* P3-B: phones and tablets put Tambah testimoni at the end of the course's header row. */}
+          {desk ? null : tambah.button}
         </div>
-        {/* P3-B: phones and tablets put Tambah testimoni at the end of the course's header row. */}
-        {desk ? null : tambah.button}
+        <DingdongLink course={course} />
       </div>
       <Testimonials course={course} />
-      <DingdongLink course={course} />
       {tambah.dialog}
     </Page>
   );

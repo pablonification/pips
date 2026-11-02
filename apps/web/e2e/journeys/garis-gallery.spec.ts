@@ -131,9 +131,9 @@ test('Seg is a radio group the arrow keys move; Switch and Chip report their sta
   await expect(chip).toHaveAttribute('aria-pressed', 'true');
 });
 
-// Review M4: chips could only be toggle buttons; the prototype also uses them as checkboxes (the composer's categories)
-// and as a radio group (the class picker).
-test('chips work as toggles, as checkboxes with a check, and as a radio group with one tab stop and arrow keys', async ({
+// Review M4: chips could only be toggle buttons; the prototype also uses them as checkboxes (the composer's categories).
+// Garis v5 dropped the class picker, the only radio group of chips, so ChipGroup is gone with it.
+test('chips work as toggles and as checkboxes with a check; no radio chips are left (v5)', async ({
   page,
 }) => {
   await open(page);
@@ -152,31 +152,8 @@ test('chips work as toggles, as checkboxes with a check, and as a radio group wi
   await akademik.click();
   await expect(akademik).not.toBeChecked();
 
-  const kelas = page.getByRole('radiogroup', { name: 'Kelas IF2110' });
-  const k = (n: number) => kelas.getByRole('radio', { name: `K${n}` });
-  for (const n of [1, 2, 3]) await expect(k(n)).not.toBeChecked();
-  // One tab stop: the first chip while none is chosen.
-  await expect(kelas.locator('[tabindex="0"]')).toHaveCount(1);
-  await expect(k(1)).toHaveAttribute('tabindex', '0');
-  await k(1).focus();
-  await page.keyboard.press('ArrowRight');
-  await expect(k(2)).toBeChecked();
-  await expect(k(2)).toBeFocused();
-  await expect(k(2)).toHaveAttribute('tabindex', '0');
-  await expect(k(1)).toHaveAttribute('tabindex', '-1');
-  await page.keyboard.press('End');
-  await expect(k(3)).toBeChecked();
-  await page.keyboard.press('ArrowRight');
-  await expect(k(1)).toBeChecked();
-  await expect(k(1)).toBeFocused();
-  await page.keyboard.press('ArrowLeft');
-  await expect(k(3)).toBeChecked();
-  await page.keyboard.press('Home');
-  await expect(k(1)).toBeChecked();
-  await expect(k(3)).not.toBeChecked();
-  // Choosing the chosen class again clears it, as in the prototype.
-  await k(1).click();
-  for (const n of [1, 2, 3]) await expect(k(n)).not.toBeChecked();
+  await expect(page.getByRole('radiogroup', { name: /^Kelas/ })).toHaveCount(0);
+  await expect(page.getByText(/\bKelas\b/)).toHaveCount(0);
 });
 
 test('fields name their hint or error, and mark the error invalid', async ({
@@ -590,9 +567,8 @@ test('on touch layouts every small control has a 44 px hit area, and the gold ac
     'checkbox chip',
     page.getByRole('group', { name: 'Kategori' }).getByRole('checkbox').first(),
   );
-  await measure('radio chip', page.getByRole('radio', { name: 'K1' }));
   await measure('disclosure', page.locator('.g-disclosure > summary').first());
-  expect(checked.length).toBe(17);
+  expect(checked.length).toBe(16);
 });
 
 test('every HMIF logo is the official file, whole, unstretched and at least 40 px wide; icons are inline SVG', async ({

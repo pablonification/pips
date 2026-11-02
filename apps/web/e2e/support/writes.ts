@@ -15,6 +15,7 @@ import type {
   Testimoni,
 } from '../../src/api/generated';
 import {
+  DEFAULT_COURSE_CLASS,
   NOW,
   authorOf,
   formStatusFor,
@@ -246,24 +247,30 @@ export const submitSparta: Handler = ({ db, body }) =>
 /* ---- P1-C: courses, notification categories, push, sign-in and sign-out ---- */
 
 /**
- * PUT /api/course/take/batch — `[{ courseId, class }]` into this semester. Like the API's upsert on
- * `(userId, courseId)`: a course already in the list only changes its class (and keeps its semester: the known
- * re-take bug, OPEN-QUESTIONS C2). 404 if a course doesn't exist.
+ * PUT /api/course/take/batch — `[{ courseId, class? }]` into this semester, as the API: a missing class is stored as
+ * the default class (Garis v5's app sends none; an older client's class is kept). Like the API's upsert on
+ * `(userId, courseId)`, a course already in the list takes the new class and moves to this semester
+ * (OPEN-QUESTIONS C2). 404 if a course doesn't exist; 400 if a class isn't a number.
  */
 export const takeCourses: Handler = ({ db, body }) => {
-  const picks = body as Array<{ courseId: string; class: number }>;
+  const picks = body as Array<{ courseId: string; class?: unknown }>;
+  if (picks.some((p) => p.class !== undefined && typeof p.class !== 'number'))
+    return reply.json({ error: 'class must be a number' }, 400);
   if (picks.some((p) => !db.courses.some((c) => c.id === p.courseId)))
     return reply.json({ error: 'Some courses not found' }, 404);
   const rows = picks.map((p) => {
+    const kelas = (p.class as number | undefined) ?? DEFAULT_COURSE_CLASS;
     const existing = db.myCourses.find((m) => m.courseId === p.courseId);
     if (existing) {
-      existing.class = p.class;
+      existing.class = kelas;
+      existing.semesterCodeTaken = db.academic.semesterCode;
+      existing.semesterYearTaken = db.academic.semesterYear;
       return existing;
     }
     const row = {
       userId: db.me!.id,
       courseId: p.courseId,
-      class: p.class,
+      class: kelas,
       semesterCodeTaken: db.academic.semesterCode,
       semesterYearTaken: db.academic.semesterYear,
       course: db.courses.find((c) => c.id === p.courseId)!,

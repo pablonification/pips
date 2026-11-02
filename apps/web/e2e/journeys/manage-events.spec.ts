@@ -163,7 +163,7 @@ test.describe('Raka adds an Akademik event', () => {
     ).toBeVisible();
     await expect(field(page, 'Selesai')).toBeFocused();
     expect(posts(api)).toHaveLength(0);
-    // Selesai equal to Mulai: a deadline ("Batas" in Kalender), allowed.
+    // Selesai equal to Mulai: a deadline (one time in Kalender), allowed.
     await field(page, 'Selesai').fill('13:00');
     await d.getByRole('button', { name: 'Tambahkan' }).click();
     await expect(d).toBeHidden();

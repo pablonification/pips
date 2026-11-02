@@ -1,7 +1,7 @@
 /**
  * Profil, Mata kuliahku, Tambah mata kuliah, Notifikasi, Keluar, Kredit and Pasang PIPS! (P1-C). Words are the
  * prototype's (`garis/screens-more.js` `memberCard`, `scrProfil`, `scrMatkul`, `scrMatkulAdd`, `caddResults`,
- * `scrNotif`, `OV.confirm` logout; `garis/app.js` `rm-course`, `pick-k`, `add-courses`, `notif-cat`). Lines marked
+ * `scrNotif`, `OV.confirm` logout; `garis/app.js` `rm-course`, `pick-c`, `add-courses`, `notif-cat`). Lines marked
  * "new" have no prototype wording (OPEN-QUESTIONS D3, D5, D10) and are listed in the P1-C report.
  */
 export const profil = {
@@ -54,8 +54,7 @@ export const profil = {
     semester: 'Semester {semester} · {label}',
     dipakai: 'Dipakai untuk apa?',
     dipakaiIsi:
-      'Mata kuliah menentukan isi Ding Dong, acara Akademik di Kalender beserta pengingat H-1, dan pengumuman kelas yang kamu terima. Atur ulang tiap semester.',
-    kelas: 'Kelas {kelas}',
+      'Mata kuliah menentukan isi Ding Dong, acara Akademik di Kalender beserta pengingat H-1, dan notifikasi pengumuman untuk mata kuliahmu. Atur ulang tiap semester.',
     hapus: 'Hapus {kode} {nama} dari daftar',
     jumlahSks: 'Jumlah SKS',
     tambah: 'Tambah mata kuliah',
@@ -71,11 +70,9 @@ export const profil = {
     cari: 'Cari mata kuliah',
     placeholder: 'Cari kode atau nama, misalnya IF2211',
     tidakAda: 'Tidak ada mata kuliah untuk “{kata}”.',
-    kelasGrup: 'Kelas {kode}',
-    kelasPilihan: 'K{k}',
     tambahkan: 'Tambahkan',
     tambahkanJumlah: '({jumlah})',
-    pilihDulu: 'Pilih kelas (K1–K3) di mata kuliah yang mau kamu tambahkan.',
+    pilihDulu: 'Pilih mata kuliah yang mau kamu tambahkan.',
     ditambahkan:
       '{jumlah} mata kuliah ditambahkan. Ding Dong dan Kalender ikut diperbarui.',
     // New: sending the picks, and its failure (the picks stay).

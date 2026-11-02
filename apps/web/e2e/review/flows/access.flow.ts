@@ -31,7 +31,7 @@ flow(
         await f.open('/pengumuman/p1');
         await expect(page).toHaveURL(/\/login\?redirect=%2Fpengumuman%2Fp1$/);
         await expect(
-          page.getByRole('heading', { name: 'Masuk' }),
+          page.getByRole('heading', { name: 'Halo, Pips!' }),
         ).toBeVisible();
         await expect(page).toHaveTitle('Masuk · PIPS!');
         expect(api.calls('GET /api/info/:infoId')).toHaveLength(0);
@@ -83,7 +83,9 @@ flow(
     api.on('POST /api/auth/login/accesstoken', writes.loginNotAMember);
     await f.step('Masuk', async () => {
       await f.open('/login');
-      await expect(page.getByRole('heading', { name: 'Masuk' })).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Halo, Pips!' }),
+      ).toBeVisible();
       await googleReady(page);
     });
     await f.step(
@@ -183,19 +185,17 @@ flow(
         await f.gate('mulai-tambah');
       },
     );
-    await f.step('IF2110 K2 and IF2120 K1 picked', async () => {
+    await f.step('IF2110 and IF2120 picked', async () => {
       const search = main(page).getByRole('searchbox', {
         name: 'Cari mata kuliah',
       });
       await f.type(search, 'IF2110');
       await main(page)
-        .getByRole('radiogroup', { name: 'Kelas IF2110' })
-        .getByRole('radio', { name: 'K2' })
+        .getByRole('button', { name: /^IF2110 / })
         .click();
       await f.type(search, 'IF2120');
       await main(page)
-        .getByRole('radiogroup', { name: 'Kelas IF2120' })
-        .getByRole('radio', { name: 'K1' })
+        .getByRole('button', { name: /^IF2120 / })
         .click();
     });
     await f.step(
@@ -412,7 +412,9 @@ flow('signout', 'nadia', {}, async ({ page, f, api, db }) => {
       .getByRole('button', { name: 'Keluar' })
       .click();
     await expect(page).toHaveURL(/\/login(\?|$)/);
-    await expect(page.getByRole('heading', { name: 'Masuk' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Halo, Pips!' }),
+    ).toBeVisible();
     expect(api.calls('POST /api/logout')).toHaveLength(1);
     expect(
       await page.evaluate(() => localStorage.getItem('userAcademic')),

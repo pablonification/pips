@@ -57,3 +57,12 @@ export function nextOffset(pages: Competition[][]): number | undefined {
   if (!last || last.length < LOMBA_PAGE) return undefined;
   return pages.reduce((n, p) => n + p.length, 0);
 }
+
+/**
+ * The competition's poster (Garis v5): its first media by `order`, as today's card takes `medias[0].media.url`; null
+ * when it has none.
+ */
+export function posterUrl(c: Pick<Competition, 'medias'>): string | null {
+  const first = [...(c.medias ?? [])].sort((a, b) => a.order - b.order)[0];
+  return first?.media.url || null;
+}

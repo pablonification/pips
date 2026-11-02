@@ -49,6 +49,9 @@ goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
   has the feature; the other projects leave it out. Tablets are touch layouts below 1024 px, so they run
   `@phone-only` tests too. `support/app.ts` has `layoutOf(testInfo)` ('phone',
   'tablet' or 'desktop', the shell's three layouts) and `isPhone(testInfo)` (phone or tablet).
+- **Timed journeys:** tag a journey `@solo` when it times the main thread (long tasks, frame budgets). The journey
+  projects leave it out; `pnpm --filter web e2e:solo` runs it in `solo-<layout>-<theme>` with one worker, so no
+  neighbouring test competes for the CPU. CI runs it as its own job. The whole suite is `e2e`, then `e2e:solo`.
 - **The shell** (P0-C): `navLink(page, 'Beranda' | 'Pengumuman' | 'Kalender' | 'Layanan' | 'Profil')` finds a
   destination in whichever navigation the layout shows (Profil: your avatar, or your name in the sidebar);
   `greeting(page, 'Nadia')` is Beranda's "Halo, Nadia"; `inMain(page, text)` finds text in the page, not the

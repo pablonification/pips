@@ -6,6 +6,7 @@ import { fill } from '../src/copy/fill';
 import {
   ACRONYMS,
   BANNED_TERMS,
+  HOUSE_PHRASES,
   HOUSE_TERMS,
   PRODUCT_NAMES,
   PROPER_NOUNS,
@@ -43,6 +44,8 @@ export function glossaryProblems(text: string): string[] {
   let plain = text.replace(/\{\w+\}/g, ' '); // placeholders aren't words
   // Other products' names are taken whole ("Google Calendar"); a banned word inside one isn't the app's word.
   for (const name of PRODUCT_NAMES) plain = plain.split(name).join(' ');
+  // A house phrase is taken whole too ("Halo, Pips!"); the name written that way elsewhere is still caught.
+  for (const phrase of HOUSE_PHRASES) plain = plain.split(phrase).join(' ');
 
   for (const [banned, use] of BANNED_TERMS) {
     const re = new RegExp(
@@ -165,6 +168,8 @@ test('the check catches what it is for', () => {
   assert.ok(caught('Buka ding dong'));
   assert.ok(caught('Curhat Yuk sekarang'));
   assert.ok(caught('Cari di Pips'));
+  assert.ok(caught('Halo, Pips'));
+  assert.ok(caught('Masuk ke Pips!'));
   assert.ok(caught('Lowonginaja!'));
   assert.ok(caught('Buka Nim Finder'));
   // Capitals the app adds itself.
@@ -191,6 +196,7 @@ test('…and lets good copy through', () => {
     'Live Counting & Rekap Form',
     'Data SPARTA Magang',
     'Google Calendar',
+    'Halo, Pips!',
   ]) {
     assert.deepEqual(glossaryProblems(text), [], text);
   }

@@ -1,6 +1,6 @@
 /**
- * The locked Garis v4 prototype's sample data, ported as is from
- * ops/ui-revamp-review/runtime/extra/garis-v4/locked-2026-10-12/source/garis/data.js.
+ * The locked Garis v5 prototype's sample data, ported as is from
+ * ops/ui-revamp-review/runtime/extra/garis-v5/locked-2026-11-02/source/garis/data.js.
  *
  * This file keeps the prototype's own shapes so a reviewer can compare it line by line with data.js.
  * `api.ts` turns it into the real API's shapes. Where the two disagree, see NOTES.md.
@@ -139,24 +139,10 @@ export const COURSES: ProtoCourse[] = (
   drive,
 }));
 
-/** Courses each sample member set for this semester, with their class (K1–K3). */
-export const MY_COURSES: Record<PersonaKey, [string, number][]> = {
-  anggota: [
-    ['IF2110', 2],
-    ['IF2120', 2],
-    ['IF2123', 1],
-    ['IF2130', 2],
-    ['IF2150', 2],
-    ['IF2180', 3],
-  ],
-  pengurus: [
-    ['IF3110', 1],
-    ['IF3130', 1],
-    ['IF3140', 2],
-    ['IF3141', 1],
-    ['IF3151', 2],
-    ['IF3170', 1],
-  ],
+/** Courses each sample member set for this semester (Garis v5 has no class). */
+export const MY_COURSES: Record<PersonaKey, string[]> = {
+  anggota: ['IF2110', 'IF2120', 'IF2123', 'IF2130', 'IF2150', 'IF2180'],
+  pengurus: ['IF3110', 'IF3130', 'IF3140', 'IF3141', 'IF3151', 'IF3170'],
 };
 
 export interface ProtoEvent {
@@ -594,7 +580,13 @@ export interface ProtoLomba {
   open: string;
   close: string;
   price: number;
+  /** Garis v5: the sample poster's file name in garis/posters/ (and fixtures/posters/), without `.svg`. */
+  poster: string;
 }
+/**
+ * Info Lomba. REAL: the category list and a 3:4 poster for every competition. The competitions, dates, fees and
+ * posters are samples (the posters are original artwork in garis/posters/, with no organiser's logo).
+ */
 export const LOMBA: ProtoLomba[] = [
   {
     id: 'l2',
@@ -604,6 +596,7 @@ export const LOMBA: ProtoLomba[] = [
     open: wib(9, 21),
     close: wib(10, 14, 23, 59),
     price: 150000,
+    poster: 'compfest-ctf',
   },
   {
     id: 'l1',
@@ -618,6 +611,7 @@ export const LOMBA: ProtoLomba[] = [
     open: wib(10, 1),
     close: wib(10, 20, 23, 59),
     price: 0,
+    poster: 'gemastik',
   },
   {
     id: 'l3',
@@ -627,6 +621,7 @@ export const LOMBA: ProtoLomba[] = [
     open: wib(9, 28),
     close: wib(10, 25, 23, 59),
     price: 100000,
+    poster: 'hology-uiux',
   },
   {
     id: 'l4',
@@ -636,9 +631,35 @@ export const LOMBA: ProtoLomba[] = [
     open: wib(10, 5),
     close: wib(11, 2, 23, 59),
     price: 0,
+    poster: 'findit',
+  },
+  {
+    id: 'l5',
+    name: 'IT Today 2026: Business IT Case',
+    org: 'Institut Pertanian Bogor',
+    cats: ['Business IT Case'],
+    open: wib(10, 6),
+    close: wib(11, 9, 23, 59),
+    price: 75000,
+    poster: 'itoday-bic',
+  },
+  {
+    id: 'l6',
+    name: 'Technofest 2026: Game Development',
+    org: 'Universitas Telkom',
+    cats: ['Game Development', 'Innovation'],
+    open: wib(10, 2),
+    close: wib(11, 16, 23, 59),
+    price: 50000,
+    poster: 'technofest-game',
   },
 ];
 
+/**
+ * Testi Matkul. REAL: the browse path and the section names (IF: Overview, Tugas, Review Dosen; STI: Kesan,
+ * Tantangan, Saran; either may add Dosen, the lecturer's name, as `lecturer`). Counts and texts are samples. Lecturer
+ * names are left out on purpose.
+ */
 export type ProtoTesti =
   | { by: string; overview: string; tugas: string; dosen: string }
   | { by: string; kesan: string; tantangan: string; saran: string };
@@ -712,6 +733,31 @@ export const TESTI: Record<string, ProtoTesti[]> = {
         'Berat di awal kalau belum terbiasa C, tapi slide dan modul praktikumnya lengkap.',
       tugas: 'Kuis kecil hampir tiap dua minggu.',
       dosen: 'Tegas soal tenggat, jadi jangan menunda.',
+    },
+    {
+      by: 'Aulia, IF 2024',
+      overview:
+        'Kalau di Dasar Pemrograman masih bisa santai, di sini tidak. Minggu-minggu awal langsung pointer, lalu ADT list, stack, dan queue, sampai pohon. Pahami dulu alokasi memori sebelum masuk list berkait, karena hampir semua materi setelahnya dibangun di atas itu. Modul praktikum tiap minggu adalah latihan terbaik: kerjakan sendiri dulu sebelum melihat jawaban teman, lalu bandingkan caranya.',
+      tugas:
+        'Tubes 1 berupa game di terminal; Tubes 2 lebih besar dan butuh rancangan ADT yang matang sejak awal.',
+      dosen:
+        'Sabar menjawab pertanyaan, tapi materi berjalan cepat. Siapkan pertanyaan sebelum kelas.',
+    },
+    {
+      by: 'Anonim',
+      overview:
+        'Intinya belajar berpikir dalam ADT. Setelah terbiasa, kode tubes jadi jauh lebih rapi.',
+      tugas:
+        'Praktikum dinilai otomatis, jadi perhatikan format keluaran sampai spasi terakhir.',
+      dosen: 'Slide padat; rekaman kelas sangat membantu saat belajar ulang.',
+    },
+    {
+      by: 'Dimas, IF 2023',
+      overview:
+        'Ujian praktikum paling menegangkan karena waktunya terbatas dan tidak boleh membuka catatan.',
+      tugas:
+        'Soal praktikum tahun lalu ada di Ding Dong. Manfaatkan untuk latihan.',
+      dosen: 'Memberi kisi-kisi yang jelas sebelum UTS dan UAS.',
     },
   ],
   II2110: [

@@ -10,6 +10,7 @@ import {
   isUrgent,
   LOMBA_PAGE,
   nextOffset,
+  posterUrl,
   rupiah,
   withScheme,
 } from '../src/features/lomba/rules';
@@ -84,4 +85,32 @@ test('regression: the next offset counts what the API returned, and stops after 
   assert.equal(nextOffset([page(10), page(10)]), 20);
   assert.equal(nextOffset([page(10), page(2)]), undefined);
   assert.equal(nextOffset([page(3)]), undefined);
+});
+
+test('Garis v5: the poster is the first media by order, or none', () => {
+  const media = (order: number, url: string) => ({
+    competitionId: 'c',
+    mediaId: `m${order}`,
+    order,
+    media: {
+      id: `m${order}`,
+      creatorId: 'u',
+      name: `${order}.png`,
+      type: 'image/png',
+      url,
+      createdAt: '2026-10-01T00:00:00Z',
+    },
+  });
+  assert.equal(posterUrl({}), null);
+  assert.equal(posterUrl({ medias: [] }), null);
+  assert.equal(posterUrl({ medias: [media(0, '')] }), null);
+  assert.equal(
+    posterUrl({
+      medias: [
+        media(2, 'https://e.org/b.png'),
+        media(1, 'https://e.org/a.png'),
+      ],
+    }),
+    'https://e.org/a.png',
+  );
 });

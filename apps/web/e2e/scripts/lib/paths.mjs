@@ -39,8 +39,8 @@ export function lockedScreensDir() {
       'ui-revamp-review',
       'runtime',
       'extra',
-      'garis-v4',
-      'locked-2026-10-12',
+      'garis-v5',
+      'locked-2026-11-02',
       'screens',
     );
   return dir && existsSync(dir) ? dir : null;

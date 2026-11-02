@@ -2,7 +2,7 @@
 //
 // Captures every screen that e2e/fidelity/screens.ts maps, at the locked screens' sizes (phone 390 × 800 @2x,
 // tablet 834 × 1068, desktop 1440 × 956) in light and dark, then pairs each with
-// ops/ui-revamp-review/runtime/extra/garis-v4/locked-2026-10-12/screens/<name>.png (216 screens). For each pair
+// ops/ui-revamp-review/runtime/extra/garis-v5/locked-2026-11-02/screens/<name>.png (222 screens). For each pair
 // it computes a perceptual similarity (SSIM on luminance, 1 = identical) and the changed-pixel ratio, and writes
 // a side-by-side image (prototype | app | difference). Unmapped screens show as "not built yet".
 // Output: ops/redesign/fidelity/<timestamp>/index.html, with filters by layout, theme, persona and status.
@@ -40,7 +40,7 @@ export const CLOSE_SSIM = 0.95;
 const locked = lockedScreensDir();
 if (!locked) {
   console.error(
-    'The locked prototype screens were not found (ops/ui-revamp-review/runtime/extra/garis-v4/locked-2026-10-12/screens/).',
+    'The locked prototype screens were not found (ops/ui-revamp-review/runtime/extra/garis-v5/locked-2026-11-02/screens/).',
   );
   process.exit(1);
 }

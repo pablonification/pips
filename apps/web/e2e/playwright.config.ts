@@ -3,6 +3,7 @@
  *
  * Projects:
  * - journeys:  phone-light, phone-dark, tablet-light, tablet-dark, desktop-light, desktop-dark (e2e/journeys)
+ * - solo:      solo-<phone|tablet|desktop>-<theme>: the journeys tagged @solo, alone (`e2e:solo`, one worker)
  * - captures:  capture-phone-light … capture-desktop-dark (e2e/capture; used by e2e:before and e2e:compare-before)
  * - visual:    visual-phone-light … visual-desktop-dark (e2e/visual; reference screenshots)
  * - fidelity:  fidelity-<phone|tablet|desk>-<light|dark> (e2e/fidelity), at the locked prototype screens' sizes
@@ -72,7 +73,20 @@ const projects: Project[] = [
       name: `${size}-${theme}`,
       testDir: './journeys',
       // Tag a journey @phone-only or @desktop-only when only one layout has the feature. Tablets are touch layouts
-      // below 1024 px, so they run the @phone-only journeys too.
+      // below 1024 px, so they run the @phone-only journeys too. @solo journeys run in solo-* instead.
+      grepInvert:
+        size === 'desktop' ? /@phone-only|@solo/ : /@desktop-only|@solo/,
+      use: { ...JOURNEY_SIZES[size], colorScheme: theme },
+    })),
+  ),
+  // Journeys that time the main thread (@solo) run here, one test at a time with nothing beside them
+  // (`e2e:solo`, --workers=1): on CI's runner a neighbouring test's CPU use alone broke their budgets, before v5
+  // and after alike (2026-11-02).
+  ...(['phone', 'tablet', 'desktop'] as const).flatMap((size) =>
+    THEMES.map((theme) => ({
+      name: `solo-${size}-${theme}`,
+      testDir: './journeys',
+      grep: /@solo/,
       grepInvert: size === 'desktop' ? /@phone-only/ : /@desktop-only/,
       use: { ...JOURNEY_SIZES[size], colorScheme: theme },
     })),

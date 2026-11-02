@@ -14,11 +14,24 @@
  * Captures of the app area ('app') and of the window ('page') are viewport screenshots; for an 'element' screen,
  * `target` names the element. Unmapped screens show as "not built yet" in the report; PROTOTYPE_ONLY are skipped.
  */
-import type { Locator, Page } from '@playwright/test';
+import {
+  expect,
+  type BrowserContext,
+  type Locator,
+  type Page,
+} from '@playwright/test';
 import { pixelSections } from '../support/flows';
 import * as writes from '../support/writes';
-import { liveAsLocked, type FidelityScreen } from './screens';
+import {
+  liveAsLocked,
+  openPosterViewer,
+  posterViewerReady,
+  type FidelityScreen,
+} from './screens';
 import { inFeed } from '../support/pengumuman';
+import { fakeGoogle, googleAnswers, googleRequests } from '../support/google';
+import { reply } from '../support/mock';
+import { MASUK_ERRORS } from './names.mjs';
 
 export interface ExtraCapture extends FidelityScreen {
   persona?: 'anggota' | 'pengurus' | null;
@@ -63,6 +76,19 @@ const beranda: ExtraCapture = {
       .filter({ has: p.getByText('PIXEL, isi Form Analisis Kondisi ya!') }),
 };
 
+/** Garis v5: Raka's desktop Beranda, ready as screens.ts's `pengurus-beranda`. */
+const berandaRaka: ExtraCapture = {
+  persona: 'pengurus',
+  path: '/',
+  ready: (p) =>
+    p
+      .getByRole('main')
+      .filter({ has: p.getByText('IF3170 Inteligensi Buatan') })
+      .filter({ has: p.getByText('Deadline Tugas Besar 1 · IF3110') })
+      .filter({ has: p.getByText('Cari tim Gemastik XIX? Isi form ini') })
+      .filter({ has: p.getByText('142', { exact: true }) }),
+};
+
 /** P1-A: Nadia's Kalender on Jumat 9 Oktober with Deadline Tugas Besar 1 open (a sheet, a centred panel on tablets). */
 const deadlineSheet: ExtraCapture = {
   path: '/kalender?hari=2026-10-09',
@@ -78,7 +104,97 @@ const deadlineSheet: ExtraCapture = {
     }),
 };
 
+/**
+ * V5 Masuk: signed out at /login, ready once the header has answered the first slide (at once under reduced motion;
+ * the prototype's captures wait out its entrance). The errors and loading are reached as the real app reaches them
+ * (garis-check.mjs uses `&hasil=`): Google's fake script answers, or doesn't load at all for "skrip".
+ */
+const masukButton = (p: Page) =>
+  p.getByRole('button', { name: /^Masuk dengan Google$|^Masuk…$/ });
+const masukMain = (p: Page) =>
+  p
+    .getByRole('main')
+    .filter({ has: p.locator('.g-mk-key.on') })
+    .filter({ has: masukButton(p) });
+const masuk: ExtraCapture = {
+  path: '/login',
+  persona: null,
+  ready: masukMain,
+};
+async function masukPress(
+  p: Page,
+  ctx: { api: import('../support/mock').ApiMock; context: BrowserContext },
+  hasil: (typeof MASUK_ERRORS)[number] | 'loading',
+) {
+  if (hasil !== 'skrip') {
+    await fakeGoogle(ctx.context);
+    await p.reload();
+    await expect
+      .poll(async () => (await googleRequests(p)).clients.length)
+      .toBe(1);
+  }
+  const answer = {
+    '401': writes.loginNotAMember,
+    gagal: writes.loginServerError,
+    loading: reply.hang(),
+  } as const;
+  if (hasil in answer)
+    ctx.api.on(
+      'POST /api/auth/login/accesstoken',
+      answer[hasil as keyof typeof answer],
+    );
+  if (hasil === 'popup') await googleAnswers(p, 'blocked');
+  await masukButton(p).click();
+}
+const MASUK_MESSAGES = {
+  '401':
+    'Akun ini belum bisa masuk. Pakai email mahasiswa (NIM@std.stei.itb.ac.id); kalau sudah, akunmu mungkin belum ada di daftar anggota HMIF.',
+  gagal: 'PIPS! belum bisa memproses masuk. Periksa koneksimu, lalu coba lagi.',
+  popup:
+    'Jendela masuk Google diblokir browser. Izinkan pop-up untuk PIPS!, lalu coba lagi.',
+  skrip: 'PIPS! belum bisa memproses masuk. Periksa koneksimu, lalu coba lagi.',
+} as const;
+const masukError = (hasil: (typeof MASUK_ERRORS)[number]): ExtraCapture => ({
+  ...masuk,
+  act: (p, ctx) => masukPress(p, ctx, hasil),
+  ready: (p) => {
+    const shown = masukMain(p).filter({
+      has: p.getByRole('alert').getByText(MASUK_MESSAGES[hasil]),
+    });
+    // Coba lagi only where the app has it: a failed connection or server, and Google's script not loaded.
+    return hasil === 'gagal' || hasil === 'skrip'
+      ? shown.filter({ has: p.getByRole('button', { name: 'Coba lagi' }) })
+      : shown;
+  },
+});
+const MASUK_EXTRAS: Record<string, ExtraCapture> = {
+  'masuk-phone320x568-a-light': masuk,
+  'masuk-phone-loading': {
+    ...masuk,
+    act: (p, ctx) => masukPress(p, ctx, 'loading'),
+    ready: (p) =>
+      masukMain(p).filter({
+        has: p.getByRole('button', { name: 'Masuk…' }),
+      }),
+  },
+  ...Object.fromEntries(
+    (['light', 'dark'] as const).flatMap((t) => [
+      ...(['phone', 'tablet', 'desk'] as const).map((l) => [
+        `masuk-${l}-${t}`,
+        masuk,
+      ]),
+      ...MASUK_ERRORS.flatMap((e) =>
+        (['phone', 'desk'] as const).map((l) => [
+          `masuk-${l}-error-${e}-${t}`,
+          masukError(e),
+        ]),
+      ),
+    ]),
+  ),
+};
+
 export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
+  ...MASUK_EXTRAS,
   'page-phone-light': beranda,
   'page-phone-dark': beranda,
   'page-narrow320-light': beranda,
@@ -90,6 +206,12 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
   'page-desktop1024-light': beranda,
   'narrow320-beranda': beranda,
   'desk1024-beranda': beranda,
+  ...Object.fromEntries(
+    [1024, 1280, 1440, 1920].flatMap((w) => [
+      [`desk${w}-anggota-beranda`, beranda],
+      [`desk${w}-pengurus-beranda`, berandaRaka],
+    ]),
+  ),
   // P1-A: the event sheet, and search.
   'i-event-sheet': deadlineSheet,
   'i-tablet-sheet': deadlineSheet,
@@ -159,27 +281,35 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
         .getByRole('dialog', { name: 'Pencarian global' })
         .filter({ has: p.getByRole('option', { name: /^Bayar Kas!/ }) }),
   },
-  // P1-C: "IF2211" typed and K2 picked.
+  // P1-C, as v5's garis-check.mjs: Tambahkan pressed with nothing picked (its toast stays), "IF22" typed, IF2211 and
+  // IF2224 picked by their rows (no class), the pointer resting on IF2230.
   'i-matkul-add': {
     path: '/profil/matkul/tambah',
     act: async (p) => {
       const main = p.getByRole('main');
       await main.getByText('Strategi Algoritma').waitFor();
+      await p
+        .getByRole('button', { name: /^Tambahkan/ })
+        .locator('visible=true')
+        .click({ force: true });
+      await p
+        .locator('.g-toast')
+        .getByText('Pilih mata kuliah yang mau kamu tambahkan.')
+        .waitFor();
       await main
         .getByRole('searchbox', { name: 'Cari mata kuliah' })
-        .fill('IF2211');
-      await main
-        .getByRole('radiogroup', { name: 'Kelas IF2211' })
-        .getByRole('radio', { name: 'K2' })
-        .click();
-      // The prototype's capture shows no focus ring: the search field and chip were used by pointer.
+        .fill('IF22');
+      await main.getByRole('button', { name: /^IF2211 / }).click();
+      await main.getByRole('button', { name: /^IF2224 / }).click();
+      await main.getByRole('button', { name: /^IF2230 / }).hover();
+      // The prototype's capture shows no focus ring: the search field and rows were used by pointer.
       await p.evaluate(() =>
         (document.activeElement as HTMLElement | null)?.blur(),
       );
     },
     ready: (p) =>
       p
-        .getByRole('button', { name: /^Tambahkan \(1\)/ })
+        .getByRole('button', { name: /^Tambahkan \(2\)/ })
         .locator('visible=true'),
   },
   // P1-C's prompt over P1-A's Beranda: Nyalakan on "Notifikasi belum menyala", as garis-check.mjs section 4c presses
@@ -398,10 +528,22 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
       await main.getByRole('link', { name: 'Teknik Informatika' }).click();
       await main.getByRole('link', { name: 'Semester 3' }).click();
       await main.getByRole('link', { name: /^IF2110 / }).click();
-      await main.getByRole('button', { name: 'Testimoni berikutnya' }).click();
     },
-    ready: (p) => p.getByRole('article', { name: 'Testimoni 2 dari 3' }),
+    // Garis v5: the course page with every testimonial (no pager); the last one has arrived.
+    ready: (p) =>
+      p.getByRole('main').getByRole('heading', { name: 'Dimas, IF 2023' }),
   },
+  // Garis v5: the poster viewer opened by keyboard, at each layout (garis-check.mjs section 4d).
+  ...Object.fromEntries(
+    ['phone', 'tablet', 'desk'].map((l) => [
+      `i-poster-${l}`,
+      {
+        path: '/layanan/lomba',
+        act: openPosterViewer,
+        ready: posterViewerReady,
+      },
+    ]),
+  ),
   'i-testi-search': {
     path: '/layanan/testi',
     act: async (p) => {
@@ -412,7 +554,7 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
     ready: (p) =>
       p
         .getByRole('main')
-        .getByRole('link', { name: /^IF2110 .* 3 testimoni$/ }),
+        .getByRole('link', { name: /^IF2110 .* 6 testimoni$/ }),
   },
   // P3-B: Raka adds Kuis 2 for IF3170 from Kalender (garis-check.mjs's desktop block). The locked i-desk-addev still
   // shows the prototype's persona-switch toast ("Melihat sebagai Raka…"); the app has none (a known difference).

@@ -3,9 +3,12 @@
  *
  * T3 kept Testi Matkul's code search as an expected failure (today's list lowercased the query and compared it with
  * upper-case codes). The redesign fixes it; the journeys below must pass, and the `test.fail` is gone.
+ *
+ * Garis v5: a course page shows every testimonial at once, read by scrolling (no pager), in one column on phones,
+ * two on tablets and 1024 px desktops and three at 1440; sections over 280 characters fold to six lines.
  */
 import type { Page, TestInfo } from '@playwright/test';
-import type { NimFinderResult } from '../../src/api/generated';
+import type { NimFinderResult, Testimoni } from '../../src/api/generated';
 import { avatarUrl } from '../fixtures/api';
 import { layoutOf } from '../support/app';
 import { reply } from '../support/mock';
@@ -15,8 +18,62 @@ import { expect, test } from '../support/test';
 const main = (page: Page) => page.getByRole('main');
 const courseRows = (page: Page) =>
   main(page).getByRole('link', { name: /^[A-Z]{2}\d{4} / });
-const article = (page: Page, i: number, n: number) =>
-  main(page).getByRole('article', { name: `Testimoni ${i} dari ${n}` });
+/** A course page's testimonials, each a list item headed by its author. */
+const cards = (page: Page) =>
+  main(page)
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('heading', { level: 3 }) });
+const card = (page: Page, by: string) =>
+  cards(page).filter({
+    has: page.getByRole('heading', { level: 3, name: by, exact: true }),
+  });
+const IF2110 = '/layanan/testi/teknik-informatika/3/course-IF2110';
+const IF2110_BY = [
+  'Anonim',
+  'Fikri, IF 2023',
+  'Anonim',
+  'Aulia, IF 2024',
+  'Anonim',
+  'Dimas, IF 2023',
+];
+
+/** How many columns the cards sit in: their distinct left edges. */
+const columns = (page: Page) =>
+  cards(page).evaluateAll(
+    (els) =>
+      new Set(els.map((e) => Math.round(e.getBoundingClientRect().left))).size,
+  );
+
+/**
+ * Every card can be scrolled fully into view, inside the main column and the window, and nothing scrolls sideways;
+ * the order down the page (and across the columns) is the API's order, the keyboard's too.
+ */
+async function expectEveryCardReachable(page: Page, n: number) {
+  await expect(cards(page)).toHaveCount(n);
+  for (let i = 0; i < n; i++) {
+    const c = cards(page).nth(i);
+    await c.scrollIntoViewIfNeeded();
+    await expect(c).toBeInViewport({ ratio: 0.99 });
+    const fits = await c.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const m = el.closest('main')!.getBoundingClientRect();
+      return (
+        r.left >= m.left - 1 &&
+        r.right <= m.right + 1 &&
+        r.right <= window.innerWidth + 1
+      );
+    });
+    expect(fits, `card ${i + 1} fits its column`).toBe(true);
+  }
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    ),
+  ).toBeLessThanOrEqual(0);
+}
+
+/** The columns a layout gives (Garis v5): 1 under 640 px, 2 below 1440 (300 px each), 3 at 1440. */
+const columnsAt = (width: number) => (width < 640 ? 1 : width < 1300 ? 2 : 3);
 const testiCalls = (api: { calls: (s: string) => unknown[] }) =>
   api.calls('GET /api/testimoni/course/:courseId').length;
 
@@ -35,7 +92,7 @@ async function expectUpTo(page: Page, testInfo: TestInfo, title: string) {
 }
 
 test.describe('Testi Matkul by browsing', () => {
-  test('IF → Semester 3 → IF2110, then paging with the ends disabled and focus kept', async ({
+  test('IF → Semester 3 → IF2110: every testimonial at once, no pager, Ding Dong in the header', async ({
     page,
   }, testInfo) => {
     await page.goto('/layanan/testi');
@@ -53,7 +110,7 @@ test.describe('Testi Matkul by browsing', () => {
     // Each course with its count; STI's courses aren't in IF's list.
     await expect(
       main(page).getByRole('link', {
-        name: /^IF2110 Algoritma dan Pemrograman II\s*3 testimoni$/,
+        name: /^IF2110 Algoritma dan Pemrograman II\s*6 testimoni$/,
       }),
     ).toBeVisible();
     await expect(
@@ -72,56 +129,211 @@ test.describe('Testi Matkul by browsing', () => {
     await expect(page).toHaveTitle('IF2110 · PIPS!');
     await expectUpTo(page, testInfo, 'IF · Semester 3');
     await expect(main(page).getByText('IF2110 · 3 SKS')).toBeVisible();
+    const name = main(page).getByRole('heading', {
+      name: 'Algoritma dan Pemrograman II',
+    });
+    await expect(name).toBeVisible();
+    // Every testimonial, in the API's order; anonymous authors read "Anonim".
+    await expect(cards(page).getByRole('heading', { level: 3 })).toHaveText(
+      IF2110_BY,
+    );
+    await expect(cards(page).first().getByRole('term')).toHaveText([
+      'Overview',
+      'Tugas',
+      'Review Dosen',
+    ]);
+    // No pager.
     await expect(
-      main(page).getByRole('heading', { name: 'Algoritma dan Pemrograman II' }),
-    ).toBeVisible();
-    await expect(article(page, 1, 3)).toBeVisible();
-    // Anonymous author: "Anonim" with "?".
-    await expect(article(page, 1, 3)).toContainText('Anonim');
+      main(page).getByRole('button', {
+        name: /^Testimoni (sebelumnya|berikutnya)$/,
+      }),
+    ).toHaveCount(0);
+    await expect(main(page).getByText(/^\d+ \/ \d+$/)).toHaveCount(0);
     await expect(
-      article(page, 1, 3).getByRole('heading', { level: 3 }),
-    ).toHaveText(['Overview', 'Tugas', 'Review Dosen']);
-    await expect(main(page).getByText('1 / 3')).toBeVisible();
+      main(page).getByRole('button', { name: /Sebelumnya|Berikutnya/ }),
+    ).toHaveCount(0);
+    // Buka Ding Dong sits in the course's header, before the first testimonial.
+    const folder = main(page).getByRole('link', {
+      name: 'Buka Ding Dong IF2110 (situs luar, tab baru)',
+    });
+    await expect(folder).toBeInViewport();
+    const [folderTop, firstTop] = await Promise.all([
+      folder.boundingBox(),
+      cards(page).first().boundingBox(),
+    ]);
+    expect(folderTop!.y).toBeLessThan(firstTop!.y);
+    expect(await columns(page)).toBe(columnsAt(page.viewportSize()!.width));
     await strictGates(page, testInfo, 'testi-course', 'Layanan');
-
-    const prev = main(page).getByRole('button', {
-      name: 'Testimoni sebelumnya',
-    });
-    const next = main(page).getByRole('button', {
-      name: 'Testimoni berikutnya',
-    });
-    await expect(prev).toHaveAttribute('aria-disabled', 'true');
-    // The ends are aria-disabled (still focusable), so pressing them does nothing; Playwright needs `force`.
-    await prev.click({ force: true });
-    await expect(article(page, 1, 3)).toBeVisible();
-    await next.click();
-    await expect(article(page, 2, 3)).toBeVisible();
-    await expect(next).toBeFocused();
-    await expect(page).toHaveURL(/\?page=2$/);
-    await expect(article(page, 2, 3)).toContainText('Fikri, IF 2023');
-    await page.keyboard.press('Enter');
-    await expect(article(page, 3, 3)).toBeVisible();
-    await expect(next).toBeFocused();
-    await expect(next).toHaveAttribute('aria-disabled', 'true');
-    await next.click({ force: true });
-    await expect(article(page, 3, 3)).toBeVisible();
-    await prev.click();
-    await expect(article(page, 2, 3)).toBeVisible();
-    await expect(prev).toBeFocused();
-    // Paging replaced the entry: Back leaves the course in one step.
-    await page.goBack();
-    await expect(page).toHaveURL(/\/layanan\/testi\/teknik-informatika\/3$/);
+    await expectEveryCardReachable(page, 6);
   });
 
   test('an STI course shows Kesan, Tantangan and Saran', async ({ page }) => {
     await page.goto(
       '/layanan/testi/sistem-dan-teknologi-informasi/3/course-II2110',
     );
+    await expect(cards(page)).toHaveCount(2);
+    for (const i of [0, 1])
+      await expect(cards(page).nth(i).getByRole('term')).toHaveText([
+        'Kesan',
+        'Tantangan',
+        'Saran',
+      ]);
+  });
+
+  test('Dosen follows the programme’s sections when the API gives the lecturer, in both programmes', async ({
+    page,
+    db,
+  }, testInfo) => {
+    const set = (code: string, lecturer: string) => {
+      const t = db.testimonials.find((x) => x.courseId === `course-${code}`)!;
+      t.lecturer = lecturer;
+    };
+    set('IF2110', 'Dr. Rina Wulandari');
+    set('II2110', 'Dr. Budi Santoso');
+    await page.goto(IF2110);
+    const first = cards(page).first();
+    await expect(first.getByRole('term')).toHaveText([
+      'Overview',
+      'Tugas',
+      'Review Dosen',
+      'Dosen',
+    ]);
+    await expect(first.getByRole('definition').last()).toHaveText(
+      'Dr. Rina Wulandari',
+    );
+    // The others name no lecturer: no Dosen.
+    await expect(cards(page).nth(1).getByRole('term')).toHaveText([
+      'Overview',
+      'Tugas',
+      'Review Dosen',
+    ]);
+    await strictAudit(page, testInfo, 'testi-dosen');
+    await page.goto(
+      '/layanan/testi/sistem-dan-teknologi-informasi/3/course-II2110',
+    );
+    await expect(cards(page).first().getByRole('term')).toHaveText([
+      'Kesan',
+      'Tantangan',
+      'Saran',
+      'Dosen',
+    ]);
+    await expect(cards(page).first().getByRole('definition').last()).toHaveText(
+      'Dr. Budi Santoso',
+    );
+  });
+
+  test('a long section folds to six lines; Baca selengkapnya opens it and Ringkas lagi folds it, by keyboard and pointer', async ({
+    page,
+  }, testInfo) => {
+    await page.goto(IF2110);
+    const aulia = card(page, 'Aulia, IF 2024');
+    const overview = aulia.getByRole('definition').first();
+    const more = aulia.getByRole('button', { name: 'Baca selengkapnya' });
+    // Only the card with a section over 280 characters has the control.
     await expect(
-      main(page)
-        .getByRole('article', { name: /^Testimoni 1 dari/ })
-        .getByRole('heading', { level: 3 }),
-    ).toHaveText(['Kesan', 'Tantangan', 'Saran']);
+      main(page).getByRole('button', {
+        name: /^(Baca selengkapnya|Ringkas lagi)$/,
+      }),
+    ).toHaveCount(1);
+    const lines = () =>
+      overview.evaluate((el) => {
+        const lh = parseFloat(getComputedStyle(el).lineHeight);
+        return {
+          shown: Math.round(el.clientHeight / lh),
+          hidden: el.scrollHeight > el.clientHeight + 1,
+        };
+      });
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    const controls = await more.getAttribute('aria-controls');
+    expect(
+      await aulia.locator('dl').getAttribute('id'),
+      'the button controls the sections',
+    ).toBe(controls);
+    expect(await lines()).toEqual({ shown: 6, hidden: true });
+    // Its short sections aren't folded.
+    for (const i of [1, 2])
+      expect(
+        await aulia
+          .getByRole('definition')
+          .nth(i)
+          .evaluate((el) => el.scrollHeight <= el.clientHeight + 1),
+      ).toBe(true);
+
+    // Keyboard: Enter opens it, focus stays on the control, which now reads Ringkas lagi.
+    await more.focus();
+    await page.keyboard.press('Enter');
+    const less = aulia.getByRole('button', { name: 'Ringkas lagi' });
+    await expect(less).toBeFocused();
+    await expect(less).toHaveAttribute('aria-expanded', 'true');
+    expect((await lines()).hidden).toBe(false);
+    expect((await lines()).shown).toBeGreaterThan(6);
+    await expect(overview).toContainText('lalu bandingkan caranya.');
+    await strictGates(page, testInfo, 'testi-open', 'Layanan');
+    // The gates walk the page with Tab; come back to the control, then Space folds it again.
+    await less.focus();
+    await page.keyboard.press('Space');
+    await expect(more).toBeFocused();
+    expect(await lines()).toEqual({ shown: 6, hidden: true });
+
+    // Pointer.
+    await more.click();
+    await expect(less).toHaveAttribute('aria-expanded', 'true');
+    await less.click();
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    expect(await lines()).toEqual({ shown: 6, hidden: true });
+  });
+
+  test('a course with 25 testimonials shows all 25, each reachable by scrolling, at 320 and 390 phones, tablet, and 1024 and 1440 desktops', async ({
+    page,
+    db,
+  }, testInfo) => {
+    const base = db.testimonials.find((t) => t.courseId === 'course-IF2130')!;
+    db.testimonials = db.testimonials.filter(
+      (t) => t.courseId !== 'course-IF2130',
+    );
+    for (let i = 1; i <= 25; i++)
+      db.testimonials.push({
+        ...base,
+        id: `t-many-${i}`,
+        userName: `Penulis ${i}`,
+        overview: `Testimoni nomor ${i}. ${'Materinya padat. '.repeat(i % 4)}`,
+      } satisfies Testimoni);
+    const sizes = testInfo.project.name.startsWith('desktop')
+      ? [
+          { width: 1440, height: 900 },
+          { width: 1024, height: 768 },
+        ]
+      : testInfo.project.name.startsWith('tablet')
+        ? [{ width: 834, height: 1112 }]
+        : [
+            { width: 390, height: 844 },
+            { width: 320, height: 640 },
+          ];
+    for (const size of sizes) {
+      await page.setViewportSize(size);
+      await page.goto('/layanan/testi/teknik-informatika/3/course-IF2130');
+      await expect(cards(page).getByRole('heading', { level: 3 })).toHaveText(
+        Array.from({ length: 25 }, (_, i) => `Penulis ${i + 1}`),
+      );
+      expect(await columns(page), `columns at ${size.width}`).toBe(
+        columnsAt(size.width),
+      );
+      // The columns read top to bottom: the first card of each column follows the previous column's last.
+      const order = await cards(page).evaluateAll((els) =>
+        els.map((e) => {
+          const r = e.getBoundingClientRect();
+          return [Math.round(r.left), Math.round(r.top)];
+        }),
+      );
+      for (let i = 1; i < order.length; i++)
+        expect(
+          order[i][0] > order[i - 1][0] ||
+            (order[i][0] === order[i - 1][0] && order[i][1] > order[i - 1][1]),
+          `card ${i + 1} comes after card ${i}`,
+        ).toBe(true);
+      await expectEveryCardReachable(page, 25);
+      await strictGates(page, testInfo, `testi-many-${size.width}`, 'Layanan');
+    }
   });
 
   test('a course with no testimonials says how they are gathered, and still links its Ding Dong', async ({
@@ -191,7 +403,7 @@ test.describe('Testi Matkul by browsing', () => {
   test('Buka Ding Dong opens the folder in a new tab, or says a course has none', async ({
     page,
   }) => {
-    await page.goto('/layanan/testi/teknik-informatika/3/course-IF2110');
+    await page.goto(IF2110);
     const folder = main(page).getByRole('link', {
       name: 'Buka Ding Dong IF2110 (situs luar, tab baru)',
     });
@@ -210,13 +422,15 @@ test.describe('Testi Matkul by browsing', () => {
     ).toBeVisible();
   });
 
-  test('a deep link opens the course at its testimonial; a page out of range shows the last', async ({
+  test('an old link with ?page= still opens the course, with every testimonial', async ({
     page,
   }) => {
-    await page.goto('/layanan/testi/teknik-informatika/3/course-IF2110?page=2');
-    await expect(article(page, 2, 3)).toBeVisible();
-    await page.goto('/layanan/testi/teknik-informatika/3/course-IF2110?page=9');
-    await expect(article(page, 3, 3)).toBeVisible();
+    for (const p of ['2', '9']) {
+      await page.goto(`${IF2110}?page=${p}`);
+      await expect(cards(page).getByRole('heading', { level: 3 })).toHaveText(
+        IF2110_BY,
+      );
+    }
   });
 
   test('an unknown course or programme says so, with the way back to Testi Matkul', async ({
@@ -274,7 +488,7 @@ test.describe('Testi Matkul by course code', () => {
       await expect(courseRows(page)).toHaveCount(1);
       await expect(
         main(page).getByRole('link', {
-          name: /^IF2110 Algoritma dan Pemrograman II\s*3 testimoni$/,
+          name: /^IF2110 Algoritma dan Pemrograman II\s*6 testimoni$/,
         }),
       ).toBeVisible();
     }

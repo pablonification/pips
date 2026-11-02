@@ -1,6 +1,6 @@
 /**
  * Beranda (P1-A): the greeting, the agenda card and its strip, the service tiles, Perlu ditindaklanjuti and every
- * button in it, Pengumuman belum dibaca, Kelola and Pintasan; opening events; loading, errors, offline and empty
+ * button in it, Pengumuman belum dibaca, Kelola; desktop's columns at every width (Garis v5); opening events; loading, errors, offline and empty
  * states; motion; and the gates at every width. Replaces T3's home.spec.ts, keeping what it checked (Raka's Kuis 1
  * not shown to Nadia, the tiles opening their services).
  */
@@ -40,6 +40,22 @@ const attentionRow = (page: Page, title: string | RegExp) =>
 const section = (page: Page, name: string) =>
   main(page).getByRole('heading', { name, exact: true }).locator('xpath=../..');
 const unreadSection = (page: Page) => section(page, 'Pengumuman belum dibaca');
+/** Nadia's unread posts Beranda lists: three on phones and tablets, all four on desktop (up to five, Garis v5). */
+const unreadShown = (page: Page) =>
+  (page.viewportSize()?.width ?? 0) >= 1024 ? 4 : 3;
+/** The service tiles, in the real Home's order, then Lainnya (every layout since Garis v5). */
+const tiles = (page: Page) =>
+  page.getByRole('region', { name: 'Layanan' }).getByRole('link');
+const TILES = [
+  'Ding Dong',
+  'NIM Finder',
+  'Testi Matkul',
+  'Info Lomba',
+  'Curhat Yuk!',
+  'Beasiswa (situs luar)',
+  'Bayar Kas! (situs luar)',
+  'Lainnya',
+];
 
 /** Every API request Beranda makes for Nadia. */
 const BERANDA_API = [
@@ -130,28 +146,11 @@ test.describe('Nadia', () => {
     // Raka's Kuis 1 (IF3170) is for a course Nadia doesn't take.
     expect(await mainText(page)).not.toContain('IF3170');
 
-    if (layoutOf(testInfo) === 'desktop') {
-      await expect(page.getByRole('region', { name: 'Layanan' })).toHaveCount(
-        0,
-      );
-      await expect(
-        main(page).getByRole('heading', { name: 'Pintasan' }),
-      ).toBeVisible();
-    } else {
-      const tiles = page
-        .getByRole('region', { name: 'Layanan' })
-        .getByRole('link');
-      await expect(tiles).toHaveText([
-        'Ding Dong',
-        'NIM Finder',
-        'Testi Matkul',
-        'Info Lomba',
-        'Curhat Yuk!',
-        'Beasiswa (situs luar)',
-        'Bayar Kas! (situs luar)',
-        'Lainnya',
-      ]);
-    }
+    // Every service as tiles on every layout (Garis v5: desktop too, no Pintasan).
+    await expect(tiles(page)).toHaveText(TILES);
+    await expect(
+      main(page).getByRole('heading', { name: 'Pintasan' }),
+    ).toHaveCount(0);
 
     // Follow-ups, in order, from their signals only; never a Curhat message's text.
     await expect
@@ -174,9 +173,10 @@ test.describe('Nadia', () => {
       for (const m of room.messages ?? [])
         expect(text, 'no Curhat text on Beranda').not.toContain(m.content);
 
-    // The three newest unread titles, each a link to its post.
+    // The newest unread titles, each a link to its post: three on phones and tablets; on desktop up to five, so all
+    // four of Nadia's.
     const unread = unreadSection(page).getByRole('listitem').getByRole('link');
-    await expect(unread).toHaveCount(3);
+    await expect(unread).toHaveCount(layoutOf(testInfo) === 'desktop' ? 4 : 3);
     await expect(unread.first()).toHaveAccessibleName(/\(belum dibaca\)$/);
     await expect(
       unreadSection(page).getByRole('link', { name: /^Semua/ }),
@@ -234,24 +234,20 @@ test.describe('Nadia', () => {
     ).toBeVisible();
   });
 
-  test('Pintasan: four shortcuts, Bayar Kas! over https in a new tab, Semua to Layanan @desktop-only', async ({
+  test('desktop tiles: Bayar Kas! over https in a new tab, a tile opens its service, Lainnya to Layanan @desktop-only', async ({
     page,
   }) => {
     await page.goto('/');
-    const pins = section(page, 'Pintasan');
-    await expect(pins.locator('.g-svc')).toHaveText([
-      'Ding Dong',
-      'Testi Matkul',
-      'NIM Finder',
-      'Bayar Kas! (situs luar)',
-    ]);
-    const kas = pins.getByRole('link', { name: 'Bayar Kas! (situs luar)' });
+    const kas = tiles(page).filter({ hasText: 'Bayar Kas!' });
     await expect(kas).toHaveAttribute(
       'href',
       'https://s.hmif.dev/BayarKasHMIF',
     );
     await expect(kas).toHaveAttribute('target', '_blank');
-    await pins.getByRole('link', { name: /^Semua/ }).click();
+    await tiles(page).filter({ hasText: 'NIM Finder' }).click();
+    await expect(page).toHaveURL(/\/layanan\/nim$/);
+    await page.goBack();
+    await tiles(page).filter({ hasText: 'Lainnya' }).click();
     await expect(page).toHaveURL(/\/layanan$/);
   });
 
@@ -538,7 +534,7 @@ test.describe('Nadia', () => {
     await page.goto('/');
     await expect(
       unreadSection(page).getByRole('link', { name: /\(belum dibaca\)$/ }),
-    ).toHaveCount(3);
+    ).toHaveCount(unreadShown(page));
     // The badge counts all four, from the same first page.
     await expect(
       page
@@ -634,10 +630,7 @@ test.describe('Raka, pengurus', () => {
     await expect(kelola).toContainText('142');
     await expect(kelola).toContainText('sudah mengisi');
     await expect(kelola).toHaveAttribute('href', '/kelola/live/pixel');
-    if (layoutOf(testInfo) === 'desktop')
-      await expect(
-        main(page).getByRole('heading', { name: 'Pintasan' }),
-      ).toBeVisible();
+    await expect(tiles(page)).toHaveText(TILES);
     await strictGates(page, testInfo, 'beranda-raka');
     await kelola.click();
     await expect(page).toHaveURL(/\/kelola\/live\/pixel$/);
@@ -750,7 +743,7 @@ test.describe('states', () => {
     await expect(agendaRows(page).first()).toHaveText('Kuis 2');
     await expect(
       unreadSection(page).getByRole('link', { name: /\(belum dibaca\)$/ }),
-    ).toHaveCount(3);
+    ).toHaveCount(unreadShown(page));
     // The cache is written to the device at most once a second.
     await expect
       .poll(() => storedKeys(page))
@@ -776,7 +769,7 @@ test.describe('states', () => {
     ).toBeVisible(soon);
     await expect(
       unreadSection(page).getByRole('link', { name: /\(belum dibaca\)$/ }),
-    ).toHaveCount(3, soon);
+    ).toHaveCount(unreadShown(page), soon);
     await expect
       .poll(() => attentionTitles(page), soon)
       .toEqual(['Deadline Tugas Besar 1 · IF2110', 'Notifikasi belum menyala']);
@@ -833,7 +826,7 @@ test.describe('states', () => {
       .toContain('Form Analisis Kondisi PIXEL');
     await expect(
       unreadSection(page).getByRole('link', { name: /\(belum dibaca\)$/ }),
-    ).toHaveCount(3);
+    ).toHaveCount(unreadShown(page));
     expect(api.calls('GET /api/curhat/chatrooms').length).toBe(1);
   });
 
@@ -939,4 +932,238 @@ test.describe('gates', () => {
       expect(await focusIsVisible(page), `Tab stop ${i + 1}`).toBe(true);
     }
   });
+});
+
+/* ================= Garis v5: desktop Beranda at every width ================= */
+
+/** Each piece's box on desktop Beranda (Kelola only for a pengurus with a form open). */
+async function deskBoxes(page: Page) {
+  const box = async (l: ReturnType<Page['locator']>) =>
+    (await l.count()) ? (await l.boundingBox())! : null;
+  const [agendaBox, tilesBox, att, anns, kelola, grid] = await Promise.all([
+    box(agenda(page)),
+    box(page.getByRole('region', { name: 'Layanan' })),
+    box(section(page, 'Perlu ditindaklanjuti')),
+    box(unreadSection(page)),
+    box(section(page, 'Kelola')),
+    box(page.locator('.g-home-desk')),
+  ]);
+  return {
+    agenda: agendaBox!,
+    tiles: tilesBox!,
+    att: att!,
+    anns: anns!,
+    kelola,
+    grid: grid!,
+  };
+}
+
+for (const persona of ['anggota', 'pengurus'] as const) {
+  test.describe(`desktop Beranda at every width, ${persona} @desktop-only`, () => {
+    test.use({ persona });
+
+    for (const width of [1024, 1280, 1440, 1920]) {
+      test(`${width} px: ${width >= 1280 ? 'two columns' : 'one column in the phone’s order'}, every tile, no sideways overflow @desktop-only`, async ({
+        page,
+      }, testInfo) => {
+        await page.setViewportSize({ width, height: 956 });
+        await page.goto('/');
+        await expect(agendaRows(page).first()).toBeVisible();
+        await expect
+          .poll(() => attentionTitles(page))
+          .toHaveLength(persona === 'anggota' ? 4 : 1);
+        if (persona === 'pengurus')
+          await expect(section(page, 'Kelola')).toContainText('142');
+        await expect(tiles(page)).toHaveText(TILES);
+        const b = await deskBoxes(page);
+        const tileRows = new Set(
+          await tiles(page).evaluateAll((ls) =>
+            ls.map((l) => Math.round(l.getBoundingClientRect().top)),
+          ),
+        );
+        const near = (a: number, c: number) => Math.abs(a - c) <= 1;
+        if (width >= 1280) {
+          // The agenda and the announcements on the left; tiles level with the agenda, then follow-ups and Kelola.
+          expect(b.tiles.x).toBeGreaterThan(b.agenda.x + b.agenda.width);
+          expect(
+            near(b.tiles.y, b.agenda.y),
+            'tiles level with the agenda',
+          ).toBe(true);
+          expect(b.att.x).toBe(b.tiles.x);
+          expect(b.anns.x).toBe(b.agenda.x);
+          // 36 px under the agenda, whatever the side column's height.
+          expect(near(b.anns.y, b.agenda.y + b.agenda.height + 36)).toBe(true);
+          expect(near(b.att.y, b.tiles.y + b.tiles.height + 36)).toBe(true);
+          expect(b.tiles.width).toBeGreaterThanOrEqual(344);
+          expect(b.tiles.width).toBeLessThanOrEqual(400);
+          expect(tileRows.size, 'four tiles to a row').toBe(2);
+          if (b.kelola) {
+            expect(b.kelola.x).toBe(b.tiles.x);
+            expect(near(b.kelola.y, b.att.y + b.att.height + 36)).toBe(true);
+          }
+          // Up to 1440 px wide, from the sidebar's edge.
+          expect(b.grid.width).toBe(Math.min(1440, width - 248));
+        } else {
+          // One column, the phone's order: agenda, tiles (one row), follow-ups, announcements, Kelola.
+          const order = [b.agenda, b.tiles, b.att, b.anns, b.kelola].filter(
+            (x) => x !== null,
+          );
+          for (let i = 1; i < order.length; i++) {
+            expect(order[i].x).toBe(b.agenda.x);
+            expect(order[i].y).toBeGreaterThan(order[i - 1].y);
+          }
+          expect(tileRows.size, 'the tiles in one row').toBe(1);
+          expect(b.grid.width).toBeLessThanOrEqual(800);
+        }
+        // The agenda's taller days and larger date.
+        const day = stripDay(page, /hari ini/);
+        expect((await day.boundingBox())!.height).toBeGreaterThanOrEqual(88);
+        await expect(day.locator('.dn')).toHaveCSS('font-size', '20px');
+        await expectFits(page, `desktop Beranda at ${width} px`);
+        await strictGates(page, testInfo, `beranda-desk-${persona}-${width}`);
+      });
+    }
+  });
+}
+
+test('desktop: up to five unread, a titled post with its two-line excerpt, an untitled one as its own text @desktop-only', async ({
+  page,
+  db,
+}) => {
+  await page.goto('/');
+  const rows = unreadSection(page).getByRole('listitem');
+  // Nadia has four unread posts, all shown; three have a title.
+  await expect(rows).toHaveCount(4);
+  const unread = db.infos
+    .filter((i) => !i.isRead)
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  const excerpts = rows.locator('.g-hd-excerpt');
+  await expect(excerpts).toHaveCount(unread.filter((i) => i.title).length);
+  for (const [i, info] of unread.entries()) {
+    const row = rows.nth(i);
+    await expect(row.locator('.g-hd-excerpt')).toHaveCount(info.title ? 1 : 0);
+  }
+  // Each link is named by its title; its excerpt describes it.
+  const first = unread[0];
+  const link = rows.first().getByRole('link');
+  await expect(link).toHaveAccessibleName(`${first.title} (belum dibaca)`);
+  await expect(link).toHaveAccessibleDescription(
+    first.content.replace(/\s+/g, ' ').trim(),
+  );
+  // Two lines at most, title and excerpt alike (regression: a `block` utility undid the clamp).
+  const lines = await rows
+    .locator('.g-clamp2')
+    .evaluateAll((ls) =>
+      ls.map(
+        (l) =>
+          l.getBoundingClientRect().height /
+          parseFloat(getComputedStyle(l).lineHeight),
+      ),
+    );
+  expect(lines.length).toBe(4 + 3);
+  for (const n of lines) expect(n).toBeLessThanOrEqual(2.01);
+  // The longest excerpt is clamped, not cut off mid-row.
+  expect(
+    await excerpts.evaluateAll((ls) =>
+      ls.some((l) => l.scrollHeight > l.clientHeight + 1),
+    ),
+  ).toBe(true);
+});
+
+test('every post unread: desktop lists five, phones and tablets three', async ({
+  page,
+  db,
+}, testInfo) => {
+  db.infos = db.infos.map((i) => ({ ...i, isRead: false }));
+  expect(db.infos.length).toBeGreaterThan(5);
+  await page.goto('/');
+  await expect(unreadSection(page).getByRole('listitem')).toHaveCount(
+    layoutOf(testInfo) === 'desktop' ? 5 : 3,
+  );
+  // Phones and tablets keep the title only.
+  if (layoutOf(testInfo) !== 'desktop')
+    await expect(unreadSection(page).locator('.g-hd-excerpt')).toHaveCount(0);
+});
+
+test('regression (v5): a clicked day keeps focus at once, never falling to the page in between', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(agendaRows(page).first()).toBeVisible();
+  const sabtu = stripDay(page, /^Sabtu, 10 Oktober/);
+  // From the moment the day takes focus: every DOM change, every frame for a second, and any blur to nowhere.
+  await sabtu.evaluate((btn) => {
+    const w = window as unknown as { focusLog: string[] };
+    w.focusLog = [];
+    const sample = (why: string) => {
+      const a = document.activeElement;
+      const label = a?.getAttribute('aria-label') ?? a?.tagName ?? 'none';
+      if (!label.startsWith('Sabtu, 10 Oktober'))
+        w.focusLog.push(`${why}: ${label}`);
+    };
+    btn.addEventListener(
+      'focus',
+      () => {
+        const mo = new MutationObserver(() => sample('mutation'));
+        mo.observe(document.body, {
+          subtree: true,
+          childList: true,
+          attributes: true,
+        });
+        document.addEventListener(
+          'focusout',
+          (e) => {
+            if (!(e as FocusEvent).relatedTarget)
+              w.focusLog.push('blurred to the page');
+          },
+          true,
+        );
+        let n = 0;
+        const frame = () => {
+          sample('frame');
+          if (++n < 60) requestAnimationFrame(frame);
+          else mo.disconnect();
+        };
+        requestAnimationFrame(frame);
+      },
+      { once: true },
+    );
+  });
+  await sabtu.click();
+  // Read straight after the click, before any wait.
+  expect(
+    await page.evaluate(() =>
+      document.activeElement?.getAttribute('aria-label'),
+    ),
+  ).toMatch(/^Sabtu, 10 Oktober/);
+  await expect(sabtu).toHaveAttribute('aria-pressed', 'true');
+  await expect(agendaRows(page).first()).toHaveText('Bakti Sosial HMIF');
+  await page.waitForFunction(() => {
+    // Let the 60 frames run out.
+    return new Promise((r) => setTimeout(() => r(true), 1100));
+  });
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { focusLog: string[] }).focusLog,
+    ),
+  ).toEqual([]);
+});
+
+test('the strip draws a deadline like any Akademik event: a full bar, no short mark (Garis v5)', async ({
+  page,
+}) => {
+  await page.goto('/');
+  // Jumat 9 Oktober: Deadline Tugas Besar 1, one time (23.59).
+  const jumat = stripDay(page, /^Jumat, 9 Oktober/);
+  await expect(jumat).toBeVisible();
+  const bars = await jumat
+    .locator('.g-mbars i')
+    .evaluateAll((is) =>
+      is.map((i) => [
+        Math.round(i.getBoundingClientRect().width),
+        Math.round(i.parentElement!.getBoundingClientRect().width),
+      ]),
+    );
+  expect(bars.length).toBeGreaterThan(0);
+  for (const [bar, row] of bars) expect(bar).toBe(row);
 });

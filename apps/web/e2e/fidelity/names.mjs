@@ -1,6 +1,6 @@
 // The locked prototype's screen names, as ops/ui-revamp-review/tools/garis-check.mjs renders them:
 // `<layout>-<persona>-<route>-<theme>.png` for ROUTES (anggota) and PENGURUS_ROUTES (pengurus), at three layouts
-// and two themes: 36 routes × 3 × 2 = 216 screens.
+// and two themes: 37 routes × 3 × 2 = 222 screens.
 
 /** Nadia's screens (anggota), in garis-check.mjs order. */
 export const ROUTES = [
@@ -29,6 +29,8 @@ export const ROUTES = [
   'ov-confirm',
   'pop-react',
   'pop-menu',
+  // Garis v5: Info Lomba's poster viewer (Gemastik XIX).
+  'ov-poster',
 ];
 /** Raka's screens (pengurus). */
 export const PENGURUS_ROUTES = [
@@ -105,6 +107,13 @@ const extra = (name, layout, width, height, capture, note) => ({
 export const PROTO_BAR = 44;
 const PHONE_APP = /** @type {const} */ ([390, 800]);
 const DESK_APP = /** @type {const} */ ([1440, 956]);
+/** Masuk's error states, as garis-check.mjs names them (`&hasil=401|gagal|popup|skrip`). */
+export const MASUK_ERRORS = /** @type {const} */ ([
+  '401',
+  'gagal',
+  'popup',
+  'skrip',
+]);
 
 /** @type {ExtraScreen[]} Locked screens that an app task owns (briefs-check-wave2.md, "Coverage"). */
 export const EXTRA_SCREENS = [
@@ -155,8 +164,18 @@ export const EXTRA_SCREENS = [
     'page',
     'includes the prototype bar (44 px) above the app',
   ),
+  // Garis v5: the poster viewer opened by keyboard (garis-check.mjs section 4d), as the overlay alone.
+  extra('i-poster-phone', 'phone', ...PHONE_APP, 'app'),
+  extra('i-poster-tablet', 'tablet', 834, 1068, 'app'),
+  extra('i-poster-desk', 'desk', ...DESK_APP, 'app'),
   extra('narrow320-beranda', 'phone', 320, 800, 'app'),
   extra('desk1024-beranda', 'desk', 1024, 956, 'app'),
+  // Garis v5: desktop Beranda at each window width, for both members (light; garis-check.mjs 4d).
+  ...[1024, 1280, 1440, 1920].flatMap((w) =>
+    ['anggota', 'pengurus'].map((who) =>
+      extra(`desk${w}-${who}-beranda`, 'desk', w, 956, 'app'),
+    ),
+  ),
   ...[
     ['page-phone-light', 'phone', 390, 844],
     ['page-phone-dark', 'phone', 390, 844],
@@ -177,6 +196,19 @@ export const EXTRA_SCREENS = [
       'includes the prototype bar (44 px) above the app',
     ),
   ),
+  // V5 Masuk (sign-in, garis v5 screens-masuk.js): the app area at each layout, light and dark, with loading and the
+  // four error states, and a short 320 × 568 phone (its app area is 524 px under the prototype's bar).
+  ...['light', 'dark'].flatMap((t) => [
+    extra(`masuk-phone-${t}`, 'phone', ...PHONE_APP, 'app'),
+    extra(`masuk-tablet-${t}`, 'tablet', 834, 1068, 'app'),
+    extra(`masuk-desk-${t}`, 'desk', ...DESK_APP, 'app'),
+    ...MASUK_ERRORS.flatMap((e) => [
+      extra(`masuk-phone-error-${e}-${t}`, 'phone', ...PHONE_APP, 'app'),
+      extra(`masuk-desk-error-${e}-${t}`, 'desk', ...DESK_APP, 'app'),
+    ]),
+  ]),
+  extra('masuk-phone-loading', 'phone', ...PHONE_APP, 'app'),
+  extra('masuk-phone320x568-a-light', 'phone', 320, 524, 'app'),
   extra(
     'system-cards',
     'desk',

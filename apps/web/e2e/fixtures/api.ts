@@ -123,6 +123,9 @@ export const categories: Category[] = CATEGORIES.map((c) => ({
   requiredPush: c.required,
 }));
 
+/** The class the API stores for a course added with none (apps/api `DEFAULT_COURSE_CLASS`). */
+export const DEFAULT_COURSE_CLASS = 1;
+
 export const courses: Course[] = COURSES.map((c) => ({
   id: `course-${c.code}`,
   curriculumYear: 2024,
@@ -388,9 +391,9 @@ function toCompetitions(): Competition[] {
         media: {
           id: `${l.id}-poster`,
           creatorId: 'user-cnc',
-          name: `${l.id}.png`,
-          type: 'image/png',
-          url: mediaUrl(`poster-${l.id}`),
+          name: `${l.poster}.svg`,
+          type: 'image/svg+xml',
+          url: mediaUrl(`poster-${l.poster}`),
           createdAt: l.open,
         },
       },
@@ -841,7 +844,7 @@ export function buildDb(
     : null;
   const roles = me?.roles ?? [];
   const isAdmin = roles.includes('admin');
-  const myCodes = persona ? MY_COURSES[persona].map(([code]) => code) : [];
+  const myCodes = persona ? MY_COURSES[persona] : [];
   const db: Db = {
     persona,
     signedIn: !!me,
@@ -892,10 +895,11 @@ export function buildDb(
     ],
     courses,
     myCourses: persona
-      ? MY_COURSES[persona].map(([code, kelas]) => ({
+      ? MY_COURSES[persona].map((code) => ({
           userId: me!.id,
           courseId: courseByCode(code).id,
-          class: kelas,
+          // The API still stores a class; v5's app sends none, so a course gets the API's default (1).
+          class: DEFAULT_COURSE_CLASS,
           semesterCodeTaken: SEMESTER.code,
           semesterYearTaken: SEMESTER.year,
           course: courseByCode(code),

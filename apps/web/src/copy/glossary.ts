@@ -119,8 +119,6 @@ export const PROPER_NOUNS = [
   'Tambah',
   // The student email format members sign in with (the prototype's sign-out confirmation).
   'NIM@std.stei.itb.ac.id',
-  // The class choices in Tambah mata kuliah ("Pilih kelas (K1–K3) …").
-  'K1–K3',
   // The day-before reminder, as the prototype writes it ("pengingat H-1").
   'H-1',
   // P2-B: Testi Matkul's "Review Dosen" section and its "Mata Kuliah Pilihan" list.
@@ -144,6 +142,13 @@ export const PROPER_NOUNS = [
  * prototype's `evInfo` words it). The phrase as a whole is allowed; the banned word alone still isn't.
  */
 export const PRODUCT_NAMES = ['Google Calendar'] as const;
+
+/**
+ * Whole phrases that write a house name another way on purpose: sign-in's greeting "Halo, Pips!" (garis v5
+ * screens-masuk.js; today's app says "Hello, Pips!", and HMIF calls itself "Pips", FEATURES.md). "Pips" anywhere
+ * else is still caught.
+ */
+export const HOUSE_PHRASES = ['Halo, Pips!'] as const;
 
 /** All-capitals words the app may show. Anything else in capitals is capitals the app added itself. */
 export const ACRONYMS = [
