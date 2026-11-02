@@ -1,6 +1,6 @@
 // The locked prototype's screen names, as ops/ui-revamp-review/tools/garis-check.mjs renders them:
 // `<layout>-<persona>-<route>-<theme>.png` for ROUTES (anggota) and PENGURUS_ROUTES (pengurus), at three layouts
-// and two themes: 36 routes × 3 × 2 = 216 screens.
+// and two themes: 37 routes × 3 × 2 = 222 screens.
 
 /** Nadia's screens (anggota), in garis-check.mjs order. */
 export const ROUTES = [
@@ -29,6 +29,8 @@ export const ROUTES = [
   'ov-confirm',
   'pop-react',
   'pop-menu',
+  // Garis v5: Info Lomba's poster viewer (Gemastik XIX).
+  'ov-poster',
 ];
 /** Raka's screens (pengurus). */
 export const PENGURUS_ROUTES = [
@@ -155,6 +157,10 @@ export const EXTRA_SCREENS = [
     'page',
     'includes the prototype bar (44 px) above the app',
   ),
+  // Garis v5: the poster viewer opened by keyboard (garis-check.mjs section 4d), as the overlay alone.
+  extra('i-poster-phone', 'phone', ...PHONE_APP, 'app'),
+  extra('i-poster-tablet', 'tablet', 834, 1068, 'app'),
+  extra('i-poster-desk', 'desk', ...DESK_APP, 'app'),
   extra('narrow320-beranda', 'phone', 320, 800, 'app'),
   extra('desk1024-beranda', 'desk', 1024, 956, 'app'),
   ...[
