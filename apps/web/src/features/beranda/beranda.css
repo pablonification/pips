@@ -347,13 +347,6 @@
     }
   }
 
-  /* Garis v5: a deadline is an Akademik event with one time, so the strip draws it as one (no short mark). Only
-     Beranda's strip; Kalender's month keeps its own marks. */
-  .g-ag-day .g-mbars i.point {
-    width: auto;
-    justify-self: stretch;
-  }
-
   /* ============ The narrowest phones: a follow-up's button goes under its text ============ */
   @media (max-width: 340px) {
     .g-att {

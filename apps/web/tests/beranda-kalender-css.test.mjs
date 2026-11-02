@@ -155,6 +155,6 @@ test('v5 desktop: one 800 px column below 1280 px, Kelola last; two columns up t
   assert.match(wide[1], /\.g-home-desk \.g-tiles \{\s*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\);/);
   assert.match(b, /\.g-home-desk \.g-ag-day \{\s*min-height: 88px;/);
   assert.match(b, /\.g-home-desk \.g-ag-day \.dn \{\s*font-size: 20px;/);
-  // Deadlines on the strip: a full bar like any Akademik event.
-  assert.match(b, /\.g-ag-day \.g-mbars i\.point \{\s*width: auto;\s*justify-self: stretch;/);
+  // Deadlines on the strip: DayBars draws them as any Akademik bar (Garis v5), so no point mark is left to style.
+  assert.doesNotMatch(b, /\.point\b/);
 });
