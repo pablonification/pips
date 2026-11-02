@@ -74,6 +74,7 @@ export function usePosterViewer() {
         <RD.Overlay className="g-pv-ov" />
         <RD.Content
           className="g-pv"
+          aria-modal="true"
           aria-describedby={undefined}
           onCloseAutoFocus={(e) => {
             const el = opener.current;
