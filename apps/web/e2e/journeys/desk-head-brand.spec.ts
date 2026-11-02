@@ -86,19 +86,8 @@ const NARROW = [
     url: '/profil/matkul/tambah',
     action: (p: Page) => p.locator('.g-d-head > button'),
   },
-  {
-    what: 'Info Lomba for cnc (Tambah)',
-    persona: 'anggota',
-    roles: ['cnc'],
-    url: '/layanan/lomba',
-    action: (p: Page) => p.locator('.g-d-head > button'),
-  },
-  {
-    what: 'a Testi Matkul course for a pengurus (Tambah testimoni)',
-    persona: 'pengurus',
-    url: '/layanan/testi/teknik-informatika/3/course-IF2110',
-    action: (p: Page) => p.locator('.g-d-head > button'),
-  },
+  // Info Lomba and a Testi Matkul course were on this list until Garis v5 gave them the wide grid of posters and
+  // testimonials; their heads now span that grid (the wide-page test below).
 ] as const;
 
 for (const c of NARROW) {
@@ -138,3 +127,37 @@ test('a wide page’s head is not narrowed: Beranda’s head spans the window @d
     .evaluate((h) => h.getBoundingClientRect().width);
   expect(w).toBeGreaterThan(760);
 });
+
+const WIDE = [
+  {
+    what: 'Info Lomba for cnc (Tambah)',
+    persona: 'anggota',
+    roles: ['cnc'],
+    url: '/layanan/lomba',
+  },
+  {
+    what: 'a Testi Matkul course for a pengurus (Tambah testimoni)',
+    persona: 'pengurus',
+    url: '/layanan/testi/teknik-informatika/3/course-IF2110',
+  },
+] as const;
+
+for (const c of WIDE) {
+  test.describe(c.what, () => {
+    test.use({
+      persona: c.persona,
+      ...('roles' in c ? { roles: [...c.roles] } : {}),
+    });
+    test(`a wide grid page keeps its head as wide as the grid: ${c.what} @desktop-only`, async ({
+      page,
+    }) => {
+      await page.goto(c.url);
+      await expect(page.locator('.g-d-head > button')).toBeVisible();
+      const m = await headAndBody(page);
+      expect(m.narrowBody, 'the body is wide (Garis v5)').toBe(false);
+      expect(m.head[1] - m.head[0]).toBeGreaterThan(760);
+      expect(m.head[1]).toBeGreaterThanOrEqual(m.body[1] - 1);
+      await expectFits(page, c.what);
+    });
+  });
+}
