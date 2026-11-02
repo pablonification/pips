@@ -1,0 +1,593 @@
+/*
+  Masuk (sign-in, `/login`): Garis v5's keyboard header and slides, ported from the locked prototype's
+  garis/v5-masuk.css (2026-11-02) with the `g-` prefix, values unchanged. The prototype's `.phone .mk` (phones and
+  tablets) is `.g-mk.phone` and its `.desktop .mk` is `.g-mk.desk`: LoginScreen renders one or the other from the
+  desktop query (1024 px), as the shell does. Its `@container phone` (the tablet width) is the `mk` container here,
+  which is the whole window. Every entrance and float runs once; base.css turns all motion off under
+  prefers-reduced-motion. Tokens only; part of the app's one stylesheet (vite.config.ts).
+*/
+@layer components {
+  .g-mk {
+    --mk-bg: var(--bg-hero);
+    --mk-on: var(--text-on-hero);
+    --mk-on-2: var(--text-on-hero-2);
+    --mk-tone: var(--hero-tone);
+    position: relative;
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    background: var(--bg-app);
+    color: var(--text);
+    container: mk / size;
+  }
+  .g-mk::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ---------- The hero ---------- */
+  .g-mk-hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--mk-bg);
+    color: var(--mk-on);
+  }
+  .g-mk-ht {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 240px;
+    color: var(--mk-tone);
+    pointer-events: none;
+  }
+  .g-mk-ht .g-halftone {
+    height: 100%;
+    color: inherit;
+  }
+  .g-mk-top {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .g-mk-hi {
+    color: var(--mk-on);
+  }
+  .g-mk-art {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+  }
+
+  /* Three staggered rows of keycaps. --k is the key size; the board is drawn at Beranda's tile size (56 px keys,
+     24 px glyphs) and scaled as one illustration. */
+  .g-mk-board {
+    --k: 56px;
+    --g: 10px;
+  }
+  .g-mk-rows {
+    zoom: var(--z, 1.2);
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: var(--g);
+  }
+  @container mk (max-width: 359px) {
+    .g-mk-rows {
+      --z: 1;
+    }
+  }
+  @container mk (max-height: 640px) {
+    .g-mk-rows {
+      --z: 0.9;
+    }
+  }
+  .g-mk-row {
+    display: flex;
+    gap: var(--g);
+  }
+  .g-mk-row:nth-child(1) {
+    translate: calc(var(--k) * -0.28) 0;
+  }
+  .g-mk-row:nth-child(3) {
+    translate: calc(var(--k) * 0.28) 0;
+  }
+  .g-mk-key {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--k);
+    height: var(--k);
+    border-radius: calc(var(--k) * 0.2);
+    background: var(--bg-surface);
+    color: var(--text);
+    cursor: default;
+    touch-action: manipulation;
+    user-select: none;
+    box-shadow:
+      0 0 0 1.5px var(--border-key),
+      inset 0 1px 0 var(--keycap-highlight),
+      0 4px 0 0 var(--border-key);
+    transition:
+      translate 140ms cubic-bezier(0.3, 0.7, 0.4, 1) var(--d, 0ms),
+      box-shadow 140ms ease-out var(--d, 0ms),
+      background-color 160ms ease-out var(--d, 0ms);
+    animation: g-mk-drop 560ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    animation-delay: calc(140ms + var(--i) * 45ms);
+  }
+  .g-mk-key.home {
+    width: calc(var(--k) * 2 + var(--g));
+    background: var(--gold);
+    color: var(--ink);
+    box-shadow:
+      0 0 0 1.5px var(--ink),
+      inset 0 1px 0 var(--key-highlight),
+      0 4px 0 0 var(--ink);
+  }
+  .g-mk-key.home .g-wordmark {
+    font-size: 20px;
+  }
+  .g-mk-key.on,
+  .g-mk-key.down {
+    translate: 0 3px;
+    box-shadow:
+      0 0 0 1.5px var(--border-key),
+      inset 0 1px 0 var(--key-highlight-pressed),
+      0 1px 0 0 var(--border-key);
+  }
+  /* The slide's key lights up: ink, with its glyph in gold (gold with a cream glyph in dark). */
+  .g-mk-key.on {
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .g-mk-key.on .g-ic .gf {
+    fill: var(--gold);
+  }
+  html.dark .g-mk-key.on {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  html.dark .g-mk-key.on .g-ic .gf {
+    fill: var(--cream);
+  }
+  .g-mk-key.down {
+    transition-delay: 0ms;
+  }
+  .g-mk-px {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+    animation:
+      g-mk-pop 460ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
+      g-mk-bob 4.4s ease-in-out 1;
+    animation-delay:
+      calc(720ms + var(--i) * 90ms), calc(1300ms + var(--i) * 300ms);
+  }
+  .g-mk-px.p1 {
+    left: -4px;
+    top: -40px;
+  }
+  .g-mk-px.p2 {
+    right: -22px;
+    top: 14px;
+  }
+  .g-mk-px.p3 {
+    left: -26px;
+    bottom: 16px;
+  }
+  .g-mk-px.p4 {
+    right: 26px;
+    bottom: -42px;
+  }
+  .g-mk-float {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+    animation: g-mk-rise 1100ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  /* Signing in: the keys type in a wave, and the PIPS! key stays down. */
+  .g-mk.busy .g-mk-key {
+    animation: g-mk-type 760ms ease-in-out infinite;
+    animation-delay: calc(var(--i) * 70ms);
+  }
+  .g-mk.busy .g-mk-key.home {
+    animation: none;
+    translate: 0 3px;
+    box-shadow:
+      0 0 0 1.5px var(--ink),
+      0 1px 0 0 var(--ink);
+  }
+
+  /* ---------- The slides ---------- */
+  .g-mk-car {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+  .g-mk-track {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    border-radius: 8px;
+  }
+  .g-mk-track::-webkit-scrollbar {
+    display: none;
+  }
+  .g-mk-track:focus-visible {
+    outline-offset: 2px;
+  }
+  .g-mk-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  .g-mk-line {
+    color: var(--text-2);
+    text-wrap: pretty;
+  }
+  .g-mk-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .g-mk-dots {
+    display: flex;
+  }
+  .g-mk-dot {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+  }
+  .g-mk.phone .g-mk-dot {
+    width: 44px;
+    height: 44px;
+  }
+  .g-mk-dot i {
+    display: block;
+    width: 8px;
+    height: 8px;
+    background: var(--border-strong);
+    transition:
+      width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      background-color 160ms ease-out;
+  }
+  .g-mk-dot[aria-current] i {
+    width: 24px;
+    background: var(--gold);
+    box-shadow: 0 0 0 1.5px var(--border-key);
+  }
+
+  /* ---------- Signing in ---------- */
+  .g-mk-act {
+    display: grid;
+    gap: 12px;
+  }
+  .g-mk-go {
+    gap: 10px;
+  }
+  /* Google's own "G", whole, in one colour: the button's ink (owner, 2026-11-02). */
+  .g-mk-g {
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .g-mk-g svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+  }
+  .g-mk-go.nudge {
+    animation: g-mk-nudge 360ms ease-out;
+  }
+  .g-mk-load {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .g-mk-load i {
+    width: 5px;
+    height: 5px;
+    background: currentColor;
+    animation: g-mk-blink 900ms steps(1, end) infinite;
+  }
+  .g-mk-load i:nth-child(2) {
+    animation-delay: 150ms;
+  }
+  .g-mk-load i:nth-child(3) {
+    animation-delay: 300ms;
+  }
+  .g-mk-alert:empty {
+    display: none;
+  }
+  .g-mk-err-box {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+  }
+  .g-mk-err {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: var(--text-danger);
+    text-wrap: pretty;
+  }
+  .g-mk-err .g-ic {
+    margin-top: 2px;
+  }
+  .g-mk-hint {
+    color: var(--text-2);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  /* ---------- Phones and tablets ---------- */
+  .g-mk.phone {
+    display: flex;
+    flex-direction: column;
+  }
+  .g-mk.phone .g-mk-hero {
+    flex: 1 0 auto;
+    min-height: max(236px, 46cqh);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 20px 44px;
+    padding-top: max(16px, env(safe-area-inset-top));
+  }
+  .g-mk.phone .g-mk-art {
+    flex: 1;
+  }
+  .g-mk.phone .g-mk-sheet {
+    position: relative;
+    z-index: 2;
+    margin-top: -24px;
+    display: grid;
+    gap: 16px;
+    padding: 24px 20px max(20px, env(safe-area-inset-bottom));
+    border-radius: 24px 24px 0 0;
+    background: var(--bg-app);
+  }
+  html.dark .g-mk.phone .g-mk-sheet {
+    box-shadow: 0 -1px 0 var(--border);
+  }
+  .g-mk.phone .g-mk-slide {
+    text-align: center;
+    justify-items: center;
+    padding-inline: 4px;
+  }
+  .g-mk.phone .g-mk-car {
+    gap: 0;
+  }
+  @container mk (max-height: 620px) {
+    .g-mk.phone .g-mk-hero {
+      min-height: 200px;
+      padding-bottom: 36px;
+    }
+    .g-mk.phone .g-mk-sheet {
+      gap: 10px;
+      padding-top: 18px;
+    }
+  }
+  @container mk (min-width: 640px) {
+    .g-mk.phone .g-mk-hero {
+      min-height: 50cqh;
+      padding: 28px max(32px, calc((100% - 640px) / 2)) 56px;
+    }
+    .g-mk.phone .g-mk-sheet {
+      padding: 32px 32px 32px;
+      gap: 20px;
+    }
+    .g-mk.phone .g-mk-sheet > * {
+      width: min(100%, 520px);
+      justify-self: center;
+    }
+    .g-mk.phone .g-mk-rows {
+      --z: 1.5;
+    }
+  }
+
+  /* ---------- Desktop: hero and slides on the left, signing in on the right ---------- */
+  .g-mk.desk {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(420px, 1fr);
+  }
+  .g-mk.desk .g-mk-hero {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 32px;
+    padding: 48px 56px 40px;
+  }
+  .g-mk.desk .g-mk-ht {
+    width: 360px;
+  }
+  .g-mk.desk .g-mk-rows {
+    --z: 1.6;
+  }
+  .g-mk.desk .g-mk-car {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 520px);
+    justify-self: center;
+    gap: 12px;
+  }
+  .g-mk.desk .g-mk-slide .t-title {
+    font-size: 24px;
+    line-height: 1.2;
+    color: var(--mk-on);
+  }
+  .g-mk.desk .g-mk-line {
+    color: var(--mk-on-2);
+  }
+  .g-mk.desk .g-mk-nav {
+    justify-content: space-between;
+  }
+  .g-mk.desk .g-mk-arrow {
+    color: var(--mk-on);
+  }
+  .g-mk.desk .g-mk-arrow:hover {
+    background: color-mix(in srgb, var(--mk-on) 12%, transparent);
+  }
+  .g-mk.desk .g-mk-dot i {
+    background: var(--mk-on-2);
+  }
+  .g-mk.desk .g-mk-dot[aria-current] i {
+    background: var(--mk-on);
+    box-shadow: none;
+  }
+  .g-mk.desk .g-mk-side {
+    display: grid;
+    place-items: center;
+    padding: 48px;
+    background: var(--bg-app);
+  }
+  .g-mk.desk .g-mk-form {
+    display: grid;
+    gap: 32px;
+    width: min(100%, 400px);
+  }
+  .g-mk-brand {
+    padding: 0;
+  }
+  .g-mk-intro {
+    display: grid;
+    gap: 10px;
+  }
+  .g-mk.desk .g-mk-intro .g-mk-hi {
+    color: var(--text);
+  }
+
+  /* ---------- Motion (entrance once, then still) ---------- */
+  .g-mk-hi {
+    animation: g-mk-up 460ms cubic-bezier(0.16, 1, 0.3, 1) 60ms backwards;
+  }
+  .g-mk-top > :last-child,
+  .g-mk-brand {
+    animation: g-mk-fade 500ms ease-out 120ms backwards;
+  }
+  .g-mk-ht {
+    animation: g-mk-slide-l 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  .g-mk-car {
+    animation: g-mk-up 460ms cubic-bezier(0.16, 1, 0.3, 1) 380ms backwards;
+  }
+  .g-mk-intro {
+    animation: g-mk-up 460ms cubic-bezier(0.16, 1, 0.3, 1) 200ms backwards;
+  }
+  .g-mk-act {
+    animation: g-mk-up 460ms cubic-bezier(0.16, 1, 0.3, 1) 480ms backwards;
+  }
+  .g-mk-hint {
+    animation: g-mk-fade 500ms ease-out 600ms backwards;
+  }
+}
+
+@keyframes g-mk-drop {
+  from {
+    opacity: 0;
+    translate: 0 -16px;
+    scale: 0.84;
+  }
+}
+@keyframes g-mk-pop {
+  0% {
+    scale: 0;
+    opacity: 0;
+  }
+  70% {
+    scale: 1.15;
+    opacity: 1;
+  }
+  100% {
+    scale: 1;
+  }
+}
+@keyframes g-mk-bob {
+  50% {
+    translate: 0 -5px;
+  }
+}
+@keyframes g-mk-rise {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  18% {
+    opacity: 1;
+    scale: 1.1;
+  }
+  35% {
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -52px;
+  }
+}
+@keyframes g-mk-type {
+  0%,
+  60%,
+  100% {
+    translate: 0 0;
+  }
+  30% {
+    translate: 0 3px;
+    box-shadow:
+      0 0 0 1.5px var(--border-key),
+      0 1px 0 0 var(--border-key);
+  }
+}
+@keyframes g-mk-up {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+}
+@keyframes g-mk-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes g-mk-slide-l {
+  from {
+    opacity: 0;
+    translate: 40px 0;
+  }
+}
+@keyframes g-mk-nudge {
+  25% {
+    translate: -4px 0;
+  }
+  50% {
+    translate: 4px 0;
+  }
+  75% {
+    translate: -2px 0;
+  }
+}
+@keyframes g-mk-blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}

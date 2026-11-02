@@ -145,6 +145,13 @@ export const PROPER_NOUNS = [
  */
 export const PRODUCT_NAMES = ['Google Calendar'] as const;
 
+/**
+ * Whole phrases that write a house name another way on purpose: sign-in's greeting "Halo, Pips!" (garis v5
+ * screens-masuk.js; today's app says "Hello, Pips!", and HMIF calls itself "Pips", FEATURES.md). "Pips" anywhere
+ * else is still caught.
+ */
+export const HOUSE_PHRASES = ['Halo, Pips!'] as const;
+
 /** All-capitals words the app may show. Anything else in capitals is capitals the app added itself. */
 export const ACRONYMS = [
   'PIPS',
