@@ -12,6 +12,72 @@
     grid-template-rows: auto 1fr auto;
     padding: 16px 18px 14px;
     margin: 0;
+    isolation: isolate;
+    /* Garis v5: the card leans toward the pointer (member-tilt.ts sets --rx and --ry, at most 8° and 6°). */
+    transform: perspective(700px) rotateX(var(--ry, 0deg))
+      rotateY(var(--rx, 0deg));
+    transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .g-member.lit {
+    transition-duration: 90ms;
+  }
+  /* The card's own content, the logo with it, sits above the halftone and the sheen. */
+  .g-member > :not(.g-m-ht, .g-m-sheen) {
+    position: relative;
+    z-index: 2;
+  }
+  /* PIPS!'s halftone: ink squares growing toward the card's right edge, below the logo (never over it). */
+  .g-member .g-m-ht {
+    position: absolute;
+    z-index: 0;
+    right: 0;
+    top: 38%;
+    bottom: 0;
+    width: 62%;
+    color: rgb(27 21 8 / 0.13);
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, transparent, #000 30%);
+  }
+  /* The sheen: a soft band of light that sweeps once on arrival, then follows the pointer; it passes under the logo. */
+  .g-m-sheen {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+        105deg,
+        transparent 35%,
+        rgb(255 255 255 / 0.38) 50%,
+        transparent 65%
+      )
+      no-repeat;
+    background-size: 250% 100%;
+    background-position: calc(110% - var(--mx, 120%) * 1.2) 0;
+    opacity: 0;
+    transition: opacity 300ms ease-out;
+    animation: g-m-sweep 1100ms cubic-bezier(0.45, 0, 0.2, 1) 250ms;
+  }
+  .g-member.lit .g-m-sheen {
+    opacity: 1;
+    transition-duration: 120ms;
+  }
+  html.dark .g-m-sheen,
+  .theme-dark .g-m-sheen {
+    background-image: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.28) 50%,
+      transparent 65%
+    );
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .g-member {
+      transform: none;
+      transition: none;
+    }
+    .g-m-sheen {
+      display: none;
+    }
   }
   .g-m-top {
     display: flex;
@@ -109,5 +175,19 @@
       align-items: start;
       max-width: 1100px;
     }
+  }
+}
+/* The member card's sheen sweeps once across the gold when the card appears (Garis v5). */
+@keyframes g-m-sweep {
+  0% {
+    opacity: 1;
+    background-position: 120% 0;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    background-position: -20% 0;
   }
 }

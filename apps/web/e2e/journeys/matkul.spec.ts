@@ -485,9 +485,9 @@ test.describe('Tambah mata kuliah', () => {
     api.on('PUT /api/course/take/batch', writes.takeCourses);
     await page.goto('/profil/matkul');
     await expect.poll(() => sks(page)).toBe('18');
-    await removeBtn(page, 'IF2150').click();
+    await removeBtn(page, 'IF2180').click();
     await expect.poll(() => sks(page)).toBe('16');
-    await toastText(page, 'IF2150 dihapus dari mata kuliahmu.')
+    await toastText(page, 'IF2180 dihapus dari mata kuliahmu.')
       .getByRole('button', { name: 'Urungkan' })
       .click();
     await expect.poll(() => sks(page)).toBe('18');
