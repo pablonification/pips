@@ -30,8 +30,9 @@ test('a pointer beyond the card counts as on its edge, so the tilt never passes 
 });
 
 test('a card with no size yet stays flat', () => {
-  assert.deepEqual(
-    tiltAt({ left: 0, top: 0, width: 0, height: 0 }, 10, 10),
-    { rx: 0, ry: 0, mx: 50 },
-  );
+  assert.deepEqual(tiltAt({ left: 0, top: 0, width: 0, height: 0 }, 10, 10), {
+    rx: 0,
+    ry: 0,
+    mx: 50,
+  });
 });

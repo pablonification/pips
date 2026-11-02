@@ -34,9 +34,10 @@
     top: 38%;
     bottom: 0;
     width: 62%;
-    color: rgb(27 21 8 / 0.13);
+    color: var(--member-tone);
     pointer-events: none;
-    mask-image: linear-gradient(to bottom, transparent, #000 30%);
+    /* A mask reads only alpha: any opaque colour fades the squares in from the top. */
+    mask-image: linear-gradient(to bottom, transparent, var(--ink) 30%);
   }
   /* The sheen: a soft band of light that sweeps once on arrival, then follows the pointer; it passes under the logo. */
   .g-m-sheen {
@@ -47,7 +48,7 @@
     background: linear-gradient(
         105deg,
         transparent 35%,
-        rgb(255 255 255 / 0.38) 50%,
+        var(--member-sheen) 50%,
         transparent 65%
       )
       no-repeat;
@@ -60,15 +61,6 @@
   .g-member.lit .g-m-sheen {
     opacity: 1;
     transition-duration: 120ms;
-  }
-  html.dark .g-m-sheen,
-  .theme-dark .g-m-sheen {
-    background-image: linear-gradient(
-      105deg,
-      transparent 35%,
-      rgb(255 255 255 / 0.28) 50%,
-      transparent 65%
-    );
   }
   @media (prefers-reduced-motion: reduce) {
     .g-member {
