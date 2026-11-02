@@ -140,11 +140,17 @@ export function MatkulTambahScreen({
             if (e.key === 'Enter') e.preventDefault();
           }}
         />
-        {catalogue.isError ? (
+        {/* The list needs the catalogue and the member's own courses: either failing is the error, and Coba lagi
+            reads again whichever failed (regression: only the catalogue was retried, so a failed read of the
+            member's courses left the skeleton up for good). */}
+        {catalogue.isError || (mine.isError && !mine.data) ? (
           <ErrorState
             title={copy.gagalMuat}
-            onRetry={() => void catalogue.refetch()}
-            retrying={catalogue.isFetching}
+            onRetry={() => {
+              for (const query of [catalogue, mine, academic])
+                if (query.isError) void query.refetch();
+            }}
+            retrying={catalogue.isFetching || mine.isFetching}
           />
         ) : !catalogue.data || !mine.data ? (
           <Skeleton>

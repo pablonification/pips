@@ -557,4 +557,30 @@ test.describe('Tambah mata kuliah', () => {
     await main(page).getByRole('button', { name: 'Coba lagi' }).click();
     await expect(main(page).getByText('Strategi Algoritma')).toBeVisible();
   });
+
+  test('when your own courses failed to load too, Coba lagi reads both again and the list comes back', async ({
+    page,
+    api,
+    db,
+  }) => {
+    // Regression: Coba lagi re-read only the catalogue, so a failed read of the member's courses kept the skeleton
+    // up for good (found by qa/errors.spec.ts once it waited for loading to end, 2026-11-03).
+    let fail = true;
+    api.on('GET /api/course', () =>
+      fail ? reply.status(500) : { courses: db.courses },
+    );
+    api.on('GET /api/course/take/current', () =>
+      fail ? reply.status(500) : db.myCourses,
+    );
+    await page.goto('/profil/matkul/tambah');
+    await expect(
+      main(page).getByText('Daftar mata kuliah gagal dimuat.'),
+    ).toBeVisible({ timeout: 15_000 });
+    fail = false;
+    await main(page).getByRole('button', { name: 'Coba lagi' }).click();
+    await expect(main(page).getByText('Strategi Algoritma')).toBeVisible();
+    await expect(
+      main(page).getByRole('button', { name: 'Coba lagi' }),
+    ).toHaveCount(0);
+  });
 });
