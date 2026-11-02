@@ -8,7 +8,6 @@ import {
 // Straight from their files, not the barrel: /login is the first page a new member loads, and the barrel's chunk
 // brings the overlays' dialog library along.
 import { Button } from '~/components/garis/Button';
-import { Halftone } from '~/components/garis/Halftone';
 import { HmifLogo } from '~/components/garis/HmifLogo';
 import { IconButton } from '~/components/garis/IconButton';
 import { PixelReaction } from '~/components/garis/PixelReaction';
@@ -27,7 +26,8 @@ import { cn } from '~/lib/utils';
 import {
   BOARD_REACTIONS,
   GoogleG,
-  KEY_GLYPHS,
+  MasukHalftone,
+  KeyGlyph,
   KEY_ROWS,
   SLIDE_HERO,
   type KeyName,
@@ -184,7 +184,6 @@ export function LoginScreen({ redirectTo }: { redirectTo: string | null }) {
                 '--i': i,
                 '--d': `${Math.max(0, on) * 90}ms`,
               } as CSSProperties;
-              const Glyph = key === 'pips' ? null : KEY_GLYPHS[key];
               return (
                 <span
                   key={key}
@@ -198,7 +197,11 @@ export function LoginScreen({ redirectTo }: { redirectTo: string | null }) {
                   style={style}
                   onPointerDown={() => tap(key)}
                 >
-                  {Glyph ? <Glyph /> : <Wordmark size={20} />}
+                  {key === 'pips' ? (
+                    <Wordmark size={20} />
+                  ) : (
+                    <KeyGlyph name={key} />
+                  )}
                 </span>
               );
             })}
@@ -370,7 +373,7 @@ export function LoginScreen({ redirectTo }: { redirectTo: string | null }) {
         <>
           <div className="g-mk-hero">
             <div className="g-mk-ht">
-              <Halftone length={360} />
+              <MasukHalftone length={360} />
             </div>
             {board}
             {slides}
@@ -403,7 +406,7 @@ export function LoginScreen({ redirectTo }: { redirectTo: string | null }) {
             </div>
             {board}
             <div className="g-mk-ht">
-              <Halftone length={240} />
+              <MasukHalftone length={240} />
             </div>
           </div>
           <div className="g-mk-sheet">

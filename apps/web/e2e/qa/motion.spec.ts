@@ -17,6 +17,14 @@ import { moved, type MotionSample } from './lib';
 
 test.use({ motion: 'on' });
 
+/** Presses a header key and reads, on the next frame, whether it shows pressed (for 160 ms only). */
+const pressKey = (key: Locator) =>
+  key.evaluate(async (k) => {
+    k.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+    return k.classList.contains('down');
+  });
+
 /** Animations and transitions running now with a duration, by what they animate. */
 const running = (page: Page) =>
   page.evaluate(() =>
@@ -218,12 +226,18 @@ test.describe('no preference', () => {
     }) => {
       await fakeGoogle(page.context());
       api.on('POST /api/auth/login/accesstoken', reply.hang());
+      // Every animation that starts, recorded from the first paint on.
+      await page.addInitScript(() => {
+        const w = window as unknown as { __mkStarted: string[] };
+        w.__mkStarted = [];
+        document.addEventListener('animationstart', (e) =>
+          w.__mkStarted.push(e.animationName),
+        );
+      });
       await page.goto('/login');
-      const names = await page.evaluate(() =>
-        document
-          .getAnimations()
-          .map((a) => (a as CSSAnimation).animationName)
-          .filter(Boolean),
+      await expect(page.locator('.g-mk-key.on')).toHaveCount(1);
+      const names = await page.evaluate(
+        () => (window as unknown as { __mkStarted: string[] }).__mkStarted,
       );
       for (const n of ['g-mk-drop', 'g-mk-pop', 'g-mk-up', 'g-mk-slide-l'])
         expect(names, `the entrance's ${n}`).toContain(n);
@@ -236,8 +250,7 @@ test.describe('no preference', () => {
       await expect(page.locator('.g-mk-float')).toHaveCount(0);
       // A tapped key presses down and sends one up.
       const nim = page.locator('.g-mk-key[data-key="nim"]');
-      await nim.dispatchEvent('pointerdown');
-      await expect(nim).toHaveClass(/\bdown\b/);
+      expect(await pressKey(nim), 'the key pressed down').toBe(true);
       await expect(page.locator('.g-mk-float')).toHaveCount(1);
       // Then nothing moves: the last pixel reaction's bob ends 6.6 s after first paint.
       await page.waitForTimeout(6000);

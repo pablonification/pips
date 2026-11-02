@@ -61,6 +61,14 @@ async function onSlide(page: Page, i: number) {
 
 const box = async (l: Locator) => (await l.boundingBox())!;
 
+/** Presses a header key and reads, on the next frame, whether it shows pressed (for 160 ms only). */
+const pressKey = (key: Locator) =>
+  key.evaluate(async (k) => {
+    k.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+    return k.classList.contains('down');
+  });
+
 test.use({ signedIn: false });
 
 test('the keyboard header, the greeting, the slides and Masuk dengan Google, in this layout', async ({
@@ -260,8 +268,7 @@ test('tapping a key in the header presses it; with reduced motion no reaction ri
 }) => {
   await page.goto('/login');
   const nim = page.locator('.g-mk-key[data-key="nim"]');
-  await nim.dispatchEvent('pointerdown');
-  await expect(nim).toHaveClass(/\bdown\b/);
+  expect(await pressKey(nim), 'the key pressed down').toBe(true);
   await expect(nim).not.toHaveClass(/\bdown\b/);
   await expect(page.locator('.g-mk-float')).toHaveCount(0);
 });
@@ -383,4 +390,20 @@ test('after resizing across 1024 px the slide shown stays the same @desktop-only
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator('.g-mk-side')).toBeVisible();
   await onSlide(page, 2);
+});
+
+// Regression (V5): the header's glyphs and halftone once came from the build's shared `ui` chunk, which brought the
+// push prompt, the dialogs and their libraries before sign-in's first render (/login 144 → 190 KiB gzip).
+test('a cold first load of sign-in leaves out the shared ui chunk', async ({
+  page,
+}) => {
+  const scripts: string[] = [];
+  page.on('request', (r) => {
+    if (r.resourceType() === 'script') scripts.push(new URL(r.url()).pathname);
+  });
+  await page.goto('/login');
+  await expect(page.locator('.g-mk-key.on')).toHaveCount(1);
+  await page.waitForLoadState('networkidle');
+  expect(scripts.some((s) => /\/assets\/login-/.test(s))).toBe(true);
+  expect(scripts.filter((s) => /\/assets\/ui-/.test(s))).toEqual([]);
 });
