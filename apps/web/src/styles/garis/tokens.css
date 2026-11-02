@@ -127,6 +127,12 @@ html.dark,
   --scrim-dialog: rgb(8 6 4 / 0.55);
   --thumb-scrim: rgb(27 21 8 / 0.72);
   --quote-tint: rgb(27 21 8 / 0.07);
+  /* Info Lomba's poster viewer (Garis v5's v5-layanan.css): a dark backdrop and light text in both themes. */
+  --viewer-scrim: rgb(10 9 7 / 0.96);
+  --viewer-text: #f3eee0;
+  --viewer-focus: #f8c249;
+  --viewer-hover: rgb(255 255 255 / 0.12);
+  --viewer-outline: rgb(255 255 255 / 0.14);
   /* The pixel reactions' palette (garis/ui.js PX_COL); the rim is --px-rim, which turns bronze in dark mode. */
   --px-gold: #f8c249;
   --px-white: #ffffff;

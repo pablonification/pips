@@ -388,9 +388,9 @@ function toCompetitions(): Competition[] {
         media: {
           id: `${l.id}-poster`,
           creatorId: 'user-cnc',
-          name: `${l.id}.png`,
-          type: 'image/png',
-          url: mediaUrl(`poster-${l.id}`),
+          name: `${l.poster}.svg`,
+          type: 'image/svg+xml',
+          url: mediaUrl(`poster-${l.poster}`),
           createdAt: l.open,
         },
       },

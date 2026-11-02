@@ -1,7 +1,7 @@
 # Fixtures: where the prototype's data and the real API differ
 
 `prototype.ts` ports the locked prototype's sample data
-(`ops/ui-revamp-review/runtime/extra/garis-v4/locked-2026-10-12/source/garis/data.js`) as is. `api.ts` turns it
+(`ops/ui-revamp-review/runtime/extra/garis-v5/locked-2026-11-02/source/garis/data.js`) as is. `api.ts` turns it
 into the real API's shapes, typed with the generated models in `src/api/generated`. Where the two don't fit, the
 fixtures follow the API, as listed here.
 
@@ -67,12 +67,19 @@ fixtures follow the API, as listed here.
   testimonials; showing "Anonim" is the redesign's job). Named ones keep their text ("Nabila, IF 2024").
 - IF testimonials fill `overview`, `assignments` (Tugas) and `lecturer_review` (Review Dosen); STI ones fill
   `impressions` (Kesan), `challenges` (Tantangan) and `advice` (Saran). `lecturer` stays null, as the prototype
-  leaves lecturer names out.
+  leaves lecturer names out; journeys that need the Dosen section set one themselves.
+- Garis v5 gives IF2110 six testimonials (one long, to show the fold). The API sends a course's testimonials all at
+  once (`GET /api/testimoni/course/:courseId` has no paging), and so does the mock.
 
 ## Info Lomba
 
-- `price` is a string in the API; free competitions send `null` ("FREE" in today's app). Posters are generated
-  3:4 images. Registration and source links are placeholders on `example.org`.
+- `price` is a string in the API; free competitions send `null` ("FREE" in today's app). Registration and source
+  links are placeholders on `example.org`.
+- Posters (Garis v5): each competition's one media is the prototype's own sample poster (`garis/posters/<name>.svg`,
+  original artwork with no organiser's or HMIF's logo), copied to `fixtures/posters/` and served by the mock at
+  `/__e2e__/media/poster-<name>.svg`, so captures match the locked screens. Any other `poster-…` name is a generated
+  3:4 image.
+- Garis v5 adds two competitions (IT Today 2026: Business IT Case; Technofest 2026: Game Development): six in all.
 
 ## Curhat Yuk!
 

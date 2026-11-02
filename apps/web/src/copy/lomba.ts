@@ -1,6 +1,6 @@
 /**
- * Info Lomba (P2-B), worded as the prototype words it (garis/screens-more.js `scrLomba`; garis/ui.js `rupiah`), and
- * **Muat lagi** from SPEC story 78. Lines the prototype has no words for (empty, errors, loading) are new copy,
+ * Info Lomba (P2-B, posters from Garis v5), worded as the prototype words it (garis/screens-more.js `scrLomba` and
+ * `OV.poster`; garis/ui.js `rupiah`), and **Muat lagi** from SPEC story 78. Lines the prototype has no words for (empty, errors, loading) are new copy,
  * listed in the P2-B report.
  */
 export const lomba = {
@@ -12,6 +12,10 @@ export const lomba = {
   daftarLabel: 'Daftar {nama}',
   sumberLabel: 'Sumber {nama}',
   muatLagi: 'Muat lagi',
+  // Garis v5: the 3:4 poster, its button and the poster viewer (`scrLomba`, `OV.poster`).
+  poster: 'Poster {nama}',
+  perbesarPoster: 'Perbesar poster {nama}',
+  tutupPoster: 'Tutup poster',
   // New copy.
   kosong: 'Belum ada lomba yang dibuka',
   kosongIsi: 'Lomba baru muncul di sini begitu pendaftarannya dibuka.',

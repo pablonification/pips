@@ -1,7 +1,8 @@
 /*
   Ding Dong, Testi Matkul, NIM Finder and Info Lomba (P2-B), ported from the locked prototype's garis/garis.css
-  (".svc-row", ".lomba" and its parts, ".testi-card", ".byline", ".pager") with the `g-` prefix. Colours come only
-  from tokens.css.
+  (".svc-row", ".lomba" and its parts, ".testi-card", ".byline") with the `g-` prefix, and Garis v5's
+  garis/v5-layanan.css (every testimonial at once; Info Lomba's posters and the poster viewer). Colours come only from
+  tokens.css.
 */
 @layer components {
   /* A service, course or member row: tile, text, then what ends the row (the same as P1-C's `.g-svc-row`). */
@@ -12,7 +13,7 @@
     padding: 12px 0;
   }
 
-  /* An Info Lomba card: name, organiser, categories, the deadline and fee, then Daftar and Sumber. */
+  /* An Info Lomba card: the poster, then name, organiser, categories, the deadline and fee, then Daftar and Sumber. */
   .g-lomba {
     display: grid;
     gap: 2px;
@@ -56,6 +57,163 @@
     margin-top: 10px;
   }
 
+  /* ============ Info Lomba (Garis v5): the 3:4 poster with the facts ============
+     Phones: a list, the poster beside the facts. Tablets and desktops: a grid of poster cards, actions aligned at the
+     bottom of each row. The poster is a button that opens it large. */
+  .g-lomba-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .g-lomba-grid > .g-lomba {
+    grid-template-columns: 104px minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+    padding: 16px 0;
+  }
+  .g-lomba-grid > .g-lomba + .g-lomba {
+    border-top: 1px solid var(--border);
+  }
+  .g-lomba-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    height: 100%;
+  }
+  .g-lomba-info .g-lomba-facts {
+    margin-top: 10px;
+  }
+  .g-lomba-info .g-lomba-acts {
+    margin-top: auto;
+    padding-top: 12px;
+  }
+  .g-poster {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: var(--bg-muted);
+  }
+  button.g-poster {
+    cursor: zoom-in;
+  }
+  .g-poster > .g-media {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--bg-muted);
+  }
+  .g-poster:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  @media (max-width: 340px) {
+    .g-lomba-grid > .g-lomba {
+      grid-template-columns: 88px minmax(0, 1fr);
+      gap: 12px;
+    }
+  }
+  @media (min-width: 640px) {
+    .g-lomba-grid {
+      grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+      gap: 32px 20px;
+      padding-top: 8px;
+    }
+    .g-lomba-grid > .g-lomba,
+    .g-lomba-grid > .g-lomba + .g-lomba {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      align-items: stretch;
+      padding: 0;
+      border: 0;
+    }
+  }
+  @media (min-width: 1024px) {
+    .g-lomba-grid {
+      grid-template-columns: repeat(auto-fill, minmax(208px, 1fr));
+      gap: 36px 24px;
+      padding-top: 0;
+    }
+  }
+
+  /* ============ The poster viewer: the poster as large as the window allows, on a dark backdrop in both themes ============ */
+  .g-pv-ov {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-scrim);
+    background: var(--viewer-scrim);
+    animation: g-fade var(--dur-overlay) ease-out;
+  }
+  .g-pv {
+    --focus: var(--viewer-focus);
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 8px;
+    padding: 10px 10px 24px 18px;
+    padding-top: max(10px, env(safe-area-inset-top));
+    color: var(--viewer-text);
+  }
+  .g-pv:focus {
+    outline: none;
+  }
+  .g-pv-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+  }
+  .g-pv-head h2 {
+    flex: 1;
+    min-width: 0;
+    color: var(--viewer-text);
+  }
+  .g-pv .g-icon-btn {
+    width: 44px;
+    height: 44px;
+    color: var(--viewer-text);
+  }
+  .g-pv .g-icon-btn:hover {
+    background: var(--viewer-hover);
+  }
+  .g-pv-img {
+    position: relative;
+    min-height: 0;
+    margin-right: 8px;
+  }
+  .g-pv-img > .g-media {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: visible;
+    border-radius: 0;
+    background: none;
+    outline: 0;
+  }
+  .g-pv-img .g-media > img {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    outline: 1px solid var(--viewer-outline);
+    outline-offset: -1px;
+    animation: g-pop var(--dur-overlay) ease-out;
+  }
+  @media (min-width: 1024px) {
+    .g-pv {
+      padding: 20px 24px 32px 36px;
+    }
+  }
+
   /* A testimonial: the byline, then its sections. */
   .g-testi-card {
     display: grid;
@@ -67,24 +225,63 @@
     align-items: center;
     gap: 10px;
   }
-  .g-pager {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
   /* Kept text in a testimonial: its own line breaks. */
   .g-pre-line {
     white-space: pre-line;
     overflow-wrap: anywhere;
   }
-  /* On the narrowest phones the pager keeps its arrows and drops the words (the prototype's `.lbl`). */
-  @media (max-width: 340px) {
-    .g-pager .lbl {
-      display: none;
-    }
-    .g-pager .g-btn:has(.lbl) {
-      padding: 0 10px;
+
+  /* ============ Testi Matkul's course page (Garis v5): every testimonial at once, read by scrolling ============
+     Phones stack the cards. Wider screens flow them into up to three columns of at least 300 px (two on tablets and
+     1024 px desktops, three at 1440). Columns read top to bottom, the same order as the keyboard and screen readers,
+     and a card never splits across columns. */
+  .g-testi-page {
+    gap: 16px;
+  }
+  .g-testi-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 6px 24px;
+  }
+  .g-testi-grid {
+    columns: 300px 3;
+    column-gap: 16px;
+  }
+  .g-testi-grid[data-n='2'] {
+    columns: 300px 2;
+  }
+  .g-testi-grid[data-n='1'] {
+    columns: auto 1;
+    max-width: 640px;
+  }
+  .g-testi-grid > .g-testi-card {
+    break-inside: avoid;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+  .g-testi-secs {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+  }
+  .g-testi-secs dd {
+    margin: 2px 0 0;
+  }
+  .g-testi-secs .fold {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
+    overflow: hidden;
+  }
+  .g-testi-card > .g-link {
+    justify-self: start;
+  }
+  @media (min-width: 1024px) {
+    .g-testi-page {
+      gap: 20px;
     }
   }
 }

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">
+<rect width="600" height="800" fill="#E9F4EE"/>
+<rect x="0" y="0" width="600" height="420" fill="#0E5A4A"/>
+<g fill="#5FC79A"><rect x="80" y="250" width="60" height="110"/><rect x="170" y="200" width="60" height="160"/><rect x="260" y="150" width="60" height="210"/><rect x="350" y="90" width="60" height="270" fill="#F2C14E"/></g>
+<path d="M70 230 200 170 290 120 380 60 470 40" stroke="#FFFFFF" stroke-width="6" fill="none"/>
+<circle cx="470" cy="40" r="12" fill="#FFFFFF"/>
+<text x="48" y="520" fill="#0E3B31" font-size="64" font-weight="800" letter-spacing="-2">BUSINESS</text>
+<text x="48" y="590" fill="#0E3B31" font-size="64" font-weight="800" letter-spacing="-2">IT CASE</text>
+<text x="48" y="640" fill="#1B8A6B" font-size="26" font-weight="700">IT Today 2026</text>
+<text x="48" y="748" fill="#2F5248" font-size="20">Pendaftaran sampai 9 November 2026</text>
+</svg>

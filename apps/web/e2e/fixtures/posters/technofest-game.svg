@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">
+<rect width="600" height="800" fill="#FF6B35"/>
+<path d="M0 470 600 330V800H0z" fill="#1E1B2E"/>
+<rect x="150" y="120" width="300" height="170" rx="80" fill="#1E1B2E"/>
+<path d="M215 175v60M185 205h60" stroke="#FFFFFF" stroke-width="16"/>
+<circle cx="370" cy="185" r="15" fill="#FFD23F"/><circle cx="405" cy="220" r="15" fill="#3BCEAC"/>
+<text x="48" y="560" fill="#FFFFFF" font-size="62" font-weight="800" letter-spacing="-2">GAME</text>
+<text x="48" y="626" fill="#FFFFFF" font-size="62" font-weight="800" letter-spacing="-2">DEVELOPMENT</text>
+<text x="48" y="684" fill="#FFD23F" font-size="26" font-weight="700">Technofest 2026</text>
+<text x="48" y="748" fill="#CFCBE0" font-size="20">Tutup 16 November 2026 · Rp50.000</text>
+</svg>

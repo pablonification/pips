@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">
+<rect width="600" height="800" fill="#10264A"/>
+<g fill="none" stroke="#2C5A9C" stroke-width="2"><path d="M0 120h600M0 240h600M0 360h600M0 480h600M120 0v800M240 0v800M360 0v800M480 0v800"/></g>
+<g fill="#3C7BD9"><rect x="360" y="120" width="120" height="120"/><rect x="480" y="240" width="120" height="120" fill="#F2B33D"/><rect x="240" y="240" width="120" height="120" fill="#1D4F99"/><rect x="360" y="360" width="120" height="120" fill="#7FB2F0"/></g>
+<circle cx="420" cy="180" r="26" fill="#10264A"/>
+<text x="48" y="560" fill="#FFFFFF" font-size="78" font-weight="800" letter-spacing="-2">GEMASTIK</text>
+<text x="48" y="640" fill="#F2B33D" font-size="78" font-weight="800">XIX</text>
+<text x="48" y="690" fill="#BFD4F2" font-size="22">Pagelaran mahasiswa nasional bidang TIK</text>
+<text x="48" y="748" fill="#FFFFFF" font-size="22" font-weight="700">Pendaftaran 1–20 Oktober 2026</text>
+</svg>

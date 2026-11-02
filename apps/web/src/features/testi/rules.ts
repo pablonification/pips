@@ -159,13 +159,17 @@ export function authorOf(userName: string | null | undefined): {
   return { name, initials };
 }
 
-/** The testimonial shown for a 1-based `page` from the URL: an index in range, or 0 when there are none. */
-export function clampIndex(page: number | undefined, count: number): number {
-  if (count <= 0) return 0;
-  const i = Math.trunc((page ?? 1) - 1);
-  if (!Number.isFinite(i) || i < 0) return 0;
-  return Math.min(i, count - 1);
-}
+/**
+ * Garis v5's fold (`TESTI_LONG`): a section longer than this runs past six lines even in the widest card, so it folds
+ * to six behind "Baca selengkapnya". Shorter text is never folded, so nothing is hidden without a control.
+ */
+export const TESTI_LONG = 280;
+
+/** Whether a section folds while its card is closed. */
+export const isLong = (text: string) => text.length > TESTI_LONG;
+
+/** How many columns a course page may use (`data-n`): one per testimonial, at most three. */
+export const columnsFor = (count: number) => Math.max(1, Math.min(count, 3));
 
 export type Segment = { text: string; href?: string };
 

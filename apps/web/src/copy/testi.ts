@@ -24,8 +24,6 @@ export const testi = {
   cobaKodeLain: 'Coba kode atau nama lain.',
   cobaKataLain: 'Coba kata lain atau semester lain.',
   kodeSks: '{kode} · {sks} SKS',
-  testimoniKe: 'Testimoni {ke} dari {jumlah}',
-  posisi: '{ke} / {jumlah}',
   anonim: 'Anonim',
   bagian: {
     overview: 'Overview',
@@ -34,13 +32,12 @@ export const testi = {
     kesan: 'Kesan',
     tantangan: 'Tantangan',
     saran: 'Saran',
-    // Today's app shows "Dosen: {lecturer}"; the prototype has no place for it (P2-B open question 3).
+    // The lecturer's name (the API's `lecturer`), last: Garis v5's `testiCard`.
     dosen: 'Dosen',
   },
-  sebelumnya: 'Sebelumnya',
-  berikutnya: 'Berikutnya',
-  sebelumnyaLabel: 'Testimoni sebelumnya',
-  berikutnyaLabel: 'Testimoni berikutnya',
+  // Garis v5: a section over 280 characters folds to six lines behind these (`testiCard`).
+  bacaSelengkapnya: 'Baca selengkapnya',
+  ringkasLagi: 'Ringkas lagi',
   bukaDingdong: 'Buka Ding Dong {kode}',
   kosongIsi: 'Testimoni dikumpulkan divisi Akademik tiap akhir semester.',
   // New copy: a course that isn't in the catalogue (an old or mistyped link), as Curhat's "Ruang tidak ditemukan".
