@@ -1,6 +1,7 @@
 // The fidelity tool's non-route screens (e2e/fidelity/names.mjs): every locked PNG that isn't a route screen is
-// either an app task's (EXTRA_SCREENS, 35) or the prototype's own (PROTOTYPE_ONLY, 11), never both, with the
-// project and viewport garis-check.mjs took it at.
+// either an app task's (EXTRA_SCREENS, 43: Garis v5 added desktop Beranda at 1024, 1280, 1440 and 1920 px for both
+// members) or the prototype's own (PROTOTYPE_ONLY, 11), never both, with the project and viewport garis-check.mjs
+// took it at.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,11 +11,11 @@ import { lockedScreensDir } from '../e2e/scripts/lib/paths.mjs';
 
 const appDir = path.resolve(import.meta.dirname, '..');
 
-test('35 app-owned and 11 prototype-only non-route screens, all distinct', () => {
+test('43 app-owned and 11 prototype-only non-route screens, all distinct', () => {
   const names = EXTRA_SCREENS.map((e) => e.name);
-  assert.equal(names.length, 35);
+  assert.equal(names.length, 43);
   assert.equal(PROTOTYPE_ONLY.length, 11);
-  assert.equal(new Set([...names, ...PROTOTYPE_ONLY]).size, 46);
+  assert.equal(new Set([...names, ...PROTOTYPE_ONLY]).size, 54);
   const routes = new Set(screenNames().map((s) => s.name));
   for (const n of names) assert.ok(!routes.has(n), n);
 });
@@ -33,7 +34,7 @@ test('each extra has a project, a theme from its name and the viewport it was ta
   assert.deepEqual(kit, { name: 'system-kit', layout: 'desk', theme: 'light', viewport: { width: 1440, height: 1000 }, capture: 'element', note: kit.note });
 });
 
-test('the locked screens, where present, are exactly the route screens plus these 46', (t) => {
+test('the locked screens, where present, are exactly the route screens plus these 54', (t) => {
   const dir = lockedScreensDir();
   // The locked screens live in the workspace repo, not in pips: CI has only the lists above.
   if (!dir) return t.diagnostic('locked screens not on this machine; lists checked above');
