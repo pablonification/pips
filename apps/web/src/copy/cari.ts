@@ -18,7 +18,7 @@ export const cari = {
   tambahMatkul: {
     label: 'Tambah mata kuliah',
     hint: 'Mata kuliahku',
-    kata: 'matkul sks kelas course',
+    kata: 'matkul sks course',
   },
   nyalakanNotifikasi: {
     label: 'Nyalakan notifikasi',

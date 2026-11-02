@@ -90,7 +90,12 @@ test('opens on today, asking for this month; today’s events; the legend; no Ta
   await expect(
     main(page).getByRole('button', { name: 'Tambah acara' }),
   ).toHaveCount(0);
-  await expect(main(page).getByText('Batas waktu')).toBeVisible();
+  // v5: the legend is Akademik · Himpunan (and Atur mata kuliah); no "Batas waktu".
+  await expect(main(page).locator('.g-legend > span')).toHaveText([
+    'Akademik',
+    'Himpunan',
+  ]);
+  await expect(main(page).getByText(/Batas/)).toHaveCount(0);
   await expect(
     main(page).getByRole('link', { name: 'Atur mata kuliah' }),
   ).toHaveAttribute('href', '/profil/matkul');
@@ -102,7 +107,7 @@ test('opens on today, asking for this month; today’s events; the legend; no Ta
   await strictGates(page, testInfo, 'kalender');
 });
 
-test('9 Oktober: the deadline says Batas; its detail, reminder and three links', async ({
+test('9 Oktober: the deadline shows one time, no Batas; its detail, reminder and three links', async ({
   page,
 }, testInfo) => {
   const desk = layoutOf(testInfo) === 'desktop';
@@ -113,7 +118,9 @@ test('9 Oktober: the deadline says Batas; its detail, reminder and three links',
     // The day's row (named by its time first), not the grid's cell.
     .getByRole('button', { name: /^23\.59.*Deadline Tugas Besar 1/ });
   await expect(row).toContainText('23.59');
-  await expect(row).toContainText('Batas');
+  // v5: one time, nothing under it.
+  await expect(row).not.toContainText('Batas');
+  await expect(row.locator('.time > *')).toHaveCount(1);
   if (!desk) await row.click();
   const d = detail(page, desk);
   await expect(
@@ -144,6 +151,69 @@ test('9 Oktober: the deadline says Batas; its detail, reminder and three links',
   await strictGates(page, testInfo, 'kalender-detail');
   await d.getByRole('link', { name: 'Ding Dong' }).click();
   await expect(page).toHaveURL(/\/layanan\/dingdong$/);
+});
+
+/** A mark's look: its size, fill and outline. */
+const look = (el: import('@playwright/test').Locator) =>
+  el.evaluate((n) => {
+    const s = getComputedStyle(n);
+    const r = n.getBoundingClientRect();
+    return {
+      w: Math.round(r.width),
+      bg: s.backgroundColor,
+      shadow: s.boxShadow,
+      color: s.color,
+    };
+  });
+
+test('v5: a deadline draws as Akademik in the grid and the day list, with no outlined or short mark', async ({
+  page,
+}, testInfo) => {
+  const desk = layoutOf(testInfo) === 'desktop';
+  // Another day chosen, so neither day below draws in the chosen day's colours.
+  await page.goto('/kalender?hari=2026-10-01');
+  // 8 Oktober has Kuis 2 (Akademik, 15.00–16.40); 9 Oktober the deadline (23.59–23.59).
+  const kuisDay = day(page, /^Kamis, 8 Oktober/);
+  const deadlineDay = day(page, /^Jumat, 9 Oktober/);
+  if (desk) {
+    // The desktop grid: the deadline's chip is a dark Akademik chip, like Kuis 2's.
+    const kuis = kuisDay.locator('.g-dchip').filter({ hasText: 'Kuis 2' });
+    const deadline = deadlineDay
+      .locator('.g-dchip')
+      .filter({ hasText: 'Deadline Tugas Besar 1' });
+    await expect(deadline).toHaveClass('g-dchip');
+    const [a, b] = [await look(kuis), await look(deadline)];
+    expect(b.bg).toBe(a.bg);
+    expect(b.color).toBe(a.color);
+    expect(b.shadow).toBe(a.shadow);
+  } else {
+    // The phone and tablet month: a full bar, as wide as the day's bars.
+    const bar = deadlineDay.locator('.g-mbars i');
+    await expect(bar).toHaveCount(1);
+    await expect(bar).toHaveClass('akademik');
+    const kuis = kuisDay.locator('.g-mbars i.akademik').first();
+    const [a, b] = [await look(kuis), await look(bar)];
+    expect(b.w).toBe(a.w);
+    expect(b.w).toBeGreaterThanOrEqual(20);
+    expect(b.bg).toBe(a.bg);
+  }
+  // The day list: a solid bar like any Akademik row's.
+  await kuisDay.click();
+  const kuisBar = main(page)
+    .getByRole('button', { name: /^15\.00.*Kuis 2/ })
+    .locator('.g-kbar');
+  const solid = await look(kuisBar);
+  await deadlineDay.click();
+  const bar = main(page)
+    .getByRole('button', { name: /^23\.59.*Deadline Tugas Besar 1/ })
+    .locator('.g-kbar');
+  await expect(bar).toHaveClass('g-kbar');
+  const mark = await look(bar);
+  expect(mark.bg).toBe(solid.bg);
+  expect(mark.shadow).toBe(solid.shadow);
+  expect(mark.bg).not.toBe('rgba(0, 0, 0, 0)');
+  // Nothing anywhere still draws the old point mark.
+  await expect(main(page).locator('.point, .g-legend i.d')).toHaveCount(0);
 });
 
 test.describe('Pengingat H-1 with notifications on', () => {

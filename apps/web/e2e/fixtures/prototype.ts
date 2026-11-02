@@ -139,24 +139,10 @@ export const COURSES: ProtoCourse[] = (
   drive,
 }));
 
-/** Courses each sample member set for this semester, with their class (K1–K3). */
-export const MY_COURSES: Record<PersonaKey, [string, number][]> = {
-  anggota: [
-    ['IF2110', 2],
-    ['IF2120', 2],
-    ['IF2123', 1],
-    ['IF2130', 2],
-    ['IF2150', 2],
-    ['IF2180', 3],
-  ],
-  pengurus: [
-    ['IF3110', 1],
-    ['IF3130', 1],
-    ['IF3140', 2],
-    ['IF3141', 1],
-    ['IF3151', 2],
-    ['IF3170', 1],
-  ],
+/** Courses each sample member set for this semester (Garis v5 has no class). */
+export const MY_COURSES: Record<PersonaKey, string[]> = {
+  anggota: ['IF2110', 'IF2120', 'IF2123', 'IF2130', 'IF2150', 'IF2180'],
+  pengurus: ['IF3110', 'IF3130', 'IF3140', 'IF3141', 'IF3151', 'IF3170'],
 };
 
 export interface ProtoEvent {

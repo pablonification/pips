@@ -17,7 +17,7 @@ export class CourseService {
   }: {
     requestBody: {
       courseId: string;
-      class: number;
+      class?: number;
     },
   }): CancelablePromise<UserCourse> {
     return this.httpRequest.request({
@@ -88,7 +88,7 @@ export class CourseService {
   }: {
     requestBody: Array<{
       courseId: string;
-      class: number;
+      class?: number;
     }>,
   }): CancelablePromise<Array<UserCourse>> {
     return this.httpRequest.request({

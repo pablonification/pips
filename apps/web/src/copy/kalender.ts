@@ -16,11 +16,9 @@ export const kalender = {
   legenda: {
     akademik: 'Akademik',
     himpunan: 'Himpunan',
-    batasWaktu: 'Batas waktu',
     aturMataKuliah: 'Atur mata kuliah',
   },
-  // A deadline's row says "Batas" under its time; an ended event is "(selesai)" for screen readers.
-  batas: 'Batas',
+  // An ended event is "(selesai)" for screen readers (v5: a deadline's row has no "Batas" under its time).
   selesai: '(selesai)',
   acaraHimpunan: 'Acara Himpunan',
   // Desktop: the side column's name and its line before an event is chosen; a full cell's "+1 lagi".

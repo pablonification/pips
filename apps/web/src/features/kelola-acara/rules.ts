@@ -105,7 +105,7 @@ function instants(d: EventDraft) {
 
 /**
  * The submit branch's checks: a title (it stays until the next submit, as the prototype's), a date and both times,
- * and an end not before the start. An end equal to the start is a deadline ("Batas" in Kalender), so it's allowed.
+ * and an end not before the start. An end equal to the start is a deadline (one time in Kalender), so it's allowed.
  */
 export function validateEvent(d: EventDraft): EventErrors {
   const errors: EventErrors = {};

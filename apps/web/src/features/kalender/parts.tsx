@@ -40,24 +40,24 @@ import {
 import { EventOptions } from '~/features/kelola-acara/EventOptions';
 import './kalender.css';
 
-/** Up to three bars for a day's events: solid Akademik, hatched Himpunan, short for a deadline. Decorative. */
+/**
+ * Up to three bars for a day's events: solid Akademik, hatched Himpunan. Decorative. Garis v5: a deadline draws as any
+ * Akademik event (a full bar), since the app has only those two categories.
+ */
 export function DayBars({ events }: { events: readonly CalEvent[] }) {
   return (
     <span className="g-mbars" aria-hidden="true">
       {events.slice(0, 3).map((e) => (
-        <i
-          key={e.id}
-          className={cn(
-            isHimpunan(e) ? 'himpunan' : 'akademik',
-            isPoint(e) && 'point',
-          )}
-        />
+        <i key={e.id} className={isHimpunan(e) ? 'himpunan' : 'akademik'} />
       ))}
     </span>
   );
 }
 
-/** One event row: start and end (or "Batas"), the category bar, the title and its course (`agendaRow`). */
+/**
+ * One event row: start and end, the category bar, the title and its course (`agendaRow`). Garis v5: a deadline shows
+ * its one time with nothing under it, and a solid bar like any Akademik event.
+ */
 export function AgendaRow({
   event: e,
   course,
@@ -80,9 +80,7 @@ export function AgendaRow({
         <span className="g-agenda-item">
           <span className="time">
             <span className="block t-label strong num">{hm(e.start)}</span>
-            {point ? (
-              <span className="block t-micro text-fg-3">{t.batas}</span>
-            ) : (
+            {point ? null : (
               <span className="block t-cap text-fg-3 num">{hm(e.end)}</span>
             )}
           </span>
@@ -90,7 +88,6 @@ export function AgendaRow({
             className={cn(
               'g-kbar',
               isHimpunan(e) && 'himpunan',
-              point && 'point',
               ended && 'past',
             )}
             aria-hidden="true"
@@ -192,7 +189,7 @@ export function EventRows({
   );
 }
 
-/** Akademik, Himpunan and Batas waktu, with Atur mata kuliah at the end (`legend`). */
+/** Akademik and Himpunan, with Atur mata kuliah at the end (`legend`; v5 has no "Batas waktu"). */
 export function Legend() {
   return (
     <div className="g-legend">
@@ -203,10 +200,6 @@ export function Legend() {
       <span>
         <i className="h" />
         {t.legenda.himpunan}
-      </span>
-      <span>
-        <i className="d" />
-        {t.legenda.batasWaktu}
       </span>
       <LinkButton asChild className="ml-auto">
         <Link to="/profil/matkul">{t.legenda.aturMataKuliah}</Link>

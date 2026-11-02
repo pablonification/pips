@@ -778,14 +778,6 @@
   .g-ck-chips .g-chip .g-ic {
     margin-left: -2px;
   }
-  .g-chip-group {
-    display: flex;
-    gap: 6px;
-  }
-  .g-chip-group .g-chip {
-    min-width: 44px;
-    justify-content: center;
-  }
   .g-searchbox {
     display: flex;
     align-items: center;

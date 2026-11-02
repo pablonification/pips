@@ -64,7 +64,6 @@ import {
   evLabel,
   gridMonths,
   isHimpunan,
-  isPoint,
   monthChangeDay,
   monthDayName,
   moveFocus,
@@ -440,10 +439,7 @@ function DeskMonth(p: GridProps) {
             {evs.slice(0, 2).map((e) => (
               <span
                 key={e.id}
-                className={cn(
-                  'g-dchip',
-                  isPoint(e) ? 'point' : isHimpunan(e) ? 'himpunan' : null,
-                )}
+                className={cn('g-dchip', isHimpunan(e) && 'himpunan')}
                 aria-hidden="true"
               >
                 <span className="tm">{course(e)?.code ?? hm(e.start)}</span>

@@ -35,7 +35,7 @@ test.describe('a new member', () => {
     api.on('POST /api/auth/login/accesstoken', writes.loginAccessToken);
   });
 
-  test('sign-in → first run → Atur → K2 → Tambahkan → back, done → Nyalakan → Beranda', async ({
+  test('sign-in → first run → Atur → pick two → Tambahkan → back, done → Nyalakan → Beranda', async ({
     page,
     api,
     db,
@@ -69,13 +69,11 @@ test.describe('a new member', () => {
     });
     await search.fill('IF2110');
     await main(page)
-      .getByRole('radiogroup', { name: 'Kelas IF2110' })
-      .getByRole('radio', { name: 'K2' })
+      .getByRole('button', { name: /^IF2110 / })
       .click();
     await search.fill('IF2120');
     await main(page)
-      .getByRole('radiogroup', { name: 'Kelas IF2120' })
-      .getByRole('radio', { name: 'K1' })
+      .getByRole('button', { name: /^IF2120 / })
       .click();
     await page
       .getByRole('button', { name: /^Tambahkan/ })
@@ -83,8 +81,8 @@ test.describe('a new member', () => {
       .click();
     await expect(page).toHaveURL(/\/mulai$/);
     expect(api.calls('PUT /api/course/take/batch')[0].body).toEqual([
-      { courseId: 'course-IF2110', class: 2 },
-      { courseId: 'course-IF2120', class: 1 },
+      { courseId: 'course-IF2110' },
+      { courseId: 'course-IF2120' },
     ]);
     const courses = step(page, 'Atur mata kuliah semester ini');
     await expect(courses).toContainText('Selesai');

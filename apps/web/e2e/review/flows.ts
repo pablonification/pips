@@ -823,7 +823,7 @@ export const FLOWS: Flow[] = [
     owners: ['P1-C'],
     startsAt: '/profil/matkul',
     check:
-      'The semester line, "Dipakai untuk apa?", the total SKS; remove IF2180 then Urungkan; add IF2211 K2 from search (Enter doesn’t reload); back with the new total.',
+      'The semester line, "Dipakai untuk apa?", the total SKS; remove IF2180 then Urungkan; pick IF2211 by its row from search (Enter doesn’t reload); back with the new total.',
     locked: ['anggota-matkul', 'anggota-matkul-add', 'i-matkul-add'],
   },
   {

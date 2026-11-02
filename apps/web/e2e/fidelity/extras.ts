@@ -159,27 +159,35 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
         .getByRole('dialog', { name: 'Pencarian global' })
         .filter({ has: p.getByRole('option', { name: /^Bayar Kas!/ }) }),
   },
-  // P1-C: "IF2211" typed and K2 picked.
+  // P1-C, as v5's garis-check.mjs: Tambahkan pressed with nothing picked (its toast stays), "IF22" typed, IF2211 and
+  // IF2224 picked by their rows (no class), the pointer resting on IF2230.
   'i-matkul-add': {
     path: '/profil/matkul/tambah',
     act: async (p) => {
       const main = p.getByRole('main');
       await main.getByText('Strategi Algoritma').waitFor();
+      await p
+        .getByRole('button', { name: /^Tambahkan/ })
+        .locator('visible=true')
+        .click({ force: true });
+      await p
+        .locator('.g-toast')
+        .getByText('Pilih mata kuliah yang mau kamu tambahkan.')
+        .waitFor();
       await main
         .getByRole('searchbox', { name: 'Cari mata kuliah' })
-        .fill('IF2211');
-      await main
-        .getByRole('radiogroup', { name: 'Kelas IF2211' })
-        .getByRole('radio', { name: 'K2' })
-        .click();
-      // The prototype's capture shows no focus ring: the search field and chip were used by pointer.
+        .fill('IF22');
+      await main.getByRole('button', { name: /^IF2211 / }).click();
+      await main.getByRole('button', { name: /^IF2224 / }).click();
+      await main.getByRole('button', { name: /^IF2230 / }).hover();
+      // The prototype's capture shows no focus ring: the search field and rows were used by pointer.
       await p.evaluate(() =>
         (document.activeElement as HTMLElement | null)?.blur(),
       );
     },
     ready: (p) =>
       p
-        .getByRole('button', { name: /^Tambahkan \(1\)/ })
+        .getByRole('button', { name: /^Tambahkan \(2\)/ })
         .locator('visible=true'),
   },
   // P1-C's prompt over P1-A's Beranda: Nyalakan on "Notifikasi belum menyala", as garis-check.mjs section 4c presses

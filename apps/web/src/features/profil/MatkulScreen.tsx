@@ -19,7 +19,6 @@ import {
   Skeleton,
   SkeletonRow,
   SksMark,
-  Tag,
   toast,
 } from '~/components/garis';
 import { IconHapus } from '~/components/icons/hapus';
@@ -32,7 +31,6 @@ import { semesterLabel, totalSks } from './rules';
 import { jamWib, useOnline } from './useOnline';
 
 const copy = profil.matkul;
-const pad = (k: number) => String(k).padStart(2, '0');
 
 /** After a write to this semester's courses: Mata kuliahku, Ding Dong and the calendar's Akademik events. */
 export function refreshCourses(qc: ReturnType<typeof useQueryClient>) {
@@ -184,9 +182,6 @@ export function MatkulScreen() {
                         </span>
                         <span className="block t-sm">{c.course?.name}</span>
                       </span>
-                      <Tag tone="outlined">
-                        {fill(copy.kelas, { kelas: pad(c.class) })}
-                      </Tag>
                       <IconButton
                         size="sm"
                         data-rm={c.courseId}
