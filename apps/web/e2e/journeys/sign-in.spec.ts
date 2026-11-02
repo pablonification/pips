@@ -42,7 +42,9 @@ test.describe('signed out', () => {
     await fakeGoogle(page.context());
     await page.goto('/pengumuman/p1');
     await expect(page).toHaveURL(/\/login\?redirect=%2Fpengumuman%2Fp1$/);
-    await expect(page.getByRole('heading', { name: 'Masuk' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Halo, Pips!' }),
+    ).toBeVisible();
     await expect(page).toHaveTitle('Masuk · PIPS!');
     await expect(
       page.getByText(

@@ -1,7 +1,7 @@
 // The fidelity tool's non-route screens (e2e/fidelity/names.mjs): every locked PNG that isn't a route screen is
-// either an app task's (EXTRA_SCREENS, 46: Garis v5 added the poster viewer captures and desktop Beranda at 1024, 1280, 1440 and 1920 px for both
-// members) or the prototype's own (PROTOTYPE_ONLY, 11), never both, with the project and viewport garis-check.mjs
-// took it at.
+// either an app task's (EXTRA_SCREENS, 70: Garis v5 added the poster viewer, desktop Beranda at 1024, 1280, 1440 and
+// 1920 px for both members, and 24 Masuk screens) or the prototype's own (PROTOTYPE_ONLY, 11), never both, with the
+// project and viewport garis-check.mjs took it at.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,11 +15,12 @@ import { lockedScreensDir } from '../e2e/scripts/lib/paths.mjs';
 
 const appDir = path.resolve(import.meta.dirname, '..');
 
-test('46 app-owned (v5 adds i-poster-phone, -tablet and -desk, and eight desktop Beranda widths) and 11 prototype-only non-route screens, all distinct', () => {
+test('70 app-owned (24 of them Masuk) and 11 prototype-only non-route screens, all distinct', () => {
   const names = EXTRA_SCREENS.map((e) => e.name);
-  assert.equal(names.length, 46);
+  assert.equal(names.length, 70);
+  assert.equal(names.filter((n) => n.startsWith('masuk-')).length, 24);
   assert.equal(PROTOTYPE_ONLY.length, 11);
-  assert.equal(new Set([...names, ...PROTOTYPE_ONLY]).size, 57);
+  assert.equal(new Set([...names, ...PROTOTYPE_ONLY]).size, 81);
   const routes = new Set(screenNames().map((s) => s.name));
   for (const n of names) assert.ok(!routes.has(n), n);
 });
@@ -30,8 +31,9 @@ test('each extra has a project, a theme from its name and the viewport it was ta
     assert.equal(e.theme, e.name.endsWith('-dark') ? 'dark' : 'light', e.name);
     assert.ok(['app', 'page', 'element'].includes(e.capture), e.name);
     const { width, height } = e.viewport;
-    if (e.layout === 'phone')
-      assert.ok(width <= 390 && [800, 844].includes(height), e.name);
+    // The short phone (320 × 568) is its app area, 524 px under the prototype's 44 px bar.
+    const short = e.name === 'masuk-phone320x568-a-light';
+    if (e.layout === 'phone') assert.ok(width <= 390 && (short ? height === 524 : [800, 844].includes(height)), e.name);
     if (e.layout === 'tablet') assert.ok(width >= 640 && width < 1024, e.name);
     if (e.layout === 'desk') assert.ok(width >= 1024, e.name);
   }

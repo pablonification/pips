@@ -64,6 +64,8 @@
   /* The member card (v5): its halftone is ink on gold in both themes; its sheen is softer in dark mode. */
   --member-tone: rgb(27 21 8 / 0.13);
   --member-sheen: rgb(255 255 255 / 0.38);
+  /* Masuk's second line on the gold hero (garis v5-masuk.css --mk-on-2). */
+  --text-on-hero-2: #4a3a10;
   --avatar-on-hero: #ffffff;
   --glyph-fill: #f8c249;
   color: var(--text);
@@ -111,6 +113,7 @@ html.dark,
   --hero-tone: rgb(248 194 73 / 0.18);
   --member-tone: rgb(27 21 8 / 0.13);
   --member-sheen: rgb(255 255 255 / 0.28);
+  --text-on-hero-2: #e8d7ae;
   --avatar-on-hero: #f8c249;
   --glyph-fill: #8f6714;
   color: var(--text);
@@ -124,6 +127,8 @@ html.dark,
   --on-danger: #ffffff;
   --key-highlight: rgb(255 255 255 / 0.55);
   --key-highlight-pressed: rgb(255 255 255 / 0.3);
+  /* Masuk's paper keycaps (garis v5-masuk.css `.mk-key`). */
+  --keycap-highlight: rgb(255 255 255 / 0.5);
   --plaque-highlight: rgb(255 255 255 / 0.45);
   --plaque-drop: rgb(27 21 8 / 0.6);
   --danger-highlight: rgb(255 255 255 / 0.2);

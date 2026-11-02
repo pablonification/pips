@@ -254,6 +254,15 @@ test.describe('Raka', () => {
     await expect(
       page.getByRole('button', { name: 'Masuk dengan Google' }),
     ).toBeVisible();
+    // V5: it ends on the Masuk screen, its keyboard header back on the first slide.
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Halo, Pips!' }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByRole('region', { name: 'Kenalan dengan PIPS!' })
+        .getByRole('button', { name: 'Pengumuman', exact: true }),
+    ).toHaveAttribute('aria-current', 'true');
     // The order: the device first (it needs no session), then the session.
     const order = api.writes.map((w) => `${w.method} ${w.path}`);
     expect(order).toEqual(['PUT /api/push/logout', 'POST /api/logout']);

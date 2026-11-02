@@ -107,6 +107,13 @@ const extra = (name, layout, width, height, capture, note) => ({
 export const PROTO_BAR = 44;
 const PHONE_APP = /** @type {const} */ ([390, 800]);
 const DESK_APP = /** @type {const} */ ([1440, 956]);
+/** Masuk's error states, as garis-check.mjs names them (`&hasil=401|gagal|popup|skrip`). */
+export const MASUK_ERRORS = /** @type {const} */ ([
+  '401',
+  'gagal',
+  'popup',
+  'skrip',
+]);
 
 /** @type {ExtraScreen[]} Locked screens that an app task owns (briefs-check-wave2.md, "Coverage"). */
 export const EXTRA_SCREENS = [
@@ -189,6 +196,19 @@ export const EXTRA_SCREENS = [
       'includes the prototype bar (44 px) above the app',
     ),
   ),
+  // V5 Masuk (sign-in, garis v5 screens-masuk.js): the app area at each layout, light and dark, with loading and the
+  // four error states, and a short 320 × 568 phone (its app area is 524 px under the prototype's bar).
+  ...['light', 'dark'].flatMap((t) => [
+    extra(`masuk-phone-${t}`, 'phone', ...PHONE_APP, 'app'),
+    extra(`masuk-tablet-${t}`, 'tablet', 834, 1068, 'app'),
+    extra(`masuk-desk-${t}`, 'desk', ...DESK_APP, 'app'),
+    ...MASUK_ERRORS.flatMap((e) => [
+      extra(`masuk-phone-error-${e}-${t}`, 'phone', ...PHONE_APP, 'app'),
+      extra(`masuk-desk-error-${e}-${t}`, 'desk', ...DESK_APP, 'app'),
+    ]),
+  ]),
+  extra('masuk-phone-loading', 'phone', ...PHONE_APP, 'app'),
+  extra('masuk-phone320x568-a-light', 'phone', 320, 524, 'app'),
   extra(
     'system-cards',
     'desk',

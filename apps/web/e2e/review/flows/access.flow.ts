@@ -31,7 +31,7 @@ flow(
         await f.open('/pengumuman/p1');
         await expect(page).toHaveURL(/\/login\?redirect=%2Fpengumuman%2Fp1$/);
         await expect(
-          page.getByRole('heading', { name: 'Masuk' }),
+          page.getByRole('heading', { name: 'Halo, Pips!' }),
         ).toBeVisible();
         await expect(page).toHaveTitle('Masuk · PIPS!');
         expect(api.calls('GET /api/info/:infoId')).toHaveLength(0);
@@ -83,7 +83,9 @@ flow(
     api.on('POST /api/auth/login/accesstoken', writes.loginNotAMember);
     await f.step('Masuk', async () => {
       await f.open('/login');
-      await expect(page.getByRole('heading', { name: 'Masuk' })).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Halo, Pips!' }),
+      ).toBeVisible();
       await googleReady(page);
     });
     await f.step(
@@ -410,7 +412,9 @@ flow('signout', 'nadia', {}, async ({ page, f, api, db }) => {
       .getByRole('button', { name: 'Keluar' })
       .click();
     await expect(page).toHaveURL(/\/login(\?|$)/);
-    await expect(page.getByRole('heading', { name: 'Masuk' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Halo, Pips!' }),
+    ).toBeVisible();
     expect(api.calls('POST /api/logout')).toHaveLength(1);
     expect(
       await page.evaluate(() => localStorage.getItem('userAcademic')),
