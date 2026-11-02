@@ -617,7 +617,7 @@ export const FLOWS: Flow[] = [
     owners: ['P2-B'],
     startsAt: '/layanan/testi',
     check:
-      'IF, Semester 3, IF2110; the pager from 1 / 3 to 2 / 3; an STI course’s sections (II2110: Kesan, Tantangan, Saran); a course with none (IF2120) and the Akademik note; Buka Ding Dong.',
+      'IF, Semester 3, IF2110: every testimonial at once (Garis v5, no pager), Buka Ding Dong in the header, a long one folded behind Baca selengkapnya; an STI course’s sections (II2110: Kesan, Tantangan, Saran); a course with none (IF2120) and the Akademik note.',
     locked: ['anggota-testi-list', 'anggota-testi-course', 'i-testi'],
   },
   {
@@ -668,7 +668,7 @@ export const FLOWS: Flow[] = [
     owners: ['P2-B'],
     startsAt: '/layanan/lomba',
     check:
-      'Soonest deadline first; the danger line within 3 days; "Gratis" and "Rp150.000"; Daftar and Sumber in a new tab; the second page by scrolling and by Muat lagi. No posters (D6).',
+      'Soonest deadline first; the danger line within 3 days; "Gratis" and "Rp150.000"; Daftar and Sumber in a new tab; a poster opened large and closed with focus back on it (Garis v5); the second page by scrolling and by Muat lagi.',
     locked: ['anggota-lomba'],
   },
   // Form and Magang SPARTA

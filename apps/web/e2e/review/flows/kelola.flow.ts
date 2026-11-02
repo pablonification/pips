@@ -382,11 +382,12 @@ flow('kelola-lomba', 'cnc', { roles: ['cnc'] }, async ({ page, f, api }) => {
 flow('kelola-testi', 'raka', {}, async ({ page, f, api }) => {
   api.on('POST /api/testimoni', writes.createTestimonial);
   const add = dialog(page, 'Tambah testimoni');
-  const article = (ke: number, jumlah: number) =>
-    main(page).getByRole('article', { name: `Testimoni ${ke} dari ${jumlah}` });
+  const cards = main(page)
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('heading', { level: 3 }) });
   await f.step('IF2110: Tambah testimoni, with IF’s sections', async () => {
     await f.open('/layanan/testi/teknik-informatika/3/course-IF2110');
-    await expect(article(1, 3)).toBeVisible();
+    await expect(cards).toHaveCount(6);
     await page
       .getByRole('button', { name: 'Tambah testimoni' })
       .locator('visible=true')
@@ -403,23 +404,21 @@ flow('kelola-testi', 'raka', {}, async ({ page, f, api }) => {
     await f.gate('tambah-testi-error');
     await f.hold();
   });
-  await f.step(
-    'Saved: the new one in the pager, 4 / 4, by Anonim',
-    async () => {
-      await f.type(
-        add.getByLabel('Tugas', { exact: true }),
-        'Tubes tiap dua minggu.',
-      );
-      await add.getByRole('button', { name: 'Tambahkan' }).click();
-      await expect(add).toBeHidden();
-      await expect(toastText(page, 'Testimoni ditambahkan.')).toBeVisible();
-      await expect(
-        article(4, 4).getByText('Tubes tiap dua minggu.'),
-      ).toBeVisible();
-      await expect(article(4, 4).getByText('Anonim')).toBeVisible();
-      await f.hold();
-    },
-  );
+  await f.step('Saved: the new one joins the cards, by Anonim', async () => {
+    await f.type(
+      add.getByLabel('Tugas', { exact: true }),
+      'Tubes tiap dua minggu.',
+    );
+    await add.getByRole('button', { name: 'Tambahkan' }).click();
+    await expect(add).toBeHidden();
+    await expect(toastText(page, 'Testimoni ditambahkan.')).toBeVisible();
+    await expect(cards).toHaveCount(7);
+    const added = cards.nth(6);
+    await added.scrollIntoViewIfNeeded();
+    await expect(added.getByText('Tubes tiap dua minggu.')).toBeVisible();
+    await expect(added.getByRole('heading', { level: 3 })).toHaveText('Anonim');
+    await f.hold();
+  });
   await f.step('An STI course offers STI’s sections (II2110)', async () => {
     await page.goto(
       '/layanan/testi/sistem-dan-teknologi-informasi/3/course-II2110',

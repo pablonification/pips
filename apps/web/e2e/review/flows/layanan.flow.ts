@@ -10,8 +10,11 @@ const groupTitles = (page: Page) =>
   main(page).getByRole('heading', { level: 2 }).allTextContents();
 const courseRows = (page: Page) =>
   main(page).getByRole('link', { name: /^[A-Z]{2}\d{4} / });
-const article = (page: Page, i: number, n: number) =>
-  main(page).getByRole('article', { name: `Testimoni ${i} dari ${n}` });
+/** A course page's testimonials (Garis v5: every one at once), each a list item headed by its author. */
+const cards = (page: Page) =>
+  main(page)
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('heading', { level: 3 }) });
 
 /** Stand in for other sites, so a new tab never leaves this machine. */
 async function stubOutside(page: Page, pattern: string, title: string) {
@@ -166,48 +169,52 @@ flow('testi-browse', 'nadia', {}, async ({ page, f }) => {
     await expect(page).toHaveTitle('IF · Semester 3 · PIPS!');
     await expect(
       main(page).getByRole('link', {
-        name: /^IF2110 Algoritma dan Pemrograman II\s*3 testimoni$/,
+        name: /^IF2110 Algoritma dan Pemrograman II\s*6 testimoni$/,
       }),
     ).toBeVisible();
     await expect(courseRows(page)).toHaveCount(6);
     await f.gate('testi-list');
   });
-  await f.step('IF2110: Overview, Tugas, Review Dosen, 1 / 3', async () => {
-    await main(page)
-      .getByRole('link', { name: /^IF2110 / })
-      .click();
-    await expect(article(page, 1, 3)).toBeVisible();
-    await expect(
-      article(page, 1, 3).getByRole('heading', { level: 3 }),
-    ).toHaveText(['Overview', 'Tugas', 'Review Dosen']);
-    await expect(main(page).getByText('1 / 3')).toBeVisible();
-    await f.gate('testi-course');
-  });
-  await f.step('The pager: 2 / 3', async () => {
-    await main(page)
-      .getByRole('button', { name: 'Testimoni berikutnya' })
-      .click();
-    await expect(article(page, 2, 3)).toBeVisible();
-    await expect(main(page).getByText('2 / 3')).toBeVisible();
+  await f.step(
+    'IF2110: every testimonial at once, Buka Ding Dong in the header',
+    async () => {
+      await main(page)
+        .getByRole('link', { name: /^IF2110 / })
+        .click();
+      await expect(cards(page)).toHaveCount(6);
+      await expect(cards(page).first().getByRole('term')).toHaveText([
+        'Overview',
+        'Tugas',
+        'Review Dosen',
+      ]);
+      const folder = main(page).getByRole('link', {
+        name: 'Buka Ding Dong IF2110 (situs luar, tab baru)',
+      });
+      await expect(folder).toHaveAttribute('target', '_blank');
+      await f.gate('testi-course');
+    },
+  );
+  await f.step('Scrolling reads the rest; a long one folds', async () => {
+    const more = main(page).getByRole('button', { name: 'Baca selengkapnya' });
+    await more.scrollIntoViewIfNeeded();
     await f.hold();
-  });
-  await f.step('Buka Ding Dong', async () => {
-    const folder = main(page).getByRole('link', {
-      name: 'Buka Ding Dong IF2110 (situs luar, tab baru)',
-    });
-    await folder.scrollIntoViewIfNeeded();
-    await expect(folder).toHaveAttribute('target', '_blank');
+    await more.click();
+    await expect(
+      main(page).getByRole('button', { name: 'Ringkas lagi' }),
+    ).toBeVisible();
+    await f.hold();
+    await cards(page).last().scrollIntoViewIfNeeded();
     await f.hold();
   });
   await f.step('An STI course: Kesan, Tantangan, Saran (II2110)', async () => {
     await page.goto(
       '/layanan/testi/sistem-dan-teknologi-informasi/3/course-II2110',
     );
-    await expect(
-      main(page)
-        .getByRole('article', { name: /^Testimoni 1 dari/ })
-        .getByRole('heading', { level: 3 }),
-    ).toHaveText(['Kesan', 'Tantangan', 'Saran']);
+    await expect(cards(page).first().getByRole('term')).toHaveText([
+      'Kesan',
+      'Tantangan',
+      'Saran',
+    ]);
     await f.hold();
   });
   await f.step('A course with none (IF2120): the Akademik note', async () => {
@@ -233,7 +240,7 @@ flow('testi-search', 'nadia', {}, async ({ page, f }) => {
       await expect(main(page).getByRole('status')).toHaveText('1 mata kuliah');
       await expect(
         main(page).getByRole('link', {
-          name: /^IF2110 Algoritma dan Pemrograman II\s*3 testimoni$/,
+          name: /^IF2110 Algoritma dan Pemrograman II\s*6 testimoni$/,
         }),
       ).toBeVisible();
       await f.gate('testi-search');
@@ -311,7 +318,7 @@ flow('nim-finder', 'nadia', {}, async ({ page, f }) => {
 });
 
 flow('info-lomba', 'nadia', {}, async ({ page, f, db }) => {
-  // 12 competitions (the brief's override): today's four, one closing within 3 days, and seven later ones.
+  // 14 competitions (the brief's override): the six samples, one closing within 3 days, and seven later ones.
   // Free ones, so "Rp150.000" stays Find IT!'s alone.
   const base = db.competitions.find((c) => !c.price) ?? db.competitions[0];
   const extra = (id: string, name: string, close: string): Competition => ({
@@ -374,10 +381,30 @@ flow('info-lomba', 'nadia', {}, async ({ page, f, db }) => {
     await expect(tab).toHaveURL('https://example.org/e2e/l2/daftar');
     await tab.close();
   });
+  await f.step(
+    'A poster opens large; Tutup gives focus back to it',
+    async () => {
+      const poster = main(page).getByRole('button', {
+        name: 'Perbesar poster Gemastik XIX',
+      });
+      await poster.scrollIntoViewIfNeeded();
+      await poster.click();
+      const viewer = page.getByRole('dialog', { name: 'Gemastik XIX' });
+      await expect(
+        viewer.getByRole('img', { name: 'Poster Gemastik XIX' }),
+      ).toBeVisible();
+      await f.gate('lomba-poster');
+      await f.hold();
+      await viewer.getByRole('button', { name: 'Tutup poster' }).click();
+      await expect(viewer).toBeHidden();
+      await expect(poster).toBeFocused();
+      await f.hold();
+    },
+  );
   await f.step('Scrolling to the end loads the second page', async () => {
     const more = main(page).getByRole('button', { name: 'Muat lagi' });
     await more.scrollIntoViewIfNeeded();
-    await expect.poll(async () => (await names()).length).toBe(12);
+    await expect.poll(async () => (await names()).length).toBe(14);
     await expect(more).toHaveCount(0);
     await f.hold();
   });
@@ -399,7 +426,7 @@ flow('info-lomba', 'nadia', {}, async ({ page, f, db }) => {
     await more.focus();
     await f.hold();
     await page.keyboard.press('Enter');
-    await expect.poll(async () => (await names()).length).toBe(12);
+    await expect.poll(async () => (await names()).length).toBe(14);
     await expect(
       main(page).getByRole('heading', { level: 2, name: (await names())[10] }),
     ).toBeFocused();

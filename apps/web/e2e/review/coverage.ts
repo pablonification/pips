@@ -104,7 +104,6 @@ const NOTES: Record<
     reason: 'Only the Akademik line; how to contribute isn’t described (D6).',
   },
   75: { status: 'shown', checks: [], reason: 'No recent searches (D6).' },
-  77: { status: 'shown', checks: [], reason: 'No posters (D6).' },
   95: {
     status: 'not built',
     checks: [],
