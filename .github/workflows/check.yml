@@ -142,12 +142,43 @@ jobs:
             apps/web/e2e/.results
           retention-days: 14
 
+  e2e-solo:
+    name: e2e solo (timed journeys, one at a time)
+    # The journeys tagged @solo time the main thread, so they run with nothing beside them: in a shard, the other
+    # worker's test alone pushed them over budget on CI's runner (2026-11-02).
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium for Playwright
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Timed journeys
+        run: pnpm --filter web run e2e:solo
+        env:
+          E2E_GATES: strict
+      - name: Keep the report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report-solo
+          path: |
+            apps/web/e2e/.report
+            apps/web/e2e/.results
+          retention-days: 14
+
   e2e-result:
     name: e2e (web journeys)
-    # One result for the four shards, under the check name the merge protocol reads.
+    # One result for the four shards and the solo run, under the check name the merge protocol reads.
     if: ${{ always() && github.event_name == 'pull_request' }}
-    needs: e2e
+    needs: [e2e, e2e-solo]
     runs-on: ubuntu-latest
     steps:
-      - name: Every shard passed
-        run: test "${{ needs.e2e.result }}" = "success"
+      - name: Every shard and the solo run passed
+        run: test "${{ needs.e2e.result }}" = "success" && test "${{ needs.e2e-solo.result }}" = "success"

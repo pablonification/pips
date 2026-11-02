@@ -1015,7 +1015,7 @@ test.describe('Data SPARTA Magang', () => {
     await page.setViewportSize(size);
   });
 
-  test('300 submissions: one tree, and typing a search keeps up (review P3-A m2)', async ({
+  test('300 submissions: one tree, and typing a search keeps up (review P3-A m2) @solo', async ({
     page,
     db,
   }, testInfo) => {
