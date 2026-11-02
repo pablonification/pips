@@ -44,3 +44,14 @@ test('no text-transform and no font under 12 px', () => {
   const sizes = [...body.matchAll(/font-size: (\d+)px/g)].map((m) => +m[1]);
   assert.ok(sizes.length > 5 && sizes.every((s) => s >= 12), sizes.join(','));
 });
+
+// Garis v5 (2026-11-02): the sidebar brand fills the logo's height, and a narrow page's head is as narrow as its body.
+test('v5: the brand’s wordmark and HMIF ITB span the logo’s 36 px; a narrow page’s head stops at 760 px', () => {
+  const brand = rule('.g-side-brand > div');
+  assert.match(brand, /display: grid/);
+  assert.match(brand, /align-content: space-between/);
+  assert.match(brand, /height: var\(--brand-h, 36px\)/);
+  assert.match(rule('.g-side-brand .sub'), /line-height: 1;/);
+  assert.doesNotMatch(rule('.g-side-brand .sub'), /margin-top/);
+  assert.match(rule('.g-d-head:has(+ .g-body:not(.wide))'), /max-width: 760px/);
+});

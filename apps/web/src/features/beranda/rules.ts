@@ -105,12 +105,15 @@ export function kelolaForm(
   );
 }
 
-/** Pengumuman belum dibaca: the three newest unread posts. */
-export function unreadTop(infos: readonly Info[] | undefined): Info[] {
+/** Pengumuman belum dibaca: the newest unread posts, three on phones and tablets, five on desktop (Garis v5). */
+export function unreadTop(
+  infos: readonly Info[] | undefined,
+  count = 3,
+): Info[] {
   return (infos ?? [])
     .filter((i) => i.isRead !== true)
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
-    .slice(0, 3);
+    .slice(0, count);
 }
 
 /** A post's line on Beranda: its title, or its text when it has none. */

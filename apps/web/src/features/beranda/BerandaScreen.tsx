@@ -3,8 +3,9 @@
  * and greeting on phones and tablets, the greeting as the page head on desktop).
  * - Phones and tablets: the agenda card over the header's edge, the service tiles, Perlu ditindaklanjuti, Pengumuman
  *   belum dibaca and, for admins, Kelola.
- * - Desktop: the agenda card and Pengumuman belum dibaca in the main column; Perlu ditindaklanjuti, Pintasan and Kelola
- *   in the 320 px column.
+ * - Desktop (Garis v5): the same pieces. From 1280 px, two columns: the agenda card and Pengumuman belum dibaca (up to
+ *   five, with their excerpts) in the wide one; every service as tiles, Perlu ditindaklanjuti and Kelola beside them.
+ *   Below 1280 px, one column in the phone's order (beranda.css).
  * Each section loads and fails on its own; the agenda card never waits for the others.
  */
 import { useQuery } from '@tanstack/react-query';
@@ -33,7 +34,7 @@ import {
   UnreadBar,
   useMediaQuery,
 } from '~/components/garis';
-import { GLYPHS, ICONS } from '~/components/icons/registry';
+import { GLYPHS } from '~/components/icons/registry';
 import { GlyphLayanan } from '~/components/icons/layanan';
 import { IconCurhat } from '~/components/icons/curhat';
 import { IconForm } from '~/components/icons/form';
@@ -53,12 +54,7 @@ import useSession from '~/hooks/auth/useSession';
 import { can } from '~/lib/capabilities';
 import { hm } from '~/lib/dates';
 import { partsOf, weekdayOf, type DayKey } from '~/lib/days';
-import {
-  BERANDA_TILES,
-  PINNED_SERVICES,
-  serviceById,
-  type Service,
-} from '~/lib/services';
+import { BERANDA_TILES, serviceById, type Service } from '~/lib/services';
 import { cn } from '~/lib/utils';
 import {
   useCourses,
@@ -70,6 +66,7 @@ import {
 } from '~/features/kalender/data';
 import { EventSheet } from '~/features/kalender/EventSheet';
 import { useOpenEvent } from '~/features/kalender/open';
+import { displayText } from '~/features/pengumuman/rules';
 import { DayBars, DayListState, EventRows } from '~/features/kalender/parts';
 import {
   capFirst,
@@ -172,20 +169,22 @@ export function BerandaScreen({ hari, acara }: BerandaSearch) {
     />
   );
 
+  // In reading order for both widths: the agenda, then the side column, then the announcements, which sit under the
+  // agenda from 1280 px. Below 1280 px only Kelola moves, to the end, as on phones (beranda.css).
   if (desk)
     return (
       <BerandaHome>
-        <div className="g-d-grid">
-          <div className="g-d-stack">
+        <div className="g-home-desk">
+          <div className="g-hd-agenda">
             {offline}
             {card}
-            <Unread desk />
           </div>
-          <div className="g-d-stack">
+          <div className="g-hd-side">
+            <Tiles />
             <Attention desk agenda={agenda} courses={courses} now={now} />
-            <Pins />
             <KelolaSummary desk now={now} />
           </div>
+          <Unread desk />
         </div>
       </BerandaHome>
     );
@@ -290,7 +289,7 @@ function AgendaCard({
   );
 }
 
-/* ================= Service tiles (`homeTiles`) and Pintasan (`pins`) ================= */
+/* ================= Service tiles (`homeTiles`), on every layout since Garis v5 ================= */
 
 function ServiceLink({
   service: s,
@@ -358,40 +357,6 @@ function Tiles() {
         </li>
       </ul>
     </section>
-  );
-}
-
-function Pins() {
-  return (
-    <div>
-      <SectionHead title={t.pintasan} action={<AllLink to="/layanan" />} />
-      <div className="g-svc-grid two">
-        {PINNED_SERVICES.map((id) => {
-          const s = serviceById(id);
-          const Icon = ICONS[s.icon];
-          const ext = s.kind === 'external';
-          return (
-            <ServiceLink key={id} service={s} className="g-svc">
-              <Tile>
-                <Icon size={20} />
-              </Tile>
-              <span>
-                {s.label}
-                {ext ? (
-                  <>
-                    {' '}
-                    <span className="ext">
-                      <IconLuar size={16} />
-                    </span>
-                    <span className="sr-only"> {t.situsLuar}</span>
-                  </>
-                ) : null}
-              </span>
-            </ServiceLink>
-          );
-        })}
-      </div>
-    </div>
   );
 }
 
@@ -649,7 +614,7 @@ function Unread({ desk = false }: { desk?: boolean }) {
   const q = useUnreadInfos();
   const state = sourceState(q, useOnline());
   const late = useDelayed(state === 'waiting');
-  const list = unreadTop(q.data);
+  const list = unreadTop(q.data, desk ? 5 : 3);
   let body: ReactNode;
   if (state === 'offline')
     body = (
@@ -680,7 +645,7 @@ function Unread({ desk = false }: { desk?: boolean }) {
     body = (
       <RuledList>
         {list.map((p) => (
-          <UnreadRow key={p.id} info={p} />
+          <UnreadRow key={p.id} info={p} excerpt={desk} />
         ))}
       </RuledList>
     );
@@ -690,7 +655,7 @@ function Unread({ desk = false }: { desk?: boolean }) {
     );
 
   return (
-    <div>
+    <div className={desk ? 'g-hd-unread' : undefined}>
       <SectionHead
         title={t.belumDibaca.judul}
         line={!desk}
@@ -701,7 +666,9 @@ function Unread({ desk = false }: { desk?: boolean }) {
   );
 }
 
-function UnreadRow({ info }: { info: Info }) {
+/** `excerpt` (desktop): a titled post's text under its title, two lines, as on Pengumuman. A post with no title is
+ *  already its own text. */
+function UnreadRow({ info, excerpt }: { info: Info; excerpt: boolean }) {
   return (
     <li>
       <RowButton asChild>
@@ -713,6 +680,11 @@ function UnreadRow({ info }: { info: Info }) {
                 {postTitle(info)}
                 <span className="sr-only"> {t.belumDibaca.tandaBelum}</span>
               </span>
+              {excerpt && info.title ? (
+                <span className="g-hd-excerpt g-clamp2 block t-sm text-fg-2">
+                  {displayText(info.content)}
+                </span>
+              ) : null}
             </span>
           </span>
         </Link>
@@ -735,7 +707,7 @@ function KelolaSummary({ desk = false, now }: { desk?: boolean; now: number }) {
   });
   if (!admin || !form) return null;
   return (
-    <div>
+    <div className={desk ? 'g-hd-kelola' : undefined}>
       <SectionHead
         title={t.kelola.judul}
         line={!desk}

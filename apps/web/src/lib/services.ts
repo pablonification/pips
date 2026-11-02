@@ -273,7 +273,7 @@ export const BERANDA_TILES = [
   'kas',
 ] as const satisfies readonly ServiceId[];
 
-/** Pintasan: global search's start and desktop Beranda's shortcuts (`garis/data.js` PINS). */
+/** Pintasan: global search's start (`garis/data.js` PINS). Desktop Beranda shows every tile since Garis v5. */
 export const PINNED_SERVICES = [
   'dingdong',
   'testi',

@@ -43,5 +43,4 @@ export const beranda = {
     live: 'Live Counting',
     sudahMengisi: 'sudah mengisi',
   },
-  pintasan: 'Pintasan',
 } as const;
