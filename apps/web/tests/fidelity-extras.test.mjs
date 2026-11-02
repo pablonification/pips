@@ -1,6 +1,7 @@
 // The fidelity tool's non-route screens (e2e/fidelity/names.mjs): every locked PNG that isn't a route screen is
-// either an app task's (EXTRA_SCREENS, 35) or the prototype's own (PROTOTYPE_ONLY, 11), never both, with the
-// project and viewport garis-check.mjs took it at.
+// either an app task's (EXTRA_SCREENS, 46: Garis v5 added the poster viewer captures and desktop Beranda at 1024, 1280, 1440 and 1920 px for both
+// members) or the prototype's own (PROTOTYPE_ONLY, 11), never both, with the project and viewport garis-check.mjs
+// took it at.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,11 +15,11 @@ import { lockedScreensDir } from '../e2e/scripts/lib/paths.mjs';
 
 const appDir = path.resolve(import.meta.dirname, '..');
 
-test('38 app-owned (v5 adds i-poster-phone, -tablet and -desk) and 11 prototype-only non-route screens, all distinct', () => {
+test('46 app-owned (v5 adds i-poster-phone, -tablet and -desk, and eight desktop Beranda widths) and 11 prototype-only non-route screens, all distinct', () => {
   const names = EXTRA_SCREENS.map((e) => e.name);
-  assert.equal(names.length, 38);
+  assert.equal(names.length, 46);
   assert.equal(PROTOTYPE_ONLY.length, 11);
-  assert.equal(new Set([...names, ...PROTOTYPE_ONLY]).size, 49);
+  assert.equal(new Set([...names, ...PROTOTYPE_ONLY]).size, 57);
   const routes = new Set(screenNames().map((s) => s.name));
   for (const n of names) assert.ok(!routes.has(n), n);
 });
@@ -45,7 +46,7 @@ test('each extra has a project, a theme from its name and the viewport it was ta
   });
 });
 
-test('the locked screens, where present, are exactly the route screens plus these 46', (t) => {
+test('the locked screens, where present, are exactly the route screens plus the extras', (t) => {
   const dir = lockedScreensDir();
   // The locked screens live in the workspace repo, not in pips: CI has only the lists above.
   if (!dir)

@@ -342,10 +342,17 @@
     color: var(--text);
   }
   .g-side-brand .sub {
-    margin-top: 6px;
     font-size: 12px;
     font-weight: 500;
+    line-height: 1;
     color: var(--text-3);
+  }
+  /* Garis v5: the wordmark and "HMIF ITB" fill exactly the logo's height (54 px wide, so 36 px tall): PIPS!'s top on
+     the logo's top, HMIF ITB's baseline on its bottom. Sign-in's brand is the same piece. */
+  .g-side-brand > div {
+    display: grid;
+    align-content: space-between;
+    height: var(--brand-h, 36px);
   }
   .g-side-search {
     display: flex;
@@ -488,6 +495,11 @@
       justify-content: space-between;
       gap: 16px;
       padding: 30px 36px 22px;
+    }
+    /* Garis v5: a narrow page's head is as narrow as its body (760 px), so its action (Hapus ruang) sits by the
+       content, not at the window's edge. */
+    .g-d-head:has(+ .g-body:not(.wide)) {
+      max-width: 760px;
     }
   }
 

@@ -246,7 +246,7 @@ const info = (
 ): Info =>
   ({ id, title, content: `Isi ${id}`, createdAt: wib(at), isRead }) as Info;
 
-test('unread list: the three newest unread, a post without a title by its text', () => {
+test('unread list: the three (desktop: five) newest unread, a post without a title by its text', () => {
   const list = [
     info('p1', '2026-10-08T12:30', false),
     info('p2', '2026-10-08T10:40', true),
@@ -259,6 +259,11 @@ test('unread list: the three newest unread, a post without a title by its text',
     ['p4', 'p1', 'p3'],
   );
   assert.deepEqual(unreadTop(undefined), []);
+  // Desktop (Garis v5): up to five.
+  assert.deepEqual(
+    unreadTop(list, 5).map((i) => i.id),
+    ['p4', 'p1', 'p3', 'p5'],
+  );
   assert.equal(postTitle(info('p6', '2026-10-01T00:00', false, '')), 'Isi p6');
 });
 

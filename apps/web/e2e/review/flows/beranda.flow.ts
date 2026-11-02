@@ -93,31 +93,20 @@ flow('beranda', 'nadia', {}, async ({ page, f, db, layout }) => {
     }
   });
   await f.step(
-    layout === 'desktop'
-      ? 'Pintasan: four shortcuts'
-      : 'The eight service tiles, in the real Home’s order',
+    'The eight service tiles, in the real Home’s order (desktop too, Garis v5)',
     async () => {
-      if (layout === 'desktop') {
-        await expect(section(page, 'Pintasan').locator('.g-svc')).toHaveText([
-          'Ding Dong',
-          'Testi Matkul',
-          'NIM Finder',
-          'Bayar Kas! (situs luar)',
-        ]);
-      } else {
-        const tiles = page.getByRole('region', { name: 'Layanan' });
-        await tiles.scrollIntoViewIfNeeded();
-        await expect(tiles.getByRole('link')).toHaveText([
-          'Ding Dong',
-          'NIM Finder',
-          'Testi Matkul',
-          'Info Lomba',
-          'Curhat Yuk!',
-          'Beasiswa (situs luar)',
-          'Bayar Kas! (situs luar)',
-          'Lainnya',
-        ]);
-      }
+      const tiles = page.getByRole('region', { name: 'Layanan' });
+      await tiles.scrollIntoViewIfNeeded();
+      await expect(tiles.getByRole('link')).toHaveText([
+        'Ding Dong',
+        'NIM Finder',
+        'Testi Matkul',
+        'Info Lomba',
+        'Curhat Yuk!',
+        'Beasiswa (situs luar)',
+        'Bayar Kas! (situs luar)',
+        'Lainnya',
+      ]);
     },
   );
   await f.step(
@@ -149,16 +138,23 @@ flow('beranda', 'nadia', {}, async ({ page, f, db, layout }) => {
           expect(text).not.toContain(m.content);
     },
   );
-  await f.step('Pengumuman belum dibaca: the three newest titles', async () => {
-    const unread = section(page, 'Pengumuman belum dibaca');
-    await unread.scrollIntoViewIfNeeded();
-    await expect(unread.getByRole('listitem').getByRole('link')).toHaveCount(3);
-    await f.gate('beranda-scrolled');
-    await f.hold();
-  });
+  await f.step(
+    layout === 'desktop'
+      ? 'Pengumuman belum dibaca: all four, with their excerpts'
+      : 'Pengumuman belum dibaca: the three newest titles',
+    async () => {
+      const unread = section(page, 'Pengumuman belum dibaca');
+      await unread.scrollIntoViewIfNeeded();
+      await expect(unread.getByRole('listitem').getByRole('link')).toHaveCount(
+        layout === 'desktop' ? 4 : 3,
+      );
+      await f.gate('beranda-scrolled');
+      await f.hold();
+    },
+  );
 });
 
-flow('beranda-pengurus', 'raka', {}, async ({ page, f, layout }) => {
+flow('beranda-pengurus', 'raka', {}, async ({ page, f }) => {
   await f.step('Raka’s Beranda: his own course’s event, Kuis 1', async () => {
     await f.open('/');
     await expect(greeting(page, 'Raka')).toBeVisible();
@@ -182,12 +178,6 @@ flow('beranda-pengurus', 'raka', {}, async ({ page, f, layout }) => {
     await expect(kelola).toContainText('142');
     await f.hold();
   });
-  if (layout === 'desktop')
-    await f.step('Pintasan on desktop', async () => {
-      await expect(
-        main(page).getByRole('heading', { name: 'Pintasan' }),
-      ).toBeVisible();
-    });
   await f.step('The card opens Live Counting', async () => {
     await main(page)
       .getByRole('link', { name: /Live Counting/ })

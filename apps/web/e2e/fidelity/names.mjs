@@ -163,6 +163,12 @@ export const EXTRA_SCREENS = [
   extra('i-poster-desk', 'desk', ...DESK_APP, 'app'),
   extra('narrow320-beranda', 'phone', 320, 800, 'app'),
   extra('desk1024-beranda', 'desk', 1024, 956, 'app'),
+  // Garis v5: desktop Beranda at each window width, for both members (light; garis-check.mjs 4d).
+  ...[1024, 1280, 1440, 1920].flatMap((w) =>
+    ['anggota', 'pengurus'].map((who) =>
+      extra(`desk${w}-${who}-beranda`, 'desk', w, 956, 'app'),
+    ),
+  ),
   ...[
     ['page-phone-light', 'phone', 390, 844],
     ['page-phone-dark', 'phone', 390, 844],
