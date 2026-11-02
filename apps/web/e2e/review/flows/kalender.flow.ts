@@ -54,21 +54,18 @@ flow('kalender', 'nadia', {}, async ({ page, f, api, layout }) => {
     ).toHaveAccessibleName(/^Senin, 28 September/);
     await f.gate('kalender');
   });
-  await f.step(
-    'The legend tells Akademik, Himpunan and deadlines apart',
-    async () => {
-      const legend = main(page).getByText('Batas waktu');
-      await legend.scrollIntoViewIfNeeded();
-      await expect(legend).toBeVisible();
-      await f.hold();
-    },
-  );
-  await f.step('Jumat 9: Deadline Tugas Besar 1, "Batas"', async () => {
+  await f.step('The legend tells Akademik and Himpunan apart', async () => {
+    const legend = main(page).locator('.g-legend');
+    await legend.scrollIntoViewIfNeeded();
+    await expect(legend.locator('> span')).toHaveText(['Akademik', 'Himpunan']);
+    await f.hold();
+  });
+  await f.step('Jumat 9: Deadline Tugas Besar 1, one time', async () => {
     await day(page, /^Jumat, 9 Oktober/).click();
     const row = main(page).getByRole('button', {
       name: /^23\.59.*Deadline Tugas Besar 1/,
     });
-    await expect(row).toContainText('Batas');
+    await expect(row).not.toContainText('Batas');
     if (!desk) await row.click();
   });
   await f.step(
