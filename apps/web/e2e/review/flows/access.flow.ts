@@ -183,19 +183,17 @@ flow(
         await f.gate('mulai-tambah');
       },
     );
-    await f.step('IF2110 K2 and IF2120 K1 picked', async () => {
+    await f.step('IF2110 and IF2120 picked', async () => {
       const search = main(page).getByRole('searchbox', {
         name: 'Cari mata kuliah',
       });
       await f.type(search, 'IF2110');
       await main(page)
-        .getByRole('radiogroup', { name: 'Kelas IF2110' })
-        .getByRole('radio', { name: 'K2' })
+        .getByRole('button', { name: /^IF2110 / })
         .click();
       await f.type(search, 'IF2120');
       await main(page)
-        .getByRole('radiogroup', { name: 'Kelas IF2120' })
-        .getByRole('radio', { name: 'K1' })
+        .getByRole('button', { name: /^IF2120 / })
         .click();
     });
     await f.step(

@@ -6,14 +6,15 @@ import { COURSE_CATALOGUE_QUERY_KEY } from '~/api/constants';
 import { currentCoursesQuery, userAcademicQuery } from '~/api/queries';
 import {
   Button,
-  ChipGroup,
   ErrorState,
+  RowButton,
   Searchbox,
   Skeleton,
   SkeletonRow,
   SksMark,
   toast,
 } from '~/components/garis';
+import { IconCentang } from '~/components/icons/centang';
 import { IconTambah } from '~/components/icons/tambah';
 import { DeskHead, PageBody, TopBarActions } from '~/components/shell/page';
 import { previousEntryIs } from '~/components/shell/shell-state';
@@ -22,10 +23,9 @@ import { fill } from '~/copy/fill';
 import { profil } from '~/copy/profil';
 import useSession from '~/hooks/auth/useSession';
 import { refreshCourses } from './MatkulScreen';
-import { catalogueResults, picksBody, setPick, type Picks } from './rules';
+import { catalogueResults, picksBody, togglePick, type Picks } from './rules';
 
 const copy = profil.tambah;
-const KELAS = [1, 2, 3] as const;
 
 /** The active catalogue, fetched once per visit: search filters it on the device, at once. */
 export const catalogueQuery = () => ({
@@ -64,8 +64,8 @@ function AddButton({
 
 /**
  * Profil › Mata kuliahku › Tambah mata kuliah (garis/screens-more.js `scrMatkulAdd`, `caddResults`,
- * `addCoursesBtn`): search the catalogue, pick a class K1–K3 per course, then Tambahkan (the top bar on phones and
- * tablets, the page head on desktop). Search is not a form: Enter never reloads or submits.
+ * `addCoursesBtn`): search the catalogue, tap course rows to pick them (each row is one toggle, with a box at its end;
+ * Garis v5 has no class), then Tambahkan (the top bar on phones and tablets, the page head on desktop). Search is not a form: Enter never reloads or submits.
  */
 export function MatkulTambahScreen({
   fromFirstRun,
@@ -79,9 +79,9 @@ export function MatkulTambahScreen({
   const mine = useQuery(currentCoursesQuery());
   const catalogue = useQuery(catalogueQuery());
   const [q, setQ] = useState('');
-  const [picks, setPicks] = useState<Picks>({});
+  const [picks, setPicks] = useState<Picks>([]);
   const [pending, setPending] = useState(false);
-  const count = Object.keys(picks).length;
+  const count = picks.length;
 
   const results = useMemo(
     () =>
@@ -111,7 +111,7 @@ export function MatkulTambahScreen({
       return;
     }
     refreshCourses(qc);
-    setPicks({});
+    setPicks([]);
     toast.success(fill(copy.ditambahkan, { jumlah: count }));
     // Back to the page Tambah mata kuliah came from, as the prototype's `back(m)`: going forward to it would leave
     // this page in history, and Back would return to an empty Tambah mata kuliah (review M1).
@@ -156,23 +156,27 @@ export function MatkulTambahScreen({
           <ul className="g-ruled-list">
             {results.length ? (
               results.map((c) => (
-                <li key={c.id} className="g-course wrap">
-                  <SksMark sks={c.credits ?? 0} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block t-label strong code">{c.code}</span>
-                    <span className="block t-sm">{c.name}</span>
-                  </span>
-                  <ChipGroup
-                    className="g-kpick"
-                    label={fill(copy.kelasGrup, { kode: c.code })}
-                    deselectable
-                    value={picks[c.id] ?? null}
-                    options={KELAS.map((k) => ({
-                      value: k,
-                      label: fill(copy.kelasPilihan, { k }),
-                    }))}
-                    onChange={(k) => setPicks((p) => setPick(p, c.id, k))}
-                  />
+                <li key={c.id}>
+                  {/* One toggle per course: tap the row to pick it, tap again to drop it. */}
+                  <RowButton
+                    className="g-cpick"
+                    aria-pressed={picks.includes(c.id)}
+                    data-pick={c.id}
+                    onClick={() => setPicks((p) => togglePick(p, c.id))}
+                  >
+                    <span className="g-course">
+                      <SksMark sks={c.credits ?? 0} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block t-label strong code">
+                          {c.code}
+                        </span>
+                        <span className="block t-sm">{c.name}</span>
+                      </span>
+                      <span className="g-pick-box" aria-hidden="true">
+                        <IconCentang size={16} />
+                      </span>
+                    </span>
+                  </RowButton>
                 </li>
               ))
             ) : (

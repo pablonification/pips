@@ -159,7 +159,7 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
         .getByRole('dialog', { name: 'Pencarian global' })
         .filter({ has: p.getByRole('option', { name: /^Bayar Kas!/ }) }),
   },
-  // P1-C: "IF2211" typed and K2 picked.
+  // P1-C: "IF2211" typed and picked (v5: the row is the toggle, no class).
   'i-matkul-add': {
     path: '/profil/matkul/tambah',
     act: async (p) => {
@@ -168,11 +168,8 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
       await main
         .getByRole('searchbox', { name: 'Cari mata kuliah' })
         .fill('IF2211');
-      await main
-        .getByRole('radiogroup', { name: 'Kelas IF2211' })
-        .getByRole('radio', { name: 'K2' })
-        .click();
-      // The prototype's capture shows no focus ring: the search field and chip were used by pointer.
+      await main.getByRole('button', { name: /^IF2211 / }).click();
+      // The prototype's capture shows no focus ring: the search field and row were used by pointer.
       await p.evaluate(() =>
         (document.activeElement as HTMLElement | null)?.blur(),
       );

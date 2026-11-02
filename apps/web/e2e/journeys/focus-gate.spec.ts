@@ -23,11 +23,12 @@ const CASES = [
     fails: /focus indicator on BUTTON\[switch\]\|/,
   },
   {
-    what: 'a Garis chip (a class K1–K3)',
+    // Garis v5 replaced the class chips (K1–K3) on this screen with one toggle per course row.
+    what: 'a Garis row toggle (a course in Tambah mata kuliah)',
     url: '/profil/matkul/tambah',
-    ready: 'K1',
-    css: '.g-chip:focus-visible { outline: none !important; }',
-    fails: /focus indicator on BUTTON\[radio\]\|\|K1\|/,
+    ready: 'Strategi Algoritma',
+    css: '.g-row-btn:focus-visible { outline: none !important; }',
+    fails: /focus indicator on BUTTON\|\|\d+SKSIF\d{4}/,
   },
 ] as const;
 

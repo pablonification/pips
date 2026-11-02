@@ -1,6 +1,7 @@
 /**
  * Profil › Mata kuliahku and Tambah mata kuliah (P1-C): the list and Jumlah SKS, removing with Urungkan, the empty,
- * error and offline states, searching the catalogue, picking classes and adding them.
+ * error and offline states, searching the catalogue, picking courses (one toggle per row; Garis v5 has no class) and
+ * adding them.
  */
 import type { Page } from '@playwright/test';
 import { layoutOf } from '../support/app';
@@ -24,8 +25,16 @@ const addButton = (page: Page) =>
   page.getByRole('button', { name: /^Tambahkan/ }).locator('visible=true');
 const search = (page: Page) =>
   main(page).getByRole('searchbox', { name: 'Cari mata kuliah' });
-const kelas = (page: Page, code: string) =>
-  main(page).getByRole('radiogroup', { name: `Kelas ${code}` });
+/** A catalogue row: one toggle button named by its code and name (no class picker in v5). */
+const row = (page: Page, code: string) =>
+  main(page).getByRole('button', { name: new RegExp(`^${code} `) });
+/** Nothing about a class anywhere on the page (Garis v5). */
+async function noClass(page: Page) {
+  await expect(main(page).getByText(/\bKelas\b/)).toHaveCount(0);
+  await expect(main(page).getByText(/^K[123]$/)).toHaveCount(0);
+  await expect(page.getByRole('radiogroup')).toHaveCount(0);
+  await expect(page.getByRole('radio')).toHaveCount(0);
+}
 
 test.describe('Mata kuliahku', () => {
   test('the semester, the list and Jumlah SKS 18; Dipakai untuk apa? folded', async ({
@@ -41,22 +50,28 @@ test.describe('Mata kuliahku', () => {
     await expect(
       main(page).getByText('Algoritma dan Pemrograman II'),
     ).toBeVisible();
-    await expect(main(page).getByText('Kelas 03')).toBeVisible();
+    // v5: no "Kelas 0x" pill on a course row.
+    await noClass(page);
     expect(await sks(page)).toBe('18');
     const why = main(page).locator('details');
     await expect(why).not.toHaveAttribute('open', '');
     await why.getByText('Dipakai untuk apa?').click();
     await expect(
-      main(page).getByText(/^Mata kuliah menentukan isi Ding Dong/),
+      main(page).getByText(
+        'Mata kuliah menentukan isi Ding Dong, acara Akademik di Kalender beserta pengingat H-1, dan notifikasi pengumuman untuk mata kuliahmu. Atur ulang tiap semester.',
+      ),
     ).toBeVisible();
     await expect(page).toHaveTitle('Mata kuliahku · PIPS!');
     await strictGates(page, testInfo, 'matkul', 'Profil');
   });
 
-  test('remove IF2180 → 5 courses and 16 SKS at once → Urungkan puts it back', async ({
+  test('remove IF2180 → 5 courses and 16 SKS at once → Urungkan puts it back, with the class it had', async ({
     page,
     api,
+    db,
   }) => {
+    // A row added before v5 still has its class on the server: Urungkan keeps it.
+    db.myCourses.find((c) => c.courseId === 'course-IF2180')!.class = 3;
     api.on('DELETE /api/course/take/batch', writes.dropCourses);
     api.on('PUT /api/course/take/batch', writes.takeCourses);
     await page.goto('/profil/matkul');
@@ -172,7 +187,7 @@ test.describe('Mata kuliahku', () => {
     answer();
     await expect
       .poll(() => api.calls('PUT /api/course/take/batch').map((c) => c.body))
-      .toEqual([[{ courseId: 'course-IF2130', class: 2 }]]);
+      .toEqual([[{ courseId: 'course-IF2130', class: 1 }]]);
     await expect.poll(() => codes(page)).toContain('IF2130');
     expect(await sks(page)).toBe('18');
   });
@@ -285,7 +300,7 @@ test.describe('Mata kuliahku', () => {
 });
 
 test.describe('Tambah mata kuliah', () => {
-  test('“IF2211”, K2 → Tambahkan (1) → back with 7 courses, 21 SKS and the toast', async ({
+  test('“IF2211”, tap its row → Tambahkan (1) → back with 7 courses, 21 SKS and the toast; no class sent', async ({
     page,
     api,
   }, testInfo) => {
@@ -297,16 +312,19 @@ test.describe('Tambah mata kuliah', () => {
       'Cari kode atau nama, misalnya IF2211',
     );
     // This semester's courses aren't offered.
-    await expect(kelas(page, 'IF2180')).toHaveCount(0);
+    await expect(row(page, 'IF2180')).toHaveCount(0);
+    await noClass(page);
     await search(page).fill('IF2211');
     await expect(main(page).getByText('Strategi Algoritma')).toBeVisible();
     await expect(main(page).locator('.g-course')).toHaveCount(1);
     await strictGates(page, testInfo, 'matkul-tambah', 'Profil');
 
-    await kelas(page, 'IF2211').getByRole('radio', { name: 'K2' }).click();
-    await expect(
-      kelas(page, 'IF2211').getByRole('radio', { name: 'K2' }),
-    ).toHaveAttribute('aria-checked', 'true');
+    await expect(row(page, 'IF2211')).toHaveAttribute('aria-pressed', 'false');
+    await row(page, 'IF2211').click();
+    await expect(row(page, 'IF2211')).toHaveAttribute('aria-pressed', 'true');
+    // Focus stays on the tapped row.
+    await expect(row(page, 'IF2211')).toBeFocused();
+    await noClass(page);
     await expect(addButton(page)).toHaveText(/Tambahkan \(1\)/);
     await expect(addButton(page)).not.toHaveAttribute('aria-disabled', 'true');
     // Desktop: in the page head; phones and tablets: in the top bar.
@@ -328,10 +346,11 @@ test.describe('Tambah mata kuliah', () => {
       ),
     ).toBeVisible();
     expect(api.calls('PUT /api/course/take/batch')[0].body).toEqual([
-      { courseId: 'course-IF2211', class: 2 },
+      { courseId: 'course-IF2211' },
     ]);
     await expect.poll(() => codes(page)).toHaveLength(7);
     await expect.poll(() => sks(page)).toBe('21');
+    await noClass(page);
   });
 
   test('regression: Tambahkan goes back to Mata kuliahku, so Back then leaves for Profil, not an empty Tambah mata kuliah', async ({
@@ -346,7 +365,7 @@ test.describe('Tambah mata kuliah', () => {
     await expect(page).toHaveURL(/\/profil\/matkul$/);
     await main(page).getByRole('link', { name: 'Tambah mata kuliah' }).click();
     await search(page).fill('IF2211');
-    await kelas(page, 'IF2211').getByRole('radio', { name: 'K2' }).click();
+    await row(page, 'IF2211').click();
     await addButton(page).click();
     await expect(page).toHaveURL(/\/profil\/matkul$/);
     await expect.poll(() => codes(page)).toHaveLength(7);
@@ -366,7 +385,7 @@ test.describe('Tambah mata kuliah', () => {
     await page.goto('/profil');
     await page.goto('/profil/matkul/tambah');
     await search(page).fill('IF2211');
-    await kelas(page, 'IF2211').getByRole('radio', { name: 'K2' }).click();
+    await row(page, 'IF2211').click();
     await addButton(page).click();
     await expect(page).toHaveURL(/\/profil\/matkul$/);
     await expect.poll(() => codes(page)).toHaveLength(7);
@@ -379,26 +398,24 @@ test.describe('Tambah mata kuliah', () => {
     await expect(page).toHaveURL(/\/profil$/);
   });
 
-  test('re-choosing a class clears it; with no picks Tambahkan only says what to do', async ({
+  test('tapping a picked row drops it; with no picks Tambahkan only says what to do', async ({
     page,
     api,
   }) => {
     await page.goto('/profil/matkul/tambah');
     await search(page).fill('IF2211');
-    const k2 = kelas(page, 'IF2211').getByRole('radio', { name: 'K2' });
-    await k2.click();
+    const pick = row(page, 'IF2211');
+    await pick.click();
     await expect(addButton(page)).toHaveText(/\(1\)/);
-    await k2.click();
-    await expect(k2).toHaveAttribute('aria-checked', 'false');
+    await pick.click();
+    await expect(pick).toHaveAttribute('aria-pressed', 'false');
+    await expect(pick).toBeFocused();
     await expect(addButton(page)).toHaveAttribute('aria-disabled', 'true');
     await expect(addButton(page)).not.toHaveText(/\(/);
     // aria-disabled, not disabled: it still answers a press with the hint (Playwright waits for neither, so force).
     await addButton(page).click({ force: true });
     await expect(
-      toastText(
-        page,
-        'Pilih kelas (K1–K3) di mata kuliah yang mau kamu tambahkan.',
-      ),
+      toastText(page, 'Pilih mata kuliah yang mau kamu tambahkan.'),
     ).toBeVisible();
     expect(api.writes).toEqual([]);
     await expect(page).toHaveURL(/\/profil\/matkul\/tambah$/);
@@ -418,7 +435,7 @@ test.describe('Tambah mata kuliah', () => {
   }) => {
     await page.goto('/profil/matkul/tambah');
     await search(page).fill('IF2211');
-    await kelas(page, 'IF2211').getByRole('radio', { name: 'K1' }).click();
+    await row(page, 'IF2211').click();
     // A marker that a reload would wipe.
     await page.evaluate(() => {
       (window as unknown as { __noReload: boolean }).__noReload = true;
@@ -440,16 +457,14 @@ test.describe('Tambah mata kuliah', () => {
     expect(api.writes).toEqual([]);
     await expect(addButton(page)).toHaveText(/\(1\)/);
     await search(page).fill('IF2211');
-    await expect(
-      kelas(page, 'IF2211').getByRole('radio', { name: 'K1' }),
-    ).toHaveAttribute('aria-checked', 'true');
+    await expect(row(page, 'IF2211')).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('a failed add keeps the picks and says so', async ({ page, api }) => {
     api.on('PUT /api/course/take/batch', reply.status(500));
     await page.goto('/profil/matkul/tambah');
     await search(page).fill('IF2211');
-    await kelas(page, 'IF2211').getByRole('radio', { name: 'K3' }).click();
+    await row(page, 'IF2211').click();
     await addButton(page).click();
     await expect(
       toastText(
@@ -459,6 +474,70 @@ test.describe('Tambah mata kuliah', () => {
     ).toBeVisible();
     await expect(page).toHaveURL(/\/profil\/matkul\/tambah$/);
     await expect(addButton(page)).toHaveText(/\(1\)/);
+  });
+
+  test('v5: remove, undo, then pick two by row (drop and pick again) → Tambahkan (2); Jumlah SKS follows; saved with no class', async ({
+    page,
+    api,
+    db,
+  }, testInfo) => {
+    api.on('DELETE /api/course/take/batch', writes.dropCourses);
+    api.on('PUT /api/course/take/batch', writes.takeCourses);
+    await page.goto('/profil/matkul');
+    await expect.poll(() => sks(page)).toBe('18');
+    await removeBtn(page, 'IF2150').click();
+    await expect.poll(() => sks(page)).toBe('16');
+    await toastText(page, 'IF2150 dihapus dari mata kuliahmu.')
+      .getByRole('button', { name: 'Urungkan' })
+      .click();
+    await expect.poll(() => sks(page)).toBe('18');
+    await expect
+      .poll(() => api.calls('PUT /api/course/take/batch').length)
+      .toBe(1);
+
+    await main(page).getByRole('link', { name: 'Tambah mata kuliah' }).click();
+    await search(page).fill('IF22');
+    await expect(row(page, 'IF2224')).toBeVisible();
+    await noClass(page);
+    // Each row is one toggle with a box at its end; a picked row's box shows the check.
+    const box = (code: string) => row(page, code).locator('.g-pick-box');
+    await expect(box('IF2211').locator('svg')).toHaveCount(1);
+    expect(await box('IF2211').evaluate((e) => getComputedStyle(e).color)).toBe(
+      'rgba(0, 0, 0, 0)',
+    );
+    await row(page, 'IF2211').click();
+    await row(page, 'IF2224').click();
+    await expect(addButton(page)).toHaveText(/Tambahkan \(2\)/);
+    expect(
+      await box('IF2211').evaluate((e) => getComputedStyle(e).color),
+    ).not.toBe('rgba(0, 0, 0, 0)');
+    await row(page, 'IF2211').click();
+    await expect(addButton(page)).toHaveText(/Tambahkan \(1\)/);
+    await row(page, 'IF2211').click();
+    await expect(addButton(page)).toHaveText(/Tambahkan \(2\)/);
+    await strictAudit(page, testInfo, 'matkul-tambah-picked');
+    await addButton(page).click();
+
+    await expect(page).toHaveURL(/\/profil\/matkul$/);
+    await expect(
+      toastText(
+        page,
+        '2 mata kuliah ditambahkan. Ding Dong dan Kalender ikut diperbarui.',
+      ),
+    ).toBeVisible();
+    expect(api.calls('PUT /api/course/take/batch')[1].body).toEqual([
+      { courseId: 'course-IF2224' },
+      { courseId: 'course-IF2211' },
+    ]);
+    // Stored with the API's default class; nothing shows it.
+    expect(
+      db.myCourses
+        .filter((c) => ['course-IF2211', 'course-IF2224'].includes(c.courseId))
+        .map((c) => c.class),
+    ).toEqual([1, 1]);
+    await expect.poll(() => codes(page)).toHaveLength(8);
+    await expect.poll(() => sks(page)).toBe('25');
+    await noClass(page);
   });
 
   test('a failed catalogue says so with Coba lagi, which recovers', async ({

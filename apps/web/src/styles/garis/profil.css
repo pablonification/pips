@@ -1,6 +1,6 @@
 /*
   Profil, Mata kuliahku, Tambah mata kuliah and Layanan (P1-C), ported from the locked prototype's garis/garis.css
-  (".member" and its parts, ".prof-grid", ".svc-cols", ".svc-row", ".course", ".sum-row", ".kpick"), with the `g-`
+  (".member" and its parts, ".prof-grid", ".svc-cols", ".svc-row", ".course", ".sum-row"; v5-kalender.css ".cpick"), with the `g-`
   prefix. Sign-in and first run have no locked design: they reuse these and the components' rules. Colours come
   only from tokens.css.
 */
@@ -60,9 +60,6 @@
     gap: 12px;
     padding: 12px 0;
   }
-  .g-course.wrap {
-    flex-wrap: wrap;
-  }
   .g-sum-row {
     display: flex;
     justify-content: space-between;
@@ -77,13 +74,25 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
-  .g-kpick {
-    display: flex;
-    gap: 6px;
+  /* Tambah mata kuliah (v5-kalender.css `.cpick`): each course row is one toggle; a box at the end shows it's picked. */
+  .g-cpick .g-course {
+    min-height: 44px;
   }
-  .g-kpick .g-chip {
-    min-width: 44px;
-    justify-content: center;
+  .g-cpick .g-pick-box {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 1.5px var(--border-strong);
+    background: var(--bg-surface);
+    color: transparent;
+  }
+  .g-cpick[aria-pressed='true'] .g-pick-box {
+    background: var(--bg-selected);
+    box-shadow: none;
+    color: var(--text-on-selected);
   }
 
   /* Desktop: Profil's card and Informasi akun beside the rows; Layanan's groups in two columns. */

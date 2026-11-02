@@ -4,7 +4,7 @@
  */
 export { Avatar, AvatarButton } from './Avatar';
 export { Button, LinkButton, type ButtonVariant } from './Button';
-export { Chip, ChipGroup, Chips, type ChipKind } from './Chip';
+export { Chip, Chips, type ChipKind } from './Chip';
 export {
   Checkbox,
   Options,

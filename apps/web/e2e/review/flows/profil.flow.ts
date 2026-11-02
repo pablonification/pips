@@ -155,7 +155,7 @@ flow('matkul', 'nadia', {}, async ({ page, f, api }) => {
     await f.hold();
   });
   await f.step(
-    'Tambah mata kuliah: "IF2211", K2; Enter doesn’t reload',
+    'Tambah mata kuliah: "IF2211" picked; Enter doesn’t reload',
     async () => {
       await main(page)
         .getByRole('link', { name: 'Tambah mata kuliah' })
@@ -166,8 +166,7 @@ flow('matkul', 'nadia', {}, async ({ page, f, api }) => {
       await search.press('Enter');
       await expect(page).toHaveURL(url);
       await main(page)
-        .getByRole('radiogroup', { name: 'Kelas IF2211' })
-        .getByRole('radio', { name: 'K2' })
+        .getByRole('button', { name: /^IF2211 / })
         .click();
       await expect(
         page
