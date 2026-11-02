@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from 'react';
+import type { HTMLAttributes, ReactEventHandler, ReactNode } from 'react';
 import { IconCentang } from '~/components/icons/centang';
 import { cn } from '~/lib/utils';
 import { common } from '~/copy/common';
@@ -130,6 +130,8 @@ export interface MediaProps {
   height?: number;
   className?: string;
   children?: ReactNode;
+  /** The picture failed to load (Info Lomba's posters fall back to a quiet panel). */
+  onError?: ReactEventHandler<HTMLImageElement>;
 }
 
 /**
@@ -144,6 +146,7 @@ export function Media({
   height,
   className,
   children,
+  onError,
 }: MediaProps) {
   return (
     <div className={cn('g-media', className)} style={{ aspectRatio: ratio }}>
@@ -155,6 +158,7 @@ export function Media({
           height={height}
           loading="lazy"
           decoding="async"
+          onError={onError}
         />
       ) : null}
       {children}

@@ -47,7 +47,7 @@ test.describe('cnc', () => {
   }, testInfo) => {
     api.on('POST /api/competitions', writes.createCompetition);
     await page.goto('/layanan/lomba');
-    await expect.poll(() => names(page)).toHaveLength(4);
+    await expect.poll(() => names(page)).toHaveLength(6);
     await expectLit(page, testInfo, 'Layanan');
     await tambahLomba(page).click();
     const d = add(page);
@@ -367,7 +367,7 @@ test.describe('cnc', () => {
 test.describe('without cnc', () => {
   test('Nadia: no Tambah lomba and no options', async ({ page }) => {
     await page.goto('/layanan/lomba');
-    await expect.poll(() => names(page)).toHaveLength(4);
+    await expect.poll(() => names(page)).toHaveLength(6);
     await expect(
       page.getByRole('button', { name: 'Tambah lomba' }),
     ).toHaveCount(0);
@@ -380,7 +380,7 @@ test.describe('without cnc', () => {
     test.use({ persona: 'pengurus' });
     test('no Tambah lomba and no options', async ({ page }) => {
       await page.goto('/layanan/lomba');
-      await expect.poll(() => names(page)).toHaveLength(4);
+      await expect.poll(() => names(page)).toHaveLength(6);
       await expect(
         page.getByRole('button', { name: 'Tambah lomba' }),
       ).toHaveCount(0);

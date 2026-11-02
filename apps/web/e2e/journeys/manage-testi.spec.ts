@@ -1,6 +1,6 @@
 /**
  * P3-B: Tambah testimoni on a Testi Matkul course page, for `akademik` (a proposal): IF sections on IF2110, STI
- * sections on II2110, "Tulis minimal satu bagian.", the request, the new testimonial in the pager and the course
+ * sections on II2110, "Tulis minimal satu bagian.", the request, the new testimonial among the cards and the course
  * list's count up by one. Not for `admin` alone, nor for members. Phone, tablet and desktop, light and dark, with
  * strict gates.
  */
@@ -25,21 +25,24 @@ const tambah = (page: Page) =>
     .getByRole('button', { name: 'Tambah testimoni' })
     .locator('visible=true');
 const add = (page: Page) => dialog(page, 'Tambah testimoni');
-const article = (page: Page, ke: number, jumlah: number) =>
-  main(page).getByRole('article', { name: `Testimoni ${ke} dari ${jumlah}` });
+/** A course page's testimonials (Garis v5: every one at once), each a list item headed by its author. */
+const cards = (page: Page) =>
+  main(page)
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('heading', { level: 3 }) });
 const posts = (api: { calls: (s: string) => unknown[] }) =>
   api.calls('POST /api/testimoni');
 
 test.describe('Raka (akademik)', () => {
   test.use({ persona: 'pengurus' });
 
-  test('IF2110: the IF sections, the empty error, then the request, the new one in the pager', async ({
+  test('IF2110: the IF sections, the empty error, then the request, the new one among the cards', async ({
     page,
     api,
   }, testInfo) => {
     api.on('POST /api/testimoni', writes.createTestimonial);
     await page.goto(IF2110);
-    await expect(article(page, 1, 3)).toBeVisible();
+    await expect(cards(page)).toHaveCount(6);
     await expectLit(page, testInfo, 'Layanan');
     await tambah(page).click();
     const d = add(page);
@@ -74,11 +77,13 @@ test.describe('Raka (akademik)', () => {
       },
     ]);
     await expect(toastText(page, 'Testimoni ditambahkan.')).toBeVisible();
-    // The new one, fourth of four, by Anonim.
-    const fourth = article(page, 4, 4);
-    await expect(fourth).toBeVisible();
-    await expect(fourth.getByText('Tubes tiap dua minggu.')).toBeVisible();
-    await expect(fourth.getByText('Anonim')).toBeVisible();
+    // The new one joins the cards, the seventh, by Anonim, with its lecturer as Dosen.
+    await expect(cards(page)).toHaveCount(7);
+    const added = cards(page).nth(6);
+    await expect(added.getByText('Tubes tiap dua minggu.')).toBeVisible();
+    await expect(added.getByRole('heading', { level: 3 })).toHaveText('Anonim');
+    await expect(added.getByRole('term')).toHaveText(['Tugas', 'Dosen']);
+    await expect(added.getByRole('definition').last()).toHaveText('Dr. Rina');
     await expectTitleFocused(page);
 
     // The course list counts it.
@@ -86,7 +91,7 @@ test.describe('Raka (akademik)', () => {
     await expect(
       main(page)
         .getByRole('link', { name: /IF2110/ })
-        .getByText('4 testimoni'),
+        .getByText('7 testimoni'),
     ).toBeVisible();
   });
 
@@ -118,7 +123,10 @@ test.describe('Raka (akademik)', () => {
         lecturer: null,
       },
     ]);
-    await expect(article(page, 3, 3)).toBeVisible();
+    await expect(cards(page)).toHaveCount(3);
+    await expect(
+      cards(page).nth(2).getByRole('heading', { level: 3 }),
+    ).toHaveText('Rani, STI 2024');
   });
 
   for (const { status, says } of FAILURES)
@@ -196,7 +204,7 @@ test.describe('admin only', () => {
     page,
   }) => {
     await page.goto(IF2110);
-    await expect(article(page, 1, 3)).toBeVisible();
+    await expect(cards(page)).toHaveCount(6);
     await expect(
       page.getByRole('button', { name: 'Tambah testimoni' }),
     ).toHaveCount(0);
@@ -205,7 +213,7 @@ test.describe('admin only', () => {
 
 test('Nadia: no Tambah testimoni', async ({ page }) => {
   await page.goto(IF2110);
-  await expect(article(page, 1, 3)).toBeVisible();
+  await expect(cards(page)).toHaveCount(6);
   await expect(
     page.getByRole('button', { name: 'Tambah testimoni' }),
   ).toHaveCount(0);

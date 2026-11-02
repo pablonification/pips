@@ -1,11 +1,27 @@
 /**
  * Generated images for the fixtures, so no test fetches a photo from Google or a CDN:
  * - `/__e2e__/avatar/<nim>.svg`: initials on a tinted circle (the prototype draws initials, not photos);
- * - `/__e2e__/media/poster-<id>.svg`: a 3:4 competition poster;
+ * - `/__e2e__/media/poster-<name>.svg`: a 3:4 competition poster: Garis v5's own sample poster when
+ *   `fixtures/posters/<name>.svg` exists (so captures match the locked screens), else a generated one;
  * - `/__e2e__/media/<name>.svg`: a 4:3 post photo.
  */
 import type { Route } from '@playwright/test';
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { initialsFor } from '../fixtures/api';
+
+const POSTERS = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../fixtures/posters',
+);
+
+/** The prototype's sample poster (garis/posters/<name>.svg), or null when there is none by that name. */
+function samplePoster(name: string): string | null {
+  const m = /^poster-([\w-]+)$/.exec(name);
+  const file = m && path.join(POSTERS, `${m[1]}.svg`);
+  return file && existsSync(file) ? readFileSync(file, 'utf8') : null;
+}
 
 const TINTS = [
   '#E8C55F',
@@ -36,6 +52,9 @@ export async function serveMedia(
   const m = /^\/__e2e__\/(avatar|media)\/([\w.-]+)\.svg$/.exec(pathname);
   if (!m)
     return route.fulfill({ status: 404, body: 'e2e: unknown fixture media' });
-  const body = m[1] === 'avatar' ? avatarSvg(m[2]) : mediaSvg(m[2]);
+  const body =
+    m[1] === 'avatar'
+      ? avatarSvg(m[2])
+      : (samplePoster(m[2]) ?? mediaSvg(m[2]));
   return route.fulfill({ status: 200, contentType: 'image/svg+xml', body });
 }

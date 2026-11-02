@@ -17,7 +17,12 @@
 import type { Locator, Page } from '@playwright/test';
 import { pixelSections } from '../support/flows';
 import * as writes from '../support/writes';
-import { liveAsLocked, type FidelityScreen } from './screens';
+import {
+  liveAsLocked,
+  openPosterViewer,
+  posterViewerReady,
+  type FidelityScreen,
+} from './screens';
 import { inFeed } from '../support/pengumuman';
 
 export interface ExtraCapture extends FidelityScreen {
@@ -406,10 +411,22 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
       await main.getByRole('link', { name: 'Teknik Informatika' }).click();
       await main.getByRole('link', { name: 'Semester 3' }).click();
       await main.getByRole('link', { name: /^IF2110 / }).click();
-      await main.getByRole('button', { name: 'Testimoni berikutnya' }).click();
     },
-    ready: (p) => p.getByRole('article', { name: 'Testimoni 2 dari 3' }),
+    // Garis v5: the course page with every testimonial (no pager); the last one has arrived.
+    ready: (p) =>
+      p.getByRole('main').getByRole('heading', { name: 'Dimas, IF 2023' }),
   },
+  // Garis v5: the poster viewer opened by keyboard, at each layout (garis-check.mjs section 4d).
+  ...Object.fromEntries(
+    ['phone', 'tablet', 'desk'].map((l) => [
+      `i-poster-${l}`,
+      {
+        path: '/layanan/lomba',
+        act: openPosterViewer,
+        ready: posterViewerReady,
+      },
+    ]),
+  ),
   'i-testi-search': {
     path: '/layanan/testi',
     act: async (p) => {
@@ -420,7 +437,7 @@ export const EXTRAS: Partial<Record<string, ExtraCapture>> = {
     ready: (p) =>
       p
         .getByRole('main')
-        .getByRole('link', { name: /^IF2110 .* 3 testimoni$/ }),
+        .getByRole('link', { name: /^IF2110 .* 6 testimoni$/ }),
   },
   // P3-B: Raka adds Kuis 2 for IF3170 from Kalender (garis-check.mjs's desktop block). The locked i-desk-addev still
   // shows the prototype's persona-switch toast ("Melihat sebagai Raka…"); the app has none (a known difference).

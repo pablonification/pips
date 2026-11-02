@@ -7,7 +7,6 @@ import {
   EmptyState,
   ErrorState,
   OfflineBanner,
-  RuledList,
   Skeleton,
   SkeletonRow,
   Tag,
@@ -25,73 +24,91 @@ import { LombaOptions, useTambahLomba } from '~/features/kelola-lomba/Manage';
 import { offlineUpdatedAt } from '~/features/layanan-svc/updated';
 import { deadlineLine, isOpen, isUrgent, rupiah, withScheme } from './rules';
 import { competitionsQuery } from './queries';
+import { Poster, usePosterViewer, type Viewing } from './Poster';
 
-/** One competition (garis/screens-more.js `scrLomba`'s card). */
-function LombaCard({ c, now }: { c: Competition; now: number }) {
+/**
+ * One competition (garis/screens-more.js `scrLomba`'s card): its poster (Garis v5), then the name, organiser,
+ * categories, the deadline and fee, and Daftar and Sumber at the foot.
+ */
+function LombaCard({
+  c,
+  now,
+  onPoster,
+}: {
+  c: Competition;
+  now: number;
+  onPoster: (v: Viewing, opener: HTMLButtonElement) => void;
+}) {
   const deadline = c.registrationDeadline || null;
   return (
     <li className="g-lomba">
-      {/* Focusable from code: after Muat lagi, focus moves to the first competition that arrived. */}
-      <div className="g-lomba-head">
-        <h2 className="t-sub" tabIndex={-1}>
-          {c.name}
-        </h2>
-        <LombaOptions competition={c} />
-      </div>
-      <p className="t-cap text-fg-2">{c.organizer}</p>
-      {c.categories.length ? (
-        <div className="g-lomba-cats">
-          {c.categories.map((cat) => (
-            <Tag key={cat}>{cat}</Tag>
-          ))}
+      <Poster c={c} onOpen={onPoster} />
+      <div className="g-lomba-info">
+        {/* Focusable from code: after Muat lagi, focus moves to the first competition that arrived. */}
+        <div className="g-lomba-head">
+          <h2 className="t-sub" tabIndex={-1}>
+            {c.name}
+          </h2>
+          <LombaOptions competition={c} />
         </div>
-      ) : null}
-      <div className="g-lomba-facts">
-        {deadline ? (
-          <span
-            className={cn('g-lomba-fact', isUrgent(deadline, now) && 'urgent')}
-          >
-            <IconTenggat size={16} />
-            {deadlineLine(deadline)}
-          </span>
+        <p className="t-cap text-fg-2">{c.organizer}</p>
+        {c.categories.length ? (
+          <div className="g-lomba-cats">
+            {c.categories.map((cat) => (
+              <Tag key={cat}>{cat}</Tag>
+            ))}
+          </div>
         ) : null}
-        <span className="g-lomba-fact">
-          <IconKas size={16} />
-          {rupiah(c.price)}
-        </span>
-      </div>
-      <div className="g-lomba-acts">
-        <Button variant="gold" size="sm" asChild>
-          <a
-            href={withScheme(c.registrationUrl)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {copy.daftar}
-            <span className="sr-only">
-              {fill(copy.daftarLabel, { nama: c.name }).slice(
-                copy.daftar.length,
+        <div className="g-lomba-facts">
+          {deadline ? (
+            <span
+              className={cn(
+                'g-lomba-fact',
+                isUrgent(deadline, now) && 'urgent',
               )}
+            >
+              <IconTenggat size={16} />
+              {deadlineLine(deadline)}
             </span>
-            <IconLuar size={16} />
-            <NewTab />
-          </a>
-        </Button>
-        <Button variant="ghost" size="sm" asChild>
-          <a
-            href={withScheme(c.sourceUrl)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {copy.sumber}
-            <span className="sr-only">
-              {fill(copy.sumberLabel, { nama: c.name }).slice(
-                copy.sumber.length,
-              )}
-            </span>
-            <NewTab />
-          </a>
-        </Button>
+          ) : null}
+          <span className="g-lomba-fact">
+            <IconKas size={16} />
+            {rupiah(c.price)}
+          </span>
+        </div>
+        <div className="g-lomba-acts">
+          <Button variant="gold" size="sm" asChild>
+            <a
+              href={withScheme(c.registrationUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {copy.daftar}
+              <span className="sr-only">
+                {fill(copy.daftarLabel, { nama: c.name }).slice(
+                  copy.daftar.length,
+                )}
+              </span>
+              <IconLuar size={16} />
+              <NewTab />
+            </a>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <a
+              href={withScheme(c.sourceUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {copy.sumber}
+              <span className="sr-only">
+                {fill(copy.sumberLabel, { nama: c.name }).slice(
+                  copy.sumber.length,
+                )}
+              </span>
+              <NewTab />
+            </a>
+          </Button>
+        </div>
       </div>
     </li>
   );
@@ -99,12 +116,13 @@ function LombaCard({ c, now }: { c: Competition; now: number }) {
 
 /**
  * Info Lomba for members (garis/screens-more.js `scrLomba`): open competitions, soonest deadline first, one clear
- * deadline each. Every page is reachable (SPEC story 78): more load when the list's end scrolls into view, and
+ * deadline each, with their posters: beside the facts on phones, a grid of poster cards on tablets and desktops. Every page is reachable (SPEC story 78): more load when the list's end scrolls into view, and
  * **Muat lagi** does the same from the keyboard. P3-B adds Tambah lomba, for cnc only.
  */
 export function LombaScreen() {
   const online = useOnline();
   const tambah = useTambahLomba();
+  const posters = usePosterViewer();
   const list = useInfiniteQuery(competitionsQuery);
   const { ref: endRef, inView } = useInView();
   const now = Date.now();
@@ -179,11 +197,11 @@ export function LombaScreen() {
           />
         )}
         {shown.length ? (
-          <RuledList>
+          <ul className="g-lomba-grid">
             {shown.map((c) => (
-              <LombaCard key={c.id} c={c} now={now} />
+              <LombaCard key={c.id} c={c} now={now} onPoster={posters.open} />
             ))}
-          </RuledList>
+          </ul>
         ) : hasNextPage ? null : (
           <EmptyState title={copy.kosong} text={copy.kosongIsi} />
         )}
@@ -217,9 +235,10 @@ export function LombaScreen() {
     <>
       <DeskHead title={serviceById('lomba').label} actions={tambah.button} />
       <TopBarActions>{tambah.button}</TopBarActions>
-      <PageBody id={bodyId} className="gap-2.5">
+      <PageBody id={bodyId} wide className="gap-2.5">
         {content}
       </PageBody>
+      {posters.viewer}
       {tambah.dialog}
     </>
   );

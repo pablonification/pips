@@ -67,6 +67,21 @@ export function liveAsLocked(api: ApiMock) {
  * One entry, or several when layouts differ (each with its `layouts`): `anggota-ov-confirm` is the sign-out sheet on
  * phones and tablets (P1-C) and the form's send dialog on desktop (P2-A).
  */
+/** Garis v5: Enter on Gemastik XIX's poster opens the viewer, focus on Tutup (garis-check.mjs section 4d). */
+export async function openPosterViewer(p: Page) {
+  const poster = p
+    .getByRole('main')
+    .getByRole('button', { name: 'Perbesar poster Gemastik XIX' });
+  await poster.focus();
+  await p.keyboard.press('Enter');
+}
+/** The viewer is open with Tutup focused (the capture waits for its poster to load). */
+export const posterViewerReady = (p: Page) =>
+  p
+    .getByRole('dialog', { name: 'Gemastik XIX' })
+    .getByRole('button', { name: 'Tutup poster' })
+    .and(p.locator(':focus'));
+
 export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
   {
     // P1-C: Profil, Mata kuliahku and Notifikasi, redesigned in place.
@@ -218,7 +233,9 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
     },
     'anggota-testi-course': {
       path: '/layanan/testi/teknik-informatika/3/course-IF2110',
-      ready: (p) => p.getByRole('article', { name: 'Testimoni 1 dari 3' }),
+      // Garis v5: every testimonial at once; the last one has arrived.
+      ready: (p) =>
+        p.getByRole('main').getByRole('heading', { name: 'Dimas, IF 2023' }),
     },
     'anggota-nim': {
       path: '/layanan/nim',
@@ -227,7 +244,9 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
     },
     'anggota-lomba': {
       path: '/layanan/lomba',
-      ready: (p) => p.getByRole('heading', { name: 'Find IT! 2026' }),
+      // Garis v5: six competitions, each with its poster (the capture waits for the images to load).
+      ready: (p) =>
+        p.getByRole('heading', { name: 'Technofest 2026: Game Development' }),
     },
     // P1-C: Raka's Profil, Tambah mata kuliah, the push prompt and Layanan.
     'pengurus-profil': {
@@ -237,6 +256,12 @@ export const SCREENS: Partial<Record<Key, FidelityScreen | FidelityScreen[]>> =
     'anggota-matkul-add': {
       path: '/profil/matkul/tambah',
       ready: (p) => p.getByRole('main').getByText('Strategi Algoritma'),
+    },
+    // Garis v5: Info Lomba's poster viewer, opened from the keyboard on Gemastik XIX's poster.
+    'anggota-ov-poster': {
+      path: '/layanan/lomba',
+      act: openPosterViewer,
+      ready: posterViewerReady,
     },
     'anggota-ov-push': {
       path: '/profil/notifikasi',

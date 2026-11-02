@@ -9,12 +9,12 @@ import {
   screenNames,
 } from '../e2e/fidelity/names.mjs';
 
-test('the locked prototype has 216 screens: 36 routes × 3 layouts × 2 themes', () => {
-  assert.equal(ROUTES.length, 25);
+test('the locked prototype has 222 screens: 37 routes × 3 layouts × 2 themes (v5 adds ov-poster)', () => {
+  assert.equal(ROUTES.length, 26);
   assert.equal(PENGURUS_ROUTES.length, 11);
   const names = screenNames().map((s) => s.name);
-  assert.equal(names.length, 216);
-  assert.equal(new Set(names).size, 216);
+  assert.equal(names.length, 222);
+  assert.equal(new Set(names).size, 222);
   for (const n of names)
     assert.match(
       n,
@@ -22,6 +22,7 @@ test('the locked prototype has 216 screens: 36 routes × 3 layouts × 2 themes',
     );
   assert.ok(names.includes('phone-anggota-beranda-light'));
   assert.ok(names.includes('desk-pengurus-pop-menu-own-dark'));
+  assert.ok(names.includes('tablet-anggota-ov-poster-dark'));
 });
 
 test('capture sizes match the locked screens’ pixel sizes', () => {

@@ -313,7 +313,9 @@ export const STATES: CaptureState[] = [
     id: 'testi-course',
     title: 'Testi Matkul: IF2110',
     path: '/layanan/testi/teknik-informatika/3/course-IF2110',
-    ready: (p) => p.getByText(/Lanjutan Dasar Pemrograman/),
+    // Garis v5: every testimonial at once; the last one has arrived.
+    ready: (p) =>
+      p.getByRole('main').getByRole('heading', { name: 'Dimas, IF 2023' }),
   },
   {
     id: 'nim-finder',
@@ -337,7 +339,9 @@ export const STATES: CaptureState[] = [
     id: 'competition',
     title: 'Info Lomba',
     path: '/layanan/lomba',
-    ready: (p) => p.getByRole('heading', { name: 'Find IT! 2026' }),
+    // Garis v5: six competitions with their posters.
+    ready: (p) =>
+      p.getByRole('heading', { name: 'Technofest 2026: Game Development' }),
   },
   // P2-C: the redesigned member screens (rows are links; the room reads its unread message on opening).
   {
@@ -545,7 +549,7 @@ export const STATES: CaptureState[] = [
     ready: (p) =>
       p
         .getByRole('main')
-        .getByRole('link', { name: /^IF2110 .* 3 testimoni$/ }),
+        .getByRole('link', { name: /^IF2110 .* 6 testimoni$/ }),
   },
   {
     id: 'testi-course-empty',

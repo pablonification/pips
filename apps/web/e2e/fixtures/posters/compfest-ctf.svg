@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">
+<rect width="600" height="800" fill="#121212"/>
+<path d="M150 90v420" stroke="#E8E8E8" stroke-width="10"/>
+<path d="M155 100h300l-60 80 60 80H155z" fill="#E4472B"/>
+<path d="M155 100h150v160H155z" fill="#F07A2E"/>
+<g fill="#E4472B" opacity=".35"><rect x="380" y="320" width="40" height="40"/><rect x="430" y="370" width="40" height="40"/><rect x="480" y="320" width="40" height="40"/><rect x="430" y="420" width="40" height="40"/></g>
+<text x="48" y="600" fill="#FFFFFF" font-size="62" font-weight="800" letter-spacing="-1">CAPTURE</text>
+<text x="48" y="664" fill="#FFFFFF" font-size="62" font-weight="800" letter-spacing="-1">THE FLAG</text>
+<text x="48" y="712" fill="#F07A2E" font-size="26" font-weight="700">COMPFEST 18</text>
+<text x="48" y="752" fill="#BDBDBD" font-size="20">Tutup 14 Oktober 2026 · Rp150.000 per tim</text>
+</svg>
