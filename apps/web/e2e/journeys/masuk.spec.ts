@@ -235,7 +235,7 @@ test('a real swipe on a touch screen moves to the next slide @phone-only', async
   const cdp = await page.context().newCDPSession(page);
   const x0 = Math.round(t.x + t.width * 0.8);
   const dx = Math.round(t.width * 0.6);
-  const touch = (type: string, x: number) =>
+  const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', x: number) =>
     cdp.send('Input.dispatchTouchEvent', {
       type,
       touchPoints: type === 'touchEnd' ? [] : [{ x, y: Math.round(y) }],

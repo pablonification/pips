@@ -92,10 +92,7 @@ const NARROW = [
 
 for (const c of NARROW) {
   test.describe(c.what, () => {
-    test.use({
-      persona: c.persona,
-      ...('roles' in c ? { roles: [...c.roles] } : {}),
-    });
+    test.use({ persona: c.persona });
     test(`a narrow page’s head is as narrow as its body; its action by the content: ${c.what} @desktop-only`, async ({
       page,
       api,
