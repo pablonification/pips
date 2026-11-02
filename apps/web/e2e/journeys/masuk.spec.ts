@@ -230,15 +230,19 @@ test('a real swipe on a touch screen moves to the next slide @phone-only', async
   await onSlide(page, 0);
   const t = await box(track(page));
   const y = t.y + t.height / 2;
+  // A finger drags 60 % of the track to the left in small steps, as touch events through the browser's input
+  // pipeline. (CDP's synthesizeScrollGesture scrolls nothing in CI's Linux headless shell, so it isn't used.)
   const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Input.synthesizeScrollGesture', {
-    x: Math.round(t.x + t.width * 0.8),
-    y: Math.round(y),
-    xDistance: -Math.round(t.width * 0.6),
-    yDistance: 0,
-    speed: 1200,
-    gestureSourceType: 'touch',
-  });
+  const x0 = Math.round(t.x + t.width * 0.8);
+  const dx = Math.round(t.width * 0.6);
+  const touch = (type: string, x: number) =>
+    cdp.send('Input.dispatchTouchEvent', {
+      type,
+      touchPoints: type === 'touchEnd' ? [] : [{ x, y: Math.round(y) }],
+    });
+  await touch('touchStart', x0);
+  for (let s = 1; s <= 12; s++) await touch('touchMove', x0 - (dx * s) / 12);
+  await touch('touchEnd', x0 - dx);
   await onSlide(page, 1);
 });
 
