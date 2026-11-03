@@ -71,7 +71,9 @@ export function usePosterViewer() {
       }}
     >
       <RD.Portal>
-        <RD.Overlay className="g-pv-ov" />
+        {/* A tap that lands on the backdrop itself closes it too (regression: right after opening, a tap at the
+            window's edge could reach the backdrop rather than the layout, and the viewer stayed open). */}
+        <RD.Overlay className="g-pv-ov" onClick={() => setViewing(null)} />
         <RD.Content
           className="g-pv"
           aria-modal="true"
