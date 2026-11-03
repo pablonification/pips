@@ -205,3 +205,41 @@ test.describe('an iPhone outside the installed app @phone-only', () => {
     expect((await pushDevice(page)).asks).toBe(0);
   });
 });
+
+test.describe('first run on the real clock', () => {
+  // Regression (2026-11-03, the real app on real data): every success toast threw "Illegal invocation" in a real
+  // browser (the toast store called setTimeout as its own method), so Tambahkan from first run saved the courses but
+  // never came back to Mulai. The harness's fake clock hid it; this journey runs without it.
+  test.use({ now: null });
+
+  test('regression: Atur → pick → Tambahkan → back on Mulai, with the courses done', async ({
+    page,
+    api,
+    db,
+  }) => {
+    db.myCourses = [];
+    const errors: string[] = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    api.on('PUT /api/course/take/batch', writes.takeCourses);
+    await page.goto('/mulai');
+    await step(page, 'Atur mata kuliah semester ini')
+      .getByRole('link', { name: 'Atur' })
+      .click();
+    await expect(page).toHaveURL(/\/profil\/matkul\/tambah\?dari=mulai$/);
+    await main(page)
+      .getByRole('searchbox', { name: 'Cari mata kuliah' })
+      .fill('IF2110');
+    await main(page)
+      .getByRole('button', { name: /^IF2110 / })
+      .click();
+    await page
+      .getByRole('button', { name: /^Tambahkan/ })
+      .locator('visible=true')
+      .click();
+    await expect(page).toHaveURL(/\/mulai$/);
+    await expect(step(page, 'Atur mata kuliah semester ini')).toContainText(
+      'Selesai',
+    );
+    expect(errors).toEqual([]);
+  });
+});

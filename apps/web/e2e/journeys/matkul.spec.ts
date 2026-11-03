@@ -353,6 +353,58 @@ test.describe('Tambah mata kuliah', () => {
     await noClass(page);
   });
 
+  test.describe('on the real clock', () => {
+    // Regression (2026-11-03, the real app on real data): the toast store called setTimeout as its own method, which
+    // browsers refuse ("Illegal invocation"). Every success toast threw, so Tambahkan saved the courses but stayed on
+    // "Menambahkan…" and never went back. The harness's fake clock hid it; these journeys run without it.
+    test.use({ now: null });
+
+    test('regression: Tambahkan saves, says so and goes back to Mata kuliahku', async ({
+      page,
+      api,
+    }) => {
+      const errors: string[] = [];
+      page.on('pageerror', (e) => errors.push(e.message));
+      api.on('PUT /api/course/take/batch', writes.takeCourses);
+      await page.goto('/profil/matkul');
+      await main(page)
+        .getByRole('link', { name: 'Tambah mata kuliah' })
+        .click();
+      await search(page).fill('IF2211');
+      await row(page, 'IF2211').click();
+      await addButton(page).click();
+      await expect(page).toHaveURL(/\/profil\/matkul$/);
+      await expect(
+        toastText(
+          page,
+          '1 mata kuliah ditambahkan. Ding Dong dan Kalender ikut diperbarui.',
+        ),
+      ).toBeVisible();
+      await expect.poll(() => codes(page)).toHaveLength(7);
+      expect(errors).toEqual([]);
+    });
+
+    test('regression: removing a course shows Urungkan, which puts it back', async ({
+      page,
+      api,
+    }) => {
+      const errors: string[] = [];
+      page.on('pageerror', (e) => errors.push(e.message));
+      api.on('DELETE /api/course/take/batch', writes.dropCourses);
+      api.on('PUT /api/course/take/batch', writes.takeCourses);
+      await page.goto('/profil/matkul');
+      await removeBtn(page, 'IF2180').click();
+      await expect.poll(() => codes(page)).toHaveLength(5);
+      const undo = page
+        .locator('.g-toast')
+        .getByRole('button', { name: 'Urungkan' });
+      await expect(undo).toBeVisible();
+      await undo.click();
+      await expect.poll(() => codes(page)).toHaveLength(6);
+      expect(errors).toEqual([]);
+    });
+  });
+
   test('regression: Tambahkan goes back to Mata kuliahku, so Back then leaves for Profil, not an empty Tambah mata kuliah', async ({
     page,
     api,
