@@ -333,11 +333,6 @@
   .g-mk-err .g-ic {
     margin-top: 2px;
   }
-  .g-mk-hint {
-    color: var(--text-2);
-    text-align: center;
-    text-wrap: balance;
-  }
 
   /* ---------- Phones and tablets ---------- */
   .g-mk.phone {
@@ -505,9 +500,6 @@
   }
   .g-mk-act {
     animation: g-mk-up 460ms cubic-bezier(0.16, 1, 0.3, 1) 480ms backwards;
-  }
-  .g-mk-hint {
-    animation: g-mk-fade 500ms ease-out 600ms backwards;
   }
 }
 

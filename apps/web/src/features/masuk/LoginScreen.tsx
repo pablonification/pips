@@ -387,10 +387,7 @@ export function LoginScreen({ redirectTo }: { redirectTo: string | null }) {
                   <p className="sub">{common.app.org}</p>
                 </div>
               </div>
-              <div className="g-mk-intro">
-                {greeting}
-                <p className="t-body text-fg-2">{copy.isi}</p>
-              </div>
+              <div className="g-mk-intro">{greeting}</div>
               {act}
               {testLogin}
             </div>
@@ -412,7 +409,6 @@ export function LoginScreen({ redirectTo }: { redirectTo: string | null }) {
           <div className="g-mk-sheet">
             {slides}
             {act}
-            <p className="g-mk-hint t-cap">{copy.isi}</p>
             {testLogin}
           </div>
         </>
