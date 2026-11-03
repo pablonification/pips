@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { Database } from '~/db/drizzle';
 import { first, firstSure } from '~/db/helper';
 import { reactions } from '~/db/schema';
+import { summarizeCommentReactions } from '~/lib/comment-reactions';
 import {
   CreateOrUpdateReactionSchema,
   ReactionResponseSchema,
@@ -164,25 +165,5 @@ export async function getCommentsReactions(
     .from(reactions)
     .where(and(eq(reactions.creatorId, userId), where));
 
-  const result: Record<string, z.infer<typeof ReactionResponseSchema>> = {};
-  reactionCount.forEach((r) => {
-    if (!r.commentId) {
-      return;
-    }
-    if (!result[r.commentId]) {
-      result[r.commentId] = {
-        totalReactions: 0,
-        reactionsCount: [],
-        userReaction: userReactions.find((ur) => ur.commentId === r.commentId)
-          ?.reaction,
-      };
-    }
-    result[r.commentId].totalReactions += r.count;
-    result[r.commentId].reactionsCount.push({
-      reaction: r.reaction,
-      count: r.count,
-    });
-  });
-
-  return result;
+  return summarizeCommentReactions(commentIds, reactionCount, userReactions);
 }

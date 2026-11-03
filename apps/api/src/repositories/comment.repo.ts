@@ -45,7 +45,7 @@ export async function getCommentList(
   );
   return result.map((r) => ({
     ...r,
-    reactions: reactions[r.id] || [],
+    reactions: reactions[r.id],
   }));
 }
 
