@@ -1,9 +1,13 @@
 /**
  * P3-B: managing Info Lomba for `cnc` (proposals): Tambah lomba with each validation error, its request and the new
  * card in deadline order; Ubah lomba without `mediaUrls`; Hapus lomba cancelled and confirmed. Nadia and Raka see
- * none of it (FEATURES.md gap 3). Phone, tablet and desktop, light and dark, with strict gates.
+ * none of it (FEATURES.md gap 3). The poster (owner's decision, 2026-11-03): added, replaced and removed, a failed
+ * upload, and the keyboard. Phone, tablet and desktop, light and dark, with strict gates.
  */
-import type { Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { Locator, Page } from '@playwright/test';
 import {
   dialog,
   expectStillSignedIn,
@@ -14,7 +18,7 @@ import {
   slow,
   toastText,
 } from '../support/manage';
-import { expectLit, strictGates } from '../support/strict';
+import { expectLit, expectVisibleFocus, strictGates } from '../support/strict';
 import { expect, test } from '../support/test';
 import * as writes from '../support/writes';
 
@@ -361,6 +365,270 @@ test.describe('cnc', () => {
       page.getByRole('button', { name: /^Opsi untuk / }),
     ).toHaveCount(0);
     await expectStillSignedIn(page);
+  });
+});
+
+/** A poster to pick: Garis v5's sample Hology poster, as an SVG image from the device. */
+const POSTER_FILE = {
+  name: 'poster-hology-8.svg',
+  mimeType: 'image/svg+xml',
+  buffer: readFileSync(
+    path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      '../fixtures/posters/hology-uiux.svg',
+    ),
+  ),
+};
+/** The uploaded poster's address (writes.presign: the name and its extension, the type swapped for .svg). */
+const UPLOADED = /^\/__e2e__\/media\/upload-\d+-poster-hology-8\.svg$/;
+const posterGroup = (d: Locator) => d.getByRole('group', { name: /^Poster/ });
+const fileInput = (d: Locator) => d.locator('input[type="file"]');
+const cardPoster = (page: Page, name: string) =>
+  main(page)
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('heading', { name, exact: true }) })
+    .locator('.g-poster');
+
+test.describe('cnc: the poster', () => {
+  test.use({ roles: ['cnc'] });
+
+  test('Tambah lomba with a poster: it uploads with its progress, Tambahkan waits, the POST carries its address, and Info Lomba shows it', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api
+      .on('POST /api/competitions', writes.createCompetition)
+      .on('POST /api/media/upload', writes.presign);
+    await page.goto('/layanan/lomba');
+    await tambahLomba(page).click();
+    const d = add(page);
+    await fillHology(page);
+    const poster = posterGroup(d);
+    await expect(poster.getByText('Tambah poster')).toBeVisible();
+    await expect(
+      poster.getByRole('button', { name: 'Hapus poster' }),
+    ).toHaveCount(0);
+
+    api.uploads.delayMs = 1500;
+    await fileInput(d).setInputFiles(POSTER_FILE);
+    await expect(
+      poster.getByRole('status').filter({ hasText: /^Mengunggah/ }),
+    ).toBeVisible();
+    await expect(
+      d.getByText('Tunggu posternya selesai diunggah.'),
+    ).toBeVisible();
+    const tambahkan = d.getByRole('button', { name: 'Tambahkan' });
+    await expect(tambahkan).toHaveAttribute('aria-disabled', 'true');
+    // Playwright waits for an aria-disabled button to be enabled; force presses it while it is blocked.
+    await tambahkan.click({ force: true });
+    await expect(d).toBeVisible();
+    expect(posts(api)).toHaveLength(0);
+
+    await expect(d.locator('[data-poster="done"]')).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(d.getByText('Tunggu posternya selesai diunggah.')).toHaveCount(
+      0,
+    );
+    await expect(tambahkan).not.toHaveAttribute('aria-disabled', 'true');
+    await expect(poster.getByText('Ganti poster')).toBeVisible();
+    await expect(poster.getByRole('img', { name: 'Poster' })).toBeVisible();
+    expect(api.calls('POST /api/media/upload').map((r) => r.body)).toEqual([
+      { fileName: 'poster-hology-8', fileType: 'svg' },
+    ]);
+    await strictGates(page, testInfo, 'tambah-lomba-poster', null);
+
+    await tambahkan.click();
+    await expect(d).toBeHidden();
+    const [post] = posts(api) as { body: Record<string, unknown> }[];
+    expect(post.body).toEqual({
+      name: 'Hology 8',
+      organizer: 'Universitas Brawijaya',
+      categories: ['UI/UX'],
+      registrationStart: '2026-10-07T17:00:00.000Z',
+      registrationDeadline: '2026-10-10T16:59:00.000Z',
+      price: null,
+      registrationUrl: 'https://hology.ub.ac.id/daftar',
+      sourceUrl: 'https://instagram.com/hology',
+      mediaUrls: [expect.stringMatching(UPLOADED)],
+    });
+    await expect(toastText(page, 'Lomba ditambahkan.')).toBeVisible();
+    // Info Lomba shows the uploaded poster on the new card, not the plain panel.
+    const shown = cardPoster(page, 'Hology 8');
+    await expect(shown).toHaveRole('button');
+    await expect(shown.getByRole('img')).toHaveAttribute(
+      'src',
+      (post.body.mediaUrls as string[])[0],
+    );
+    await expect
+      .poll(() =>
+        shown
+          .getByRole('img')
+          .evaluate((i) => (i as HTMLImageElement).naturalWidth),
+      )
+      .toBeGreaterThan(0);
+  });
+
+  test('Ubah lomba: the stored poster shows; Ganti poster replaces it and sends only mediaUrls', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api
+      .on('PUT /api/competitions/:id', writes.updateCompetition)
+      .on('POST /api/media/upload', writes.presign);
+    await page.goto('/layanan/lomba');
+    const before = await cardPoster(page, 'Gemastik XIX')
+      .getByRole('img')
+      .getAttribute('src');
+    await main(page)
+      .getByRole('button', { name: 'Opsi untuk Gemastik XIX' })
+      .click();
+    await page.getByRole('menuitem', { name: 'Ubah lomba' }).click();
+    const d = dialog(page, 'Ubah lomba');
+    const poster = posterGroup(d);
+    await expect(poster.getByRole('img', { name: 'Poster' })).toHaveAttribute(
+      'src',
+      before!,
+    );
+    await expect(poster.getByText('Ganti poster')).toBeVisible();
+    await expect(
+      poster.getByRole('button', { name: 'Hapus poster' }),
+    ).toBeVisible();
+    await strictGates(page, testInfo, 'ubah-lomba-poster', null);
+
+    await fileInput(d).setInputFiles(POSTER_FILE);
+    await expect(d.locator('[data-poster="done"]')).toBeVisible({
+      timeout: 10_000,
+    });
+    await d.getByRole('button', { name: 'Simpan' }).click();
+    await expect(d).toBeHidden();
+    const [put] = api.calls('PUT /api/competitions/:id');
+    expect(put.body).toEqual({ mediaUrls: [expect.stringMatching(UPLOADED)] });
+    await expect(toastText(page, 'Lomba diperbarui.')).toBeVisible();
+    await expect(
+      cardPoster(page, 'Gemastik XIX').getByRole('img'),
+    ).toHaveAttribute('src', UPLOADED);
+  });
+
+  test('Ubah lomba: Hapus poster removes it, sends mediaUrls [] and the card shows the plain panel', async ({
+    page,
+    api,
+  }) => {
+    api.on('PUT /api/competitions/:id', writes.updateCompetition);
+    await page.goto('/layanan/lomba');
+    await main(page)
+      .getByRole('button', { name: 'Opsi untuk Gemastik XIX' })
+      .click();
+    await page.getByRole('menuitem', { name: 'Ubah lomba' }).click();
+    const d = dialog(page, 'Ubah lomba');
+    const poster = posterGroup(d);
+    await poster.getByRole('button', { name: 'Hapus poster' }).click();
+    await expect(poster.getByRole('img')).toHaveCount(0);
+    // Focus moves to the tile that adds one again.
+    await expect(d.getByLabel('Tambah poster')).toBeFocused();
+    await d.getByRole('button', { name: 'Simpan' }).click();
+    await expect(d).toBeHidden();
+    const [put] = api.calls('PUT /api/competitions/:id');
+    expect(put.body).toEqual({ mediaUrls: [] });
+    await expect(cardPoster(page, 'Gemastik XIX')).toHaveAttribute(
+      'data-poster',
+      'none',
+    );
+  });
+
+  test('a failed upload says so on the poster, Tambahkan saves nothing, and Coba lagi uploads it', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api
+      .on('POST /api/competitions', writes.createCompetition)
+      .on('POST /api/media/upload', writes.presign);
+    await page.goto('/layanan/lomba');
+    await tambahLomba(page).click();
+    const d = add(page);
+    await fillHology(page);
+    api.uploads.failNext = 1;
+    await fileInput(d).setInputFiles(POSTER_FILE);
+    const poster = posterGroup(d);
+    const failed = poster.getByRole('alert');
+    await expect(failed).toContainText('Gagal diunggah');
+    // Icon, word and colour.
+    await expect(failed.locator('svg').first()).toBeVisible();
+    await expect(
+      d.getByText('Posternya gagal diunggah. Coba lagi atau hapus posternya.'),
+    ).toBeVisible();
+    const tambahkan = d.getByRole('button', { name: 'Tambahkan' });
+    await expect(tambahkan).toHaveAttribute('aria-disabled', 'true');
+    await tambahkan.click({ force: true });
+    await expect(d).toBeVisible();
+    expect(posts(api)).toHaveLength(0);
+    await strictGates(page, testInfo, 'tambah-lomba-poster-gagal', null);
+
+    await failed.getByRole('button', { name: 'Coba lagi' }).click();
+    await expect(d.locator('[data-poster="done"]')).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(
+      d.getByText('Posternya gagal diunggah. Coba lagi atau hapus posternya.'),
+    ).toHaveCount(0);
+    await tambahkan.click();
+    await expect(d).toBeHidden();
+    expect(posts(api)).toHaveLength(1);
+    expect(
+      (posts(api)[0] as { body: { mediaUrls: string[] } }).body.mediaUrls,
+    ).toEqual([expect.stringMatching(UPLOADED)]);
+    // Two addresses asked for: the failed upload's and the retry's.
+    expect(api.calls('POST /api/media/upload')).toHaveLength(2);
+  });
+
+  test('a failed upload removed with Hapus poster: Tambahkan saves without a poster', async ({
+    page,
+    api,
+  }) => {
+    api
+      .on('POST /api/competitions', writes.createCompetition)
+      .on('POST /api/media/upload', writes.presign);
+    await page.goto('/layanan/lomba');
+    await tambahLomba(page).click();
+    const d = add(page);
+    await fillHology(page);
+    api.uploads.failNext = 1;
+    await fileInput(d).setInputFiles(POSTER_FILE);
+    await expect(posterGroup(d).getByRole('alert')).toContainText(
+      'Gagal diunggah',
+    );
+    await posterGroup(d).getByRole('button', { name: 'Hapus poster' }).click();
+    await d.getByRole('button', { name: 'Tambahkan' }).click();
+    await expect(d).toBeHidden();
+    expect('mediaUrls' in (posts(api)[0] as { body: object }).body).toBe(false);
+  });
+
+  test('keyboard: Tab reaches Tambah poster, which opens the file picker; then Hapus poster and Ganti poster', async ({
+    page,
+    api,
+  }) => {
+    api.on('POST /api/media/upload', writes.presign);
+    await page.goto('/layanan/lomba');
+    await tambahLomba(page).click();
+    const d = add(page);
+    await d.getByLabel('Tautan sumber').focus();
+    await page.keyboard.press('Tab');
+    await expect(d.getByLabel('Tambah poster')).toBeFocused();
+    const chooser = page.waitForEvent('filechooser');
+    await page.keyboard.press('Space');
+    await (await chooser).setFiles(POSTER_FILE);
+    await expect(d.locator('[data-poster="done"]')).toBeVisible({
+      timeout: 10_000,
+    });
+    await d.getByLabel('Tautan sumber').focus();
+    await page.keyboard.press('Tab');
+    await expect(d.getByRole('button', { name: 'Hapus poster' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(d.getByLabel('Ganti poster')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(d.getByRole('button', { name: 'Batal' })).toBeFocused();
+    // Every stop shows its focus.
+    await expectVisibleFocus(page);
   });
 });
 
