@@ -3,7 +3,7 @@
  * - `/__e2e__/avatar/<nim>.svg`: initials on a tinted circle (the prototype draws initials, not photos);
  * - `/__e2e__/media/poster-<name>.svg`: a 3:4 competition poster: Garis v5's own sample poster when
  *   `fixtures/posters/<name>.svg` exists (so captures match the locked screens), else a generated one;
- * - `/__e2e__/media/<name>.svg`: a 4:3 post photo.
+ * - `/__e2e__/media/<name>.svg`: a 4:3 post photo; an upload named `poster-…` (writes.presign) is a 3:4 poster.
  */
 import type { Route } from '@playwright/test';
 import { existsSync, readFileSync } from 'node:fs';
@@ -40,7 +40,7 @@ export function avatarSvg(nim: string): string {
 }
 
 export function mediaSvg(name: string): string {
-  const poster = name.startsWith('poster-');
+  const poster = /^(upload-\d+-)?poster-/.test(name);
   const [w, h] = poster ? [600, 800] : [800, 600];
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="${tint(name)}"/><rect x="24" y="24" width="${w - 48}" height="${h - 48}" fill="none" stroke="#1B1508" stroke-width="4"/><text x="${w / 2}" y="${h / 2}" font-family="sans-serif" font-size="40" text-anchor="middle" fill="#1B1508">${esc(name)}</text></svg>`;
 }
