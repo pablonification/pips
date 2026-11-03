@@ -218,14 +218,16 @@ test('v5: a deadline draws as Akademik in the grid and the day list, with no out
 
 test.describe('Pengingat H-1 with notifications on', () => {
   test.use({ push: 'on' });
-  test('already sent for Kuis 2, still to come for the deadline', async ({
+  test('only the time for Kuis 2, whose reminder was due yesterday; still to come for the deadline', async ({
     page,
   }, testInfo) => {
     const desk = layoutOf(testInfo) === 'desktop';
     await page.goto('/kalender?hari=2026-10-08&acara=a2');
-    await expect(detail(page, desk)).toContainText(
-      'Sudah dikirim Rab 7 Okt, 15.00',
-    );
+    // Regression (owner, 2026-11-03): it said "Sudah dikirim", though the server may never have sent it.
+    const line = detail(page, desk)
+      .getByText('Pengingat H-1')
+      .locator('xpath=following-sibling::p');
+    await expect(line).toHaveText('Rab 7 Okt, 15.00');
     await page.goto('/kalender?hari=2026-10-09&acara=a3');
     await expect(detail(page, desk)).toContainText('Dikirim Kam 8 Okt, 23.59');
   });

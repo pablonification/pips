@@ -46,7 +46,9 @@ export const kalender = {
     wib: '{waktu} WIB',
     pengingat: 'Pengingat H-1',
     notifikasiMati: 'Notifikasi belum menyala di perangkat ini',
-    sudahDikirim: 'Sudah dikirim {hari}, {jam}',
+    // Once its time has passed, only the time: the app can't know whether a reminder reached this member (owner,
+    // 2026-11-03).
+    waktuPengingat: '{hari}, {jam}',
     dikirim: 'Dikirim {hari}, {jam}',
     googleCalendar: 'Google Calendar',
     dingDong: 'Ding Dong',

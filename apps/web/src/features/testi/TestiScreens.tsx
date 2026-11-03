@@ -41,7 +41,7 @@ import { catalogueQuery, courseQuery, testimoniQuery } from './queries';
 import { CourseRow, CourseSkeleton, FolderRowContent, NotFound } from './parts';
 import {
   authorOf,
-  codeLine,
+  creditsLine,
   columnsFor,
   isLong,
   linkSegments,
@@ -454,7 +454,9 @@ export function TestiCourseScreen() {
       <div className="g-testi-head">
         <div className="flex min-w-0 flex-auto items-start gap-3">
           <div className="min-w-0 flex-1">
-            <p className="t-cap text-fg-2 num">{codeLine(course)}</p>
+            {creditsLine(course) ? (
+              <p className="t-cap text-fg-2 num">{creditsLine(course)}</p>
+            ) : null}
             <h2 className="mt-0.5 t-title">{course.name}</h2>
           </div>
           {/* P3-B: phones and tablets put Tambah testimoni at the end of the course's header row. */}

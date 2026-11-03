@@ -84,11 +84,12 @@ export function courseParams(course: Course) {
 export const countLine = (n: number) =>
   n ? fill(copy.jumlahTestimoni, { jumlah: n }) : copy.belumAdaTestimoni;
 
-/** "IF2110 · 3 SKS", or just the code when the catalogue has no credits. */
-export const codeLine = (course: Pick<Course, 'code' | 'credits'>) =>
-  course.credits == null
-    ? course.code
-    : fill(copy.kodeSks, { kode: course.code, sks: course.credits });
+/**
+ * "3 SKS" above the course name, or nothing when the catalogue has no credits. The page title already is the code
+ * (owner, 2026-11-03; it read "IF2110 · 3 SKS" under the title "IF2110").
+ */
+export const creditsLine = (course: Pick<Course, 'credits'>) =>
+  course.credits == null ? null : fill(copy.sks, { sks: course.credits });
 
 export interface Section {
   key: string;

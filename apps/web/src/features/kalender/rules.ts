@@ -99,7 +99,11 @@ export function timeLine(e: CalEvent): string {
 export const dateLine = (e: CalEvent) =>
   `${dLong(e.start)} ${wib(e.start).year}`;
 
-/** Pengingat H-1 (rule 11): sent 24 hours before the start, only to a device with notifications on. */
+/**
+ * Pengingat H-1 (rule 11): sent 24 hours before the start, only to a device with notifications on. Once that time has
+ * passed it says only when, never "Sudah dikirim": no reminder goes for an event added later than that, to a member who
+ * added the course later, or to one who muted Akademik (owner, 2026-11-03; regression: it claimed every one was sent).
+ */
 export function reminderLine(
   e: CalEvent,
   now: number,
@@ -107,7 +111,7 @@ export function reminderLine(
 ): string {
   if (!pushOn) return t.detail.notifikasiMati;
   const at = ms(e.start) - 24 * 60 * 60 * 1000;
-  return fill(at < now ? t.detail.sudahDikirim : t.detail.dikirim, {
+  return fill(at < now ? t.detail.waktuPengingat : t.detail.dikirim, {
     hari: dShort(at),
     jam: hm(at),
   });
