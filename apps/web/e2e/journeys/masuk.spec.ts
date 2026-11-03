@@ -92,11 +92,10 @@ test('the keyboard header, the greeting, the slides and Masuk dengan Google, in 
     'carousel',
   );
   await expect(carousel(page).getByRole('group')).toHaveCount(4);
+  // The owner removed the hint under the greeting (2026-11-04).
   await expect(
-    page.getByText(
-      'Pakai akun Google email mahasiswamu (NIM@std.stei.itb.ac.id).',
-    ),
-  ).toBeVisible();
+    page.getByText(/Pakai akun Google email mahasiswamu/),
+  ).toHaveCount(0);
   // The header: nine keys (eight services and the gold PIPS! key) and four pixel reactions, hidden from screen
   // readers; the first slide's key is lit.
   const board = page.locator('.g-mk-board');

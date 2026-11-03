@@ -1,13 +1,14 @@
 /**
  * Sign-in (`/login`): Garis v5's Masuk screen (garis/screens-masuk.js, locked 2026-11-02). The greeting, the slides
- * and their screen-reader labels are the prototype's; the button, the hint, the loading text and the errors are
- * P1-C's, which the prototype took over unchanged. Errors say what happened, then the fix.
+ * and their screen-reader labels are the prototype's; the button, the loading text and the errors are
+ * P1-C's, which the prototype took over unchanged. Errors say what happened, then the fix. The prototype's hint under
+ * the greeting ("Pakai akun Google email mahasiswamu …") is gone (owner, 2026-11-04); a refused account's error still
+ * names the student email.
  */
 export const masuk = {
   // The document title ("Masuk · PIPS!"); the page's own heading is the greeting.
   judul: 'Masuk',
   halo: 'Halo, Pips!',
-  isi: 'Pakai akun Google email mahasiswamu (NIM@std.stei.itb.ac.id).',
   google: 'Masuk dengan Google',
   memproses: 'Masuk…',
   // 401: either cause, since the API can't tell them apart.

@@ -46,11 +46,10 @@ test.describe('signed out', () => {
       page.getByRole('heading', { name: 'Halo, Pips!' }),
     ).toBeVisible();
     await expect(page).toHaveTitle('Masuk · PIPS!');
+    // The owner removed the hint under the greeting (2026-11-04).
     await expect(
-      page.getByText(
-        'Pakai akun Google email mahasiswamu (NIM@std.stei.itb.ac.id).',
-      ),
-    ).toBeVisible();
+      page.getByText(/Pakai akun Google email mahasiswamu/),
+    ).toHaveCount(0);
     // The official logo, whole.
     const logo = page.locator('img[src="/logo/hmif.png"]');
     await expect(logo).toBeVisible();
