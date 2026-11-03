@@ -161,12 +161,13 @@ test.describe('Nadia', () => {
       .getByRole('button', { name: 'Coba lagi' })
       .click();
     await expect(c.locator('[data-photo="done"]')).toHaveCount(3);
-    // Each upload asked for its own address just before sending.
+    // Each upload asked for its own address just before sending, with the name and its extension apart (a MIME type as
+    // the type left the API unable to save the post's media).
     expect(api.calls('POST /api/media/upload').map((r) => r.body)).toEqual([
-      { fileName: 'a.png', fileType: 'image/png' },
-      { fileName: 'b.png', fileType: 'image/png' },
-      { fileName: 'c.png', fileType: 'image/png' },
-      { fileName: 'c.png', fileType: 'image/png' },
+      { fileName: 'a', fileType: 'png' },
+      { fileName: 'b', fileType: 'png' },
+      { fileName: 'c', fileType: 'png' },
+      { fileName: 'c', fileType: 'png' },
     ]);
     await c.getByRole('button', { name: 'Hapus foto 2' }).click();
     await expect(c.locator('[data-photo]')).toHaveCount(2);
@@ -358,8 +359,8 @@ test.describe('Nadia', () => {
     );
     await expect(c.locator('[data-photo="done"]')).toHaveCount(1);
     expect(api.calls('POST /api/media/upload')[0].body).toEqual({
-      fileName: 'poster.png',
-      fileType: 'image/png',
+      fileName: 'poster',
+      fileType: 'png',
     });
   });
 });

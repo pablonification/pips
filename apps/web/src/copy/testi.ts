@@ -23,7 +23,7 @@ export const testi = {
   tidakAdaMatkul: 'Tidak ada mata kuliah',
   cobaKodeLain: 'Coba kode atau nama lain.',
   cobaKataLain: 'Coba kata lain atau semester lain.',
-  kodeSks: '{kode} · {sks} SKS',
+  sks: '{sks} SKS',
   anonim: 'Anonim',
   bagian: {
     overview: 'Overview',

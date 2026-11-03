@@ -23,4 +23,102 @@
     flex: 1;
     min-width: 0;
   }
+
+  /* Tambah lomba's poster (owner's decision, 2026-11-03): the composer's photo tiles (pengumuman.css `.g-thumb`,
+     `.g-add-photo`, values unchanged) at Info Lomba's 3:4 poster shape and 8 px corner, 120 px wide. */
+  .g-poster-field {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .g-poster-pick {
+    position: relative;
+    width: 120px;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-muted);
+    outline: 1px solid var(--image-outline);
+    outline-offset: -1px;
+  }
+  .g-poster-pick .g-media {
+    position: absolute;
+    inset: 0;
+    border-radius: 0;
+    background: var(--bg-muted);
+  }
+  .g-poster-pick .del {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 28px;
+    height: 28px;
+    background: var(--thumb-scrim);
+    color: var(--px-white);
+  }
+  .g-poster-pick .state {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: grid;
+    gap: 4px;
+    justify-items: start;
+    padding: 6px;
+    background: var(--thumb-scrim);
+    color: var(--px-white);
+    font-size: 12px;
+    line-height: 1.3;
+    font-weight: 500;
+  }
+  .g-poster-pick .state .bar {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--thumb-scrim);
+    overflow: hidden;
+  }
+  .g-poster-pick .state .bar i {
+    display: block;
+    height: 100%;
+    background: var(--gold);
+  }
+  .g-poster-pick .state .g-link {
+    color: var(--gold);
+    font-size: 12px;
+    min-height: 0;
+  }
+  .g-add-poster {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 6px;
+    width: 120px;
+    aspect-ratio: 3 / 4;
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--bg-surface);
+    color: var(--text-2);
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+  }
+  .g-add-poster:hover {
+    background: var(--bg-hover);
+  }
+  .g-add-poster:has(input:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  /* Touch layouts: Hapus poster's 44 px hit area, as the composer's. */
+  @media (max-width: 1023.98px) {
+    .g-poster-pick .del::before {
+      content: '';
+      position: absolute;
+      top: min(0px, calc((100% - 44px) / 2));
+      bottom: min(0px, calc((100% - 44px) / 2));
+      left: min(0px, calc((100% - 44px) / 2));
+      right: min(0px, calc((100% - 44px) / 2));
+    }
+  }
 }

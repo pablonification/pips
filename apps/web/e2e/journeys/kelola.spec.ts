@@ -992,6 +992,30 @@ test.describe('Data SPARTA Magang', () => {
     await expect(main(page).getByText('1 pendaftar')).toBeVisible();
   });
 
+  // Regression (2026-11-03): the URL now follows the box when typing pauses or the box loses focus, not at every letter.
+  test('a row tapped right after typing still keeps the search for Back', async ({
+    page,
+  }, testInfo) => {
+    await page.goto('/kelola/sparta');
+    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
+    const search = main(page).getByRole('searchbox', {
+      name: 'Cari nama atau NIM',
+    });
+    await search.pressSequentially('tas');
+    await expect(main(page).getByText('1 pendaftar')).toBeVisible();
+    // At once, before typing has paused long enough for the URL to follow.
+    await (
+      touch(testInfo)
+        ? spartaRows(page).first().getByRole('link')
+        : table(page).getByRole('link', { name: 'Tasya Amelia' })
+    ).click();
+    await expect(page).toHaveURL(/\/kelola\/sparta\/sub-[^/?]+$/);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/kelola\/sparta\?q=tas$/);
+    await expect(search).toHaveValue('tas');
+    await expect(main(page).getByText('1 pendaftar')).toBeVisible();
+  });
+
   test("the filters' labels line up (review P3-A m5)", async ({ page }) => {
     await page.goto('/kelola/sparta');
     await expect(main(page).getByText('3 pendaftar')).toBeVisible();

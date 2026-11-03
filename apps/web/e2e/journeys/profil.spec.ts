@@ -4,7 +4,7 @@
  * notifikasi.spec.ts.
  */
 import type { Page } from '@playwright/test';
-import { layoutOf } from '../support/app';
+import { greeting, layoutOf, navLink } from '../support/app';
 import { reply } from '../support/mock';
 import { E2E_SUBSCRIPTION, pushDevice } from '../support/push';
 import { strictAudit, strictGates } from '../support/strict';
@@ -759,4 +759,31 @@ test.describe('the member card under reduced motion (v5)', () => {
     expect(at.sheenShown).toBe(false);
     await logoUncovered(page);
   });
+});
+
+// Regression (2026-11-03): every page change put the device's old copy of the member's semester back into the
+// cache as if fresh, so after one page change Profil showed it instead of the server's. It also redrew every screen
+// that reads it on every page change, so each letter typed in Data SPARTA Magang's search stalled a slow phone.
+test("a page change keeps the server's semester, not the device's old copy", async ({
+  page,
+  db,
+}) => {
+  // The device's copy says semester 3 (as seeded at sign-in); the server now says 4.
+  db.academic = { ...db.academic, semester: 4 };
+  // Informasi akun opens folded; it may stay open when you come back.
+  const openInfo = async () => {
+    if (!(await main(page).locator('.g-facts-list').isVisible()))
+      await main(page).getByText('Informasi akun').click();
+  };
+  await page.goto('/profil');
+  await openInfo();
+  const semester = async () =>
+    (await facts(page)).find(([k]) => k === 'Semester')?.[1];
+  await expect.poll(semester).toBe('4 · Ganjil 2026/2027');
+  await navLink(page, 'Beranda').click();
+  await expect(greeting(page)).toBeVisible();
+  await navLink(page, 'Profil').click();
+  await expect(main(page).getByText('Informasi akun')).toBeVisible();
+  await openInfo();
+  await expect.poll(semester).toBe('4 · Ganjil 2026/2027');
 });

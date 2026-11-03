@@ -22,6 +22,26 @@ const TEXT =
   'the locked screens were rendered on Linux and the app on the Mac, and the app self-hosts Geist from npm (P0-A deviation), so text is 1–2 px off and some lines wrap differently';
 
 export const FIDELITY_NOTES: FidelityNote[] = [
+  // First, so it wins over the older notes for the same screens.
+  {
+    screens: [
+      ...both(
+        'phone-anggota-ov-event',
+        'tablet-anggota-ov-event',
+        'desk-anggota-ov-event',
+        'desk-anggota-kalender',
+        'desk-pengurus-kalender',
+        'phone-anggota-testi-course',
+        'tablet-anggota-testi-course',
+        'desk-anggota-testi-course',
+      ),
+      'i-event-sheet',
+      'i-desk-kalender-after',
+      'i-testi',
+    ],
+    reason: `The owner's changes after the lock (2026-11-03): Pengingat H-1 says only when a reminder was due ("Rab 7 Okt, 15.00"), not "Sudah dikirim", because the app can't know it was sent; Testi Matkul's course page shows "3 SKS" above the name, not "IF2110 · 3 SKS" under the title "IF2110". Otherwise ${TEXT}.`,
+    source: 'the owner, 2026-11-03 (PLAN.md log)',
+  },
   {
     screens: both(
       'phone-anggota-pengumuman',
@@ -50,7 +70,6 @@ export const FIDELITY_NOTES: FidelityNote[] = [
     screens: both(
       'phone-anggota-dingdong',
       'phone-anggota-testi-list',
-      'phone-anggota-testi-course',
       'phone-anggota-lomba',
     ),
     reason: `The phone pairs line up row for row: ${TEXT}. On Info Lomba that rewraps Gemastik's tags onto two lines instead of three and moves the cards below.`,

@@ -7,6 +7,7 @@
 import type { Page } from '@playwright/test';
 import type { CalendarEvent } from '../../src/api/generated';
 import { greeting, layoutOf, navLink } from '../support/app';
+import { NOW } from '../fixtures/api';
 import { defaultHandlers } from '../support/handlers';
 import { reply } from '../support/mock';
 import {
@@ -1166,4 +1167,71 @@ test('the strip draws a deadline like any Akademik event: a full bar, no short m
     );
   expect(bars.length).toBeGreaterThan(0);
   for (const [bar, row] of bars) expect(bar).toBe(row);
+});
+
+test('regression: answers that arrive out of order never push down a section already shown @phone-only', async ({
+  page,
+  api,
+}) => {
+  // The unread list answers first; Perlu ditindaklanjuti's sources answer after it, still before its skeleton (the
+  // clock is paused, so 300 ms never pass). On a slow phone the list showed first and the follow-ups then landed
+  // above it, pushing it down (CI, 2026-11-03).
+  let release!: () => void;
+  const held = new Promise<void>((r) => (release = r));
+  for (const route of ['GET /api/form', 'GET /api/curhat/chatrooms'] as const) {
+    const answer = defaultHandlers[route];
+    api.on(route, async (ctx) => {
+      await held;
+      return answer(ctx);
+    });
+  }
+  // On every change to the page: where the unread list's heading is, once it is on screen.
+  await page.addInitScript(() => {
+    const w = window as unknown as { tops: number[] };
+    w.tops = [];
+    const look = () => {
+      const h = [...document.querySelectorAll('main h2')].find(
+        (el) => el.textContent === 'Pengumuman belum dibaca',
+      );
+      const top = h?.checkVisibility() ? h.getBoundingClientRect().top : null;
+      if (top !== null && top !== w.tops.at(-1)) w.tops.push(top);
+    };
+    new MutationObserver(look).observe(document, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      characterData: true,
+    });
+  });
+  // Time moves 1 ms per look, so the page's own short timers run but its 300 ms skeleton timer never does.
+  const start = Date.parse(NOW) + 1000;
+  await page.clock.pauseAt(start);
+  const step = async <T>(read: () => Promise<T>) => {
+    await page.clock.runFor(1);
+    return read();
+  };
+  await page.goto('/');
+  await expect
+    .poll(() => step(async () => api.calls('GET /api/info').length))
+    .toBeGreaterThan(0);
+  await expect
+    .poll(() => step(() => agendaRows(page).count()))
+    .toBeGreaterThan(0);
+  release();
+  await expect
+    .poll(() => step(() => attentionTitles(page)))
+    .toContain('Balasan baru dari Welfare');
+  await expect
+    .poll(() => step(() => unreadSection(page).getByRole('listitem').count()))
+    .toBe(unreadShown(page));
+  expect(
+    (await page.evaluate(() => Date.now())) - start,
+    'before any skeleton',
+  ).toBeLessThan(300);
+  await page.clock.resume();
+  await page.waitForTimeout(500);
+  const tops = await page.evaluate(
+    () => (window as unknown as { tops: number[] }).tops,
+  );
+  expect(tops, 'the unread list moved after it showed').toHaveLength(1);
 });

@@ -228,6 +228,11 @@ export function filterSubmissions(
   });
 }
 
+/** Whether two lists hold the same items in the same order (by identity): a search that still matches the same rows. */
+export function sameItems<T>(a: readonly T[], b: readonly T[]): boolean {
+  return a.length === b.length && a.every((x, i) => x === b[i]);
+}
+
 export function hasFilters(f: SpartaFilters): boolean {
   return !!(f.q?.trim() || f.divisi || f.pilihan || f.status);
 }

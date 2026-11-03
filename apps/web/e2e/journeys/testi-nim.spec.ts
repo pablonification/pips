@@ -128,7 +128,15 @@ test.describe('Testi Matkul by browsing', () => {
     await expect(page).toHaveURL(/\/teknik-informatika\/3\/course-IF2110$/);
     await expect(page).toHaveTitle('IF2110 · PIPS!');
     await expectUpTo(page, testInfo, 'IF · Semester 3');
-    await expect(main(page).getByText('IF2110 · 3 SKS')).toBeVisible();
+    // The code is the title, so the line above the name is only the credits (owner, 2026-11-03; regression: it
+    // read "IF2110 · 3 SKS" under the title "IF2110").
+    await expect(
+      page
+        .getByRole('heading', { level: 1, name: 'IF2110' })
+        .locator('visible=true'),
+    ).toHaveCount(1);
+    await expect(main(page).getByText('3 SKS', { exact: true })).toBeVisible();
+    await expect(main(page).getByText('IF2110 · 3 SKS')).toHaveCount(0);
     const name = main(page).getByRole('heading', {
       name: 'Algoritma dan Pemrograman II',
     });

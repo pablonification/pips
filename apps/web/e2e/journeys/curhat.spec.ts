@@ -7,7 +7,7 @@
  * It replaces T3's journey of today's screen (`/home/curhat`, one socket per room, "Messages", no acknowledgement):
  * members no longer see that screen. Welfare is sent to its inbox (P3-C), checked at the end.
  */
-import type { Locator, Page, TestInfo } from '@playwright/test';
+import type { Locator, Page, Request, TestInfo } from '@playwright/test';
 import type { CurhatSocketMessage } from '../../src/api/generated';
 import { layoutOf } from '../support/app';
 import { fakeGoogle, googleRequests } from '../support/google';
@@ -59,6 +59,37 @@ function canRead(api: ApiMock) {
 async function openR1(page: Page) {
   await page.goto('/layanan/curhat/r1');
   await expect(log(page)).toBeVisible();
+}
+
+/**
+ * Counts the page's API requests in flight (the socket's long poll aside); `quiet()` waits until none has been for
+ * half a second. Start it before the page opens. A journey that ends the session and then types needs it: on a slow
+ * machine the room's opening reads (the unread counts again after the read mark, the shell's badge) can still be on
+ * their way, come back "not signed in", and hand over to sign-in before the journey has typed (regression: CI,
+ * 2026-11-03; 1 run in 8 at 6x CPU slowdown).
+ */
+function apiInFlight(page: Page) {
+  let open = 0;
+  let last = Date.now();
+  const counts = (r: Request) =>
+    r.url().includes('/api/') && !r.url().includes('/socket.io/');
+  const step = (by: number) => (r: Request) => {
+    if (!counts(r)) return;
+    open += by;
+    last = Date.now();
+  };
+  page.on('request', step(1));
+  const end = step(-1);
+  page.on('requestfinished', end);
+  page.on('requestfailed', end);
+  return {
+    quiet: () =>
+      expect
+        .poll(() => open === 0 && Date.now() - last >= 500, {
+          intervals: [100],
+        })
+        .toBe(true),
+  };
 }
 
 /** What the API acknowledges a message with (no userId), for tests that answer by hand. */
@@ -727,10 +758,12 @@ test.describe('delivery under a dropped connection', () => {
     db,
   }) => {
     canRead(api);
+    const requests = apiInFlight(page);
     await openR1(page);
     await expect
       .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
       .toBe(true);
+    await requests.quiet();
     db.signedIn = false;
     await composer(page).fill(MINE);
     await sendButton(page).click();

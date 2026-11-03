@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import type { Course, Testimoni } from '../src/api/generated';
 import {
   authorOf,
-  codeLine,
+  creditsLine,
   columnsFor,
   countLine,
   courseParams,
@@ -162,8 +162,9 @@ test('titles (testiTitle)', () => {
 test('row and header lines', () => {
   assert.equal(countLine(3), '3 testimoni');
   assert.equal(countLine(0), 'Belum ada testimoni');
-  assert.equal(codeLine(if2110), 'IF2110 · 3 SKS');
-  assert.equal(codeLine({ code: 'IF2110', credits: null }), 'IF2110');
+  // Regression (owner, 2026-11-03): the code under the title that is the code.
+  assert.equal(creditsLine(if2110), '3 SKS');
+  assert.equal(creditsLine({ credits: null }), null);
 });
 
 const t = (over: Partial<Testimoni>): Testimoni => ({

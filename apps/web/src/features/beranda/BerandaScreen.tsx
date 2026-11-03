@@ -127,6 +127,13 @@ export function BerandaScreen({ hari, acara }: BerandaSearch) {
   const push = usePushState();
   const online = useOnline();
   const unread = useUnreadInfos();
+  const shown = useFillOrder({
+    agenda,
+    chosen: chosenStripDay(days, hari),
+    courses,
+    unread,
+    online,
+  });
 
   // An event link on desktop opens Kalender's side column (the prototype's `openEvent`).
   useEffect(() => {
@@ -192,14 +199,58 @@ export function BerandaScreen({ hari, acara }: BerandaSearch) {
     <BerandaHome agenda={card}>
       <PageBody className="g-home-body">
         {offline}
-        <Tiles />
-        <Attention agenda={agenda} courses={courses} now={now} />
-        <Unread />
-        <KelolaSummary now={now} />
+        <Tiles hidden={!shown.tiles} />
+        <Attention
+          hidden={!shown.attention}
+          agenda={agenda}
+          courses={courses}
+          now={now}
+        />
+        <Unread hidden={!shown.unread} />
+        <KelolaSummary hidden={!shown.kelola} now={now} />
       </PageBody>
       {sheet}
     </BerandaHome>
   );
+}
+
+/**
+ * Phones and tablets: the body fills in from the top. A section shows once every section above it has its size (its
+ * content, its error, or after 300 ms its skeleton), so an answer that arrives late never pushes down what is already
+ * on screen (SPEC's layout-shift budget; regression: on a slow phone the follow-ups landed above the unread list
+ * already shown, CI 2026-11-03). The sections stay mounted while hidden, so their requests start as before. Desktop's
+ * columns are left as they are.
+ */
+function useFillOrder({
+  agenda,
+  chosen,
+  courses,
+  unread,
+  online,
+}: {
+  agenda: MonthsState;
+  chosen: DayKey;
+  courses: ReturnType<typeof useCourses>;
+  unread: ReturnType<typeof useUnreadInfos>;
+  online: boolean;
+}) {
+  // As the agenda card, Perlu ditindaklanjuti and Pengumuman belum dibaca each decide to show nothing yet.
+  const agendaWaiting =
+    !agenda.has(chosen) && !agenda.offline && !agenda.failed;
+  const agendaLate = useDelayed(agendaWaiting);
+  const agendaBlank = agendaWaiting && !agendaLate;
+  const attentionWaiting = useAttentionSources(courses, online).waiting;
+  const attentionLate = useDelayed(attentionWaiting);
+  const attentionBlank = attentionWaiting && !attentionLate;
+  const unreadWaiting = sourceState(unread, online) === 'waiting';
+  const unreadLate = useDelayed(unreadWaiting);
+  const unreadBlank = unreadWaiting && !unreadLate;
+  return {
+    tiles: !agendaBlank,
+    attention: !agendaBlank,
+    unread: !agendaBlank && !attentionBlank,
+    kelola: !agendaBlank && !attentionBlank && !unreadBlank,
+  };
 }
 
 /* ================= The agenda card (`agendaCard`) ================= */
@@ -315,10 +366,10 @@ function ServiceLink({
   );
 }
 
-function Tiles() {
+function Tiles({ hidden = false }: { hidden?: boolean }) {
   const headingId = useId();
   return (
-    <section aria-labelledby={headingId}>
+    <section aria-labelledby={headingId} hidden={hidden}>
       <h2 className="sr-only" id={headingId}>
         {t.layanan}
       </h2>
@@ -372,27 +423,46 @@ function AllLink({ to }: { to: '/layanan' | '/pengumuman' | '/kelola' }) {
 
 /* ================= Perlu ditindaklanjuti (`attention`) ================= */
 
+/** Perlu ditindaklanjuti's sources (rule 6), and whether any is still on its way. */
+function useAttentionSources(
+  courses: ReturnType<typeof useCourses>,
+  online: boolean,
+) {
+  const rooms = useChatrooms();
+  const unread = useCurhatUnread();
+  const forms = useForms();
+  const push = usePushState();
+  const sources = [rooms, unread, forms, courses];
+  const states = sources.map((q) => sourceState(q, online));
+  return {
+    rooms,
+    unread,
+    forms,
+    push,
+    sources,
+    states,
+    waiting: states.includes('waiting') || push.loading,
+  };
+}
+
 function Attention({
   desk = false,
+  hidden = false,
   agenda,
   courses,
   now,
 }: {
   desk?: boolean;
+  hidden?: boolean;
   agenda: MonthsState;
   courses: ReturnType<typeof useCourses>;
   now: number;
 }) {
-  const rooms = useChatrooms();
-  const unread = useCurhatUnread();
-  const forms = useForms();
-  const push = usePushState();
   const online = useOnline();
-  const sources = [rooms, unread, forms, courses];
-  const states = sources.map((q) => sourceState(q, online));
+  const { rooms, unread, forms, push, sources, states, waiting } =
+    useAttentionSources(courses, online);
   const failed = sources.filter((_, i) => states[i] === 'failed');
   const offline = sources.filter((_, i) => states[i] === 'offline');
-  const waiting = states.includes('waiting') || push.loading;
   const late = useDelayed(waiting);
 
   const items = attentionItems({
@@ -459,7 +529,7 @@ function Attention({
   else body = <p className="g-empty-line t-sm text-fg-2">{t.perlu.kosong}</p>;
 
   return (
-    <div>
+    <div hidden={hidden}>
       <SectionHead title={t.perlu.judul} line={!desk} />
       {desk ? body : <div className="g-home-card">{body}</div>}
     </div>
@@ -609,7 +679,13 @@ function DeadlineTitle({ event, code }: { event: CalEvent; code?: string }) {
 
 /* ================= Pengumuman belum dibaca (`postCompact(p, m, true)`) ================= */
 
-function Unread({ desk = false }: { desk?: boolean }) {
+function Unread({
+  desk = false,
+  hidden = false,
+}: {
+  desk?: boolean;
+  hidden?: boolean;
+}) {
   const q = useUnreadInfos();
   const state = sourceState(q, useOnline());
   const late = useDelayed(state === 'waiting');
@@ -654,7 +730,7 @@ function Unread({ desk = false }: { desk?: boolean }) {
     );
 
   return (
-    <div className={desk ? 'g-hd-unread' : undefined}>
+    <div className={desk ? 'g-hd-unread' : undefined} hidden={hidden}>
       <SectionHead
         title={t.belumDibaca.judul}
         line={!desk}
@@ -707,7 +783,15 @@ function UnreadRow({ info, excerpt }: { info: Info; excerpt: boolean }) {
 
 /* ================= Kelola (`kelolaSummary`) ================= */
 
-function KelolaSummary({ desk = false, now }: { desk?: boolean; now: number }) {
+function KelolaSummary({
+  desk = false,
+  hidden = false,
+  now,
+}: {
+  desk?: boolean;
+  hidden?: boolean;
+  now: number;
+}) {
   const user = useSession();
   const online = useOnline();
   const admin = can(user, 'liveCounting');
@@ -719,7 +803,7 @@ function KelolaSummary({ desk = false, now }: { desk?: boolean; now: number }) {
   });
   if (!admin || !form) return null;
   return (
-    <div className={desk ? 'g-hd-kelola' : undefined}>
+    <div className={desk ? 'g-hd-kelola' : undefined} hidden={hidden}>
       <SectionHead
         title={t.kelola.judul}
         line={!desk}

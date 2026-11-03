@@ -1,6 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import {
+  memo,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { InternshipDivision } from '~/api/generated';
 import { spartaDepartmentsQuery } from '~/components/form/sparta-data';
 import {
@@ -41,6 +48,7 @@ import {
   spartaStats,
   type Priority,
   type SpartaFilters,
+  sameItems,
 } from './rules';
 
 const s = copy.sparta;
@@ -66,14 +74,23 @@ export function SpartaScreen({ filters }: { filters: SpartaFilters }) {
     () => new Map(divisions.map((d) => [d.id, d])),
     [divisions],
   );
-  // The search follows each keystroke, so the list filters from the deferred query: typing stays responsive while a
-  // long list re-renders behind it. Every result is memoised on the data and the filters' values.
-  const q = useDeferredValue(filters.q);
+  // The list filters from the search box's text at once, through a deferred query, so typing stays responsive while a
+  // long list re-renders behind it; the URL follows when typing pauses or the box loses focus (`useSearchText`). Every
+  // result is memoised on the data and the filters' values.
+  const search = useSearchText(filters.q, (next) => setFilters({ q: next }));
+  const q = useDeferredValue(search.text.trim() || undefined);
   const { divisi, pilihan, status } = filters;
-  const shown = useMemo(
-    () =>
-      filterSubmissions(submissions.data ?? [], { q, divisi, pilihan, status }),
-    [submissions.data, q, divisi, pilihan, status],
+  const shown = useSameRows(
+    useMemo(
+      () =>
+        filterSubmissions(submissions.data ?? [], {
+          q,
+          divisi,
+          pilihan,
+          status,
+        }),
+      [submissions.data, q, divisi, pilihan, status],
+    ),
   );
   const byStatus = useMemo(
     () => (submissions.data ?? []).filter((x) => matchesStatus(x, status)),
@@ -145,6 +162,7 @@ export function SpartaScreen({ filters }: { filters: SpartaFilters }) {
             <Toolbar
               filters={filters}
               setFilters={setFilters}
+              search={search}
               divisions={divisions}
               count={shown.length}
               exporter={exporter}
@@ -181,34 +199,70 @@ export function SpartaScreen({ filters }: { filters: SpartaFilters }) {
   );
 }
 
+/** How long typing pauses before the URL follows the search box. */
+const URL_PAUSE_MS = 300;
+
+/**
+ * The search box's text, and the URL following it (replace) when typing pauses or the box loses focus, so reload and
+ * Back keep the search; a tap on a row blurs the box first. When the URL's query changes from elsewhere (Hapus filter,
+ * Back, a link), the box follows it. Regression: writing the URL at every letter re-rendered the whole page per
+ * keystroke, which stalled a slow phone (CI's solo check, 2026-11-03).
+ */
+function useSearchText(
+  urlQ: string | undefined,
+  write: (q: string | undefined) => void,
+) {
+  const [text, setText] = useState(urlQ ?? '');
+  const written = useRef(urlQ);
+  const pending = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => {
+    if (urlQ === written.current) return;
+    written.current = urlQ;
+    clearTimeout(pending.current);
+    setText(urlQ ?? '');
+  }, [urlQ]);
+  useEffect(() => () => clearTimeout(pending.current), []);
+  const flush = (value: string) => {
+    clearTimeout(pending.current);
+    const next = value.trim() || undefined;
+    if (next === written.current) return;
+    written.current = next;
+    write(next);
+  };
+  return {
+    text,
+    change(value: string) {
+      setText(value);
+      clearTimeout(pending.current);
+      pending.current = setTimeout(() => flush(value), URL_PAUSE_MS);
+    },
+    flush: () => flush(text),
+  };
+}
+
 function Toolbar({
   filters,
   setFilters,
+  search,
   divisions,
   count,
   exporter,
 }: {
   filters: SpartaFilters;
   setFilters: (next: Partial<SpartaFilters>) => void;
+  search: ReturnType<typeof useSearchText>;
   divisions: ReturnType<typeof divisionsOf>;
   count: number;
   exporter: ReturnType<typeof useCsvExport>;
 }) {
-  // The field keeps what is typed; the URL follows it (replace), so reload and Back keep the search. When the URL's
-  // query changes from elsewhere (Hapus filter, Back), the field follows it.
-  const q = filters.q ?? '';
-  const [text, setText] = useState(q);
-  useEffect(() => setText((t) => (t.trim() === q ? t : q)), [q]);
   return (
     <div className="g-sparta-tools">
       <Searchbox
         label={copy.rekap.cari}
         placeholder={copy.rekap.cariPlaceholder}
-        value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          setFilters({ q: e.target.value.trim() || undefined });
-        }}
+        value={search.text}
+        onChange={(e) => search.change(e.target.value)}
+        onBlur={search.flush}
       />
       <div className="g-sparta-filters">
         <Field label={s.divisi}>
@@ -334,6 +388,18 @@ const Stats = memo(function Stats({
     </div>
   );
 });
+
+/**
+ * The previous list while a new search still matches the same rows ("p", "pe", … "pendaftar " all match every row), so
+ * the memoised list below skips its re-render. Regression: each keystroke made a new array, and all 300 rows rendered
+ * again on every keystroke (about 55 ms each on a slow phone; CI's solo check, 2026-11-03).
+ */
+function useSameRows<T>(rows: T[]): T[] {
+  const [kept, setKept] = useState(rows);
+  if (kept === rows || sameItems(kept, rows)) return kept;
+  setKept(rows);
+  return rows;
+}
 
 type ListProps = {
   rows: ReturnType<typeof filterSubmissions>;

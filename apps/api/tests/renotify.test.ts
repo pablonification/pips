@@ -95,3 +95,19 @@ test('POST /info/:id/renotify: the author while open; 400 while locked; others r
   );
   assert.deepEqual(pushed, ['p1']);
 });
+
+// Regression (owner, 2026-11-03): opening a post by its link checked groups but not angkatan. The route now gives
+// the repository the member's angkatan; tests/db/info-audience.test.ts checks the query on a real database.
+test("GET /info/:id reads the post for the member's angkatan, and a post they can't see is 404", async () => {
+  const seen: unknown[][] = [];
+  const router = createInfoRouter({
+    getInfoById: async (...args: unknown[]) => {
+      seen.push(args);
+      return undefined;
+    },
+  } as unknown as InfoDeps);
+  const nadia = testUser('u-nadia');
+  const res = await callRouter(router, nadia, 'GET', '/info/p1');
+  assert.equal(res.status, 404);
+  assert.deepEqual(seen, [['p1', 'u-nadia', 2025]]);
+});

@@ -308,16 +308,15 @@ test('course lines, labels and Testi Matkul’s page', () => {
 
 /* ================= Pengingat H-1 (rule 11) ================= */
 
-test('the reminder line: off, already sent, or when it will be sent', () => {
+test('the reminder line: off, when it was due (never "sent"), or when it will be sent', () => {
   assert.equal(
     reminderLine(tubes, NOW, false),
     'Notifikasi belum menyala di perangkat ini',
   );
-  // Kuis 2 at 15.00 today: its reminder went yesterday at 15.00.
-  assert.equal(
-    reminderLine(kuis2, NOW, true),
-    'Sudah dikirim Rab 7 Okt, 15.00',
-  );
+  // Kuis 2 at 15.00 today: its reminder was due yesterday at 15.00. Regression (owner, 2026-11-03): it said
+  // "Sudah dikirim", though the server may never have sent one (an event added later, Akademik muted).
+  assert.equal(reminderLine(kuis2, NOW, true), 'Rab 7 Okt, 15.00');
+  assert.doesNotMatch(reminderLine(kuis2, NOW, true), /dikirim/i);
   const praktikum = ev(
     'a4',
     'akademik',
@@ -326,10 +325,7 @@ test('the reminder line: off, already sent, or when it will be sent', () => {
     '2026-10-12T15:00',
   );
   assert.equal(reminderLine(praktikum, NOW, true), 'Dikirim Min 11 Okt, 13.00');
-  assert.equal(
-    reminderLine(sharing, NOW, true),
-    'Sudah dikirim Rab 7 Okt, 19.00',
-  );
+  assert.equal(reminderLine(sharing, NOW, true), 'Rab 7 Okt, 19.00');
 });
 
 /* ================= Words and names (rule 9) ================= */
