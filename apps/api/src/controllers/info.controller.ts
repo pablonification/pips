@@ -162,7 +162,11 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
 
   infoRouter.openapi(getInfoByIdRoute, async (c) => {
     const { infoId } = c.req.valid('param');
-    const info = await deps.getInfoById(infoId, c.var.user.id);
+    const info = await deps.getInfoById(
+      infoId,
+      c.var.user.id,
+      c.var.user.angkatan,
+    );
     if (!info) {
       return c.json({ error: 'Info not found' }, 404);
     }
@@ -173,7 +177,7 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
     const { id: userId } = c.var.user;
     const { infoId } = c.req.valid('param');
 
-    const info = await deps.getInfoById(infoId, userId);
+    const info = await deps.getInfoById(infoId, userId, c.var.user.angkatan);
     if (info?.creatorId !== userId) {
       return c.json({ error: 'Unauthorized' }, 401);
     }

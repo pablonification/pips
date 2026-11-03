@@ -323,30 +323,8 @@ export async function getListInfos(
     excludeCategoryQ = notInArray(infos.id, getInfosToExclude);
   }
 
-  if (angkatanYear !== undefined) {
-    const angkatanId = await db
-      .select({ id: angkatan.id })
-      .from(angkatan)
-      .where(eq(angkatan.year, angkatanYear))
-      .then(firstSure)
-      .then((angkatan) => angkatan.id);
-
-    angkatanQ = or(
-      eq(infos.isForAngkatan, false),
-      eq(infos.creatorId, userId),
-      exists(
-        db
-          .select({ infoId: infoAngkatan.infoId })
-          .from(infoAngkatan)
-          .where(
-            and(
-              eq(infoAngkatan.angkatanId, angkatanId),
-              eq(infoAngkatan.infoId, infos.id),
-            ),
-          ),
-      ),
-    );
-  }
+  if (angkatanYear !== undefined)
+    angkatanQ = getInfoAngkatanQuery(db, userId, angkatanYear);
 
   const userRoles = await getUserRoles(db, userId);
 
@@ -395,13 +373,20 @@ export async function getListInfos(
   );
 }
 
-export async function getInfoById(db: Database, id: string, userId: string) {
+export async function getInfoById(
+  db: Database,
+  id: string,
+  userId: string,
+  angkatanYear: number | undefined,
+) {
   const userRoles = await getUserRoles(db, userId);
   const info = await db.query.infos.findFirst({
     where: and(
       eq(infos.id, id),
-      // check for groups
+      // The same audience as the feed: its groups, and its angkatan (regression: a post for other angkatan opened
+      // by its link, though the composer says only they can see it).
       getInfoGroupQuery(db, userRoles),
+      getInfoAngkatanQuery(db, userId, angkatanYear),
     ),
     with: infoRelations(userId),
   });
@@ -574,6 +559,32 @@ export async function renotifyInfo(
       })
       .where(eq(infos.id, info.id));
   });
+}
+
+/** A post for angkatan is for those angkatan and its author; with no angkatan of their own, only its author sees it. */
+function getInfoAngkatanQuery(
+  db: Database,
+  userId: string,
+  angkatanYear: number | undefined,
+) {
+  return or(
+    eq(infos.isForAngkatan, false),
+    eq(infos.creatorId, userId),
+    angkatanYear === undefined
+      ? undefined
+      : exists(
+          db
+            .select({ infoId: infoAngkatan.infoId })
+            .from(infoAngkatan)
+            .innerJoin(angkatan, eq(angkatan.id, infoAngkatan.angkatanId))
+            .where(
+              and(
+                eq(angkatan.year, angkatanYear),
+                eq(infoAngkatan.infoId, infos.id),
+              ),
+            ),
+        ),
+  );
 }
 
 function getInfoGroupQuery(db: Database, userRoles: UserRolesEnum[]) {
