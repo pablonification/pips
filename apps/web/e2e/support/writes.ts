@@ -501,15 +501,18 @@ export const unreact: Handler = ({ db, params }) => {
 let uploads = 0;
 /**
  * POST /api/media/upload — an upload address on the mock's own `/__e2e__/upload/` (support/mock.ts answers the PUT,
- * with `api.uploads` for a delay or a failure) and the photo's address once uploaded.
+ * with `api.uploads` for a delay or a failure) and the image's address once uploaded. The key is built as
+ * `media.controller.ts` builds it, `<id>-<fileName>.<fileType>`, and the image is served with that type swapped for
+ * `.svg`. A name or type carrying a dot or a slash (a MIME type such as "image/png") leaves an address no image is
+ * served at, as the real API then can't save the post or competition that links it (media.repo.ts).
  */
 export const presign: Handler = ({ body }) => {
-  const { fileName } = body as { fileName: string; fileType: string };
+  const { fileName, fileType } = body as { fileName: string; fileType: string };
   const n = ++uploads;
-  const name = `upload-${n}-${fileName.replace(/[^\w.-]/g, '_')}`;
+  const key = `upload-${n}-${fileName}.${fileType}`;
   return {
-    presignedUrl: `/__e2e__/upload/${name}`,
-    mediaUrl: `/__e2e__/media/${name.replace(/\.[^.]+$/, '')}.svg`,
+    presignedUrl: `/__e2e__/upload/${key}`,
+    mediaUrl: `/__e2e__/media/${key.replace(/\.[a-z0-9]+$/, '')}.svg`,
     expiresIn: 60,
   };
 };
@@ -597,22 +600,50 @@ export const deleteEvent: Handler = ({ db, params }) => {
   return reply.text('', 204);
 };
 
-/** POST /api/competitions — `cnc`; 201 with the competition. */
+/** A competition's posters from `mediaUrls`, in order, as `competitions.repo.ts` links them. */
+function posterMedias(
+  competitionId: string,
+  urls: string[],
+): NonNullable<Competition['medias']> {
+  return urls.map((url, order) => {
+    const file = url.split('/').at(-1)!;
+    const [name, type] = file.split('.');
+    const mediaId = `${competitionId}-media-${order}`;
+    return {
+      competitionId,
+      mediaId,
+      order,
+      media: {
+        id: mediaId,
+        creatorId: 'user-cnc',
+        name,
+        type: type ?? '',
+        url,
+        createdAt: NOW,
+      },
+    };
+  });
+}
+
+/** POST /api/competitions — `cnc`; 201 with the competition, its poster linked when `mediaUrls` has one. */
 export const createCompetition: Handler = ({ db, body }) => {
   if (!hasRole(db, 'cnc')) return unauthorized();
   const b = body as Omit<Competition, 'id' | 'createdAt' | 'medias'>;
+  const { mediaUrls, ...fields } = b as typeof b & { mediaUrls?: string[] };
+  const id = `e2e-competition-${db.competitions.length + 1}`;
   const competition: Competition = {
-    ...b,
-    id: `e2e-competition-${db.competitions.length + 1}`,
+    ...fields,
+    id,
     createdAt: NOW,
-    medias: [],
+    medias: posterMedias(id, mediaUrls ?? []),
   };
   db.competitions.push(competition);
   return reply.json(competition, 201);
 };
 
 /**
- * PUT /api/competitions/:id — `cnc`; the fields sent replace the stored ones (a sent `mediaUrls` replaces posters).
+ * PUT /api/competitions/:id — `cnc`; the fields sent replace the stored ones (a sent `mediaUrls` replaces the posters,
+ * `[]` removes them).
  * As the API: 400 for an empty body (nothing to change) and for a name or organiser under 3 characters.
  */
 export const updateCompetition: Handler = ({ db, params, body }) => {
@@ -631,7 +662,7 @@ export const updateCompetition: Handler = ({ db, params, body }) => {
   if (!c) return reply.status(404, { error: 'Competition not found' });
   const { mediaUrls, ...rest } = sent;
   Object.assign(c, rest);
-  if (mediaUrls) c.medias = [];
+  if (mediaUrls) c.medias = posterMedias(c.id, mediaUrls);
   return { ...c };
 };
 

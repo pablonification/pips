@@ -1,6 +1,7 @@
 /**
  * P3-B: adding, changing and deleting competitions in Info Lomba, for cnc. The prototype has no design for any of
- * it, so every string is new copy (proposals, listed in the P3-B report).
+ * it, so every string is new copy (proposals, listed in the P3-B report). The poster field (owner's decision,
+ * 2026-11-03) words its upload as the composer's photos do.
  */
 export const kelolaLomba = {
   tambah: 'Tambah lomba',
@@ -19,6 +20,12 @@ export const kelolaLomba = {
   biayaCatatan: 'Kosongkan kalau gratis.',
   tautanDaftar: 'Tautan pendaftaran',
   tautanSumber: 'Tautan sumber',
+  poster: 'Poster',
+  tambahPoster: 'Tambah poster',
+  gantiPoster: 'Ganti poster',
+  hapusPoster: 'Hapus poster',
+  mengunggah: 'Mengunggah {persen}%',
+  gagalUnggah: 'Gagal diunggah',
   batal: 'Batal',
   tambahkan: 'Tambahkan',
   simpan: 'Simpan',
@@ -29,6 +36,8 @@ export const kelolaLomba = {
     lewat: 'Pendaftaran yang sudah tutup tidak akan tampil.',
     tautan: 'Tulis tautan yang lengkap, misalnya https://….',
     biaya: 'Tulis angka saja, misalnya 150000.',
+    menungguPoster: 'Tunggu posternya selesai diunggah.',
+    posterGagal: 'Posternya gagal diunggah. Coba lagi atau hapus posternya.',
   },
   ditambahkan: 'Lomba ditambahkan.',
   diperbarui: 'Lomba diperbarui.',

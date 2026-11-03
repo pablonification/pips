@@ -104,6 +104,40 @@ test('regression (M1): PUT /competitions/{id} with an empty body answers 400, no
   assert.deepEqual(writes, []);
 });
 
+test('PUT /competitions/{id}: only the poster, replaced or removed, reaches the update', async () => {
+  for (const mediaUrls of [
+    ['https://pub-45e54d5755814b02b87e024df83efb57.r2.dev/abc-hology.png'],
+    [],
+  ]) {
+    const { router, writes } = setup(['cnc']);
+    const res = await callRouter(
+      router,
+      member,
+      'PUT',
+      '/competitions/lomba-1',
+      { mediaUrls },
+    );
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.deepEqual(writes, [{ op: 'update', data: { mediaUrls } }]);
+  }
+});
+
+test('POST /competitions: a poster comes as its uploaded address', async () => {
+  const { router, writes } = setup(['cnc']);
+  const mediaUrls = [
+    'https://pub-45e54d5755814b02b87e024df83efb57.r2.dev/abc-hology.png',
+  ];
+  const res = await callRouter(router, member, 'POST', '/competitions', {
+    ...body,
+    mediaUrls,
+  });
+  assert.equal(res.status, 201);
+  assert.deepEqual(
+    (writes[0].data as { mediaUrls: string[] }).mediaUrls,
+    mediaUrls,
+  );
+});
+
 test('POST /competitions: cnc adds one, with a free price', async () => {
   const { router, writes } = setup(['cnc']);
   const res = await callRouter(router, member, 'POST', '/competitions', body);

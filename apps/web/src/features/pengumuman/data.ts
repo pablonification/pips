@@ -307,32 +307,5 @@ export function useCreateInfo() {
   });
 }
 
-/** Ask for an upload address just before sending (it expires in 60 s), then PUT the file with progress. */
-export async function uploadPhoto(
-  file: File,
-  onProgress: (percent: number) => void,
-  signal?: AbortSignal,
-): Promise<string> {
-  const { presignedUrl, mediaUrl } = await api.media.createPresignedUrl({
-    requestBody: { fileName: file.name, fileType: file.type },
-  });
-  await new Promise<void>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('PUT', presignedUrl);
-    xhr.setRequestHeader('Content-Type', file.type);
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable)
-        onProgress(Math.round((e.loaded / e.total) * 100));
-    };
-    xhr.onload = () =>
-      xhr.status >= 200 && xhr.status < 300
-        ? resolve()
-        : reject(new Error(`upload ${xhr.status}`));
-    xhr.onerror = () => reject(new Error('upload failed'));
-    xhr.onabort = () => reject(new Error('upload aborted'));
-    signal?.addEventListener('abort', () => xhr.abort());
-    xhr.send(file);
-  });
-  onProgress(100);
-  return mediaUrl;
-}
+/** A photo's upload (shared with Info Lomba's poster). */
+export { uploadImage as uploadPhoto } from '~/lib/upload';

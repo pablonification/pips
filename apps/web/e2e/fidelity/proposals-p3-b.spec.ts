@@ -9,11 +9,13 @@
  *
  * Files: `<layout>-<proposal>-<theme>.png`.
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Locator, Page } from '@playwright/test';
 import { stableScreenshot } from '../support/capture';
 import { expect, test } from '../support/test';
+import * as writes from '../support/writes';
 
 const dir = process.env.E2E_PROPOSALS_DIR;
 test.skip(!dir, 'Set E2E_PROPOSALS_DIR to capture P3-B’s proposals.');
@@ -188,6 +190,62 @@ test.describe('cnc', () => {
       page,
       'lomba-hapus',
       page.getByRole('alertdialog', { name: 'Hapus lomba ini?' }),
+    );
+  });
+  // The poster field (owner's decision, 2026-11-03): uploaded, failed, and Ubah lomba's stored poster.
+  test('the poster in Tambah lomba and Ubah lomba', async ({ page, api }) => {
+    api.on('POST /api/media/upload', writes.presign);
+    const file = {
+      name: 'poster-hology-8.svg',
+      mimeType: 'image/svg+xml',
+      buffer: readFileSync(
+        path.resolve(
+          path.dirname(fileURLToPath(import.meta.url)),
+          '../fixtures/posters/hology-uiux.svg',
+        ),
+      ),
+    };
+    const field = (d: Locator) => d.getByRole('group', { name: /^Poster/ });
+    const into = async (d: Locator) => {
+      await field(d).scrollIntoViewIfNeeded();
+      return field(d);
+    };
+    await page.goto('/layanan/lomba');
+    await page
+      .getByRole('button', { name: 'Tambah lomba' })
+      .locator('visible=true')
+      .click();
+    const d = page.getByRole('dialog', { name: 'Tambah lomba' });
+    await d.getByLabel('Nama lomba').fill('Hology 8');
+    await shot(
+      page,
+      'lomba-tambah-poster-kosong',
+      (await into(d)).getByText('Tambah poster'),
+    );
+    await d.locator('input[type="file"]').setInputFiles(file);
+    await shot(
+      page,
+      'lomba-tambah-poster',
+      (await into(d)).locator('[data-poster="done"]'),
+    );
+    api.uploads.failNext = 1;
+    await d.locator('input[type="file"]').setInputFiles(file);
+    await shot(
+      page,
+      'lomba-tambah-poster-gagal',
+      (await into(d)).getByRole('alert'),
+    );
+
+    await page.goto('/layanan/lomba');
+    await main(page)
+      .getByRole('button', { name: 'Opsi untuk Gemastik XIX' })
+      .click();
+    await page.getByRole('menuitem', { name: 'Ubah lomba' }).click();
+    const u = page.getByRole('dialog', { name: 'Ubah lomba' });
+    await shot(
+      page,
+      'lomba-ubah-poster',
+      (await into(u)).getByRole('img', { name: 'Poster' }),
     );
   });
 });

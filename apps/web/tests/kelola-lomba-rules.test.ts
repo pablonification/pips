@@ -10,6 +10,7 @@ import {
   isCompleteUrl,
   lombaBody,
   newLombaDraft,
+  posterBlock,
   priceValue,
   validateLomba,
   type LombaDraft,
@@ -41,6 +42,7 @@ test('a new draft opens today at 00.00 and closes at 23.59 on a day still to cho
     price: '',
     registrationUrl: '',
     sourceUrl: '',
+    poster: null,
   });
 });
 
@@ -111,7 +113,7 @@ test('the fee: null when empty or 0, else the whole number as a string', () => {
   assert.equal(priceValue('0150000'), '150000');
 });
 
-test('the POST body: trimmed, WIB times as ISO, https:// added, no posters', () => {
+test('the POST body: trimmed, WIB times as ISO, https:// added, no mediaUrls without a poster', () => {
   assert.deepEqual(lombaBody(filled({ name: ' Hology 8 ', price: '150000' })), {
     name: 'Hology 8',
     organizer: 'Universitas Brawijaya',
@@ -123,6 +125,27 @@ test('the POST body: trimmed, WIB times as ISO, https:// added, no posters', () 
     sourceUrl: 'https://instagram.com/hology',
   });
   assert.equal(lombaBody(filled()).price, null);
+  assert.equal('mediaUrls' in lombaBody(filled()), false);
+});
+
+const UPLOADED = 'https://media.hmif.dev/abc-hology.png';
+
+test('the POST body carries an uploaded poster as mediaUrls', () => {
+  assert.deepEqual(lombaBody(filled({ poster: UPLOADED })).mediaUrls, [
+    UPLOADED,
+  ]);
+});
+
+test('the poster blocks saving while it uploads or after it failed, and says why', () => {
+  assert.equal(posterBlock(null), null);
+  assert.equal(
+    posterBlock({ status: 'uploading', progress: 40 }),
+    'Tunggu posternya selesai diunggah.',
+  );
+  assert.equal(
+    posterBlock({ status: 'failed' }),
+    'Posternya gagal diunggah. Coba lagi atau hapus posternya.',
+  );
 });
 
 const gemastik: Competition = {
@@ -139,7 +162,7 @@ const gemastik: Competition = {
   medias: [],
 };
 
-test('Ubah lomba: filled in WIB; only what changed is sent, never mediaUrls', () => {
+test('Ubah lomba: filled in WIB; only what changed is sent, no mediaUrls while the poster is unchanged', () => {
   const d = draftOfLomba(gemastik);
   assert.deepEqual(d, {
     name: 'Gemastik XIX',
@@ -152,6 +175,7 @@ test('Ubah lomba: filled in WIB; only what changed is sent, never mediaUrls', ()
     price: '150000',
     registrationUrl: 'https://gemastik.kemdikbud.go.id',
     sourceUrl: 'https://gemastik.kemdikbud.go.id/info',
+    poster: null,
   });
   assert.deepEqual(changedFields(gemastik, d), {});
   assert.deepEqual(
@@ -173,5 +197,58 @@ test('Ubah lomba: filled in WIB; only what changed is sent, never mediaUrls', ()
   assert.deepEqual(
     changedFields({ ...gemastik, price: '0' }, { ...d, price: '' }),
     {},
+  );
+});
+
+const STORED = '/__e2e__/media/poster-gemastik.svg';
+const withPoster: Competition = {
+  ...gemastik,
+  medias: [
+    {
+      competitionId: 'l1',
+      mediaId: 'm1',
+      order: 0,
+      media: {
+        id: 'm1',
+        creatorId: 'u-cnc',
+        name: 'poster-gemastik',
+        type: 'svg',
+        url: STORED,
+        createdAt: '2026-09-01T00:00:00.000Z',
+      },
+    },
+  ],
+};
+
+test('Ubah lomba: the stored poster opens in the draft and stays unsent until it changes', () => {
+  const d = draftOfLomba(withPoster);
+  assert.equal(d.poster, STORED);
+  assert.deepEqual(changedFields(withPoster, d), {});
+  assert.deepEqual(changedFields(withPoster, { ...d, name: 'Gemastik XX' }), {
+    name: 'Gemastik XX',
+  });
+});
+
+test('Ubah lomba: a new poster replaces the stored one; removing it sends []', () => {
+  const d = draftOfLomba(withPoster);
+  assert.deepEqual(changedFields(withPoster, { ...d, poster: UPLOADED }), {
+    mediaUrls: [UPLOADED],
+  });
+  assert.deepEqual(changedFields(withPoster, { ...d, poster: null }), {
+    mediaUrls: [],
+  });
+  // A competition with none gets its first.
+  assert.deepEqual(
+    changedFields(gemastik, { ...draftOfLomba(gemastik), poster: UPLOADED }),
+    { mediaUrls: [UPLOADED] },
+  );
+  // With other changes, only those and the poster.
+  assert.deepEqual(
+    changedFields(withPoster, { ...d, organizer: 'Puspresnas', poster: null }),
+    { mediaUrls: [] },
+  );
+  assert.deepEqual(
+    changedFields(withPoster, { ...d, organizer: 'Kemdikbud', poster: null }),
+    { organizer: 'Kemdikbud', mediaUrls: [] },
   );
 });

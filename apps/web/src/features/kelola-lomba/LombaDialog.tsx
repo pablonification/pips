@@ -1,8 +1,8 @@
 /**
  * Tambah lomba and Ubah lomba (a proposal; SPEC stories 113 and 117, FEATURES.md gap 3), for `cnc`. Built only
  * from the prototype's pieces: `addEventForm`'s layout in P0-A's Modal (a sheet on phones), `composeForm`'s
- * checkbox chips for the categories, `.kit-fields` for each date and time. Fields in the card's order. Loaded on
- * demand.
+ * checkbox chips for the categories, `.kit-fields` for each date and time. Fields in the card's order, then the
+ * poster (PosterField). Loaded on demand.
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
@@ -22,16 +22,19 @@ import { IconPeringatan } from '~/components/icons/peringatan';
 import { kelolaLomba as t } from '~/copy/kelola-lomba';
 import { dayKeyOf } from '~/lib/days';
 import '~/features/kelola-tulis/kelola-tulis.css';
+import { PosterField } from './PosterField';
 import {
   changedFields,
   draftOfLomba,
   firstLombaError,
   lombaBody,
   newLombaDraft,
+  posterBlock,
   validateLomba,
   type LombaDraft,
   type LombaErrors,
   type LombaField,
+  type PosterUpload,
 } from './rules';
 
 export const categoriesQuery = {
@@ -63,6 +66,8 @@ export default function LombaDialog({
       : newLombaDraft(dayKeyOf(Date.now())),
   );
   const [errors, setErrors] = useState<LombaErrors>({});
+  const [upload, setUpload] = useState<PosterUpload | null>(null);
+  const blocked = posterBlock(upload);
   const categories = useQuery(categoriesQuery);
   const save = useMutation({
     mutationFn: (d: LombaDraft) =>
@@ -80,7 +85,8 @@ export default function LombaDialog({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (save.isPending) return;
+    // A poster still uploading or failed: said under it, and nothing is saved (as the composer's photos).
+    if (save.isPending || blocked) return;
     const found = validateLomba(draft, Date.now());
     setErrors(found);
     const first = firstLombaError(found);
@@ -265,6 +271,14 @@ export default function LombaDialog({
           inputMode: 'url',
         })}
         {text('sourceUrl', t.tautanSumber, { type: 'url', inputMode: 'url' })}
+        <PosterField
+          id={fid('poster')}
+          poster={draft.poster}
+          onPoster={(poster) => patch({ poster })}
+          upload={upload}
+          onUpload={setUpload}
+          blocked={blocked}
+        />
         <div className="g-ov-foot">
           <Button variant="paper" onClick={() => onOpenChange(false)}>
             {t.batal}
@@ -272,7 +286,7 @@ export default function LombaDialog({
           <Button
             variant="gold"
             type="submit"
-            aria-disabled={save.isPending || undefined}
+            aria-disabled={save.isPending || !!blocked || undefined}
           >
             {competition ? t.simpan : t.tambahkan}
           </Button>

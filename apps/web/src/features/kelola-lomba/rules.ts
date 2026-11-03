@@ -3,12 +3,13 @@
  * or today's form: names and organisers of 3 characters or more (the API's update rule, used for both), both dates
  * and times, the deadline after the opening (today's rule) and after now (Info Lomba lists only open
  * competitions, so a closed one would vanish at once), and complete links (`https://` added as P2-B's link rule).
- * Times are typed in WIB and sent as ISO. Pure, so `tests/kelola-lomba-rules.test.ts` runs them under another zone.
+ * Times are typed in WIB and sent as ISO. The poster (the owner's decision, 2026-11-03) is an uploaded image's address.
+ * Pure, so `tests/kelola-lomba-rules.test.ts` runs them under another zone.
  */
 import type { Competition, CompetitionCategories } from '~/api/generated';
 import { kelolaLomba as t } from '~/copy/kelola-lomba';
 import { wibOf, wibToIso, type DayKey, type TimeKey } from '~/lib/days';
-import { withScheme } from '~/features/lomba/rules';
+import { posterUrl, withScheme } from '~/features/lomba/rules';
 
 export type LombaCategory = CompetitionCategories[number];
 
@@ -24,6 +25,8 @@ export interface LombaDraft {
   price: string;
   registrationUrl: string;
   sourceUrl: string;
+  /** The poster's address: the one stored, or the one just uploaded; null for none. */
+  poster: string | null;
 }
 
 export type LombaField =
@@ -60,6 +63,7 @@ export function newLombaDraft(today: DayKey): LombaDraft {
     price: '',
     registrationUrl: '',
     sourceUrl: '',
+    poster: null,
   };
 }
 
@@ -88,6 +92,7 @@ export function draftOfLomba(c: Competition): LombaDraft {
     price: priceText(c.price),
     registrationUrl: c.registrationUrl,
     sourceUrl: c.sourceUrl,
+    poster: posterUrl(c),
   };
 }
 
@@ -132,8 +137,8 @@ export function priceValue(typed: string): string | null {
   return n === 0 ? null : String(n);
 }
 
-/** `POST /competitions`: no posters (P2-B's open question 1). */
-export function lombaBody(d: LombaDraft) {
+/** The competition's own fields, as the API keeps them. */
+function lombaFields(d: LombaDraft) {
   return {
     name: d.name.trim(),
     organizer: d.organizer.trim(),
@@ -146,12 +151,20 @@ export function lombaBody(d: LombaDraft) {
   };
 }
 
+/** `POST /competitions`: the poster as `mediaUrls` when there is one (the API links it as the competition's first media). */
+export function lombaBody(d: LombaDraft) {
+  return {
+    ...lombaFields(d),
+    ...(d.poster ? { mediaUrls: [d.poster] } : {}),
+  };
+}
+
 /**
- * `PUT /competitions/{id}`: only the fields that changed, and never `mediaUrls`, so the posters already stored
- * stay (a sent list replaces them).
+ * `PUT /competitions/{id}`: only the fields that changed. `mediaUrls` only when the poster did (a sent list replaces
+ * the stored posters, `[]` removes them), so an unchanged poster stays as it is.
  */
 export function changedFields(before: Competition, d: LombaDraft) {
-  const next = lombaBody(d);
+  const next = lombaFields(d);
   const same = {
     name: next.name === before.name,
     organizer: next.organizer === before.organizer,
@@ -168,7 +181,23 @@ export function changedFields(before: Competition, d: LombaDraft) {
     registrationUrl: next.registrationUrl === before.registrationUrl,
     sourceUrl: next.sourceUrl === before.sourceUrl,
   };
-  return Object.fromEntries(
+  const changed = Object.fromEntries(
     Object.entries(next).filter(([k]) => !same[k as keyof typeof same]),
   ) as Partial<ReturnType<typeof lombaBody>>;
+  if (d.poster !== posterUrl(before))
+    changed.mediaUrls = d.poster ? [d.poster] : [];
+  return changed;
+}
+
+/* ================= Poster ================= */
+
+/** A new poster on its way, or one that failed to upload (once uploaded, its address is the draft's `poster`). */
+export type PosterUpload =
+  { status: 'uploading'; progress: number } | { status: 'failed' };
+
+/** Why Simpan or Tambahkan waits: an upload still going or one that failed (as the composer's photos). */
+export function posterBlock(upload: PosterUpload | null): string | null {
+  if (upload?.status === 'uploading') return t.galat.menungguPoster;
+  if (upload?.status === 'failed') return t.galat.posterGagal;
+  return null;
 }

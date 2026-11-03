@@ -38,6 +38,26 @@ export const createCompetition = async (
   });
 };
 
+/**
+ * The competition's own row for an update: its columns set, or, when only the poster changes (`mediaUrls` is a list
+ * of posters, not a column), read as it is. Setting nothing would build `update … set  where`, which Postgres refuses,
+ * so replacing or removing just the poster failed.
+ */
+export function competitionRowQuery(
+  db: Database,
+  id: string,
+  data: z.infer<typeof UpdateCompetitionBodySchema>,
+) {
+  const { mediaUrls: _posters, ...columns } = data;
+  return Object.keys(columns).length > 0
+    ? db
+        .update(competitions)
+        .set(columns)
+        .where(eq(competitions.id, id))
+        .returning()
+    : db.select().from(competitions).where(eq(competitions.id, id));
+}
+
 export const updateCompetition = async (
   db: Database,
   id: string,
@@ -45,12 +65,7 @@ export const updateCompetition = async (
   userId: string,
 ) => {
   return await db.transaction(async (trx) => {
-    const competition = await trx
-      .update(competitions)
-      .set(data)
-      .where(eq(competitions.id, id))
-      .returning()
-      .then(firstSure);
+    const competition = firstSure(await competitionRowQuery(trx, id, data));
 
     if (data.mediaUrls) {
       await trx
