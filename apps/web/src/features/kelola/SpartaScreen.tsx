@@ -41,6 +41,7 @@ import {
   spartaStats,
   type Priority,
   type SpartaFilters,
+  sameItems,
 } from './rules';
 
 const s = copy.sparta;
@@ -70,10 +71,17 @@ export function SpartaScreen({ filters }: { filters: SpartaFilters }) {
   // long list re-renders behind it. Every result is memoised on the data and the filters' values.
   const q = useDeferredValue(filters.q);
   const { divisi, pilihan, status } = filters;
-  const shown = useMemo(
-    () =>
-      filterSubmissions(submissions.data ?? [], { q, divisi, pilihan, status }),
-    [submissions.data, q, divisi, pilihan, status],
+  const shown = useSameRows(
+    useMemo(
+      () =>
+        filterSubmissions(submissions.data ?? [], {
+          q,
+          divisi,
+          pilihan,
+          status,
+        }),
+      [submissions.data, q, divisi, pilihan, status],
+    ),
   );
   const byStatus = useMemo(
     () => (submissions.data ?? []).filter((x) => matchesStatus(x, status)),
@@ -334,6 +342,18 @@ const Stats = memo(function Stats({
     </div>
   );
 });
+
+/**
+ * The previous list while a new search still matches the same rows ("p", "pe", … "pendaftar " all match every row), so
+ * the memoised list below skips its re-render. Regression: each keystroke made a new array, and all 300 rows rendered
+ * again on every keystroke (about 55 ms each on a slow phone; CI's solo check, 2026-11-03).
+ */
+function useSameRows<T>(rows: T[]): T[] {
+  const [kept, setKept] = useState(rows);
+  if (kept === rows || sameItems(kept, rows)) return kept;
+  setKept(rows);
+  return rows;
+}
 
 type ListProps = {
   rows: ReturnType<typeof filterSubmissions>;

@@ -22,6 +22,7 @@ import {
   priorityName,
   questionBars,
   rowTime,
+  sameItems,
   spartaStats,
 } from '../src/features/kelola/rules';
 import { shortWhen } from '../src/lib/form/format';
@@ -397,4 +398,20 @@ test('"–" for empty fields and missing priorities (a partial draft)', () => {
   assert.equal(priorityName(nadiaDraft, 4, byId), '–');
   assert.equal(priorityName(tasya, 4, byId), 'Career Development');
   assert.equal(priorityName(sub('y', {}, ['gone']), 1, byId), '–');
+});
+
+// Regression (CI's solo check, 2026-11-03): a search that still matches the same rows keeps the list, so its 300 rows
+// don't render again on every keystroke.
+test('sameItems: the same rows in the same order, by identity', () => {
+  const [a, b] = subs;
+  // Two searches that match the same rows: new arrays, the same items.
+  const one = filterSubmissions(subs, {});
+  const two = filterSubmissions(subs, { status: undefined });
+  assert.notEqual(one, two);
+  assert.equal(sameItems(one, two), true);
+  assert.equal(sameItems([a, b], [a, b]), true);
+  assert.equal(sameItems([], []), true);
+  assert.equal(sameItems([a, b], [b, a]), false);
+  assert.equal(sameItems([a], [a, b]), false);
+  assert.equal(sameItems([a], [{ ...a }]), false);
 });
