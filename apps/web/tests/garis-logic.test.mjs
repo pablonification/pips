@@ -47,6 +47,31 @@ test('a success toast leaves after 5 s, not before; an error toast never leaves 
   assert.equal(store.get().length, 0);
 });
 
+test('regression: the app\'s own timers call setTimeout as a plain function, as browsers require', () => {
+  // Browsers throw "Illegal invocation" when setTimeout runs as another object's method; Node doesn't, so the stand-ins
+  // throw the same way. The store used to call `timers.set(...)` with `set: setTimeout`, and every success toast threw.
+  const real = { set: globalThis.setTimeout, clear: globalThis.clearTimeout };
+  const calls = [];
+  const strict = (name) =>
+    function (...args) {
+      if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
+      calls.push(name);
+      return name === 'set' ? real.set(...args) : real.clear(...args);
+    };
+  globalThis.setTimeout = strict('set');
+  globalThis.clearTimeout = strict('clear');
+  try {
+    const store = createToastStore();
+    assert.doesNotThrow(() => store.success('1 mata kuliah ditambahkan.'));
+    assert.doesNotThrow(() => store.dismiss(store.get()[0].id));
+    assert.deepEqual(calls, ['set', 'clear']);
+    assert.equal(store.get().length, 0);
+  } finally {
+    globalThis.setTimeout = real.set;
+    globalThis.clearTimeout = real.clear;
+  }
+});
+
 test('at most three toasts: the oldest success leaves first, errors are kept', () => {
   const store = createToastStore(clock().timers);
   store.error('E');

@@ -36,16 +36,25 @@ export function toastDuration(
 
 type Listener = (items: ToastItem[]) => void;
 
+type TimerHandle = ReturnType<typeof setTimeout>;
+
 export function createToastStore(
-  timers: { set: typeof setTimeout; clear: typeof clearTimeout } = {
-    set: setTimeout,
-    clear: clearTimeout,
+  timers: {
+    set: (fn: () => void, ms: number) => TimerHandle;
+    clear: (handle: TimerHandle) => void;
+  } = {
+    // Regression (2026-11-03, the real app on real data): `set: setTimeout` called it as this object's method, which
+    // browsers refuse ("Illegal invocation"), so every success toast threw and the code after it never ran: Tambahkan
+    // stayed on "Menambahkan…" though the courses were saved. The test harness's fake clock doesn't care, so no
+    // journey saw it.
+    set: (fn, ms) => setTimeout(fn, ms),
+    clear: (handle) => clearTimeout(handle),
   },
 ) {
   let items: ToastItem[] = [];
   let next = 1;
   const listeners = new Set<Listener>();
-  const handles = new Map<number, ReturnType<typeof setTimeout>>();
+  const handles = new Map<number, TimerHandle>();
   const emit = () => listeners.forEach((l) => l(items));
 
   function dismiss(id: number) {
