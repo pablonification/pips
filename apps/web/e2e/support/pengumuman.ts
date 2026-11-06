@@ -9,6 +9,7 @@ import {
   type TestInfo,
 } from '@playwright/test';
 import { audit, gateFailures } from './audit';
+import type { Info } from '../../src/api/generated';
 import { layoutOf } from './app';
 
 export const P1 = 'Jadwal UTS Ganjil 2026/2027 sudah keluar';
@@ -90,4 +91,52 @@ export const toastText = (page: Page, text: string | RegExp) =>
 /** Wait until the element has focus. */
 export async function expectFocused(locator: Locator) {
   await expect(locator).toBeFocused();
+}
+
+/**
+ * A feed long enough to show what the short sample data hides (owner, 2026-11-06: desktop Pengumuman "broken as
+ * hell" on real data): `n` posts, every one unread, with long titles, unbroken words and URLs (as real posts have),
+ * long text and a long author name. Newest first, a minute apart.
+ */
+export function longPosts(base: Info, n = 30): Info[] {
+  const url =
+    'https://docs.google.com/forms/d/e/1FAIpQLSdPendaftaranPanitiaWisudaJuliHMIFITB2026TahapKedua/viewform?usp=sf_link';
+  return Array.from({ length: n }, (_, i) => ({
+    ...base,
+    id: `long${i}`,
+    title:
+      i % 3 === 0
+        ? `[OPEN RECRUITMENT] Pendaftaran panitia ${i + 1}: ${url}`
+        : i % 3 === 1
+          ? `PENGUMUMANPENTINGUNTUKSELURUHANGGOTAHIMPUNANMAHASISWAINFORMATIKA${i + 1}`
+          : `Pengumuman panjang ${i + 1} tentang kegiatan himpunan yang judulnya memang sangat panjang sekali`,
+    content: `Halo, Pips! Daftar di ${url} sebelum tanggal 20.\n\n${'Isi pengumuman yang panjang. '.repeat(40)}\n\n${'Sangatpanjangtanpaspasi'.repeat(8)}`,
+    creator: {
+      ...base.creator,
+      fullName: 'Muhammad Fadhil Ramadhan Kusumawardhana Prawiranegara',
+    },
+    createdAt: new Date(Date.parse(base.createdAt) - i * 60e3).toISOString(),
+    isRead: false,
+  }));
+}
+
+/**
+ * Nothing scrolls sideways (owner, 2026-11-06): no element is scrolled to the side, and no scrolling area (the shell's,
+ * Pengumuman's two columns) is wider than its box, so focusing something can't push the page sideways.
+ */
+export async function expectNoSidewaysScroll(page: Page) {
+  const wide = await page.evaluate(() => {
+    const out: string[] = [];
+    for (const el of document.querySelectorAll<HTMLElement>('body *')) {
+      const ox = getComputedStyle(el).overflowX;
+      // A clipped box (`overflow: hidden`: line clamps, screen-reader text) only counts once something scrolls it.
+      const scrolls = ox === 'auto' || ox === 'scroll';
+      if (el.scrollLeft !== 0 || (scrolls && el.scrollWidth > el.clientWidth))
+        out.push(
+          `${el.tagName.toLowerCase()}.${el.className} scrollLeft ${el.scrollLeft}, ${el.scrollWidth} wide in ${el.clientWidth}`,
+        );
+    }
+    return out;
+  });
+  expect(wide, 'areas that scroll sideways').toEqual([]);
 }
