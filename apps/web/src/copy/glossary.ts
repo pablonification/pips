@@ -62,7 +62,7 @@ export const BANNED_TERMS: ReadonlyArray<
   ['Materi kuliah', 'Ding Dong'],
   ['Cari NIM', 'NIM Finder'],
   ['Testimoni matkul', 'Testi Matkul'],
-  ['Tandai semua dibaca', '(the app has no "mark all read")'],
+  // "Tandai semua dibaca" left this list on 2026-11-06: the owner added the feature (Pengumuman, beside Belum dibaca).
   ['Admin Dashboard', 'Kelola'],
   ['Dashboard Admin', 'Kelola'],
   ['Anda', 'kamu'],
