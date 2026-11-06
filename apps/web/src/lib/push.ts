@@ -89,23 +89,33 @@ function subscriptionBody(sub: globalThis.PushSubscription): PushSubscription {
 export type EnableOutcome = 'aktif' | 'diblokir' | 'belum';
 
 /**
- * Asks for permission (unless already granted), subscribes this device with the server's VAPID key and registers
- * it with `POST /api/push/register`. Call only from a tap on Nyalakan.
+ * How long Nyalakan waits for the browser's push service. Chrome's first subscription on a device can take half a
+ * minute, or not answer at all (2026-11-06, the real app on real data: "Menyalakan…" never ended).
  */
-export async function enablePush(): Promise<EnableOutcome> {
-  const permission =
-    Notification.permission === 'granted'
-      ? 'granted'
-      : await Notification.requestPermission();
-  if (permission === 'denied') return 'diblokir';
-  if (permission !== 'granted') return 'belum';
-  const registration = await readyRegistration();
-  const sub =
-    (await registration.pushManager.getSubscription()) ??
-    (await registration.pushManager.subscribe({
+export const SUBSCRIBE_WAIT_MS = 15_000;
+
+/** The subscription the browser is still working on, so Coba lagi waits for the same one instead of starting another. */
+let subscribing: Promise<globalThis.PushSubscription> | null = null;
+/** The subscriptions that already register themselves when they arrive late. */
+const lateHandled = new WeakSet<Promise<globalThis.PushSubscription>>();
+
+function subscribeOnce(registration: ServiceWorkerRegistration) {
+  if (!subscribing) {
+    const started = registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: import.meta.env.VITE_VAPID_KEY,
-    }));
+    });
+    subscribing = started;
+    const clear = () => {
+      if (subscribing === started) subscribing = null;
+    };
+    started.then(clear, clear);
+  }
+  return subscribing;
+}
+
+/** Registers a subscription with the server; when the server can't, the subscription ends so it doesn't look on. */
+async function register(sub: globalThis.PushSubscription) {
   try {
     await api.push.registerPush({ requestBody: subscriptionBody(sub) });
   } catch (e) {
@@ -113,6 +123,48 @@ export async function enablePush(): Promise<EnableOutcome> {
     await sub.unsubscribe().catch(() => false);
     throw e;
   }
+}
+
+/**
+ * Asks for permission (unless already granted), subscribes this device with the server's VAPID key and registers
+ * it with `POST /api/push/register`. Call only from a tap on Nyalakan.
+ *
+ * When the browser's push service hasn't answered after `SUBSCRIBE_WAIT_MS`, it throws (the prompt says it didn't
+ * work, with Coba lagi), and the subscription keeps going: if it arrives later it is registered then, once, and
+ * `onLate` runs.
+ */
+export async function enablePush(onLate?: () => void): Promise<EnableOutcome> {
+  const permission =
+    Notification.permission === 'granted'
+      ? 'granted'
+      : await Notification.requestPermission();
+  if (permission === 'denied') return 'diblokir';
+  if (permission !== 'granted') return 'belum';
+  const registration = await readyRegistration();
+  const existing = await registration.pushManager.getSubscription();
+  if (existing) {
+    await register(existing);
+    return 'aktif';
+  }
+  const pending = subscribeOnce(registration);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const slow = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), SUBSCRIBE_WAIT_MS);
+  });
+  const sub = await Promise.race([pending, slow]).finally(() =>
+    clearTimeout(timer),
+  );
+  if (!sub) {
+    if (!lateHandled.has(pending)) {
+      lateHandled.add(pending);
+      pending
+        .then(register)
+        .then(() => onLate?.())
+        .catch(() => undefined);
+    }
+    throw new Error('push service did not answer');
+  }
+  await register(sub);
   return 'aktif';
 }
 
