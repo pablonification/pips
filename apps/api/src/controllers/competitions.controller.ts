@@ -1,3 +1,4 @@
+import { databaseError } from '~/lib/database-error';
 import postgres from 'postgres';
 import { competitionCategories } from '~/db/schema';
 import { roleMiddleware } from '~/middlewares/role.middleware';
@@ -58,7 +59,7 @@ export function createCompetitionsRouter(
       return c.json(competition, 201);
     } catch (err) {
       if (err instanceof postgres.PostgresError) {
-        return c.json({ error: err.message }, 400);
+        return c.json(databaseError(err), 400);
       }
       throw err;
     }
@@ -82,7 +83,7 @@ export function createCompetitionsRouter(
       return c.json(competition, 200);
     } catch (err) {
       if (err instanceof postgres.PostgresError) {
-        return c.json({ error: err.message }, 400);
+        return c.json(databaseError(err), 400);
       }
       throw err;
     }

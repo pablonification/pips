@@ -1,3 +1,4 @@
+import { databaseError } from '~/lib/database-error';
 import postgres from 'postgres';
 import { withAuthor } from '~/lib/author';
 import { canDeleteContent } from '~/lib/authorization';
@@ -120,7 +121,7 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
       return c.json(info, 201);
     } catch (err) {
       if (err instanceof postgres.PostgresError)
-        return c.json({ error: err.message }, 400);
+        return c.json(databaseError(err), 400);
       throw err;
     }
   });

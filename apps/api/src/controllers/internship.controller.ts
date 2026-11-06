@@ -1,3 +1,4 @@
+import { databaseError } from '~/lib/database-error';
 import postgres from 'postgres';
 import { db } from '~/db/drizzle';
 import { spartaWindowFor } from '~/lib/sparta-window';
@@ -74,7 +75,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
       return c.json(department, 201);
     } catch (err) {
       if (err instanceof postgres.PostgresError) {
-        return c.json({ error: err.message }, 400);
+        return c.json(databaseError(err), 400);
       }
       throw err;
     }
@@ -114,7 +115,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
       return c.json(division, 201);
     } catch (err) {
       if (err instanceof postgres.PostgresError) {
-        return c.json({ error: err.message }, 400);
+        return c.json(databaseError(err), 400);
       }
       throw err;
     }
@@ -178,7 +179,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
         return c.json({ error: 'Submission is already locked' }, 409);
       }
       if (err instanceof postgres.PostgresError) {
-        return c.json({ error: err.message }, 400);
+        return c.json(databaseError(err), 400);
       }
       throw err;
     }
@@ -210,7 +211,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
         return c.json({ error: 'Submission is already locked' }, 409);
       }
       if (err instanceof postgres.PostgresError) {
-        return c.json({ error: err.message }, 400);
+        return c.json(databaseError(err), 400);
       }
       throw err;
     }

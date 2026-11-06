@@ -1,3 +1,4 @@
+import { databaseError } from '~/lib/database-error';
 import { GaxiosError } from 'gaxios';
 import { calendar, type calendar_v3 } from 'googleapis/build/src/apis/calendar';
 import postgres from 'postgres';
@@ -220,7 +221,7 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       return c.json(data, 200);
     } catch (error) {
       if (error instanceof postgres.PostgresError) {
-        return c.json({ error: error.message }, 400);
+        return c.json(databaseError(error), 400);
       }
       throw error;
     }
@@ -236,7 +237,7 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       return c.json(data, 200);
     } catch (error) {
       if (error instanceof postgres.PostgresError) {
-        return c.json({ error: error.message }, 400);
+        return c.json(databaseError(error), 400);
       }
       throw error;
     }
