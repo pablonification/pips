@@ -4,6 +4,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { api } from '~/api/client';
+import { putFile } from '~/lib/upload';
 import {
   ApiError,
   type DraftInternshipSubmission,
@@ -110,10 +111,7 @@ export async function uploadFile(file: File): Promise<string> {
       fileType: file.name.split('.').at(-1) ?? '',
     },
   });
-  const put = await fetch(presigned.presignedUrl, {
-    method: 'PUT',
-    body: file,
-  });
-  if (!put.ok) throw new Error(`upload failed: ${put.status}`);
+  // A stalled upload fails instead of waiting for the browser (the field then offers Coba lagi).
+  await putFile(presigned.presignedUrl, file);
   return presigned.mediaUrl;
 }
