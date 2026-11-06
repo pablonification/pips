@@ -1,7 +1,6 @@
-import { createRoute } from '@hono/zod-openapi';
+import { createRoute, z } from '@hono/zod-openapi';
 import { BodyParamsSchema, PresignedUrlSchema } from '~/types/media.types';
 import { ErrorSchema, ValidationErrorSchema } from '~/types/responses.type';
-import { z } from '@hono/zod-openapi';
 
 export const createPresignedUrl = createRoute({
   operationId: 'createPresignedUrl',

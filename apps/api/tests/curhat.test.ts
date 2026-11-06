@@ -548,8 +548,8 @@ test('only the owner deletes a room', async () => {
 });
 
 test('the OpenAPI document: the unread route takes no path parameter, and the read route is mounted', async () => {
-  const { createApp } = await import('../src/app');
-  const doc = (await (await createApp().request('/doc')).json()) as {
+  const { createApp, openApiDocument } = await import('../src/app');
+  const doc = JSON.parse(JSON.stringify(openApiDocument(createApp()))) as {
     paths: Record<string, Record<string, { parameters?: unknown[] }>>;
   };
   assert.equal(
