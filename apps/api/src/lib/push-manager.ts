@@ -154,9 +154,9 @@ export async function sendNotificationToAll(
 ) {
   const { concurrency = PUSH_CONCURRENCY } = options;
   const fitted = fitPushData(data);
-  const results: Array<
+  const results = new Array<
     PromiseSettledResult<Awaited<ReturnType<typeof sendNotification>>>
-  > = new Array(pushSubscriptions.length);
+  >(pushSubscriptions.length);
   let next = 0;
   const worker = async () => {
     while (next < pushSubscriptions.length) {
