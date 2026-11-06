@@ -3,10 +3,12 @@ import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import './instrument';
+import { installUnhandledRejectionLogger } from './lib/background';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.tz.setDefault('Asia/Jakarta');
+installUnhandledRejectionLogger();
 
 import { serve } from '@hono/node-server';
 import { createApp } from './app';

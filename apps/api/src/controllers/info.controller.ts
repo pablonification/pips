@@ -1,6 +1,7 @@
 import postgres from 'postgres';
 import { withAuthor } from '~/lib/author';
 import { canDeleteContent } from '~/lib/authorization';
+import { runInBackground } from '~/lib/background';
 import { checkPostCategories } from '~/lib/category-audience';
 import { getCategoriesByIds } from '~/repositories/category.repo';
 import {
@@ -108,13 +109,16 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
         forGroups,
       );
 
-      void deps.notifyNewInfo(
-        info,
-        mediaUrls,
-        forAngkatan,
-        forCategories,
-        forCourses,
-        forGroups,
+      runInBackground(
+        'New post push',
+        deps.notifyNewInfo(
+          info,
+          mediaUrls,
+          forAngkatan,
+          forCategories,
+          forCourses,
+          forGroups,
+        ),
       );
 
       return c.json(info, 201);
