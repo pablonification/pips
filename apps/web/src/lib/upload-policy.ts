@@ -41,12 +41,12 @@ const allowed = (kind: UploadKind) =>
     ([, type]) => kind === 'file' || type.startsWith('image/'),
   );
 
-/** The file input's `accept`: every allowed extension and its content type. */
+/** The file input's `accept`: every allowed content type, then every allowed extension. */
 export function acceptList(kind: UploadKind) {
   const pairs = allowed(kind);
   return [
-    ...pairs.map(([ext]) => `.${ext}`),
     ...new Set(pairs.map(([, type]) => type)),
+    ...pairs.map(([ext]) => `.${ext}`),
   ].join(',');
 }
 
