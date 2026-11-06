@@ -196,10 +196,10 @@ test('the server ending the connection: the session is checked, then it connects
   assert.ok(log.includes('check session'));
   const waits: number[] = [];
   for (let i = 0; i < 6; i++) {
-    const before = socket.connects;
+    const count: number = socket.connects;
     await end();
     let waited = 0;
-    while (socket.connects === before) {
+    while (socket.connects === count) {
       await time.tick(500);
       waited += 500;
     }

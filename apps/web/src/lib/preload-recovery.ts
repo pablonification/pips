@@ -32,7 +32,7 @@ export function shouldReloadAfterPreloadError(
 /** Listens for `vite:preloadError` and reloads the page once, as above. */
 export function reloadOnPreloadError(win: Window = window) {
   win.addEventListener('vite:preloadError', () => {
-    let store: RecoveryStore | null = null;
+    let store: RecoveryStore | null;
     try {
       store = win.sessionStorage;
     } catch {
