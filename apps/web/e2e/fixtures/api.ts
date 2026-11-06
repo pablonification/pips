@@ -111,6 +111,12 @@ export function personaUser(persona: PersonaKey): UserWithRoles {
   };
 }
 
+/** The same member without a photo: the API's `picture` is null for a member who never set one (web-robust 5). */
+export const withoutPicture = <T extends User>(user: T): T => ({
+  ...user,
+  picture: null,
+});
+
 export const angkatanList: Angkatan[] = ANGKATAN.map((a) => ({
   id: `angkatan-${a.year}`,
   year: a.year,
