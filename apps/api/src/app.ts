@@ -180,7 +180,9 @@ export function createApp(
   app.use(
     '/api/*',
     rateLimit(signIn, (c) =>
-      SIGN_IN_PATHS.has(getPath(c.req.raw)) ? clientAddress(c) : undefined,
+      SIGN_IN_PATHS.has(getPath(c.req.raw))
+        ? clientAddress(c, env.CLIENT_IP_HEADER)
+        : undefined,
     ),
   );
   app.use(
@@ -188,7 +190,9 @@ export function createApp(
     rateLimit(writes, async (c) => {
       if (SAFE_METHODS.has(c.req.method)) return undefined;
       const userId = await sessionUserId(c, env.JWT_SECRET);
-      return userId ? `user:${userId}` : `address:${clientAddress(c)}`;
+      return userId
+        ? `user:${userId}`
+        : `address:${clientAddress(c, env.CLIENT_IP_HEADER)}`;
     }),
   );
   app.use(

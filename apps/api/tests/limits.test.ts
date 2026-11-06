@@ -9,6 +9,8 @@ let createApp: typeof import('../src/app').createApp;
 let createInfoRouter: typeof import('../src/controllers/info.controller').createInfoRouter;
 let createCommentRouter: typeof import('../src/controllers/comment.controller').createCommentRouter;
 let createRateLimiter: typeof import('../src/lib/rate-limit').createRateLimiter;
+let pickClientAddress: typeof import('../src/lib/rate-limit').pickClientAddress;
+let EnvSchema: typeof import('../src/configs/env.schema').EnvSchema;
 let CurhatMessagePayloadSchema: typeof import('../src/types/curhat.types').CurhatMessagePayloadSchema;
 before(async () => {
   usePlaceholderEnv();
@@ -16,7 +18,9 @@ before(async () => {
   ({ createInfoRouter } = await import('../src/controllers/info.controller'));
   ({ createCommentRouter } =
     await import('../src/controllers/comment.controller'));
-  ({ createRateLimiter } = await import('../src/lib/rate-limit'));
+  ({ createRateLimiter, pickClientAddress } =
+    await import('../src/lib/rate-limit'));
+  ({ EnvSchema } = await import('../src/configs/env.schema'));
   ({ CurhatMessagePayloadSchema } = await import('../src/types/curhat.types'));
 });
 
@@ -192,4 +196,94 @@ test('sign-in attempts past the limit get 429, per client address', async () => 
   assert.equal((await attempt('198.51.100.1')).status, 400);
   assert.equal((await attempt('198.51.100.1')).status, 429);
   assert.equal((await attempt('198.51.100.2')).status, 400);
+});
+
+test('regression (review): by default the address is the right-most forwarded one, which the nearest proxy appended', async () => {
+  const app = createApp({ rateLimits: { signIn: 2 } });
+  const attempt = async (headers: Record<string, string>) =>
+    await app.request('/api/auth/login/accesstoken', {
+      method: 'POST',
+      headers: { Origin: APP, 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({}),
+    });
+  // A client writing its own addresses in front, or its own Cloudflare header, still meets one counter.
+  assert.equal(
+    (await attempt({ 'X-Forwarded-For': '1.1.1.1, 198.51.100.7' })).status,
+    400,
+  );
+  assert.equal(
+    (
+      await attempt({
+        'X-Forwarded-For': '2.2.2.2, 198.51.100.7',
+        'CF-Connecting-IP': '3.3.3.3',
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (await attempt({ 'X-Forwarded-For': '4.4.4.4,198.51.100.7' })).status,
+    429,
+  );
+});
+
+test('the trusted source of the client address is a setting', () => {
+  const headers =
+    (h: Record<string, string | undefined>) =>
+    (name: string): string | undefined =>
+      h[name];
+  const connection = () => '10.0.0.5';
+  const both = headers({
+    'cf-connecting-ip': '203.0.113.5',
+    'x-forwarded-for': '1.1.1.1, 198.51.100.7',
+  });
+  assert.equal(
+    pickClientAddress(both, 'x-forwarded-for', connection),
+    '198.51.100.7',
+  );
+  assert.equal(
+    pickClientAddress(both, 'cf-connecting-ip', connection),
+    '203.0.113.5',
+  );
+  assert.equal(pickClientAddress(both, 'none', connection), '10.0.0.5');
+  // The header missing, empty or not an address: the connection's address.
+  for (const h of [
+    {},
+    { 'x-forwarded-for': ' , ' },
+    { 'x-forwarded-for': 'evil' },
+  ])
+    assert.equal(
+      pickClientAddress(headers(h), 'x-forwarded-for', connection),
+      '10.0.0.5',
+    );
+  assert.equal(
+    pickClientAddress(headers({}), 'cf-connecting-ip', () => undefined),
+    'unknown',
+  );
+});
+
+test('CLIENT_IP_HEADER: the three values, the right-most forwarded address by default, and never a crash', () => {
+  const parse = (v?: string) =>
+    EnvSchema.shape.CLIENT_IP_HEADER.parse(v) as string;
+  assert.equal(parse(undefined), 'x-forwarded-for');
+  assert.equal(parse('CF-Connecting-IP'), 'cf-connecting-ip');
+  assert.equal(parse('none'), 'none');
+  assert.equal(parse('x-real-ip'), 'x-forwarded-for');
+});
+
+test('regression (review): the limiter keeps at most maxKeys counters, however many addresses it meets', () => {
+  let t = 0;
+  const limiter = createRateLimiter({
+    limit: 2,
+    windowMs: 60_000,
+    maxKeys: 3,
+    now: () => t,
+  });
+  for (let i = 0; i < 1000; i++) {
+    t += 1;
+    limiter.hit(`k${i}`);
+  }
+  assert.ok(limiter.size() <= 3, String(limiter.size()));
+  // The newest keys are still counted.
+  assert.equal(limiter.hit('k999').ok, true);
+  assert.equal(limiter.hit('k999').ok, false);
 });

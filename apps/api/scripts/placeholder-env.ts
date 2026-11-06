@@ -35,6 +35,7 @@ export function usePlaceholderEnv(overrides: Record<string, string> = {}) {
     'AXIOM_DATASET',
     'AXIOM_TOKEN',
     'LISTEN_HOST',
+    'CLIENT_IP_HEADER',
     'DEV_LOGIN_EMAIL',
     'DEV_LOGIN_PASSWORD_HASH',
   ]) {

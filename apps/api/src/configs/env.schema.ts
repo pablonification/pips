@@ -14,6 +14,18 @@ export const EnvSchema = z.object({
   PORT: z.coerce.number().default(5000),
   // Interface to listen on. Unset listens on all interfaces (containers need that); the shared staging host sets 127.0.0.1.
   LISTEN_HOST: z.string().min(1).optional(),
+  // Where the rate limits read the client's address (lib/rate-limit.ts): `x-forwarded-for` (its right-most entry, the
+  // nearest proxy's), `cf-connecting-ip` (only when the API is reachable through Cloudflare alone) or `none` (the
+  // connection's address). Anything else counts as the default, so a typo never stops the API.
+  CLIENT_IP_HEADER: z
+    .string()
+    .optional()
+    .transform((value) => {
+      const v = value?.trim().toLowerCase();
+      return v === 'cf-connecting-ip' || v === 'none'
+        ? v
+        : ('x-forwarded-for' as const);
+    }),
   DATABASE_URL: z.string().url(),
   ALLOWED_ORIGINS: z
     .string()
