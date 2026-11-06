@@ -31,8 +31,8 @@ for (const [address, prefix] of [
   BLOCKED.addSubnet(address, prefix, 'ipv4');
 }
 for (const [address, prefix] of [
-  ['::', 128], // unspecified
-  ['::1', 128], // loopback
+  ['::', 96], // unspecified, loopback and IPv4-compatible (::a.b.c.d, deprecated, can embed any IPv4 address)
+  ['::ffff:0:0:0', 96], // IPv4-translated (SIIT), can embed any IPv4 address
   ['64:ff9b::', 96], // NAT64, can embed any IPv4 address
   ['64:ff9b:1::', 48], // local NAT64
   ['100::', 64], // discard

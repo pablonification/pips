@@ -97,6 +97,14 @@ test('isPublicAddress refuses loopback, private, link-local, metadata and reserv
     'fe80::1',
     '64:ff9b::a00:1',
     '2002:a00:1::',
+    // IPv4-compatible (::/96) and IPv4-translated (::ffff:0:0:0/96) forms of internal addresses.
+    '::7f00:1',
+    '::127.0.0.1',
+    '::a9fe:a9fe',
+    '::a00:1',
+    '::ffff:0:7f00:1',
+    '::ffff:0:a9fe:a9fe',
+    '::ffff:0:808:808',
     'not-an-ip',
   ]) {
     assert.equal(isPublicAddress(ip), false, ip);
