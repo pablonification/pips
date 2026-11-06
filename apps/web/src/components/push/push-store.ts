@@ -85,13 +85,17 @@ export function settlePushPrompt(result: PushPromptResult) {
 /**
  * Nyalakan: asks for permission, subscribes and registers. Returns how it ended; the caller shows the toast.
  * Also used by the error toast's Coba lagi, when permission is already granted, so nothing is asked again.
+ * `onLate` runs when a subscription that took too long (so this said `'gagal'`) arrives and is registered after all.
  */
-export async function turnPushOn(): Promise<
-  Exclude<PushPromptResult, 'tutup'>
-> {
+export async function turnPushOn(
+  onLate?: () => void,
+): Promise<Exclude<PushPromptResult, 'tutup'>> {
   set({ pending: true });
   try {
-    const outcome = await enablePush();
+    const outcome = await enablePush(() => {
+      void refreshPushState();
+      onLate?.();
+    });
     return outcome === 'belum' ? 'nanti' : outcome;
   } catch {
     return 'gagal';
