@@ -139,3 +139,14 @@ test('regression (review): the upload address carries no checksum of an empty bo
     ['content-length', 'content-type', 'host'],
   );
 });
+
+test('a refusal says which: the type, or the size (the web app tells the member)', async () => {
+  const type = await presign({ fileName: 'x', fileType: 'exe', fileSize: 10 });
+  assert.deepEqual(type.body, { error: 'File type not allowed' });
+  const size = await presign({
+    fileName: 'x',
+    fileType: 'pdf',
+    fileSize: 25 * 1024 * 1024 + 1,
+  });
+  assert.ok(size.body.errors.fieldErrors.fileSize);
+});

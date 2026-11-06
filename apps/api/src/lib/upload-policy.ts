@@ -35,7 +35,9 @@ export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 /** The content type for an extension, or undefined when it isn't allowed. */
 export function uploadContentType(fileType: string) {
   const ext = fileType.trim().toLowerCase();
-  return Object.hasOwn(UPLOAD_CONTENT_TYPES, ext)
+  // Own keys only ('constructor' isn't a type); written without Object.hasOwn, which the web app's test setup (it
+  // reuses this list) doesn't type.
+  return Object.prototype.hasOwnProperty.call(UPLOAD_CONTENT_TYPES, ext)
     ? UPLOAD_CONTENT_TYPES[ext]
     : undefined;
 }
