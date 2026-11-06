@@ -36,6 +36,7 @@ import {
   userUnsubscribeCategories,
 } from '~/db/schema';
 import { sendNotificationToAll } from '~/lib/push-manager';
+import { prefixTsQuery } from '~/lib/search';
 import { getCurrentSemesterCodeAndYear } from '~/repositories/course.repo';
 import {
   getPushSubscriptionsByUserIds,
@@ -282,15 +283,13 @@ export async function getListInfos(
   angkatanYear?: number,
 ): Promise<Array<z.infer<typeof InfoSchema>>> {
   q.search = q.search?.trim();
-  const searchPhrase = q.search
-    ? q.search
-        .split(/\s+/)
-        .map((term) => `${term}:*`)
-        .join(' & ')
-    : undefined;
-  const searchQ = q.search
-    ? sql`(setweight(to_tsvector('indonesian', ${infos.title}), 'A') || setweight(to_tsvector('indonesian', ${infos.content}), 'B')) @@ to_tsquery('indonesian', ${searchPhrase})`
-    : undefined;
+  const searchPhrase = q.search ? prefixTsQuery(q.search) : undefined;
+  const searchQ =
+    searchPhrase === undefined
+      ? undefined
+      : searchPhrase === null
+        ? sql`false`
+        : sql`(setweight(to_tsvector('indonesian', ${infos.title}), 'A') || setweight(to_tsvector('indonesian', ${infos.content}), 'B')) @@ to_tsquery('indonesian', ${searchPhrase})`;
   let unreadQ: SQL<unknown> | undefined;
   let excludeCategoryQ: SQL<unknown> | undefined;
   let angkatanQ: SQL<unknown> | undefined;

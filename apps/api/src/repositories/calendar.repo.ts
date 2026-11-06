@@ -1,5 +1,6 @@
-import { eventsInMonth } from '~/lib/calendar-month';
-import { and, asc, eq, gte, lt, or, sql } from 'drizzle-orm';
+import { eventsInMonth, wibMonthRange } from '~/lib/calendar-month';
+import { prefixTsQuery } from '~/lib/search';
+import { and, asc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { Database } from '~/db/drizzle';
 import { first, firstSure } from '~/db/helper';
@@ -30,13 +31,8 @@ export async function getCalendarEvent(
 ) {
   const { search, category, courseCode, year, major } = q;
   const isCoursesRequired = courseCode !== undefined || major !== undefined;
-  const searchPhrase = search
-    ? search
-        .trim()
-        .split(/s+/)
-        .map((term) => `${term}:*`)
-        .join(' & ')
-    : undefined;
+  // null: the text has no word, so nothing matches.
+  const searchPhrase = search ? prefixTsQuery(search) : undefined;
   let calendarEvents = isCoursesRequired
     ? await getCalendarEventWithCoursesJoin(db, courseCode, major, searchPhrase)
     : await getCalendarEventOnly(db, searchPhrase);
@@ -76,10 +72,9 @@ export async function getCalendarGroupById(
   db: Database,
   calendarGroupId: string,
 ) {
-  const calendarGroup = await db.query.calendarGroup.findFirst({
-    where: eq(calendarEvent.id, calendarGroupId),
+  return await db.query.calendarGroup.findFirst({
+    where: eq(calendarGroup.id, calendarGroupId),
   });
-  return calendarGroup;
 }
 
 export function getCalendarGroupByCategory(
@@ -143,22 +138,25 @@ export async function deleteCalendarEvent(db: Database, eventId: string) {
   return calendarEventId;
 }
 
-async function getCalendarEventOnly(db: Database, search?: string) {
+/** The full-text match for `search` (`prefixTsQuery`): none when undefined, nothing when null. */
+function eventSearch(search: string | null | undefined) {
+  if (search === undefined) return undefined;
+  if (search === null) return sql`false`;
+  return sql`(setweight(to_tsvector('indonesian', ${calendarEvent.title}), 'A') || setweight(to_tsvector('indonesian', ${calendarEvent.description}), 'B')) @@ to_tsquery('indonesian', ${search})`;
+}
+
+async function getCalendarEventOnly(db: Database, search?: string | null) {
   return await db
     .select()
     .from(calendarEvent)
-    .where(
-      search
-        ? sql`(setweight(to_tsvector('indonesian', ${calendarEvent.title}), 'A') || setweight(to_tsvector('indonesian', ${calendarEvent.description}), 'B')) @@ to_tsquery('indonesian', ${search})`
-        : sql``,
-    )
+    .where(eventSearch(search))
     .orderBy(asc(calendarEvent.start));
 }
 async function getCalendarEventWithCoursesJoin(
   db: Database,
   courseCode: string | undefined,
   major: 'IF' | 'STI' | 'OTHER' | undefined,
-  search?: string,
+  search?: string | null,
 ) {
   let results = await db
     .select({
@@ -167,11 +165,7 @@ async function getCalendarEventWithCoursesJoin(
       courseMajor: courses.major,
     })
     .from(calendarEvent)
-    .where(
-      search
-        ? sql`(setweight(to_tsvector('indonesian', ${calendarEvent.title}), 'A') || setweight(to_tsvector('indonesian', ${calendarEvent.description}), 'B')) @@ to_tsquery('indonesian', ${search})`
-        : undefined,
-    )
+    .where(eventSearch(search))
     .innerJoin(courses, eq(calendarEvent.courseId, courses.id))
     .orderBy(asc(calendarEvent.start));
 
@@ -216,6 +210,12 @@ export async function getPersonalCalendar(
   const userCourseIds = (await getUserCourse(db, user.id, true)).map(
     (c) => c.courseId,
   );
+  // Only the requested month (in WIB) is read; it used to read every Himpunan event ever and pick the month here.
+  const { from, until } = wibMonthRange(query);
+  const inMonth = and(
+    gte(calendarEvent.start, from),
+    lt(calendarEvent.start, until),
+  );
 
   const academicEvents =
     userCourseIds.length > 0
@@ -224,44 +224,26 @@ export async function getPersonalCalendar(
           .from(calendarEvent)
           .where(
             and(
-              userCourseIds.length > 1
-                ? or(...userCourseIds.map((c) => eq(calendarEvent.courseId, c)))
-                : eq(calendarEvent.courseId, userCourseIds[0]),
+              inArray(calendarEvent.courseId, userCourseIds),
               eq(
                 calendarEvent.academicYear,
                 userAcademicContext.semesterYearTaken,
               ),
+              inMonth,
             ),
           )
       : [];
 
-  const himpunanCalendarId = // Dynamic query to get himpunan calendar group id
-    (
-      await db
-        .select()
-        .from(calendarGroup)
-        .where(eq(calendarGroup.category, 'himpunan'))
-    ).map((c) => c.id);
-
-  const himpunanEvents =
-    himpunanCalendarId.length > 0
-      ? await db // Get himpunan events
-          .select()
-          .from(calendarEvent)
-          .where(
-            himpunanCalendarId.length > 0
-              ? or(
-                  ...himpunanCalendarId.map((id) =>
-                    eq(calendarEvent.calendarGroupId, id),
-                  ),
-                )
-              : eq(calendarEvent.calendarGroupId, himpunanCalendarId[0]),
-          )
-      : [];
-
-  // console.log(academicEvents);
-  // console.log(himpunanCalendarId);
-  // console.log(himpunanEvents);
+  // Himpunan events: those in a Himpunan calendar group.
+  const himpunanEvents = await db
+    .select({ event: calendarEvent })
+    .from(calendarEvent)
+    .innerJoin(
+      calendarGroup,
+      eq(calendarEvent.calendarGroupId, calendarGroup.id),
+    )
+    .where(and(eq(calendarGroup.category, 'himpunan'), inMonth))
+    .then((rows) => rows.map((r) => r.event));
 
   return eventsInMonth([...academicEvents, ...himpunanEvents], query);
 }
