@@ -38,7 +38,9 @@ export const EnvSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().default('not-specified'),
   R2_PUBLIC_URL: z.string().url().default('not-specified'),
   R2_BUCKET_NAME: z.string().default('hmifapp'),
-  LOGIN_BYPASS_KEY: z.string().default('default-bypass-key'),
+  // Sign-in as any NIM with this key (`GET /api/auth/login/bypass`). No default: the route exists only on
+  // development or staging, and only with a key of at least 32 characters (`lib/login-bypass.ts`).
+  LOGIN_BYPASS_KEY: z.string().optional(),
   GOOGLE_CALENDAR_SECRET_PATH: z.string().default('google_credentials.json'),
   GOOGLE_CALENDAR_ID: z.string().default('primary'),
   SENTRY_DSN: z.string().url().optional(),

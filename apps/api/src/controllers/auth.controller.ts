@@ -6,6 +6,8 @@ import { db } from '~/db/drizzle';
 import { angkatan, users } from '~/db/schema';
 import { isDevLoginEnabled, verifyDevPassword } from '~/lib/dev-login';
 import { JWT_ALG } from '~/lib/jwt';
+import { bypassTokenMatches, isLoginBypassEnabled } from '~/lib/login-bypass';
+import { SESSION_COOKIE, sessionCookieOptions } from '~/lib/session-cookie';
 import {
   findUserByEmail,
   getUserAndUpdatePicture,
@@ -94,13 +96,7 @@ loginRouter.openapi(loginAccessTokenRoute, async (c) => {
 
     void updateUserLastLogin(db, user.id);
 
-    setCookie(c, 'hmif-app.access-cookie', token, {
-      path: '/',
-      secure: true,
-      httpOnly: true,
-      maxAge: parseInt(env.TOKEN_EXPIRATION),
-      sameSite: 'None',
-    });
+    setCookie(c, SESSION_COOKIE, token, sessionCookieOptions());
     return c.json(tokenPayload, 200);
   } catch (err) {
     return c.json(
@@ -169,52 +165,39 @@ loginRouter.openapi(authCallbackRoute, async (c) => {
   const tokenPayload = JWTPayloadSchema.parse({ ...user, picture });
   const token = await generateJWT(tokenPayload);
 
-  setCookie(c, 'hmif-app.access-cookie', token, {
-    path: '/',
-    secure: true,
-    httpOnly: true,
-    maxAge: parseInt(env.TOKEN_EXPIRATION),
-    sameSite: 'None',
-  });
+  setCookie(c, SESSION_COOKIE, token, sessionCookieOptions());
   return c.json(tokenPayload, 200);
 });
 
-loginRouter.openapi(loginBypassRoute, async (c) => {
-  const { token, nim } = c.req.valid('query');
+// Staging and development only, with a strong key (lib/login-bypass.ts): production never has the route.
+const loginBypassKey = env.LOGIN_BYPASS_KEY;
+if (isLoginBypassEnabled(env) && loginBypassKey) {
+  loginRouter.openapi(loginBypassRoute, async (c) => {
+    const { token, nim } = c.req.valid('query');
 
-  if (token !== env.LOGIN_BYPASS_KEY) {
-    return c.json(
-      {
-        error: 'Invalid token',
-      },
-      401,
-    );
-  }
+    if (!bypassTokenMatches(token, loginBypassKey)) {
+      return c.json({ error: 'Invalid token' }, 401);
+    }
 
-  const user = await findUserByEmail(db, `${nim}@std.stei.itb.ac.id`);
-  if (!user) {
-    return c.json(
-      {
-        error:
-          'User not found in database, please run seeder with the file from Google Drive',
-      },
-      401,
-    );
-  }
-  const tokenPayload = JWTPayloadSchema.parse(user);
-  const jwtToken = await generateJWT(tokenPayload);
-  setCookie(c, 'hmif-app.access-cookie', jwtToken, {
-    path: '/',
-    secure: true,
-    httpOnly: true,
-    maxAge: parseInt(env.TOKEN_EXPIRATION),
-    sameSite: 'None',
+    const user = await findUserByEmail(db, `${nim}@std.stei.itb.ac.id`);
+    if (!user) {
+      return c.json(
+        {
+          error:
+            'User not found in database, please run seeder with the file from Google Drive',
+        },
+        401,
+      );
+    }
+    const tokenPayload = JWTPayloadSchema.parse(user);
+    const jwtToken = await generateJWT(tokenPayload);
+    setCookie(c, SESSION_COOKIE, jwtToken, sessionCookieOptions());
+    return c.json(tokenPayload, 200);
   });
-  return c.json(tokenPayload, 200);
-});
+}
 
 loginProtectedRouter.openapi(logoutRoute, async (c) => {
-  deleteCookie(c, 'hmif-app.access-cookie');
+  deleteCookie(c, SESSION_COOKIE);
   return c.json({}, 200);
 });
 

@@ -5,12 +5,13 @@ import fs from 'fs';
 import { cors } from 'hono/cors';
 import { HTTPException } from 'hono/http-exception';
 import { requestId, type RequestIdVariables } from 'hono/request-id';
-import { getPath, getQueryStrings } from 'hono/utils/url';
+import { getPath } from 'hono/utils/url';
 import path from 'path';
 import { performance } from 'perf_hooks';
 import { fileURLToPath } from 'url';
 import { env } from './configs/env.config';
 import { apiRouter } from './controllers/api.controller';
+import { redactedQuery } from './lib/redact';
 import { logger } from './logger';
 import {
   CurhatJoinAckSchema,
@@ -26,6 +27,49 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
   fs.readFileSync(path.join(dirname, '../package.json'), 'utf-8'),
 );
+
+const OPENAPI_CONFIG = {
+  openapi: '3.1.0',
+  info: {
+    version: packageJson.version,
+    title: packageJson.displayName,
+  },
+  tags: [
+    { name: 'push', description: 'Push event API' },
+    { name: 'auth', description: 'Auth API' },
+    { name: 'media', description: 'Media API' },
+    { name: 'info', description: 'Info API' },
+    { name: 'course', description: 'Course API' },
+    { name: 'comment', description: 'Comment API' },
+    { name: 'reaction', description: 'Comment API' },
+    { name: 'open-graph', description: 'Scrape Open Graph API' },
+    { name: 'category', description: 'Category API' },
+    { name: 'unsubscribe', description: 'Unsubscribe API' },
+    { name: 'calendar', description: 'Calendar API' },
+    { name: 'testimoni', description: 'Testimoni API' },
+    { name: 'user-profile', description: 'User Profile API' },
+    { name: 'user-finder', description: 'User Finder API' },
+    { name: 'competitions', description: 'Competitions API' },
+    { name: 'markdown', description: 'Markdown API' },
+    { name: 'recommendation', description: 'Recommendations API' },
+    { name: 'curhat', description: 'Curhat API' },
+    { name: 'internship', description: 'Internship API' },
+    { name: 'form', description: 'Form API' },
+    { name: 'programme-window', description: 'Programme windows API' },
+  ],
+};
+
+export function isDevelopmentOrStaging(config: { APP_ENV?: string }) {
+  return config.APP_ENV === 'development' || config.APP_ENV === 'staging';
+}
+
+/**
+ * The OpenAPI document of `app`, as `/doc` serves it on development and staging. The web client's generator
+ * (`scripts/openapi.ts`) reads it here, so it never depends on where the API runs.
+ */
+export function openApiDocument(app: ReturnType<typeof createApp>) {
+  return app.getOpenAPIDocument(OPENAPI_CONFIG);
+}
 
 /**
  * Builds the HTTP app: middleware, every route and the OpenAPI document. It opens no port, starts no cron job
@@ -57,7 +101,8 @@ export function createApp() {
   app.use(async (c, next) => {
     const { method } = c.req;
     const path = getPath(c.req.raw);
-    const params = getQueryStrings(c.req.url);
+    // Never a secret in the log: the bypass key, an OAuth code or state travel in the address.
+    const params = redactedQuery(c.req.url);
 
     const start = performance.now();
     await next();
@@ -94,37 +139,11 @@ export function createApp() {
   })) {
     app.openAPIRegistry.register(name, schema);
   }
-  app.doc('/doc', {
-    openapi: '3.1.0',
-    info: {
-      version: packageJson.version,
-      title: packageJson.displayName,
-    },
-    tags: [
-      { name: 'push', description: 'Push event API' },
-      { name: 'auth', description: 'Auth API' },
-      { name: 'media', description: 'Media API' },
-      { name: 'info', description: 'Info API' },
-      { name: 'course', description: 'Course API' },
-      { name: 'comment', description: 'Comment API' },
-      { name: 'reaction', description: 'Comment API' },
-      { name: 'open-graph', description: 'Scrape Open Graph API' },
-      { name: 'category', description: 'Category API' },
-      { name: 'unsubscribe', description: 'Unsubscribe API' },
-      { name: 'calendar', description: 'Calendar API' },
-      { name: 'testimoni', description: 'Testimoni API' },
-      { name: 'user-profile', description: 'User Profile API' },
-      { name: 'user-finder', description: 'User Finder API' },
-      { name: 'competitions', description: 'Competitions API' },
-      { name: 'markdown', description: 'Markdown API' },
-      { name: 'recommendation', description: 'Recommendations API' },
-      { name: 'curhat', description: 'Curhat API' },
-      { name: 'internship', description: 'Internship API' },
-      { name: 'form', description: 'Form API' },
-      { name: 'programme-window', description: 'Programme windows API' },
-    ],
-  });
-  app.get('/swagger', swaggerUI({ url: '/doc' }));
+  // The document and its viewer are for development and staging; production doesn't publish its routes.
+  if (isDevelopmentOrStaging(env)) {
+    app.doc('/doc', OPENAPI_CONFIG);
+    app.get('/swagger', swaggerUI({ url: '/doc' }));
+  }
 
   return app;
 }

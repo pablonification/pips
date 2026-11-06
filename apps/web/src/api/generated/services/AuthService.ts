@@ -69,30 +69,6 @@ export class AuthService {
     });
   }
   /**
-   * @returns User Login bypass successful
-   * @throws ApiError
-   */
-  public loginBypass({
-    token,
-    nim,
-  }: {
-    token: string,
-    nim: string,
-  }): CancelablePromise<User> {
-    return this.httpRequest.request({
-      method: 'GET',
-      url: '/api/auth/login/bypass',
-      query: {
-        'token': token,
-        'nim': nim,
-      },
-      errors: {
-        400: `Error`,
-        401: `Error`,
-      },
-    });
-  }
-  /**
    * @returns any Logout successful
    * @throws ApiError
    */
