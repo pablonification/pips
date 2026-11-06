@@ -268,6 +268,31 @@ test("Kalender's month reads only that month in WIB, with the same events as bef
   );
 });
 
+// Regression: every Himpunan event ever was read on each Kalender and Beranda load, and the month picked in memory.
+test("Kalender's month is picked by the database, not after reading every event", async () => {
+  const { drizzle } = await import('drizzle-orm/postgres-js');
+  const queries: Array<{ sql: string; params: unknown[] }> = [];
+  const logged = drizzle(client, {
+    schema,
+    logger: { logQuery: (sql, params) => queries.push({ sql, params }) },
+  });
+  await calendar.getPersonalCalendar(
+    logged,
+    { id: 'rl-nadia', angkatan: 2025 } as never,
+    { month: 10, year: 2026 },
+  );
+  const eventReads = queries.filter((q) => /from "calendar_event"/.test(q.sql));
+  assert.equal(eventReads.length, 2, 'Akademik and Himpunan');
+  for (const q of eventReads) {
+    assert.match(q.sql, /"start" >= \$\d+/);
+    assert.match(q.sql, /"start" < \$\d+/);
+    assert.ok(
+      q.params.some((p) => String(p).startsWith('2026-09-30T17:00:00')),
+      JSON.stringify(q.params),
+    );
+  }
+});
+
 // Regression: it filtered calendar groups on calendar_event.id, a column of another table (a SQL error).
 test('a calendar group is found by its id', async () => {
   const group = await calendar.getCalendarGroupById(db, 'rl-himpunan');
