@@ -11,3 +11,11 @@ export function currentWibMonthYear(now: number = Date.now()) {
 export function wibMonthYear(date: Date | string | number) {
   return currentWibMonthYear(new Date(date).getTime());
 }
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** The time of day an instant falls at in WIB, as the app writes it ("19.00"), whatever time zone the server runs in. */
+export function wibClock(date: Date | string | number) {
+  const wib = new Date(new Date(date).getTime() + WIB_OFFSET_MS);
+  return `${pad(wib.getUTCHours())}.${pad(wib.getUTCMinutes())}`;
+}

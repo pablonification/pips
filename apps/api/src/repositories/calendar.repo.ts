@@ -1,5 +1,5 @@
 import { eventsInMonth } from '~/lib/calendar-month';
-import { and, asc, eq, or, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, lt, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { Database } from '~/db/drizzle';
 import { first, firstSure } from '~/db/helper';
@@ -266,15 +266,15 @@ export async function getPersonalCalendar(
   return eventsInMonth([...academicEvents, ...himpunanEvents], query);
 }
 
-export async function getCalendarEventsByTime(db: Database, date: Date) {
-  const inMinute = new Date(date);
-  inMinute.setSeconds(0);
-  inMinute.setMilliseconds(0);
-
-  const events = await db
+/** Events starting from `from` (included) until `until` (excluded): the day-before reminders' window. */
+export async function getCalendarEventsStartingBetween(
+  db: Database,
+  from: Date,
+  until: Date,
+) {
+  return await db
     .select()
     .from(calendarEvent)
-    .where(eq(calendarEvent.start, inMinute));
-
-  return events;
+    .where(and(gte(calendarEvent.start, from), lt(calendarEvent.start, until)))
+    .orderBy(asc(calendarEvent.start));
 }
