@@ -11,7 +11,7 @@ async function proxy() {
 }
 
 function targets(p) {
-  return [p['/api'], p['/socket.io'].target, p['/swagger'], p['/doc']];
+  return [p['/api'].target, p['/socket.io'].target, p['/swagger'], p['/doc']];
 }
 
 test('the dev server proxies the API to 127.0.0.1:5000 by default, or to DEV_API_ORIGIN', async () => {
@@ -27,6 +27,11 @@ test('the dev server proxies the API to 127.0.0.1:5000 by default, or to DEV_API
     const p = await proxy();
     assert.deepEqual(targets(p), Array(4).fill('http://127.0.0.1:5100'));
     assert.equal(p['/socket.io'].ws, true);
+    // The browser's host reaches the API (X-Forwarded-Host), so it knows the app's writes and socket as its own
+    // origin (apps/api/src/lib/origin.ts).
+    assert.equal(p['/api'].xfwd, true);
+    assert.equal(p['/api'].changeOrigin, true);
+    assert.equal(p['/socket.io'].xfwd, true);
   } finally {
     if (previous === undefined) delete process.env.DEV_API_ORIGIN;
     else process.env.DEV_API_ORIGIN = previous;
