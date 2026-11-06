@@ -8,6 +8,7 @@ import {
   MAX_INFO_TITLE_LENGTH as MAX_TITLE,
 } from '~/lib/constants';
 import { getSharedData } from '~/lib/share-db';
+import type { UploadProblem } from '~/lib/upload-policy';
 import { freshDraft, type Draft } from './draft';
 import type { DraftErrors, UploadState } from './rules';
 
@@ -18,15 +19,26 @@ export interface Photo {
   state: UploadState;
   abort?: AbortController;
 }
+/** A picked file that can't be uploaded, and why: said under the photos until the next pick. */
+export interface RefusedPhoto {
+  name: string;
+  problem: UploadProblem;
+}
 export interface ComposeState {
   draft: Omit<Draft, 'mediaUrls'>;
   photos: Photo[];
   errors: DraftErrors;
+  refused: RefusedPhoto | null;
 }
 
 const blank = (): ComposeState => {
   const { title, body, cats, audType, aud } = freshDraft();
-  return { draft: { title, body, cats, audType, aud }, photos: [], errors: {} };
+  return {
+    draft: { title, body, cats, audType, aud },
+    photos: [],
+    errors: {},
+    refused: null,
+  };
 };
 let state = blank();
 const listeners = new Set<() => void>();
@@ -90,24 +102,36 @@ export function startUpload(photo: Photo) {
         abort: undefined,
       }),
     )
-    .catch(() => {
-      if (state.photos.some((p) => p.key === photo.key))
-        patchPhoto(photo.key, {
-          state: { status: 'failed' },
-          abort: undefined,
-        });
+    .catch((err: unknown) => {
+      if (!state.photos.some((p) => p.key === photo.key)) return;
+      // The API refused its type or size: trying again won't help, so the photo goes and the reason is said.
+      // Checked by name, not class: the store stays free of the upload code (it loads with the app's first code).
+      const refused = err as { name?: string; problem?: UploadProblem };
+      if (refused.name === 'UploadRefused' && refused.problem) {
+        const problem = refused.problem;
+        removePhoto(photo.key);
+        setCompose((s) => ({
+          ...s,
+          refused: { name: photo.file.name, problem },
+        }));
+        return;
+      }
+      patchPhoto(photo.key, {
+        state: { status: 'failed' },
+        abort: undefined,
+      });
     });
 }
-export function addPhotos(files: File[]) {
-  const added = files
-    .filter((f) => f.type.startsWith('image/'))
-    .map<Photo>((file) => ({
-      key: `foto-${++seq}`,
-      file,
-      preview: URL.createObjectURL(file),
-      state: { status: 'uploading', progress: 0 },
-    }));
-  setCompose((s) => ({ ...s, photos: [...s.photos, ...added] }));
+/** Adds and uploads photos; `refused` is a picked file the composer's check turned away, said under the photos. */
+export function addPhotos(files: File[], refused: RefusedPhoto | null = null) {
+  const fine = files.filter((f) => f.type.startsWith('image/'));
+  const added = fine.map<Photo>((file) => ({
+    key: `foto-${++seq}`,
+    file,
+    preview: URL.createObjectURL(file),
+    state: { status: 'uploading', progress: 0 },
+  }));
+  setCompose((s) => ({ ...s, photos: [...s.photos, ...added], refused }));
   added.forEach(startUpload);
 }
 export function removePhoto(key: string) {

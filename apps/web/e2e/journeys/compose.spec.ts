@@ -409,3 +409,73 @@ test.describe('Raka', () => {
     });
   });
 });
+
+test.describe('Nadia: photos the API would refuse', () => {
+  test('regression (review): a photo the API would refuse is refused before anything is sent, and says why', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api.on('POST /api/media/upload', writes.presign);
+    const c = await openComposer(page, testInfo);
+    const input = c.locator('input[type="file"]');
+    const accept = await input.getAttribute('accept');
+    expect(accept).toContain('.jfif');
+    expect(accept).toContain('image/jpeg');
+    expect(accept).not.toContain('svg');
+
+    await input.setInputFiles([
+      {
+        name: 'logo.svg',
+        mimeType: 'image/svg+xml',
+        buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>'),
+      },
+      photo('a.png'),
+    ]);
+    const said = c.getByRole('alert').filter({ hasText: 'tidak didukung' });
+    await expect(said).toHaveText('Jenis file logo.svg tidak didukung.');
+    // The other photo still goes.
+    await expect(c.locator('[data-photo="done"]')).toHaveCount(1, {
+      timeout: 10_000,
+    });
+    await strictGates(page, testInfo, 'compose-photo-jenis');
+
+    await input.setInputFiles([
+      {
+        name: 'besar.jpg',
+        mimeType: 'image/jpeg',
+        buffer: Buffer.alloc(25 * 1024 * 1024 + 1),
+      },
+    ]);
+    await expect(
+      c.getByText('File besar.jpg terlalu besar (maks. 25 MB).'),
+    ).toBeVisible();
+    await expect(said).toHaveCount(0);
+    await expect(c.locator('[data-photo]')).toHaveCount(1);
+    expect(api.calls('POST /api/media/upload').map((r) => r.body)).toEqual([
+      { fileName: 'a', fileType: 'png', fileSize: PNG.length },
+    ]);
+  });
+
+  test("regression (review): the API's refusal removes the photo and says why, with no Coba lagi", async ({
+    page,
+    api,
+  }, testInfo) => {
+    api.on('POST /api/media/upload', () =>
+      reply.status(400, {
+        errors: { formErrors: [], fieldErrors: { fileSize: ['Too big'] } },
+      }),
+    );
+    const c = await openComposer(page, testInfo);
+    await c.locator('input[type="file"]').setInputFiles([photo('a.png')]);
+    await expect(
+      c.getByText('File a.png terlalu besar (maks. 25 MB).'),
+    ).toBeVisible();
+    await expect(c.locator('[data-photo]')).toHaveCount(0);
+    await expect(c.getByRole('button', { name: 'Coba lagi' })).toHaveCount(0);
+    await expect(
+      c.getByText(
+        'Ada foto yang gagal diunggah. Coba lagi atau hapus fotonya.',
+      ),
+    ).toHaveCount(0);
+  });
+});

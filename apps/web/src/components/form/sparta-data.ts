@@ -4,6 +4,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { api } from '~/api/client';
+import { uploadMedia } from '~/lib/upload';
 import {
   ApiError,
   type DraftInternshipSubmission,
@@ -102,21 +103,8 @@ export function saveDraftOnLeave(requestBody: DraftInternshipSubmission) {
   });
 }
 
-/** A file answer: a presigned upload (`POST /media/upload`), as today's screen does; resolves to the file's URL. */
-export async function uploadFile(file: File): Promise<string> {
-  const presigned = await api.media.createPresignedUrl({
-    requestBody: {
-      fileName: file.name.split('.')[0],
-      fileType: file.name.split('.').at(-1) ?? '',
-      fileSize: file.size,
-    },
-  });
-  // Signed for this type and the file's exact size (the browser sends the size as it is).
-  const put = await fetch(presigned.presignedUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': presigned.contentType },
-    body: file,
-  });
-  if (!put.ok) throw new Error(`upload failed: ${put.status}`);
-  return presigned.mediaUrl;
-}
+/**
+ * A file answer: a presigned upload (`POST /media/upload`), as today's screen does; resolves to the file's URL. The
+ * type and size are checked first (`lib/upload-policy.ts`), and a refusal rejects with `UploadRefused`.
+ */
+export const uploadFile = (file: File) => uploadMedia(file, 'file');

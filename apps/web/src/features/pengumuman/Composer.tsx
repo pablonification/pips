@@ -33,6 +33,7 @@ import { pengumuman as t } from '~/copy/pengumuman';
 import useSession from '~/hooks/auth/useSession';
 import { deleteSharedData } from '~/lib/share-db';
 import { initialsOf } from '~/lib/shell/names';
+import { acceptList, uploadProblem } from '~/lib/upload-policy';
 import {
   addPhotos,
   patchDraft,
@@ -97,7 +98,7 @@ export function ComposeForm({
   onSent?: () => void;
 }) {
   const me = useSession();
-  const { draft, photos, errors } = useCompose();
+  const { draft, photos, errors, refused } = useCompose();
   const ids = useId();
   const id = (k: string) => `${ids}-${k}`;
   const categories = usePostableCategories();
@@ -396,16 +397,38 @@ export function ComposeForm({
             <input
               ref={fileInput}
               type="file"
-              accept="image/*"
+              accept={acceptList('image')}
               multiple
               className="sr-only"
               onChange={(e) => {
-                addPhotos([...(e.target.files ?? [])]);
+                // Checked before anything is sent; the first file turned away is named under the photos.
+                const files = [...(e.target.files ?? [])];
+                const turnedAway = files.find((f) => uploadProblem(f, 'image'));
+                addPhotos(
+                  files.filter((f) => !uploadProblem(f, 'image')),
+                  turnedAway
+                    ? {
+                        name: turnedAway.name,
+                        problem: uploadProblem(turnedAway, 'image')!,
+                      }
+                    : null,
+                );
                 e.target.value = '';
               }}
             />
           </label>
         </div>
+        {refused ? (
+          <p className="g-err t-cap" role="alert">
+            <IconPeringatan size={16} />
+            {fill(
+              refused.problem === 'jenis'
+                ? common.unggah.jenisFile
+                : common.unggah.ukuranFile,
+              { nama: refused.name },
+            )}
+          </p>
+        ) : null}
       </div>
 
       {blocked ? (
