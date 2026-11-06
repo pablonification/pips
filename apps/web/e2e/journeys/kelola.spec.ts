@@ -448,6 +448,56 @@ test.describe('Live Counting', () => {
     await expect(plaque(page).locator('.t-figure-xl')).toHaveText('143');
   });
 
+  // Regression (web-robust 3): the API now ends a connection whose session it couldn't read (as at expiry); socket.io
+  // doesn't reconnect by itself, so Live Counting checks the session and connects again.
+  test('the server ending the connection: the session is checked, it connects again and catches up', async ({
+    page,
+    api,
+    db,
+  }) => {
+    await page.goto('/kelola/live/pixel');
+    await socketReady(api);
+    await expect(square(page)).toBeVisible();
+    const mes = api.calls('GET /api/me').length;
+    const counts = api.calls('GET /api/form/:formId/responses/count').length;
+    api.socket.endSessions();
+    await expect
+      .poll(() => api.calls('GET /api/me').length)
+      .toBeGreaterThan(mes);
+    await socketReady(api);
+    await expect(square(page)).toBeVisible();
+    await expect
+      .poll(() => api.calls('GET /api/form/:formId/responses/count').length)
+      .toBeGreaterThan(counts);
+    expect(
+      newResponse(api, db, { nim: '13525243', fullName: 'Pengisi Baru' }),
+    ).toBe(1);
+    await expect(plaque(page).locator('.t-figure-xl')).toHaveText('143');
+  });
+
+  // Regression (web-robust 4): the socket code's dynamic import had no catch, so when it failed to load (offline, or
+  // its file gone after a deploy) Live Counting stayed disconnected for good. Chromium remembers a failed import, so
+  // here the page recovers by its one reload (web-robust 6); the retries themselves are in tests/live-socket.test.ts.
+  test('the socket code failing to load: the page reloads once and goes live', async ({
+    page,
+    api,
+  }) => {
+    let requests = 0;
+    await page.route('**/assets/esm-*.js', (route) =>
+      requests++ === 0
+        ? route.fulfill({ status: 404, body: '' })
+        : route.fallback(),
+    );
+    let loads = 0;
+    page.on('load', () => loads++);
+    await page.goto('/kelola/live/pixel');
+    await expect.poll(() => loads).toBe(2);
+    await socketReady(api);
+    await expect(square(page)).toBeVisible();
+    await expect(plaque(page).locator('.t-figure-xl')).toHaveText('142');
+    expect(requests).toBe(2);
+  });
+
   test('a dropped socket: the square stops, and the count and rows catch up on reconnect', async ({
     page,
     api,

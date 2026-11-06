@@ -240,6 +240,52 @@ test('the server ending the connection is reported; reconnect() connects again; 
   assert.equal(log.filter((l) => l === 'session ended').length, 1);
 });
 
+// Regression (web-robust 3): when the API can't read a session at the handshake it now ends the connection, and the
+// client reconnects. If it keeps doing so at once, each reconnect waits longer (1, 2, 4… up to 30 s) instead of
+// asking again and again; a connection that lasted starts the count again.
+test('a server that keeps ending the connection at once is asked again after 1, 2, 4… s, up to 30 s', (t) => {
+  t.mock.timers.enable({ apis: ['Date', 'setTimeout'], now: 0 });
+  const { socket, client, log } = setup();
+  socket.connect();
+  const end = () => {
+    socket.connected = false;
+    socket.fire('disconnect', 'io server disconnect');
+  };
+  let connects = 0;
+  socket.on('connect', () => connects++);
+  // The first: at once.
+  end();
+  client.reconnect();
+  assert.equal(connects, 1);
+  const waits: number[] = [];
+  for (let i = 0; i < 7; i++) {
+    end();
+    client.reconnect();
+    // Asking again while one waits doesn't add another.
+    client.reconnect();
+    let waited = 0;
+    while (connects === i + 1) {
+      t.mock.timers.tick(500);
+      waited += 500;
+    }
+    waits.push(waited);
+  }
+  assert.deepEqual(waits, [1000, 2000, 4000, 8000, 16000, 30000, 30000]);
+  assert.equal(log.filter((l) => l === 'session ended').length, 8);
+  // A connection that lasted: the next end reconnects at once again.
+  t.mock.timers.tick(11_000);
+  end();
+  client.reconnect();
+  assert.equal(connects, 9);
+  // Leaving the area cancels a waiting reconnect.
+  end();
+  end();
+  client.reconnect();
+  client.close();
+  t.mock.timers.tick(60_000);
+  assert.equal(connects, 9);
+});
+
 test('Gagal on { ok: false }', () => {
   const { socket, client, log } = setup();
   socket.connect();
