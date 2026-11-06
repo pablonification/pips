@@ -115,6 +115,15 @@ export const CreateReadRequestBodySchema = z.object({
   unread: z.boolean().optional(),
 });
 
+export const ReadAllInfoResponseSchema = z
+  .object({
+    marked: z.number().int().openapi({
+      description: 'How many posts were marked read now',
+      example: 16,
+    }),
+  })
+  .openapi('ReadAllInfoResponse');
+
 export const InfoIdParamsSchema = z.object({
   infoId: z.string().openapi({
     param: {

@@ -293,7 +293,6 @@ export async function getListInfos(
     : undefined;
   let unreadQ: SQL<unknown> | undefined;
   let excludeCategoryQ: SQL<unknown> | undefined;
-  let angkatanQ: SQL<unknown> | undefined;
 
   if (q.unread === 'true') {
     const getReadInfosByUser = db
@@ -323,17 +322,11 @@ export async function getListInfos(
     excludeCategoryQ = notInArray(infos.id, getInfosToExclude);
   }
 
-  if (angkatanYear !== undefined)
-    angkatanQ = getInfoAngkatanQuery(db, userId, angkatanYear);
-
-  const userRoles = await getUserRoles(db, userId);
-
   const where = and(
     searchQ,
     excludeCategoryQ,
     unreadQ,
-    angkatanQ,
-    getInfoGroupQuery(db, userRoles),
+    await getFeedAudienceQuery(db, userId, angkatanYear),
   );
 
   const listInfo = await db.query.infos.findMany({
@@ -371,6 +364,44 @@ export async function getListInfos(
       };
     }),
   );
+}
+
+/**
+ * The posts the feed shows a member, whatever its search and filters: those for their groups and, when they have an
+ * angkatan, for it. The feed and Tandai semua dibaca share it, so marking everything read never reaches a post the
+ * member can't see.
+ */
+async function getFeedAudienceQuery(
+  db: Database,
+  userId: string,
+  angkatanYear: number | undefined,
+) {
+  const userRoles = await getUserRoles(db, userId);
+  return and(
+    angkatanYear === undefined
+      ? undefined
+      : getInfoAngkatanQuery(db, userId, angkatanYear),
+    getInfoGroupQuery(db, userRoles),
+  );
+}
+
+/**
+ * Tandai semua dibaca (owner, 2026-11-06): marks read, for the member, every post their feed shows, in one statement.
+ * Posts already read stay as they were. Returns how many were marked now.
+ */
+export async function markAllInfosRead(
+  db: Database,
+  userId: string,
+  angkatanYear: number | undefined,
+): Promise<number> {
+  const audience = await getFeedAudienceQuery(db, userId, angkatanYear);
+  const rows = await db.execute(
+    sql`insert into ${userReadInfos} (${sql.identifier(userReadInfos.userId.name)}, ${sql.identifier(userReadInfos.infoId.name)})
+      select ${userId}, ${infos.id} from ${infos} ${audience ? sql`where ${audience}` : sql``}
+      on conflict do nothing
+      returning 1`,
+  );
+  return rows.length;
 }
 
 export async function getInfoById(

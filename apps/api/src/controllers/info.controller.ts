@@ -11,6 +11,7 @@ import {
   getInfoById,
   getInfoCreatorId,
   getListInfos,
+  markAllInfosRead,
   notifyNewInfo,
   renotifyInfo,
 } from '~/repositories/info.repo';
@@ -20,6 +21,7 @@ import {
   deleteInfoRoute,
   getInfoByIdRoute,
   getListInfoRoute,
+  postReadAllInfoRoute,
   postReadInfoRoute,
   postRenotifyInfoRoute,
 } from '~/routes/info.route';
@@ -30,6 +32,7 @@ import { createAuthRouter } from './router-factory';
 export interface InfoDeps {
   createReadInfo: WithoutDb<typeof createReadInfo>;
   deleteReadInfo: WithoutDb<typeof deleteReadInfo>;
+  markAllInfosRead: WithoutDb<typeof markAllInfosRead>;
   createInfo: WithoutDb<typeof createInfo>;
   notifyNewInfo: WithoutDb<typeof notifyNewInfo>;
   getInfoCreatorId: WithoutDb<typeof getInfoCreatorId>;
@@ -44,6 +47,7 @@ export interface InfoDeps {
 const databaseDeps: InfoDeps = {
   createReadInfo: withDb(createReadInfo),
   deleteReadInfo: withDb(deleteReadInfo),
+  markAllInfosRead: withDb(markAllInfosRead),
   createInfo: withDb(createInfo),
   notifyNewInfo: withDb(notifyNewInfo),
   getInfoCreatorId: withDb(getInfoCreatorId),
@@ -74,6 +78,13 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
       await deps.createReadInfo(data);
     }
     return c.json({}, 200);
+  });
+
+  // Tandai semua dibaca: every post of the member's own feed, never anyone else's read marks.
+  infoRouter.openapi(postReadAllInfoRoute, async (c) => {
+    const { id, angkatan } = c.var.user;
+    const marked = await deps.markAllInfosRead(id, angkatan);
+    return c.json({ marked }, 200);
   });
 
   infoRouter.openapi(createInfoRoute, async (c) => {
