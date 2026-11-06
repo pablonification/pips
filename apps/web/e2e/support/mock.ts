@@ -150,10 +150,10 @@ export class ApiMock {
   readonly problems: string[] = [];
   readonly socket: FakeSocketServer;
   /**
-   * Photo uploads (`PUT /__e2e__/upload/**`): answered after `delayMs`; the next `failNext` uploads get a 500.
-   * A test changes these for itself.
+   * Photo uploads (`PUT /__e2e__/upload/**`): answered after `delayMs`; the next `failNext` uploads get a 500; the
+   * next `hangNext` are never answered (a stalled network). A test changes these for itself.
    */
-  readonly uploads = { delayMs: 0, failNext: 0 };
+  readonly uploads = { delayMs: 0, failNext: 0, hangNext: 0 };
   private handlers: Registered[] = [];
   private closed = false;
   private offline = false;
@@ -310,6 +310,10 @@ export class ApiMock {
         outcome: 'upload',
       };
       this.record(record);
+      if (this.uploads.hangNext > 0) {
+        this.uploads.hangNext -= 1;
+        return; // never answered; the page sees a pending upload
+      }
       const fail = this.uploads.failNext > 0;
       if (fail) this.uploads.failNext -= 1;
       if (this.uploads.delayMs)

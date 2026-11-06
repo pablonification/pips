@@ -643,6 +643,57 @@ test('a 400 the screen can’t place: the error toast with Coba lagi, nothing lo
   await expect(main(page).getByText('Sudah dikirim')).toBeVisible();
 });
 
+// Regression (web-robust 1): a file upload on a stalled network said "Mengunggah…" until the browser gave up.
+test('a file upload that stalls fails after 30 s without progress; Unggah file again works', async ({
+  page,
+  api,
+  db,
+}) => {
+  openSeason(db);
+  api.on('PUT /api/internship/submission', writes.saveSpartaDraft);
+  let hang = true;
+  api.on('POST /api/media/upload', () => ({
+    presignedUrl: '/api/e2e-storage/portofolio',
+    mediaUrl: '/__e2e__/media/portofolio.svg',
+  }));
+  api.on('PUT /api/e2e-storage/:name', () =>
+    hang ? reply.hang() : reply.text(''),
+  );
+  await page.goto('/layanan/sparta');
+  await toQuestions(page);
+  const pick = async () => {
+    const chooser = page.waitForEvent('filechooser');
+    await page
+      .getByRole('button', { name: 'Unggah file untuk Portofolio desainmu' })
+      .click();
+    await (
+      await chooser
+    ).setFiles({
+      name: 'portofolio.pdf',
+      mimeType: 'application/pdf',
+      buffer: Buffer.from('%PDF-1.4'),
+    });
+  };
+  await pick();
+  const uploading = main(page)
+    .getByRole('status')
+    .filter({ hasText: 'Mengunggah…' });
+  await expect(uploading).toBeVisible();
+  await expect
+    .poll(() => api.calls('PUT /api/e2e-storage/:name').length)
+    .toBe(1);
+  await page.clock.runFor(31_000);
+  await expect(uploading).toHaveCount(0);
+  await expect(
+    main(page).getByRole('alert').filter({ hasText: 'File gagal diunggah.' }),
+  ).toBeVisible();
+  hang = false;
+  await pick();
+  await expect(
+    main(page).getByRole('link', { name: 'Lihat file yang terunggah' }),
+  ).toHaveAttribute('href', '/__e2e__/media/portofolio.svg');
+});
+
 test('a file answer: Unggah file, Mengunggah…, then a link to the file, saved at once', async ({
   page,
   api,

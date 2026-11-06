@@ -217,6 +217,32 @@ test.describe('signed out', () => {
     await expect(page).toHaveURL(/\/profil$/);
   });
 
+  // Regression (web-robust 1): a sign-in the API never answered stayed on "Masuk…" until the browser gave up.
+  test('no answer: after the time limit it says so with Coba lagi, which works', async ({
+    page,
+    api,
+  }) => {
+    await fakeGoogle(page.context());
+    let hang = true;
+    api.on('POST /api/auth/login/accesstoken', (req) =>
+      hang ? reply.hang() : writes.loginAccessToken(req),
+    );
+    await page.goto('/login?redirect=%2Fprofil');
+    await googleReady(page);
+    await masuk(page).click();
+    await expect(page.getByRole('button', { name: 'Masuk…' })).toBeVisible();
+    await expect
+      .poll(() => api.calls('POST /api/auth/login/accesstoken').length)
+      .toBe(1);
+    await page.clock.runFor(26_000);
+    await expect(alertText(page)).toContainText(
+      'PIPS! belum bisa memproses masuk.',
+    );
+    hang = false;
+    await page.getByRole('button', { name: 'Coba lagi' }).click();
+    await expect(page).toHaveURL(/\/profil$/);
+  });
+
   test('closing Google’s popup says nothing; a blocked popup says how to fix it', async ({
     page,
     api,

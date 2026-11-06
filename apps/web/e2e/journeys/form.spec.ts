@@ -649,6 +649,40 @@ test.describe('send failures keep everything', () => {
     });
   }
 
+  // Regression (web-robust 1): a send the API never answered stayed on "Mengirim…" until the browser gave up.
+  test('no answer: after the time limit, the error toast with Coba lagi; nothing lost', async ({
+    page,
+    api,
+    db,
+  }) => {
+    await page.goto('/layanan/form/pixel');
+    await fillPixelUpTo(page, 5);
+    await expect
+      .poll(async () => JSON.stringify(await storedDraft(page, db)))
+      .toContain('q29');
+    api.on('POST /api/form/:formId/response', reply.hang());
+    await page.getByRole('button', { name: 'Kirim jawaban' }).click();
+    await confirmSheet(page)
+      .getByRole('button', { name: 'Kirim', exact: true })
+      .click();
+    await expect
+      .poll(() => api.calls('POST /api/form/pixel/response').length)
+      .toBe(1);
+    const toast = page
+      .locator('.g-toasts [aria-live="assertive"]')
+      .filter({ hasText: 'Jawabanmu belum terkirim.' });
+    await page.clock.runFor(24_000);
+    await expect(toast).toHaveCount(0);
+    await page.clock.runFor(2_000);
+    await expect(toast).toBeVisible();
+    await expect(section(page, 'Periksa jawabanmu')).toBeVisible();
+    await expect(main(page).getByText('4 dari 5')).toBeVisible();
+    expect(JSON.stringify(await storedDraft(page, db))).toContain('q29');
+    api.on('POST /api/form/:formId/response', writes.submitForm);
+    await toast.getByRole('button', { name: 'Coba lagi' }).click();
+    await expect(plaque(page)).toBeVisible();
+  });
+
   test('Coba lagi sends the answers as they are now, not as they were when the send failed', async ({
     page,
     api,

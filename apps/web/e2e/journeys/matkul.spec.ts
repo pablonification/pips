@@ -528,6 +528,35 @@ test.describe('Tambah mata kuliah', () => {
     await expect(addButton(page)).toHaveText(/\(1\)/);
   });
 
+  // Regression (web-robust 1): an add the API never answered stayed on "Menambahkan…" until the browser gave up.
+  test('an add with no answer: after the time limit, the picks stay and it says so', async ({
+    page,
+    api,
+  }) => {
+    api.on('PUT /api/course/take/batch', reply.hang());
+    await page.goto('/profil/matkul/tambah');
+    await search(page).fill('IF2211');
+    await row(page, 'IF2211').click();
+    await addButton(page).click();
+    await expect
+      .poll(() => api.calls('PUT /api/course/take/batch').length)
+      .toBe(1);
+    await expect(
+      page
+        .getByRole('button', { name: 'Menambahkan…' })
+        .locator('visible=true'),
+    ).toBeVisible();
+    await page.clock.runFor(26_000);
+    await expect(
+      toastText(
+        page,
+        'Mata kuliah gagal ditambahkan. Periksa koneksimu, lalu coba lagi.',
+      ),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/profil\/matkul\/tambah$/);
+    await expect(addButton(page)).toHaveText(/\(1\)/);
+  });
+
   test('v5: remove, undo, then pick two by row (drop and pick again) → Tambahkan (2); Jumlah SKS follows; saved with no class', async ({
     page,
     api,
