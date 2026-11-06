@@ -53,7 +53,11 @@ export function createConnectionHandler(deps: ConnectionDeps) {
         return s;
       })
       .catch((error) => {
+        // The session couldn't be read (a failed role lookup): refuse the connection rather than keep a socket that
+        // looks connected but is refused everything. Clients hear `io server disconnect`, check their session and
+        // connect again. Handlers waiting on the session get none, and their answers go nowhere.
         deps.onError?.(error);
+        socket.disconnect(true);
         return null;
       });
 
