@@ -7,7 +7,9 @@ import { reply } from '../support/mock';
 import {
   answerPermission,
   E2E_SUBSCRIPTION,
+  holdSubscribe,
   pushDevice,
+  releaseSubscribe,
 } from '../support/push';
 import { strictAudit, strictGates } from '../support/strict';
 import { expect, test } from '../support/test';
@@ -173,6 +175,59 @@ test.describe('the device card', () => {
     await expect(
       main(page).getByText('Notifikasi menyala di perangkat ini'),
     ).toBeVisible();
+  });
+
+  test('regression: a push service that never answers ends Menyalakan… with Coba lagi, and a late answer still turns it on, once', async ({
+    page,
+    api,
+    db,
+  }) => {
+    // 2026-11-06, the real app on real data: Chrome's push service didn't answer, and the prompt said "Menyalakan…"
+    // for good, with no way out but closing the tab.
+    api.on('POST /api/push/register', writes.registerPush);
+    await page.goto('/profil/notifikasi');
+    await holdSubscribe(page);
+    await main(page)
+      .getByRole('button', { name: 'Nyalakan notifikasi' })
+      .click();
+    await prompt(page).getByRole('button', { name: 'Nyalakan' }).click();
+    await expect(
+      prompt(page).getByRole('button', { name: 'Menyalakan…' }),
+    ).toBeVisible();
+    await page.clock.runFor(15_000);
+    await expect(prompt(page)).toBeHidden();
+    const error = toastText(
+      page,
+      'Notifikasi belum menyala. Periksa koneksimu, lalu coba lagi.',
+    );
+    await expect(error).toBeVisible();
+    await expect(
+      main(page).getByText('Notifikasi belum menyala di perangkat ini'),
+    ).toBeVisible();
+    expect(api.calls('POST /api/push/register')).toHaveLength(0);
+
+    // Coba lagi waits for the same subscription instead of starting another, and gives up again.
+    await error.getByRole('button', { name: 'Coba lagi' }).click();
+    await page.clock.runFor(15_000);
+    await expect(error).toHaveCount(1);
+
+    // The push service answers at last: the device is registered once, the card says it's on, and the error is
+    // replaced, not left beside the good news.
+    await releaseSubscribe(page);
+    await expect(
+      toastText(page, 'Notifikasi menyala di perangkat ini.'),
+    ).toBeVisible();
+    await expect(error).toHaveCount(0);
+    await expect(
+      main(page).getByText('Notifikasi menyala di perangkat ini'),
+    ).toBeVisible();
+    expect(api.calls('POST /api/push/register').map((c) => c.body)).toEqual([
+      E2E_SUBSCRIPTION,
+    ]);
+    expect(db.pushSubscriptions).toEqual([E2E_SUBSCRIPTION]);
+    const device = await pushDevice(page);
+    expect(device.asks).toBe(1);
+    expect(device.subscribes).toHaveLength(1);
   });
 
   test.describe('Raka', () => {
