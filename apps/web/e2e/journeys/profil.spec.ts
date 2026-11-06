@@ -6,7 +6,12 @@
 import type { Page } from '@playwright/test';
 import { greeting, layoutOf, navLink } from '../support/app';
 import { reply } from '../support/mock';
-import { E2E_SUBSCRIPTION, pushDevice } from '../support/push';
+import {
+  E2E_SUBSCRIPTION,
+  holdSubscribe,
+  pushDevice,
+  releaseSubscribe,
+} from '../support/push';
 import { strictAudit, strictGates } from '../support/strict';
 import { expect, test } from '../support/test';
 import * as writes from '../support/writes';
@@ -314,6 +319,38 @@ test.describe('Raka', () => {
     await error.getByRole('button', { name: 'Coba lagi' }).click();
     await confirm(page).getByRole('button', { name: 'Keluar' }).click();
     await expect(page).toHaveURL(/\/login$/);
+  });
+
+  test('regression: a failed sign-out whose re-link meets a push service that never answers still ends Keluar…', async ({
+    page,
+    api,
+    db,
+  }) => {
+    // The unlink failed, so the browser's subscription was ended; linking again then waited on the push service with
+    // no limit, and "Keluar…" stayed up with a dialog that can't be closed (2026-11-06 review).
+    api.on('PUT /api/push/logout', reply.status(500));
+    api.on('POST /api/push/register', writes.registerPush);
+    api.on('POST /api/logout', reply.status(500));
+    db.pushSubscriptions = [E2E_SUBSCRIPTION];
+    await page.goto('/profil');
+    await holdSubscribe(page);
+    await main(page).getByRole('button', { name: 'Keluar' }).click();
+    await confirm(page).getByRole('button', { name: 'Keluar' }).click();
+    await expect(
+      confirm(page).getByRole('button', { name: 'Keluar…' }),
+    ).toBeVisible();
+    await page.clock.runFor(15_000);
+    await expect(
+      toastText(page, 'Gagal keluar. Periksa koneksimu, lalu coba lagi.'),
+    ).toBeVisible();
+    await expect(confirm(page)).toBeHidden();
+    await expect(page).toHaveURL(/\/profil$/);
+
+    // When the push service answers at last, the device is linked again, once.
+    await releaseSubscribe(page);
+    await expect
+      .poll(() => api.calls('POST /api/push/register').length)
+      .toBe(1);
   });
 
   test('regression: when the device can’t be unlinked, Keluar still signs out and ends the browser’s subscription', async ({

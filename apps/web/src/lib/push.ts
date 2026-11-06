@@ -126,6 +126,34 @@ async function register(sub: globalThis.PushSubscription) {
 }
 
 /**
+ * Subscribes (or joins the subscription already under way), waiting at most `SUBSCRIBE_WAIT_MS`. When the browser's
+ * push service hasn't answered by then it throws, and the subscription keeps going: if it arrives later it is
+ * registered then, once, and `onLate` runs.
+ */
+async function subscribeWithin(
+  registration: ServiceWorkerRegistration,
+  onLate?: () => void,
+) {
+  const pending = subscribeOnce(registration);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const slow = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), SUBSCRIBE_WAIT_MS);
+  });
+  const sub = await Promise.race([pending, slow]).finally(() =>
+    clearTimeout(timer),
+  );
+  if (sub) return sub;
+  if (!lateHandled.has(pending)) {
+    lateHandled.add(pending);
+    pending
+      .then(register)
+      .then(() => onLate?.())
+      .catch(() => undefined);
+  }
+  throw new Error('push service did not answer');
+}
+
+/**
  * Asks for permission (unless already granted), subscribes this device with the server's VAPID key and registers
  * it with `POST /api/push/register`. Call only from a tap on Nyalakan.
  *
@@ -146,25 +174,7 @@ export async function enablePush(onLate?: () => void): Promise<EnableOutcome> {
     await register(existing);
     return 'aktif';
   }
-  const pending = subscribeOnce(registration);
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const slow = new Promise<null>((resolve) => {
-    timer = setTimeout(() => resolve(null), SUBSCRIBE_WAIT_MS);
-  });
-  const sub = await Promise.race([pending, slow]).finally(() =>
-    clearTimeout(timer),
-  );
-  if (!sub) {
-    if (!lateHandled.has(pending)) {
-      lateHandled.add(pending);
-      pending
-        .then(register)
-        .then(() => onLate?.())
-        .catch(() => undefined);
-    }
-    throw new Error('push service did not answer');
-  }
-  await register(sub);
+  await register(await subscribeWithin(registration, onLate));
   return 'aktif';
 }
 
@@ -211,11 +221,8 @@ export async function relinkPush() {
   try {
     let sub = await existingPushSubscription();
     if (!sub && Notification.permission === 'granted') {
-      const registration = await readyRegistration(5_000);
-      sub = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: import.meta.env.VITE_VAPID_KEY,
-      });
+      // Bounded like Nyalakan: a push service that never answers must not keep "Keluar…" up for good.
+      sub = await subscribeWithin(await readyRegistration(5_000));
     }
     if (sub)
       await api.push.registerPush({ requestBody: subscriptionBody(sub) });
