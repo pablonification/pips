@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import { databaseError } from '~/lib/database-error';
 import { GaxiosError } from 'gaxios';
 import { calendar, type calendar_v3 } from 'googleapis/build/src/apis/calendar';
@@ -31,6 +32,7 @@ import {
   postCalendarEventRoute,
   updateCalendarEventRoute,
 } from '~/routes/calendar.route';
+import { logger } from '~/logger';
 import { withDb, type WithoutDb } from './deps';
 import { createAuthRouter } from './router-factory';
 
@@ -52,6 +54,23 @@ export interface GoogleCalendarApi {
   remove: (calendarId: string, eventId: string) => Promise<void>;
   /** Resolves when the service account can reach the calendar (`calendars.get`). */
   getCalendar: (calendarId: string) => Promise<void>;
+}
+
+/** What a client is told when Google Calendar refuses a change. */
+export const GOOGLE_CALENDAR_FAILED = 'Google Calendar refused the change';
+
+/**
+ * The answer when Google Calendar refuses: a fixed sentence. Google's own message (calendar ids, quota and
+ * permission details) goes to the log and Sentry only, as `databaseError` does for the database.
+ */
+function googleCalendarError(err: GaxiosError) {
+  logger.error({
+    type: 'google-calendar',
+    message: err.message,
+    status: err.response?.status,
+  });
+  Sentry.captureException(err);
+  return { error: GOOGLE_CALENDAR_FAILED };
 }
 
 /** What the calendar routes need from storage and Google, passed in so the route tests run without either. */
@@ -176,7 +195,7 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       );
     } catch (error) {
       if (error instanceof GaxiosError) {
-        return c.json({ error: error.message }, 400);
+        return c.json(googleCalendarError(error), 400);
       }
       throw error;
     }
@@ -292,7 +311,8 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       );
     } catch (error) {
       if (error instanceof GaxiosError && error.message === 'Not Found') {
-        return c.json({ error: error.message }, 404);
+        googleCalendarError(error);
+        return c.json({ error: 'Event not found' }, 404);
       }
       throw error;
     }
@@ -321,7 +341,7 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
     } catch (error) {
       // console.log(error);
       if (error instanceof GaxiosError) {
-        return c.json({ error: error.message }, 400);
+        return c.json(googleCalendarError(error), 400);
       }
       throw error;
     }
@@ -377,7 +397,7 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       return c.body(null, 204);
     } catch (error) {
       if (error instanceof GaxiosError) {
-        return c.json({ error: error.message }, 400);
+        return c.json(googleCalendarError(error), 400);
       }
       throw error;
     }

@@ -9,9 +9,10 @@ import { callRouter } from './support/router';
 import { testUser } from './support/session';
 
 let createCalendarRouter: typeof import('../src/controllers/calendar.controller').createCalendarRouter;
+let GOOGLE_CALENDAR_FAILED: string;
 before(async () => {
   usePlaceholderEnv();
-  ({ createCalendarRouter } =
+  ({ createCalendarRouter, GOOGLE_CALENDAR_FAILED } =
     await import('../src/controllers/calendar.controller'));
 });
 
@@ -120,7 +121,7 @@ function setup(
         }),
     },
   };
-  return { router: createCalendarRouter(deps), calls, deleted };
+  return { router: createCalendarRouter(deps), deps, calls, deleted };
 }
 
 const kuis2 = {
@@ -308,4 +309,40 @@ test('DELETE /calendar/event/{id}: any other Google failure keeps the row, so th
   const res = await callRouter(router, raka, 'DELETE', '/calendar/event/ev-1');
   assert.equal(res.status, 400);
   assert.deepEqual(deleted, []);
+});
+
+test("regression (review): Google's own error message never reaches the client, on any calendar write", async () => {
+  const failing = async () => {
+    throw googleError(403);
+  };
+  const cases = [
+    { method: 'POST', path: '/calendar/event', body: kuis2, google: { insert: failing } },
+    { method: 'PUT', path: '/calendar/event/ev-1', body: { title: 'Kuis 3' }, google: { update: failing } },
+    { method: 'DELETE', path: '/calendar/event/ev-1', body: undefined, google: { remove: failing } },
+  ] as const;
+  for (const { method, path, body, google } of cases) {
+    const { router, deps } = setup(['akademik']);
+    Object.assign(deps.google, google);
+    const res = await callRouter(router, raka, method, path, body);
+    assert.equal(res.status, 400, `${method} ${path}`);
+    assert.doesNotMatch(JSON.stringify(res.body), /Google says/, `${method} ${path}`);
+    assert.deepEqual(res.body, { error: GOOGLE_CALENDAR_FAILED });
+  }
+});
+
+test("regression (review): an event Google can't find answers a fixed 404, not Google's message", async () => {
+  const { router, deps } = setup(['akademik']);
+  deps.google.get = async () => {
+    throw new GaxiosError('Not Found', {}, {
+      status: 404,
+      statusText: 'Not Found',
+      headers: {},
+      config: {},
+      data: {},
+      request: { responseURL: '' },
+    } as never);
+  };
+  const res = await callRouter(router, raka, 'PUT', '/calendar/event/ev-1', { title: 'Kuis 3' });
+  assert.equal(res.status, 404);
+  assert.deepEqual(res.body, { error: 'Event not found' });
 });
