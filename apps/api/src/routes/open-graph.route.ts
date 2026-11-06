@@ -4,7 +4,10 @@ import {
   OpenGraphScrapeRequestSchema,
   OgObjectSchema,
 } from '~/types/open-graph.types';
-import { ValidationErrorSchema } from '~/types/responses.type';
+import {
+  authorizaitonErrorResponse,
+  ValidationErrorSchema,
+} from '~/types/responses.type';
 
 export const getOpenGraph = createRoute({
   operationId: 'openGraphScrape',
@@ -32,5 +35,6 @@ export const getOpenGraph = createRoute({
         },
       },
     },
+    401: authorizaitonErrorResponse,
   },
 });

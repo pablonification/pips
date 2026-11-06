@@ -90,7 +90,7 @@ async function post(headers: Record<string, string>, method = 'POST') {
 }
 
 test('a write from another website is refused with 403 before anything else', async () => {
-  for (const headers of [
+  for (const headers of <Array<Record<string, string>>>[
     { Origin: EVIL },
     { Origin: 'null' },
     { Referer: `${EVIL}/page` },
@@ -105,7 +105,7 @@ test('a write from another website is refused with 403 before anything else', as
 });
 
 test("the app's own writes go through (here to the session check: 401 signed out)", async () => {
-  for (const headers of [
+  for (const headers of <Array<Record<string, string>>>[
     { Origin: APP },
     { Referer: `${APP}/profil` },
     { Origin: 'http://api.example.test' },

@@ -23,12 +23,12 @@ import { programmeWindowRouter } from './programme-window.controller';
 
 const unprotectedApiRouter = new OpenAPIHono();
 unprotectedApiRouter.route('/', loginRouter);
-unprotectedApiRouter.route('/', openGraphScrapeRoute);
 unprotectedApiRouter.route('/', pushPubRouter);
 
 const protectedApiRouter = new OpenAPIHono();
 protectedApiRouter.route('/', pushRouter);
 protectedApiRouter.route('/', mediaRouter);
+protectedApiRouter.route('/', openGraphScrapeRoute);
 protectedApiRouter.route('/', loginProtectedRouter);
 protectedApiRouter.route('/', commentRouter);
 protectedApiRouter.route('/', courseRouter);
