@@ -1,6 +1,7 @@
 import { CronJob } from 'cron';
 import { db } from '~/db/drizzle';
 import { CalendarEvent, PushSubscription } from '~/db/schema';
+import { trackBackground } from '~/lib/background';
 import { guardedTask } from '~/lib/guarded-task';
 import { PushData, sendNotificationToAll } from '~/lib/push-manager';
 import { wibClock } from '~/lib/wib';
@@ -175,7 +176,11 @@ export const runReminders = createReminderRun({
 });
 
 /** Every minute: push the events starting in 24 hours (H-1). A run that fails is logged; it never stops the API. */
+const remindersTick = guardedTask('Calendar cron', runReminders);
 export const calendarCron = new CronJob(
   '* * * * *',
-  guardedTask('Calendar cron', runReminders),
+  // Tracked so a shutdown lets a run that is sending finish.
+  async () => {
+    await trackBackground(remindersTick());
+  },
 );

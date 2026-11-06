@@ -274,3 +274,46 @@ test('a calendar group is found by its id', async () => {
   assert.equal(group?.id, 'rl-himpunan');
   assert.equal(await calendar.getCalendarGroupById(db, 'rl-none'), undefined);
 });
+
+// A stuck query used to hold its pooled connection with no limit.
+test('a statement running past DB_STATEMENT_TIMEOUT_MS is cancelled', async () => {
+  const postgres = (await import('postgres')).default;
+  const { postgresOptions } = await import('../../src/db/drizzle');
+  const timed = postgres(url as string, {
+    ...postgresOptions({ DB_STATEMENT_TIMEOUT_MS: 300 }),
+    max: 1,
+    onnotice: () => {},
+  });
+  try {
+    const [row] = await timed`show statement_timeout`;
+    assert.equal(row.statement_timeout, '300ms');
+    await assert.rejects(timed`select pg_sleep(2)`, /statement timeout/);
+    const [ok] = await timed`select 1 as one`;
+    assert.equal(ok.one, 1, 'the connection still works after');
+  } finally {
+    await timed.end();
+  }
+  const def = postgres(url as string, {
+    ...postgresOptions({ DB_STATEMENT_TIMEOUT_MS: 15_000 }),
+    max: 1,
+  });
+  try {
+    const [row] = await def`show statement_timeout`;
+    assert.equal(row.statement_timeout, '15s');
+  } finally {
+    await def.end();
+  }
+});
+
+test(
+  '/health on the real server: 200 with its database',
+  { timeout: 60_000 },
+  async (t) => {
+    const { startServer } = await import('../support/server');
+    const up = await startServer(4525, { DATABASE_URL: url as string });
+    t.after(up.stop);
+    const ok = await fetch(`${up.base}/health`);
+    assert.equal(ok.status, 200, up.output());
+    assert.deepEqual(await ok.json(), { status: 'ok', database: 'ok' });
+  },
+);

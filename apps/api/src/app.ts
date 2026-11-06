@@ -1,5 +1,6 @@
 import { swaggerUI } from '@hono/swagger-ui';
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { sql } from 'drizzle-orm';
 import * as Sentry from '@sentry/node';
 import fs from 'fs';
 import { cors } from 'hono/cors';
@@ -11,6 +12,8 @@ import { performance } from 'perf_hooks';
 import { fileURLToPath } from 'url';
 import { env } from './configs/env.config';
 import { apiRouter } from './controllers/api.controller';
+import { db } from './db/drizzle';
+import { isShuttingDown } from './lib/shutdown';
 import { logger } from './logger';
 import {
   CurhatJoinAckSchema,
@@ -32,7 +35,17 @@ const packageJson = JSON.parse(
  * and no socket server (`index.ts` does), and touches no database until a request needs one, so tests and the
  * web client's generator (`scripts/openapi.ts`) can use it without a running server.
  */
-export function createApp() {
+export interface AppOptions {
+  /** Rejects when the database can't answer; `/health` reports it. */
+  checkDatabase?: () => Promise<unknown>;
+}
+
+/** Health checks give up on the database after this long, so a stuck pool reads as down, not as a hung check. */
+const HEALTH_DB_TIMEOUT_MS = 2000;
+
+export function createApp({
+  checkDatabase = async () => await db.execute(sql`select 1`),
+}: AppOptions = {}) {
   const app = new OpenAPIHono<{
     Variables: RequestIdVariables;
   }>({
@@ -81,6 +94,29 @@ export function createApp() {
     }),
   );
   app.get('/', (c) => c.json({ message: 'Server runs successfully' }));
+  // For load balancers and monitoring: 200 while the API can reach its database, 503 when it can't or is shutting down.
+  app.get('/health', async (c) => {
+    if (isShuttingDown()) {
+      return c.json({ status: 'shutting-down' }, 503);
+    }
+    let timer: NodeJS.Timeout | undefined;
+    try {
+      await Promise.race([
+        checkDatabase(),
+        new Promise((_resolve, reject) => {
+          timer = setTimeout(() => {
+            reject(new Error('Database check timed out'));
+          }, HEALTH_DB_TIMEOUT_MS);
+        }),
+      ]);
+      return c.json({ status: 'ok', database: 'ok' }, 200);
+    } catch (error) {
+      logger.warn({ type: 'health', message: String(error) });
+      return c.json({ status: 'unavailable', database: 'unreachable' }, 503);
+    } finally {
+      clearTimeout(timer);
+    }
+  });
   app.route('/api', apiRouter);
   // The chat socket's payloads (websocket/curhat.ts) aren't routes; listing them puts their types in the web client.
   for (const [name, schema] of Object.entries({
