@@ -29,6 +29,8 @@ export const EnvSchema = z.object({
   SMTP_SECURE: z.coerce.boolean().default(true),
   SMTP_PASS: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
+  // Other OAuth client ids whose access tokens may sign in (comma-separated), if the web app uses another client.
+  GOOGLE_ALLOWED_CLIENT_IDS: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_CALLBACK_URL: z.string().url(),
   JWT_SECRET: z.string(),

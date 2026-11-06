@@ -5,6 +5,12 @@ import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
 import { angkatan, users } from '~/db/schema';
 import { isDevLoginEnabled, verifyDevPassword } from '~/lib/dev-login';
+import * as Sentry from '@sentry/node';
+import {
+  allowedGoogleClientIds,
+  googleUserFromAccessToken,
+  InvalidGoogleTokenError,
+} from '~/lib/google-token';
 import { JWT_ALG } from '~/lib/jwt';
 import { bypassTokenMatches, isLoginBypassEnabled } from '~/lib/login-bypass';
 import { SESSION_COOKIE, sessionCookieOptions } from '~/lib/session-cookie';
@@ -67,46 +73,41 @@ loginRouter.openapi(loginRoute, async (c) => {
 });
 
 loginRouter.openapi(loginAccessTokenRoute, async (c) => {
+  const { accessToken } = c.req.valid('json');
+  let userInfo;
   try {
-    const { accessToken } = c.req.valid('json');
-    const userInfoResponse = await fetch(
-      'https://www.googleapis.com/oauth2/v2/userinfo',
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    // Only a token issued to PIPS! (lib/google-token.ts).
+    userInfo = await googleUserFromAccessToken(
+      accessToken,
+      allowedGoogleClientIds(env),
     );
-    const userInfo = GoogleUserSchema.parse(await userInfoResponse.json());
-    // Find user in db, if not found return forbidden
-    const { email, picture } = userInfo;
-    const user = await getUserAndUpdatePicture(db, email, picture);
-    if (!user) {
-      return c.json(
-        {
-          error: 'User not found in database',
-        },
-        401,
-      );
-    }
-
-    // Create cookie
-    const tokenPayload = JWTPayloadSchema.parse(user);
-    const token = await generateJWT(tokenPayload);
-
-    void updateUserLastLogin(db, user.id);
-
-    setCookie(c, SESSION_COOKIE, token, sessionCookieOptions());
-    return c.json(tokenPayload, 200);
   } catch (err) {
+    if (err instanceof InvalidGoogleTokenError) {
+      return c.json({ error: 'Invalid Google token' }, 401);
+    }
+    Sentry.captureException(err);
+    return c.json({ error: 'Something went wrong' }, 500);
+  }
+  // Find user in db, if not found return forbidden
+  const { email, picture } = userInfo;
+  const user = await getUserAndUpdatePicture(db, email, picture);
+  if (!user) {
     return c.json(
       {
-        // Sent as caught, as before; the response schema's string type doesn't describe it.
-        error: err as string,
+        error: 'User not found in database',
       },
-      500,
+      401,
     );
   }
+
+  // Create cookie
+  const tokenPayload = JWTPayloadSchema.parse(user);
+  const token = await generateJWT(tokenPayload);
+
+  void updateUserLastLogin(db, user.id);
+
+  setCookie(c, SESSION_COOKIE, token, sessionCookieOptions());
+  return c.json(tokenPayload, 200);
 });
 
 loginRouter.openapi(authCallbackRoute, async (c) => {
