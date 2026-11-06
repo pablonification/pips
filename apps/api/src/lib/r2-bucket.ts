@@ -8,6 +8,10 @@ import { env } from '~/configs/env.config';
 
 const S3 = new S3Client({
   region: 'auto',
+  // The SDK's default adds a checksum to every request, and to a presigned PUT that is the checksum of an empty
+  // body (`x-amz-checksum-crc32=AAAAAA==`), so storage refuses the real file. Only when an operation needs one.
+  requestChecksumCalculation: 'WHEN_REQUIRED',
+  responseChecksumValidation: 'WHEN_REQUIRED',
   endpoint: env.R2_ENDPOINT,
   credentials: {
     accessKeyId: env.R2_ACCESS_KEY_ID,
