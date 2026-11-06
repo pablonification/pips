@@ -2,12 +2,13 @@
  * A Curhat room (garis/screens-more.js `scrRoom`; app.js `renderPhone`, `reply`, `reply-cancel`, `del-room` and the
  * chat submit): the thread oldest first with day lines, your bubbles in gold and Welfare's on the surface, Balas,
  * the composer, and deleting the room after confirming. A focused flow on phones and tablets (no tab bar or rail).
+ * Laid out as a chat (owner's changes, 2026-11-06): the head and the composer stay pinned, a short thread sits at the
+ * bottom by the composer, messages close together group with their time once, and Balas is an icon (`MessageRow`).
  * What you send shows at once and settles into Terkirim or Gagal with Kirim ulang (SPEC story 96; OPEN-QUESTIONS D7).
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import {
-  Fragment,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -54,7 +55,15 @@ import {
 } from './data';
 import { atEnd, scroller, scrollToEnd, takeComposerFocus } from './focus';
 import { ConnectionBanner } from './List';
-import { buildThread, canReply, roomName, type ThreadMessage } from './rules';
+import { MessageRow } from './MessageRow';
+import {
+  buildThread,
+  canReply,
+  groupThread,
+  roomName,
+  type GroupedItem,
+  type ThreadMessage,
+} from './rules';
 
 const ROOM_ROUTE = '/_app/_left-navbar/layanan/curhat/$roomId' as const;
 
@@ -143,7 +152,7 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
     [outbox, roomId],
   );
   const items = useMemo(
-    () => buildThread(room.messages, mine, Date.now()),
+    () => groupThread(buildThread(room.messages, mine, Date.now())),
     [room.messages, mine],
   );
 
@@ -176,12 +185,14 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
     if (takeComposerFocus()) field.current?.focus({ preventScroll: true });
   }, []);
   const stick = useFollowNewest(items);
+  usePinnedHead();
 
   const quoted =
     replyTo === null
       ? null
       : (items.find(
-          (i): i is ThreadMessage => i.kind === 'message' && i.id === replyTo,
+          (i): i is GroupedItem & ThreadMessage =>
+            i.kind === 'message' && i.id === replyTo,
         )?.text ?? null);
 
   const send = () => {
@@ -241,7 +252,7 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
           </Button>
         }
       />
-      <PageBody className="g-room-page">
+      <PageBody wide className="g-room-page">
         {items.length ? null : (
           <p className="g-chat-first t-sm text-fg-2">{t.ruang.pertama}</p>
         )}
@@ -345,6 +356,28 @@ export function useFollowNewest(items: unknown) {
   return stick;
 }
 
+/**
+ * On desktop the room's head (its name and action) stays pinned under the breadcrumbs (curhat.css); a control brought
+ * into view by Tab stops below both, so the page's scroller keeps the head's height (with the shell's
+ * `--g-crumbs-h`) as its top scroll padding. Shared with Welfare's inbox.
+ */
+export function usePinnedHead() {
+  useLayoutEffect(() => {
+    const el = scroller();
+    const head = el?.querySelector<HTMLElement>('.g-d-head');
+    if (!el || !head || typeof ResizeObserver === 'undefined') return;
+    const set = () =>
+      el.style.setProperty('--g-chat-head-h', `${head.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(head);
+    return () => {
+      ro.disconnect();
+      el.style.removeProperty('--g-chat-head-h');
+    };
+  }, []);
+}
+
 function TimeLine({ m }: { m: ThreadMessage }) {
   if (!m.mine)
     return (
@@ -374,41 +407,41 @@ function Message({
   onReply,
   onRetry,
 }: {
-  m: ThreadMessage;
+  m: GroupedItem & ThreadMessage;
   onReply: () => void;
   onRetry: () => void;
 }) {
+  // The time once per group, on its last bubble; a delivery state (Mengirim, Terkirim) always shows.
+  const time = m.end || m.delivery !== 'delivered' || m.newestDelivered;
   return (
-    <Fragment>
-      <div className={cn('g-bubble', m.mine ? 'me' : 'them')}>
-        {m.quote !== null ? (
-          <span className="quote">
-            <span className="sr-only">{t.ruang.membalasSr}</span>
-            {m.quote}
-          </span>
-        ) : null}
-        <span className="sr-only">
-          {m.mine ? t.ruang.kamuSr : t.ruang.welfareSr}
+    <MessageRow
+      side={m.mine ? 'me' : 'them'}
+      start={m.start}
+      end={m.end}
+      onReply={canReply(m) ? onReply : null}
+      after={
+        m.delivery === 'failed' ? (
+          <div className="g-bubble-fail">
+            <span className="g-err">
+              <IconPeringatan size={16} />
+              {t.ruang.gagal}
+            </span>
+            <LinkButton onClick={onRetry}>{t.ruang.kirimUlang}</LinkButton>
+          </div>
+        ) : null
+      }
+    >
+      {m.quote !== null ? (
+        <span className="quote">
+          <span className="sr-only">{t.ruang.membalasSr}</span>
+          {m.quote}
         </span>
-        {m.text}
-        <TimeLine m={m} />
-      </div>
-      {canReply(m) ? (
-        <LinkButton
-          className={cn('g-bubble-tools', !m.mine && 'them')}
-          onClick={onReply}
-        >
-          {t.ruang.balas}
-        </LinkButton>
-      ) : m.delivery === 'failed' ? (
-        <div className="g-bubble-fail">
-          <span className="g-err">
-            <IconPeringatan size={16} />
-            {t.ruang.gagal}
-          </span>
-          <LinkButton onClick={onRetry}>{t.ruang.kirimUlang}</LinkButton>
-        </div>
       ) : null}
-    </Fragment>
+      <span className="sr-only">
+        {m.mine ? t.ruang.kamuSr : t.ruang.welfareSr}
+      </span>
+      {m.text}
+      {time ? <TimeLine m={m} /> : null}
+    </MessageRow>
   );
 }

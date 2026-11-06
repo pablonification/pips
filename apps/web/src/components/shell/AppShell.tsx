@@ -234,6 +234,12 @@ function usePageHeight(
       );
       const bar = scroller.querySelector<HTMLElement>('.g-top');
       root.style.setProperty('--g-top-h', `${bar ? bar.offsetHeight : 0}px`);
+      // The breadcrumbs' height: a page that pins its head under them (a Curhat room) offsets it by this.
+      const crumbs = scroller.querySelector<HTMLElement>('.g-crumbs');
+      root.style.setProperty(
+        '--g-crumbs-h',
+        `${crumbs ? crumbs.offsetHeight : 0}px`,
+      );
     };
     measure();
     const ro = new ResizeObserver(measure);

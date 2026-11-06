@@ -16,6 +16,8 @@ import {
   canReply,
   clearUnread,
   enterAction,
+  groupThread,
+  GROUP_GAP_MS,
   isFull,
   lastMessage,
   listTime,
@@ -399,6 +401,90 @@ test('a message is put in its room once, newest first', () => {
     ['b', 'a'],
   );
   assert.equal(withMessage(list, msg('b', NOW)), list);
+});
+
+test('regression: two messages saved at the same time keep the order they were sent in', () => {
+  // As the room's cache holds them: newest first, each new one put in front (withMessage).
+  let list = withMessage([], msg('satu', NOW, true));
+  list = withMessage(list, msg('dua', NOW, true));
+  const items = messages(buildThread(list, [], now));
+  assert.deepEqual(
+    items.map((m) => m.id),
+    ['satu', 'dua'],
+  );
+  assert.deepEqual(
+    items.filter((m) => m.newestDelivered).map((m) => m.id),
+    ['dua'],
+  );
+});
+
+const at = (min: number) =>
+  new Date(Date.parse('2026-10-08T03:00:00Z') + min * 60_000).toISOString();
+const groups = (items: ReturnType<typeof groupThread>) =>
+  items.flatMap((i) =>
+    i.kind === 'message' ? [`${i.id}:${+i.start}${+i.end}`] : [],
+  );
+
+test('groups: the same side within five minutes joins; the other side, a longer gap or a new day starts a group', () => {
+  const list = [
+    msg('a', at(0), true),
+    msg('b', at(1), true),
+    msg('c', at(1 + GROUP_GAP_MS / 60_000), true),
+    msg('d', at(7), false),
+    msg('e', at(20), false),
+    // The next day (WIB): a day line between.
+    msg('f', at(24 * 60), false),
+  ].reverse();
+  // id:start end
+  assert.deepEqual(groups(groupThread(buildThread(list, [], now))), [
+    'a:10',
+    'b:00',
+    'c:01',
+    'd:11',
+    'e:11',
+    'f:11',
+  ]);
+});
+
+test('groups: a failed message ends its group; pending ones join yours; another key (the inbox’s speaker) splits', () => {
+  const failed: OutboxEntry = {
+    localId: 'l1',
+    clientMessageId: 'c1',
+    chatroomId: 'x',
+    text: 'gagal',
+    replyId: null,
+    status: 'failed',
+    at: at(2),
+  };
+  const pending: OutboxEntry = {
+    ...failed,
+    localId: 'l2',
+    clientMessageId: 'c2',
+    status: 'pending',
+    at: at(3),
+  };
+  const items = groupThread(
+    buildThread([msg('a', at(0), true)], [failed, pending], now),
+  );
+  assert.deepEqual(
+    items.flatMap((i) =>
+      i.kind === 'message' ? [`${i.localId ?? i.id}:${+i.start}${+i.end}`] : [],
+    ),
+    ['a:10', 'l1:01', 'l2:11'],
+  );
+  // Welfare's inbox groups by who said it: yours and a teammate's are both on its side, in separate groups.
+  const two = [
+    msg('w1', at(0), true, { fromOwner: false }),
+    msg('w2', at(1), false, { fromOwner: false }),
+  ].reverse();
+  assert.deepEqual(
+    groups(groupThread(buildThread(two, [], now), (m) => m.mine)),
+    ['w1:11', 'w2:11'],
+  );
+  assert.deepEqual(
+    groups(groupThread(buildThread(two, [], now), (m) => !m.fromOwner)),
+    ['w1:10', 'w2:01'],
+  );
 });
 
 test('Enter: a new line on touch keyboards, sends with a fine pointer, Shift+Enter a new line, not while composing', () => {

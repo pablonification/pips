@@ -287,7 +287,12 @@ export function buildThread(
   const unsent = outbox.filter(
     (e) => e.status !== 'delivered' && !serverHolds(known, e),
   );
-  const server = [...known, ...deliveredOnly].sort((a, b) => time(a) - time(b));
+  // The API sends newest first: reversed, messages saved at the same time keep the order they were sent in once the
+  // (stable) sort puts the oldest first.
+  const server = [...known]
+    .reverse()
+    .concat(deliveredOnly)
+    .sort((a, b) => time(a) - time(b));
   const byId = new Map(server.map((m) => [m.id, m]));
   const quoteOf = (m: {
     replyId: string | null;
@@ -343,6 +348,40 @@ export function buildThread(
     });
   }
   return items;
+}
+
+/** Messages from one side this close together sit as one group (owner's chat changes, 2026-11-06). */
+export const GROUP_GAP_MS = 5 * 60_000;
+
+/** A message's place in its group: `start` is its first bubble, `end` its last (where the time is shown). */
+export type GroupedItem =
+  | (ThreadMessage & { start: boolean; end: boolean })
+  | ThreadDay;
+
+/**
+ * Groups a thread as chat apps do: consecutive messages from the same side (`side`; the member's own by default,
+ * Welfare's inbox passes its own), on the same day and at most five minutes apart, join into one group with tight
+ * spacing and the time once, on its last bubble. `side` is who the group is (any value compared with ===). A failed message ends its group (its Gagal line sits under it).
+ */
+export function groupThread(
+  items: ThreadItem[],
+  side: (m: ThreadMessage) => unknown = (m) => m.mine,
+): GroupedItem[] {
+  const joins = (a: ThreadItem | undefined, b: ThreadItem | undefined) =>
+    a?.kind === 'message' &&
+    b?.kind === 'message' &&
+    side(a) === side(b) &&
+    a.delivery !== 'failed' &&
+    Math.abs(Date.parse(b.at) - Date.parse(a.at)) <= GROUP_GAP_MS;
+  return items.map((item, i) =>
+    item.kind === 'day'
+      ? item
+      : {
+          ...item,
+          start: !joins(items[i - 1], item),
+          end: !joins(item, items[i + 1]),
+        },
+  );
 }
 
 /** Only a delivered message can be replied to (Balas); a failed one offers Kirim ulang instead. */

@@ -315,7 +315,7 @@ test.describe('a room', () => {
     await expect(page).toHaveTitle('Teal Koala · PIPS!');
     // Oldest first, with day lines; who said it, for screen readers.
     await expect(log(page)).toContainText(
-      `Senin, 5 OktoberKamu: ${M1}21.10Balas` +
+      `Senin, 5 OktoberKamu: ${M1}21.10` +
         `Selasa, 6 OktoberWelfare: Normal banget kok`,
     );
     await expect(bubble(page, M4)).toHaveText(
@@ -1139,6 +1139,197 @@ test.describe('Welfare', () => {
         ),
       ])
       .toEqual(['curhat:welfare r1 r2']);
+  });
+});
+
+test.describe('the chat layout (owner’s changes, 2026-11-06)', () => {
+  const scroller = (page: Page) =>
+    page.locator('[data-scroll-restoration-id="isi"]');
+  /** The room's head: the top bar on phones and tablets, the page head on desktop. */
+  const head = (page: Page, t: TestInfo) =>
+    isDesk(t) ? main(page).locator('.g-d-head') : page.locator('.g-top');
+
+  test('a short thread: the composer ends at the bottom of the screen, the messages sit just above it', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    await page.goto('/layanan/curhat/r2');
+    await expect(log(page, 'Amber Heron')).toBeVisible();
+    const height = page.viewportSize()!.height;
+    const bar = (await page.locator('.g-chat-bar').boundingBox())!;
+    expect(Math.abs(bar.y + bar.height - height)).toBeLessThanOrEqual(1);
+    // From the bottom, as in a chat: the newest bubble right above the composer, not under the head.
+    const last = (await log(page, 'Amber Heron')
+      .locator('.g-bubble')
+      .filter({ hasText: 'Sama-sama! Kapan pun mau cerita lagi' })
+      .boundingBox())!;
+    expect(bar.y - (last.y + last.height)).toBeLessThanOrEqual(24);
+    // Nothing to scroll.
+    expect(
+      await scroller(page).evaluate((el) => el.scrollHeight - el.clientHeight),
+    ).toBeLessThanOrEqual(1);
+  });
+
+  test('a new room: the composer at the bottom of the screen, the first-message hint above it', async ({
+    page,
+    api,
+    db,
+  }) => {
+    canRead(api);
+    db.chatrooms.r2.messages = [];
+    await page.goto('/layanan/curhat/r2');
+    await expect(composer(page)).toBeVisible();
+    const bar = (await page.locator('.g-chat-bar').boundingBox())!;
+    expect(
+      Math.abs(bar.y + bar.height - page.viewportSize()!.height),
+    ).toBeLessThanOrEqual(1);
+    const hint = (await main(page)
+      .getByText('Tulis pesan pertamamu. Tim Welfare membalas di sini.')
+      .boundingBox())!;
+    expect(bar.y - (hint.y + hint.height)).toBeLessThanOrEqual(48);
+  });
+
+  test('a long thread: the head and the composer stay on screen while you read back', async ({
+    page,
+    api,
+    db,
+  }, testInfo) => {
+    canRead(api);
+    const base = Date.parse(NOW) - 60 * 60_000;
+    db.chatrooms.r1.messages = [
+      ...Array.from({ length: 30 }, (_, i) => ({
+        id: `m-many-${i}`,
+        chatroomId: 'r1',
+        replyId: null,
+        content: `Pesan ke-${i + 1}`,
+        createdAt: new Date(base + i * 10 * 60_000).toISOString(),
+        isSender: i % 2 === 0,
+        fromOwner: i % 2 === 0,
+        clientMessageId: null,
+      })),
+      ...db.chatrooms.r1.messages!,
+    ];
+    await openR1(page);
+    await scroller(page).evaluate((el) => (el.scrollTop = 0));
+    await expect(bubble(page, M1)).toBeInViewport();
+    await expect(head(page, testInfo)).toBeInViewport({ ratio: 1 });
+    await expect(
+      isDesk(testInfo)
+        ? main(page).getByRole('button', { name: 'Hapus ruang' })
+        : page.getByRole('button', { name: 'Hapus ruang ini' }),
+    ).toBeInViewport({ ratio: 1 });
+    await expect(composer(page)).toBeInViewport({ ratio: 1 });
+    const top = (await head(page, testInfo).boundingBox())!;
+    expect(top.y).toBeGreaterThanOrEqual(0);
+    // The middle of the thread, too.
+    await scroller(page).evaluate((el) => (el.scrollTop = el.scrollHeight / 2));
+    await expect(head(page, testInfo)).toBeInViewport({ ratio: 1 });
+    await expect(composer(page)).toBeInViewport({ ratio: 1 });
+    if (isDesk(testInfo))
+      await expect(
+        main(page).getByRole('link', { name: 'Curhat Yuk!' }),
+      ).toBeInViewport({ ratio: 1 });
+  });
+
+  test('messages close together group: tight spacing and the time once, on the last', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    await openR1(page);
+    // Acknowledged as the API does, both at the same minute.
+    for (const text of ['Satu', 'Dua']) {
+      await composer(page).fill(text);
+      await sendButton(page).click();
+      await expect(bubble(page, text)).toContainText('Terkirim');
+    }
+    // The first one's time is the group's, shown on the last.
+    await expect(bubble(page, 'Satu')).toHaveText('Kamu: Satu');
+    await expect(bubble(page, 'Dua')).toHaveText('Kamu: DuaTerkirim · 13.35');
+    const a = (await bubble(page, 'Satu').boundingBox())!;
+    const b = (await bubble(page, 'Dua').boundingBox())!;
+    expect(b.y - (a.y + a.height)).toBeLessThanOrEqual(4);
+    // A new side starts a new group, with more room.
+    const m4 = (await bubble(page, M4).boundingBox())!;
+    expect(a.y - (m4.y + m4.height)).toBeGreaterThanOrEqual(10);
+  });
+
+  test('no Balas text under the bubbles: Balas is an icon beside each, shown on hover and on focus @desktop-only', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    await openR1(page);
+    await expect(log(page).getByText('Balas', { exact: true })).toHaveCount(0);
+    const reply = log(page).getByRole('button', { name: 'Balas' }).last();
+    const opacity = () =>
+      reply.evaluate((el) => Number(getComputedStyle(el).opacity));
+    await expect.poll(opacity).toBe(0);
+    await bubble(page, M4).hover();
+    await expect.poll(opacity).toBe(1);
+    // Beside the bubble, on the same line.
+    const r = (await reply.boundingBox())!;
+    const m = (await bubble(page, M4).boundingBox())!;
+    expect(r.x).toBeGreaterThanOrEqual(m.x + m.width);
+    expect(r.y + r.height / 2).toBeGreaterThan(m.y);
+    expect(r.y + r.height / 2).toBeLessThan(m.y + m.height);
+    await reply.click();
+    await expect(chip(page)).toHaveText(`Membalas: ${M4}`);
+    await page.mouse.move(0, 0);
+    await reply.focus();
+    await expect.poll(opacity).toBe(1);
+  });
+
+  test('touch: swiping a bubble replies to it; a tap shows Balas @phone-only', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    await openR1(page);
+    // Your own m3 is the first bubble with its text (m4 quotes it).
+    const swipe = async (text: string, by: number) => {
+      const box = (await bubble(page, text).first().boundingBox())!;
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+      const ev = (type: string, dx: number) =>
+        bubble(page, text).first().dispatchEvent(type, {
+          pointerType: 'touch',
+          pointerId: 7,
+          isPrimary: true,
+          clientX: x + dx,
+          clientY: y,
+        });
+      await ev('pointerdown', 0);
+      for (const step of [10, 30, by]) await ev('pointermove', step);
+      await ev('pointerup', by);
+    };
+    // Welfare's message to the right.
+    await swipe(M4, 70);
+    await expect(chip(page)).toHaveText(`Membalas: ${M4}`);
+    await expect(composer(page)).toBeFocused();
+    await page.getByRole('button', { name: 'Batal membalas' }).click();
+    // A short pull isn't a reply.
+    await swipe(M4, 30);
+    await expect(chip(page)).toHaveCount(0);
+    // Your own to the left.
+    await swipe(M3, -70);
+    await expect(chip(page)).toHaveText(`Membalas: ${M3}`);
+    await page.getByRole('button', { name: 'Batal membalas' }).click();
+    // A tap shows the icon.
+    const reply = log(page)
+      .locator('.g-msg')
+      .filter({ has: page.locator('.g-bubble', { hasText: M1 }) })
+      .getByRole('button', { name: 'Balas' });
+    await expect
+      .poll(() => reply.evaluate((el) => Number(getComputedStyle(el).opacity)))
+      .toBe(0);
+    await bubble(page, M1).tap();
+    await expect
+      .poll(() => reply.evaluate((el) => Number(getComputedStyle(el).opacity)))
+      .toBe(1);
+    await reply.tap();
+    await expect(chip(page)).toHaveText(`Membalas: ${M1}`);
   });
 });
 
