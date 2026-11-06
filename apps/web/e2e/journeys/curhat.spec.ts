@@ -1293,13 +1293,15 @@ test.describe('the chat layout (owner’s changes, 2026-11-06)', () => {
       const x = box.x + box.width / 2;
       const y = box.y + box.height / 2;
       const ev = (type: string, dx: number) =>
-        bubble(page, text).first().dispatchEvent(type, {
-          pointerType: 'touch',
-          pointerId: 7,
-          isPrimary: true,
-          clientX: x + dx,
-          clientY: y,
-        });
+        bubble(page, text)
+          .first()
+          .dispatchEvent(type, {
+            pointerType: 'touch',
+            pointerId: 7,
+            isPrimary: true,
+            clientX: x + dx,
+            clientY: y,
+          });
       await ev('pointerdown', 0);
       for (const step of [10, 30, by]) await ev('pointermove', step);
       await ev('pointerup', by);

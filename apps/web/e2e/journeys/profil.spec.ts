@@ -445,7 +445,91 @@ test.describe('Kredit', () => {
     await expect(
       main(page).getByText('PIPS! dibuat dan dirawat oleh HMIF ITB.'),
     ).toBeVisible();
+    // The text's own "Credits" title goes: the page's title says it (owner's change, 2026-11-06).
+    await expect(main(page).getByText('Credits')).toHaveCount(0);
     await strictGates(page, testInfo, 'kredit', 'Profil');
+  });
+
+  test('credits in the server’s usual shape: a group, roles and teams as cards, Lead and Team, name over angkatan and NIM', async ({
+    page,
+    db,
+  }, testInfo) => {
+    // Sample names, in the shape of the server's credits.
+    db.credits = {
+      ...db.credits,
+      content: [
+        '# Credits',
+        '## Panitia Khusus',
+        '',
+        '### Project Owner',
+        "Nadia Putri - IF'21 - 13521001",
+        '',
+        '### Project Lead',
+        "Raka Pratama - IF'21 - 13521002",
+        '',
+        '### Frontend',
+        '#### Lead',
+        "Sinta Dewi - IF'21 - 13521003",
+        '#### Team',
+        "Bima Arya N - STI'21 - 18221004",
+        '',
+        "Citra Lestari - IF'22 - 13522005",
+        '### Backend',
+        '#### Lead',
+        "Dimas Saputra - STI'22 - 18222006",
+        '#### Team',
+        "Eka Wulandari - STI'21 - 18221007",
+      ].join('\n'),
+    };
+    await page.goto('/profil/kredit');
+    const group = main(page).getByRole('heading', {
+      level: 2,
+      name: 'Panitia Khusus',
+    });
+    await expect(group).toBeVisible();
+    await expect(main(page).getByText('Credits')).toHaveCount(0);
+    await expect(main(page).getByRole('heading', { level: 3 })).toHaveText([
+      'Project Owner',
+      'Project Lead',
+      'Frontend',
+      'Backend',
+    ]);
+    const frontend = main(page)
+      .locator('.g-kredit-card')
+      .filter({ has: page.getByRole('heading', { name: 'Frontend' }) });
+    await expect(frontend.getByRole('heading', { level: 4 })).toHaveText([
+      'Lead',
+      'Team',
+    ]);
+    await expect(frontend.getByRole('listitem')).toHaveText([
+      "SDSinta DewiIF'21 · 13521003",
+      "BNBima Arya NSTI'21 · 18221004",
+      "CLCitra LestariIF'22 · 13522005",
+    ]);
+    // The name first and prominent, angkatan and NIM after it in tabular figures.
+    const sinta = frontend.getByRole('listitem').first();
+    expect(
+      await sinta
+        .getByText('Sinta Dewi')
+        .evaluate((el) => getComputedStyle(el).fontWeight),
+    ).toBe('600');
+    expect(
+      await sinta
+        .getByText("IF'21 · 13521003")
+        .evaluate((el) => getComputedStyle(el).fontVariantNumeric),
+    ).toContain('tabular-nums');
+    // Roles side by side from the tablet up; one column on phones.
+    const owner = (await main(page)
+      .locator('.g-kredit-card')
+      .first()
+      .boundingBox())!;
+    const lead = (await main(page)
+      .locator('.g-kredit-card')
+      .nth(1)
+      .boundingBox())!;
+    if (layoutOf(testInfo) === 'phone') expect(lead.y).toBeGreaterThan(owner.y);
+    else expect(lead.y).toBe(owner.y);
+    await strictGates(page, testInfo, 'kredit-cards', 'Profil');
   });
 
   test('a failed load says so with Coba lagi, which recovers', async ({

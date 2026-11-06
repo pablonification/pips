@@ -355,8 +355,7 @@ export const GROUP_GAP_MS = 5 * 60_000;
 
 /** A message's place in its group: `start` is its first bubble, `end` its last (where the time is shown). */
 export type GroupedItem =
-  | (ThreadMessage & { start: boolean; end: boolean })
-  | ThreadDay;
+  (ThreadMessage & { start: boolean; end: boolean }) | ThreadDay;
 
 /**
  * Groups a thread as chat apps do: consecutive messages from the same side (`side`; the member's own by default,
