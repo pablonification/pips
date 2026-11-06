@@ -51,6 +51,13 @@ export const markRead: Handler = ({ db, params, body }) => {
   return { success: true };
 };
 
+/** POST /api/info/read-all — mark every post the member sees read (the fixture holds only those); how many. */
+export const readAll: Handler = ({ db }) => {
+  const unread = db.infos.filter((i) => !i.isRead);
+  for (const i of unread) i.isRead = true;
+  return { marked: unread.length };
+};
+
 /** PUT /api/reaction — react to a post or a comment (one reaction per person). */
 export const react: Handler = ({ db, body }) => {
   const { reaction, infoId, commentId } = body as {

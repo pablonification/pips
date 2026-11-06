@@ -18,7 +18,9 @@ import {
   SkeletonBar,
   SkeletonRow,
   Switch,
+  toast,
 } from '~/components/garis';
+import { IconCentang2 } from '~/components/icons/centang2';
 import { IconSaring } from '~/components/icons/saring';
 import { IconTambah } from '~/components/icons/tambah';
 import { IconUrut } from '~/components/icons/urut';
@@ -28,7 +30,7 @@ import { fill } from '~/copy/fill';
 import { pengumuman as t } from '~/copy/pengumuman';
 import { DEBOUNCE_TIME } from '~/lib/constants';
 import { hm } from '~/lib/dates';
-import { useCategories, useFeed } from './data';
+import { useCategories, useFeed, useMarkAllRead } from './data';
 import { useUnreadIds } from './unread-query';
 import { useDelayed, useElementInView, useOnline } from './parts';
 import { PostCard, PostRow } from './PostCard';
@@ -140,12 +142,14 @@ function FeedTools({ view }: { view: FeedView }) {
         <button
           type="button"
           className="g-chip"
+          data-unread-chip=""
           aria-pressed={!!v.unread}
           onClick={() => setView({ unread: !v.unread || undefined })}
         >
           {t.feed.belumDibaca}
           {count ? <span className="n">{count}</span> : null}
         </button>
+        {unread?.length ? <MarkAllRead /> : null}
         <button
           type="button"
           className="g-chip"
@@ -191,6 +195,39 @@ function FeedTools({ view }: { view: FeedView }) {
         }}
       />
     </>
+  );
+}
+
+/**
+ * Tandai semua dibaca (owner, 2026-11-06), beside Belum dibaca while anything is unread. Once done it goes, so focus
+ * moves to Belum dibaca; a failure says so, with Coba lagi.
+ */
+function MarkAllRead() {
+  const markAll = useMarkAllRead();
+  // Awaited, not mutate's own callbacks: those don't run once this control has gone, which success makes it do.
+  const run = async () => {
+    if (markAll.isPending) return;
+    try {
+      await markAll.mutateAsync();
+    } catch {
+      toast.error(t.feed.gagalTandaiSemua, {
+        action: { label: common.actions.cobaLagi, onClick: () => void run() },
+      });
+      return;
+    }
+    focusSoon(() => document.querySelector<HTMLElement>('[data-unread-chip]'));
+    toast.success(t.feed.semuaDitandai);
+  };
+  return (
+    <button
+      type="button"
+      className="g-chip"
+      onClick={() => void run()}
+      aria-disabled={markAll.isPending || undefined}
+    >
+      <IconCentang2 size={16} />
+      {t.feed.tandaiSemua}
+    </button>
   );
 }
 
