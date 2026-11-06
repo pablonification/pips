@@ -11,18 +11,31 @@ import {
   type PushPromptResult,
 } from './push-store';
 
+/** The "belum menyala" error on screen, so a later outcome replaces it instead of standing beside it. */
+let failedToast: number | null = null;
+function clearFailedToast() {
+  if (failedToast !== null) toast.dismiss(failedToast);
+  failedToast = null;
+}
+
 /** The toast after Nyalakan or its Coba lagi (garis/app.js `push-allow`, `push-deny`; errors are new copy). */
 export function toastPushResult(result: Exclude<PushPromptResult, 'tutup'>) {
+  clearFailedToast();
   if (result === 'aktif') toast.success(copy.toast.menyala);
   else if (result === 'nanti') toast.success(copy.toast.tetapMati);
   else if (result === 'diblokir') toast.error(copy.toast.diblokir);
   else
-    toast.error(copy.toast.gagal, {
+    failedToast = toast.error(copy.toast.gagal, {
       action: {
         label: common.actions.cobaLagi,
-        onClick: () => void turnPushOn().then(toastPushResult),
+        onClick: () => void turnPushOn(lateOn).then(toastPushResult),
       },
     });
+}
+
+/** A subscription that came after Nyalakan gave up on it was registered after all: say it's on now. */
+function lateOn() {
+  toastPushResult('aktif');
 }
 
 /** After the prompt closes, the button that opened it may be gone (the card changed state): focus the title. */
@@ -51,7 +64,7 @@ export function PushPrompt() {
 
   const nyalakan = async () => {
     if (pending) return;
-    const result = await turnPushOn();
+    const result = await turnPushOn(lateOn);
     close(result);
     toastPushResult(result);
   };

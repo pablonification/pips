@@ -12,7 +12,8 @@
  *
  * The state survives reloads and navigations in the same test (sessionStorage). A journey decides how the browser's
  * own permission prompt is answered with `answerPermission(page, 'denied')` (default: granted), and reads what
- * happened with `pushDevice(page)`.
+ * happened with `pushDevice(page)`. `holdSubscribe(page)` makes the browser's push service slow: subscriptions wait
+ * until `releaseSubscribe(page)` (in this page only).
  */
 import type { BrowserContext, Page } from '@playwright/test';
 
@@ -62,8 +63,17 @@ export async function installPushStub(context: BrowserContext, mode: PushMode) {
       const state = load();
       const save = () => sessionStorage.setItem(KEY, JSON.stringify(state));
       save();
+      let held: Array<() => void> | null = null;
       (window as unknown as { __e2ePush: unknown }).__e2ePush = {
         get: () => ({ ...load() }),
+        hold: () => {
+          held ??= [];
+        },
+        release: () => {
+          const waiting = held ?? [];
+          held = null;
+          waiting.forEach((go) => go());
+        },
         answer: (a: string) => {
           const s = load();
           Object.assign(state, s, { answer: a });
@@ -121,6 +131,7 @@ export async function installPushStub(context: BrowserContext, mode: PushMode) {
           userVisibleOnly: boolean;
           applicationServerKey: unknown;
         }) => {
+          if (held) await new Promise<void>((go) => held!.push(go));
           sync();
           if (state.permission !== 'granted')
             throw new DOMException('Permission denied', 'NotAllowedError');
@@ -196,5 +207,21 @@ export async function pushDevice(page: Page): Promise<PushDevice> {
     (
       window as unknown as { __e2ePush: { get: () => PushDevice } }
     ).__e2ePush.get(),
+  );
+}
+
+/** Makes this page's push service slow: `pushManager.subscribe()` waits until `releaseSubscribe(page)`. */
+export async function holdSubscribe(page: Page) {
+  await page.evaluate(() =>
+    (window as unknown as { __e2ePush: { hold: () => void } }).__e2ePush.hold(),
+  );
+}
+
+/** Lets the subscriptions `holdSubscribe` kept waiting go through. */
+export async function releaseSubscribe(page: Page) {
+  await page.evaluate(() =>
+    (
+      window as unknown as { __e2ePush: { release: () => void } }
+    ).__e2ePush.release(),
   );
 }
