@@ -36,6 +36,8 @@ test('an allowed file gets an address signed for its type and its exact size', a
 
   for (const [fileType, type] of [
     ['JPG', 'image/jpeg'],
+    ['jfif', 'image/jpeg'],
+    ['jpe', 'image/jpeg'],
     ['pdf', 'application/pdf'],
     [
       'docx',
@@ -55,6 +57,9 @@ test('other file types are refused', async () => {
     'js',
     'exe',
     'xhtml',
+    'svg',
+    'SVG',
+    'svgz',
     'png/../x',
     '',
     'constructor',
@@ -111,4 +116,26 @@ test('signed out, nothing is signed', async () => {
     fileSize: 5,
   });
   assert.equal(res.status, 401);
+});
+
+test('regression (review): an SVG is never signed, since it can carry a script that runs on the media domain', async () => {
+  const res = await presign({ fileName: 'poster', fileType: 'svg', fileSize: 500 });
+  assert.equal(res.status, 400);
+  assert.equal(res.body.presignedUrl, undefined);
+});
+
+test('regression (review): the upload address carries no checksum of an empty body, which storage would refuse', async () => {
+  const res = await presign({ fileName: 'poster', fileType: 'png', fileSize: 48213 });
+  assert.equal(res.status, 200);
+  const url = new URL(res.body.presignedUrl);
+  const checksums = [...url.searchParams.keys()].filter((k) =>
+    k.toLowerCase().startsWith('x-amz-checksum'),
+  );
+  assert.deepEqual(checksums, []);
+  assert.equal(url.searchParams.get('x-amz-sdk-checksum-algorithm'), null);
+  // Still signed for exactly this type and size.
+  assert.deepEqual(
+    url.searchParams.get('X-Amz-SignedHeaders')?.split(';').sort(),
+    ['content-length', 'content-type', 'host'],
+  );
 });
