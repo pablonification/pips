@@ -88,8 +88,19 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
     } = c.req.valid('json');
     const { id } = c.var.user;
 
+    const roles = await deps.getUserRoles(id);
+    // A post aimed at groups reaches only the author's own groups, as the composer offers them (`GET /auth/groups`);
+    // admin may aim at any.
+    if (
+      forGroups?.length &&
+      !roles.includes('admin') &&
+      forGroups.some((group) => !(roles as string[]).includes(group))
+    ) {
+      return c.json({ error: 'You may not post to this group' }, 403);
+    }
+
     const categoryCheck = checkPostCategories(
-      await deps.getUserRoles(id),
+      roles,
       forCategories,
       await deps.getCategoriesByIds(forCategories),
     );

@@ -70,6 +70,8 @@ export const CreateInfoBodySchema = createInsertSchema(infos, {
     createdAt: true,
     isForAngkatan: true,
     isForGroups: true,
+    // Set by the server (renotify.ts); a client's value would decide when the post may be re-sent.
+    lastNotifiedAt: true,
   })
   .extend({
     mediaUrls: z
