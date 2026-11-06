@@ -250,8 +250,9 @@ test('time lines and screen-reader prefixes in WIB: "10.12", "Welfare · 10.12",
   assert.equal(inboxSpeakerSr(byId.mine, 'Teal Koala'), 'Kamu: ');
   assert.equal(inboxSpeakerSr(byId.mate, 'Teal Koala'), 'Welfare: ');
   assert.equal(inboxSpeakerSr(byId.member, 'Teal Koala'), 'Teal Koala: ');
+  // By id: the three share one time, and their order then is the API's (newest first, reversed).
   assert.deepEqual(
-    thread.map((m) => onWelfareSide(m)),
+    [byId.mine, byId.mate, byId.member].map((m) => onWelfareSide(m)),
     [true, true, false],
   );
 });
