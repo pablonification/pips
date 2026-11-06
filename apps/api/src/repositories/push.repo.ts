@@ -42,7 +42,28 @@ export async function getPushSubscriptionsByUserIds(
 }
 
 /**
- * Remove push subscriptions that failed to send notification with response status code of 410.
+ * The endpoints a push service says are gone: 410 (expired or unsubscribed) or 404 (unknown). Timeouts and other
+ * failures aren't proof, so those subscriptions stay.
+ */
+export function goneEndpoints(
+  results: Awaited<ReturnType<typeof sendNotificationToAll>>,
+): string[] {
+  const gone: string[] = [];
+  for (const result of results) {
+    if (
+      result.status === 'fulfilled' &&
+      !result.value.success &&
+      (result.value.error.statusCode === 410 ||
+        result.value.error.statusCode === 404)
+    ) {
+      gone.push(result.value.endpoint);
+    }
+  }
+  return gone;
+}
+
+/**
+ * Remove push subscriptions that are gone (`goneEndpoints`).
  * @param db
  * @param results results from sendNotificationToAll
  * @returns
@@ -51,16 +72,7 @@ export async function removeFailedPushSubscriptions(
   db: Database,
   results: Awaited<ReturnType<typeof sendNotificationToAll>>,
 ) {
-  const failedSubscriptions: string[] = [];
-  for (const result of results) {
-    if (
-      result.status === 'fulfilled' &&
-      !result.value.success &&
-      result.value.error.statusCode === 410
-    ) {
-      failedSubscriptions.push(result.value.endpoint);
-    }
-  }
+  const failedSubscriptions = goneEndpoints(results);
 
   if (failedSubscriptions.length === 0) {
     return;
