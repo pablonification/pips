@@ -916,6 +916,61 @@ test.describe('a room', () => {
 
 // ---------------------------------------------------------------- Live
 
+test.describe('the chat layout (owner’s changes, 2026-11-06)', () => {
+  const head = (page: Page, t: TestInfo) =>
+    isDesk(t) ? main(page).locator('.g-d-head') : page.locator('.g-top');
+
+  test('a short thread: the composer ends at the bottom of the screen', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    await page.goto('/kelola/curhat/r2');
+    await expect(log(page, 'Amber Heron')).toBeVisible();
+    const bar = (await page.locator('.g-chat-bar').boundingBox())!;
+    expect(
+      Math.abs(bar.y + bar.height - page.viewportSize()!.height),
+    ).toBeLessThanOrEqual(1);
+    const last = (await log(page, 'Amber Heron')
+      .locator('.g-bubble')
+      .filter({ hasText: M6 })
+      .boundingBox())!;
+    expect(bar.y - (last.y + last.height)).toBeLessThanOrEqual(24);
+  });
+
+  test('a long thread: the head with its pin menu and the composer stay on screen; the member’s messages group', async ({
+    page,
+    api,
+    db,
+  }, testInfo) => {
+    const base = Date.parse(NOW) - 60 * 60_000;
+    db.chatrooms.r1.messages = [
+      ...Array.from({ length: 30 }, (_, i) => ({
+        ...fromMember(`m-many-${i}`, 'r1', `Pesan ke-${i + 1}.`),
+        // Two by two, a minute apart: each pair is one group.
+        createdAt: new Date(
+          base + Math.floor(i / 2) * 10 * 60_000 + (i % 2) * 60_000,
+        ).toISOString(),
+      })),
+      ...db.chatrooms.r1.messages!,
+    ];
+    await openR1(page, api);
+    await expect(bubble(page, 'Pesan ke-1.')).toHaveText(
+      'Teal Koala: Pesan ke-1.',
+    );
+    await expect(bubble(page, 'Pesan ke-2.')).toContainText('Teal Koala ·');
+    const scroller = page.locator('[data-scroll-restoration-id="isi"]');
+    await scroller.evaluate((el) => (el.scrollTop = 0));
+    await expect(bubble(page, 'Pesan ke-1.')).toBeInViewport();
+    await expect(head(page, testInfo)).toBeInViewport({ ratio: 1 });
+    await expect(roomOptions(page, testInfo)).toBeInViewport({ ratio: 1 });
+    await expect(composer(page)).toBeInViewport({ ratio: 1 });
+    await scroller.evaluate((el) => (el.scrollTop = el.scrollHeight / 2));
+    await expect(head(page, testInfo)).toBeInViewport({ ratio: 1 });
+    await expect(composer(page)).toBeInViewport({ ratio: 1 });
+  });
+});
+
 test.describe('live', () => {
   test('a member’s message reaches the list: the room moves up with its preview and count', async ({
     page,
