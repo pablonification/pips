@@ -66,6 +66,7 @@ test('POST /info/:id/renotify: the author while open; 400 while locked; others r
         creatorId: author.id,
         canNotify: canNotifyNow,
       }),
+      claimRenotify: async () => canNotifyNow,
       renotifyInfo: async (info: { id: string }) => {
         pushed.push(info.id);
       },
@@ -110,4 +111,81 @@ test("GET /info/:id reads the post for the member's angkatan, and a post they ca
   const res = await callRouter(router, nadia, 'GET', '/info/p1');
   assert.equal(res.status, 404);
   assert.deepEqual(seen, [['p1', 'u-nadia', 2025]]);
+});
+
+// Regression: the re-send pushed to every member inside the request and wrote `lastNotifiedAt` only afterwards, so a
+// double click or a retry sent everyone the push twice.
+test('POST /info/:id/renotify twice at once: one push, the other refused', async () => {
+  const author = testUser('u-author');
+  const pushed: string[] = [];
+  let open = true;
+  const router = createInfoRouter({
+    getInfoById: async (id: string) => ({
+      id,
+      creatorId: author.id,
+      canNotify: true, // both requests read the post before either claims it
+    }),
+    claimRenotify: async (id: string, creatorId: string) => {
+      assert.equal(id, 'p1');
+      assert.equal(creatorId, author.id);
+      await new Promise((r) => setTimeout(r, 5));
+      const won = open;
+      open = false;
+      return won;
+    },
+    renotifyInfo: async (info: { id: string }) => {
+      pushed.push(info.id);
+    },
+  } as unknown as InfoDeps);
+  const statuses = await Promise.all([
+    callRouter(router, author, 'POST', '/info/p1/renotify'),
+    callRouter(router, author, 'POST', '/info/p1/renotify'),
+  ]).then((r) => r.map((x) => x.status).sort());
+  assert.deepEqual(statuses, [200, 400]);
+  assert.deepEqual(pushed, ['p1']);
+});
+
+// Regression: a stalled push service held the request open until every send finished.
+test('POST /info/:id/renotify answers before the fan-out finishes, and a failed fan-out is only logged', async () => {
+  const author = testUser('u-author');
+  const errors: unknown[][] = [];
+  const originalError = console.error;
+  console.error = (...args: unknown[]) => errors.push(args);
+  try {
+    const stalled = createInfoRouter({
+      getInfoById: async (id: string) => ({
+        id,
+        creatorId: author.id,
+        canNotify: true,
+      }),
+      claimRenotify: async () => true,
+      renotifyInfo: async () => await new Promise(() => {}),
+    } as unknown as InfoDeps);
+    const res = await Promise.race([
+      callRouter(stalled, author, 'POST', '/info/p1/renotify'),
+      new Promise<'hung'>((r) => setTimeout(() => r('hung'), 1000)),
+    ]);
+    assert.notEqual(res, 'hung');
+    assert.equal(res !== 'hung' && res.status, 200);
+
+    const failing = createInfoRouter({
+      getInfoById: async (id: string) => ({
+        id,
+        creatorId: author.id,
+        canNotify: true,
+      }),
+      claimRenotify: async () => true,
+      renotifyInfo: async () => {
+        throw new Error('database went away');
+      },
+    } as unknown as InfoDeps);
+    assert.equal(
+      (await callRouter(failing, author, 'POST', '/info/p1/renotify')).status,
+      200,
+    );
+    await new Promise((r) => setTimeout(r, 10));
+  } finally {
+    console.error = originalError;
+  }
+  assert.match(String(errors[0]?.[0]), /Re-sent post push failed:/);
 });
