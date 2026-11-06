@@ -108,10 +108,13 @@ export async function uploadFile(file: File): Promise<string> {
     requestBody: {
       fileName: file.name.split('.')[0],
       fileType: file.name.split('.').at(-1) ?? '',
+      fileSize: file.size,
     },
   });
+  // Signed for this type and the file's exact size (the browser sends the size as it is).
   const put = await fetch(presigned.presignedUrl, {
     method: 'PUT',
+    headers: { 'Content-Type': presigned.contentType },
     body: file,
   });
   if (!put.ok) throw new Error(`upload failed: ${put.status}`);

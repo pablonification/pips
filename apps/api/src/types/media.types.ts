@@ -1,18 +1,27 @@
 import { z } from '@hono/zod-openapi';
 import { createSelectSchema } from 'drizzle-zod';
 import { medias } from '~/db/schema';
+import { MAX_UPLOAD_BYTES } from '~/lib/upload-policy';
 
 export const MediaSchema = createSelectSchema(medias, {
   createdAt: z.union([z.string(), z.date()]),
 });
 
 export const BodyParamsSchema = z.object({
-  fileName: z.string().openapi({
+  fileName: z.string().max(255).openapi({
     example: 'cat',
   }),
-  fileType: z.string().openapi({
+  /** The extension; only the kinds in lib/upload-policy.ts are signed. */
+  fileType: z.string().max(10).openapi({
     example: 'png',
   }),
+  /** The file's exact size in bytes: the upload address is signed for that length only. */
+  fileSize: z
+    .number()
+    .int()
+    .min(1)
+    .max(MAX_UPLOAD_BYTES)
+    .openapi({ example: 48213 }),
 });
 
 export const PresignedUrlSchema = z
@@ -27,6 +36,10 @@ export const PresignedUrlSchema = z
     }),
     expiresIn: z.number().openapi({
       example: 3600,
+    }),
+    /** The `Content-Type` the upload must send: it is part of the signature. */
+    contentType: z.string().openapi({
+      example: 'image/png',
     }),
   })
   .openapi('PresignedURL');

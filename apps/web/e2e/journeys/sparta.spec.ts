@@ -161,6 +161,8 @@ function holdUpload(api: {
   api.on('POST /api/media/upload', () => ({
     presignedUrl: '/api/e2e-storage/portofolio',
     mediaUrl: '/__e2e__/media/portofolio.svg',
+    expiresIn: 60,
+    contentType: 'application/pdf',
   }));
   api.on('PUT /api/e2e-storage/:name', async () => {
     await held;
@@ -671,6 +673,7 @@ test('a file answer: Unggah file, Mengunggah…, then a link to the file, saved 
   expect(api.calls('POST /api/media/upload')[0].body).toEqual({
     fileName: 'portofolio',
     fileType: 'pdf',
+    fileSize: Buffer.from('%PDF-1.4').length,
   });
   release();
   await expect(

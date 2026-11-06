@@ -434,7 +434,11 @@ test.describe('cnc: the poster', () => {
     await expect(poster.getByText('Ganti poster')).toBeVisible();
     await expect(poster.getByRole('img', { name: 'Poster' })).toBeVisible();
     expect(api.calls('POST /api/media/upload').map((r) => r.body)).toEqual([
-      { fileName: 'poster-hology-8', fileType: 'svg' },
+      {
+        fileName: 'poster-hology-8',
+        fileType: 'svg',
+        fileSize: POSTER_FILE.buffer.length,
+      },
     ]);
     await strictGates(page, testInfo, 'tambah-lomba-poster', null);
 

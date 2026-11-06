@@ -514,6 +514,8 @@ export const presign: Handler = ({ body }) => {
     presignedUrl: `/__e2e__/upload/${key}`,
     mediaUrl: `/__e2e__/media/${key.replace(/\.[a-z0-9]+$/, '')}.svg`,
     expiresIn: 60,
+    // As the API answers: the type the upload is signed for (lib/upload-policy.ts).
+    contentType: fileType === 'svg' ? 'image/svg+xml' : `image/${fileType}`,
   };
 };
 

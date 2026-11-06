@@ -6,5 +6,6 @@ export type PresignedURL = {
   presignedUrl: string;
   mediaUrl: string;
   expiresIn: number;
+  contentType: string;
 };
 

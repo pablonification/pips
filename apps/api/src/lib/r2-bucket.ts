@@ -15,14 +15,27 @@ const S3 = new S3Client({
   },
 });
 
+/**
+ * An upload address for exactly one file: its type and its size are signed, so storage refuses a PUT with another
+ * `Content-Type` or another length.
+ */
 export const createPutObjectPresignedUrl = async (
   key: string,
-  expiresIn: number = 3600,
+  expiresIn: number,
+  file: { contentType: string; contentLength: number },
 ) => {
   return await getSignedUrl(
     S3,
-    new PutObjectCommand({ Bucket: env.R2_BUCKET_NAME, Key: key }),
-    { expiresIn },
+    new PutObjectCommand({
+      Bucket: env.R2_BUCKET_NAME,
+      Key: key,
+      ContentType: file.contentType,
+      ContentLength: file.contentLength,
+    }),
+    {
+      expiresIn,
+      signableHeaders: new Set(['content-type', 'content-length']),
+    },
   );
 };
 

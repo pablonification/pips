@@ -10,13 +10,15 @@ export async function uploadImage(
   onProgress: (percent: number) => void,
   signal?: AbortSignal,
 ): Promise<string> {
-  const { presignedUrl, mediaUrl } = await api.media.createPresignedUrl({
-    requestBody: presignBody(file),
-  });
+  const { presignedUrl, mediaUrl, contentType } =
+    await api.media.createPresignedUrl({
+      requestBody: presignBody(file),
+    });
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', presignedUrl);
-    xhr.setRequestHeader('Content-Type', file.type);
+    // The address is signed for this type (and the file's size, which the browser sends as it is).
+    xhr.setRequestHeader('Content-Type', contentType);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable)
         onProgress(Math.round((e.loaded / e.total) * 100));

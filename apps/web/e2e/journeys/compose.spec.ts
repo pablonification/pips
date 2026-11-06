@@ -164,10 +164,10 @@ test.describe('Nadia', () => {
     // Each upload asked for its own address just before sending, with the name and its extension apart (a MIME type as
     // the type left the API unable to save the post's media).
     expect(api.calls('POST /api/media/upload').map((r) => r.body)).toEqual([
-      { fileName: 'a', fileType: 'png' },
-      { fileName: 'b', fileType: 'png' },
-      { fileName: 'c', fileType: 'png' },
-      { fileName: 'c', fileType: 'png' },
+      { fileName: 'a', fileType: 'png', fileSize: PNG.length },
+      { fileName: 'b', fileType: 'png', fileSize: PNG.length },
+      { fileName: 'c', fileType: 'png', fileSize: PNG.length },
+      { fileName: 'c', fileType: 'png', fileSize: PNG.length },
     ]);
     await c.getByRole('button', { name: 'Hapus foto 2' }).click();
     await expect(c.locator('[data-photo]')).toHaveCount(2);
@@ -361,6 +361,7 @@ test.describe('Nadia', () => {
     expect(api.calls('POST /api/media/upload')[0].body).toEqual({
       fileName: 'poster',
       fileType: 'png',
+      fileSize: PNG.length,
     });
   });
 });
