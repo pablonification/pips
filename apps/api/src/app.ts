@@ -2,6 +2,7 @@ import { swaggerUI } from '@hono/swagger-ui';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import * as Sentry from '@sentry/node';
 import fs from 'fs';
+import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
 import { HTTPException } from 'hono/http-exception';
 import { requestId, type RequestIdVariables } from 'hono/request-id';
@@ -11,7 +12,14 @@ import { performance } from 'perf_hooks';
 import { fileURLToPath } from 'url';
 import { env } from './configs/env.config';
 import { apiRouter } from './controllers/api.controller';
+import { MAX_BODY_BYTES, RATE_LIMITS, RATE_WINDOW_MS } from './lib/limits';
 import { isAllowedOrigin, SAFE_METHODS } from './lib/origin';
+import {
+  clientAddress,
+  createRateLimiter,
+  rateLimit,
+  sessionUserId,
+} from './lib/rate-limit';
 import { redactedQuery } from './lib/redact';
 import { logger } from './logger';
 import {
@@ -60,6 +68,15 @@ const OPENAPI_CONFIG = {
   ],
 };
 
+/** Every way to sign in: limited per client address. */
+const SIGN_IN_PATHS = new Set([
+  '/api/login',
+  '/api/auth/login/accesstoken',
+  '/api/auth/login/dev',
+  '/api/auth/login/bypass',
+  '/api/auth/google/callback',
+]);
+
 export function isDevelopmentOrStaging(config: { APP_ENV?: string }) {
   return config.APP_ENV === 'development' || config.APP_ENV === 'staging';
 }
@@ -77,7 +94,10 @@ export function openApiDocument(app: ReturnType<typeof createApp>) {
  * and no socket server (`index.ts` does), and touches no database until a request needs one, so tests and the
  * web client's generator (`scripts/openapi.ts`) can use it without a running server.
  */
-export function createApp() {
+export function createApp(
+  options: { rateLimits?: Partial<typeof RATE_LIMITS> } = {},
+) {
+  const limits = { ...RATE_LIMITS, ...options.rateLimits };
   const app = new OpenAPIHono<{
     Variables: RequestIdVariables;
   }>({
@@ -145,6 +165,36 @@ export function createApp() {
     }
     await next();
   });
+  app.use(
+    '/api/*',
+    bodyLimit({
+      maxSize: MAX_BODY_BYTES,
+      onError: (c) => c.json({ error: 'Request body too large' }, 413),
+    }),
+  );
+  // In memory, per minute (one API instance). Generous enough that using the app never meets them.
+  const window = { windowMs: RATE_WINDOW_MS };
+  const signIn = createRateLimiter({ limit: limits.signIn, ...window });
+  const writes = createRateLimiter({ limit: limits.writes, ...window });
+  const previews = createRateLimiter({ limit: limits.previews, ...window });
+  app.use(
+    '/api/*',
+    rateLimit(signIn, (c) =>
+      SIGN_IN_PATHS.has(getPath(c.req.raw)) ? clientAddress(c) : undefined,
+    ),
+  );
+  app.use(
+    '/api/*',
+    rateLimit(writes, async (c) => {
+      if (SAFE_METHODS.has(c.req.method)) return undefined;
+      const userId = await sessionUserId(c, env.JWT_SECRET);
+      return userId ? `user:${userId}` : `address:${clientAddress(c)}`;
+    }),
+  );
+  app.use(
+    '/api/open-graph',
+    rateLimit(previews, async (c) => await sessionUserId(c, env.JWT_SECRET)),
+  );
   app.get('/', (c) => c.json({ message: 'Server runs successfully' }));
   app.route('/api', apiRouter);
   // The chat socket's payloads (websocket/curhat.ts) aren't routes; listing them puts their types in the web client.

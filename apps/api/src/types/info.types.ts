@@ -7,6 +7,7 @@ import {
   infoMedias,
   infos,
 } from '~/db/schema';
+import { MAX_POST_CONTENT, MAX_POST_TITLE } from '~/lib/limits';
 import { AngkatanSchema } from './angkatan.types';
 import { CategorySchema } from './category.types';
 import { CourseSchema } from './course.types';
@@ -59,7 +60,10 @@ export const CreateInfoForCoursesFieldItemSchema = z.object({
   class: z.number().optional(),
 });
 
-export const CreateInfoBodySchema = createInsertSchema(infos)
+export const CreateInfoBodySchema = createInsertSchema(infos, {
+  title: (schema) => schema.title.max(MAX_POST_TITLE),
+  content: (schema) => schema.content.max(MAX_POST_CONTENT),
+})
   .omit({
     id: true,
     creatorId: true,
