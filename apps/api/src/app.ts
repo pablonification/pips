@@ -11,6 +11,7 @@ import { performance } from 'perf_hooks';
 import { fileURLToPath } from 'url';
 import { env } from './configs/env.config';
 import { apiRouter } from './controllers/api.controller';
+import { isAllowedOrigin, SAFE_METHODS } from './lib/origin';
 import { redactedQuery } from './lib/redact';
 import { logger } from './logger';
 import {
@@ -125,6 +126,25 @@ export function createApp() {
       origin: env.ALLOWED_ORIGINS,
     }),
   );
+  // Another website's page can't act with the member's session: every request that changes something must come
+  // from the app (lib/origin.ts). CORS stops other sites reading answers, not sending forms or beacons.
+  app.use('/api/*', async (c, next) => {
+    if (
+      !SAFE_METHODS.has(c.req.method) &&
+      !isAllowedOrigin(
+        {
+          origin: c.req.header('origin'),
+          referer: c.req.header('referer'),
+          host: c.req.header('host') ?? new URL(c.req.url).host,
+          forwardedHost: c.req.header('x-forwarded-host'),
+        },
+        env.ALLOWED_ORIGINS,
+      )
+    ) {
+      return c.json({ error: 'Forbidden origin' }, 403);
+    }
+    await next();
+  });
   app.get('/', (c) => c.json({ message: 'Server runs successfully' }));
   app.route('/api', apiRouter);
   // The chat socket's payloads (websocket/curhat.ts) aren't routes; listing them puts their types in the web client.
