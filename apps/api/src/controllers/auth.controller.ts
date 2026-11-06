@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import { deleteCookie, setCookie } from 'hono/cookie';
+import { randomBytes } from 'node:crypto';
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { sign } from 'hono/jwt';
 import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
@@ -12,7 +13,11 @@ import {
   InvalidGoogleTokenError,
 } from '~/lib/google-token';
 import { JWT_ALG } from '~/lib/jwt';
-import { bypassTokenMatches, isLoginBypassEnabled } from '~/lib/login-bypass';
+import {
+  bypassTokenMatches,
+  bypassTokenMatches as sameSecret,
+  isLoginBypassEnabled,
+} from '~/lib/login-bypass';
 import { SESSION_COOKIE, sessionCookieOptions } from '~/lib/session-cookie';
 import {
   findUserByEmail,
@@ -39,6 +44,8 @@ import {
 import { createAuthRouter, createRouter } from './router-factory';
 
 export const loginRouter = createRouter();
+
+const OAUTH_STATE_COOKIE = 'hmif-app.oauth-state';
 export const loginProtectedRouter = createAuthRouter();
 
 const generateJWT = async (payload: object) => {
@@ -68,6 +75,16 @@ loginRouter.openapi(loginRoute, async (c) => {
   authorizationUrl.searchParams.set('response_type', 'code');
   authorizationUrl.searchParams.set('scope', 'openid email profile');
   authorizationUrl.searchParams.set('access_type', 'offline');
+  // Ties Google's answer to this browser: the callback accepts only the state it finds in this cookie.
+  const state = randomBytes(24).toString('base64url');
+  authorizationUrl.searchParams.set('state', state);
+  setCookie(c, OAUTH_STATE_COOKIE, state, {
+    path: '/api/auth/google/callback',
+    secure: true,
+    httpOnly: true,
+    sameSite: 'Lax',
+    maxAge: 10 * 60,
+  });
 
   return c.redirect(authorizationUrl.toString(), 302); // Redirect the user to Google Login
 });
@@ -111,7 +128,12 @@ loginRouter.openapi(loginAccessTokenRoute, async (c) => {
 });
 
 loginRouter.openapi(authCallbackRoute, async (c) => {
-  const { code } = c.req.valid('query');
+  const { code, state } = c.req.valid('query');
+  const expected = getCookie(c, OAUTH_STATE_COOKIE);
+  deleteCookie(c, OAUTH_STATE_COOKIE, { path: '/api/auth/google/callback' });
+  if (!state || !expected || !sameSecret(state, expected)) {
+    return c.json({ error: 'Invalid sign-in state' }, 400);
+  }
 
   const tokenEndpoint = new URL('https://accounts.google.com/o/oauth2/token');
   tokenEndpoint.searchParams.set('code', code);

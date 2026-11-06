@@ -52,17 +52,20 @@ export class AuthService {
    */
   public loginCallback({
     code,
+    state,
   }: {
     code: string,
+    state?: string,
   }): CancelablePromise<User> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/api/auth/google/callback',
       query: {
         'code': code,
+        'state': state,
       },
       errors: {
-        400: `Bad request: validation error`,
+        400: `Bad request: validation error, or a sign-in state that is missing or not this browser's`,
         401: `Bad request: authorization (not logged in) error`,
         500: `Error`,
       },

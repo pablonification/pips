@@ -9,6 +9,11 @@ export const CallbackQueryParamsSchema = z.object({
       example: '4/0AY0e-g7Qj6y2v7zR7iJ2b9b4V6K7zrZ9X0q4Q',
     },
   }),
+  /** The value `/login` sent to Google, matched against its cookie (an unasked-for callback is refused). */
+  state: z
+    .string()
+    .optional()
+    .openapi({ param: { in: 'query', example: 'k3j2h1g0f9e8d7c6b5a4' } }),
 });
 
 export const GoogleTokenDataSchema = z.object({

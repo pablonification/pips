@@ -7,6 +7,8 @@ import {
   UserResponseSchema,
 } from '~/types/login.types';
 import {
+  ErrorSchema,
+  ValidationErrorSchema,
   authorizaitonErrorResponse,
   errorResponse,
   validationErrorResponse,
@@ -105,7 +107,15 @@ export const authCallbackRoute = createRoute({
       },
       description: 'Login succesful',
     },
-    400: validationErrorResponse,
+    400: {
+      description:
+        "Bad request: validation error, or a sign-in state that is missing or not this browser's",
+      content: {
+        'application/json': {
+          schema: z.union([ValidationErrorSchema, ErrorSchema]),
+        },
+      },
+    },
     401: authorizaitonErrorResponse,
     500: errorResponse,
   },
