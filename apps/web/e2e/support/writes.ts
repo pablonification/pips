@@ -23,6 +23,10 @@ import {
   spartaWindowFor,
   type Db,
 } from '../fixtures/api';
+import {
+  MAX_UPLOAD_BYTES,
+  uploadContentType,
+} from '../../../api/src/lib/upload-policy';
 import { reply, type Handler } from './mock';
 
 function setReaction(
@@ -514,13 +518,31 @@ let uploads = 0;
  * served at, as the real API then can't save the post or competition that links it (media.repo.ts).
  */
 export const presign: Handler = ({ body }) => {
-  const { fileName, fileType } = body as { fileName: string; fileType: string };
+  const { fileName, fileType, fileSize } = body as {
+    fileName: string;
+    fileType: string;
+    fileSize: number;
+  };
+  // Refused as the API refuses (its own policy, lib/upload-policy.ts): a type outside the list, a size past 25 MiB.
+  const contentType = uploadContentType(fileType);
+  if (!contentType)
+    return reply.status(400, { error: 'File type not allowed' });
+  if (!(
+    Number.isInteger(fileSize) &&
+    fileSize > 0 &&
+    fileSize <= MAX_UPLOAD_BYTES
+  ))
+    return reply.status(400, {
+      errors: { formErrors: [], fieldErrors: { fileSize: ['Too big'] } },
+    });
   const n = ++uploads;
   const key = `upload-${n}-${fileName}.${fileType}`;
   return {
     presignedUrl: `/__e2e__/upload/${key}`,
     mediaUrl: `/__e2e__/media/${key.replace(/\.[a-z0-9]+$/, '')}.svg`,
     expiresIn: 60,
+    // As the API answers: the type the upload is signed for.
+    contentType,
   };
 };
 

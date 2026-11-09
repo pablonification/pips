@@ -173,4 +173,6 @@ export const ACRONYMS = [
   'LINE',
   // P2-A: Magang SPARTA asks for your ID LINE, as today's screen does.
   'ID',
+  // The upload limit, "maks. 25 MB" (lib/upload-policy.ts).
+  'MB',
 ] as const;

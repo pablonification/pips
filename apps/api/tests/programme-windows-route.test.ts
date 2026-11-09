@@ -120,10 +120,10 @@ test('signed out is 401; an empty table answers an empty list', async () => {
 });
 
 test('the route is mounted in the app', async () => {
-  const { createApp } = await import('../src/app');
+  const { createApp, openApiDocument } = await import('../src/app');
   const res = await createApp().request('/api/programme-windows');
   assert.equal(res.status, 401);
-  const doc = (await (await createApp().request('/doc')).json()) as {
+  const doc = JSON.parse(JSON.stringify(openApiDocument(createApp()))) as {
     paths: object;
   };
   assert.ok('/api/programme-windows' in doc.paths);

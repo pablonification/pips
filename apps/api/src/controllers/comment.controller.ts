@@ -1,3 +1,4 @@
+import { databaseError } from '~/lib/database-error';
 import postgres from 'postgres';
 import { toAuthor, withAuthor } from '~/lib/author';
 import { canDeleteContent, canEditContent } from '~/lib/authorization';
@@ -64,7 +65,7 @@ export function createCommentRouter(deps: CommentDeps = databaseDeps) {
       return c.json({ ...comment, creator: toAuthor(c.var.user) }, 201);
     } catch (err) {
       if (err instanceof postgres.PostgresError)
-        return c.json({ error: err.message }, 400);
+        return c.json(databaseError(err), 400);
       throw err;
     }
   });
@@ -105,7 +106,7 @@ export function createCommentRouter(deps: CommentDeps = databaseDeps) {
       if (!comment) return c.json({ error: 'Comment not found' }, 404);
       return c.json({ ...comment, creator: toAuthor(c.var.user) }, 200);
     } catch (e) {
-      if (e instanceof Error) return c.json({ error: e.message }, 400);
+      if (e instanceof Error) return c.json(databaseError(e), 400);
       return c.json({ error: 'Bad request' }, 400);
     }
   });

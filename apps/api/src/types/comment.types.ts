@@ -1,3 +1,4 @@
+import { MAX_COMMENT } from '~/lib/limits';
 import { z } from '@hono/zod-openapi';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { comments } from '~/db/schema';
@@ -49,7 +50,9 @@ export const CommentIdParamSchema = z.object({
   }),
 });
 
-export const CommentUpdateBodySchema = createInsertSchema(comments)
+export const CommentUpdateBodySchema = createInsertSchema(comments, {
+  content: (schema) => schema.content.max(MAX_COMMENT),
+})
   .pick({
     content: true,
   })
@@ -57,7 +60,9 @@ export const CommentUpdateBodySchema = createInsertSchema(comments)
     content: 'Keren nih info',
   });
 
-export const CommentPostBodySchema = createInsertSchema(comments)
+export const CommentPostBodySchema = createInsertSchema(comments, {
+  content: (schema) => schema.content.max(MAX_COMMENT),
+})
   .omit({
     id: true,
     createdAt: true,

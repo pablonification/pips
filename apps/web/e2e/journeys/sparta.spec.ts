@@ -161,6 +161,8 @@ function holdUpload(api: {
   api.on('POST /api/media/upload', () => ({
     presignedUrl: '/api/e2e-storage/portofolio',
     mediaUrl: '/__e2e__/media/portofolio.svg',
+    expiresIn: 60,
+    contentType: 'application/pdf',
   }));
   api.on('PUT /api/e2e-storage/:name', async () => {
     await held;
@@ -671,6 +673,7 @@ test('a file answer: Unggah file, Mengunggah…, then a link to the file, saved 
   expect(api.calls('POST /api/media/upload')[0].body).toEqual({
     fileName: 'portofolio',
     fileType: 'pdf',
+    fileSize: Buffer.from('%PDF-1.4').length,
   });
   release();
   await expect(
@@ -702,6 +705,75 @@ test('a file answer: Unggah file, Mengunggah…, then a link to the file, saved 
     main(page).getByText('/__e2e__/media/portofolio.svg'),
   ).toHaveCount(0);
   await gates(page, testInfo, 'sparta-review-file');
+});
+
+test('regression (review): a file the API would refuse is refused before anything is sent, and says why', async ({
+  page,
+  api,
+  db,
+}, testInfo) => {
+  openSeason(db);
+  api.on('PUT /api/internship/submission', writes.saveSpartaDraft);
+  api.on('POST /api/media/upload', writes.presign);
+  await page.goto('/layanan/sparta');
+  await toQuestions(page);
+  const input = main(page).locator('input[type="file"]');
+  // The picker offers what the API takes: documents and images, JFIF too, never SVG.
+  const accept = await input.getAttribute('accept');
+  for (const a of ['.pdf', '.docx', '.zip', '.jfif', 'application/pdf'])
+    expect(accept).toContain(a);
+  expect(accept).not.toContain('svg');
+
+  const said = main(page).getByRole('alert');
+  for (const file of [
+    { name: 'cv.exe', mimeType: 'application/octet-stream' },
+    { name: 'portofolio', mimeType: '' },
+    { name: 'portofolio.svg', mimeType: 'image/svg+xml' },
+  ]) {
+    await input.setInputFiles({ ...file, buffer: Buffer.from('x') });
+    await expect(said).toHaveText('Jenis file tidak didukung.');
+  }
+  // Icon, word and colour.
+  await expect(said.locator('svg').first()).toBeVisible();
+  await gates(page, testInfo, 'sparta-step-4-file-jenis');
+  await input.setInputFiles({
+    name: 'portofolio.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.alloc(25 * 1024 * 1024 + 1),
+  });
+  await expect(said).toHaveText('File terlalu besar (maks. 25 MB).');
+  expect(api.calls('POST /api/media/upload')).toHaveLength(0);
+
+  // The API's own refusal is said as its reason too.
+  api.on('POST /api/media/upload', () =>
+    reply.status(400, { error: 'File type not allowed' }),
+  );
+  await input.setInputFiles({
+    name: 'portofolio.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4'),
+  });
+  await expect(said).toHaveText('Jenis file tidak didukung.');
+  await expect(
+    main(page).getByText('File gagal diunggah. Coba lagi.'),
+  ).toHaveCount(0);
+
+  // A JFIF photo goes as a JPEG.
+  api.on('POST /api/media/upload', writes.presign);
+  await input.setInputFiles({
+    name: 'portofolio.jfif',
+    mimeType: 'image/jpeg',
+    buffer: Buffer.from('jfif'),
+  });
+  await expect(
+    main(page).getByRole('link', { name: 'Lihat file yang terunggah' }),
+  ).toBeVisible();
+  await expect(said).toHaveCount(0);
+  expect(api.calls('POST /api/media/upload').at(-1)?.body).toEqual({
+    fileName: 'portofolio',
+    fileType: 'jfif',
+    fileSize: 4,
+  });
 });
 
 test('a file upload finishing doesn’t overwrite what was typed meanwhile', async ({

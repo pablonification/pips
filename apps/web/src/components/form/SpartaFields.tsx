@@ -10,10 +10,16 @@ import {
 } from '~/components/garis';
 import { IconPeringatan } from '~/components/icons/peringatan';
 import { IconTambah } from '~/components/icons/tambah';
+import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
 import { form as formCopy } from '~/copy/form';
 import { sparta as copy } from '~/copy/sparta';
 import { CHECKBOX_SEPARATOR, checkboxValues } from '~/lib/form/sparta';
+import {
+  acceptList,
+  refusedProblem,
+  type UploadProblem,
+} from '~/lib/upload-policy';
 import { uploadFile } from './sparta-data';
 
 /** The error under a field, as the form's (`qBlock` `err`). */
@@ -110,7 +116,9 @@ function FileField({
   onChange: (v: string) => void;
   invalid: Record<string, unknown>;
 }) {
-  const [state, setState] = useState<'idle' | 'busy' | 'failed'>('idle');
+  const [state, setState] = useState<
+    'idle' | 'busy' | 'failed' | UploadProblem
+  >('idle');
   const input = useRef<HTMLInputElement>(null);
   const busy = state === 'busy';
   return (
@@ -119,6 +127,7 @@ function FileField({
         ref={input}
         id={id}
         type="file"
+        accept={acceptList('file')}
         hidden
         onChange={async (e) => {
           const file = e.target.files?.[0];
@@ -128,8 +137,8 @@ function FileField({
           try {
             onChange(await uploadFile(file));
             setState('idle');
-          } catch {
-            setState('failed');
+          } catch (err) {
+            setState(refusedProblem(err) ?? 'failed');
           }
         }}
       />
@@ -156,10 +165,12 @@ function FileField({
           {copy.pertanyaan.mengunggah}
         </p>
       ) : null}
-      {state === 'failed' ? (
+      {state === 'failed' || state === 'jenis' || state === 'ukuran' ? (
         <p className="g-err t-cap" role="alert">
           <IconPeringatan size={16} />
-          {copy.pertanyaan.gagalUnggah}
+          {state === 'failed'
+            ? copy.pertanyaan.gagalUnggah
+            : common.unggah[state]}
         </p>
       ) : null}
       {value && !busy ? (

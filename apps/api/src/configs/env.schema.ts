@@ -14,6 +14,18 @@ export const EnvSchema = z.object({
   PORT: z.coerce.number().default(5000),
   // Interface to listen on. Unset listens on all interfaces (containers need that); the shared staging host sets 127.0.0.1.
   LISTEN_HOST: z.string().min(1).optional(),
+  // Where the rate limits read the client's address (lib/rate-limit.ts): `x-forwarded-for` (its right-most entry, the
+  // nearest proxy's), `cf-connecting-ip` (only when the API is reachable through Cloudflare alone) or `none` (the
+  // connection's address). Anything else counts as the default, so a typo never stops the API.
+  CLIENT_IP_HEADER: z
+    .string()
+    .optional()
+    .transform((value) => {
+      const v = value?.trim().toLowerCase();
+      return v === 'cf-connecting-ip' || v === 'none'
+        ? v
+        : ('x-forwarded-for' as const);
+    }),
   DATABASE_URL: z.string().url(),
   ALLOWED_ORIGINS: z
     .string()
@@ -29,6 +41,8 @@ export const EnvSchema = z.object({
   SMTP_SECURE: z.coerce.boolean().default(true),
   SMTP_PASS: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
+  // Other OAuth client ids whose access tokens may sign in (comma-separated), if the web app uses another client.
+  GOOGLE_ALLOWED_CLIENT_IDS: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_CALLBACK_URL: z.string().url(),
   JWT_SECRET: z.string(),
@@ -38,7 +52,9 @@ export const EnvSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().default('not-specified'),
   R2_PUBLIC_URL: z.string().url().default('not-specified'),
   R2_BUCKET_NAME: z.string().default('hmifapp'),
-  LOGIN_BYPASS_KEY: z.string().default('default-bypass-key'),
+  // Sign-in as any NIM with this key (`GET /api/auth/login/bypass`). No default: the route exists only on
+  // development or staging, and only with a key of at least 32 characters (`lib/login-bypass.ts`).
+  LOGIN_BYPASS_KEY: z.string().optional(),
   GOOGLE_CALENDAR_SECRET_PATH: z.string().default('google_credentials.json'),
   GOOGLE_CALENDAR_ID: z.string().default('primary'),
   SENTRY_DSN: z.string().url().optional(),

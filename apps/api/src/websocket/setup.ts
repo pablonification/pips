@@ -1,8 +1,9 @@
 import { ServerType } from '@hono/node-server';
 import * as Sentry from '@sentry/node';
-import { Server } from 'socket.io';
+import { Server, type ServerOptions } from 'socket.io';
 import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
+import { isAllowedOrigin } from '~/lib/origin';
 import { sendNotificationToAll } from '~/lib/push-manager';
 import {
   getChatroomMessageById,
@@ -32,13 +33,42 @@ export function getIo() {
   return ioInstance;
 }
 
-export default function setupWebsocket(httpServer: ServerType) {
-  const io = new Server(httpServer, {
+/**
+ * The socket server's options. CORS alone doesn't stop another website: a WebSocket handshake ignores it, and the
+ * browser sends the member's cookie with it. So every transport's every request must come from the app
+ * (`lib/origin.ts`), before any session is read.
+ */
+export function socketServerOptions(
+  allowedOrigins: readonly string[],
+): Partial<ServerOptions> {
+  return {
     cors: {
-      origin: env.ALLOWED_ORIGINS,
+      origin: [...allowedOrigins],
       credentials: true,
     },
-  });
+    allowRequest: (req, callback) => {
+      const header = (name: string) => {
+        const value = req.headers[name];
+        return Array.isArray(value) ? value[0] : value;
+      };
+      callback(
+        null,
+        isAllowedOrigin(
+          {
+            origin: header('origin'),
+            referer: header('referer'),
+            host: header('host'),
+            forwardedHost: header('x-forwarded-host'),
+          },
+          allowedOrigins,
+        ),
+      );
+    },
+  };
+}
+
+export default function setupWebsocket(httpServer: ServerType) {
+  const io = new Server(httpServer, socketServerOptions(env.ALLOWED_ORIGINS));
   ioInstance = io;
 
   io.on(

@@ -18,6 +18,7 @@ export class MediaService {
     requestBody: {
       fileName: string;
       fileType: string;
+      fileSize: number;
     },
   }): CancelablePromise<PresignedURL> {
     return this.httpRequest.request({
@@ -26,7 +27,7 @@ export class MediaService {
       body: requestBody,
       mediaType: 'application/json',
       errors: {
-        400: `Bad request: validation error`,
+        400: `Bad request: validation error, or a file type not allowed`,
       },
     });
   }

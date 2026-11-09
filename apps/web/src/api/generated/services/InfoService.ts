@@ -63,7 +63,6 @@ export class InfoService {
     requestBody: {
       title: string;
       content: string;
-      lastNotifiedAt?: string;
       mediaUrls?: Array<string>;
       forCategories: Array<string>;
       forAngkatan?: Array<string>;
@@ -122,7 +121,7 @@ export class InfoService {
       mediaType: 'application/json',
       errors: {
         400: `Bad request`,
-        403: `A chosen category is closed to the poster (its rolesAllowed doesn't include any of their roles)`,
+        403: `A chosen category is closed to the poster (its rolesAllowed doesn't include any of their roles), or a chosen group isn't one of theirs`,
       },
     });
   }

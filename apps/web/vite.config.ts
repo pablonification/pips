@@ -85,9 +85,11 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       strictPort: true,
       allowedHosts: ['staging.hmif.dev'],
+      // `xfwd` tells the API the address the browser used (X-Forwarded-Host), so it knows the app's requests as its
+      // own origin (apps/api/src/lib/origin.ts) whatever ALLOWED_ORIGINS says.
       proxy: {
-        '/api': apiOrigin,
-        '/socket.io': { target: apiOrigin, ws: true },
+        '/api': { target: apiOrigin, changeOrigin: true, xfwd: true },
+        '/socket.io': { target: apiOrigin, ws: true, xfwd: true },
         '/swagger': apiOrigin,
         '/doc': apiOrigin,
       },

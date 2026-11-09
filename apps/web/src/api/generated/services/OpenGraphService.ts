@@ -25,6 +25,7 @@ export class OpenGraphService {
       },
       errors: {
         400: `Invalid URL`,
+        401: `Bad request: authorization (not logged in) error`,
       },
     });
   }

@@ -196,12 +196,12 @@ test.describe('cnc', () => {
   test('the poster in Tambah lomba and Ubah lomba', async ({ page, api }) => {
     api.on('POST /api/media/upload', writes.presign);
     const file = {
-      name: 'poster-hology-8.svg',
-      mimeType: 'image/svg+xml',
+      name: 'poster-hology-8.png',
+      mimeType: 'image/png',
       buffer: readFileSync(
         path.resolve(
           path.dirname(fileURLToPath(import.meta.url)),
-          '../fixtures/posters/hology-uiux.svg',
+          '../fixtures/posters/hology-uiux.png',
         ),
       ),
     };

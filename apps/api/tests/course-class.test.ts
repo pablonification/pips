@@ -78,8 +78,8 @@ test('a class that is not a number is still refused, and a course id is still re
 });
 
 test('the API document no longer lists class as required, so the generated web client may leave it out', async () => {
-  const { createApp } = await import('../src/app');
-  const doc = await (await createApp().request('/doc')).json();
+  const { createApp, openApiDocument } = await import('../src/app');
+  const doc = JSON.parse(JSON.stringify(openApiDocument(createApp())));
   const op = doc.paths['/api/course/take/batch'].put;
   let item = op.requestBody.content['application/json'].schema.items;
   if (item.$ref) item = doc.components.schemas[item.$ref.split('/').pop()];

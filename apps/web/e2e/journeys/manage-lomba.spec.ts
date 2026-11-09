@@ -20,6 +20,7 @@ import {
 } from '../support/manage';
 import { expectLit, expectVisibleFocus, strictGates } from '../support/strict';
 import { expect, test } from '../support/test';
+import { reply } from '../support/mock';
 import * as writes from '../support/writes';
 
 const main = (page: Page) => page.getByRole('main');
@@ -368,14 +369,14 @@ test.describe('cnc', () => {
   });
 });
 
-/** A poster to pick: Garis v5's sample Hology poster, as an SVG image from the device. */
+/** A poster to pick: Garis v5's sample Hology poster, as a PNG image from the device (an SVG is never uploaded). */
 const POSTER_FILE = {
-  name: 'poster-hology-8.svg',
-  mimeType: 'image/svg+xml',
+  name: 'poster-hology-8.png',
+  mimeType: 'image/png',
   buffer: readFileSync(
     path.resolve(
       path.dirname(fileURLToPath(import.meta.url)),
-      '../fixtures/posters/hology-uiux.svg',
+      '../fixtures/posters/hology-uiux.png',
     ),
   ),
 };
@@ -434,7 +435,11 @@ test.describe('cnc: the poster', () => {
     await expect(poster.getByText('Ganti poster')).toBeVisible();
     await expect(poster.getByRole('img', { name: 'Poster' })).toBeVisible();
     expect(api.calls('POST /api/media/upload').map((r) => r.body)).toEqual([
-      { fileName: 'poster-hology-8', fileType: 'svg' },
+      {
+        fileName: 'poster-hology-8',
+        fileType: 'png',
+        fileSize: POSTER_FILE.buffer.length,
+      },
     ]);
     await strictGates(page, testInfo, 'tambah-lomba-poster', null);
 
@@ -598,6 +603,91 @@ test.describe('cnc: the poster', () => {
       'Gagal diunggah',
     );
     await posterGroup(d).getByRole('button', { name: 'Hapus poster' }).click();
+    await d.getByRole('button', { name: 'Tambahkan' }).click();
+    await expect(d).toBeHidden();
+    expect('mediaUrls' in (posts(api)[0] as { body: object }).body).toBe(false);
+  });
+
+  test('regression (review): a file the API would refuse is refused before anything is sent, and says why', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api
+      .on('POST /api/competitions', writes.createCompetition)
+      .on('POST /api/media/upload', writes.presign);
+    await page.goto('/layanan/lomba');
+    await tambahLomba(page).click();
+    const d = add(page);
+    await fillHology(page);
+    const poster = posterGroup(d);
+    // The picker offers only what the API takes: images, JFIF too, never SVG.
+    const accept = await fileInput(d).getAttribute('accept');
+    expect(accept).toContain('.jfif');
+    expect(accept).toContain('image/png');
+    expect(accept).not.toContain('svg');
+    expect(accept).not.toContain('.pdf');
+
+    await fileInput(d).setInputFiles({
+      name: 'poster.svg',
+      mimeType: 'image/svg+xml',
+      buffer: readFileSync(
+        path.resolve(
+          path.dirname(fileURLToPath(import.meta.url)),
+          '../fixtures/posters/hology-uiux.svg',
+        ),
+      ),
+    });
+    const said = poster.getByRole('alert');
+    await expect(said).toHaveText('Jenis file poster.svg tidak didukung.');
+    // Icon, word and colour.
+    await expect(said.locator('svg').first()).toBeVisible();
+    await expect(poster.getByRole('img')).toHaveCount(0);
+    await strictGates(page, testInfo, 'tambah-lomba-poster-jenis', null);
+
+    await fileInput(d).setInputFiles({
+      name: 'poster-besar.png',
+      mimeType: 'image/png',
+      buffer: Buffer.alloc(25 * 1024 * 1024 + 1),
+    });
+    await expect(said).toHaveText(
+      'File poster-besar.png terlalu besar (maks. 25 MB).',
+    );
+    await expect(poster.getByRole('img')).toHaveCount(0);
+    expect(api.calls('POST /api/media/upload')).toHaveLength(0);
+
+    // A file that can go: the message goes, and it uploads.
+    await fileInput(d).setInputFiles(POSTER_FILE);
+    await expect(d.locator('[data-poster="done"]')).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(said).toHaveCount(0);
+    expect(api.calls('POST /api/media/upload')).toHaveLength(1);
+  });
+
+  test("regression (review): the API's refusal is said as its reason, not as a failure to try again", async ({
+    page,
+    api,
+  }) => {
+    api
+      .on('POST /api/competitions', writes.createCompetition)
+      .on('POST /api/media/upload', () =>
+        reply.status(400, { error: 'File type not allowed' }),
+      );
+    await page.goto('/layanan/lomba');
+    await tambahLomba(page).click();
+    const d = add(page);
+    await fillHology(page);
+    const poster = posterGroup(d);
+    await fileInput(d).setInputFiles(POSTER_FILE);
+    await expect(poster.getByRole('alert')).toHaveText(
+      'Jenis file poster-hology-8.png tidak didukung.',
+    );
+    await expect(poster.getByText('Gagal diunggah')).toHaveCount(0);
+    await expect(poster.getByRole('button', { name: 'Coba lagi' })).toHaveCount(
+      0,
+    );
+    await expect(poster.getByRole('img')).toHaveCount(0);
+    // Nothing is left uploading or failed, so Tambahkan saves without a poster.
     await d.getByRole('button', { name: 'Tambahkan' }).click();
     await expect(d).toBeHidden();
     expect('mediaUrls' in (posts(api)[0] as { body: object }).body).toBe(false);

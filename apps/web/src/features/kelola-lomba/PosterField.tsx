@@ -13,6 +13,12 @@ import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
 import { kelolaLomba as t } from '~/copy/kelola-lomba';
 import { uploadImage } from '~/lib/upload';
+import {
+  acceptList,
+  uploadProblem,
+  UploadRefused,
+  type UploadProblem,
+} from '~/lib/upload-policy';
 import type { PosterUpload } from './rules';
 
 export interface PosterFieldProps {
@@ -39,6 +45,11 @@ export function PosterField({
     null,
   );
   const [broken, setBroken] = useState<string | null>(null);
+  // A picked file that can't be uploaded, and why: said under the poster until the next pick.
+  const [refused, setRefused] = useState<{
+    name: string;
+    problem: UploadProblem;
+  } | null>(null);
   const abort = useRef<AbortController | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
@@ -76,16 +87,26 @@ export function PosterField({
         onUpload(null);
         onPoster(url);
       },
-      () => {
+      (err: unknown) => {
         if (abort.current !== mine) return;
         abort.current = null;
+        if (err instanceof UploadRefused) {
+          // Trying again won't help: the poster goes back to what it was, and the reason is said.
+          setPicked(null);
+          setRefused({ name: file.name, problem: err.problem });
+          onUpload(null);
+          return;
+        }
         onUpload({ status: 'failed' });
       },
     );
   };
 
   const pick = (file: File | undefined) => {
-    if (!file?.type.startsWith('image/')) return;
+    if (!file) return;
+    const problem = uploadProblem(file, 'image');
+    setRefused(problem ? { name: file.name, problem } : null);
+    if (problem) return;
     setPicked({ file, preview: URL.createObjectURL(file) });
     send(file);
   };
@@ -149,7 +170,7 @@ export function PosterField({
             ref={input}
             id={id}
             type="file"
-            accept="image/*"
+            accept={acceptList('image')}
             className="sr-only"
             {...(blocked ? { 'aria-describedby': `${id}-block` } : {})}
             onChange={(e) => {
@@ -159,6 +180,17 @@ export function PosterField({
           />
         </label>
       </div>
+      {refused ? (
+        <p className="g-err t-cap" role="alert">
+          <IconPeringatan size={16} />
+          {fill(
+            refused.problem === 'jenis'
+              ? common.unggah.jenisFile
+              : common.unggah.ukuranFile,
+            { nama: refused.name },
+          )}
+        </p>
+      ) : null}
       {blocked ? (
         <p className="g-err t-cap" id={`${id}-block`} role="status">
           <IconPeringatan size={16} />

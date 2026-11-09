@@ -1,3 +1,4 @@
+import { MAX_CURHAT_MESSAGE } from '~/lib/limits';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import {
   Chatroom,
@@ -87,7 +88,7 @@ export type TChatroom = Chatroom & {
 export const CurhatMessagePayloadSchema = z
   .object({
     chatroomId: z.string().min(1),
-    message: z.string(),
+    message: z.string().max(MAX_CURHAT_MESSAGE),
     replyId: z.string().min(1).nullish(),
     /**
      * The device's id for this message (a UUID, P2-C). Sending it again with the same id, after a lost

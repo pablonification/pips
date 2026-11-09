@@ -1,3 +1,4 @@
+import { databaseError } from '~/lib/database-error';
 import postgres from 'postgres';
 import { findMissingRequiredQuestions } from '~/lib/form-answers';
 import {
@@ -184,7 +185,7 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
             409,
           );
         }
-        return c.json({ error: err.message }, 400);
+        return c.json(databaseError(err), 400);
       }
       throw err;
     }

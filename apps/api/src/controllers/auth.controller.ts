@@ -1,11 +1,24 @@
 import 'dotenv/config';
-import { deleteCookie, setCookie } from 'hono/cookie';
+import { randomBytes } from 'node:crypto';
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { sign } from 'hono/jwt';
 import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
 import { angkatan, users } from '~/db/schema';
 import { isDevLoginEnabled, verifyDevPassword } from '~/lib/dev-login';
+import * as Sentry from '@sentry/node';
+import {
+  allowedGoogleClientIds,
+  googleUserFromAccessToken,
+  InvalidGoogleTokenError,
+} from '~/lib/google-token';
 import { JWT_ALG } from '~/lib/jwt';
+import {
+  bypassTokenMatches,
+  bypassTokenMatches as sameSecret,
+  isLoginBypassEnabled,
+} from '~/lib/login-bypass';
+import { SESSION_COOKIE, sessionCookieOptions } from '~/lib/session-cookie';
 import {
   findUserByEmail,
   getUserAndUpdatePicture,
@@ -31,6 +44,8 @@ import {
 import { createAuthRouter, createRouter } from './router-factory';
 
 export const loginRouter = createRouter();
+
+const OAUTH_STATE_COOKIE = 'hmif-app.oauth-state';
 export const loginProtectedRouter = createAuthRouter();
 
 const generateJWT = async (payload: object) => {
@@ -60,61 +75,65 @@ loginRouter.openapi(loginRoute, async (c) => {
   authorizationUrl.searchParams.set('response_type', 'code');
   authorizationUrl.searchParams.set('scope', 'openid email profile');
   authorizationUrl.searchParams.set('access_type', 'offline');
+  // Ties Google's answer to this browser: the callback accepts only the state it finds in this cookie.
+  const state = randomBytes(24).toString('base64url');
+  authorizationUrl.searchParams.set('state', state);
+  setCookie(c, OAUTH_STATE_COOKIE, state, {
+    path: '/api/auth/google/callback',
+    secure: true,
+    httpOnly: true,
+    sameSite: 'Lax',
+    maxAge: 10 * 60,
+  });
 
   return c.redirect(authorizationUrl.toString(), 302); // Redirect the user to Google Login
 });
 
 loginRouter.openapi(loginAccessTokenRoute, async (c) => {
+  const { accessToken } = c.req.valid('json');
+  let userInfo;
   try {
-    const { accessToken } = c.req.valid('json');
-    const userInfoResponse = await fetch(
-      'https://www.googleapis.com/oauth2/v2/userinfo',
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    // Only a token issued to PIPS! (lib/google-token.ts).
+    userInfo = await googleUserFromAccessToken(
+      accessToken,
+      allowedGoogleClientIds(env),
     );
-    const userInfo = GoogleUserSchema.parse(await userInfoResponse.json());
-    // Find user in db, if not found return forbidden
-    const { email, picture } = userInfo;
-    const user = await getUserAndUpdatePicture(db, email, picture);
-    if (!user) {
-      return c.json(
-        {
-          error: 'User not found in database',
-        },
-        401,
-      );
-    }
-
-    // Create cookie
-    const tokenPayload = JWTPayloadSchema.parse(user);
-    const token = await generateJWT(tokenPayload);
-
-    void updateUserLastLogin(db, user.id);
-
-    setCookie(c, 'hmif-app.access-cookie', token, {
-      path: '/',
-      secure: true,
-      httpOnly: true,
-      maxAge: parseInt(env.TOKEN_EXPIRATION),
-      sameSite: 'None',
-    });
-    return c.json(tokenPayload, 200);
   } catch (err) {
+    if (err instanceof InvalidGoogleTokenError) {
+      return c.json({ error: 'Invalid Google token' }, 401);
+    }
+    Sentry.captureException(err);
+    return c.json({ error: 'Something went wrong' }, 500);
+  }
+  // Find user in db, if not found return forbidden
+  const { email, picture } = userInfo;
+  const user = await getUserAndUpdatePicture(db, email, picture);
+  if (!user) {
     return c.json(
       {
-        // Sent as caught, as before; the response schema's string type doesn't describe it.
-        error: err as string,
+        error: 'User not found in database',
       },
-      500,
+      401,
     );
   }
+
+  // Create cookie
+  const tokenPayload = JWTPayloadSchema.parse(user);
+  const token = await generateJWT(tokenPayload);
+
+  void updateUserLastLogin(db, user.id);
+
+  setCookie(c, SESSION_COOKIE, token, sessionCookieOptions());
+  return c.json(tokenPayload, 200);
 });
 
 loginRouter.openapi(authCallbackRoute, async (c) => {
-  const { code } = c.req.valid('query');
+  const { code, state } = c.req.valid('query');
+  const expected = getCookie(c, OAUTH_STATE_COOKIE);
+  deleteCookie(c, OAUTH_STATE_COOKIE, { path: '/api/auth/google/callback' });
+  if (!state || !expected || !sameSecret(state, expected)) {
+    return c.json({ error: 'Invalid sign-in state' }, 400);
+  }
 
   const tokenEndpoint = new URL('https://accounts.google.com/o/oauth2/token');
   tokenEndpoint.searchParams.set('code', code);
@@ -169,52 +188,39 @@ loginRouter.openapi(authCallbackRoute, async (c) => {
   const tokenPayload = JWTPayloadSchema.parse({ ...user, picture });
   const token = await generateJWT(tokenPayload);
 
-  setCookie(c, 'hmif-app.access-cookie', token, {
-    path: '/',
-    secure: true,
-    httpOnly: true,
-    maxAge: parseInt(env.TOKEN_EXPIRATION),
-    sameSite: 'None',
-  });
+  setCookie(c, SESSION_COOKIE, token, sessionCookieOptions());
   return c.json(tokenPayload, 200);
 });
 
-loginRouter.openapi(loginBypassRoute, async (c) => {
-  const { token, nim } = c.req.valid('query');
+// Staging and development only, with a strong key (lib/login-bypass.ts): production never has the route.
+const loginBypassKey = env.LOGIN_BYPASS_KEY;
+if (isLoginBypassEnabled(env) && loginBypassKey) {
+  loginRouter.openapi(loginBypassRoute, async (c) => {
+    const { token, nim } = c.req.valid('query');
 
-  if (token !== env.LOGIN_BYPASS_KEY) {
-    return c.json(
-      {
-        error: 'Invalid token',
-      },
-      401,
-    );
-  }
+    if (!bypassTokenMatches(token, loginBypassKey)) {
+      return c.json({ error: 'Invalid token' }, 401);
+    }
 
-  const user = await findUserByEmail(db, `${nim}@std.stei.itb.ac.id`);
-  if (!user) {
-    return c.json(
-      {
-        error:
-          'User not found in database, please run seeder with the file from Google Drive',
-      },
-      401,
-    );
-  }
-  const tokenPayload = JWTPayloadSchema.parse(user);
-  const jwtToken = await generateJWT(tokenPayload);
-  setCookie(c, 'hmif-app.access-cookie', jwtToken, {
-    path: '/',
-    secure: true,
-    httpOnly: true,
-    maxAge: parseInt(env.TOKEN_EXPIRATION),
-    sameSite: 'None',
+    const user = await findUserByEmail(db, `${nim}@std.stei.itb.ac.id`);
+    if (!user) {
+      return c.json(
+        {
+          error:
+            'User not found in database, please run seeder with the file from Google Drive',
+        },
+        401,
+      );
+    }
+    const tokenPayload = JWTPayloadSchema.parse(user);
+    const jwtToken = await generateJWT(tokenPayload);
+    setCookie(c, SESSION_COOKIE, jwtToken, sessionCookieOptions());
+    return c.json(tokenPayload, 200);
   });
-  return c.json(tokenPayload, 200);
-});
+}
 
 loginProtectedRouter.openapi(logoutRoute, async (c) => {
-  deleteCookie(c, 'hmif-app.access-cookie');
+  deleteCookie(c, SESSION_COOKIE);
   return c.json({}, 200);
 });
 

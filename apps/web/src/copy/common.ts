@@ -80,6 +80,14 @@ export const common = {
     tidakDitemukan: 'Halaman tidak ditemukan',
     tidakDitemukanIsi: 'Tautannya mungkin salah atau sudah tidak berlaku.',
   },
+  // A file the API won't take (lib/upload-policy.ts): said before anything is sent, or when the API refuses it. New
+  // copy, worded as the screens' other upload errors.
+  unggah: {
+    jenis: 'Jenis file tidak didukung.',
+    ukuran: 'File terlalu besar (maks. 25 MB).',
+    jenisFile: 'Jenis file {nama} tidak didukung.',
+    ukuranFile: 'File {nama} terlalu besar (maks. 25 MB).',
+  },
   offline: {
     banner: 'Offline · diperbarui {waktu}',
     // P1-C: nothing on the page has come from the server yet, so there is no time to give.
