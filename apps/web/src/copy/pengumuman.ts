@@ -20,6 +20,10 @@ export const pengumuman = {
     kategori: 'Kategori',
     disembunyikan: '{jumlah} disembunyikan',
     belumDibacaSr: ' (belum dibaca)',
+    // New copy (owner, 2026-11-06): mark every post read, beside Belum dibaca.
+    tandaiSemua: 'Tandai semua dibaca',
+    semuaDitandai: 'Semua pengumuman ditandai sudah dibaca.',
+    gagalTandaiSemua: 'Belum berhasil menandai semua dibaca.',
     kamu: 'Kamu',
     komentar: '{jumlah} komentar. Buka komentar',
     bagikan: 'Bagikan',

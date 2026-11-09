@@ -62,6 +62,7 @@ export type { ProgrammeWindow } from './models/ProgrammeWindow';
 export type { PushSubscription } from './models/PushSubscription';
 export type { Reaction } from './models/Reaction';
 export type { ReactionAggregate } from './models/ReactionAggregate';
+export type { ReadAllInfoResponse } from './models/ReadAllInfoResponse';
 export type { Testimoni } from './models/Testimoni';
 export type { User } from './models/User';
 export type { UserCourse } from './models/UserCourse';

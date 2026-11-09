@@ -6,6 +6,7 @@ import {
   InfoSchema,
   ListInfoParamsSchema,
   ListInfoSchema,
+  ReadAllInfoResponseSchema,
 } from '~/types/info.types';
 import { ErrorSchema, ValidationErrorSchema } from '~/types/responses.type';
 
@@ -30,6 +31,23 @@ export const postReadInfoRoute = createRoute({
         'application/json': {
           schema: z.union([ValidationErrorSchema, ErrorSchema]),
         },
+      },
+    },
+  },
+});
+
+export const postReadAllInfoRoute = createRoute({
+  operationId: 'readAllInfo',
+  tags: ['info'],
+  method: 'post',
+  path: '/info/read-all',
+  description:
+    'Mark every post the signed-in member can see in their feed as read',
+  responses: {
+    200: {
+      description: 'How many posts were marked read',
+      content: {
+        'application/json': { schema: ReadAllInfoResponseSchema },
       },
     },
   },

@@ -59,6 +59,7 @@
     font-variant-numeric: tabular-nums;
   }
   .g-post-title {
+    overflow-wrap: anywhere;
     font-size: 16px;
     line-height: 1.35;
     font-weight: 600;
@@ -232,19 +233,27 @@
     height: var(--g-page-h, 100%);
     min-height: 0;
   }
-  .g-split > .l {
-    border-right: 1px solid var(--border);
+  /* Each column scrolls on its own, and only down (owner, 2026-11-06). `position: relative` makes each column the box
+     its absolutely placed children (an unread row's screen-reader text) are placed in: otherwise they belonged to the
+     page area around both columns and stretched it below the list, so the page area scrolled on after the post. A
+     column's end doesn't hand the wheel on to the page. */
+  .g-split > .l,
+  .g-split > .r {
+    position: relative;
     overflow-y: auto;
+    overscroll-behavior: contain;
     min-height: 0;
   }
+  .g-split > .l {
+    border-right: 1px solid var(--border);
+  }
+  /* One column no wider than the list (as .g-body): an auto column grew to the longest unbroken word or URL, and
+     focusing a row then scrolled the list sideways. */
   .g-split > .l > .in {
     padding: 28px 24px 24px;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 14px;
-  }
-  .g-split > .r {
-    overflow-y: auto;
-    min-height: 0;
   }
   .g-split > .r > .g-empty {
     padding-top: 80px;
@@ -261,6 +270,7 @@
   }
   .g-row-title {
     display: block;
+    overflow-wrap: anywhere;
     font-size: 15px;
     line-height: 1.4;
     font-weight: 600;
@@ -270,6 +280,7 @@
   }
   .g-row-text {
     display: block;
+    overflow-wrap: anywhere;
     margin-top: 3px;
     font-size: 14px;
     line-height: 1.5;
@@ -284,10 +295,15 @@
   /* ============ A post ============ */
   .g-detail {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 18px;
     max-width: 760px;
     padding: 2px 18px 32px;
     align-content: start;
+  }
+  /* A title of one long word or a URL wraps instead of widening the post. */
+  .g-detail .t-title {
+    overflow-wrap: anywhere;
   }
   .g-detail.desk {
     padding: 30px 36px 40px;

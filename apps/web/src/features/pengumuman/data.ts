@@ -16,6 +16,7 @@ import {
   ANGKATAN_QUERY_KEY,
   CATEGORIES_QUERY_KEY,
   INFO_LIST_QUERY_KEY,
+  INFO_QUERY_KEY,
 } from '~/api/constants';
 import {
   ApiError,
@@ -23,7 +24,11 @@ import {
   type Info,
   type ReactionAggregate,
 } from '~/api/generated';
-import { infoCommentsQuery, infoDetailQuery } from '~/api/queries';
+import {
+  infoCommentsQuery,
+  infoDetailQuery,
+  unreadInfosQuery,
+} from '~/api/queries';
 import type { PixelReactionKey } from '~/components/garis/pixel-art';
 import {
   applyReaction,
@@ -161,6 +166,31 @@ export function useMarkRead() {
       return { snap };
     },
     onError: (_e, _v, ctx) => ctx && restore(qc, ctx.snap),
+  });
+}
+
+/**
+ * Tandai semua dibaca (owner, 2026-11-06): the server marks the member's whole feed read; then the count, the badge,
+ * Beranda's list and every cached post say so at once, and the lists reload from the server.
+ */
+export function useMarkAllRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.info.readAllInfo(),
+    onSuccess: async () => {
+      const read = (i: Info) => (i.isRead ? i : { ...i, isRead: true });
+      qc.setQueryData<string[]>(UNREAD_KEY, []);
+      qc.setQueryData<Info[]>(unreadInfosQuery().queryKey, []);
+      qc.setQueriesData<Feed>({ queryKey: [INFO_LIST_QUERY_KEY] }, (data) =>
+        data && Array.isArray(data.pages)
+          ? { ...data, pages: data.pages.map((p) => p.map(read)) }
+          : data,
+      );
+      qc.setQueriesData<Info>({ queryKey: [INFO_QUERY_KEY, 'detail'] }, (i) =>
+        i ? read(i) : i,
+      );
+      await qc.invalidateQueries({ queryKey: [INFO_LIST_QUERY_KEY] });
+    },
   });
 }
 

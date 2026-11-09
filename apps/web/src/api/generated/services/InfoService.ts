@@ -6,6 +6,7 @@ import type { Angkatan } from '../models/Angkatan';
 import type { Category } from '../models/Category';
 import type { Course } from '../models/Course';
 import type { Info } from '../models/Info';
+import type { ReadAllInfoResponse } from '../models/ReadAllInfoResponse';
 import type { UserGroup } from '../models/UserGroup';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
@@ -38,6 +39,17 @@ export class InfoService {
       errors: {
         400: `Bad request`,
       },
+    });
+  }
+  /**
+   * Mark every post the signed-in member can see in their feed as read
+   * @returns ReadAllInfoResponse How many posts were marked read
+   * @throws ApiError
+   */
+  public readAllInfo(): CancelablePromise<ReadAllInfoResponse> {
+    return this.httpRequest.request({
+      method: 'POST',
+      url: '/api/info/read-all',
     });
   }
   /**
