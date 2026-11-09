@@ -7,6 +7,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { registerSW } from 'virtual:pwa-register';
 import { queryClient } from './api/client';
 import { RootErrorFallback } from './components/error-fallback';
+import { reloadOnPreloadError } from './lib/preload-recovery';
 import { runWhenSettled } from './lib/sw-register';
 import './index.css';
 // Features register with the shell at start, so it imports no feature code: Testi Matkul titles its pages from
@@ -17,6 +18,9 @@ import './features/pengumuman/shell';
 
 // Import the generated route tree
 import { router } from './router';
+
+// A page's code that can't load (its file gone after a deploy) reloads the page once, onto the new build.
+reloadOnPreloadError();
 
 // The service worker (automatic updates reload the page) registers once the page has loaded, its first data has
 // arrived and the browser is idle (src/lib/sw-register.ts): the first paint never waits for it.

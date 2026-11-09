@@ -192,3 +192,33 @@ test('a member whose last refresh failed keeps their data on the device, stored 
   assert.equal(stored.state.fetchFailureReason, null);
   unsubscribe();
 });
+
+// Regression (web-robust 7): where IndexedDB never answers (an old WebKit bug), restoring the persisted cache waited
+// for good and the app stayed on its skeleton. Past the time limit it carries on without the cache.
+test('a store that never answers: restoring and removing give up after the time limit', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const never = new Promise<never>(() => {});
+  const stuck: ClientStore = {
+    get: () => never,
+    put: () => never,
+    delete: () => never,
+  };
+  const persister = createThrottledPersister(stuck, THROTTLE, 3000);
+  let restored: unknown = 'waiting';
+  void Promise.resolve(persister.restoreClient()).then((c) => (restored = c));
+  let removed = false;
+  void Promise.resolve(persister.removeClient()).then(() => (removed = true));
+  t.mock.timers.tick(2999);
+  await new Promise((r) => setImmediate(r));
+  assert.equal(restored, 'waiting');
+  assert.equal(removed, false);
+  t.mock.timers.tick(1);
+  await new Promise((r) => setImmediate(r));
+  assert.equal(restored, undefined);
+  assert.equal(removed, true);
+});
+
+test('the IndexedDB store’s default time limit is a few seconds', async () => {
+  const { STORE_TIME_LIMIT_MS } = await import('../src/api/persister');
+  assert.ok(STORE_TIME_LIMIT_MS >= 1000 && STORE_TIME_LIMIT_MS <= 5000);
+});

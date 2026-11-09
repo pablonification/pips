@@ -3,6 +3,7 @@ import type {
   Persister,
 } from '@tanstack/react-query-persist-client';
 import { openDB, type IDBPDatabase } from 'idb';
+import { withTimeLimit } from '~/lib/time-limit';
 import { isSignedInSnapshot, trimForDevice } from './persistence-policy';
 
 const DB_NAME = 'pips-query-cache';
@@ -10,6 +11,11 @@ const STORE = 'cache';
 const KEY = 'client';
 /** The persisted cache is written at most once per this many milliseconds. */
 export const PERSIST_THROTTLE_MS = 1000;
+/**
+ * How long reading or removing the persisted cache may take. Where IndexedDB never answers (an old WebKit bug), the
+ * app would otherwise stay on its skeleton for good; past this it carries on without the cache.
+ */
+export const STORE_TIME_LIMIT_MS = 3000;
 
 /** Where the persisted client lives: one record. */
 export interface ClientStore {
@@ -26,6 +32,7 @@ export interface ClientStore {
 export function createThrottledPersister(
   store: ClientStore,
   throttleMs = PERSIST_THROTTLE_MS,
+  limitMs = STORE_TIME_LIMIT_MS,
 ): Persister {
   let pending: PersistedClient | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -55,7 +62,7 @@ export function createThrottledPersister(
     },
     async restoreClient() {
       try {
-        return await store.get();
+        return await withTimeLimit(store.get(), limitMs);
       } catch {
         return undefined;
       }
@@ -67,7 +74,7 @@ export function createThrottledPersister(
         timer = null;
       }
       try {
-        await store.delete();
+        await withTimeLimit(store.delete(), limitMs);
       } catch {
         // Nothing stored.
       }

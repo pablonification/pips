@@ -12,18 +12,25 @@ import {
 } from './constants';
 import { ApiClient, ApiError } from './generated';
 import { PERSIST_MAX_AGE } from './persistence-policy';
+import { RequestTimeoutError, timedHttpRequest } from './timed-request';
 
-export const api = new ApiClient({
-  BASE: import.meta.env.VITE_API_URL,
-  WITH_CREDENTIALS: true,
-  CREDENTIALS: 'include',
-});
+export const api = new ApiClient(
+  {
+    BASE: import.meta.env.VITE_API_URL,
+    WITH_CREDENTIALS: true,
+    CREDENTIALS: 'include',
+  },
+  // Every request has a time limit, so a stalled network ends in the screen's error and Coba lagi.
+  timedHttpRequest(),
+);
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry(failureCount, error) {
         if (failureCount >= 3) return false;
+        // A request that ran out of time is tried once more, not three times: the member waits at most two limits.
+        if (error instanceof RequestTimeoutError) return failureCount < 1;
         if (error instanceof ApiError) {
           if (error.status >= 400 && error.status < 500) return false;
         }

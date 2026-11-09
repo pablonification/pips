@@ -1,3 +1,4 @@
+import { withoutPicture } from '../fixtures/api';
 import { greeting, inMain, navLink } from '../support/app';
 import { reply } from '../support/mock';
 import { strictAudit } from '../support/strict';
@@ -239,6 +240,35 @@ test('the first page of announcements and the agenda come back from the device w
       'infos',
     ]).toContain(key);
   }
+});
+
+// Regression (web-robust 5): the saved copy of a member without a photo (`picture: null`) never read back, so every
+// launch waited for the session check.
+test('a member without a photo opens from the saved copy while the session check hangs', async ({
+  page,
+  api,
+  db,
+}) => {
+  db.me = withoutPicture(db.me!);
+  await page.goto('/');
+  await expect(greeting(page)).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(() => JSON.parse(localStorage.getItem('user') ?? '{}')),
+    )
+    .toMatchObject({ picture: null });
+  // Only the saved copy in localStorage: the persisted query cache is gone.
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const req = indexedDB.deleteDatabase('pips-query-cache');
+        req.onsuccess = req.onerror = req.onblocked = resolve;
+      }),
+  );
+  api.on('GET /api/me', reply.hang());
+  await page.reload();
+  await expect(greeting(page)).toBeVisible();
+  await expect(page.getByRole('status', { name: 'Memuat…' })).toHaveCount(0);
 });
 
 test('logging out never asks for notification permission, and clears what was kept on the device', async ({

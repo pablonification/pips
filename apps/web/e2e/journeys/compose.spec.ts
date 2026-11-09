@@ -255,6 +255,30 @@ test.describe('Nadia', () => {
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   });
 
+  // Regression (web-robust 1): a photo upload on a stalled network said "Mengunggah…" until the browser gave up.
+  test('a photo upload that stalls fails after 30 s without progress, and Coba lagi uploads it', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api.on('POST /api/media/upload', writes.presign);
+    const c = await openComposer(page, testInfo);
+    api.uploads.hangNext = 1;
+    await c.locator('input[type="file"]').setInputFiles([photo('a.png')]);
+    await expect(
+      c.getByRole('status').filter({ hasText: /^Mengunggah/ }),
+    ).toBeVisible();
+    await expect
+      .poll(() => api.requests.filter((r) => r.outcome === 'upload').length)
+      .toBe(1);
+    await page.clock.runFor(31_000);
+    await expect(c.getByText('Gagal diunggah', { exact: true })).toBeVisible();
+    await c
+      .locator('[data-photo="failed"]')
+      .getByRole('button', { name: 'Coba lagi' })
+      .click();
+    await expect(c.locator('[data-photo="done"]')).toHaveCount(1);
+  });
+
   test('Batal and Escape leave the composer; the next one starts fresh', async ({
     page,
   }, testInfo) => {

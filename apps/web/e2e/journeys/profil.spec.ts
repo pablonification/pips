@@ -392,6 +392,79 @@ test.describe('Raka', () => {
     expect((await pushDevice(page)).subscribed).toBe(true);
     expect((await pushDevice(page)).asks).toBe(0);
   });
+
+  // Regression (web-robust 2): /api/logout sits behind the login check, so an expired session answered 401 and the
+  // app said "Gagal keluar" with a Coba lagi that failed the same way. A 401 means already signed out.
+  test('a sign-out answered 401 (the session had already ended) signs out on the device', async ({
+    page,
+    api,
+    db,
+  }) => {
+    api.on('PUT /api/push/logout', writes.logoutPush);
+    api.on('POST /api/logout', reply.status(401, { error: 'Unauthorized' }));
+    db.pushSubscriptions = [E2E_SUBSCRIPTION];
+    await page.goto('/profil');
+    await main(page).getByRole('button', { name: 'Keluar' }).click();
+    await confirm(page).getByRole('button', { name: 'Keluar' }).click();
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(
+      page.getByRole('button', { name: 'Masuk dengan Google' }),
+    ).toBeVisible();
+    await expect(page.getByText(/Gagal keluar/)).toHaveCount(0);
+    // The same clean-up as a sign-out: nothing of Raka stays, and the device isn't linked again.
+    expect(
+      await page.evaluate(() => [
+        localStorage.getItem('user'),
+        localStorage.getItem('userAcademic'),
+      ]),
+    ).toEqual(['null', null]);
+    expect(api.calls('POST /api/push/register')).toEqual([]);
+    expect(db.pushSubscriptions).toEqual([]);
+  });
+
+  // Regression (web-robust 1): a sign-out the API never answered kept "Keluar…" (and the dialog, which can't close
+  // while it runs) until the browser gave up, often minutes. Every request now has a time limit. On the real clock:
+  // the limit is the browser's own timer (a fake clock once hid a real-browser timer bug).
+  test.describe('on the real clock', () => {
+    test.use({ now: null });
+    test('a sign-out the API never answers ends in Gagal keluar after the time limit, and Coba lagi works', async ({
+      page,
+      api,
+      db,
+    }) => {
+      test.setTimeout(90_000);
+      api.on('PUT /api/push/logout', writes.logoutPush);
+      api.on('POST /api/push/register', writes.registerPush);
+      let hang = true;
+      api.on('POST /api/logout', (req) =>
+        hang ? reply.hang() : writes.logout(req),
+      );
+      db.pushSubscriptions = [E2E_SUBSCRIPTION];
+      await page.goto('/profil');
+      await main(page).getByRole('button', { name: 'Keluar' }).click();
+      await confirm(page).getByRole('button', { name: 'Keluar' }).click();
+      await expect(
+        confirm(page).getByRole('button', { name: 'Keluar…' }),
+      ).toBeVisible();
+      await expect.poll(() => api.calls('POST /api/logout').length).toBe(1);
+      const error = toastText(
+        page,
+        'Gagal keluar. Periksa koneksimu, lalu coba lagi.',
+      );
+      // Not before the limit (25 s), well before the browser would give up.
+      await page.waitForTimeout(20_000);
+      await expect(error).toHaveCount(0);
+      await expect(error).toBeVisible({ timeout: 15_000 });
+      await expect(confirm(page)).toBeHidden();
+      await expect(page).toHaveURL(/\/profil$/);
+      await expect.poll(() => db.pushSubscriptions).toEqual([E2E_SUBSCRIPTION]);
+
+      hang = false;
+      await error.getByRole('button', { name: 'Coba lagi' }).click();
+      await confirm(page).getByRole('button', { name: 'Keluar' }).click();
+      await expect(page).toHaveURL(/\/login$/);
+    });
+  });
 });
 
 test('Keluar: Batal and Escape keep you signed in, with focus back on Keluar', async ({

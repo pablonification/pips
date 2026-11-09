@@ -192,7 +192,7 @@ test('the member kept on the device is read back as the zod schema read it', () 
       angkatan: z.number(),
       gender: z.union([z.literal('F'), z.literal('M')]),
       membershipStatus: z.string(),
-      picture: z.string(),
+      picture: z.string().nullable(),
       roles: z.array(z.string()),
     })
     .nullable();
@@ -221,6 +221,8 @@ test('the member kept on the device is read back as the zod schema read it', () 
     { ...nadia, angkatan: '2025' },
     { ...nadia, angkatan: NaN },
     { ...nadia, picture: undefined },
+    { ...nadia, picture: null },
+    { ...nadia, picture: 1 },
     { ...nadia, roles: [1] },
   ];
   for (const c of cases)
@@ -229,4 +231,23 @@ test('the member kept on the device is read back as the zod schema read it', () 
       run(() => zUser.parse(c)),
       JSON.stringify(c),
     );
+});
+
+// Regression (web-robust 5): the API's `picture` is null for a member who never set a photo, and the saved copy of
+// such a member never read back, so every launch waited for the network.
+test('a member without a photo reads back from the device', () => {
+  const saved = {
+    id: 'u2',
+    nim: '13525046',
+    email: '13525046@std.stei.itb.ac.id',
+    fullName: 'Tanpa Foto',
+    major: 'IF',
+    region: 'Ganesha',
+    angkatan: 2025,
+    gender: 'M',
+    membershipStatus: 'Anggota Biasa',
+    picture: null,
+    roles: [],
+  };
+  assert.deepEqual(userSchema.parse(JSON.parse(JSON.stringify(saved))), saved);
 });

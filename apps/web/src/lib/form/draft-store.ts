@@ -5,12 +5,18 @@
  * deleted when read. Same format, so drafts saved by today's screen restore in the new one; written here directly so a
  * write still waiting when the member leaves the screen isn't lost (bungkus writes inside a React state update).
  */
+import { withTimeLimit } from '~/lib/time-limit';
 import type { Answers } from './rules';
 
 const DB = 'keyval-store';
 const STORE = 'keyval';
 const LOCK = '🔒';
 const TIMESTAMP = '_timestamp';
+/**
+ * How long one storage request may take. Where IndexedDB never answers (an old WebKit bug), a form would otherwise
+ * stay on its skeleton waiting for its draft; past this it counts as no draft (or a draft not saved).
+ */
+export const DRAFT_TIME_LIMIT_MS = 3000;
 
 const lock = (s: string) =>
   LOCK + btoa(encodeURIComponent(s)).split('').reverse().join('');
@@ -73,6 +79,13 @@ function open(): Promise<IDBDatabase> {
 }
 
 function run<T>(
+  mode: IDBTransactionMode,
+  fn: (s: IDBObjectStore) => IDBRequest<T>,
+): Promise<T> {
+  return withTimeLimit(transact(mode, fn), DRAFT_TIME_LIMIT_MS);
+}
+
+function transact<T>(
   mode: IDBTransactionMode,
   fn: (s: IDBObjectStore) => IDBRequest<T>,
 ): Promise<T> {

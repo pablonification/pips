@@ -1,4 +1,4 @@
-import { arrayOf, literal, number, object, string } from './params';
+import { arrayOf, literal, nullable, number, object, string } from './params';
 
 // The member kept on the device, checked as it is read back (F2-004: plain checks instead of zod; `tests/params.test.ts`
 // holds it to the zod schema it replaces). Unknown keys are dropped; a missing or wrong one makes it unreadable.
@@ -13,7 +13,8 @@ const userObject = object(
     angkatan: number,
     gender: literal('F', 'M'),
     membershipStatus: string,
-    picture: string,
+    // A member who never set a photo has none (the API's `picture` is nullable); they still read back (web-robust 5).
+    picture: nullable(string),
     roles: arrayOf(string),
   },
   { strict: true },

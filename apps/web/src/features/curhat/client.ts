@@ -27,6 +27,9 @@ import {
   type OutboxEntry,
 } from './rules';
 
+/** A connection that lasted this long was a working one: the next server-ended connection reconnects at once. */
+const STABLE_MS = 10_000;
+
 /** The part of socket.io-client's Socket this uses. */
 export interface SocketLike {
   readonly connected: boolean;
@@ -61,8 +64,8 @@ export interface CurhatClientEvents {
    */
   onRefused?: (error: Extract<Refusal, 'unauthorized' | 'forbidden'>) => void;
   /**
-   * The server ended the connection (`io server disconnect`: the session expired). socket.io won't reconnect by
-   * itself; check the session, then `reconnect()`.
+   * The server ended the connection (`io server disconnect`: the session expired, or the server couldn't read it).
+   * socket.io won't reconnect by itself; check the session, then `reconnect()`.
    */
   onSessionEnded?: () => void;
 }
@@ -78,6 +81,10 @@ export class CurhatClient {
   private wasDown = false;
   private seq = 0;
   private closed = false;
+  /** Server-ended connections in a row, each soon after connecting; `reconnect()` waits longer for each. */
+  private serverEnds = 0;
+  private connectedAt = 0;
+  private cancelReconnect: (() => void) | null = null;
   /** The room on screen: its Welfare replies are read at once instead of counted. */
   openRoom: string | null = null;
 
@@ -89,9 +96,12 @@ export class CurhatClient {
       timeoutMs?: number;
       /** The device's id for a new message; a random UUID. */
       newId?: () => string;
+      /** Runs `fn` after `ms`; returns a cancel. The browser's timer by default. */
+      later?: (fn: () => void, ms: number) => () => void;
     } = {},
   ) {
     socket.on('connect', () => {
+      this.connectedAt = Date.now();
       const back = this.wasDown;
       this.wasDown = false;
       this.set({ status: 'connected' });
@@ -104,8 +114,13 @@ export class CurhatClient {
     };
     socket.on('disconnect', ((reason?: string) => {
       down();
-      if (!this.closed && reason === 'io server disconnect')
+      if (!this.closed && reason === 'io server disconnect') {
+        // A connection that lasted a while starts the count again; one ended at once (the server couldn't read the
+        // session) adds to it.
+        if (Date.now() - this.connectedAt > STABLE_MS) this.serverEnds = 0;
+        this.serverEnds++;
         this.events.onSessionEnded?.();
+      }
     }) as never);
     socket.on('connect_error', down);
     socket.on('reply', ((message: ChatroomMessage) => {
@@ -240,14 +255,38 @@ export class CurhatClient {
     });
   }
 
-  /** Connect again after the server ended the connection, once the session is known to be good. */
+  /**
+   * Connect again after the server ended the connection, once the session is known to be good. At once the first
+   * time; when the server keeps ending it straight away, after 1, 2, 4… up to 30 s, so a server that can't read
+   * sessions isn't asked again and again.
+   */
   reconnect() {
-    if (!this.closed && !this.socket.connected) this.socket.connect();
+    if (this.closed || this.socket.connected || this.cancelReconnect) return;
+    const wait =
+      this.serverEnds <= 1
+        ? 0
+        : Math.min(1000 * 2 ** (this.serverEnds - 2), 30_000);
+    if (!wait) {
+      this.socket.connect();
+      return;
+    }
+    const later =
+      this.options.later ??
+      ((fn: () => void, ms: number) => {
+        const id = setTimeout(fn, ms);
+        return () => clearTimeout(id);
+      });
+    this.cancelReconnect = later(() => {
+      this.cancelReconnect = null;
+      if (!this.closed && !this.socket.connected) this.socket.connect();
+    }, wait);
   }
 
   /** Leaving the area: the socket closes. */
   close() {
     this.closed = true;
+    this.cancelReconnect?.();
+    this.cancelReconnect = null;
     this.listeners.clear();
     this.socket.disconnect();
   }

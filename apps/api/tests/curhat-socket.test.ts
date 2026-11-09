@@ -44,6 +44,8 @@ let rooms: Array<{ id: string; userId: string | null }>;
 let messages: ChatroomMessage[];
 let notified: Array<{ chatroomId: string; senderId: string; content: string }>;
 let failSaves: boolean;
+/** The role lookup throws, as when the database can't be reached. */
+let failRoleLookups: boolean;
 /** Runs after Welfare's handshake has read the room list, before it returns: a room created in that window. */
 let whileListingRooms: (() => Promise<void> | void) | undefined;
 
@@ -75,6 +77,7 @@ beforeEach(() => {
   ];
   notified = [];
   failSaves = false;
+  failRoleLookups = false;
   whileListingRooms = undefined;
 });
 
@@ -89,7 +92,10 @@ before(async () => {
     'connection',
     createConnectionHandler({
       jwtSecret: PLACEHOLDER_JWT_SECRET,
-      getUserRoles: async (id) => ROLES[id] ?? [],
+      getUserRoles: async (id) => {
+        if (failRoleLookups) throw new Error('database down');
+        return ROLES[id] ?? [];
+      },
       curhat: {
         getChatroom: async (id) => rooms.find((r) => r.id === id),
         getOwnedChatroomIds: async (userId) =>
@@ -781,6 +787,70 @@ test('a message sent right after connecting, before the session is read, is not 
   clients.push(socket);
   const ack = await send(socket, { chatroomId: 'r1', message: 'cepat' });
   assert.equal(ack.ok, true);
+});
+
+// Regression (web-robust 3): a role lookup that threw at the handshake left the session null while the socket stayed
+// connected, so Curhat looked connected but every send was refused `unauthorized`, and Live Counting heard nothing.
+test('a role lookup that fails at the handshake refuses the connection; connecting again then works', async () => {
+  failRoleLookups = true;
+  const socket = connect(URL, {
+    auth: { curhat: true },
+    extraHeaders: { Cookie: await sessionCookie(nadia) },
+    transports: ['websocket'],
+    forceNew: true,
+    reconnection: false,
+  });
+  clients.push(socket);
+  const before = messages.length;
+  const reason = new Promise<string>((resolve) => {
+    const timer = setTimeout(() => resolve('still connected'), 2000);
+    socket.once('disconnect', (r) => {
+      clearTimeout(timer);
+      resolve(r);
+    });
+  });
+  // Sent before the session was read: never answered `unauthorized`, never saved.
+  const ack = await send(socket, { chatroomId: 'r1', message: 'x' }).catch(
+    () => 'no answer',
+  );
+  assert.equal(await reason, 'io server disconnect');
+  assert.equal(ack, 'no answer');
+  assert.equal(messages.length, before);
+
+  failRoleLookups = false;
+  socket.connect();
+  await new Promise<void>((resolve) => socket.once('connect', () => resolve()));
+  await settled();
+  assert.deepEqual(await roomsOf(socket.id!), ['r1', 'r2']);
+  assert.equal(
+    (await send(socket, { chatroomId: 'r1', message: 'y' })).ok,
+    true,
+  );
+});
+
+test("Live Counting: a failed role lookup refuses an admin's connection instead of leaving it out of the room", async () => {
+  failRoleLookups = true;
+  const socket = connect(URL, {
+    auth: { formAdminId: 'pixel' },
+    extraHeaders: { Cookie: await sessionCookie(admin) },
+    transports: ['websocket'],
+    forceNew: true,
+    reconnection: false,
+  });
+  clients.push(socket);
+  const reason = await new Promise<string>((resolve) => {
+    const timer = setTimeout(() => resolve('still connected'), 2000);
+    socket.once('disconnect', (r) => {
+      clearTimeout(timer);
+      resolve(r);
+    });
+  });
+  assert.equal(reason, 'io server disconnect');
+  failRoleLookups = false;
+  socket.connect();
+  await new Promise<void>((resolve) => socket.once('connect', () => resolve()));
+  await settled();
+  assert.deepEqual(await roomsOf(socket.id!), [formAdminRoom('pixel')]);
 });
 
 // --- Live Counting's room is untouched ---
