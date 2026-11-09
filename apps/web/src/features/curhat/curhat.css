@@ -39,10 +39,30 @@
   }
 
   /* ============ A room ============ */
+  /* Owner's chat changes (2026-11-06): a short thread sits at the bottom, by the composer, as in a chat app. */
   .g-chat {
+    flex: 1 0 auto;
     display: grid;
-    gap: 10px;
+    gap: 2px;
     align-content: end;
+    padding-top: 12px;
+  }
+  .g-chat:empty {
+    flex: 0 0 auto;
+    padding: 0;
+  }
+  /* A message: its bubble and, beside it, Balas (MessageRow.tsx). Yours on the right, the icon toward the middle. */
+  .g-msg {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+  .g-msg.me {
+    flex-direction: row-reverse;
+  }
+  .g-msg.start {
+    margin-top: 10px;
   }
   .g-bubble {
     max-width: 82%;
@@ -52,19 +72,61 @@
     line-height: 1.45;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
+    min-width: 0;
+    touch-action: pan-y;
+  }
+  .g-bubble.swiping {
+    transition: none;
   }
   .g-bubble.them {
-    justify-self: start;
     background: var(--bg-surface);
     box-shadow: inset 0 0 0 1px var(--border);
-    border-bottom-left-radius: 3px;
   }
   .g-bubble.me {
-    justify-self: end;
     background: var(--gold);
     color: var(--ink);
     box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  /* One group reads as one: the joined corners tighten, and only its last bubble keeps the tail. */
+  .g-msg.them:not(.start) .g-bubble {
+    border-top-left-radius: 4px;
+  }
+  .g-msg.them:not(.end) .g-bubble {
+    border-bottom-left-radius: 4px;
+  }
+  .g-msg.them.end .g-bubble {
+    border-bottom-left-radius: 3px;
+  }
+  .g-msg.me:not(.start) .g-bubble {
+    border-top-right-radius: 4px;
+  }
+  .g-msg.me:not(.end) .g-bubble {
+    border-bottom-right-radius: 4px;
+  }
+  .g-msg.me.end .g-bubble {
     border-bottom-right-radius: 3px;
+  }
+  /* Balas: shown on hovering the message or when Tab reaches it; on touch, after a tap on the bubble, or as a swipe
+     pulls the bubble far enough. */
+  .g-msg-reply.g-icon-btn {
+    color: var(--text-3);
+    opacity: 0;
+    transition: opacity 120ms ease-out;
+  }
+  .g-msg-reply.g-icon-btn:hover,
+  .g-msg-reply[data-ready] {
+    color: var(--text-accent);
+  }
+  .g-msg:hover .g-msg-reply,
+  .g-msg.open .g-msg-reply,
+  .g-msg-reply:focus,
+  .g-msg-reply[data-ready] {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .g-msg-reply.g-icon-btn {
+      transition: none;
+    }
   }
   .g-bubble .tm {
     display: flex;
@@ -94,27 +156,13 @@
     font-size: 13px;
     opacity: 0.9;
   }
-  .g-bubble-tools {
-    justify-self: end;
-    margin-top: -6px;
-    min-height: 32px;
-    padding: 0 6px;
-    color: var(--text-3);
-    font-weight: 500;
-  }
-  .g-bubble-tools:hover {
-    color: var(--text-accent);
-  }
-  .g-bubble-tools.them {
-    justify-self: start;
-  }
   /* New (D7): a failed message's line: "Gagal" (icon, word, danger colour) and Kirim ulang. */
   .g-bubble-fail {
     justify-self: end;
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: -6px;
+    margin-top: 2px;
     min-height: 32px;
     padding: 0 6px;
   }
@@ -124,12 +172,14 @@
   }
   .g-chat-day {
     justify-self: center;
+    margin-top: 10px;
     font-size: 12px;
     font-weight: 500;
     color: var(--text-3);
     padding: 6px 0;
   }
   .g-chat-first {
+    margin-top: auto;
     text-align: center;
     padding: 24px 0;
   }
@@ -137,14 +187,17 @@
   [data-scroll-restoration-id='isi']:has(.g-chat-bar) {
     scroll-padding-bottom: calc(var(--g-chat-bar-h, 0px) + 8px);
   }
+  /* The composer stays pinned at the bottom of the screen, across the page's width (the body's padding undone). */
   .g-chat-bar {
     position: sticky;
     bottom: 0;
     z-index: 1;
     display: grid;
     gap: 8px;
-    padding: 10px 0 4px;
+    margin: 8px calc(-1 * var(--g-room-pad)) 0;
+    padding: 10px var(--g-room-pad) max(10px, env(safe-area-inset-bottom));
     background: var(--bg-app);
+    box-shadow: 0 -1px 0 var(--border);
   }
   .g-reply-chip {
     display: flex;
@@ -185,7 +238,52 @@
   .g-curhat-page {
     gap: 14px;
   }
-  .g-room-page {
-    gap: 10px;
+  /* A room fills the screen below its head: the thread grows, the composer ends at the screen's bottom. */
+  .g-body.g-room-page {
+    --g-room-pad: 18px;
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-bottom: 0;
   }
+  @media (min-width: 1024px) {
+    /* The conversation takes the pane, as wide as the app's wide pages (`PageBody wide`); bubbles stay readable. */
+    .g-body.g-room-page {
+      --g-room-pad: 36px;
+      padding-bottom: 0;
+    }
+    .g-room-page .g-bubble {
+      max-width: min(82%, 560px);
+    }
+    /* The head (the room's name and its action) and the breadcrumbs stay pinned while the thread scrolls. */
+    .g-desk-scroll:has(.g-room-page) .g-crumbs {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--bg-app);
+    }
+    .g-page-wrap:has(> .g-room-page) > .g-d-head {
+      position: sticky;
+      top: var(--g-crumbs-h, 0px);
+      z-index: 2;
+      max-width: 1180px;
+      padding-top: 14px;
+      padding-bottom: 14px;
+      background: var(--bg-app);
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .g-desk-scroll:has(.g-room-page) {
+      scroll-padding-top: calc(
+        var(--g-crumbs-h, 0px) + var(--g-chat-head-h, 0px) + 8px
+      );
+    }
+  }
+}
+
+/* The screens' wrapper is a block on desktop (`lg:block` in routes/_app/_left-navbar.tsx); a room's stays a column,
+   so the room fills the pane's height. Outside the layers, so it wins over the utility. */
+.g-page-wrap:has(> .g-room-page) {
+  display: flex;
+  flex-direction: column;
 }

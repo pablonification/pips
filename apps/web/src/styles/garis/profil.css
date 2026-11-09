@@ -5,6 +5,40 @@
   only from tokens.css.
 */
 @layer components {
+  /* Kredit (owner's change, 2026-11-06): the server's credits as cards, from the components' card, ruled list and
+     avatar. A group's roles sit side by side as small cards; its teams as cards with Lead and Team. */
+  .g-kredit {
+    display: grid;
+    gap: 28px;
+  }
+  .g-kredit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 14px;
+    align-items: start;
+  }
+  .g-kredit-card {
+    display: grid;
+    gap: 12px;
+    padding: 16px 16px 6px;
+  }
+  .g-kredit-card.role {
+    gap: 2px;
+  }
+  .g-kredit-part {
+    display: grid;
+    gap: 2px;
+  }
+  .g-kredit-part + .g-kredit-part {
+    padding-top: 4px;
+  }
+  .g-kredit-person {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+  }
+
   /* The member card: a gold plaque with HMIF's official logo on an ink plate. The card adds no lettering of its own. */
   .g-member {
     aspect-ratio: 1.586;

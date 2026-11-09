@@ -74,20 +74,14 @@ const headAndBody = (page: Page) =>
 
 const NARROW = [
   {
-    what: 'a Curhat room (Hapus ruang)',
-    persona: 'anggota',
-    url: '/layanan/curhat/r1',
-    action: (p: Page) =>
-      p.locator('.g-d-head').getByRole('button', { name: 'Hapus ruang' }),
-  },
-  {
     what: 'Tambah mata kuliah',
     persona: 'anggota',
     url: '/profil/matkul/tambah',
     action: (p: Page) => p.locator('.g-d-head > button'),
   },
   // Info Lomba and a Testi Matkul course were on this list until Garis v5 gave them the wide grid of posters and
-  // testimonials; their heads now span that grid (the wide-page test below).
+  // testimonials; their heads now span that grid (the wide-page test below). A Curhat room was too, until the owner
+  // asked for a proper chat (2026-11-06) that uses the pane's width: its head, with Hapus ruang, spans it now.
 ] as const;
 
 for (const c of NARROW) {
@@ -127,6 +121,13 @@ test('a wide page’s head is not narrowed: Beranda’s head spans the window @d
 
 const WIDE = [
   {
+    what: 'a Curhat room (Hapus ruang)',
+    persona: 'anggota',
+    url: '/layanan/curhat/r1',
+    action: (p: Page) =>
+      p.locator('.g-d-head').getByRole('button', { name: 'Hapus ruang' }),
+  },
+  {
     what: 'Info Lomba for cnc (Tambah)',
     persona: 'anggota',
     roles: ['cnc'],
@@ -147,9 +148,13 @@ for (const c of WIDE) {
     });
     test(`a wide grid page keeps its head as wide as the grid: ${c.what} @desktop-only`, async ({
       page,
+      api,
     }) => {
+      api.on('POST /api/curhat/chatroom/:chatroomId/read', writes.readRoom);
       await page.goto(c.url);
-      await expect(page.locator('.g-d-head > button')).toBeVisible();
+      await expect(
+        'action' in c ? c.action(page) : page.locator('.g-d-head > button'),
+      ).toBeVisible();
       const m = await headAndBody(page);
       expect(m.narrowBody, 'the body is wide (Garis v5)').toBe(false);
       expect(m.head[1] - m.head[0]).toBeGreaterThan(760);

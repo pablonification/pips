@@ -1,7 +1,8 @@
 /**
  * A room in Welfare's inbox (P3-C, a proposal): `scrRoom` with the sides swapped. The member's messages
  * (`fromOwner`) sit on the surface on the left under the room's name; yours and your teammates' in gold on the
- * right, a teammate's as "Welfare". Balas, the reply chip, day lines and the composer are the member side's.
+ * right, a teammate's as "Welfare". Balas, the reply chip, day lines, the composer and the chat layout (pinned head
+ * and composer, grouped messages; owner's changes, 2026-11-06) are the member side's.
  *
  * No delivery states (SPEC's corrections): a reply is drawn once the server acknowledges it, and the send button is
  * busy meanwhile. If it fails (refused as invalid or server, no answer in 10 s, or the connection down) a toast says
@@ -13,15 +14,9 @@
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Chatroom } from '~/api/generated';
-import {
-  Button,
-  EmptyState,
-  ErrorState,
-  LinkButton,
-  toast,
-} from '~/components/garis';
+import { Button, EmptyState, ErrorState, toast } from '~/components/garis';
 import {
   DeskHead,
   PageBody,
@@ -32,7 +27,6 @@ import {
 import { curhat as c } from '~/copy/curhat';
 import { fill } from '~/copy/fill';
 import { kelolaCurhat as t } from '~/copy/kelola-curhat';
-import { cn } from '~/lib/utils';
 import { Composer } from '~/features/curhat/Composer';
 import {
   markRoomRead,
@@ -42,10 +36,17 @@ import {
   useRooms,
 } from '~/features/curhat/data';
 import { ConnectionBanner } from '~/features/curhat/List';
-import { RoomSkeleton, useFollowNewest } from '~/features/curhat/Room';
+import { MessageRow } from '~/features/curhat/MessageRow';
+import {
+  RoomSkeleton,
+  useFollowNewest,
+  usePinnedHead,
+} from '~/features/curhat/Room';
 import {
   buildThread,
+  groupThread,
   roomName,
+  type GroupedItem,
   type ThreadMessage,
 } from '~/features/curhat/rules';
 import { PinMenu } from './PinMenu';
@@ -56,6 +57,7 @@ import {
   inboxTimeLine,
   onWelfareSide,
   sendPlan,
+  speakerOf,
   type FailedReply,
 } from './rules';
 
@@ -120,7 +122,12 @@ function Thread({ room }: { room: Chatroom }) {
     [outbox, roomId],
   );
   const items = useMemo(
-    () => buildThread(room.messages, delivered, Date.now()),
+    () =>
+      groupThread(
+        buildThread(room.messages, delivered, Date.now()),
+        // By who said it: yours and a teammate's are both on Welfare's side, but each group says whose it is.
+        speakerOf,
+      ),
     [room.messages, delivered],
   );
 
@@ -151,6 +158,7 @@ function Thread({ room }: { room: Chatroom }) {
   }, [qc, roomId, unreadHere, unreadKnown]);
 
   const stick = useFollowNewest(items);
+  usePinnedHead();
 
   // The reply's fate. Delivered entries leave the outbox as soon as the rooms cache holds them, so an entry that is
   // gone was delivered; a failed one stays (for the same device id next time).
@@ -186,7 +194,8 @@ function Thread({ room }: { room: Chatroom }) {
     replyTo === null
       ? null
       : (items.find(
-          (i): i is ThreadMessage => i.kind === 'message' && i.id === replyTo,
+          (i): i is GroupedItem & ThreadMessage =>
+            i.kind === 'message' && i.id === replyTo,
         )?.text ?? null);
 
   const send = () => {
@@ -219,7 +228,7 @@ function Thread({ room }: { room: Chatroom }) {
         <PinMenu room={room} size="md" />
       </TopBarActions>
       <DeskHead title={name} actions={<PinMenu room={room} size="md" />} />
-      <PageBody className="g-room-page">
+      <PageBody wide className="g-room-page">
         <div
           className="g-chat"
           role="log"
@@ -270,30 +279,27 @@ function Message({
   room,
   onReply,
 }: {
-  m: ThreadMessage;
+  m: GroupedItem & ThreadMessage;
   room: string;
   onReply: () => void;
 }) {
-  const welfare = onWelfareSide(m);
   return (
-    <Fragment>
-      <div className={cn('g-bubble', welfare ? 'me' : 'them')}>
-        {m.quote !== null ? (
-          <span className="quote">
-            <span className="sr-only">{c.ruang.membalasSr}</span>
-            {m.quote}
-          </span>
-        ) : null}
-        <span className="sr-only">{inboxSpeakerSr(m, room)}</span>
-        {m.text}
-        <span className="tm">{inboxTimeLine(m, room)}</span>
-      </div>
-      <LinkButton
-        className={cn('g-bubble-tools', !welfare && 'them')}
-        onClick={onReply}
-      >
-        {c.ruang.balas}
-      </LinkButton>
-    </Fragment>
+    <MessageRow
+      side={onWelfareSide(m) ? 'me' : 'them'}
+      start={m.start}
+      end={m.end}
+      onReply={onReply}
+    >
+      {m.quote !== null ? (
+        <span className="quote">
+          <span className="sr-only">{c.ruang.membalasSr}</span>
+          {m.quote}
+        </span>
+      ) : null}
+      <span className="sr-only">{inboxSpeakerSr(m, room)}</span>
+      {m.text}
+      {/* The time once per group, on its last bubble. */}
+      {m.end ? <span className="tm">{inboxTimeLine(m, room)}</span> : null}
+    </MessageRow>
   );
 }

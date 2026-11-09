@@ -1,9 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import Markdown from 'markdown-to-jsx';
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { creditsQuery } from '~/api/queries';
 import {
+  Avatar,
+  Card,
   ErrorState,
+  RuledList,
   Skeleton,
   SkeletonBar,
   SkeletonBlock,
@@ -11,6 +14,17 @@ import {
 import { DeskHead, PageBody } from '~/components/shell/page';
 import { common } from '~/copy/common';
 import { profil } from '~/copy/profil';
+import { initialsOf } from '~/lib/shell/names';
+import { cn } from '~/lib/utils';
+import {
+  dropTitle,
+  parseCredits,
+  personLine,
+  runs,
+  type CreditGroup,
+  type CreditPerson,
+  type CreditSection,
+} from './credits';
 
 type Props = { children?: ReactNode };
 
@@ -50,17 +64,80 @@ const overrides = {
   },
 };
 
-/** Profil › Kredit: `GET /api/markdown/credits` (a toast in the prototype; OPEN-QUESTIONS D3). */
+function Person({ p }: { p: CreditPerson }) {
+  return (
+    <li className="g-kredit-person">
+      <Avatar initials={initialsOf(p.name)} />
+      <span className="min-w-0">
+        <span className="block t-sub">{p.name}</span>
+        <span className="block t-cap text-fg-2 num">{personLine(p)}</span>
+      </span>
+    </li>
+  );
+}
+
+function Section({ s, role }: { s: CreditSection; role: boolean }) {
+  return (
+    <Card className={cn('g-kredit-card', role && 'role')}>
+      <h3 className={role ? 't-label text-fg-2' : 't-heading'}>{s.title}</h3>
+      {s.parts.map((part, i) => (
+        <div key={i} className="g-kredit-part">
+          {part.label ? (
+            <h4 className="t-micro text-fg-3">{part.label}</h4>
+          ) : null}
+          <RuledList>
+            {part.people.map((p) => (
+              <Person key={`${p.nim}-${p.name}`} p={p} />
+            ))}
+          </RuledList>
+        </div>
+      ))}
+    </Card>
+  );
+}
+
+/** The credits as a designed page: a group's title, its roles as small cards, its teams as cards with Lead and Team. */
+function Credits({ groups }: { groups: CreditGroup[] }) {
+  return (
+    <div className="g-kredit">
+      {groups.map((g, i) => (
+        <section key={i} className="grid gap-3.5">
+          {g.title ? <h2 className="t-title">{g.title}</h2> : null}
+          {runs(g.sections).map((run, j) => (
+            <div key={j} className={cn('g-kredit-grid', run.role && 'roles')}>
+              {run.sections.map((s, k) => (
+                <Section key={k} s={s} role={run.role} />
+              ))}
+            </div>
+          ))}
+        </section>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Profil › Kredit: `GET /api/markdown/credits` (a toast in the prototype; OPEN-QUESTIONS D3). Credits in the shape
+ * `parseCredits` knows show as cards; anything else renders as markdown, as before. Either way without the text's
+ * own "Credits" title: the page's title says it.
+ */
 export function KreditScreen() {
   const credits = useQuery(creditsQuery());
+  const content = credits.data?.content;
+  const groups = useMemo(
+    () => (content === undefined ? null : parseCredits(content)),
+    [content],
+  );
   return (
     <>
       <DeskHead title={common.shell.kredit} />
-      <PageBody className="gap-3.5">
-        {credits.data ? (
+      <PageBody wide={groups !== null} className="gap-3.5">
+        {groups ? (
+          <Credits groups={groups} />
+        ) : credits.data ? (
           <div className="grid gap-3">
             <Markdown options={{ overrides, forceBlock: true }}>
-              {credits.data.content}
+              {dropTitle(credits.data.content)}
             </Markdown>
           </div>
         ) : credits.isError ? (
