@@ -79,8 +79,10 @@ async function tick(ms: number) {
 }
 
 beforeEach(() => {
+  // The date too, not only the timers: what is kept depends on today (calendar months within ±7 days), and with the
+  // real date these tests failed once the real day passed mid-November 2026.
   mock.timers.enable({
-    apis: ['setTimeout'],
+    apis: ['setTimeout', 'Date'],
     now: new Date('2026-10-08T06:35:00Z'),
   });
   process.env.TZ = 'Asia/Jakarta';
