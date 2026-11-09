@@ -45,3 +45,22 @@ test('events come back earliest first', () => {
     [b.id, a.id],
   );
 });
+
+test('wibMonthRange picks exactly the instants eventsInMonth keeps', async () => {
+  const { wibMonthRange } = await import('../src/lib/calendar-month');
+  const { from, until } = wibMonthRange({ month: 10, year: 2026 });
+  assert.equal(from.toISOString(), '2026-09-30T17:00:00.000Z');
+  assert.equal(until.toISOString(), '2026-10-31T17:00:00.000Z');
+  const dec = wibMonthRange({ month: 12, year: 2026 });
+  assert.equal(dec.until.toISOString(), '2026-12-31T17:00:00.000Z');
+  for (
+    let t = Date.parse('2026-09-25T00:00:00Z');
+    t < Date.parse('2026-11-05T00:00:00Z');
+    t += 37 * 60_000
+  ) {
+    const start = new Date(t);
+    const kept =
+      eventsInMonth([{ start }], { month: 10, year: 2026 }).length === 1;
+    assert.equal(start >= from && start < until, kept, start.toISOString());
+  }
+});

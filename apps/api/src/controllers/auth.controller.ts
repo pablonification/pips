@@ -5,6 +5,7 @@ import { sign } from 'hono/jwt';
 import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
 import { angkatan, users } from '~/db/schema';
+import { runInBackground } from '~/lib/background';
 import { isDevLoginEnabled, verifyDevPassword } from '~/lib/dev-login';
 import * as Sentry from '@sentry/node';
 import {
@@ -121,7 +122,7 @@ loginRouter.openapi(loginAccessTokenRoute, async (c) => {
   const tokenPayload = JWTPayloadSchema.parse(user);
   const token = await generateJWT(tokenPayload);
 
-  void updateUserLastLogin(db, user.id);
+  runInBackground('Last sign-in update', updateUserLastLogin(db, user.id));
 
   setCookie(c, SESSION_COOKIE, token, sessionCookieOptions());
   return c.json(tokenPayload, 200);
@@ -182,7 +183,7 @@ loginRouter.openapi(authCallbackRoute, async (c) => {
     );
   }
 
-  void updateUserLastLogin(db, user.id);
+  runInBackground('Last sign-in update', updateUserLastLogin(db, user.id));
 
   // Create cookie
   const tokenPayload = JWTPayloadSchema.parse({ ...user, picture });
@@ -226,7 +227,7 @@ loginProtectedRouter.openapi(logoutRoute, async (c) => {
 
 loginProtectedRouter.openapi(selfRoute, async (c) => {
   const user = c.var.user;
-  void updateUserLastLogin(db, user.id);
+  runInBackground('Last sign-in update', updateUserLastLogin(db, user.id));
   const roles = await getUserRoles(db, user.id);
   return c.json({ ...user, roles }, 200);
 });

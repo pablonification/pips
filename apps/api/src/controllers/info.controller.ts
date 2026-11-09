@@ -2,9 +2,11 @@ import { databaseError } from '~/lib/database-error';
 import postgres from 'postgres';
 import { withAuthor } from '~/lib/author';
 import { canDeleteContent } from '~/lib/authorization';
+import { runInBackground } from '~/lib/background';
 import { checkPostCategories } from '~/lib/category-audience';
 import { getCategoriesByIds } from '~/repositories/category.repo';
 import {
+  claimRenotify,
   createInfo,
   createReadInfo,
   deleteInfo,
@@ -40,6 +42,7 @@ export interface InfoDeps {
   deleteInfo: WithoutDb<typeof deleteInfo>;
   getListInfos: WithoutDb<typeof getListInfos>;
   getInfoById: WithoutDb<typeof getInfoById>;
+  claimRenotify: WithoutDb<typeof claimRenotify>;
   renotifyInfo: WithoutDb<typeof renotifyInfo>;
   getUserRoles: WithoutDb<typeof getUserRoles>;
   getCategoriesByIds: WithoutDb<typeof getCategoriesByIds>;
@@ -55,6 +58,7 @@ const databaseDeps: InfoDeps = {
   deleteInfo: withDb(deleteInfo),
   getListInfos: withDb(getListInfos),
   getInfoById: withDb(getInfoById),
+  claimRenotify: withDb(claimRenotify),
   renotifyInfo: withDb(renotifyInfo),
   getUserRoles: withDb(getUserRoles),
   getCategoriesByIds: withDb(getCategoriesByIds),
@@ -131,13 +135,16 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
         forGroups,
       );
 
-      void deps.notifyNewInfo(
-        info,
-        mediaUrls,
-        forAngkatan,
-        forCategories,
-        forCourses,
-        forGroups,
+      runInBackground(
+        'New post push',
+        deps.notifyNewInfo(
+          info,
+          mediaUrls,
+          forAngkatan,
+          forCategories,
+          forCourses,
+          forGroups,
+        ),
       );
 
       return c.json(info, 201);
@@ -209,7 +216,12 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
       return c.json({ error: 'Info cannot be notified' }, 400);
     }
 
-    await deps.renotifyInfo(info);
+    // Claimed before answering, sent after: a double click or a retry sends the push once, and a slow push service
+    // doesn't hold the request open.
+    if (!(await deps.claimRenotify(info.id, userId))) {
+      return c.json({ error: 'Info cannot be notified' }, 400);
+    }
+    runInBackground('Re-sent post push', deps.renotifyInfo(info));
 
     return c.json({}, 200);
   });

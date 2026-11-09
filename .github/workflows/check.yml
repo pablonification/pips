@@ -97,6 +97,18 @@ jobs:
           sleep 2
           test "$(docker inspect -f '{{.State.Running}}' api)" = true
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5000/api/me)" = 401
+      - name: Both images run unprivileged, report health, and the api stops cleanly
+        run: |
+          test "$(docker exec web id -u)" != 0
+          test "$(docker exec api id -u)" != 0
+          test -n "$(docker inspect -f '{{.Config.Healthcheck}}' web | grep wget)"
+          test -n "$(docker inspect -f '{{.Config.Healthcheck}}' api | grep wget)"
+          # /health checks the database, which leads nowhere here.
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5000/health)" = 503
+          # SIGTERM reaches the API (node is PID 1) and it exits 0 well inside docker stop's 10 s.
+          docker stop -t 10 api
+          test "$(docker inspect -f '{{.State.ExitCode}}' api)" = 0
+          docker logs api 2>&1 | grep -q 'Shut down cleanly'
       - name: Container logs
         if: always()
         run: |

@@ -1,5 +1,9 @@
 import { z } from '@hono/zod-openapi';
 
+/** A number setting where an empty value (`KEY=`) means unset, so it takes the fallback rather than 0. */
+const numberOr = (schema: z.ZodNumber, fallback: number) =>
+  z.preprocess((v) => (v === '' ? undefined : v), schema).catch(fallback);
+
 export const EnvSchema = z.object({
   // Lenient on purpose: an unexpected value must never stop the API from starting. Anything other than
   // 'development' or 'staging' counts as production, and anything other than 'true' leaves test login off.
@@ -58,7 +62,14 @@ export const EnvSchema = z.object({
   GOOGLE_CALENDAR_SECRET_PATH: z.string().default('google_credentials.json'),
   GOOGLE_CALENDAR_ID: z.string().default('primary'),
   SENTRY_DSN: z.string().url().optional(),
+  // Share of requests Sentry traces, and of those it profiles (0–1). Anything else falls back to 0.1: tracing and
+  // profiling every request costs CPU in a burst.
+  SENTRY_TRACES_SAMPLE_RATE: numberOr(z.coerce.number().min(0).max(1), 0.1),
+  SENTRY_PROFILES_SAMPLE_RATE: numberOr(z.coerce.number().min(0).max(1), 0.1),
   AXIOM_DATASET: z.string().optional(),
   AXIOM_TOKEN: z.string().optional(),
   RENOTIFY_DIFF_HOURS: z.coerce.number().optional(),
+  // A database statement running longer than this (ms) is cancelled, so a stuck query can't hold a connection for
+  // good. 0 turns it off; anything that isn't a whole number ≥ 0 falls back to 15 s.
+  DB_STATEMENT_TIMEOUT_MS: numberOr(z.coerce.number().int().min(0), 15_000),
 });

@@ -39,3 +39,30 @@ test('the OpenAPI document lists the API and is the same whenever it is generate
     /"default"/,
   );
 });
+
+test('/health: 200 while the database answers, 503 when it fails or hangs', async () => {
+  const { createApp } = await import('../src/app');
+  const up = createApp({ checkDatabase: async () => [{ '?column?': 1 }] });
+  const ok = await up.request('/health');
+  assert.equal(ok.status, 200);
+  assert.deepEqual(await ok.json(), { status: 'ok', database: 'ok' });
+
+  const down = createApp({
+    checkDatabase: async () => {
+      throw new Error('connect ECONNREFUSED');
+    },
+  });
+  const refused = await down.request('/health');
+  assert.equal(refused.status, 503);
+  assert.deepEqual(await refused.json(), {
+    status: 'unavailable',
+    database: 'unreachable',
+  });
+
+  const stuck = createApp({
+    checkDatabase: async () => await new Promise(() => {}),
+  });
+  const started = Date.now();
+  assert.equal((await stuck.request('/health')).status, 503);
+  assert.ok(Date.now() - started < 3000, 'gives up after 2 s');
+});

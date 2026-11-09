@@ -26,4 +26,12 @@ RUN turbo run build --filter=web
 FROM caddy:2-alpine
 COPY --from=build /repo/apps/web/dist /srv
 RUN printf ':3000 {\n  root * /srv\n  try_files {path} /index.html\n  file_server\n}' > /etc/caddy/Caddyfile
+# Runs as an unprivileged user, with Caddy's own state in its home (the image's /config and /data belong to root).
+RUN addgroup -S web && adduser -S -G web -h /home/web web
+ENV XDG_CONFIG_HOME=/home/web/.config \
+    XDG_DATA_HOME=/home/web/.local/share
+USER web
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1
+# Caddy (the base image's command) is PID 1 and stops gracefully on SIGTERM.

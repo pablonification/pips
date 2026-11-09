@@ -7,6 +7,7 @@ import {
   exists,
   inArray,
   InferInsertModel,
+  lte,
   notInArray,
   or,
   sql,
@@ -35,6 +36,7 @@ import {
   userUnsubscribeCategories,
 } from '~/db/schema';
 import { sendNotificationToAll } from '~/lib/push-manager';
+import { prefixTsQuery } from '~/lib/search';
 import { getCurrentSemesterCodeAndYear } from '~/repositories/course.repo';
 import {
   getPushSubscriptionsByUserIds,
@@ -48,7 +50,6 @@ import {
 import { createMediasFromUrl } from './media.repo';
 import { getReactions } from './reaction.repo';
 import { getUserRoles } from './user-role.repo';
-import dayjs from 'dayjs';
 import { env } from '~/configs/env.config';
 import { canRenotify, DEFAULT_RENOTIFY_HOURS } from '~/lib/renotify';
 import { AUTHOR_COLUMNS } from '~/lib/author';
@@ -282,15 +283,13 @@ export async function getListInfos(
   angkatanYear?: number,
 ): Promise<Array<z.infer<typeof InfoSchema>>> {
   q.search = q.search?.trim();
-  const searchPhrase = q.search
-    ? q.search
-        .split(/\s+/)
-        .map((term) => `${term}:*`)
-        .join(' & ')
-    : undefined;
-  const searchQ = q.search
-    ? sql`(setweight(to_tsvector('indonesian', ${infos.title}), 'A') || setweight(to_tsvector('indonesian', ${infos.content}), 'B')) @@ to_tsquery('indonesian', ${searchPhrase})`
-    : undefined;
+  const searchPhrase = q.search ? prefixTsQuery(q.search) : undefined;
+  const searchQ =
+    searchPhrase === undefined
+      ? undefined
+      : searchPhrase === null
+        ? sql`false`
+        : sql`(setweight(to_tsvector('indonesian', ${infos.title}), 'A') || setweight(to_tsvector('indonesian', ${infos.content}), 'B')) @@ to_tsquery('indonesian', ${searchPhrase})`;
   let unreadQ: SQL<unknown> | undefined;
   let excludeCategoryQ: SQL<unknown> | undefined;
 
@@ -560,7 +559,34 @@ export async function notifyNewInfo(
 }
 
 /**
- * Renotifies info to subscribed user. No validation whether the info is already notified or not.
+ * Claims a re-send (Umumkan ulang) for the post's author: moves `lastNotifiedAt` to now only if the post is still
+ * open to re-send (`canNotify`'s rule), in one statement, so of two requests at once (a double click, a retry) only
+ * one wins. True when this request claimed it.
+ */
+export async function claimRenotify(
+  db: Database,
+  infoId: string,
+  creatorId: string,
+  now: number = Date.now(),
+  hours: number = env.RENOTIFY_DIFF_HOURS ?? DEFAULT_RENOTIFY_HOURS,
+): Promise<boolean> {
+  const claimed = await db
+    .update(infos)
+    .set({ lastNotifiedAt: new Date(now) })
+    .where(
+      and(
+        eq(infos.id, infoId),
+        eq(infos.creatorId, creatorId),
+        lte(infos.lastNotifiedAt, new Date(now - hours * 60 * 60 * 1000)),
+      ),
+    )
+    .returning({ id: infos.id });
+  return claimed.length > 0;
+}
+
+/**
+ * Renotifies info to subscribed user. No validation whether the info is already notified or not: claim it first
+ * (`claimRenotify`).
  *
  * @param db Database
  * @param info Info to be renotified
@@ -581,15 +607,6 @@ export async function renotifyInfo(
     })),
     info.infoGroups?.map((g) => g.role),
   );
-
-  await db.transaction(async (tx) => {
-    await tx
-      .update(infos)
-      .set({
-        lastNotifiedAt: dayjs().toDate(),
-      })
-      .where(eq(infos.id, info.id));
-  });
 }
 
 /** A post for angkatan is for those angkatan and its author; with no angkatan of their own, only its author sees it. */
