@@ -69,7 +69,9 @@ test('calendar events: only the months that today ±7 days touch', () => {
   assert.equal(shouldPersistKey(['calendar-events'], NOW), false);
 });
 
-test('any data, also after a failed refresh; a signed-out session (null) is never kept', () => {
+test('any data, also after a failed refresh; a signed-out session (null) is never kept', (t) => {
+  // The calendar month kept depends on today: pin it, or this fails once the real day leaves October 2026's window.
+  t.mock.timers.enable({ apis: ['Date'], now: NOW });
   const q = (status: string, data: unknown, key: unknown[] = ['me']) => ({
     queryKey: key,
     state: { status, data },
