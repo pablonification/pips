@@ -106,10 +106,11 @@ jobs:
   e2e:
     name: e2e shard ${{ matrix.shard }}/4
     # The browser journeys run on pull requests to main and redesign, split in four so each part finishes in time
-    # (the whole suite passed 30 minutes on one runner by 2026-10-13).
+    # (the whole suite passed 30 minutes on one runner by 2026-10-13). Each part had 30 minutes until 2026-11-06, when
+    # parts of about 1,340 journeys were stopped at 30 with none failed (828 and 1,121 done) on busy runners.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
