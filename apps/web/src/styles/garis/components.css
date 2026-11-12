@@ -1,10 +1,9 @@
 /*
-  Garis components, ported exactly from the locked prototype (garis/garis.css and, for the skeleton,
-  garis/docs.css). Each class has a `g-` prefix so it can't meet the old screens' classes; the React components in
-  src/components/garis/ are the only intended users. Colours come only from tokens.css.
+  Garis components. Each class has a `g-` prefix; the React components in src/components/garis/ are the only
+  intended users. Colours come only from tokens.css.
 
-  Touch layouts (phone and tablet, below 1024 px, as in the prototype) keep each small control's look but give it a
-  hit area of at least 44 × 44 px, and the main (gold) action is 48 px tall.
+  Touch layouts (phone and tablet, below 1024 px) keep each small control's look but give it a hit area of at
+  least 44 × 44 px, and the main (gold) action is 48 px tall.
 */
 @layer components {
   /* ============ Icons and pixel art ============ */
@@ -49,7 +48,7 @@
   .g-px .b {
     fill: var(--px-bronze);
   }
-  /* 2 px inside semibold buttons and the active tab (SPEC "Icons"); an icon's own stroke renders 1.5 px. */
+  /* 2 px inside semibold buttons and the active tab; an icon's own stroke renders 1.5 px. */
   :is(.g-btn, .g-icons-bold) .g-ic.s16 {
     stroke-width: 3;
   }
@@ -391,7 +390,7 @@
   }
   /* Selected, or (a row that is a link) the page it opens is the current one. TanStack's Link marks a link to a
      parent path "page" too (fuzzy matching by default), so a row that links gives its Link
-     activeOptions={{ exact: true }} (P1-B review minor 7). */
+     activeOptions={{ exact: true }}. */
   .g-ruled-list .g-row-btn[aria-current='true'],
   .g-ruled-list .g-row-btn[aria-current='page'] {
     background: var(--bg-accent-subtle);
@@ -855,8 +854,8 @@
   .g-field[aria-invalid='true'] {
     box-shadow: inset 0 0 0 1.5px var(--text-danger);
   }
-  /* P3-B fix: a field with an error kept its red edge but lost the focus ring (the rule above came later with the
-     same weight, in the prototype too), so focus was invisible there. Both now show. */
+  /* A field with an error shows its focus ring as well as its red edge: without this rule, the error rule above wins
+     with the same weight and focus is invisible. */
   .g-field[aria-invalid='true']:focus-visible {
     box-shadow:
       inset 0 0 0 1.5px var(--text-danger),
@@ -1071,7 +1070,7 @@
   .g-menu [role='menuitem'][data-highlighted] {
     background: var(--bg-muted);
   }
-  /* The prototype's focus ring, for keyboard focus only: Radix also highlights the item under the pointer, which gets
+  /* The focus ring, for keyboard focus only: Radix also highlights the item under the pointer, which gets
      just the fill. (Menu items have tabindex -1, which the base styles leave without an outline.) */
   .g-menu:not([data-input='pointer']) [role='menuitem']:focus-visible {
     outline: 2px solid var(--focus);
@@ -1354,7 +1353,7 @@
   }
 }
 
-/* ============ Motion (SPEC "Motion tokens") ============ */
+/* ============ Motion ============ */
 @keyframes g-enter {
   from {
     opacity: 0;

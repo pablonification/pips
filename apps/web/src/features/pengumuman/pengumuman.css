@@ -1,8 +1,6 @@
 /*
-  Pengumuman (P1-B): the feed's cards and rows, a post, reactions, comments and the composer. Ported from the
-  prototype's garis/garis.css (`.post*`, `.feed`, `.foot-btn`, `.picker`, `.list-tools`, `.split`, `.detail`,
-  `.byline`, `.aud`, `.comment`, `.composer`, `.compose`, `.counter`, `.thumbs`, `.add-photo`, `.lp`) with the `g-`
-  prefix, values unchanged. Tokens only; loaded with the Pengumuman routes. tests/pengumuman-css.test.mjs checks it.
+  Pengumuman: the feed's cards and rows, a post, reactions, comments and the composer. Tokens only; loaded with
+  the Pengumuman routes. tests/pengumuman-css.test.mjs checks it.
 */
 @layer components {
   /* ============ Feed (phones and tablets) ============ */
@@ -233,7 +231,7 @@
     height: var(--g-page-h, 100%);
     min-height: 0;
   }
-  /* Each column scrolls on its own, and only down (owner, 2026-11-06). `position: relative` makes each column the box
+  /* Each column scrolls on its own, and only down. `position: relative` makes each column the box
      its absolutely placed children (an unread row's screen-reader text) are placed in: otherwise they belonged to the
      page area around both columns and stretched it below the list, so the page area scrolled on after the post. A
      column's end doesn't hand the wheel on to the page. */
@@ -552,7 +550,7 @@
       right: min(0px, calc((100% - 44px) / 2));
     }
   }
-  /* The narrowest phones (the prototype's `@container phone (max-width: 340px)`): the picker in two rows of three,
+  /* The narrowest phones (container width up to 340 px): the picker in two rows of three,
      and Buat's label hidden (its name stays "Buat pengumuman"). */
   @media (max-width: 340px) {
     .g-picker {

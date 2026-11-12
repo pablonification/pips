@@ -1,7 +1,6 @@
 /**
- * Beranda (P1-A). Words are the prototype's (`garis/screens-core.js` `scrBeranda`, `homeTiles`, `attention`,
- * `kelolaSummary`, `postCompact`, `pins`). The greeting is the shell's (`common.shell.halo`). Loading lines aren't in
- * the prototype: they are new copy, listed in the P1-A report.
+ * Beranda: the agenda card, services, attention rows and Kelola summary. The greeting is the shell's
+ * (`common.shell.halo`).
  */
 export const beranda = {
   layanan: 'Layanan',
@@ -24,7 +23,7 @@ export const beranda = {
     // The deadline's and the Welfare reply's line: "Besok, 23.59".
     waktu: '{hari}, {jam}',
     memuat: 'Memuat yang perlu ditindaklanjuti…',
-    // P1-A round 2: the rows that are known stay; one line for the sources that failed or aren't kept offline.
+    // The rows that are known stay; one line for the sources that failed or aren't kept offline.
     sebagianGagal: 'Sebagian gagal dimuat.',
     belumTersimpan: 'Bagian ini belum tersimpan di perangkat ini.',
     sebagianBelumTersimpan: 'Sebagian belum tersimpan di perangkat ini.',

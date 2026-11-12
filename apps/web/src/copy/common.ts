@@ -1,8 +1,7 @@
 /**
  * Strings the shell and every screen share. Each feature keeps its own module next to this one
  * (`beranda.ts`, `pengumuman.ts`, …); `glossary.ts` lists the house terms, and `tests/copy.test.ts` checks every
- * module against it. Words are the prototype's (`garis/app.js`, `hmif-garis-prototype.html`) where it has them.
- * Placeholders in braces are filled with `fill()` from `./fill`.
+ * module against it. Placeholders in braces are filled with `fill()` from `./fill`.
  */
 export const common = {
   app: {
@@ -29,27 +28,27 @@ export const common = {
     profilDari: 'Profil, {nama}',
     belumDibaca: '{jumlah} belum dibaca',
     situsLuar: '(situs luar, tab baru)',
-    // The skip link (SPEC "Accessibility": one main landmark and a skip link). Not in the prototype: new copy.
+    // The skip link.
     langsungKeIsi: 'Langsung ke isi halaman',
     halo: 'Halo, {nama}',
-    // Page titles the prototype's `titleOf` gives (garis/app.js); service names come from the registry.
+    // Page titles; service names come from the registry.
     buatPengumuman: 'Buat pengumuman',
     mataKuliahku: 'Mata kuliahku',
     tambahMataKuliah: 'Tambah mata kuliah',
     notifikasi: 'Notifikasi',
     kredit: 'Kredit',
     ruang: 'Ruang',
-    // Kelola's Live Counting pages: the prototype's titleOf ("Kelola › Live Counting"); the page's own heading is
+    // Kelola's Live Counting pages ("Kelola › Live Counting"); the page's own heading is
     // the service's full name.
     liveCounting: 'Live Counting',
     judulDokumen: '{judul} · PIPS!',
   },
-  // Global search (garis/app.js `palIndex`, `renderPal` and the palette in hmif-garis-prototype.html).
+  // Global search.
   palette: {
     tindakan: 'Tindakan',
     layanan: 'Layanan',
     pintasan: 'Pintasan',
-    // The results list's name for screen readers (not in the prototype: new copy).
+    // The results list's name for screen readers.
     hasil: 'Hasil pencarian',
     situsLuar: 'Situs luar',
     tampilan: 'Tampilan',
@@ -71,17 +70,16 @@ export const common = {
     masuk: 'Masuk',
     keluar: 'Keluar',
   },
-  // Errors say what happened, then the fix (SPEC "Copy and language"). No exclamation marks.
+  // Errors say what happened, then the fix. No exclamation marks.
   errors: {
     halaman: 'Halaman ini gagal dimuat.',
     bagian: 'Bagian ini gagal dimuat.',
     sesi: 'PIPS! belum bisa terhubung. Periksa koneksimu, lalu coba lagi.',
-    // F2-005: an address no page answers (new copy, worded as Testi Matkul's "Mata kuliah tidak ditemukan").
+    // An address no page answers.
     tidakDitemukan: 'Halaman tidak ditemukan',
     tidakDitemukanIsi: 'Tautannya mungkin salah atau sudah tidak berlaku.',
   },
-  // A file the API won't take (lib/upload-policy.ts): said before anything is sent, or when the API refuses it. New
-  // copy, worded as the screens' other upload errors.
+  // A file the API won't take (lib/upload-policy.ts): said before anything is sent, or when the API refuses it.
   unggah: {
     jenis: 'Jenis file tidak didukung.',
     ukuran: 'File terlalu besar (maks. 25 MB).',
@@ -90,10 +88,10 @@ export const common = {
   },
   offline: {
     banner: 'Offline · diperbarui {waktu}',
-    // P1-C: nothing on the page has come from the server yet, so there is no time to give.
+    // Nothing on the page has come from the server yet, so there is no time to give.
     bannerTanpaWaktu: 'Offline',
   },
-  // The words the Garis components say themselves (P0-A, moved here from components/garis/strings.ts).
+  // The words the Garis components say themselves.
   komponen: {
     urungkan: 'Urungkan',
     memuat: 'Memuat…',
@@ -101,9 +99,9 @@ export const common = {
     statusIsi: 'Isi sekarang',
     statusBelumDibuka: 'Belum dibuka',
     statusSudahDiisi: 'Sudah diisi',
-    // P2-A: a closed form (new copy, OPEN-QUESTIONS D5).
+    // A closed form.
     statusDitutup: 'Ditutup',
-    // Under a course's credits (garis.css `.sks`).
+    // Under a course's credits.
     sks: 'SKS',
   },
 } as const;

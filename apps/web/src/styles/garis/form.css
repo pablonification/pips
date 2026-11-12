@@ -1,11 +1,8 @@
 /*
-  Form (P2-A), ported exactly from the locked prototype's garis.css: `.fcard`, `.qblock`, `.form-nav`, `.review`,
-  `.rv-sec`, `.rv-list`, and the inline styles of `scrForm`, `qBlock`, `reviewPage` and `scrFill` (garis/screens-more.js).
-  The option rows, rating keycaps, Segbar, Saved and the plaque are P0-A's (components.css). Colours only from tokens.
-  Magang SPARTA (no locked design) is built from these same pieces.
+  Form: the list, filling, the check page and the thank-you. The option rows, rating keycaps, Segbar, Saved and the
+  plaque come from components.css. Colours only from tokens. Magang SPARTA is built from these same pieces.
 */
 @layer components {
-  /* The form list: one card per form. */
   .g-form-list {
     display: grid;
     gap: 10px;
@@ -62,8 +59,7 @@
     padding: 0;
     min-width: 0;
   }
-  /* A question's label (garis.css `.qblock .t-label`): 15 px semibold. A legend keeps the browser's 2 px padding, as
-     in the prototype, and 4 px below it. */
+  /* A question's label: 15 px semibold. A legend keeps the browser's 2 px padding, and 4 px below it. */
   .g-q-label {
     font-size: 15px;
     font-weight: 600;
@@ -87,7 +83,6 @@
     gap: 10px;
   }
 
-  /* The check page. */
   .g-review {
     display: grid;
     gap: 24px;
@@ -123,7 +118,7 @@
     color: var(--text-3);
   }
 
-  /* The thank-you plaque (scrFill when done). */
+  /* The thank-you plaque. */
   .g-thanks {
     display: grid;
     gap: 6px;
@@ -141,13 +136,13 @@
     justify-self: start;
   }
 
-  /* A form that hasn't opened: its time and the countdown (no locked design; built from the form's own head). */
+  /* A form that hasn't opened: its time and the countdown, built from the form's own head. */
   .g-fill-when {
     display: grid;
     gap: 4px;
   }
 
-  /* Magang SPARTA: the four steps up front, and the priority list (no locked design). */
+  /* Magang SPARTA: the four steps up front, and the priority list. */
   .g-steps {
     display: grid;
     gap: 0;
