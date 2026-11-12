@@ -19,7 +19,7 @@ import { E2E_PORT } from './port';
 const appDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const baseURL = `http://127.0.0.1:${E2E_PORT}`;
 
-/** Sizes from SPEC "Testing Decisions": phone 390 × 844 (touch, device scale 2), desktop 1440 × 900. */
+/** Test sizes: phone 390 × 844 (touch, device scale 2), desktop 1440 × 900. */
 export const PHONE = {
   viewport: { width: 390, height: 844 },
   deviceScaleFactor: 2,
@@ -27,7 +27,7 @@ export const PHONE = {
   hasTouch: true,
   userAgent: devices['Pixel 7'].userAgent,
 };
-/** The tablet layout (P0-C): 834 × 1112, touch, device scale 2: the rail beside one column. */
+/** The tablet layout: 834 × 1112, touch, device scale 2: the rail beside one column. */
 export const TABLET = {
   viewport: { width: 834, height: 1112 },
   deviceScaleFactor: 2,
@@ -58,8 +58,7 @@ const projects: Project[] = [
     })),
   ),
   // Journeys that time the main thread (@solo) run here, one test at a time with nothing beside them
-  // (`e2e:solo`, --workers=1): on CI's runner a neighbouring test's CPU use alone broke their budgets, before v5
-  // and after alike (2026-11-02).
+  // (`e2e:solo`, --workers=1): on CI's runner a neighbouring test's CPU use alone breaks their budgets.
   ...(['phone', 'tablet', 'desktop'] as const).flatMap((size) =>
     THEMES.map((theme) => ({
       name: `solo-${size}-${theme}`,
@@ -81,10 +80,10 @@ const projects: Project[] = [
 ];
 
 /**
- * F2's cross-cutting checks (e2e/qa, see its README). In CI's `e2e` script: qa-<layout>-<theme> (the fixed rules, the
+ * Cross-cutting checks (e2e/qa, see its README). In CI's `e2e` script: qa-<layout>-<theme> (the fixed rules, the
  * Tab walk, errors, links and roles on every page), qa-reflow (400 % zoom), qa-motion (the app's own motion under
  * reduced motion), qa-sw (the service worker: the installed app offline, the share target) and qa-london (the
- * time-heavy journeys in another device time zone). qa-perf (SPEC's lab phone) runs by hand only.
+ * time-heavy journeys in another device time zone). qa-perf (a lab phone) runs by hand only.
  */
 function qaProjects(): Project[] {
   const SPECIAL = /(reflow|motion|sw|perf)\.spec\.ts$/;
@@ -98,7 +97,7 @@ function qaProjects(): Project[] {
       })),
     ),
     {
-      // 400 % zoom: a 1280 × 1024 window at 400 % is 320 × 256 CSS px (accessibility.md A12).
+      // 400 % zoom: a 1280 × 1024 window at 400 % is 320 × 256 CSS px (WCAG reflow).
       name: 'qa-reflow',
       testDir: './qa',
       testMatch: /reflow\.spec\.ts$/,
@@ -129,7 +128,7 @@ function qaProjects(): Project[] {
       use: { ...PHONE, colorScheme: 'light' },
     },
     {
-      // Times must show in WIB whatever the device's zone (SPEC "Copy and language"; brief "The matrix").
+      // Times must show in WIB whatever the device's zone.
       name: 'qa-london-phone-light',
       testDir: './journeys',
       testMatch:
@@ -148,7 +147,7 @@ const config: PlaywrightTestConfig = defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  // Two workers by default (CI too), the most the shared Mac allows (WORKER-RULES.md).
+  // Two workers by default (CI too): journeys are CPU-heavy and more workers make them flaky.
   workers: Number(process.env.E2E_WORKERS ?? 2),
   reporter: [['list'], ['html', { outputFolder: './.report', open: 'never' }]],
   use: {

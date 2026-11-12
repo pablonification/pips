@@ -1,4 +1,4 @@
-// Performance budgets read from a production build (SPEC "Performance architecture and budgets", story 154).
+// Performance budgets read from a production build.
 // Pure functions over the build's manifests, so tests/budgets.test.mjs can check them on a small fake build.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -6,9 +6,9 @@ import zlib from 'node:zlib';
 
 export const KIB = 1024;
 export const BUDGETS = {
-  /** First-party JS loaded before a route's first render, gzip: the cap (SPEC asked for 150 KiB). */
+  /** First-party JS loaded before a route's first render, gzip: the cap (the target is 150 KiB). */
   routeInitialJsGzip: 205 * KIB,
-  /** SPEC's target and stretch goal for the same, reported but not enforced. */
+  /** The target and stretch goal for the same, reported but not enforced. */
   routeInitialJsGzipTarget: 150 * KIB,
   routeInitialJsGzipStretch: 120 * KIB,
   /** Everything the service worker precaches, uncompressed. */
@@ -19,7 +19,7 @@ export const BUDGETS = {
   archivo: 30 * KIB,
 };
 
-/** The font files in a build (outside the review prototypes), with their sizes. */
+/** The font files in a build (outside `prototypes/`), with their sizes. */
 export function fontFiles(dist) {
   const walk = (dir) =>
     fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
