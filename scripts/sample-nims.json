@@ -1,0 +1,84 @@
+{
+  "sampleNims": {
+    "comment": "Made-up sample student numbers used by fixtures and tests. A new one must never be a real member's number, and doesn't belong here: use a sequence of 900 or more (13525901), which no member can hold and the check always allows. The entries below predate the check.",
+    "nims": [
+      "13113599",
+      "13125999",
+      "13510000",
+      "13512345",
+      "13521001",
+      "13521002",
+      "13521003",
+      "13521089",
+      "13522005",
+      "13522008",
+      "13523001",
+      "13523044",
+      "13523090",
+      "13523901",
+      "13523911",
+      "13524001",
+      "13524002",
+      "13524003",
+      "13524045",
+      "13524087",
+      "13524099",
+      "13524110",
+      "13524901",
+      "13524911",
+      "13525001",
+      "13525002",
+      "13525003",
+      "13525045",
+      "13525046",
+      "13525071",
+      "13525088",
+      "13525103",
+      "13525114",
+      "13525115",
+      "13525135",
+      "13525243",
+      "13525250",
+      "13525901",
+      "13525911",
+      "13599999",
+      "18221000",
+      "18221004",
+      "18221007",
+      "18222000",
+      "18222006",
+      "18223062",
+      "18224031",
+      "18224045",
+      "18225002",
+      "18225012",
+      "18225019",
+      "18225044",
+      "18225077"
+    ]
+  },
+  "behaviourNims": {
+    "comment": "Student numbers the API itself uses for who may open a form early or apply to SPARTA. They belong to real members, so they are kept only as SHA-256 hashes and may appear only in the files listed here. Delete this list when the numbers leave the code.",
+    "files": [
+      "apps/api/src/lib/sparta-window.ts",
+      "apps/api/src/lib/form-status.ts",
+      "apps/web/e2e/fixtures/api.ts"
+    ],
+    "sha256": [
+      "2e641c10bb70aabd3aa653ec4bdaa5f7e090a6745ddf2e3832c5c6966a78054f",
+      "3757f8b14ff47567678583efea295dd5757283e9feb1940cd0ab39b68cdf682e",
+      "bf563c4d186d1b968764841beedfbacefef05803adb999cb3ca422ece1ca6202",
+      "d69edd3b68725a34c28af2de1a057d21d45094696a3e64deafac4a148fd6afc4",
+      "ecf268c235b282bc75679f0b9b0f464705a9b8c7fbdf93ba6405820a86f8077f"
+    ]
+  },
+  "sampleTables": {
+    "comment": "Tracked tables that have a name column beside a student-number or email column. Each holds only made-up rows; every number in them must also be a sample number above. A new member list must never be added.",
+    "files": [
+      "apps/api/src/db/seed/database-example.csv",
+      "apps/web/tests/fixtures/kelola-csv/responses-los-angeles.csv",
+      "apps/web/tests/fixtures/kelola-csv/responses-wib.csv",
+      "apps/web/tests/fixtures/kelola-csv/sparta.csv"
+    ]
+  }
+}

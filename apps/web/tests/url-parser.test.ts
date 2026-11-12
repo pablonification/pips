@@ -24,8 +24,8 @@ const CASES: [string, string[]][] = [
   ],
   ['Rapat jam 10:00 di Labtek V: bawa laptop: wajib', []],
   [
-    'Kirim ke budi@std.stei.itb.ac.id atau 13525001@std.stei.itb.ac.id',
-    ['budi@std.stei.itb.ac.id', '13525001@std.stei.itb.ac.id'],
+    'Kirim ke budi@example.com atau 13525001@std.stei.itb.ac.id',
+    ['budi@example.com', '13525001@std.stei.itb.ac.id'],
   ],
   [
     'Baca https://medium.com/@hmif/tulisan-baru dan http://localhost:3000/x',

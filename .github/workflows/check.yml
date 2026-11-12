@@ -35,6 +35,8 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      - name: No real member's details in the repository
+        run: node --test scripts/*.test.mjs
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Type check and lint
