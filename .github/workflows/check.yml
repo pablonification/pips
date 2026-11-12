@@ -58,10 +58,9 @@ jobs:
       # SPEC says (C1).
       - name: Production bundle, precache and service worker
         run: node apps/web/scripts/verify-production-bundle.mjs apps/web/dist
-      # SPEC's budgets: per-route JS, precache and fonts. Warn mode (BUDGETS_STRICT=0) while every route's first JS is
-      # still over 150 KiB (C1 report, "Needs Dev 1"); drop it to make the step fail over budget.
+      # Per-route JS before first render (the owner's 205 KiB cap), precache and fonts; fails over budget.
       - name: Budgets
-        run: BUDGETS_STRICT=0 pnpm --filter web budgets
+        run: pnpm --filter web budgets
 
   api-db:
     name: api database tests

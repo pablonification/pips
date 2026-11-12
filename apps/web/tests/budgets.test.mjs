@@ -167,6 +167,17 @@ test('budgets are strict by default since C1; BUDGETS_STRICT=0 is warn mode', as
   assert.match(script, /process\.env\.BUDGETS_STRICT !== '0'/);
 });
 
+test("route JS before first render may be at most 205 KiB gzip (the owner's cap)", () => {
+  assert.equal(BUDGETS.routeInitialJsGzip, 205 * KIB);
+  const at = (gzip) =>
+    overBudget({ routes: [{ route: '/', gzip }], precacheBytes: 0 });
+  assert.deepEqual(at(205 * KIB), []);
+  assert.match(
+    at(205 * KIB + 1).join(),
+    /^\/: 205\.0 KiB gzip before first render \(budget 205 KiB\)$/,
+  );
+});
+
 test('a build is measured from dist-meta/, beside it: the served folder carries no manifest', async () => {
   const fs = await import('node:fs');
   const os = await import('node:os');
