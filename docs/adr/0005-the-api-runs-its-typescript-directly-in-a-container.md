@@ -27,5 +27,4 @@ the Dockerfile may think that is a mistake.
 - Start-up is a little slower, and `tsx` is one more tool whose update can change what runs in production.
 
 ## When to revisit
-When start-up time or image size starts to matter, or when a type error reaches production. A build step is about
-half a day of work.
+When start-up time or image size starts to matter, or when a type error reaches production.

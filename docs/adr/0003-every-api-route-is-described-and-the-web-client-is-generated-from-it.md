@@ -24,7 +24,7 @@ until a screen broke.
   routes everything else was built around.
 
 ## What it costs
-- One route is three files (route, types, controller). Adding a field means touching all three.
+- One resource is three files (its routes, its types, its controller). Adding a field means touching all three.
 - After changing a route, someone must run `pnpm --filter web api` and commit the result. CI runs the same command
   on every pull request and fails when it changes anything in `apps/web/src/api/generated/` (the step "The
   generated API client matches the API" in `.github/workflows/check.yml`), so a stale client cannot be merged.
@@ -33,5 +33,5 @@ until a screen broke.
   against the real API is the only place that shows it.
 
 ## When to revisit
-When the three files per route slow people down more than they protect, or when a bug shows that answers need
+When the three files per resource slow people down more than they protect, or when a bug shows that answers need
 checking as they leave too. Checking answers in a test, route by route, would be the first step.

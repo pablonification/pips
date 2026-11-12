@@ -156,7 +156,8 @@ export class ApiMock {
   readonly uploads = { delayMs: 0, failNext: 0, hangNext: 0 };
   private handlers: Registered[] = [];
   private closed = false;
-  private offline = false;
+  /** While offline: settles once the browser itself is offline. */
+  private offline: Promise<void> | null = null;
   private context: BrowserContext | null = null;
   private readonly origin: string;
 
@@ -225,10 +226,18 @@ export class ApiMock {
    * network. Routed requests would otherwise still be answered, so the mock refuses them too.
    */
   async setOffline(offline: boolean): Promise<void> {
-    this.offline = offline;
-    if (offline) this.socket.drop();
-    else this.socket.restore();
-    await this.context?.setOffline(offline);
+    if (!offline) {
+      this.offline = null;
+      this.socket.restore();
+      await this.context?.setOffline(false);
+      return;
+    }
+    // The page must see `navigator.onLine` false before any request fails for being offline, as on a phone that
+    // knows it lost its connection: the app reloads after a failed code file only while it believes it is online.
+    const applied = this.context?.setOffline(true) ?? Promise.resolve();
+    this.offline = applied.catch(() => undefined);
+    this.socket.drop();
+    await applied;
   }
 
   /** Stop recording (called before the guard's check, so requests during teardown don't count). */
@@ -279,6 +288,7 @@ export class ApiMock {
         body: undefined,
         outcome: 'offline',
       });
+      await this.offline;
       return route.abort('internetdisconnected');
     }
     if (url.origin !== this.origin) {

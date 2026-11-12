@@ -4,6 +4,9 @@ The words this repository uses, with the name each has in code where that differ
 word confuses you. Members' names for services are kept exactly as the app spells them (including the "!"), and
 they are never renamed. The reasons behind the big choices are in [docs/adr/](docs/adr/README.md).
 
+An _Avoid_ line is advice for code, docs and conversation. For words on screen, a test enforces only the list in
+`apps/web/src/copy/glossary.ts`.
+
 ## The product and HMIF
 
 **PIPS!** — The HMIF ITB members app: a web app (`apps/web`) that installs on a phone like a native app, and its
@@ -63,7 +66,7 @@ _Avoid_: "Settings", "Pengaturan".
 
 **Masuk** — The sign-in page (`/login`). **Mulai** is the short first-run flow after a first sign-in (`/mulai`).
 **Pasang PIPS!** is the prompt to install the app on a phone.
-_Avoid_: "Login", "Install".
+_Avoid_: "Login", "Sign in".
 
 **Ding Dong** — Folders of course materials for the semester's courses. _Avoid_: "Materi kuliah".
 
