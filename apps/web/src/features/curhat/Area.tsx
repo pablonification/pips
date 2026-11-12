@@ -3,7 +3,11 @@
  * room and closes when you leave. Welfare (`curhatadmin`) answers rooms in the inbox at /kelola/curhat, which opens
  * its own connection the same way (`useCurhatConnection`); they are sent there, room and all, with `replace`.
  */
-import { hashKey, useQueryClient } from '@tanstack/react-query';
+import {
+  hashKey,
+  useQueryClient,
+  type QueryFilters,
+} from '@tanstack/react-query';
 import { Navigate, Outlet, useParams } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import useSession from '~/hooks/auth/useSession';
@@ -66,8 +70,8 @@ function MemberArea() {
 }
 
 /**
- * The area's one connection, for members' Curhat and Welfare's inbox: replies into the rooms cache, a catch-up after
- * a reconnect, delivered messages put into their room, refusals, the server ending the session, and what you sent
+ * The area's one connection, for members' Curhat and Welfare's inbox: replies into the rooms cache, a catch-up on
+ * each connection, delivered messages put into their room, refusals, the server ending the session, and what you sent
  * settled against the rooms cache. `welfare`: a `forbidden` refusal also re-checks the session, since for Welfare it
  * can mean the role was taken away (the gate then sends them on).
  */
@@ -81,10 +85,16 @@ export function useCurhatConnection(
   useEffect(() => {
     const c: CurhatClient = new CurhatClient(new DeferredSocket(openSocket), {
       onReply: (message) => receiveMessage(qc, c, message),
-      // Back after a drop: fetch the rooms and counts again to catch what was missed.
-      onReconnect: () => {
-        void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
-        void qc.invalidateQueries({ queryKey: CURHAT_UNREAD_KEY });
+      // Connected, at first or after a drop: fetch the rooms and counts on screen again to catch what was missed. A
+      // fetch still running started before the connection, and invalidating alone would wait for a first one rather
+      // than fetch again, so it is cancelled first.
+      onConnect: () => {
+        const again = (filters: QueryFilters) =>
+          void qc
+            .cancelQueries(filters)
+            .then(() => qc.invalidateQueries(filters));
+        again({ queryKey: ROOMS_KEY, exact: true });
+        again({ queryKey: CURHAT_UNREAD_KEY });
       },
       onDelivered: (_entry, message) => {
         putMessage(qc, message);

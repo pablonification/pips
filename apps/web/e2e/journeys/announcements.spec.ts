@@ -734,6 +734,28 @@ test.describe('filter and search', () => {
 test.describe('the author (Raka, admin)', () => {
   test.use({ persona: 'pengurus' });
 
+  test('your own post reads the name, then “Kamu”, in the list and on the post', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api.on('POST /api/info/:infoId/read', writes.markRead);
+    // Screen readers read the text as it is in the page, so the name and the tag need a space between them.
+    const readAs = (l: import('@playwright/test').Locator) =>
+      l.evaluate((el) => el.textContent);
+    // Desktop rows carry no byline; the cards of phones and tablets do.
+    if (!isDesk(testInfo)) {
+      await page.goto('/pengumuman');
+      const inList = card(page, P1).locator('.who');
+      await expect(inList).toBeVisible();
+      expect(await readAs(inList)).toBe('Raka Pratama Kamu');
+    }
+
+    await page.goto('/pengumuman/p1');
+    const byline = detail(page).locator('.g-byline p').first();
+    await expect(byline).toBeVisible();
+    expect(await readAs(byline)).toBe('Raka Pratama Kamu');
+  });
+
   test('Umumkan ulang: locked until 15.30 on p1, sent on p5', async ({
     page,
     api,

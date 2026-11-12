@@ -95,6 +95,17 @@ async function socketReady(api: ApiMock) {
     .toBe(true);
 }
 
+/**
+ * Welfare's connection is up and the rooms read that follows it is done (a connection catches up on what was saved
+ * before it joined the rooms), so a journey that counts reads starts after both.
+ */
+async function caughtUp(api: ApiMock) {
+  await socketReady(api);
+  await expect
+    .poll(() => api.calls('GET /api/curhat/chatrooms').length)
+    .toBe(2);
+}
+
 async function openInbox(page: Page) {
   await page.goto('/kelola/curhat');
   await expect(row(page, 'Teal Koala')).toBeVisible();
@@ -911,6 +922,7 @@ test.describe('a room', () => {
     db,
   }) => {
     await openR1(page, api);
+    await caughtUp(api);
     delete db.chatrooms.r1;
     api.socket.answer('message', () => ({ ok: false, error: 'forbidden' }));
     await composer(page).fill(REPLY);
@@ -1005,7 +1017,7 @@ test.describe('live', () => {
     db,
   }) => {
     await openInbox(page);
-    await socketReady(api);
+    await caughtUp(api);
     const fetched = api.calls('GET /api/curhat/chatrooms').length;
     const text = 'Halo, aku baru mulai ruang ini.';
     db.chatrooms.r7 = {
@@ -1027,12 +1039,39 @@ test.describe('live', () => {
     await expect(row(page, 'Violet Panda')).toContainText(`Anggota: ${text}`);
   });
 
+  // The server sends a connection nothing saved before it joined the room, and the room was read before that.
+  test('a member’s message saved while the connection was still being made: shown in the open room once it connects', async ({
+    page,
+    api,
+    db,
+  }) => {
+    canRead(api);
+    api.socket.hold();
+    await page.goto('/kelola/curhat/r1');
+    await expect(bubble(page, M4)).toBeVisible();
+    await expect.poll(() => api.socket.heldHandshakes).toBe(1);
+    const text = 'Kak, aku mau cerita lagi.';
+    db.chatrooms.r1.messages = [
+      fromMember('m-r1', 'r1', text),
+      ...db.chatrooms.r1.messages!,
+    ];
+    expect(
+      api.socket.emit('reply', fromMember('m-r1', 'r1', text), (s) =>
+        s.rooms.has('r1'),
+      ),
+    ).toBe(0);
+    api.socket.release();
+    await socketReady(api);
+    await expect(bubble(page, text)).toHaveCount(1);
+    await expect(bubble(page, text)).toBeVisible();
+  });
+
   test('the connection drops: the banner; back: the rooms and counts are fetched again', async ({
     page,
     api,
   }) => {
     await openInbox(page);
-    await socketReady(api);
+    await caughtUp(api);
     const rooms = api.calls('GET /api/curhat/chatrooms').length;
     const counts = api.calls('GET /api/curhat/chatrooms/unread').length;
     api.socket.drop();
