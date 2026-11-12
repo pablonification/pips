@@ -7,7 +7,8 @@ import { JWT_ALG } from '~/lib/jwt';
 import { SESSION_COOKIE } from '~/lib/session-cookie';
 import { JWTPayloadSchema } from '~/types/login.types';
 
-const defaultHook: Hook<any, any, any, any> = (result, c) => {
+/** Answers 400 with zod's errors when a request doesn't match its route's schema. */
+export const defaultHook: Hook<any, any, any, any> = (result, c) => {
   if (!result.success) {
     return c.json({ errors: result.error.flatten() }, 400);
   }
