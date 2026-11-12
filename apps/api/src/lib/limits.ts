@@ -8,6 +8,8 @@ export const MAX_POST_MEDIA = 10;
 /** A comment, and a Curhat message: the app sets none, so these sit far above anything typed by hand. */
 export const MAX_COMMENT = 2000;
 export const MAX_CURHAT_MESSAGE = 5000;
+/** One text answer in a form. Real answers are a few hundred characters. */
+export const MAX_FORM_TEXT_ANSWER = 10_000;
 
 /** Any request body, in bytes. The largest real ones (a long form or SPARTA answer) are a few tens of KiB. */
 export const MAX_BODY_BYTES = 1024 * 1024;
