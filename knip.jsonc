@@ -11,7 +11,7 @@
   "workspaces": {
     ".": { "entry": ["scripts/*.mjs"] },
     "apps/web": {
-      "entry": ["src/sw.ts", "src/routes/**/*.{ts,tsx}", "scripts/**/*.{mjs,ts}", "tests/**/*.test.{ts,mjs}", "e2e/**/*.spec.ts", "e2e/scripts/*.{mjs,ts}", "e2e/playwright.config.ts", "e2e/vite.e2e.config.ts", "eslint-rules/**/*.{js,mjs}"],
+      "entry": ["src/sw.ts", "src/routes/**/*.{ts,tsx}", "scripts/**/*.{mjs,ts}", "tests/**/*.test.{ts,mjs}", "e2e/**/*.spec.ts", "e2e/scripts/*.{mjs,ts}", "e2e/playwright.config.ts", "e2e/vite.e2e.config.ts", "e2e/real/playwright.config.ts", "e2e/real/serve-*.mjs", "e2e/real/vite.config.ts", "eslint-rules/**/*.{js,mjs}"],
       "project": ["src/**/*.{ts,tsx}", "e2e/**/*.{ts,mjs}", "tests/**/*.{ts,mjs}", "scripts/**/*.{ts,mjs}", "eslint-rules/**/*.{js,mjs}"],
       // Read by scripts/fonts/build-fonts.py (the self-hosted font files), not by any import.
       "ignoreDependencies": ["geist", "@fontsource-variable/archivo"]
