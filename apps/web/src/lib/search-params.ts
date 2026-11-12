@@ -25,14 +25,13 @@ export const dayParam: Check<string> = (v) =>
     ? v
     : INVALID;
 
-/** Kalender: the chosen day (`hari`) and the open event (`acara`, its id). */
+/**
+ * Kalender, and Beranda's strip and sheet: the chosen day (`hari`) and the open event (`acara`, its id).
+ */
 export const kalenderSearchSchema = object({
   hari: dayParam,
   acara: nonEmpty,
 });
-
-/** Beranda: the strip's chosen day (`hari`) and the event open in its sheet on phones and tablets (`acara`). */
-export const berandaSearchSchema = kalenderSearchSchema;
 
 /** Every page in the app: `showAnnounce` is an old link's param that nothing reads now. */
 export const appSearchSchema = object({
