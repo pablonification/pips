@@ -70,6 +70,24 @@ test.describe('a screen’s own title', () => {
     ).toBeFocused();
   });
 
+  test('regression: a Tab pressed before the shell moved focus keeps focus where it went', async ({
+    page,
+  }) => {
+    // The shell moves focus one frame after a page renders. On a busy device that frame can come after the member's
+    // first key, and it pulled focus back to the title.
+    await page.goto('/dev/shell');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+    await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000);
+    await navLink(page, 'Layanan').click();
+    await expect(page.getByText('Halaman uji shell')).toHaveCount(0);
+    await page.keyboard.press('Tab');
+    const stop = () =>
+      page.evaluate(() => document.activeElement?.outerHTML.slice(0, 120));
+    const tabbedTo = await stop();
+    await page.clock.runFor(1000);
+    expect(await stop()).toBe(tabbedTo);
+  });
+
   test('a title from data names the page in the top bar, the breadcrumbs and the document title', async ({
     page,
   }, testInfo) => {
