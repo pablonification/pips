@@ -11,6 +11,7 @@ import {
   saveUserCache,
   sessionRetry,
   sessionRetryDelay,
+  sessionSettled,
   takeChosenSignOut,
 } from '~/lib/session';
 import { Button } from './garis/Button';
@@ -19,6 +20,8 @@ import { Skeleton, SkeletonRow } from './garis/State';
 export const SessionContext = createContext<UserWithRoles>(
   null as unknown as UserWithRoles,
 );
+/** Whether the session check has answered in this visit and isn't asking again (Kelola's gate waits for it). */
+export const SessionCheckedContext = createContext(false);
 
 /**
  * Keeps the signed-in user. Only a 401 from the session check signs out (and sends you to sign-in, then back
@@ -31,17 +34,23 @@ export default function SessionProvider({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { data, failureCount, refetch, isFetchedAfterMount, status } = useQuery(
-    {
-      queryKey: ['me'],
-      queryFn: fetchSession,
-      retry: sessionRetry,
-      retryDelay: sessionRetryDelay,
-      // Once per visit, even when the cache restored from the device is under a minute old: a session revoked
-      // since then must not leave the previous member's data on screen.
-      refetchOnMount: 'always',
-    },
-  );
+  const {
+    data,
+    failureCount,
+    refetch,
+    isFetchedAfterMount,
+    isFetching,
+    fetchStatus,
+    status,
+  } = useQuery({
+    queryKey: ['me'],
+    queryFn: fetchSession,
+    retry: sessionRetry,
+    retryDelay: sessionRetryDelay,
+    // Once per visit, even when the cache restored from the device is under a minute old: a session revoked
+    // since then must not leave the previous member's data on screen.
+    refetchOnMount: 'always',
+  });
 
   useEffect(() => {
     if (data !== undefined) {
@@ -98,6 +107,17 @@ export default function SessionProvider({
     );
   }
   return (
-    <SessionContext.Provider value={data}>{children}</SessionContext.Provider>
+    <SessionContext.Provider value={data}>
+      <SessionCheckedContext.Provider
+        value={sessionSettled({
+          isFetchedAfterMount,
+          isFetching,
+          failureCount,
+          fetchStatus,
+        })}
+      >
+        {children}
+      </SessionCheckedContext.Provider>
+    </SessionContext.Provider>
   );
 }

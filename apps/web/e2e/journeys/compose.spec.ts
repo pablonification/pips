@@ -295,6 +295,80 @@ test.describe('Nadia', () => {
     ).toHaveValue('');
   });
 
+  test('a reload keeps the title, the text and the audience typed; Batal then clears them', async ({
+    page,
+  }, testInfo) => {
+    const c = await openComposer(page, testInfo);
+    await c.getByRole('textbox', { name: /^Judul/ }).fill('Kuis 2');
+    await c
+      .getByRole('textbox', { name: 'Isi pengumuman' })
+      .fill('Kuis 2 dimajukan.');
+    await c.getByText('Angkatan', { exact: true }).click();
+    await c
+      .getByRole('group', { name: 'Pilih angkatan' })
+      .getByRole('checkbox', { name: '2025 · PIXEL' })
+      .click();
+    await page.reload();
+    const again = composer(page, testInfo);
+    await expect(again.getByRole('textbox', { name: /^Judul/ })).toHaveValue(
+      'Kuis 2',
+    );
+    await expect(
+      again.getByRole('textbox', { name: 'Isi pengumuman' }),
+    ).toHaveValue('Kuis 2 dimajukan.');
+    await expect(again.getByRole('radio', { name: 'Angkatan' })).toBeChecked();
+    await expect(
+      again
+        .getByRole('group', { name: 'Pilih angkatan' })
+        .getByRole('checkbox', { name: '2025 · PIXEL' }),
+    ).toBeChecked();
+    if (isDesk(testInfo)) await page.keyboard.press('Escape');
+    else await again.getByRole('button', { name: 'Batal' }).click();
+    await expect(page).toHaveURL(/\/pengumuman$/);
+    await page.goto('/pengumuman/tulis');
+    await expect(
+      composer(page, testInfo).getByRole('textbox', { name: 'Isi pengumuman' }),
+    ).toHaveValue('');
+  });
+
+  test('offline, Umumkan fails at once with Coba lagi, and nothing goes out by itself once back online', async ({
+    page,
+    api,
+  }, testInfo) => {
+    api
+      .on('POST /api/info', writes.createInfo)
+      .on('POST /api/info/:infoId/read', writes.markRead);
+    const c = await openComposer(page, testInfo);
+    await c
+      .getByRole('textbox', { name: 'Isi pengumuman' })
+      .fill('Kuis 2 dimajukan.');
+    await c
+      .getByRole('group', { name: 'Kategori' })
+      .getByRole('checkbox', { name: 'Umum' })
+      .click();
+    await api.setOffline(true);
+    await c.getByRole('button', { name: 'Umumkan' }).click();
+    await expect(c.getByRole('alert')).toHaveText(
+      /Pengumuman belum terkirim\. Semua isianmu masih ada\./,
+    );
+    const tried = api.writes.length;
+    const posted = api.calls('POST /api/info').length;
+    await api.setOffline(false);
+    await page.waitForTimeout(1_500);
+    expect(api.writes.length, 'nothing sent without a tap').toBe(tried);
+    await expect(
+      c.getByRole('textbox', { name: 'Isi pengumuman' }),
+    ).toHaveValue('Kuis 2 dimajukan.');
+    await c
+      .getByRole('alert')
+      .getByRole('button', { name: 'Coba lagi' })
+      .click();
+    await expect(
+      toastText(page, 'Diumumkan. Notifikasi sedang dikirim.'),
+    ).toBeVisible();
+    expect(api.calls('POST /api/info')).toHaveLength(posted + 1);
+  });
+
   test('a post that fails to send keeps everything, with Coba lagi', async ({
     page,
     api,

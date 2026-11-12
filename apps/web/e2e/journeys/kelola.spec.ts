@@ -245,6 +245,49 @@ test.describe('Kelola hub', () => {
     });
   });
 
+  test('a role just given: the device’s saved Raka has none, the session check has them, and Kelola stays open', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('e2e:stale-roles')) return;
+      sessionStorage.setItem('e2e:stale-roles', '1');
+      const user = JSON.parse(localStorage.getItem('user') ?? 'null');
+      if (user)
+        localStorage.setItem('user', JSON.stringify({ ...user, roles: [] }));
+    });
+    await page.goto('/kelola/sparta');
+    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
+    await expect(page).toHaveURL(/\/kelola\/sparta$/);
+  });
+
+  test.describe('the session check can’t answer (the API down)', () => {
+    test('the device’s saved Raka without the role is sent to Layanan, not left on an empty page', async ({
+      page,
+      api,
+    }) => {
+      api.on('GET /api/me', reply.abort('failed'));
+      await page.addInitScript(() => {
+        const user = JSON.parse(localStorage.getItem('user') ?? 'null');
+        if (user)
+          localStorage.setItem('user', JSON.stringify({ ...user, roles: [] }));
+      });
+      await page.goto('/kelola/sparta');
+      await expect(page).toHaveURL(/\/layanan$/);
+      await expect(navLink(page, 'Layanan')).toBeVisible();
+    });
+
+    test('the device’s saved Raka with the role sees Kelola', async ({
+      page,
+      api,
+    }) => {
+      api.on('GET /api/me', reply.abort('failed'));
+      await page.goto('/kelola/sparta');
+      await expect(main(page).getByText('3 pendaftar')).toBeVisible();
+      await page.waitForTimeout(1_500);
+      await expect(page).toHaveURL(/\/kelola\/sparta$/);
+    });
+  });
+
   test('back from a deep-linked live page lands on Kelola, then Layanan; no loop', async ({
     page,
   }, testInfo) => {
