@@ -66,12 +66,25 @@ const MATRIX: Record<string, { roles: string[]; want: Expect }> = {
   },
 };
 
+const KELOLA_TOOL =
+  /^(Live Counting & Rekap Form|Data SPARTA Magang|Tambah acara Akademik|Curhat Yuk!)/;
+
 /** Kelola's rows as the hub lists them, or none when Kelola sends the member away. */
 async function kelolaRows(page: Page): Promise<string[]> {
   await page.goto('/kelola');
-  await expect(page.locator('h1:visible')).toHaveCount(1);
-  if (!/\/kelola/.test(new URL(page.url()).pathname)) return [];
   const main = page.locator('main');
+  const onKelola = () => /^\/kelola/.test(new URL(page.url()).pathname);
+  // The gate waits for the session check before it sends a member away: wait for its decision, a tool listed or
+  // another page, before reading the rows (Layanan lists Curhat Yuk! too, as a member's service).
+  await expect
+    .poll(
+      async () =>
+        !onKelola() ||
+        (await main.getByRole('link', { name: KELOLA_TOOL }).count()) > 0,
+    )
+    .toBe(true);
+  await expect(page.locator('h1:visible')).toHaveCount(1);
+  if (!onKelola()) return [];
   const names: string[] = [];
   for (const label of [
     'Live Counting & Rekap Form',
