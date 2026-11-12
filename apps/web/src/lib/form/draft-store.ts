@@ -1,8 +1,8 @@
 /**
- * Form drafts on this device, in exactly the format today's screen writes with `bungkus` 1.3.7 (its
+ * Form drafts on this device, in exactly the format the earlier form screen wrote with `bungkus` 1.3.7 (its
  * `dist/bungkus.es.js`): IndexedDB `keyval-store`, object store `keyval`, key `bungkus-<key>`, the answers with each
  * string as "🔒" + the reversed base64 of its URI encoding, and `_timestamp` (ms). A draft older than its lifetime is
- * deleted when read. Same format, so drafts saved by today's screen restore in the new one; written here directly so a
+ * deleted when read. Same format, so drafts saved earlier restore; written here directly so a
  * write still waiting when the member leaves the screen isn't lost (bungkus writes inside a React state update).
  */
 import { withTimeLimit } from '~/lib/time-limit';

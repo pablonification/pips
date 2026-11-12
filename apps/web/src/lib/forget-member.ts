@@ -10,8 +10,8 @@ export const MEMBER_STORAGE_KEYS = ['userAcademic'] as const;
  * 1. the persisted cache is removed, with any write still waiting;
  * 2. `me` becomes null, so the persister writes nothing more (it keeps only a signed-in member's cache);
  * 3. every other query and mutation leaves memory, and the member's localStorage keys go;
- * 4. the shell forgets the page titles screens gave (a Curhat room's, a form's) and back's history (P0-C);
- * 5. form drafts on the device go (they hold a name, a NIM and answers; P2-A);
+ * 4. the shell forgets the page titles screens gave (a Curhat room's, a form's) and back's history;
+ * 5. form drafts on the device go (they hold a name, a NIM and answers);
  * 6. what was shared to PIPS! and not yet posted goes, so the next member's Buat doesn't open with it. Not before
  *    a sign-in: someone signed out who shares to PIPS! and then signs in must find it in Buat;
  * 7. text typed and not sent, kept in the tab (src/lib/unsent-text.ts), goes.

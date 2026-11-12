@@ -47,8 +47,8 @@ function readyRegistration(ms = 10_000) {
 }
 
 /**
- * This device's existing push subscription, without ever asking for permission (no prompt at sign-out;
- * SPEC "Removals"). Null when there is none, or no service worker is registered.
+ * This device's existing push subscription, without ever asking for permission (no prompt at sign-out).
+ * Null when there is none, or no service worker is registered.
  */
 export async function existingPushSubscription() {
   if (!pushSupported() || Notification.permission !== 'granted') return null;
@@ -90,7 +90,7 @@ export type EnableOutcome = 'aktif' | 'diblokir' | 'belum';
 
 /**
  * How long Nyalakan waits for the browser's push service. Chrome's first subscription on a device can take half a
- * minute, or not answer at all (2026-11-06, the real app on real data: "Menyalakan…" never ended).
+ * minute, or not answer at all, so waiting without a limit would leave "Menyalakan…" up for good.
  */
 export const SUBSCRIBE_WAIT_MS = 15_000;
 
@@ -211,7 +211,7 @@ export function registerExistingPushOnce() {
  *
  * When the server can't unlink it, the browser's subscription is ended here instead, which also stops this device's
  * notifications, and the sign-out goes on: a failing push endpoint must never keep a member signed in on a shared
- * device (review m4).
+ * device.
  */
 export async function unlinkPushAtLogout(): Promise<boolean> {
   const subscription = await existingPushSubscription();
@@ -246,7 +246,7 @@ export async function relinkPush() {
 
 /**
  * Kirim notifikasi uji: shows a notification through this device's service worker. Local only: the API has no
- * endpoint that sends one (OPEN-QUESTIONS A4).
+ * endpoint that sends one.
  */
 export async function showTestNotification() {
   const registration = await readyRegistration(5_000);

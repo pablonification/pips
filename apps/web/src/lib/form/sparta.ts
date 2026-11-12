@@ -1,9 +1,9 @@
 /**
- * Magang SPARTA rules (P2-A), for the member side the owner asked to build on 2026-10-13 (OPEN-QUESTIONS D4). The
+ * Magang SPARTA rules for the member side. The
  * server's own rules are in apps/api/src/lib/sparta-window.ts (the window, eligibility) and
  * apps/api/src/types/internship.types.ts (the draft schema on `PUT`, the strict one on `submit`): a draft may be partial
  * on every step; sending needs Kelas, ID Line and exactly four divisions in priority order, and the screen also asks for
- * every required division question, as today's screen does.
+ * every required division question.
  */
 import type {
   DraftInternshipSubmission,
@@ -16,7 +16,7 @@ import type {
 
 export const SPARTA_CHOICES = 4;
 
-/** The four steps, in order (today's screen's names). */
+/** The four steps, in order. */
 export const SPARTA_STEPS = [
   'umum',
   'penjelasan',
@@ -25,7 +25,7 @@ export const SPARTA_STEPS = [
 ] as const;
 export type SpartaStep = (typeof SPARTA_STEPS)[number];
 
-/** Checkbox answers are stored as one string, joined as today's screen joins them. */
+/** Checkbox answers are stored as one string, joined with this separator. */
 export const CHECKBOX_SEPARATOR = ', ';
 
 /** What the member is filling, as the screen keeps it. */

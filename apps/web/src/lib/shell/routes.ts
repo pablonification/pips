@@ -5,16 +5,14 @@ import { mulai } from '~/copy/mulai';
 import { serviceById } from '~/lib/services';
 
 /*
- * What the shell needs to know about every page (SPEC "Information architecture and shell"; the prototype's
- * `titleOf`, `ROOTS` and stacks in `garis/app.js`): its title, the page above it, which destination it belongs to,
+ * What the shell needs to know about every page: its title, the page above it, which destination it belongs to,
  * and whether it is a focused flow. The key is the route's path, so TypeScript fails until a new route has an
  * entry here. A screen with a title from its data (a form, a room, a post) sets it with `usePageTitle()`. A page
  * whose title or parent depends on the URL's params gets them from its feature (`registerRouteRules`), so the shell
  * imports no feature code.
- * Add entries in their own commit and don't reorder others' (WORKER-RULES, "Shared files").
  */
 
-/** The four tabs, in the prototype's order (`ROOTS`). */
+/** The four tabs, . */
 export const DESTINATIONS = [
   'beranda',
   'pengumuman',
@@ -33,7 +31,7 @@ export const DESTINATION_PATH = {
 /** Every page inside the shell. Sign-in and the design-system gallery have no shell. */
 export type ShellPath = Exclude<FileRouteTypes['to'], '/login' | '/dev/garis'>;
 
-/** The page above a Profil page on phones: the destination you came from (`LAST_ROOT`), as the prototype's stack. */
+/** The page above a Profil page on phones: the destination you came from (`LAST_ROOT`). */
 export const LAST_ROOT = 'last-root' as const;
 
 export interface RouteMeta {
@@ -45,7 +43,7 @@ export interface RouteMeta {
   parent?: ShellPath | typeof LAST_ROOT;
   /**
    * The browser tab's name when it differs from `title`: the live page is "Live Counting" in the top bar and the
-   * breadcrumbs (the prototype's `titleOf`), and "Live Counting & Rekap Form · PIPS!" as a document (P3-A brief).
+   * breadcrumbs, and "Live Counting & Rekap Form · PIPS!" as a document.
    */
   documentTitle?: string;
   /**
@@ -54,11 +52,10 @@ export interface RouteMeta {
    */
   deskRoot?: 'kelola' | 'profil';
   /**
-   * False on a split page on desktop, which shows no breadcrumbs: the post beside the feed (the prototype's
-   * `openPost` starts a new stack, so `renderDesk` shows no trail).
+   * False on a split page on desktop, which shows no breadcrumbs: the post beside the feed.
    */
   crumbs?: false;
-  /** Filling a form, writing an announcement, a Curhat room: no tab bar or rail, back stays (SPEC story 19). */
+  /** Filling a form, writing an announcement, a Curhat room: no tab bar or rail, back stays. */
   focused?: boolean;
 }
 
@@ -73,7 +70,7 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     parent: '/pengumuman',
     crumbs: false,
   },
-  // P1-B: on desktop the composer is a dialog over the split, which has no breadcrumbs.
+  // On desktop the composer is a dialog over the split, which has no breadcrumbs.
   '/pengumuman/tulis': {
     title: common.shell.buatPengumuman,
     parent: '/pengumuman',
@@ -122,13 +119,13 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: svc('testi'),
     parent: '/layanan/testi/$type/$semester',
   },
-  // Kelola: last in Layanan on phones and tablets, its own sidebar item on desktop (as the locked prototype has it).
+  // Kelola: last in Layanan on phones and tablets, its own sidebar item on desktop.
   '/kelola': {
     title: nav.kelola,
     parent: '/layanan',
     deskRoot: 'kelola',
   },
-  // P3-A: a form's pages go back to the hub, never to /kelola/live, which forwards to the only form (a loop).
+  // A form's pages go back to the hub, never to /kelola/live, which forwards to the only form (a loop).
   '/kelola/live': {
     title: common.shell.liveCounting,
     parent: '/kelola',
@@ -150,7 +147,7 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: svc('sparta-data'),
     parent: '/kelola/sparta',
   },
-  // P3-C: Welfare's Curhat inbox; a room is a focused flow, as the member's (breadcrumbs Kelola › Curhat Yuk! › room).
+  // Welfare's Curhat inbox; a room is a focused flow, as the member's (breadcrumbs Kelola › Curhat Yuk! › room).
   '/kelola/curhat': { title: svc('curhat'), parent: '/kelola' },
   '/kelola/curhat/$roomId': {
     title: common.shell.ruang,
@@ -182,7 +179,7 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: common.shell.kredit,
     parent: '/profil',
   },
-  // P1-C: first run after a sign-in, a focused flow (no tab bar) that ends on Beranda.
+  // First run after a sign-in, a focused flow (no tab bar) that ends on Beranda.
   '/mulai': { title: mulai.judul, parent: '/', focused: true },
   // The shell's test page (src/dev/shell, development and staging only): a drill-down page below Layanan.
   '/dev/shell': { title: 'Uji shell', parent: '/layanan' },
@@ -265,7 +262,7 @@ export type Layout = 'touch' | 'desk';
 
 /**
  * Which navigation item is lit: on phones and tablets one of the four tabs (Kelola belongs to Layanan, Profil to
- * where you came from, and to no tab when it was opened directly, as the locked screens show); on desktop also
+ * where you came from, and to no tab when it was opened directly); on desktop also
  * Kelola and Profil, which have their own place in the sidebar.
  */
 export function activeItem(
@@ -292,7 +289,7 @@ export interface Crumb {
 }
 
 /**
- * The desktop breadcrumb trail (`crumbs` in the prototype's `renderDesk`): the page's ancestors from its sidebar
+ * The desktop breadcrumb trail: the page's ancestors from its sidebar
  * item down to itself. One entry for a sidebar item's own page, which shows no trail.
  */
 export function trailOf(

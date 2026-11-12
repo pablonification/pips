@@ -1,7 +1,7 @@
 import { IOS_PUSH_MIN, type Platform } from './platform';
 
 /**
- * This device's push notification state (SPEC stories 104–106), from permission, subscription and platform:
+ * This device's push notification state, from permission, subscription and platform:
  * - `aktif`: permission granted and this device subscribed;
  * - `belum`: not yet asked, or asked and dismissed (the prompt can turn it on);
  * - `diblokir`: permission denied; only the browser's site settings can undo it;
