@@ -1,4 +1,5 @@
-import { QueryClient } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
+import { createSignedOutRecheck } from '~/lib/session-policy';
 import {
   ANGKATAN_QUERY_KEY,
   CALENDAR_EVENTS_QUERY_KEY,
@@ -26,7 +27,22 @@ export const api = new ApiClient(
   timedHttpRequest(),
 );
 
+// A 401 from any request asks the session check again (src/lib/session-policy.ts).
+const signedOutRecheck = createSignedOutRecheck({
+  recheck: () =>
+    queryClient.refetchQueries(
+      { queryKey: [ME_QUERY_KEY], type: 'active' },
+      { cancelRefetch: false },
+    ),
+});
+
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      if (query.queryKey[0] !== ME_QUERY_KEY) signedOutRecheck(error);
+    },
+  }),
+  mutationCache: new MutationCache({ onError: signedOutRecheck }),
   defaultOptions: {
     queries: {
       retry(failureCount, error) {

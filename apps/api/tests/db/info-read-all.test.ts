@@ -1,5 +1,5 @@
 // Runs against a real, throwaway PostgreSQL, as info-audience.test.ts: `TEST_DATABASE_URL=postgres://…/pips_test… pnpm --filter api test:db`.
-// Tandai semua dibaca (owner, 2026-11-06): one statement marks read exactly what the member's feed shows (its groups and
+// Tandai semua dibaca: one statement marks read exactly what the member's feed shows (its groups and
 // angkatan rules), leaves other members' read marks alone, and counts only what it marked now.
 import { strict as assert } from 'node:assert';
 import { after, before, test } from 'node:test';

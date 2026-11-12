@@ -1,7 +1,6 @@
 /**
- * P3-B: adding, changing and deleting competitions in Info Lomba, for cnc. The prototype has no design for any of
- * it, so every string is new copy (proposals, listed in the P3-B report). The poster field (owner's decision,
- * 2026-11-03) words its upload as the composer's photos do.
+ * Adding, changing and deleting competitions in Info Lomba, for cnc. The poster field words its upload as the
+ * composer's photos do.
  */
 export const kelolaLomba = {
   tambah: 'Tambah lomba',

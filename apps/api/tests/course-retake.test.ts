@@ -3,9 +3,8 @@ import { before, test } from 'node:test';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
 
 /*
- * OPEN-QUESTIONS C2: `PUT /api/course/take/batch` upserted on (user, course) and updated only the class. A course
- * taken in an earlier semester and added again kept its old semester, so it never showed in this semester's courses
- * (Mata kuliahku) and stayed in the catalogue. The upsert now moves it to this semester.
+ * `PUT /api/course/take/batch` upserts on (user, course). A course taken in an earlier semester and added again must
+ * move to this semester, or it never shows in this semester's courses (Mata kuliahku) and stays in the catalogue.
  */
 
 before(() => {

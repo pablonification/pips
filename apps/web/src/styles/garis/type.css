@@ -1,6 +1,6 @@
 /*
   Garis type: nine sizes (12–32 px) plus the 56 px figure, two faces, sentence case, no monospace, nothing under
-  12 px. Ported exactly from garis/garis.css. Archivo Expanded (`disp`, `t-display`, `t-display-l`) only for page
+  12 px. Archivo Expanded (`disp`, `t-display`, `t-display-l`) only for page
   titles, the greeting and brand marks; Geist for everything else, including NIMs, course codes and times
   (`num`/`code`: tabular figures).
 */

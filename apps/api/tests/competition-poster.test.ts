@@ -17,7 +17,7 @@ before(async () => {
 const POSTER =
   'https://pub-45e54d5755814b02b87e024df83efb57.r2.dev/r176r3qcuqs3hg8o3dm93n35-hology.png';
 
-test('regression: only the poster changes: the row is read, not updated with nothing to set', async () => {
+test('only the poster changes: the row is read, not updated with nothing to set', async () => {
   const { db } = await import('../src/db/drizzle');
   const { competitionRowQuery } =
     await import('../src/repositories/competitions.repo');

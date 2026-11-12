@@ -6,9 +6,9 @@ import { sessionCookie, testUser } from './support/session';
 // The real server, with a database that can't be reached (placeholder settings). Ports 4520–4529 (this task's).
 const PORT = Number(process.env.API_RESILIENCE_TEST_PORT ?? 4522);
 
-// Regression: `/api/me` updated the member's last sign-in in the background with nothing catching it. Node 22 ends
-// the process on an unhandled rejection (unless Sentry, with a DSN, installed its own handler), so one failed
-// database write took down the API and every socket.
+// `/api/me` updates the member's last sign-in in the background, so something must catch a failure. Node 22 ends the
+// process on an unhandled rejection (unless Sentry, with a DSN, installed its own handler), so one failed database
+// write would take down the API and every socket.
 test(
   'a failed background write is logged and the API keeps serving',
   { timeout: 60_000 },
@@ -35,8 +35,8 @@ test(
   },
 );
 
-// Regression: nothing handled SIGTERM, so a deploy cut off requests, sockets and push fan-outs mid-way (the process
-// was killed by the signal).
+// SIGTERM must be handled: otherwise a deploy cuts off requests, sockets and push fan-outs mid-way (the process is
+// killed by the signal).
 test(
   'SIGTERM shuts the API down cleanly with exit 0',
   { timeout: 60_000 },

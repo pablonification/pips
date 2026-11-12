@@ -155,7 +155,7 @@ test('GET /internship/window answers every member, eligible or not', async () =>
   assert.equal(forRaka.body.eligible, false);
 });
 
-// Regression: SPARTA stayed editable after its deadline; only the client stopped it.
+// The server must enforce the deadline, not only the client: SPARTA must not stay editable after it.
 test('after the deadline, saving and sending are refused with 403 and nothing is written', async () => {
   const { router, writes } = world(deadline);
   assert.equal(

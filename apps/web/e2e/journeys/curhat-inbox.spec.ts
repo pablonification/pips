@@ -656,6 +656,14 @@ test.describe('a room', () => {
     );
   });
 
+  test('a reload keeps the reply typed in this room', async ({ page, api }) => {
+    await openR1(page, api);
+    await composer(page).fill('Boleh cerita lebih lanjut?');
+    await page.reload();
+    await expect(log(page)).toBeVisible();
+    await expect(composer(page)).toHaveValue('Boleh cerita lebih lanjut?');
+  });
+
   test('a teammate’s message reads "Welfare · " on Welfare’s side', async ({
     page,
     api,

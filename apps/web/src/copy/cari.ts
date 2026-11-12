@@ -1,7 +1,6 @@
 /**
- * Global search's sources (P1-A): the words of the prototype's `palIndex` (`garis/app.js`). The palette's own words
- * (Tindakan, Pintasan, the empty result, the key hints) are P0-C's, in `common.palette`. `kata` are the hidden words
- * an item is also found by, as the prototype's `kw`.
+ * Global search sources. The palette's own words (Tindakan, Pintasan, the empty result, the key hints) are in
+ * `common.palette`. `kata` are hidden words an item is also found by.
  */
 export const cari = {
   grup: {

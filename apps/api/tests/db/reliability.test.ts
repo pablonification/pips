@@ -170,7 +170,7 @@ after(async () => {
   await client?.end();
 });
 
-// Regression: the re-send pushed first and moved lastNotifiedAt afterwards, so two requests at once both pushed.
+// The re-send must claim by moving lastNotifiedAt before it pushes, or two requests at once both push.
 test('of eight re-send claims at once, exactly one wins; then it is locked', async () => {
   const claims = await Promise.all(
     Array.from({ length: 8 }, () =>
@@ -200,7 +200,7 @@ const searchPosts = async (search: string) =>
     .map((p) => p.id)
     .filter((id) => id === 'rl-post');
 
-// Regression: search text went into to_tsquery as typed; `(`, `&`, `!`, `:`, `'` or "C++" gave a 500.
+// Search text must not go into to_tsquery as typed: `(`, `&`, `!`, `:`, `'` or "C++" would give a 500.
 test('announcement search: odd characters never fail, words still match by prefix', async () => {
   for (const search of [
     '(',
@@ -234,7 +234,7 @@ const searchEvents = async (search: string) =>
     .map((e) => e.id)
     .filter((id) => id.startsWith('rl-'));
 
-// Regression: Kalender's search split on the letter "s" (`/s+/`, meant `/\s+/`), so "kuis basis" failed.
+// Kalender's search must split on whitespace (`/\s+/`), not on the letter "s" (`/s+/`), or "kuis basis" fails.
 test('Kalender search: words with "s", spaces and odd characters', async () => {
   assert.deepEqual(await searchEvents('kuis basis'), ['rl-h-oct-first']);
   assert.deepEqual(await searchEvents('basis'), ['rl-h-oct-first']);
@@ -268,7 +268,8 @@ test("Kalender's month reads only that month in WIB, with the same events as bef
   );
 });
 
-// Regression: every Himpunan event ever was read on each Kalender and Beranda load, and the month picked in memory.
+// The month must be picked by the database: reading every Himpunan event ever on each Kalender and Beranda load
+// does not scale.
 test("Kalender's month is picked by the database, not after reading every event", async () => {
   const { drizzle } = await import('drizzle-orm/postgres-js');
   const queries: Array<{ sql: string; params: unknown[] }> = [];
@@ -293,7 +294,7 @@ test("Kalender's month is picked by the database, not after reading every event"
   }
 });
 
-// Regression: it filtered calendar groups on calendar_event.id, a column of another table (a SQL error).
+// The lookup must filter on the group's own id, not on calendar_event.id, a column of another table (a SQL error).
 test('a calendar group is found by its id', async () => {
   const group = await calendar.getCalendarGroupById(db, 'rl-himpunan');
   assert.equal(group?.id, 'rl-himpunan');

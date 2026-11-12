@@ -2,8 +2,8 @@ import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { guardedTask } from '../src/lib/guarded-task';
 
-// Regression (CI's image check, 2026-10-13): the calendar cron's first run with no database rejected, nothing
-// caught it, and the API exited. A failed run must be logged and must never reject.
+// The calendar cron's first run with no database must not reject: nothing catches it and the API exits. A failed run
+// is logged and never rejects.
 test('a failed run is logged with its error and never rejects', async () => {
   const logged: Array<[string, unknown]> = [];
   const refused = Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:1'), {

@@ -11,6 +11,7 @@ import {
   type FormEvent,
   type RefObject,
 } from 'react';
+import { useIsMutating } from '@tanstack/react-query';
 import type { CommentWithReactions, Info } from '~/api/generated';
 import {
   Avatar,
@@ -35,14 +36,17 @@ import { fill } from '~/copy/fill';
 import { pengumuman as t } from '~/copy/pengumuman';
 import { PageTitle, TopBarActions } from '~/components/shell/page';
 import useSession from '~/hooks/auth/useSession';
+import { useUnsentText } from '~/hooks/useUnsentText';
 import { can } from '~/lib/capabilities';
 import { dFull, rel } from '~/lib/dates';
 import { initialsOf } from '~/lib/shell/names';
+import { readUnsent } from '~/lib/unsent-text';
 import { cn } from '~/lib/utils';
 import {
   statusOf,
   useComments,
   useDeleteComment,
+  postCommentKey,
   usePostComment,
   useReact,
 } from './data';
@@ -236,7 +240,9 @@ function CommentsSection({ info, level }: { info: Info; level: 'h2' | 'h3' }) {
       {list.map((c) => (
         <CommentItem key={c.id} infoId={info.id} comment={c} field={field} />
       ))}
+      {/* Its own box and send per post: an answer for a post left behind never touches the open one. */}
       <CommentForm
+        key={info.id}
         infoId={info.id}
         field={field}
         count={comments?.length ?? 0}
@@ -379,7 +385,7 @@ function CommentForm({
   count: number;
 }) {
   const me = useSession();
-  const [text, setText] = useState('');
+  const [text, setText] = useUnsentText(`komentar:${infoId}`);
   // A sent comment lands above the field and pushes it down: keep the focused field in view.
   useEffect(() => {
     if (document.activeElement === field.current)
@@ -388,6 +394,16 @@ function CommentForm({
       });
   }, [count, field]);
   const post = usePostComment(infoId);
+  // A member can leave a post while its comment is being sent and come back to a new box: that send still counts,
+  // or Kirim would send the comment again. When it ends, a sent comment's text leaves this box too.
+  const sending = useIsMutating({ mutationKey: postCommentKey(infoId) }) > 0;
+  const busy = post.isPending || sending;
+  const wasSending = useRef(sending);
+  useEffect(() => {
+    if (wasSending.current && !sending && !readUnsent(`komentar:${infoId}`))
+      setText('');
+    wasSending.current = sending;
+  }, [sending, infoId, setText]);
   const send = (content: string) =>
     post.mutate(content, {
       onSuccess: () => {
@@ -406,7 +422,7 @@ function CommentForm({
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const content = text.trim();
-    if (!content || post.isPending) {
+    if (!content || busy) {
       field.current?.focus();
       return;
     }
@@ -426,7 +442,14 @@ function CommentForm({
         autoComplete="off"
         data-comment-field=""
       />
-      <Button type="submit" variant="gold" square aria-label={t.komentar.kirim}>
+      <Button
+        type="submit"
+        variant="gold"
+        square
+        aria-label={t.komentar.kirim}
+        aria-busy={busy || undefined}
+        aria-disabled={busy || undefined}
+      >
         <IconKirim size={16} />
       </Button>
     </form>

@@ -1,8 +1,6 @@
 /**
- * Curhat Yuk!'s inbox for HMIF Welfare (P3-C) at /kelola/curhat. The prototype has no inbox (OPEN-QUESTIONS D9), so
- * it is built from the member side's pieces (`scrCurhat`, `scrRoom`, `menuBtn`, the Pengumuman toolbar's chip,
- * `emptyState`). Words the member side already has come from `curhat.ts`; every string here is new copy, a proposal
- * listed in reports/P3-C-curhat-inbox.md for the owner. No exclamation marks in Curhat (SPEC "Copy and language").
+ * Curhat Yuk!'s inbox for HMIF Welfare, at /kelola/curhat. Words the member side already has come from
+ * `curhat.ts`. No exclamation marks in Curhat.
  */
 export const kelolaCurhat = {
   daftar: {

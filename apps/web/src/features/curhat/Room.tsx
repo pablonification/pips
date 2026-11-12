@@ -9,6 +9,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useUnsentText } from '~/hooks/useUnsentText';
 import {
   Button,
   ConfirmDialog,
@@ -149,7 +150,7 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
     [room.messages, mine],
   );
 
-  const [text, setText] = useState('');
+  const [text, setText] = useUnsentText(`curhat:${roomId}`);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const field = useRef<HTMLTextAreaElement | null>(null);
   const focusField = () => requestAnimationFrame(() => field.current?.focus());

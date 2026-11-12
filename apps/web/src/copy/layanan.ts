@@ -1,6 +1,6 @@
 /**
- * Layanan (P1-C). Groups, names and descriptions come from the service registry (src/lib/services.ts); these are
- * the badges' words, as the prototype writes them (garis/screens-more.js `svcBadge`).
+ * Layanan. Groups, names and descriptions come from the service registry (src/lib/services.ts); these are the
+ * badges' words.
  */
 export const layanan = {
   // Curhat Yuk!'s count, for screen readers.

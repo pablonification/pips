@@ -1,11 +1,10 @@
 /*
-  Kelola (P3-A), ported exactly from the locked prototype's garis.css: `.live` and `blink`, `.hbars`, `.hbar`,
-  `.pager`, and the inline styles of `scrLive` (garis/screens-more.js). The plaque, rows, tags and fields are P0-A's
-  (components.css). Data SPARTA Magang (no locked design) is built from the same pieces: a hairline table from
-  1024 px, labelled rows below. Colours only from tokens. Loaded with Kelola's code, not globally.
+  Kelola: Live Counting's plaque and blinking mark, the answer bars, the pager and Data SPARTA Magang's table.
+  The plaque, rows, tags and fields come from components.css. Data SPARTA Magang is a hairline table from 1024 px
+  and labelled rows below. Colours only from tokens. Loaded with Kelola's code, not globally.
 */
 @layer components {
-  /* Live Counting's plaque (scrLive): the live square and the form's title, the count, the line under it. */
+  /* Live Counting's plaque: the live square and the form's title, the count, the line under it. */
   .g-live-plaque {
     display: grid;
     gap: 8px;
@@ -87,7 +86,6 @@
     gap: 12px;
   }
 
-  /* Testi Matkul's pager. */
   .g-pager {
     display: flex;
     align-items: center;
@@ -99,7 +97,6 @@
     rotate: 180deg;
   }
 
-  /* Data SPARTA Magang: the toolbar. */
   .g-sparta-tools {
     display: grid;
     gap: 12px;
@@ -123,7 +120,7 @@
     gap: 8px 12px;
   }
 
-  /* The table from 1024 px, labelled rows below: one tree, picked by the screen (DESKTOP_QUERY). */
+  /* The table from 1024 px, labelled rows below: one tree, picked by the screen. */
   .g-sparta-table {
     width: 100%;
     border-collapse: collapse;
@@ -185,7 +182,6 @@
     overflow-wrap: anywhere;
   }
 
-  /* One submission: a card per choice. */
   .g-choice-card {
     display: grid;
     gap: 12px;

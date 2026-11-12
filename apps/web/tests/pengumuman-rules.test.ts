@@ -499,9 +499,17 @@ test('the shell’s first code loads only Pengumuman’s small modules (the badg
     [...store.matchAll(/^import (?!type )[\s\S]*?from '([^']+)';/gm)].map(
       (m) => m[1],
     ),
-    ['react', '~/lib/constants', '~/lib/share-db', './draft'],
+    [
+      'react',
+      '~/lib/constants',
+      '~/lib/share-db',
+      '~/lib/unsent-text',
+      './draft',
+    ],
   );
   assert.deepEqual(imports(read('features/pengumuman/draft.ts')), []);
+  // Where the draft is kept across a reload: no imports of its own.
+  assert.deepEqual(imports(read('lib/unsent-text.ts')), []);
 });
 
 /* ================= Links ================= */

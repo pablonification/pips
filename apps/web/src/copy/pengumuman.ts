@@ -1,14 +1,10 @@
-/**
- * Pengumuman's words (P1-B): the feed, a post, reactions, comments, the menu, the filter and the composer. As the
- * prototype words them (garis/screens-core.js `feedTools` … `composeForm`, screens-more.js `OV`, app.js actions).
- * Strings marked "new copy" aren't in the prototype; they are listed in reports/P1-B-pengumuman.md for the owner.
- */
+/** Pengumuman: the feed, a post, reactions, comments, the menu, the filter and the composer. */
 export const pengumuman = {
   feed: {
     buat: 'Buat',
     buatLabel: 'Buat pengumuman',
     cariLabel: 'Cari pengumuman',
-    // Open question 1: the prototype says "Cari judul, isi, atau nama", but the API searches title and content only.
+    // The API searches title and content only, so the placeholder doesn't promise names.
     cariPlaceholder: 'Cari judul atau isi',
     saring: 'Saring pengumuman',
     belumDibaca: 'Belum dibaca',
@@ -20,7 +16,7 @@ export const pengumuman = {
     kategori: 'Kategori',
     disembunyikan: '{jumlah} disembunyikan',
     belumDibacaSr: ' (belum dibaca)',
-    // New copy (owner, 2026-11-06): mark every post read, beside Belum dibaca.
+    // Marks every post read, beside Belum dibaca.
     tandaiSemua: 'Tandai semua dibaca',
     semuaDitandai: 'Semua pengumuman ditandai sudah dibaca.',
     gagalTandaiSemua: 'Belum berhasil menandai semua dibaca.',
@@ -33,11 +29,11 @@ export const pengumuman = {
     kosongKategori: 'Tidak ada pengumuman di kategori yang ditampilkan.',
     tampilkanSemua: 'Tampilkan semua',
     pilih: 'Pilih pengumuman',
-    // New copy: paging's fallback button and the loading and error states.
+    // Paging's fallback button and the loading and error states.
     muatLagi: 'Muat lagi',
     memuat: 'Memuat pengumuman…',
     gagal: 'Pengumuman gagal dimuat.',
-    // The badge past the cap (open question 2: no count endpoint).
+    // The badge past the cap (the API has no count endpoint).
   },
   post: {
     dari: 'Pengumuman dari {nama}',
@@ -48,13 +44,13 @@ export const pengumuman = {
     untukGrup: 'Untuk grup {daftar}',
     googleForm: 'Google Form · bisa diisi di sini',
     situsLuar: '(situs luar, tab baru)',
-    // New copy: the photo viewer and the embedded form's dialog.
+    // The photo viewer and the embedded form's dialog.
     foto: 'Foto {nomor} dari {jumlah}',
     fotoPengumuman: 'Foto pengumuman',
     fotoSebelumnya: 'Foto sebelumnya',
     fotoBerikutnya: 'Foto berikutnya',
     bukaTabBaru: 'Buka di tab baru',
-    // New copy: a post that is gone, or meant for groups you aren't in (404).
+    // A post that is gone, or meant for groups you aren't in (404).
     tidakDitemukan: 'Pengumuman tidak ditemukan',
     tidakDitemukanText: 'Pengumuman ini sudah dihapus, atau bukan untukmu.',
     kembali: 'Kembali ke Pengumuman',
@@ -71,7 +67,7 @@ export const pengumuman = {
     komentar: 'Beri reaksi untuk komentar {nama}',
     komentarMilikmu: 'Reaksimu {reaksi}. Ganti untuk komentar {nama}',
     jumlah: '{reaksi} {jumlah}',
-    // New copy: an optimistic reaction that the server refused.
+    // An optimistic reaction that the server refused.
     gagal: 'Reaksi gagal dikirim. Coba lagi.',
   },
   komentar: {
@@ -83,7 +79,7 @@ export const pengumuman = {
     kirim: 'Kirim komentar',
     terkirim: 'Komentar terkirim.',
     dihapus: 'Komentar dihapus.',
-    // New copy: a comment that didn't send (the text stays in the field).
+    // A comment that didn't send (the text stays in the field).
     gagal: 'Komentar gagal dikirim. Tulisanmu masih ada.',
   },
   menu: {
@@ -99,7 +95,7 @@ export const pengumuman = {
     diumumkanUlang: 'Diumumkan ulang. Notifikasi dikirim lagi ke {sasaran}.',
     hapus: 'Hapus pengumuman',
     sebagaiAdmin: 'Sebagai admin',
-    // New copy: write errors.
+    // Write errors.
     gagal: 'Belum berhasil. Coba lagi.',
     ditolak: 'Kamu tidak bisa melakukan ini.',
   },
@@ -144,7 +140,7 @@ export const pengumuman = {
     errKategori: 'Pilih minimal satu kategori.',
     errAngkatan: 'Pilih minimal satu angkatan, atau ganti ke Semua.',
     errGrup: 'Pilih minimal satu grup, atau ganti ke Semua.',
-    // notifyLine (garis/screens-core.js): who gets the push, and who sees the post.
+    // Who gets the push, and who sees the post.
     notifikasi:
       'Notifikasi dikirim ke {siapa}, kecuali yang mematikan kategori {kategori}.',
     hanyaMereka: ' Pengumuman ini hanya terlihat oleh mereka.',
@@ -156,7 +152,7 @@ export const pengumuman = {
     kategoriKosong: 'yang kamu pilih',
     dan: ' dan ',
     diumumkan: 'Diumumkan. Notifikasi sedang dikirim.',
-    // New copy: sending failed (everything stays), and the photo uploads.
+    // Sending failed (everything stays), and the photo uploads.
     gagal: 'Pengumuman belum terkirim. Semua isianmu masih ada.',
     mengunggah: 'Mengunggah {persen}%',
     gagalUnggah: 'Gagal diunggah',

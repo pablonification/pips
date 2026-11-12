@@ -411,3 +411,19 @@ test('the deferred socket: listeners wait for the code; not connected until then
   assert.equal(c2.snapshot.status, 'down');
   c2.close();
 });
+
+test('hasUnsent: true while a message waits for its answer or failed; false once delivered, and after close', () => {
+  const { socket, client } = setup();
+  assert.equal(client.hasUnsent(), false);
+  client.send('r1', 'sebelum tersambung', null);
+  assert.equal(client.hasUnsent(), true, 'failed');
+  socket.connect();
+  client.retry(client.snapshot.outbox[0].localId);
+  assert.equal(client.hasUnsent(), true, 'pending');
+  socket.emits[0].ack(null, { ok: true, message: saved() });
+  assert.equal(client.hasUnsent(), false, 'delivered');
+  client.send('r1', 'lagi', null);
+  assert.equal(client.hasUnsent(), true);
+  client.close();
+  assert.equal(client.hasUnsent(), false, 'the outbox goes with the area');
+});
