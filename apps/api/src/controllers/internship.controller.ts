@@ -3,7 +3,7 @@ import postgres from 'postgres';
 import { db } from '~/db/drizzle';
 import { spartaWindowFor } from '~/lib/sparta-window';
 import { internshipEligibilityMiddleware } from '~/middlewares/internship-eligibility.middleware';
-import { roleMiddleware } from '~/middlewares/role.middleware';
+import { forRoles } from '~/middlewares/role.middleware';
 import {
   createDepartment,
   createDivision,
@@ -67,85 +67,103 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
     return c.json({ departments }, 200);
   });
 
-  internshipRouter.post(
-    createInternshipDepartmentRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
-  );
-  internshipRouter.openapi(createInternshipDepartmentRoute, async (c) => {
-    try {
-      const data = c.req.valid('json');
-      const department = await createDepartment(db, data);
-      return c.json(department, 201);
-    } catch (err) {
-      if (err instanceof postgres.PostgresError) {
-        return c.json(databaseError(err), 400);
+  internshipRouter.openapi(
+    forRoles(
+      createInternshipDepartmentRoute,
+      SPARTA_ADMIN_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
+      try {
+        const data = c.req.valid('json');
+        const department = await createDepartment(db, data);
+        return c.json(department, 201);
+      } catch (err) {
+        if (err instanceof postgres.PostgresError) {
+          return c.json(databaseError(err), 400);
+        }
+        throw err;
       }
-      throw err;
-    }
-  });
-
-  internshipRouter.put(
-    updateInternshipDepartmentRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
+    },
   );
-  internshipRouter.openapi(updateInternshipDepartmentRoute, async (c) => {
-    const { id } = c.req.valid('param');
-    const data = c.req.valid('json');
-    const department = await updateDepartment(db, id, data);
-    if (!department) return c.json({ error: 'Department not found' }, 404);
-    return c.json(department, 200);
-  });
 
-  internshipRouter.delete(
-    deleteInternshipDepartmentRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
-  );
-  internshipRouter.openapi(deleteInternshipDepartmentRoute, async (c) => {
-    const { id } = c.req.valid('param');
-    const department = await deleteDepartment(db, id);
-    if (!department) return c.json({ error: 'Department not found' }, 404);
-    return c.json(department, 200);
-  });
-
-  internshipRouter.post(
-    createInternshipDivisionRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
-  );
-  internshipRouter.openapi(createInternshipDivisionRoute, async (c) => {
-    try {
+  internshipRouter.openapi(
+    forRoles(
+      updateInternshipDepartmentRoute,
+      SPARTA_ADMIN_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
+      const { id } = c.req.valid('param');
       const data = c.req.valid('json');
-      const division = await createDivision(db, data);
-      return c.json(division, 201);
-    } catch (err) {
-      if (err instanceof postgres.PostgresError) {
-        return c.json(databaseError(err), 400);
+      const department = await updateDepartment(db, id, data);
+      if (!department) return c.json({ error: 'Department not found' }, 404);
+      return c.json(department, 200);
+    },
+  );
+
+  internshipRouter.openapi(
+    forRoles(
+      deleteInternshipDepartmentRoute,
+      SPARTA_ADMIN_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
+      const { id } = c.req.valid('param');
+      const department = await deleteDepartment(db, id);
+      if (!department) return c.json({ error: 'Department not found' }, 404);
+      return c.json(department, 200);
+    },
+  );
+
+  internshipRouter.openapi(
+    forRoles(
+      createInternshipDivisionRoute,
+      SPARTA_ADMIN_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
+      try {
+        const data = c.req.valid('json');
+        const division = await createDivision(db, data);
+        return c.json(division, 201);
+      } catch (err) {
+        if (err instanceof postgres.PostgresError) {
+          return c.json(databaseError(err), 400);
+        }
+        throw err;
       }
-      throw err;
-    }
-  });
-
-  internshipRouter.put(
-    updateInternshipDivisionRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
+    },
   );
-  internshipRouter.openapi(updateInternshipDivisionRoute, async (c) => {
-    const { id } = c.req.valid('param');
-    const data = c.req.valid('json');
-    const division = await updateDivision(db, id, data);
-    if (!division) return c.json({ error: 'Division not found' }, 404);
-    return c.json(division, 200);
-  });
 
-  internshipRouter.delete(
-    deleteInternshipDivisionRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
+  internshipRouter.openapi(
+    forRoles(
+      updateInternshipDivisionRoute,
+      SPARTA_ADMIN_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
+      const { id } = c.req.valid('param');
+      const data = c.req.valid('json');
+      const division = await updateDivision(db, id, data);
+      if (!division) return c.json({ error: 'Division not found' }, 404);
+      return c.json(division, 200);
+    },
   );
-  internshipRouter.openapi(deleteInternshipDivisionRoute, async (c) => {
-    const { id } = c.req.valid('param');
-    const division = await deleteDivision(db, id);
-    if (!division) return c.json({ error: 'Division not found' }, 404);
-    return c.json(division, 200);
-  });
+
+  internshipRouter.openapi(
+    forRoles(
+      deleteInternshipDivisionRoute,
+      SPARTA_ADMIN_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
+      const { id } = c.req.valid('param');
+      const division = await deleteDivision(db, id);
+      if (!division) return c.json({ error: 'Division not found' }, 404);
+      return c.json(division, 200);
+    },
+  );
 
   internshipRouter.use(
     getMyInternshipSubmissionRoute.getRoutingPath(),
@@ -220,26 +238,32 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
     }
   });
 
-  internshipRouter.get(
-    listInternshipSubmissionsRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
+  internshipRouter.openapi(
+    forRoles(
+      listInternshipSubmissionsRoute,
+      SPARTA_ADMIN_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
+      const query = c.req.valid('query');
+      const submissions = await getSubmissionsList(db, query);
+      return c.json({ submissions }, 200);
+    },
   );
-  internshipRouter.openapi(listInternshipSubmissionsRoute, async (c) => {
-    const query = c.req.valid('query');
-    const submissions = await getSubmissionsList(db, query);
-    return c.json({ submissions }, 200);
-  });
 
-  internshipRouter.get(
-    getInternshipSubmissionByIdRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
+  internshipRouter.openapi(
+    forRoles(
+      getInternshipSubmissionByIdRoute,
+      SPARTA_ADMIN_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
+      const { id } = c.req.valid('param');
+      const submission = await getSubmissionById(db, id);
+      if (!submission) return c.json({ error: 'Submission not found' }, 404);
+      return c.json(submission, 200);
+    },
   );
-  internshipRouter.openapi(getInternshipSubmissionByIdRoute, async (c) => {
-    const { id } = c.req.valid('param');
-    const submission = await getSubmissionById(db, id);
-    if (!submission) return c.json({ error: 'Submission not found' }, 404);
-    return c.json(submission, 200);
-  });
 
   return internshipRouter;
 }
