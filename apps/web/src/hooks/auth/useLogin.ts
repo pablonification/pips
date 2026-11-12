@@ -44,7 +44,7 @@ export default function useLogin(redirectTo: string | null = null) {
 
   // A new session starts clean: nothing cached for whoever used this device before.
   const start = async (user: User) => {
-    void forgetMemberOnDevice();
+    void forgetMemberOnDevice({ keepSharedContent: true });
     invalidateSession(user);
     // A device that already has notifications on is linked to the new session again, without asking anything.
     void registerExistingPush();
