@@ -1,5 +1,5 @@
 /**
- * Devices for Pasang PIPS! and the push states (P1-C): user agents for Android Chrome, iPhone Safari and LINE's
+ * Devices for Pasang PIPS! and the push states: user agents for Android Chrome, iPhone Safari and LINE's
  * in-app browser, and a stub of Chrome's `beforeinstallprompt`. Use the agents with
  * `test.use({ userAgent: UA.iphone, installed: false })`.
  */

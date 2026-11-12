@@ -1,6 +1,6 @@
 /**
- * Profil › Mata kuliahku and Tambah mata kuliah (P1-C): the list and Jumlah SKS, removing with Urungkan, the empty,
- * error and offline states, searching the catalogue, picking courses (one toggle per row; Garis v5 has no class) and
+ * Profil › Mata kuliahku and Tambah mata kuliah: the list and Jumlah SKS, removing with Urungkan, the empty,
+ * error and offline states, searching the catalogue, picking courses (one toggle per row, no class) and
  * adding them.
  */
 import type { Page } from '@playwright/test';
@@ -25,10 +25,10 @@ const addButton = (page: Page) =>
   page.getByRole('button', { name: /^Tambahkan/ }).locator('visible=true');
 const search = (page: Page) =>
   main(page).getByRole('searchbox', { name: 'Cari mata kuliah' });
-/** A catalogue row: one toggle button named by its code and name (no class picker in v5). */
+/** A catalogue row: one toggle button named by its code and name (no class picker). */
 const row = (page: Page, code: string) =>
   main(page).getByRole('button', { name: new RegExp(`^${code} `) });
-/** Nothing about a class anywhere on the page (Garis v5). */
+/** Nothing about a class anywhere on the page. */
 async function noClass(page: Page) {
   await expect(main(page).getByText(/\bKelas\b/)).toHaveCount(0);
   await expect(main(page).getByText(/^K[123]$/)).toHaveCount(0);
@@ -50,7 +50,7 @@ test.describe('Mata kuliahku', () => {
     await expect(
       main(page).getByText('Algoritma dan Pemrograman II'),
     ).toBeVisible();
-    // v5: no "Kelas 0x" pill on a course row.
+    // No "Kelas 0x" pill on a course row.
     await noClass(page);
     expect(await sks(page)).toBe('18');
     const why = main(page).locator('details');
@@ -70,7 +70,7 @@ test.describe('Mata kuliahku', () => {
     api,
     db,
   }) => {
-    // A row added before v5 still has its class on the server: Urungkan keeps it.
+    // A row added by an older client still has its class on the server: Urungkan keeps it.
     db.myCourses.find((c) => c.courseId === 'course-IF2180')!.class = 3;
     api.on('DELETE /api/course/take/batch', writes.dropCourses);
     api.on('PUT /api/course/take/batch', writes.takeCourses);
@@ -78,7 +78,7 @@ test.describe('Mata kuliahku', () => {
     await removeBtn(page, 'IF2180').click();
     await expect.poll(() => codes(page)).not.toContain('IF2180');
     expect(await sks(page)).toBe('16');
-    // IF2180 was the last row: focus moves to Tambah mata kuliah, as the prototype's `rm-course` (review m1).
+    // IF2180 was the last row: focus moves to Tambah mata kuliah.
     await expect(
       main(page).getByRole('link', { name: 'Tambah mata kuliah' }),
     ).toBeFocused();
@@ -123,7 +123,7 @@ test.describe('Mata kuliahku', () => {
     expect(await sks(page)).toBe('18');
   });
 
-  test('regression: a failed remove brings back only its own row, not one removed meanwhile', async ({
+  test('a failed remove brings back only its own row, not one removed meanwhile', async ({
     page,
     api,
     db,
@@ -163,7 +163,7 @@ test.describe('Mata kuliahku', () => {
     expect(await sks(page)).toBe('14');
   });
 
-  test('regression: the toast with Urungkan shows before the server answers; Urungkan then waits for the removal', async ({
+  test('the toast with Urungkan shows before the server answers; Urungkan then waits for the removal', async ({
     page,
     api,
   }) => {
@@ -192,7 +192,7 @@ test.describe('Mata kuliahku', () => {
     expect(await sks(page)).toBe('18');
   });
 
-  test('regression: when a removal fails after its toast showed, the error toast replaces it', async ({
+  test('when a removal fails after its toast showed, the error toast replaces it', async ({
     page,
     api,
   }) => {
@@ -354,12 +354,12 @@ test.describe('Tambah mata kuliah', () => {
   });
 
   test.describe('on the real clock', () => {
-    // Regression (2026-11-03, the real app on real data): the toast store called setTimeout as its own method, which
-    // browsers refuse ("Illegal invocation"). Every success toast threw, so Tambahkan saved the courses but stayed on
-    // "Menambahkan…" and never went back. The harness's fake clock hid it; these journeys run without it.
+    // A toast store that calls setTimeout as its own method fails in browsers ("Illegal invocation"): every success
+    // toast would throw, and Tambahkan would save the courses but stay on "Menambahkan…". The harness's fake clock
+    // hides that; these journeys run without it.
     test.use({ now: null });
 
-    test('regression: Tambahkan saves, says so and goes back to Mata kuliahku', async ({
+    test('Tambahkan saves, says so and goes back to Mata kuliahku', async ({
       page,
       api,
     }) => {
@@ -384,7 +384,7 @@ test.describe('Tambah mata kuliah', () => {
       expect(errors).toEqual([]);
     });
 
-    test('regression: removing a course shows Urungkan, which puts it back', async ({
+    test('removing a course shows Urungkan, which puts it back', async ({
       page,
       api,
     }) => {
@@ -405,7 +405,7 @@ test.describe('Tambah mata kuliah', () => {
     });
   });
 
-  test('regression: Tambahkan goes back to Mata kuliahku, so Back then leaves for Profil, not an empty Tambah mata kuliah', async ({
+  test('Tambahkan goes back to Mata kuliahku, so Back then leaves for Profil, not an empty Tambah mata kuliah', async ({
     page,
     api,
   }, testInfo) => {
@@ -429,7 +429,7 @@ test.describe('Tambah mata kuliah', () => {
     await expect(page).toHaveURL(/\/profil$/);
   });
 
-  test('regression: opened directly, Tambahkan replaces it with Mata kuliahku', async ({
+  test('opened directly, Tambahkan replaces it with Mata kuliahku', async ({
     page,
     api,
   }, testInfo) => {
@@ -481,7 +481,7 @@ test.describe('Tambah mata kuliah', () => {
     ).toBeVisible();
   });
 
-  test('regression: Enter neither reloads nor submits, and picks survive a new search', async ({
+  test('Enter neither reloads nor submits, and picks survive a new search', async ({
     page,
     api,
   }) => {
@@ -528,7 +528,7 @@ test.describe('Tambah mata kuliah', () => {
     await expect(addButton(page)).toHaveText(/\(1\)/);
   });
 
-  // Regression (web-robust 1): an add the API never answered stayed on "Menambahkan…" until the browser gave up.
+  // An add the API never answers must give up instead of staying on "Menambahkan…" until the browser does.
   test('an add with no answer: after the time limit, the picks stay and it says so', async ({
     page,
     api,
@@ -557,7 +557,7 @@ test.describe('Tambah mata kuliah', () => {
     await expect(addButton(page)).toHaveText(/\(1\)/);
   });
 
-  test('v5: remove, undo, then pick two by row (drop and pick again) → Tambahkan (2); Jumlah SKS follows; saved with no class', async ({
+  test('remove, undo, then pick two by row (drop and pick again) → Tambahkan (2); Jumlah SKS follows; saved with no class', async ({
     page,
     api,
     db,
@@ -644,8 +644,8 @@ test.describe('Tambah mata kuliah', () => {
     api,
     db,
   }) => {
-    // Regression: Coba lagi re-read only the catalogue, so a failed read of the member's courses kept the skeleton
-    // up for good (found by qa/errors.spec.ts once it waited for loading to end, 2026-11-03).
+    // Coba lagi must re-read the member's courses too, not only the catalogue, or a failed read of them keeps the
+    // skeleton up for good.
     let fail = true;
     api.on('GET /api/course', () =>
       fail ? reply.status(500) : { courses: db.courses },

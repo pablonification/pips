@@ -1,5 +1,5 @@
 /**
- * F2 (brief step 4; accessibility.md A15): the keyboard journeys J1–J10 with the keyboard alone, at phone (a hardware
+ * The keyboard journeys with the keyboard alone, at phone (a hardware
  * keyboard on the touch layout), tablet and desktop. Only `page.goto` (opening a URL, as a link from outside would) and
  * the keys Tab, Shift+Tab, Enter, Space, the arrows, Home, End, Page Up, Page Down and Escape: no clicks and no
  * `.focus()`. `tabTo` presses Tab until the control has focus, so each step also proves the control is reachable.
@@ -41,9 +41,9 @@ test.beforeEach(({}, testInfo) => {
   );
 });
 
-test.describe('J1', () => {
+test.describe('sign in', () => {
   test.use({ signedIn: false, push: 'on' });
-  test('J1: sign in, then reach Beranda', async ({ page, api }) => {
+  test('sign in, then reach Beranda', async ({ page, api }) => {
     await fakeGoogle(page.context());
     api.on('POST /api/auth/login/accesstoken', writes.loginAccessToken);
     api.on('POST /api/push/register', writes.registerPush);
@@ -70,7 +70,7 @@ test.describe('J1', () => {
   });
 });
 
-test('J2: the skip link, then every service in Layanan', async ({
+test('the skip link, then every service in Layanan', async ({
   page,
 }, testInfo) => {
   await page.goto('/layanan');
@@ -107,7 +107,7 @@ test('J2: the skip link, then every service in Layanan', async ({
   expect(layoutOf(testInfo)).toBeTruthy();
 });
 
-test('J3: Pengumuman: search, Belum dibaca, the filter, sort; a post: react, comment, share', async ({
+test('Pengumuman: search, Belum dibaca, the filter, sort; a post: react, comment, share', async ({
   page,
   api,
 }, testInfo) => {
@@ -172,8 +172,8 @@ test('J3: Pengumuman: search, Belum dibaca, the filter, sort; a post: react, com
   await tabTo(page, send);
   await page.keyboard.press('Enter');
   await expect(main(page).getByText('Sudah dicek, terima kasih')).toBeVisible();
-  // Sharing: Bagikan in the top bar on phones and tablets. Desktop has none, as the prototype's `postDetail` (only the
-  // Opsi menu): F2-016, a question for the owner. There, the post's menu by keyboard.
+  // Sharing: Bagikan in the top bar on phones and tablets. Desktop has none (only the
+  // Opsi menu). There, the post's menu by keyboard.
   if (layoutOf(testInfo) !== 'desktop') {
     const share = page
       .getByRole('button', { name: 'Bagikan' })
@@ -195,7 +195,7 @@ test('J3: Pengumuman: search, Belum dibaca, the filter, sort; a post: react, com
   }
 });
 
-test('J4: Buat pengumuman: a missing field takes focus, then it posts', async ({
+test('Buat pengumuman: a missing field takes focus, then it posts', async ({
   page,
   api,
 }) => {
@@ -207,7 +207,7 @@ test('J4: Buat pengumuman: a missing field takes focus, then it posts', async ({
   const umumkan = page.getByRole('button', { name: 'Umumkan' });
   await tabTo(page, umumkan);
   await page.keyboard.press('Enter');
-  // The first field with an error takes focus (A10).
+  // The first field with an error takes focus.
   await expect(body).toBeFocused();
   await expect(body).toHaveAttribute('aria-invalid', 'true');
   await page.keyboard.type('Rapat koordinasi Jumat pukul 16.00 di Labtek V.');
@@ -220,7 +220,7 @@ test('J4: Buat pengumuman: a missing field takes focus, then it posts', async ({
   await expect.poll(() => api.calls('POST /api/info').length).toBe(1);
 });
 
-test('J5: Kalender: change the month, pick a day with the arrows, read its agenda', async ({
+test('Kalender: change the month, pick a day with the arrows, read its agenda', async ({
   page,
 }) => {
   await page.goto('/kalender');
@@ -246,7 +246,7 @@ test('J5: Kalender: change the month, pick a day with the arrows, read its agend
   ).toBeVisible();
 });
 
-test('J6: Curhat: read the log, reply to a message, send; delete asks first, Batal focused', async ({
+test('Curhat: read the log, reply to a message, send; delete asks first, Batal focused', async ({
   page,
   api,
 }) => {
@@ -280,7 +280,7 @@ test('J6: Curhat: read the log, reply to a message, send; delete asks first, Bat
   await expect(dialog).toHaveCount(0);
 });
 
-test('J7: Form PIXEL: an error on the first section takes focus; Sebelumnya and Lanjut by keyboard', async ({
+test('Form PIXEL: an error on the first section takes focus; Sebelumnya and Lanjut by keyboard', async ({
   page,
 }) => {
   await page.goto('/layanan/form/pixel');
@@ -290,7 +290,7 @@ test('J7: Form PIXEL: an error on the first section takes focus; Sebelumnya and 
     .first();
   await tabTo(page, lanjut);
   await page.keyboard.press('Enter');
-  // Lanjut with a required question empty: the first error takes focus (A10).
+  // Lanjut with a required question empty: the first error takes focus.
   const next = page
     .getByRole('button', { name: 'Lanjut' })
     .locator('visible=true')
@@ -313,8 +313,8 @@ test('J7: Form PIXEL: an error on the first section takes focus; Sebelumnya and 
     .toBe(true);
 });
 
-test.describe('J8', () => {
-  test('J8: Magang SPARTA (season open): Mulai, the first error focused, choose divisions and reorder them', async ({
+test.describe('Magang SPARTA', () => {
+  test('Magang SPARTA (season open): Mulai, the first error focused, choose divisions and reorder them', async ({
     page,
     api,
     db,
@@ -363,7 +363,7 @@ test.describe('J8', () => {
   });
 });
 
-test('J9: Mata kuliahku: remove a course and undo it, no swipe; Notifikasi: a switch says its category and state', async ({
+test('Mata kuliahku: remove a course and undo it, no swipe; Notifikasi: a switch says its category and state', async ({
   page,
   api,
 }) => {
@@ -391,9 +391,9 @@ test('J9: Mata kuliahku: remove a course and undo it, no swipe; Notifikasi: a sw
   await expect(lomba).not.toHaveAttribute('aria-checked', before ?? '');
 });
 
-test.describe('J10', () => {
+test.describe('Kelola', () => {
   test.use({ persona: 'pengurus' });
-  test('J10: Live Counting and Data SPARTA Magang: every control by keyboard, charts with a text alternative', async ({
+  test('Live Counting and Data SPARTA Magang: every control by keyboard, charts with a text alternative', async ({
     page,
   }) => {
     await page.goto('/kelola/live/pixel');

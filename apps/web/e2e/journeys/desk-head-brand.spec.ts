@@ -1,5 +1,5 @@
 /**
- * Garis v5's two small desktop fixes (garis.css, 2026-11-02):
+ * Two small desktop alignments:
  * - the sidebar brand: the PIPS! wordmark and "HMIF ITB" fill exactly the logo's height (the wordmark's top on the
  *   logo's top, HMIF ITB's bottom on its bottom), in the sidebar and on sign-in, which uses the same piece;
  * - a narrow page's head (`.d-head:has(+ .d-narrow)`): as narrow as its 760 px body, so its action sits by the
@@ -79,9 +79,8 @@ const NARROW = [
     url: '/profil/matkul/tambah',
     action: (p: Page) => p.locator('.g-d-head > button'),
   },
-  // Info Lomba and a Testi Matkul course were on this list until Garis v5 gave them the wide grid of posters and
-  // testimonials; their heads now span that grid (the wide-page test below). A Curhat room was too, until the owner
-  // asked for a proper chat (2026-11-06) that uses the pane's width: its head, with Hapus ruang, spans it now.
+  // Info Lomba, a Testi Matkul course and a Curhat room are not here: their heads span the wide grid or the pane
+  // (the wide-page test below).
 ] as const;
 
 for (const c of NARROW) {

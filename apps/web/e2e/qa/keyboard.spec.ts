@@ -1,5 +1,5 @@
 /**
- * F2 (brief step 4, accessibility.md A2 and A3): a Tab walk on every page, at phone (a hardware keyboard on the touch
+ * A Tab walk on every page, at phone (a hardware keyboard on the touch
  * layout), tablet and desktop, in light and dark. On each page:
  * - the first stop is the skip link (pages with the shell);
  * - every stop has a name, and a focus ring at least 2 px wide with 3:1 against what is behind it;

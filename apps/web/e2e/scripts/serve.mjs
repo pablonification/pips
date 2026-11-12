@@ -14,11 +14,11 @@ Object.assign(process.env, {
   VITE_API_URL: '', // same origin: the mock layer answers /api/** and /socket.io/
   VITE_APP_NAME: 'PIPS!',
   VITE_GOOGLE_CLIENT_ID: 'e2e-google-client-id',
-  VITE_VAPID_KEY: 'e2e-vapid-public-key', // P1-C: the push stub records the key it was given
+  VITE_VAPID_KEY: 'e2e-vapid-public-key', // the push stub records the key it was given
   VITE_SENTRY_DSN: '',
   VITE_ANALYTICS_ID: '',
   VITE_ENABLE_TEST_LOGIN: 'false',
-  VITE_MEDIA_URL: 'https://media.pips.test', // P3-A: the file storage; only files there link from a SPARTA answer
+  VITE_MEDIA_URL: 'https://media.pips.test', // the file storage; only files there link from a SPARTA answer
 });
 
 const reuse =

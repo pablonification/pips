@@ -1,5 +1,5 @@
 /**
- * Sign-in (P1-C): Masuk dengan Google through a fake Google script (support/google.ts), shared links that survive
+ * Sign-in: Masuk dengan Google through a fake Google script (support/google.ts), shared links that survive
  * sign-in, and every way it can fail, said in Indonesian on the page (never `alert()`).
  */
 import type { Page } from '@playwright/test';
@@ -22,7 +22,7 @@ const alertText = (page: Page) => page.getByRole('alert');
 /** Google's script has run and the token client exists (the button does nothing useful before). */
 const googleReady = (page: Page) =>
   expect.poll(async () => (await googleRequests(page)).clients.length).toBe(1);
-/** No browser dialog may open on this page (today's app used alert()). */
+/** No browser dialog may open on this page (the old app used alert()). */
 const noDialogs = (page: Page) => {
   const dialogs: string[] = [];
   page.on('dialog', (d) => {
@@ -46,7 +46,7 @@ test.describe('signed out', () => {
       page.getByRole('heading', { name: 'Halo, Pips!' }),
     ).toBeVisible();
     await expect(page).toHaveTitle('Masuk · PIPS!');
-    // The owner removed the hint under the greeting (2026-11-04).
+    // There is no hint under the greeting.
     await expect(
       page.getByText(/Pakai akun Google email mahasiswamu/),
     ).toHaveCount(0);
@@ -64,7 +64,7 @@ test.describe('signed out', () => {
     api.on('POST /api/info/:infoId/read', writes.markRead);
     await googleReady(page);
     await masuk(page).click();
-    // Deep links survive sign-in (SPEC "Information architecture and shell"), and first run doesn't intercept them.
+    // Deep links survive sign-in, and first run doesn't intercept them.
     await expect(page).toHaveURL(/\/pengumuman\/p1$/);
     await expect(
       page
@@ -77,7 +77,7 @@ test.describe('signed out', () => {
     });
   });
 
-  test('today’s /timeline links still come back to the post', async ({
+  test('the old /timeline links still come back to the post', async ({
     page,
     api,
   }) => {
@@ -91,8 +91,8 @@ test.describe('signed out', () => {
     await expect(page).toHaveURL(/\/pengumuman\/p1$/);
   });
 
-  // C1: the other old path that comes from outside the app, the Curhat reply push (apps/api websocket/setup.ts).
-  test('a Curhat reply push to today’s /home/curhat comes back to Curhat after sign-in', async ({
+  // The other old path that comes from outside the app, the Curhat reply push (apps/api websocket/setup.ts).
+  test('a Curhat reply push to the old /home/curhat comes back to Curhat after sign-in', async ({
     page,
     api,
   }) => {
@@ -217,7 +217,7 @@ test.describe('signed out', () => {
     await expect(page).toHaveURL(/\/profil$/);
   });
 
-  // Regression (web-robust 1): a sign-in the API never answered stayed on "Masuk…" until the browser gave up.
+  // A sign-in the API never answers must give up instead of staying on "Masuk…" until the browser does.
   test('no answer: after the time limit it says so with Coba lagi, which works', async ({
     page,
     api,
@@ -328,7 +328,7 @@ test('a signed-in member opening /login goes where sign-in would have gone', asy
 test.describe('not installed', () => {
   test.use({ installed: false });
 
-  // SPEC "Removals": the install gate is gone. Before P0-B a phone browser got an install tutorial instead.
+  // There is no install gate: a phone browser gets no install tutorial.
   test('a phone browser opens the app straight away, with no install wall @phone-only', async ({
     page,
   }, testInfo) => {

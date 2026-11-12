@@ -5,7 +5,7 @@ import type { Page, TestInfo } from '@playwright/test';
 export const isPhone = (testInfo: TestInfo) =>
   /phone|tablet/.test(testInfo.project.name);
 
-/** The shell's layout for a journey project (P0-C): tab bar below 640 px, rail from 640 px, sidebar from 1024 px. */
+/** The shell's layout for a journey project: tab bar below 640 px, rail from 640 px, sidebar from 1024 px. */
 export const layoutOf = (testInfo: TestInfo): 'phone' | 'tablet' | 'desktop' =>
   testInfo.project.name.includes('tablet')
     ? 'tablet'
@@ -18,7 +18,7 @@ export const pageText = (page: Page) =>
   page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
 
 /**
- * The shell's way to a destination, whichever layout shows it (P0-C): a tab, a rail or sidebar item, and for
+ * The shell's way to a destination, whichever layout shows it: a tab, a rail or sidebar item, and for
  * Profil your avatar (phones and tablets) or your name at the sidebar's foot (desktop).
  */
 export const navLink = (

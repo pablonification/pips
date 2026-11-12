@@ -1,11 +1,11 @@
 /**
- * The states the "before" set recorded from today's app and `e2e:compare-before` re-captures in the redesigned one:
+ * The states the "before" set recorded from the old app and `e2e:compare-before` re-captures in the redesigned one:
  * each destination's main view, the empty, loading, error and offline states, open overlays, the form steps and the
- * Kelola tables. Each state's path and steps reach the same state in the new app (C1), so F1 can show before next
- * to after; a state the new app no longer has carries a `removed` reason.
+ * Kelola tables. Each state's path and steps reach the same state in the new app, so a capture can be shown before
+ * next to after; a state the new app no longer has carries a `removed` reason.
  *
  * Each state is captured at phone and desktop size in light and dark. Add a state by appending to STATES; ids
- * are file names (today's names: home, timeline, settings, admin), so never rename one that is already in a before
+ * are file names (the old app's names: home, timeline, settings, admin), so never rename one that is already in a before
  * set.
  */
 import type { BrowserContext, Locator, Page } from '@playwright/test';
@@ -39,12 +39,12 @@ export interface CaptureState {
   ready: (page: Page) => Locator;
   /**
    * Why the redesigned app no longer has this state. The state is still captured at its path, showing what opens
-   * there now, and compare-before lists it as removed instead of changed (C1).
+   * there now, and compare-before lists it as removed instead of changed.
    */
   removed?: string;
 }
 
-/** P1-A: Beranda with every section's data (agenda, follow-ups, unread). */
+/** Beranda with every section's data (agenda, follow-ups, unread). */
 const berandaReady = (p: Page) =>
   p
     .getByRole('main')
@@ -62,7 +62,7 @@ export const STATES: CaptureState[] = [
     title: 'Sign-in',
     signedIn: false,
     path: '/login',
-    // P1-C replaced today's sign-in ("Log in with your std email to get you in").
+    // The Garis sign-in; the old one said "Log in with your std email to get you in".
     ready: (p) => p.getByRole('button', { name: 'Masuk dengan Google' }),
   },
   {
@@ -86,11 +86,11 @@ export const STATES: CaptureState[] = [
       await p.addInitScript(() => localStorage.removeItem('user'));
     },
     mock: (api) => api.on('GET /api/me', reply.hang()),
-    // F2-002: the Garis loading status, named "Memuat…" (it was an English "Loading...").
+    // The Garis loading status is named "Memuat…".
     ready: (p) => p.getByRole('status', { name: 'Memuat…' }),
   },
 
-  // Beranda (P1-A reaches today's Home states on it)
+  // Beranda (reaches the states the old Home had)
   {
     id: 'home',
     title: 'Beranda',
@@ -130,7 +130,7 @@ export const STATES: CaptureState[] = [
         .filter({ has: p.getByText('142', { exact: true }) }),
   },
 
-  // Pengumuman (P1-B reaches today's Timeline states on it)
+  // Pengumuman (reaches the states the old Timeline had)
   {
     id: 'timeline',
     title: 'Pengumuman',
@@ -169,7 +169,7 @@ export const STATES: CaptureState[] = [
     path: '/',
     act: async (p, { api }) => {
       await p.getByText('Kuis 2').waitFor();
-      // Since P0-B each route's code is its own file, which the installed app's service worker precaches. The
+      // Each route's code is its own file, which the installed app's service worker precaches. The
       // harness blocks service workers, so load the Timeline's code first (focusing its link preloads it), as
       // the precache would have it, then go offline. Its data is not loaded: the screen is the same as before.
       await navLink(p, 'Pengumuman').focus();
@@ -183,7 +183,7 @@ export const STATES: CaptureState[] = [
   },
   {
     id: 'timeline-unread',
-    // Today's desktop timeline has no unread toggle or filter drawer.
+    // The old desktop timeline had no unread toggle or filter drawer.
     only: 'phone',
     title: 'Pengumuman, unread only',
     path: '/pengumuman',
@@ -196,7 +196,7 @@ export const STATES: CaptureState[] = [
   },
   {
     id: 'timeline-filter',
-    // Today's desktop timeline has no unread toggle or filter drawer.
+    // The old desktop timeline had no unread toggle or filter drawer.
     only: 'phone',
     title: 'Pengumuman filter open',
     path: '/pengumuman',
@@ -278,7 +278,7 @@ export const STATES: CaptureState[] = [
     only: 'desktop',
     path: '/kalender',
     act: async (p) => p.getByRole('button', { name: 'Tambah acara' }).click(),
-    // P3-B replaced today's desktop form (the before set's state) with the locked dialog, once its courses load.
+    // The desktop Tambah acara dialog, once its courses load (the old app had a form here).
     ready: (p) =>
       p
         .getByRole('dialog', { name: 'Tambah acara Akademik' })
@@ -290,7 +290,7 @@ export const STATES: CaptureState[] = [
     id: 'dingdong',
     title: 'Ding Dong',
     path: '/layanan/dingdong',
-    // P2-B: the redesigned row shows the code over the name, so the row is found by its link.
+    // A row shows the code over the name, so the row is found by its link.
     ready: (p) => p.getByRole('link', { name: /^IF2110\s*Algoritma/ }),
   },
   {
@@ -303,7 +303,7 @@ export const STATES: CaptureState[] = [
     id: 'testi-courses',
     title: 'Testi Matkul: IF semester 3',
     path: '/layanan/testi/teknik-informatika/3',
-    // Every row's count has arrived (P2-B: each row asks for its own; a skeleton line stands in until then).
+    // Every row's count has arrived (each row asks for its own; a skeleton line stands in until then).
     ready: (p) =>
       p
         .locator('main:not(:has(.g-skel-bar))')
@@ -313,7 +313,7 @@ export const STATES: CaptureState[] = [
     id: 'testi-course',
     title: 'Testi Matkul: IF2110',
     path: '/layanan/testi/teknik-informatika/3/course-IF2110',
-    // Garis v5: every testimonial at once; the last one has arrived.
+    // Every testimonial at once; the last one has arrived.
     ready: (p) =>
       p.getByRole('main').getByRole('heading', { name: 'Dimas, IF 2023' }),
   },
@@ -339,11 +339,11 @@ export const STATES: CaptureState[] = [
     id: 'competition',
     title: 'Info Lomba',
     path: '/layanan/lomba',
-    // Garis v5: six competitions with their posters.
+    // Six competitions with their posters.
     ready: (p) =>
       p.getByRole('heading', { name: 'Technofest 2026: Game Development' }),
   },
-  // P2-C: the redesigned member screens (rows are links; the room reads its unread message on opening).
+  // Curhat: rows are links, and the room reads its unread message on opening.
   {
     id: 'curhat',
     title: 'Curhat Yuk! rooms',
@@ -377,7 +377,7 @@ export const STATES: CaptureState[] = [
     id: 'form-list',
     title: 'Form list',
     path: '/layanan/form',
-    // P2-A: the card is a link named by its title.
+    // The card is a link named by its title.
     ready: (p) =>
       p
         .getByRole('main')
@@ -410,7 +410,7 @@ export const STATES: CaptureState[] = [
     title: 'PIXEL form, confirm sending',
     path: '/layanan/form/pixel',
     act: async (p) => {
-      // P2-A: after the five sections comes the check page, which sends.
+      // After the five sections comes the check page, which sends.
       await fillPixelUpTo(p, 5);
       await p.getByRole('button', { name: 'Kirim jawaban' }).click();
     },
@@ -435,12 +435,12 @@ export const STATES: CaptureState[] = [
     ready: (p) => p.getByText('Terima kasih sudah mengisi!'),
   },
 
-  // Profil (P1-C reaches today's Settings states on it)
+  // Profil (reaches the states the old Settings had)
   {
     id: 'settings',
     title: 'Profil',
     path: '/profil',
-    // P1-C replaced today's settings (a list item with the NIM): Profil once its counts have loaded.
+    // Profil once its counts have loaded (the old settings was a list item with the NIM).
     ready: (p) => p.getByRole('main').getByText('6 mata kuliah · 18 SKS'),
   },
   {
@@ -468,7 +468,7 @@ export const STATES: CaptureState[] = [
     ready: (p) => p.getByText('PIPS! dibuat dan dirawat oleh HMIF ITB.'),
   },
 
-  // Kelola (Raka; P3-A reaches today's Admin states on it)
+  // Kelola (Raka; reaches the states the old Admin had)
   {
     id: 'admin',
     title: 'Kelola hub',
@@ -481,7 +481,7 @@ export const STATES: CaptureState[] = [
     title: 'Kelola: Live Counting',
     persona: 'pengurus',
     path: '/kelola/live',
-    // P3-A: one active form, so the forms entry forwards to its live page.
+    // One active form, so the forms entry forwards to its live page.
     ready: (p) => p.locator('.g-live-plaque').getByText('142'),
   },
   {
@@ -489,7 +489,7 @@ export const STATES: CaptureState[] = [
     title: 'Live Counting & Rekap Form',
     persona: 'pengurus',
     path: '/kelola/live/pixel',
-    // P3-A: the plaque, the newest five and both charts.
+    // The plaque, the newest five and both charts.
     ready: (p) => p.locator('.g-hbars').nth(1),
   },
   {
@@ -509,7 +509,7 @@ export const STATES: CaptureState[] = [
     path: '/kelola/sparta/sub-13525071',
     ready: (p) => p.getByText('Prioritas 1: Akademik'),
   },
-  // P2-B: the redesigned services' finished states (for VISUAL_STATES once recorded in the CI container).
+  // The services' finished states (for VISUAL_STATES, once recorded in the CI container).
   {
     id: 'dingdong-empty',
     title: 'Ding Dong, no courses set',

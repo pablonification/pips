@@ -1,11 +1,10 @@
 /**
- * C1: SPEC's budgets and checks that hold for the whole app once today's screens are gone ("Performance
- * architecture and budgets", C1 brief "Tests"):
+ * The performance budgets and checks that hold for the whole app:
  * - no third-party script on any signed-in route; Google's sign-in script only on /login;
  * - Beranda's first load at phone size: ≤ 450 KiB in total, same-origin images in the first view ≤ 150 KiB, the
  *   largest ≤ 60 KiB (the harness's own /__e2e__/ images don't count);
  * - each destination's main view: hidden DOM ≤ 10 % of the elements, layout shift (CLS) ≤ 0.05;
- * - every route in P0-B's URL table fits at 320, 390, 768, 1024 and 1440 px and at 200 % zoom: no sideways
+ * - every route in the URL table below fits at 320, 390, 768, 1024 and 1440 px and at 200 % zoom: no sideways
  *   overflow, no control cut off, no text under 12 px, and no serious or critical axe finding at phone and desktop
  *   width.
  */
@@ -25,7 +24,7 @@ interface Route {
   roles?: string[];
 }
 
-/** P0-B's URL table, one URL per route (Kelola as Raka; the inbox with Welfare's role). */
+/** The URL table, one URL per route (Kelola as Raka; the inbox with Welfare's role). */
 const ROUTES: Route[] = [
   { path: '/' },
   { path: '/pengumuman' },

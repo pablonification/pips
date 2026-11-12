@@ -8,8 +8,8 @@ import { expect, test } from '../support/test';
 import * as writes from '../support/writes';
 
 /*
- * Session resilience (SPEC "Session, persistence and resilience"): only a 401 from the session check signs a
- * member out. Before P0-B any failure did (`getMe().catch(() => null)`); these are its regression journeys.
+ * Session resilience: only a 401 from the session check signs a
+ * member out, never any other failure.
  */
 
 type Page = import('@playwright/test').Page;
@@ -200,7 +200,7 @@ test('a 401 after a visit leaves nothing of Nadia on the device, not even a seco
   page,
   api,
 }) => {
-  // Regression (review B1): the cache was deleted, then written back a second later from memory.
+  // The cache must not be deleted and then written back a second later from memory.
   await page.goto('/profil/matkul');
   await expect
     .poll(async () => (await memberStorage(page)).userAcademic)
@@ -315,8 +315,7 @@ test.describe('with no cached user', () => {
       ),
     ).toBeVisible();
     await expect(page).toHaveURL(/\/$/);
-    // C1: the screen used the old shadcn button, styled only by the palette C1 deleted; it now uses the Garis
-    // button, and the gates (axe with contrast, text size, overflow) hold in both themes.
+    // The screen uses the Garis button, and the gates (axe with contrast, text size, overflow) hold in both themes.
     await strictAudit(page, testInfo, 'session error');
     down = false;
     await retry.click();
@@ -327,7 +326,7 @@ test.describe('with no cached user', () => {
 test.describe('with no cached user, while the session check is on its way', () => {
   test.use({ signedIn: false });
 
-  test('regression (F2-002, F1-4): the app says it is loading in Indonesian, as a status, never "Loading..."', async ({
+  test('the app says it is loading in Indonesian, as a status, never "Loading..."', async ({
     page,
     api,
     db,
@@ -355,7 +354,7 @@ test('the first page of announcements and the agenda come back from the device w
   const stored = ((await storedCache(page))?.clientState.queries ?? []).map(
     (q) => String(q.queryKey[0]),
   );
-  // Only what SPEC lists: no Curhat rooms, no forms, no search results.
+  // Only what may be kept on the device: no Curhat rooms, no forms, no search results.
   expect([...new Set(stored)].sort()).toEqual(
     expect.arrayContaining(['calendar-events', 'me']),
   );
@@ -370,8 +369,8 @@ test('the first page of announcements and the agenda come back from the device w
   }
 });
 
-// Regression (web-robust 5): the saved copy of a member without a photo (`picture: null`) never read back, so every
-// launch waited for the session check.
+// The saved copy of a member without a photo (`picture: null`) must read back, or every
+// launch waits for the session check.
 test('a member without a photo opens from the saved copy while the session check hangs', async ({
   page,
   api,
@@ -404,7 +403,7 @@ test('logging out never asks for notification permission, and clears what was ke
   api,
   db,
 }) => {
-  // Regression: logout called setupNotification(), which asked for push permission at the worst moment.
+  // Logout must not ask for push permission.
   await page.addInitScript(() => {
     const w = window as unknown as { __permissionAsks: number };
     w.__permissionAsks = 0;
@@ -419,7 +418,7 @@ test('logging out never asks for notification permission, and clears what was ke
     db.signedIn = false;
     return {};
   });
-  // Regression (review B1): Nadia's courses, profile, calendar and feed were written back a second after sign-out.
+  // Nadia's courses, profile, calendar and feed must not be written back a second after sign-out.
   await page.goto('/profil/matkul');
   await expect
     .poll(async () => (await memberStorage(page)).userAcademic)
@@ -429,7 +428,7 @@ test('logging out never asks for notification permission, and clears what was ke
   await page.goto('/profil');
   await leaveShared(page);
   expect(await sharedRecords(page)).toBe(1);
-  // P1-C: Profil's Keluar, then its confirmation (today's "Log out" button is gone).
+  // Profil's Keluar, then its confirmation.
   await page.getByRole('main').getByRole('button', { name: 'Keluar' }).click();
   await page
     .getByRole('alertdialog', { name: 'Keluar dari PIPS!?' })

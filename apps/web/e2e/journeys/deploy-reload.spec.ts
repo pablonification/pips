@@ -1,10 +1,10 @@
 /**
- * After a deploy (web-robust 6): the new service worker takes over open tabs and deletes the old build's files, so a
+ * After a deploy: the new service worker takes over open tabs and deletes the old build's files, so a
  * tab still on the old build can't load code it hasn't loaded yet. Here the old file "gone" is a 404 for its chunk.
  * - A route's code: TanStack Router's lazy routes already reload once (sessionStorage `tanstack_router_reload:…`);
  *   the first two tests hold that.
- * - Other code (Live Counting's socket code, lazy dialogs): `vite:preloadError` now reloads once
- *   (src/lib/preload-recovery.ts); before, Live Counting stayed off. The Live Counting recovery is in kelola.spec.ts.
+ * - Other code (Live Counting's socket code, lazy dialogs): `vite:preloadError` reloads once
+ *   (src/lib/preload-recovery.ts), so Live Counting doesn't stay off. The Live Counting recovery is in kelola.spec.ts.
  */
 import type { Page } from '@playwright/test';
 import { expect, test } from '../support/test';

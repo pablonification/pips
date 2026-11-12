@@ -1,5 +1,5 @@
 /**
- * Typed API fixtures: the prototype's sample data (prototype.ts) in the real API's shapes.
+ * Typed API fixtures: the sample data (prototype.ts) in the real API's shapes.
  *
  * Every value is typed with the generated API models in src/api/generated, so `pnpm typecheck` fails when the API
  * changes shape. `buildDb(persona)` returns a fresh, mutable copy for one test; the default handlers in
@@ -111,7 +111,7 @@ export function personaUser(persona: PersonaKey): UserWithRoles {
   };
 }
 
-/** The same member without a photo: the API's `picture` is null for a member who never set one (web-robust 5). */
+/** The same member without a photo: the API's `picture` is null for a member who never set one. */
 export const withoutPicture = <T extends User>(user: T): T => ({
   ...user,
   picture: null,
@@ -182,7 +182,7 @@ function canSee(
   return true;
 }
 
-/** The link the prototype shows as a card becomes a URL in the post's text, as the real composer stores it. */
+/** The link a sample post shows as a card becomes a URL in the post's text, as the real composer stores it. */
 function postContent(post: ProtoPost): string {
   if (!post.link || post.body.includes(post.link.host)) return post.body;
   const url =
@@ -295,15 +295,15 @@ function toChatrooms(persona: PersonaKey): ListChatroom {
       .map((m) => ({
         ...plain(m.id),
         isSender: m.me,
-        // The room's owner wrote it (P3-C): the member's own messages.
+        // The room's owner wrote it: the member's own messages.
         fromOwner: m.me,
-        // Sample history carries no device id (sent before P2-C's round 2, or by Welfare).
+        // Sample history carries no device id (it was sent before ids existed, or by Welfare).
         clientMessageId: null,
         ...(m.reply ? { reply: plain(m.reply) } : {}),
       }));
     const chatroom: Chatroom = {
       id: room.id,
-      // The API names rooms in lower case ("teal koala"); the app shows each word capitalised (P2-C).
+      // The API names rooms in lower case ("teal koala"); the app shows each word capitalised.
       title: room.title.toLowerCase(),
       messages,
       labels: [],
@@ -316,8 +316,8 @@ function toChatrooms(persona: PersonaKey): ListChatroom {
 }
 
 /**
- * Welfare's view of Curhat (P3-C; `GET /curhat/chatrooms` for a `curhatadmin`): every member's room, none of them
- * yours to delete. The member's messages are `fromOwner` and not yours; the prototype's Welfare messages count as
+ * Welfare's view of Curhat (`GET /curhat/chatrooms` for a `curhatadmin`): every member's room, none of them
+ * yours to delete. The member's messages are `fromOwner` and not yours; the sample Welfare messages count as
  * the signed-in Welfare member's (`isSender`). A teammate's message is added by override where a test needs it.
  */
 function toWelfareChatrooms(): ListChatroom {
@@ -338,7 +338,7 @@ function toWelfareChatrooms(): ListChatroom {
 }
 
 /**
- * Welfare's read marks (P3-C): Teal Koala's m1 and m3 are unread (it shows 2), Amber Heron's m5 is read (it shows
+ * Welfare's read marks: Teal Koala's m1 and m3 are unread (it shows 2), Amber Heron's m5 is read (it shows
  * none), so Belum dibaca keeps only Teal Koala.
  */
 export const WELFARE_READS = ['m5'];
@@ -349,7 +349,7 @@ function toTestimonials(): Testimoni[] {
       const base = {
         id: `testi-${code}-${i + 1}`,
         courseId: courseByCode(code).id,
-        // The prototype's "Anonim" is how the redesign shows an unnamed author; the API stores no name.
+        // "Anonim" is how the app shows an unnamed author; the API stores no name.
         userName: t.by === 'Anonim' ? null : t.by,
         lecturer: null,
         createdAt: wib(6, 30),
@@ -535,7 +535,7 @@ function formList(persona: PersonaKey, responded: boolean): FormListItem[] {
   ];
 }
 
-/** 142 PIXEL form responses: the prototype's latest four, then deterministic fictional members. */
+/** 142 PIXEL form responses: the latest four sample responses, then deterministic fictional members. */
 function adminResponses(): AdminFormResponseItem[] {
   const firstNames = [
     'Alya',
@@ -611,7 +611,7 @@ const formAnalytics = {
   ],
 };
 
-/** SPARTA Magang isn't in the prototype's data; these are fictional samples for the admin table (see NOTES.md). */
+/** SPARTA Magang has no other sample data; these are fictional samples for the admin table (see NOTES.md). */
 const internshipDepartments: InternshipDepartment[] = [
   {
     id: 'dept-akademik',
@@ -711,7 +711,7 @@ const internshipDepartments: InternshipDepartment[] = [
     ],
   },
 ];
-/** Each division's first question, answered in the locked submissions' choices. */
+/** Each division's first question, answered with the sample submissions' choices. */
 const SPARTA_ANSWERS: Record<string, [string, string]> = {
   'div-akademik': ['dq1', 'Aku ingin bantu rekap jadwal ujian angkatan.'],
   'div-welfare': ['dq2', 'Sering jadi tempat cerita teman sekamar.'],
@@ -720,8 +720,8 @@ const SPARTA_ANSWERS: Record<string, [string, string]> = {
 };
 
 /**
- * Bima and Tasya sent theirs (locked, four choices, as the API requires). Nadia's is a partial draft as P2-A saves
- * them: three choices, not sent (no submittedAt).
+ * Bima and Tasya sent theirs (four choices, as the API requires). Nadia's is a partial draft, as the app saves
+ * one: three choices, not sent (no submittedAt).
  */
 function internshipSubmissions(): InternshipSubmission[] {
   const people: PersonKey[] = ['bima', 'tasya', 'nadia'];
@@ -815,7 +815,7 @@ export interface Db {
   /** SPARTA's window (`SPARTA_WINDOW`, closed); a test may open it. */
   spartaWindow: { opensAt: string | null; closesAt: string | null };
   credits: Markdown;
-  /** P1-C: the push subscriptions the API holds for this member (`POST /api/push/register`); none at first. */
+  /** The push subscriptions the API holds for this member (`POST /api/push/register`); none at first. */
   pushSubscriptions: Array<{
     endpoint: string;
     keys: { p256dh: string; auth: string };
@@ -823,7 +823,7 @@ export interface Db {
 }
 
 /**
- * P3-A: the harness's `roles` option. A list adds roles to the persona's own; `{ only }` replaces them. Applied
+ * The harness's `roles` option. A list adds roles to the persona's own; `{ only }` replaces them. Applied
  * when the db is built, so `GET /api/me`, the seeded session, groups, postable categories, audiences and the admin
  * form list all agree.
  */
@@ -904,7 +904,7 @@ export function buildDb(
       ? MY_COURSES[persona].map((code) => ({
           userId: me!.id,
           courseId: courseByCode(code).id,
-          // The API still stores a class; v5's app sends none, so a course gets the API's default (1).
+          // The API still stores a class; the app sends none, so a course gets the API's default (1).
           class: DEFAULT_COURSE_CLASS,
           semesterCodeTaken: SEMESTER.code,
           semesterYearTaken: SEMESTER.year,
@@ -959,7 +959,7 @@ export function buildDb(
   return structuredClone(db);
 }
 
-/** Initials for generated avatars: the prototype draws initials, not photos. */
+/** Initials for generated avatars: the samples have initials, not photos. */
 export function initialsFor(nim: string): string {
   const name =
     MEMBERS.find(([, n]) => n === nim)?.[0] ??

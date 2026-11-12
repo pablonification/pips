@@ -1,5 +1,5 @@
 /**
- * Ding Dong (P2-B): this semester's course folders. Phone, tablet and desktop, light and dark, with strict gates.
+ * Ding Dong: this semester's course folders. Phone, tablet and desktop, light and dark, with strict gates.
  */
 import type { Page, TestInfo } from '@playwright/test';
 import { layoutOf } from '../support/app';
@@ -163,11 +163,11 @@ test.describe('Ding Dong', () => {
     await expect(main(page).getByText(/^Offline/)).toHaveCount(0);
   });
 
-  test('regression: offline with a list from an earlier day, the banner gives the day too', async ({
+  test('offline with a list from an earlier day, the banner gives the day too', async ({
     page,
     api,
   }) => {
-    // P2-B review, finding 2: the list is kept for up to 7 days, and "Offline · diperbarui 13.35" read as today.
+    // The list is kept for up to 7 days, and "Offline · diperbarui 13.35" read as today.
     await page.goto('/layanan/dingdong');
     await expect(folders(page)).toHaveCount(6);
     await page.waitForLoadState('networkidle');
