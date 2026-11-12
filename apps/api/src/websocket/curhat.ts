@@ -1,4 +1,4 @@
-import type { Socket } from 'socket.io';
+import type { Server, Socket } from 'socket.io';
 import type { ChatroomMessage } from '~/db/schema';
 import {
   canAccessChatroom,
@@ -71,8 +71,8 @@ function onTheWire(message: ChatroomMessageResponse) {
 
 /**
  * Curhat on one socket. The member is the signed-in session, never an id the client sends; every join and every
- * message checks `canAccessChatroom`. Old clients still work: a handshake `chatroomId` joins that room after the
- * check, and `message` without an acknowledgement callback is still saved and relayed. A `clientMessageId` makes
+ * message checks `canAccessChatroom`. Old clients still work: `message` without an acknowledgement callback is still
+ * saved and relayed. A `clientMessageId` makes
  * sending again safe: the repeat is answered with the copy already saved. Handlers wait for the session, so nothing
  * sent right after connecting is lost.
  */
@@ -219,28 +219,50 @@ export function registerCurhatSocket(
       answer(refuse('server'));
     }
   });
+}
 
-  void (async () => {
-    const s = await session;
-    if (!s) return;
-    const auth = (socket.handshake.auth ?? {}) as Record<string, unknown>;
-    // One connection for the whole Curhat area: every room the member owns. Welfare's joins every room,
-    // and the Welfare group room, through which a room started later is joined (`curhat.controller.ts`).
-    if (auth.curhat === true) {
-      if (isCurhatAdmin(s.roles)) {
-        // The group room first: a room created while the list is read is then joined through it (`welfareJoin`).
-        await socket.join(CURHAT_WELFARE_ROOM);
-        await socket.join(await deps.getAllChatroomIds());
-      } else {
-        const owned = await deps.getOwnedChatroomIds(s.userId);
-        if (owned.length) await socket.join(owned);
-      }
+/**
+ * The rooms a new socket joins, before socket.io confirms its connection (`connection.ts`). The whole Curhat area uses
+ * one connection: a member's joins every room they own; Welfare's joins every room, and the Welfare group room,
+ * through which a room started later is joined (`curhat.controller.ts`). An old client's handshake `chatroomId`
+ * joins that room after the access check. Throws when the rooms can't be read.
+ */
+export async function joinCurhatRooms(
+  socket: Socket,
+  s: SocketSession,
+  deps: Pick<
+    CurhatSocketDeps,
+    'getUserRoles' | 'getChatroom' | 'getOwnedChatroomIds' | 'getAllChatroomIds'
+  >,
+) {
+  const auth = (socket.handshake.auth ?? {}) as Record<string, unknown>;
+  if (auth.curhat === true) {
+    if (isCurhatAdmin(s.roles)) {
+      // The group room first: a room created while the list is read is then joined through it (`welfareJoin`).
+      await socket.join(CURHAT_WELFARE_ROOM);
+      await socket.join(await deps.getAllChatroomIds());
+    } else {
+      const owned = await deps.getOwnedChatroomIds(s.userId);
+      if (owned.length) await socket.join(owned);
     }
-    // A client may open one socket per room.
-    if (typeof auth.chatroomId === 'string' && auth.chatroomId) {
-      if (await mayAccess(s.userId, auth.chatroomId)) {
-        await socket.join(auth.chatroomId);
-      }
+  }
+  if (typeof auth.chatroomId === 'string' && auth.chatroomId) {
+    const room = await deps.getChatroom(auth.chatroomId);
+    const roles = await deps.getUserRoles(s.userId);
+    if (canAccessChatroom({ id: s.userId }, roles, room)) {
+      await socket.join(auth.chatroomId);
     }
-  })().catch((error) => deps.onError?.(error));
+  }
+}
+
+/**
+ * A member started a room: every socket in Welfare's group room joins it, one still connecting too (it joined the
+ * group room before reading the room list, which may not hold this room). socket.io's `socketsJoin` skips a socket
+ * until its connection is confirmed, so the join goes through the adapter.
+ */
+export function joinWelfareSockets(io: Server, chatroomId: string) {
+  const adapter = io.of('/').adapter;
+  for (const id of adapter.rooms.get(CURHAT_WELFARE_ROOM) ?? []) {
+    void adapter.addAll(id, new Set([chatroomId]));
+  }
 }

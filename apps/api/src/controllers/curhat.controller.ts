@@ -25,10 +25,10 @@ import type { Chatroom } from '~/db/schema';
 import { TChatroom } from '~/types/curhat.types';
 import {
   CURHAT_ADMIN_ROLE,
-  CURHAT_WELFARE_ROOM,
   canAccessChatroom,
   toChatroomResponse,
 } from '~/lib/curhat';
+import { joinWelfareSockets } from '~/websocket/curhat';
 import { getIo } from '~/websocket/setup';
 
 /** What the Curhat routes need from storage, passed in so the route tests run without a database. */
@@ -57,7 +57,7 @@ export interface CurhatDeps {
     isPinned: boolean,
   ) => Promise<void>;
   /**
-   * A member started a room: every connected Welfare socket of the Curhat area joins it, so its first message
+   * A member started a room: every Welfare socket of the Curhat area joins it, so its first message
    * reaches Welfare live. The socket's per-receiver check still drops a socket whose role was taken away.
    */
   welfareJoin: (chatroomId: string) => void;
@@ -83,7 +83,7 @@ const databaseDeps: CurhatDeps = {
     await pinChatroom(db, chatroomId, userId, isPinned);
   },
   welfareJoin: (chatroomId) => {
-    getIo().in(CURHAT_WELFARE_ROOM).socketsJoin(chatroomId);
+    joinWelfareSockets(getIo(), chatroomId);
   },
 };
 
