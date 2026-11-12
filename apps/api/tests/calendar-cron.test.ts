@@ -98,8 +98,8 @@ function harness(events: CalendarEvent[]) {
   };
 }
 
-// Regression: a student in the course with no device subscribed made `.filter(s => s.userId)` throw on undefined,
-// and the guarded run stopped there: that course's reminder and every later one that minute never went out.
+// A student in the course with no device subscribed must not make `.filter(s => s.userId)` throw on undefined: the
+// guarded run would stop there, and that course's reminder and every later one that minute would never go out.
 test('course reminders reach students with devices, skip those without and those who muted Akademik', async () => {
   const h = harness([
     event('Kuis 1', tomorrowAt('12:00'), 'c-algo', 'Bab 1–3'),
@@ -161,7 +161,7 @@ test('only events starting 24 hours after this minute, each once', async () => {
   );
 });
 
-// Regression: a run only matched events starting in exactly its minute, so a skipped or failed minute lost them.
+// A run must not match only events starting in exactly its minute, or a skipped or failed minute loses them.
 test('a failed run leaves its minutes for the next run, and a skipped minute is caught up', async () => {
   const h = harness([
     event('A', tomorrowAt('12:00'), null),

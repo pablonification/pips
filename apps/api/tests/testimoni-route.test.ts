@@ -1,4 +1,4 @@
-// Testi Matkul's routes: a testimonial's author stays private, even when it's shown as "Anonim" (review m7).
+// Testi Matkul's routes: a testimonial's author stays private, even when it's shown as "Anonim".
 import { strict as assert } from 'node:assert';
 import { before, test } from 'node:test';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
@@ -41,7 +41,7 @@ function setup(roles: UserRolesEnum[]) {
   return createTestimoniRouter(deps);
 }
 
-test("regression (review m7): GET /testimoni/course/{id} leaves out each author's userId", async () => {
+test("GET /testimoni/course/{id} leaves out each author's userId", async () => {
   const res = await callRouter(
     setup([]),
     raka,

@@ -117,8 +117,7 @@ test('a route is an app path or an https address', () => {
     assert.equal(isValidWindowRoute(bad), false, bad);
 });
 
-// Regression (review minor 2): browsers drop tabs and newlines when parsing a URL, so "/\t/evil.com" became
-// "//evil.com", another site.
+// Browsers drop tabs and newlines when parsing a URL, so "/\t/evil.com" becomes "//evil.com", another site.
 test('a route with a control character is refused', () => {
   for (const bad of [
     '/\t/evil.com',

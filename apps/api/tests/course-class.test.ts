@@ -3,9 +3,8 @@ import { before, test } from 'node:test';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
 
 /*
- * Garis v5 dropped the class from Mata kuliahku: Tambah mata kuliah sends only `courseId`. `PUT /api/course/take/batch`
- * (and `POST /api/course/take`) used to require `class`, so those adds failed with 400. A missing class is now stored as
- * the default class; an older client that still sends one keeps it.
+ * Tambah mata kuliah sends only `courseId`, so `PUT /api/course/take/batch` and `POST /api/course/take` must not
+ * require `class`. A missing class is stored as the default class; a client that still sends one keeps it.
  */
 
 before(async () => {
@@ -18,9 +17,8 @@ test('a new client sends no class: the course is stored with the default class',
   const { BatchCreateOrUpdateUserCourseSchema, DEFAULT_COURSE_CLASS } =
     await import('../src/types/course.types');
   const { db } = await import('../src/db/drizzle');
-  const { batchUpsertUserCourseQuery } = await import(
-    '../src/repositories/course.repo'
-  );
+  const { batchUpsertUserCourseQuery } =
+    await import('../src/repositories/course.repo');
   const parsed = BatchCreateOrUpdateUserCourseSchema.parse([
     { courseId: 'course-IF2211' },
     { courseId: 'course-IF2230' },
@@ -55,16 +53,18 @@ test('an old client still sends a class: it is kept', async () => {
     CreateUserCourseSchema.parse({ courseId: 'course-IF2211', class: 3 }),
     { courseId: 'course-IF2211', class: 3 },
   );
-  assert.deepEqual(CreateUserCourseSchema.parse({ courseId: 'course-IF2211' }), {
-    courseId: 'course-IF2211',
-    class: 1,
-  });
+  assert.deepEqual(
+    CreateUserCourseSchema.parse({ courseId: 'course-IF2211' }),
+    {
+      courseId: 'course-IF2211',
+      class: 1,
+    },
+  );
 });
 
 test('a class that is not a number is still refused, and a course id is still required', async () => {
-  const { BatchCreateOrUpdateUserCourseSchema } = await import(
-    '../src/types/course.types'
-  );
+  const { BatchCreateOrUpdateUserCourseSchema } =
+    await import('../src/types/course.types');
   assert.equal(
     BatchCreateOrUpdateUserCourseSchema.safeParse([
       { courseId: 'course-IF2211', class: 'K2' },

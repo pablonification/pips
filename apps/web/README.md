@@ -1,35 +1,32 @@
 # PIPS! web
 
-The HMIF ITB members app: a React PWA built with Vite, TanStack Router and Query, and the Garis design system
-(`src/styles/garis/`, `src/components/garis/`, `src/components/icons/`). It lives in the `pips` monorepo next to the
-API (`apps/api`).
+The members app: a React PWA built with Vite, TanStack Router and Query, and the Garis design system. How it is laid
+out is in [docs/architecture.md](../../docs/architecture.md), how to build screens with Garis is in
+[docs/design-system.md](../../docs/design-system.md), and the first run, including a signed-in account, is in
+[CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## Run it
 
-From the repository root, with Node 22 or later and pnpm (`corepack enable` picks the pinned version):
+From the repository root, with the API running ([apps/api](../api/README.md)):
 
 ```bash
-pnpm install
-pnpm --filter web dev
+pnpm --filter web dev           # http://localhost:5173
 ```
 
-`.env.development` holds the public development values; put your own (API URL, Google client ID, push key) in
-`.env.local`, which Git ignores.
+The dev server sends `/api` to `DEV_API_ORIGIN` (default `http://127.0.0.1:5000`); set it in
+`.env.development.local` if your API listens elsewhere. Put your own values (`VITE_GOOGLE_CLIENT_ID`, `VITE_VAPID_KEY`)
+in `.env.local`; Git ignores it.
 
-The dev server sends `/api` to `DEV_API_ORIGIN` (default `http://127.0.0.1:5000`).
+## Commands
 
-## Check it
+| Command | What it does |
+| --- | --- |
+| `pnpm --filter web check` | Type check (the app, `tests/` and `e2e/`) and lint, which includes the design-system rules. |
+| `pnpm --filter web test` | Unit tests. |
+| `pnpm --filter web build` | Production build. |
+| `pnpm --filter web budgets` | Checks route sizes against the cap; run it after a build. |
+| `pnpm --filter web api` | Regenerate `src/api/generated` from the API in this repository. |
+| `pnpm --filter web exec playwright test -c e2e --project=phone-light <file>` | One journey file ([testing](../../docs/testing.md)). |
 
-```bash
-pnpm --filter web check     # type check and lint (the Garis rules cover all of src)
-pnpm --filter web test      # unit tests
-pnpm --filter web build     # production build
-pnpm --filter web budgets   # performance budgets on the build (strict; BUDGETS_STRICT=0 only warns)
-node scripts/verify-production-bundle.mjs dist   # nothing that must not ship
-pnpm --filter web e2e       # browser journeys and visual references (see e2e/README.md)
-```
-
-## The API client
-
-`src/api/generated` is generated; never edit it by hand. `pnpm --filter web api` rebuilds it from the API in this
-repository (no server or database needed); `pnpm --filter web api-staging` reads staging's.
+`src/api/generated` is generated: never edit it by hand. Do not run `pnpm --filter web e2e` on your machine; it runs
+every journey and takes over an hour.

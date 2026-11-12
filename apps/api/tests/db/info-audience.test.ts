@@ -1,6 +1,6 @@
 // Runs against a real, throwaway PostgreSQL, as curhat.test.ts: `TEST_DATABASE_URL=postgres://…/pips_test… pnpm --filter api test:db`.
-// Regression (owner, 2026-11-03; OPEN-QUESTIONS C1): a post for other angkatan stayed out of the feed but opened by
-// its link, while the composer says "Pengumuman ini hanya terlihat oleh mereka".
+// A post for other angkatan must stay out of the feed and also not open by its link, as the composer promises:
+// "Pengumuman ini hanya terlihat oleh mereka".
 import { strict as assert } from 'node:assert';
 import { after, before, test } from 'node:test';
 import { usePlaceholderEnv } from '../../scripts/placeholder-env';
