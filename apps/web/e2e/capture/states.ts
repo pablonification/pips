@@ -1,11 +1,11 @@
 /**
- * The states the "before" set recorded from today's app and `e2e:compare-before` re-captures in the redesigned one:
+ * The states the "before" set recorded from the old app and `e2e:compare-before` re-captures in the redesigned one:
  * each destination's main view, the empty, loading, error and offline states, open overlays, the form steps and the
  * Kelola tables. Each state's path and steps reach the same state in the new app, so a capture can be shown before
  * next to after; a state the new app no longer has carries a `removed` reason.
  *
  * Each state is captured at phone and desktop size in light and dark. Add a state by appending to STATES; ids
- * are file names (today's names: home, timeline, settings, admin), so never rename one that is already in a before
+ * are file names (the old app's names: home, timeline, settings, admin), so never rename one that is already in a before
  * set.
  */
 import type { BrowserContext, Locator, Page } from '@playwright/test';
@@ -183,7 +183,7 @@ export const STATES: CaptureState[] = [
   },
   {
     id: 'timeline-unread',
-    // Today's desktop timeline has no unread toggle or filter drawer.
+    // The old desktop timeline had no unread toggle or filter drawer.
     only: 'phone',
     title: 'Pengumuman, unread only',
     path: '/pengumuman',
@@ -196,7 +196,7 @@ export const STATES: CaptureState[] = [
   },
   {
     id: 'timeline-filter',
-    // Today's desktop timeline has no unread toggle or filter drawer.
+    // The old desktop timeline had no unread toggle or filter drawer.
     only: 'phone',
     title: 'Pengumuman filter open',
     path: '/pengumuman',

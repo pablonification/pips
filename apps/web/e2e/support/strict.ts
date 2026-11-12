@@ -228,7 +228,7 @@ export async function expectLit(page: Page, testInfo: TestInfo, name: Lit) {
   await expect(lit).toHaveAccessibleName(new RegExp(`^${name}`));
 }
 
-/** No overflow and no clipped control at the brief's widths, then at 200 % zoom; restores the window after. */
+/** No overflow and no clipped control at the listed widths, then at 200 % zoom; restores the window after. */
 export async function expectFitsEverywhere(page: Page) {
   const original = page.viewportSize()!;
   const check = async () => {
