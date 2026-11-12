@@ -58,7 +58,7 @@ jobs:
       # SPEC says (C1).
       - name: Production bundle, precache and service worker
         run: node apps/web/scripts/verify-production-bundle.mjs apps/web/dist
-      # Per-route JS before first render (the owner's 205 KiB cap), precache and fonts; fails over budget.
+      # Per-route JS before first render (capped at 205 KiB), precache and fonts; fails over budget.
       - name: Budgets
         run: pnpm --filter web budgets
 
