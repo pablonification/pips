@@ -28,9 +28,9 @@ test('a message reaches Welfare and the answer reaches the member, live', async 
     memberLog.getByText('Coba tulis dulu semua tugasnya', { exact: false }),
   ).toBeVisible();
 
-  // Welfare's socket has to be up before Nadia sends: a room shows its old messages (over HTTP) before that, and a
-  // message sent in between would never reach the open room. "40" is socket.io's answer to a connection; one
-  // response can carry several packets, with this character between them.
+  // Welfare's socket is up before Nadia sends, so her message reaches the open room over the socket, live; one sent
+  // earlier would arrive with the rooms read that follows the connection instead. "40" is socket.io's answer to a
+  // connection; one response can carry several packets, with this character between them.
   const PACKET_END = '\u001e';
   const welfareConnected = welfare.waitForResponse(
     async (r) =>
