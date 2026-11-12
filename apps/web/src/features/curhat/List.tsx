@@ -4,7 +4,6 @@
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
 import { ApiError, type Chatroom } from '~/api/generated';
 import {
   Button,
@@ -48,19 +47,7 @@ import {
 } from './rules';
 import { wantComposerFocus } from './focus';
 import { useOnline } from '~/hooks/useOnline';
-
-/** Loading placeholders appear only after this long, so a quick answer doesn't flash them. */
-const SKELETON_DELAY_MS = 300;
-
-export function useDelayed(active: boolean, ms = SKELETON_DELAY_MS) {
-  const [late, setLate] = useState(false);
-  useEffect(() => {
-    if (!active) return setLate(false);
-    const id = setTimeout(() => setLate(true), ms);
-    return () => clearTimeout(id);
-  }, [active, ms]);
-  return active && late;
-}
+import { useDelayed } from '~/hooks/useDelayed';
 
 /**
  * The lost-connection banner: the offline banner (with the last update) when the device is offline, "Koneksi Curhat

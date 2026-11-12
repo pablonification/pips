@@ -45,13 +45,7 @@ import { cn } from '~/lib/utils';
 import { AddEventHost } from '~/features/kelola-acara/AddEvent';
 import { EventManageHost } from '~/features/kelola-acara/EventOptions';
 import { AddEventButton } from './AddEventButton';
-import {
-  useCourses,
-  useDelayed,
-  useEvent,
-  useMonthsEvents,
-  useNow,
-} from './data';
+import { useCourses, useEvent, useMonthsEvents, useNow } from './data';
 import { DeskPickContext } from './desk-pick';
 import { EventSheet } from './EventSheet';
 import { useOpenEvent } from './open';
@@ -70,6 +64,7 @@ import {
   type DeskPick,
 } from './rules';
 import { useOnline } from '~/hooks/useOnline';
+import { useDelayed } from '~/hooks/useDelayed';
 
 // Monday first: Sen … Min.
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0].map((d) => tanggal.hariPendek[d]);

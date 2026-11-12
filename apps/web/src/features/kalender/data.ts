@@ -128,17 +128,3 @@ export function useNow(): number {
   }, []);
   return now;
 }
-
-/** After `ms`, true while `active`: skeletons appear only for a load slower than 300 ms. */
-export function useDelayed(active: boolean, ms = 300): boolean {
-  const [late, setLate] = useState(false);
-  useEffect(() => {
-    if (!active) {
-      setLate(false);
-      return;
-    }
-    const id = setTimeout(() => setLate(true), ms);
-    return () => clearTimeout(id);
-  }, [active, ms]);
-  return active && late;
-}

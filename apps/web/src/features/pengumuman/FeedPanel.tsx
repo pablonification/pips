@@ -32,7 +32,7 @@ import { DEBOUNCE_TIME } from '~/lib/constants';
 import { hm } from '~/lib/dates';
 import { useCategories, useFeed, useMarkAllRead } from './data';
 import { useUnreadIds } from './unread-query';
-import { useDelayed, useElementInView } from './parts';
+import { useElementInView } from './parts';
 import { PostCard, PostRow } from './PostCard';
 import {
   AUTO_PAGES,
@@ -44,6 +44,7 @@ import {
 } from './rules';
 import { focusSoon, takeCard, useFeedView, useSetView } from './view';
 import { useOnline } from '~/hooks/useOnline';
+import { useDelayed } from '~/hooks/useDelayed';
 
 export function FeedPanel({
   desk,

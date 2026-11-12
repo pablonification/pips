@@ -71,20 +71,6 @@ export function useElementInView(el: Element | null, once = true) {
   return seen;
 }
 
-/** After `ms`, true: skeletons appear only for a load slower than 300 ms. */
-export function useDelayed(active: boolean, ms = 300) {
-  const [late, setLate] = useState(false);
-  useEffect(() => {
-    if (!active) {
-      setLate(false);
-      return;
-    }
-    const id = setTimeout(() => setLate(true), ms);
-    return () => clearTimeout(id);
-  }, [active, ms]);
-  return active && late;
-}
-
 /** Escape and a press outside close an inline popover (the picker); focus goes back to its trigger. */
 export function useDismiss(
   open: boolean,

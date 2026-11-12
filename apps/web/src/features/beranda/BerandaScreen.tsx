@@ -56,7 +56,6 @@ import { BERANDA_TILES, serviceById, type Service } from '~/lib/services';
 import { cn } from '~/lib/utils';
 import {
   useCourses,
-  useDelayed,
   useMonthsEvents,
   useNow,
   type MonthsState,
@@ -93,6 +92,7 @@ import {
 } from './rules';
 import './beranda.css';
 import { useOnline } from '~/hooks/useOnline';
+import { useDelayed } from '~/hooks/useDelayed';
 
 interface BerandaSearch {
   hari?: string;
