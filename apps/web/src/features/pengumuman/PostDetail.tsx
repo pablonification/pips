@@ -126,7 +126,13 @@ export function PostDetail({
         <div className="min-w-0 flex-1">
           <p className="t-label">
             <b>{name}</b>
-            {own ? <Tag className="ml-1">{t.feed.kamu}</Tag> : null}
+            {own ? (
+              <>
+                {/* A real space for screen readers; the gap you see is the tag's margin. */}
+                <span className="sr-only"> </span>
+                <Tag className="ml-1">{t.feed.kamu}</Tag>
+              </>
+            ) : null}
           </p>
           <p className="t-cap text-fg-3 num">{dFull(info.createdAt)}</p>
         </div>

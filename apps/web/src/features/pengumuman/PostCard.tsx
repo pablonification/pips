@@ -43,7 +43,11 @@ export function Byline({ info, now }: { info: Info; now: number }) {
       <p className="who">
         {info.creator.fullName}
         {info.creatorId === me.id ? (
-          <Tag className="ml-1">{t.feed.kamu}</Tag>
+          <>
+            {/* A real space for screen readers; the gap you see is the tag's margin. */}
+            <span className="sr-only"> </span>
+            <Tag className="ml-1">{t.feed.kamu}</Tag>
+          </>
         ) : null}
       </p>
       <p className="meta">
