@@ -93,7 +93,14 @@ test.describe('reduced motion', () => {
       .getByRole('navigation', { name: 'Navigasi utama' })
       .getByRole('link', { name: /^Pengumuman/ })
       .click();
-    await still(page, page.locator('h1:visible'), 'after a route change');
+    // Beranda stays on screen while Pengumuman's code loads: sample Pengumuman's own title once it is there.
+    const title = page.getByRole('heading', {
+      level: 1,
+      name: 'Pengumuman',
+      exact: true,
+    });
+    await expect(title).toBeVisible();
+    await still(page, title, 'after a route change');
     if (isPhone(testInfo)) {
       await page.goto('/');
       await page
