@@ -48,7 +48,7 @@ Keep today's environment. These change:
 
 | Setting | What to do | Why |
 | --- | --- | --- |
-| `JWT_SECRET`, `TOKEN_EXPIRATION` | keep exactly as they are | another secret, or another length, signs every member out or changes how long a session lasts |
+| `JWT_SECRET`, `TOKEN_EXPIRATION` | keep exactly as they are | another secret signs every member out. The API refuses to start with a secret under 32 characters or a length that isn't whole seconds (60 or more); production's values pass both |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_MAILTO` | keep exactly as they are | other keys silence every device that turned notifications on |
 | `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`, `R2_*` | keep | the same database, sign-in and file store |
 | `ALLOWED_ORIGINS` | keep (a JSON list that includes `https://app.hmif.dev`, as it is today) | writes and the Curhat socket from any other address are refused; a value that isn't JSON stops the API |
@@ -57,7 +57,7 @@ Keep today's environment. These change:
 | `GOOGLE_CALENDAR_SECRET_PATH`, `GOOGLE_CALENDAR_ID` | point at the mounted key file (see "Before the day") | Kalender's changes |
 | `GOOGLE_ALLOWED_CLIENT_IDS` | add only if the web's `VITE_GOOGLE_CLIENT_ID` differs from `GOOGLE_CLIENT_ID` (today they are the same) | Google sign-in accepts only tokens issued to the listed ids |
 | `NIXPACKS_NODE_VERSION`, `LOGIN_BYPASS_KEY`, `GOOGLE_CALENDAR_API_KEY` | can go | unused (the image brings Node 22; the bypass sign-in never exists in production) |
-| `SMTP_*` | can go once `apps/api/src/configs/env.schema.ts` no longer lists them; until then keep them | nothing sends mail, but while the schema requires them the API won't start without them |
+| `SMTP_*` | can go | nothing sends mail, and the API no longer reads them |
 | `APP_ENV` | leave unset | unset means production; `staging` or `development` allow the test sign-in routes |
 | `SENTRY_DSN`, `DB_STATEMENT_TIMEOUT_MS` | optional | error monitoring; a stuck database statement is cancelled after 15 s by default |
 
@@ -139,11 +139,13 @@ compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy
    - sign in with Google (a real account, not test login);
    - post with a photo, and see the photo;
    - a notification arrives and a tap opens the right page;
-   - Curhat: send a message, see it in Welfare's inbox on the other device, answer, and see the answer arrive;
+   - Curhat: send a message, see it in Welfare's inbox on the other device, answer, and see the answer arrive. The
+     notification on each side says only "Pesan baru di Curhat Yuk!" and opens the room;
    - on Android, share a link or a picture to PIPS! from another app's share sheet;
    - Kalender, if the key file is there: add an event, change it, delete it.
 3. If anything fails, go back (below) while the backup is fresh.
-4. Once a real sign-in, an upload and a post with a picture leave no content policy report in the browser's console,
+4. Once a real sign-in, an upload, a post with a picture and an open Curhat room leave no content policy report in
+   the browser's console,
    enforce the policy: in `apps/web/scripts/csp.mjs` change `Content-Security-Policy-Report-Only` to
    `Content-Security-Policy`, and redeploy the web (only the Dokploy image sends it).
 
