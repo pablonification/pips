@@ -21,9 +21,10 @@ slow, even to a page that needs a tenth of it.
 - The tool's default splitting with no cap: nothing would notice when a page got heavy.
 
 ## What it costs
-- The grouping rules in `vite.config.ts` are about 60 lines that few people will understand, and they name internal
-  folders. Moving a folder can quietly change what loads first. The tests in `apps/web/tests/` and the journeys that
-  count requests before content catch the worst of it.
+- The grouping rules in `vite.config.ts` are a block of hand-written rules that few people will understand, and
+  they name internal folders. Moving a folder can quietly change what loads first. Only the budget check and the
+  journeys that count requests before content would show it, and `apps/web/tests/garis-pure.test.mjs` keeps the
+  design system's files free of side effects, which the splitting relies on.
 - The cap is above the 150 KiB the budget script was first written for. Most of what every page pays is the shared
   start-up code (React, the router, the data library and the dialog parts of Radix).
 - A new page needs an entry in the route table (see 0016) as well as its route file.
