@@ -2,19 +2,24 @@ import { ServerType } from '@hono/node-server';
 import * as Sentry from '@sentry/node';
 import { Server, type ServerOptions } from 'socket.io';
 import { env } from '~/configs/env.config';
-import { db } from '~/db/drizzle';
+import { db, type Database } from '~/db/drizzle';
+import { CURHAT_ADMIN_ROLE, curhatPushes } from '~/lib/curhat';
+import { RATE_LIMITS, RATE_WINDOW_MS } from '~/lib/limits';
 import { isAllowedOrigin } from '~/lib/origin';
 import { sendNotificationToAll } from '~/lib/push-manager';
+import { createRateLimiter } from '~/lib/rate-limit';
 import {
   getChatroomMessageById,
   getAllChatroomIds,
   getChatroomOwner,
-  getChatroomParticipantIds,
   getOwnedChatroomIds,
   saveMessage,
 } from '~/repositories/chatroom.repo';
-import { getPushSubscriptionsByUserIds } from '~/repositories/push.repo';
-import { getUserRoles } from '~/repositories/user-role.repo';
+import {
+  getPushSubscriptionsByUserIds,
+  removeFailedPushSubscriptions,
+} from '~/repositories/push.repo';
+import { getUserRoles, getUsersByRole } from '~/repositories/user-role.repo';
 import { createConnectionHandler, formAdminRoom } from './connection';
 
 export { formAdminRoom };
@@ -86,7 +91,13 @@ export default function setupWebsocket(httpServer: ServerType) {
         getMessage: async (messageId) =>
           await getChatroomMessageById(db, messageId),
         saveMessage: async (message) => await saveMessage(db, message),
-        notifyParticipants: sendNotification,
+        notifyParticipants: async (msg) => {
+          await sendCurhatNotification(db, msg);
+        },
+        messageLimiter: createRateLimiter({
+          limit: RATE_LIMITS.curhatMessages,
+          windowMs: RATE_WINDOW_MS,
+        }),
         onError: (error) => Sentry.captureException(error),
       },
     }),
@@ -94,29 +105,30 @@ export default function setupWebsocket(httpServer: ServerType) {
 }
 
 /**
- * Send notification to all participants in a chatroom except the sender.
+ * Pushes a new message's other participants (`curhatPushes`), then forgets the devices the push service says are
+ * gone.
  */
-async function sendNotification(msg: {
-  chatroomId: string;
-  senderId: string;
-  content: string;
-}) {
-  const participantIds = (
-    await getChatroomParticipantIds(db, msg.chatroomId)
-  ).filter((ids) => ids !== msg.senderId);
-
-  const pushSubscriptions = await getPushSubscriptionsByUserIds(
-    db,
-    participantIds,
-  );
-
-  await sendNotificationToAll(pushSubscriptions, {
-    title: 'New Curhat Message',
-    options: {
-      body: msg.content,
-      data: {
-        url: '/home/curhat',
-      },
-    },
-  });
+export async function sendCurhatNotification(
+  database: Database,
+  msg: { chatroomId: string; senderId: string },
+  send: typeof sendNotificationToAll = sendNotificationToAll,
+) {
+  const [room, welfare] = await Promise.all([
+    getChatroomOwner(database, msg.chatroomId),
+    getUsersByRole(database, CURHAT_ADMIN_ROLE),
+  ]);
+  if (!room) return;
+  for (const { userIds, push } of curhatPushes({
+    room,
+    welfareIds: welfare.map((u) => u.id),
+    senderId: msg.senderId,
+  })) {
+    const subscriptions = await getPushSubscriptionsByUserIds(
+      database,
+      userIds,
+    );
+    if (subscriptions.length === 0) continue;
+    const results = await send(subscriptions, push);
+    await removeFailedPushSubscriptions(database, results);
+  }
 }

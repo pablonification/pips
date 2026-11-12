@@ -30,6 +30,7 @@ import { DEBOUNCE_TIME } from '~/lib/constants';
 import { serviceById } from '~/lib/services';
 import { cn } from '~/lib/utils';
 import { noFolderToast } from '~/features/dingdong/no-folder';
+import { httpHref } from '~/lib/file-link';
 import {
   Loaded,
   NewTab,
@@ -286,9 +287,10 @@ export function TestiListScreen() {
 /** **Buka Ding Dong IF2110**, in the course's header (Garis v5): the folder in a new tab, or the toast when it has none. */
 function DingdongLink({ course }: { course: Course }) {
   const label = fill(copy.bukaDingdong, { kode: course.code });
-  return course.dingdongUrl ? (
+  const href = httpHref(course.dingdongUrl);
+  return href ? (
     <LinkButton asChild>
-      <a href={course.dingdongUrl} target="_blank" rel="noopener noreferrer">
+      <a href={href} target="_blank" rel="noopener noreferrer">
         <IconFolder size={16} />
         {label}
         <NewTab />

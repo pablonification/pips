@@ -1,11 +1,24 @@
-# The web image's server. Same answers as the Vercel deployment (vercel.json): every path the build doesn't have
-# gets index.html (the app's own routes and legacy redirects), and every response is revalidated, so a browser never
-# keeps an index.html whose hashed scripts a newer deploy has removed.
+# The web image's server. Paths that aren't files of the build get index.html (the app's own routes and legacy
+# redirects); a missing script, style or other file answers 404, never the app's page. Every response is
+# revalidated, so a browser never keeps an index.html whose hashed scripts a newer deploy has removed.
 :3000 {
 	root * /srv
+	encode zstd gzip
 	header Cache-Control "public, max-age=0, must-revalidate"
 	# Lets Sentry's browser profiling run when VITE_SENTRY_DSN is set (src/instrument.ts).
 	header Document-Policy "js-profiling"
-	try_files {path} /index.html
+	header X-Content-Type-Options "nosniff"
+	header Referrer-Policy "strict-origin-when-cross-origin"
+	header X-Frame-Options "DENY"
+	# Content-Security-Policy-Report-Only, written by the Dockerfile (scripts/csp.mjs). Enforce it only after a real
+	# Google sign-in, an upload, a post with a picture and an open Curhat room on staging leave no report in the
+	# browser's console.
+	import /etc/caddy/csp.caddy
+	@app {
+		not path /assets/*
+		not path_regexp \.[^/]*$
+		not file
+	}
+	rewrite @app /index.html
 	file_server
 }

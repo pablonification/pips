@@ -17,7 +17,7 @@ const client = postgres(env.DATABASE_URL, postgresOptions(env));
 
 export const db = drizzle(client, {
   schema,
-  logger: process.env.NODE_ENV !== 'production',
+  logger: env.NODE_ENV !== 'production',
 });
 export type Database = typeof db;
 

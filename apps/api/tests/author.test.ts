@@ -151,6 +151,7 @@ function commentRouter() {
     updateCommentContent: async () => comment,
     deleteComment: async () => comment,
     getUserRoles: async () => [],
+    canSeeInfo: async () => true,
   };
   return createCommentRouter(deps as unknown as CommentDeps);
 }

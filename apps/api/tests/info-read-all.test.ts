@@ -55,3 +55,24 @@ test('signed out: 401, and nothing is marked', async () => {
   assert.equal(res.status, 401);
   assert.deepEqual(calls, []);
 });
+
+test('marking a post that does not exist read answers 404, not 500', async () => {
+  const router = createInfoRouter({
+    createReadInfo: async () => {
+      throw Object.assign(
+        new Error(
+          'insert or update on table "user_read_infos" violates foreign key constraint',
+        ),
+        { code: '23503' },
+      );
+    },
+  } as unknown as InfoDeps);
+  const res = await callRouter(
+    router,
+    testUser('u-nadia'),
+    'POST',
+    '/info/no-such-post/read',
+    {},
+  );
+  assert.equal(res.status, 404);
+});

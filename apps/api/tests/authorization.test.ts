@@ -38,3 +38,22 @@ test('only the author can edit content, moderators included', () => {
   assert.equal(canEditContent({ id: 'member' }, 'author'), false);
   assert.equal(canEditContent({ id: 'moderator' }, 'author'), false);
 });
+
+test('no script in the API gives members every role', async () => {
+  const { readdir, readFile } = await import('node:fs/promises');
+  const { join } = await import('node:path');
+  const root = join(import.meta.dirname, '../src');
+  const files = (await readdir(root, { recursive: true })).filter((f) =>
+    f.endsWith('.ts'),
+  );
+  const granting: string[] = [];
+  for (const file of files) {
+    const text = await readFile(join(root, file), 'utf8');
+    if (
+      /insert\(\s*userRoles\s*\)/.test(text) &&
+      /userRoles\.role\.enumValues/.test(text)
+    )
+      granting.push(file);
+  }
+  assert.deepEqual(granting, []);
+});

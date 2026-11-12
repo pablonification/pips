@@ -7,9 +7,11 @@ A journey is run at three sizes (phone, tablet, desktop) in two themes (light, d
 The whole suite is thousands of runs, too many for one machine to finish quickly.
 
 ## Decision
-- `.github/workflows/check.yml` runs on every pull request: commit messages, type check and lint, unit tests, a
-  production build, a bundle check and the size budgets (see 0012), both Docker images built and started, and the
-  journeys.
+- `.github/workflows/check.yml` runs on every pull request: commit messages and the repository's own checks in
+  `scripts/` (including one that fails when a real person's details are committed), type check and lint, a check
+  that the generated API client is current, unit tests, a production build, a bundle check and the size budgets
+  (see 0012), the API's database tests and a check that the migrations match the schema (see 0004 and 0006), both
+  Docker images built and started, and the journeys.
 - The journeys are split over four machines (`--shard=N/4`). The tests that time the main thread run alone, one
   at a time, on a fifth (`e2e:solo`), because a neighbouring test was enough to push them over their limit.
 - Every journey runs in all six projects (`apps/web/e2e/playwright.config.ts`). A journey that makes sense only on

@@ -25,7 +25,6 @@ live together. PIPS! began as a React app and a separate API, and members alread
   ESLint 8 (an older config style), TypeScript 5.4, Drizzle 0.33 and zod 3. A contributor learns two lint setups.
 - The web app is a single-page app: it needs JavaScript to show anything, and every page's code has to be kept small
   on purpose (see 0012).
-- The API lists a few packages that no code imports; they are removed as they are found.
 
 ## When to revisit
 When the API's old tools block a security update, or when a feature needs server-rendered pages (for example link

@@ -7,7 +7,8 @@ import { io as connect, type Socket as ClientSocket } from 'socket.io-client';
 import type { ChatroomMessage } from '../src/db/schema';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
 import type { CurhatDeps } from '../src/controllers/curhat.controller';
-import { CURHAT_WELFARE_ROOM } from '../src/lib/curhat';
+import { CURHAT_WELFARE_ROOM, curhatPushes } from '../src/lib/curhat';
+import { RATE_LIMITS, RATE_WINDOW_MS } from '../src/lib/limits';
 import {
   createConnectionHandler,
   formAdminRoom,
@@ -42,14 +43,20 @@ const ROLES: Record<string, string[]> = {
 
 let rooms: Array<{ id: string; userId: string | null }>;
 let messages: ChatroomMessage[];
-let notified: Array<{ chatroomId: string; senderId: string; content: string }>;
+let notified: Array<Record<string, unknown>>;
 let failSaves: boolean;
 /** The role lookup throws, as when the database can't be reached. */
 let failRoleLookups: boolean;
 /** Runs after Welfare's handshake has read the room list, before it returns: a room created in that window. */
 let whileListingRooms: (() => Promise<void> | void) | undefined;
+/** The message limiter's clock: each test starts in a new window. */
+let clock = 0;
+let messageLimiter: ReturnType<
+  typeof import('../src/lib/rate-limit').createRateLimiter
+>;
 
 beforeEach(() => {
+  clock += RATE_WINDOW_MS;
   rooms = [
     { id: 'r1', userId: nadia.id },
     { id: 'r2', userId: nadia.id },
@@ -86,6 +93,13 @@ let io: Server;
 const clients: ClientSocket[] = [];
 
 before(async () => {
+  usePlaceholderEnv();
+  const { createRateLimiter } = await import('../src/lib/rate-limit');
+  messageLimiter = createRateLimiter({
+    limit: RATE_LIMITS.curhatMessages,
+    windowMs: RATE_WINDOW_MS,
+    now: () => clock,
+  });
   http = createServer();
   io = new Server(http);
   io.on(
@@ -138,6 +152,7 @@ before(async () => {
         notifyParticipants: async (m) => {
           notified.push(m);
         },
+        messageLimiter,
       },
     }),
   );
@@ -339,7 +354,6 @@ test('the message is saved under the signed-in member, whatever userId the paylo
   assert.deepEqual(notified.at(-1), {
     chatroomId: 'r1',
     senderId: nadia.id,
-    content: 'Mau kak, makasih!',
   });
 });
 
@@ -388,6 +402,52 @@ test('a failed save answers server', async () => {
     ok: false,
     error: 'server',
   });
+});
+
+test('a member sends at most 30 messages a minute; the next is refused as a failed send, not saved and not pushed', async () => {
+  const socket = await client(nadia, { curhat: true });
+  const saved = messages.length;
+  for (let i = 0; i < 30; i++) {
+    const ack = await send(socket, { chatroomId: 'r1', message: `halo ${i}` });
+    assert.equal(ack.ok, true, `message ${i + 1}`);
+  }
+  assert.deepEqual(
+    await send(socket, { chatroomId: 'r1', message: 'satu lagi' }),
+    { ok: false, error: 'server' },
+  );
+  assert.equal(messages.length, saved + 30);
+  assert.equal(notified.length, 30);
+  // Another socket of the same member shares the count; another member doesn't.
+  const again = await client(nadia, { curhat: true });
+  assert.equal(
+    (await send(again, { chatroomId: 'r2', message: 'x' })).ok,
+    false,
+  );
+  const someoneElse = await client(other, { curhat: true });
+  assert.equal(
+    (await send(someoneElse, { chatroomId: 'r9', message: 'x' })).ok,
+    true,
+  );
+  // The next minute, sending works again.
+  clock += RATE_WINDOW_MS;
+  assert.equal(
+    (await send(socket, { chatroomId: 'r1', message: 'x' })).ok,
+    true,
+  );
+});
+
+test("Welfare's replies have the same limit", async () => {
+  const staff = await client(welfare, { curhat: true });
+  for (let i = 0; i < 30; i++)
+    assert.equal(
+      (await send(staff, { chatroomId: 'r1', message: `balas ${i}` })).ok,
+      true,
+    );
+  assert.deepEqual(await send(staff, { chatroomId: 'r9', message: 'x' }), {
+    ok: false,
+    error: 'server',
+  });
+  assert.equal(notified.length, 30);
 });
 
 test('reply reaches the other sockets in that room only, without any userId', async () => {
@@ -890,4 +950,93 @@ test('form:new-response reaches an admin socket, not a member or an anonymous on
   assert.deepEqual(heard.admin, [event]);
   assert.deepEqual(heard.member, []);
   assert.deepEqual(heard.anon, []);
+});
+
+// --- the push a new message sends ---
+
+test('the notifier is handed nothing from the message, in either direction', async () => {
+  const member = await client(nadia, { curhat: true });
+  const staff = await client(welfare, { curhat: true });
+  await settled();
+  const fromMember = 'Contoh pesan rahasia dari anggota';
+  const fromWelfare = 'Contoh balasan rahasia dari Welfare';
+  assert.equal(
+    (await send(member, { chatroomId: 'r1', message: fromMember })).ok,
+    true,
+  );
+  assert.equal(
+    (await send(staff, { chatroomId: 'r1', message: fromWelfare })).ok,
+    true,
+  );
+  await settled();
+  assert.deepEqual(notified.slice(-2), [
+    { chatroomId: 'r1', senderId: nadia.id },
+    { chatroomId: 'r1', senderId: welfare.id },
+  ]);
+  const handed = JSON.stringify(notified);
+  assert.ok(!handed.includes('rahasia'), 'no text from a message');
+});
+
+test("a member's message is pushed to Welfare with the title only and a link to the room in the inbox", () => {
+  const pushes = curhatPushes({
+    room: { id: 'r1', userId: nadia.id },
+    welfareIds: [welfare.id, teammate.id],
+    senderId: nadia.id,
+  });
+  assert.deepEqual(pushes, [
+    {
+      userIds: [welfare.id, teammate.id],
+      push: {
+        title: 'Pesan baru di Curhat Yuk!',
+        options: { data: { url: '/kelola/curhat/r1' } },
+      },
+    },
+  ]);
+  assert.equal('body' in pushes[0].push.options!, false);
+});
+
+test("Welfare's reply is pushed to the room's owner with the title only and a link to their room, and to the rest of Welfare", () => {
+  const pushes = curhatPushes({
+    room: { id: 'r1', userId: nadia.id },
+    welfareIds: [welfare.id, teammate.id],
+    senderId: welfare.id,
+  });
+  assert.deepEqual(pushes, [
+    {
+      userIds: [nadia.id],
+      push: {
+        title: 'Pesan baru di Curhat Yuk!',
+        options: { data: { url: '/layanan/curhat/r1' } },
+      },
+    },
+    {
+      userIds: [teammate.id],
+      push: {
+        title: 'Pesan baru di Curhat Yuk!',
+        options: { data: { url: '/kelola/curhat/r1' } },
+      },
+    },
+  ]);
+  for (const { push } of pushes) {
+    assert.equal('body' in push.options!, false);
+  }
+});
+
+test("a Welfare member who owns the room gets the owner's link once, and a room with no owner left pushes to Welfare only", () => {
+  assert.deepEqual(
+    curhatPushes({
+      room: { id: 'r5', userId: teammate.id },
+      welfareIds: [welfare.id, teammate.id],
+      senderId: welfare.id,
+    }).map((p) => [p.userIds, p.push.options?.data?.url]),
+    [[[teammate.id], '/layanan/curhat/r5']],
+  );
+  assert.deepEqual(
+    curhatPushes({
+      room: { id: 'r6', userId: null },
+      welfareIds: [welfare.id, teammate.id],
+      senderId: welfare.id,
+    }).map((p) => [p.userIds, p.push.options?.data?.url]),
+    [[[teammate.id], '/kelola/curhat/r6']],
+  );
 });

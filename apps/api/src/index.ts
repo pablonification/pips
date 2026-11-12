@@ -18,12 +18,17 @@ import { calendarCron } from './cron/calendar-cron';
 import { setupCron } from './cron/setup';
 import { closeDatabase } from './db/drizzle';
 import setupWebsocket, { getIo } from './websocket/setup';
+import { logger } from './logger';
+import { calendarKeyWarning } from '~/lib/googleapi';
 import { listenAddress } from '~/lib/listen';
 import { createShutdown } from '~/lib/shutdown';
 
 const app = createApp();
 
 console.log(`Server is running on port ${env.PORT}`);
+
+const missingCalendarKey = calendarKeyWarning(env.GOOGLE_CALENDAR_SECRET_PATH);
+if (missingCalendarKey) logger.warn(missingCalendarKey);
 
 setupCron();
 

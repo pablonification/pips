@@ -14,7 +14,8 @@ slow, even to a page that needs a tenth of it.
   system's components as free of side effects so unused ones are dropped.
 - `apps/web/scripts/budgets.mjs` (limits in `apps/web/scripts/lib/budgets.mjs`) measures a production build: the
   JavaScript each route loads before it first renders (the cap is 205 KiB gzipped), the service worker's offline
-  store (1.5 MiB), and the fonts (exactly two files). CI runs it and the build fails over the cap.
+  store (1.5 MiB), and the fonts (exactly two files). CI runs it as its own step after the build and fails over
+  the cap; the largest route is only a few KiB under it.
 
 ## What else was possible
 - One bundle: simple, but every first visit pays for everything.

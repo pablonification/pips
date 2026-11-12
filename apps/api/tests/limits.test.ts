@@ -36,6 +36,7 @@ function reached() {
       get: (_t, name: string) => async (data?: unknown) => {
         calls.push(name);
         if (name === 'getUserRoles') return ['admin'];
+        if (name === 'canSeeInfo') return true;
         if (name === 'getCategoriesByIds')
           return [{ id: 'cat-1', rolesAllowed: null }];
         if (name === 'createInfo' || name === 'createComment')
@@ -97,6 +98,28 @@ test('a comment over 2,000 characters is refused, on posting and on editing', as
   assert.equal(calls.length, 0);
   const ok = await callRouter(router, nadia, 'POST', '/comment', {
     content: 'k'.repeat(2000),
+    repliedInfoId: 'i1',
+  });
+  assert.equal(ok.status, 201);
+});
+
+test('an empty or blank comment is refused, on posting and on editing', async () => {
+  const { calls, deps } = reached();
+  const router = createCommentRouter(deps);
+  for (const content of ['', ' ', '\n\t  \n']) {
+    const res = await callRouter(router, nadia, 'POST', '/comment', {
+      content,
+      repliedInfoId: 'i1',
+    });
+    assert.equal(res.status, 400, JSON.stringify(content));
+    const edit = await callRouter(router, nadia, 'PUT', '/comment/c1', {
+      content,
+    });
+    assert.equal(edit.status, 400, JSON.stringify(content));
+  }
+  assert.equal(calls.length, 0);
+  const ok = await callRouter(router, nadia, 'POST', '/comment', {
+    content: ' k ',
     repliedInfoId: 'i1',
   });
   assert.equal(ok.status, 201);
@@ -286,4 +309,23 @@ test('regression (review): the limiter keeps at most maxKeys counters, however m
   // The newest keys are still counted.
   assert.equal(limiter.hit('k999').ok, true);
   assert.equal(limiter.hit('k999').ok, false);
+});
+
+test('NIM Finder searches past the per-member limit (60 a minute) get 429 with Retry-After', async () => {
+  const app = createApp({ rateLimits: { nimSearches: 3 } });
+  const search = async (user: typeof nadia) =>
+    await app.request('/api/user/nim?search=1352', {
+      headers: { Cookie: await sessionCookie(user) },
+    });
+  for (let i = 0; i < 3; i++)
+    assert.notEqual((await search(nadia)).status, 429);
+  const limited = await search(nadia);
+  assert.equal(limited.status, 429);
+  assert.deepEqual(await limited.json(), { error: 'Too many requests' });
+  assert.ok(Number(limited.headers.get('retry-after')) >= 1);
+  // Another member is unaffected.
+  assert.notEqual((await search(raka)).status, 429);
+
+  const { RATE_LIMITS } = await import('../src/lib/limits');
+  assert.equal(RATE_LIMITS.nimSearches, 60);
 });

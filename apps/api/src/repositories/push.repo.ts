@@ -1,30 +1,59 @@
-import { eq, inArray, InferInsertModel, isNotNull } from 'drizzle-orm';
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  InferInsertModel,
+  isNotNull,
+  notInArray,
+  sql,
+} from 'drizzle-orm';
 import { Database } from '~/db/drizzle';
 import { first, firstSure } from '~/db/helper';
 import { PushSubscription, pushSubscriptions } from '~/db/schema';
 import { sendNotificationToAll } from '~/lib/push-manager';
 
+/** The most devices one member keeps; the most any real member had was 13. */
+export const MAX_DEVICES_PER_MEMBER = 20;
+
 /**
- * Create a push subscription. If subscription endpoint exist, update the existing subscription.
+ * Create a push subscription. If subscription endpoint exist, update the existing subscription, as just registered.
+ * Past `MAX_DEVICES_PER_MEMBER`, the member's least recently registered devices are removed.
  */
 export async function createOrUpdatePushSubscription(
   db: Database,
   data: Omit<InferInsertModel<typeof pushSubscriptions>, 'createdAt'>,
 ) {
-  return await db
-    .insert(pushSubscriptions)
-    .values(data)
-    .onConflictDoUpdate({
-      set: data,
-      target: [pushSubscriptions.endpoint],
-    })
-    .returning()
-    .then(firstSure);
-}
-
-export async function getPushSubscriptionsByUser(db: Database, userId: string) {
-  return await db.query.pushSubscriptions.findMany({
-    where: eq(pushSubscriptions.userId, userId),
+  return await db.transaction(async (tx) => {
+    const row = await tx
+      .insert(pushSubscriptions)
+      .values(data)
+      .onConflictDoUpdate({
+        set: { ...data, createdAt: sql`now()` },
+        target: [pushSubscriptions.endpoint],
+      })
+      .returning()
+      .then(firstSure);
+    if (data.userId) {
+      const kept = tx
+        .select({ endpoint: pushSubscriptions.endpoint })
+        .from(pushSubscriptions)
+        .where(eq(pushSubscriptions.userId, data.userId))
+        .orderBy(
+          desc(pushSubscriptions.createdAt),
+          desc(pushSubscriptions.endpoint),
+        )
+        .limit(MAX_DEVICES_PER_MEMBER);
+      await tx
+        .delete(pushSubscriptions)
+        .where(
+          and(
+            eq(pushSubscriptions.userId, data.userId),
+            notInArray(pushSubscriptions.endpoint, kept),
+          ),
+        );
+    }
+    return row;
   });
 }
 

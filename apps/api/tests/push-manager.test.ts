@@ -14,7 +14,7 @@ before(async () => {
 
 const bytes = (s: string) => new TextEncoder().encode(s).length;
 const sub = (i: number): webpush.PushSubscription => ({
-  endpoint: `https://push.example/${i}`,
+  endpoint: `https://fcm.googleapis.com/fcm/send/${i}`,
   keys: { p256dh: 'p', auth: 'a' },
 });
 const post = (body: string) => ({
@@ -100,7 +100,7 @@ test('at most 50 pushes are in flight at once, and every one is sent, results in
   assert.ok(r3.status === 'fulfilled' && r3.value.success);
   assert.equal(
     r3.status === 'fulfilled' && r3.value.success && r3.value.result.body,
-    'https://push.example/3',
+    'https://fcm.googleapis.com/fcm/send/3',
   );
 });
 
@@ -127,14 +127,20 @@ test('a push service that never answers is given up on after the timeout', async
 test('a refused push comes back with its endpoint, for pruning', async () => {
   const results = await pm.sendNotificationToAll([sub(1)], post('x'), {
     send: async () => {
-      throw new WebPushError('gone', 410, {}, '', 'https://push.example/1');
+      throw new WebPushError(
+        'gone',
+        410,
+        {},
+        '',
+        'https://fcm.googleapis.com/fcm/send/1',
+      );
     },
   });
   const r = results[0];
   assert.ok(r.status === 'fulfilled' && !r.value.success);
   assert.equal(
     r.status === 'fulfilled' && !r.value.success && r.value.endpoint,
-    'https://push.example/1',
+    'https://fcm.googleapis.com/fcm/send/1',
   );
 });
 
@@ -155,7 +161,127 @@ test('subscriptions answered 404 or 410 are pruned; other failures stay', async 
     },
   );
   assert.deepEqual(goneEndpoints(results), [
-    'https://push.example/0',
-    'https://push.example/1',
+    'https://fcm.googleapis.com/fcm/send/0',
+    'https://fcm.googleapis.com/fcm/send/1',
   ]);
+});
+
+const APP_ORIGIN = 'http://localhost:5173';
+
+test('a device is registered only at a browser push service, over https', async () => {
+  const { createApp } = await import('../src/app');
+  const { sessionCookie, testUser } = await import('./support/session');
+  const app = createApp();
+  const cookie = await sessionCookie(testUser('u-nadia'));
+  const register = async (endpoint: string) =>
+    await app.request('/api/push/register', {
+      method: 'POST',
+      headers: {
+        Origin: APP_ORIGIN,
+        Cookie: cookie,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ endpoint, keys: { p256dh: 'p', auth: 'a' } }),
+    });
+  for (const endpoint of [
+    'https://127.0.0.1:4519/internal-probe',
+    'https://169.254.169.254/latest/meta-data',
+    'http://10.0.0.1:8080/x',
+    'javascript:alert(1)',
+    'http://fcm.googleapis.com/fcm/send/abc',
+    'https://evil.googleapis.com/x',
+    'https://evil.google.com/x',
+    'https://fcm.googleapis.com.evil.example/x',
+    'https://notify.windows.com.evil.example/x',
+    'https://fcm.googleapis.com:8443/fcm/send/abc',
+    'https://user@fcm.googleapis.com/fcm/send/abc',
+    // Read differently by the URL standard and by the parser the push library connects with.
+    'https://localhost%2Enotify.windows.com/x',
+    'https://127.0.0.1%2Enotify.windows.com/x',
+    'https://db%2Efcm.googleapis.com/x',
+    'https:fcm.googleapis.com/fcm/send/abc',
+    'https:/fcm.googleapis.com/fcm/send/abc',
+    'https://fcm.googleapis.com\\@localhost/x',
+    ' https://fcm.googleapis.com/fcm/send/abc',
+  ])
+    assert.equal((await register(endpoint)).status, 400, endpoint);
+});
+
+test("the browsers' push services are all accepted", async () => {
+  const { isPushServiceEndpoint } = await import('../src/lib/push-service');
+  for (const endpoint of [
+    'https://fcm.googleapis.com/fcm/send/abc:def',
+    'https://web.push.apple.com/QH1x',
+    'https://updates.push.services.mozilla.com/wpush/v2/gAAA',
+    'https://wns2-sg2p.notify.windows.com/w/?token=BQYAAA',
+    'https://jmt17.google.com/fcm/send/abc',
+    'https://android.googleapis.com/gcm/send/abc',
+  ])
+    assert.ok(isPushServiceEndpoint(endpoint), endpoint);
+  for (const endpoint of [
+    'https://127.0.0.1/x',
+    'https://notify.windows.com/x',
+    'https://windows.com/x',
+    'https://push.apple.com/x',
+    'https://FCM.googleapis.com/fcm/send/abc',
+    'not a url',
+  ])
+    assert.ok(!isPushServiceEndpoint(endpoint), endpoint);
+});
+
+test('a saved device that is not at a push service is never connected to, and stays saved', async () => {
+  const contacted: string[] = [];
+  const results = await pm.sendNotificationToAll(
+    [
+      {
+        endpoint: 'https://127.0.0.1:4519/x',
+        keys: { p256dh: 'p', auth: 'a' },
+      },
+      sub(1),
+      { endpoint: 'http://10.0.0.1/x', keys: { p256dh: 'p', auth: 'a' } },
+    ],
+    post('x'),
+    {
+      log: () => {},
+      send: async (s) => {
+        contacted.push(s.endpoint);
+        return { statusCode: 201, body: '', headers: {} };
+      },
+    },
+  );
+  assert.deepEqual(contacted, [sub(1).endpoint]);
+  const { goneEndpoints } = await import('../src/repositories/push.repo');
+  assert.deepEqual(goneEndpoints(results), []);
+});
+
+test('every fan-out logs one line of counts by outcome, with no endpoint in it', async () => {
+  const lines: unknown[] = [];
+  await pm.sendNotificationToAll(
+    [
+      ...[1, 2, 3, 4, 5, 6].map(sub),
+      { endpoint: 'https://127.0.0.1/x', keys: { p256dh: 'p', auth: 'a' } },
+    ],
+    post('rahasia'),
+    {
+      log: (line) => lines.push(line),
+      send: async (s) => {
+        const i = Number(s.endpoint.split('/').pop());
+        if (i <= 2) return { statusCode: 201, body: '', headers: {} };
+        if (i === 3) throw new WebPushError('gone', 410, {}, '', s.endpoint);
+        if (i <= 5) throw new WebPushError('no', 403, {}, '', s.endpoint);
+        throw new Error('Socket timeout');
+      },
+    },
+  );
+  assert.equal(lines.length, 1);
+  assert.deepEqual(lines[0], {
+    type: 'push',
+    devices: 7,
+    sent: 2,
+    gone: 1,
+    failed: { '403': 2, error: 1 },
+    skipped: 1,
+  });
+  const text = JSON.stringify(lines);
+  assert.doesNotMatch(text, /fcm\.googleapis|127\.0\.0\.1|rahasia/);
 });

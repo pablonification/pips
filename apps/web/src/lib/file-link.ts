@@ -12,8 +12,29 @@ export function fileHref(
   answer: string | null | undefined,
   mediaBase?: string | null,
 ): string | null {
-  if (!answer) return null;
-  const raw = answer.trim();
+  const href = httpHref(answer);
+  if (!href) return null;
+  const url = new URL(href);
+
+  const base = storageBase(mediaBase);
+  if (base === undefined) return url.href;
+  if (base === null) return null;
+  if (url.origin !== base.origin) return null;
+  const prefix = base.pathname.endsWith('/')
+    ? base.pathname
+    : `${base.pathname}/`;
+  if (prefix !== '/' && !url.pathname.startsWith(prefix)) return null;
+  return url.href;
+}
+
+/**
+ * Any address from data (a course's Ding Dong folder, a file answer) before it becomes a link or a new tab: an absolute
+ * http(s) address with no whitespace, control characters or backslashes, and no user name or password. Returns the
+ * address, or `null` to show what the screen shows when there is no link.
+ */
+export function httpHref(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const raw = value.trim();
   // The URL parser drops tabs and line breaks and reads "\" as "/", so "java\tscript:" or "https:\\evil" would pass
   // a check made on the parsed address. Refuse them in the text itself.
   // eslint-disable-next-line no-control-regex
@@ -27,15 +48,6 @@ export function fileHref(
   }
   if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
   if (url.username || url.password || !url.hostname) return null;
-
-  const base = storageBase(mediaBase);
-  if (base === undefined) return url.href;
-  if (base === null) return null;
-  if (url.origin !== base.origin) return null;
-  const prefix = base.pathname.endsWith('/')
-    ? base.pathname
-    : `${base.pathname}/`;
-  if (prefix !== '/' && !url.pathname.startsWith(prefix)) return null;
   return url.href;
 }
 
