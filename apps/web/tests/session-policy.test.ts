@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { ApiError } from '../src/api/generated';
 import {
   isSignedOutError,
+  sessionSettled,
   sessionRetry,
   sessionRetryDelay,
 } from '../src/lib/session-policy';
@@ -85,4 +86,39 @@ test('a session check that fails to answer throws nothing, and its burst still a
   await new Promise((r) => setTimeout(r, 0));
   onError(apiError(401));
   assert.equal(checks, 1);
+});
+
+test('the session check is settled once it answered, failed once, or waits offline; not while its first try is on its way', () => {
+  const q = {
+    isFetchedAfterMount: false,
+    isFetching: true,
+    failureCount: 0,
+    fetchStatus: 'fetching' as const,
+  };
+  assert.equal(sessionSettled(q), false, 'on its way');
+  assert.equal(
+    sessionSettled({
+      ...q,
+      isFetchedAfterMount: true,
+      isFetching: false,
+      fetchStatus: 'idle',
+    }),
+    true,
+    'answered',
+  );
+  assert.equal(
+    sessionSettled({ ...q, isFetchedAfterMount: true }),
+    false,
+    'asked again (a role check), on its way',
+  );
+  assert.equal(
+    sessionSettled({ ...q, failureCount: 1 }),
+    true,
+    'the API down: retrying',
+  );
+  assert.equal(
+    sessionSettled({ ...q, isFetching: false, fetchStatus: 'paused' }),
+    true,
+    'offline',
+  );
 });

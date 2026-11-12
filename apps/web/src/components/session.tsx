@@ -11,6 +11,7 @@ import {
   saveUserCache,
   sessionRetry,
   sessionRetryDelay,
+  sessionSettled,
   takeChosenSignOut,
 } from '~/lib/session';
 import { Button } from './garis/Button';
@@ -39,6 +40,7 @@ export default function SessionProvider({
     refetch,
     isFetchedAfterMount,
     isFetching,
+    fetchStatus,
     status,
   } = useQuery({
     queryKey: ['me'],
@@ -107,7 +109,12 @@ export default function SessionProvider({
   return (
     <SessionContext.Provider value={data}>
       <SessionCheckedContext.Provider
-        value={isFetchedAfterMount && !isFetching}
+        value={sessionSettled({
+          isFetchedAfterMount,
+          isFetching,
+          failureCount,
+          fetchStatus,
+        })}
       >
         {children}
       </SessionCheckedContext.Provider>
