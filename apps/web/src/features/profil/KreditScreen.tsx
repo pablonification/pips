@@ -117,9 +117,8 @@ function Credits({ groups }: { groups: CreditGroup[] }) {
 }
 
 /**
- * Profil › Kredit: `GET /api/markdown/credits` (a toast in the prototype; OPEN-QUESTIONS D3). Credits in the shape
- * `parseCredits` knows show as cards; anything else renders as markdown, as before. Either way without the text's
- * own "Credits" title: the page's title says it.
+ * Profil › Kredit: `GET /api/markdown/credits`. Credits in the shape `parseCredits` knows show as cards; anything else
+ * renders as markdown. Either way without the text's own "Credits" title: the page's title says it.
  */
 export function KreditScreen() {
   const credits = useQuery(creditsQuery());

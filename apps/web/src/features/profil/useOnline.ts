@@ -18,7 +18,7 @@ export function useOnline() {
   );
 }
 
-/** "07.45": a time in WIB, the app's format (SPEC "Copy and language"). */
+/** "07.45": a time in WIB, the app's format. */
 export function jamWib(ms: number) {
   return new Intl.DateTimeFormat('id-ID', {
     hour: '2-digit',

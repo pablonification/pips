@@ -1,10 +1,9 @@
 /**
- * P3-B: Tambah lomba and Ubah lomba's rules (a proposal; SPEC stories 113 and 117). Each check comes from the API
- * or today's form: names and organisers of 3 characters or more (the API's update rule, used for both), both dates
- * and times, the deadline after the opening (today's rule) and after now (Info Lomba lists only open
- * competitions, so a closed one would vanish at once), and complete links (`https://` added as P2-B's link rule).
- * Times are typed in WIB and sent as ISO. The poster (the owner's decision, 2026-11-03) is an uploaded image's address.
- * Pure, so `tests/kelola-lomba-rules.test.ts` runs them under another zone.
+ * Tambah lomba and Ubah lomba's rules. Each check comes from the API or the form: names and organisers of 3 characters
+ * or more (the API's update rule, used for both), both dates and times, the deadline after the opening and after now
+ * (Info Lomba lists only open competitions, so a closed one would vanish at once), and complete links (`https://`
+ * added). Times are typed in WIB and sent as ISO. The poster is an uploaded image's address. Pure, so
+ * `tests/kelola-lomba-rules.test.ts` runs them under another zone.
  */
 import type { Competition, CompetitionCategories } from '~/api/generated';
 import { kelolaLomba as t } from '~/copy/kelola-lomba';
@@ -151,7 +150,7 @@ function lombaFields(d: LombaDraft) {
   };
 }
 
-/** `POST /competitions`: the poster as `mediaUrls` when there is one (the API links it as the competition's first media). */
+/** `POST /competitions`: the poster as `mediaUrls` when there is one (the API links it as the first media). */
 export function lombaBody(d: LombaDraft) {
   return {
     ...lombaFields(d),
@@ -189,13 +188,11 @@ export function changedFields(before: Competition, d: LombaDraft) {
   return changed;
 }
 
-/* ================= Poster ================= */
-
 /** A new poster on its way, or one that failed to upload (once uploaded, its address is the draft's `poster`). */
 export type PosterUpload =
   { status: 'uploading'; progress: number } | { status: 'failed' };
 
-/** Why Simpan or Tambahkan waits: an upload still going or one that failed (as the composer's photos). */
+/** Why Simpan or Tambahkan waits: an upload still going or one that failed. */
 export function posterBlock(upload: PosterUpload | null): string | null {
   if (upload?.status === 'uploading') return t.galat.menungguPoster;
   if (upload?.status === 'failed') return t.galat.posterGagal;

@@ -8,10 +8,10 @@ import useSession from '~/hooks/auth/useSession';
 import { gateRedirect, kelolaAccess, type KelolaPage } from './rules';
 
 /**
- * Shows a Kelola page only to the roles the capability map allows. Anyone else is sent on with `replace`: to the
- * hub when they have another Kelola tool, else to Layanan (`kelolaAccess`). A cached user who lacks the role waits
- * for the session check to answer in this visit before being sent away (the role may just have been given). Nothing inside renders, so
- * no admin endpoint is called, until access is allowed.
+ * Shows a Kelola page only to the roles the capability map allows. Anyone else is sent on with `replace`: to the hub
+ * when they have another Kelola tool, else to Layanan (`kelolaAccess`). A cached user who lacks the role waits for
+ * the session check to answer in this visit before being sent away (the role may just have been given). Nothing
+ * inside renders, so no admin endpoint is called, until access is allowed.
  */
 export function KelolaGate({
   page,
@@ -31,9 +31,9 @@ export function KelolaGate({
 }
 
 /**
- * The API answers a missing role with 401 (`roleMiddleware`), which never signs anyone out (P0-B). If an admin
- * request gets it while the cached member still has the role, the role was taken away: check the session again,
- * and `KelolaGate` decides from the answer.
+ * The API answers a missing role with 401 (`roleMiddleware`), which never signs anyone out. If an admin request gets
+ * it while the cached member still has the role, the role was taken away: check the session again, and `KelolaGate`
+ * decides from the answer.
  */
 export function useRoleLoss(...errors: unknown[]) {
   const queryClient = useQueryClient();

@@ -1,6 +1,6 @@
 /**
- * P3-B: Kalender's cached months after a change, so every screen (the strip, the grid, search) shows it at once;
- * the touched months are then fetched again from the API (P1-A's key, `GET /calendar/me`).
+ * Kalender's cached months after a change, so every screen (the strip, the grid, search) shows it at once; the
+ * touched months are then fetched again from the API (`GET /calendar/me`).
  */
 import type { QueryClient } from '@tanstack/react-query';
 import { CALENDAR_EVENTS_QUERY_KEY } from '~/api/constants';

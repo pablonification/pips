@@ -1,8 +1,8 @@
 /**
- * Tambah lomba and Ubah lomba's poster (the owner's decision, 2026-11-03; a proposal with no locked screen). Built from
- * the composer's photo tiles (`.thumbs`, `.add-photo`) at Info Lomba's 3:4: the poster with Hapus poster at its corner,
- * and beside it a tile to add one or pick another. An image uploads as soon as it's picked, with its progress; a failed
- * one says so on the poster (icon, word, colour) with Coba lagi, and the dialog won't save until it's settled.
+ * Tambah lomba and Ubah lomba's poster: the composer's photo tiles at Info Lomba's 3:4: the poster with Hapus poster
+ * at its corner, and beside it a tile to add one or pick another. An image uploads as soon as it's picked, with its
+ * progress; a failed one says so on the poster (icon, word, colour) with Coba lagi, and the dialog won't save until
+ * it's settled.
  */
 import { useEffect, useRef, useState } from 'react';
 import { IconButton, LinkButton, Media } from '~/components/garis';

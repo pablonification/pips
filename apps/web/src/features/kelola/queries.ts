@@ -14,8 +14,8 @@ import {
 } from './rules';
 
 /*
- * Kelola's data (P3-A). Admin data isn't kept on the device (only SPEC's list is persisted), so a reload offline
- * shows the error state. The keys sit under today's `['form', 'admin', …]`, so a write anywhere refreshes them.
+ * Kelola's data. Admin data isn't kept on the device (only the list of persisted queries is), so a reload offline
+ * shows the error state. The keys sit under `['form', 'admin', …]`, so a write anywhere refreshes them.
  */
 
 /** Active forms, in their `order` (GET /form/admin/list). */
@@ -26,8 +26,8 @@ export const adminFormsQuery = () =>
   });
 
 /**
- * A form's count. Shared with Beranda's Kelola card (P1-A, `kelolaSummary`), so both show the same number and a
- * live event refreshes both; `useFormLive` can make the card live too (story 38).
+ * A form's count. Shared with Beranda's Kelola card, so both show the same number and a live event refreshes both;
+ * `useFormLive` can make the card live too.
  */
 export const formResponsesCountKey = (formId: string) =>
   [FORM_QUERY_KEY, 'admin', formId, 'count'] as const;
@@ -73,13 +73,13 @@ export const formAnalyticsQuery = (formId: string) =>
   queryOptions({
     queryKey: [FORM_QUERY_KEY, 'admin', formId, 'analytics'],
     queryFn: () => api.form.getFormAnalytics({ formId }),
-    // The bars refresh when the page loads or refocuses, not on live events (today's behaviour, and `live-sim`'s).
+    // The bars refresh when the page loads or refocuses, not on live events.
     refetchOnWindowFocus: 'always',
   });
 
 const EXPORT_PAGE_SIZE = 100;
 
-/** Every response matching `search`, 100 a request until a short page (today's `fetchAllFormResponses`). */
+/** Every response matching `search`, 100 a request until a short page. */
 export async function fetchAllResponses(
   formId: string,
   search = '',

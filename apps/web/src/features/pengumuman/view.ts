@@ -1,7 +1,7 @@
 /**
- * The feed's view lives in the URL (P0-B's `pengumumanSearchSchema`, today's names), on the `/pengumuman` layout
- * route, so the post and the composer keep it and a reload restores it. Also the little memory the screens share
- * across a navigation: which card to give focus back to, and whether the comment field wants focus.
+ * The feed's view lives in the URL (the route's `pengumumanSearchSchema`), on the `/pengumuman` layout route, so the
+ * post and the composer keep it and a reload restores it. Also the little memory the screens share across a
+ * navigation: which card to give focus back to, and whether the comment field wants focus.
  */
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useCallback } from 'react';
@@ -40,7 +40,7 @@ export function useSetView() {
   );
 }
 
-/** Back from a post on phones and tablets gives focus to its card's link (the prototype's `back`). */
+/** Back from a post on phones and tablets gives focus to its card's link. */
 let returnTo: string | null = null;
 export const rememberCard = (id: string) => {
   returnTo = id;

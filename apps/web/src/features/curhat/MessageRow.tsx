@@ -1,9 +1,8 @@
 /**
- * One message in a room, as chat apps show it (owner's chat changes, 2026-11-06): the bubble, and Balas as a small
- * icon beside it instead of a text button under every bubble. With a mouse it shows on hovering the message; with
- * the keyboard, when Tab reaches it; on touch, swiping the bubble sideways replies, and tapping the bubble shows the
- * icon. Screen readers find it as the button "Balas" after the message. Shared by the member's room and Welfare's
- * inbox (P3-C).
+ * One message in a room, as chat apps show it: the bubble, and Balas as a small icon beside it instead of a text
+ * button under every bubble. With a mouse it shows on hovering the message; with the keyboard, when Tab reaches it;
+ * on touch, swiping the bubble sideways replies, and tapping the bubble shows the icon. Screen readers find it as the
+ * button "Balas" after the message. Shared by the member's room and Welfare's inbox.
  */
 import {
   useEffect,

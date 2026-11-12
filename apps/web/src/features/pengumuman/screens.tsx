@@ -1,7 +1,7 @@
 /**
  * The Pengumuman routes. `/pengumuman` is a layout: on desktop it keeps the list on the left (its scroll and search
  * stay while posts change on the right); below 1024 px each route is its own page. The list and the pane keep their
- * places in the tree across 1024 px, so rotating a tablet keeps what was typed (P0-C review M2).
+ * places in the tree across 1024 px, so rotating a tablet keeps what was typed.
  */
 import {
   Outlet,
@@ -141,7 +141,7 @@ export function PostScreen() {
 
   // Desktop: the member changed the view while this post was open and it left the list, so the first visible post
   // takes its place. Only a change since the list last settled counts: a post opened later (a push, Beranda, search)
-  // stays even when it is beyond the pages loaded so far (review M1).
+  // stays even when it is beyond the pages loaded so far.
   const posts = useMemo(() => feed.data?.pages.flat() ?? [], [feed.data]);
   const viewKey = JSON.stringify(canonicalView(view));
   const settledKey = useRef<string | null>(null);
@@ -206,7 +206,7 @@ function DetailSkeleton({ desk }: { desk: boolean }) {
   );
 }
 
-/** A post that is gone or not for you (404), modelled on Curhat's `scrRoom` not-found state. */
+/** A post that is gone or not for you (404). */
 function NotFound({ desk }: { desk: boolean }) {
   const navigate = useNavigate();
   const view = useFeedView();

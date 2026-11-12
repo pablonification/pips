@@ -1,8 +1,8 @@
 /**
- * Tambah testimoni (a proposal; SPEC story 112) on a Testi Matkul course page, for `akademik` only (not `admin`,
- * as the API). A gold small button like `addEvBtn`. After adding, the course's testimonials are fetched again (the
- * course list counts them with the same key) and the new one joins the page's cards (Garis v5 shows every
- * testimonial, no pager), the toast shows and focus goes to the page title. The server checks the role too. The dialog's code loads only when it opens.
+ * Tambah testimoni on a Testi Matkul course page, for `akademik` only (not `admin`, as the API). A gold small button.
+ * After adding, the course's testimonials are fetched again (the course list counts them with the same key) and the
+ * new one joins the page's cards, the toast shows and focus goes to the page title. The server checks the role too.
+ * The dialog's code loads only when it opens.
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useRef, useState, type ReactNode } from 'react';
@@ -20,9 +20,9 @@ const TestiDialog = lazy(() => import('./TestiDialog'));
 
 /**
  * Tambah testimoni for a course: its button and its dialog. The page renders the button once, where its layout shows
- * it (the desk head from 1024 px, the course's header row below: F2-003, it was rendered twice with one copy hidden
- * by CSS), and the dialog once, apart from the button, so the dialog stays open with what was typed when a tablet
- * turns across 1024 px and the button moves (P3-B). Nothing for anyone but `akademik`.
+ * it (the desk head from 1024 px, the course's header row below), and the dialog once, apart from the button, so the
+ * dialog stays open with what was typed when a tablet turns across 1024 px and the button moves. Nothing for anyone
+ * but `akademik`.
  */
 export function useTambahTestimoni(course: Course | undefined): {
   button: ReactNode;

@@ -1,8 +1,8 @@
 /**
- * Info Lomba's management for `cnc` (a proposal; FEATURES.md gap 3): Tambah lomba in P2-B's page-header slot, a
- * gold small button like `addEvBtn`; Ubah lomba and Hapus lomba in a `menuBtn`-style button on each card. After a
- * change, the list is fetched again (P2-B's `competitions` key), the toast shows and focus goes to the page title.
- * Nobody else sees them; the server checks the role too. The dialog's code loads only when it opens.
+ * Info Lomba's management for `cnc`: Tambah lomba in the page-header slot, a gold small button; Ubah lomba and Hapus
+ * lomba in a menu button on each card. After a change, the list is fetched again (the `competitions` key), the toast
+ * shows and focus goes to the page title. Nobody else sees them; the server checks the role too. The dialog's code
+ * loads only when it opens.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useRef, useState, type ReactNode } from 'react';
@@ -29,7 +29,7 @@ import '~/features/kelola-tulis/kelola-tulis.css';
 
 const LombaDialog = lazy(() => import('./LombaDialog'));
 
-/** P2-B's list key: every page is fetched again. */
+/** The competition list's key: every page is fetched again. */
 const COMPETITIONS_KEY = ['competitions'];
 
 /** After a save: the toast, and focus on the page title once the dialog has closed. */
@@ -55,7 +55,7 @@ function useAfterSave() {
 /**
  * Tambah lomba: the button, and its one dialog. The screen puts the button in the desktop head and the top bar, and
  * the dialog once outside both, so turning a tablet across 1024 px (the button moving between them) keeps the dialog
- * and what was typed (review m3).
+ * and what was typed.
  */
 export function useTambahLomba(): { button: ReactNode; dialog: ReactNode } {
   const user = useSession();

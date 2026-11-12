@@ -1,7 +1,7 @@
 /*
- * Kelola's rules (P3-A), pure and unit-tested in tests/kelola-rules.test.ts: who gets in, the forms entry, the live
- * count, the plaque's line, the bars, the recap's pages and Data SPARTA Magang's filters and statistics. Every time
- * is WIB, whatever the device's zone. Who may do what comes from the capability map, never a role list of its own.
+ * Kelola's rules, pure and unit-tested in tests/kelola-rules.test.ts: who gets in, the forms entry, the live count,
+ * the plaque's line, the bars, the recap's pages and Data SPARTA Magang's filters and statistics. Every time is WIB,
+ * whatever the device's zone. Who may do what comes from the capability map, never a role list of its own.
  */
 import type {
   AdminFormListItem,
@@ -16,8 +16,6 @@ import { visibleServices, type Service } from '~/lib/services';
 
 type WithRoles = { roles?: readonly string[] | null } | null | undefined;
 
-// ---------- Who gets in ----------
-
 export type KelolaPage = 'hub' | 'live' | 'sparta' | 'curhat';
 
 /** The Kelola rows this member has, in the registry's order (the hub and Layanan's Kelola group). */
@@ -27,7 +25,7 @@ export function kelolaServices(user: WithRoles, now = new Date()): Service[] {
 
 /**
  * Whether `user` may open a Kelola page; otherwise where to send them (with `replace`): to the hub when they have
- * another Kelola tool, else to Layanan (the prototype's `switchPersona`).
+ * another Kelola tool, else to Layanan.
  */
 export function kelolaAccess(
   user: WithRoles,
@@ -41,8 +39,7 @@ export function kelolaAccess(
       : page === 'live'
         ? can(user, 'liveCounting')
         : page === 'curhat'
-          ? // P3-C: Welfare's Curhat inbox.
-            can(user, 'respondCurhat')
+          ? can(user, 'respondCurhat')
           : can(user, 'spartaData');
   if (allowed) return { allowed: true };
   return {
@@ -62,8 +59,6 @@ export function gateRedirect(
   return access.allowed || !checked ? null : access.to;
 }
 
-// ---------- The forms entry ----------
-
 /** One active form goes straight to its live page, two or more list, none is empty. */
 export function formsEntry(
   forms: readonly Pick<AdminFormListItem, 'id'>[],
@@ -72,7 +67,7 @@ export function formsEntry(
   return forms.length ? { kind: 'list' } : { kind: 'empty' };
 }
 
-/** A form's row caption: "Ditutup {waktu}" once past `closesAt`, else "Dibuka {waktu}" (P2-A's date format). */
+/** A form's row caption: "Ditutup {waktu}" once past `closesAt`, else "Dibuka {waktu}". */
 export function formCaption(
   form: Pick<AdminFormListItem, 'opensAt' | 'closesAt'>,
   format: (at: string) => string,
@@ -83,9 +78,7 @@ export function formCaption(
   return fill(copy.formulir.dibuka, { waktu: format(form.opensAt) });
 }
 
-// ---------- Live Counting ----------
-
-/** P2-A's window rule: switched on, opened and not closed. The live square shows only then (and connected). */
+/** Switched on, opened and not closed. The live square shows only then (and connected). */
 export function formIsOpen(
   form: Pick<AdminFormListItem, 'opensAt' | 'closesAt' | 'isActive'>,
   now: number = Date.now(),
@@ -126,7 +119,7 @@ export function plaqueLine(
   return `${copy.live.orangMengisi} · ${last}`;
 }
 
-/** A row's time: "13.31" today, "Rab 7 Okt" another day (the rule `scrCurhat` uses). */
+/** A row's time: "13.31" today, "Rab 7 Okt" another day. */
 export function rowTime(at: string, now: number | Date = Date.now()): string {
   return dayDiff(at, now) === 0 ? hm(at) : dShort(at);
 }
@@ -160,8 +153,6 @@ export function questionBars(question: {
   }));
 }
 
-// ---------- Rekap Form ----------
-
 export const REKAP_PAGE_SIZE = 20;
 /** The newest responses on the live page. */
 export const LATEST_COUNT = 5;
@@ -169,8 +160,6 @@ export const LATEST_COUNT = 5;
 export function pageCount(total: number, size = REKAP_PAGE_SIZE): number {
   return Math.max(1, Math.ceil(total / size));
 }
-
-// ---------- Data SPARTA Magang ----------
 
 export const PRIORITIES = [1, 2, 3, 4] as const;
 export type Priority = (typeof PRIORITIES)[number];
@@ -207,7 +196,7 @@ export function divisionsOf(
 const choiceAt = (s: InternshipSubmission, p: number) =>
   s.choices?.find((c) => c.priorityOrder === p);
 
-/** Status only (the statistics count what matches it, as today). */
+/** Status only (the statistics count what matches it). */
 export function matchesStatus(
   s: Pick<InternshipSubmission, 'isLocked'>,
   status: SpartaStatus | undefined,
@@ -216,9 +205,8 @@ export function matchesStatus(
 }
 
 /**
- * Today's rule: with a priority chosen, the choice at that priority must exist and, with a division chosen, be that
- * division; with only a division chosen, any choice of it matches. Status and search (name or NIM, any case) apply
- * on top.
+ * With a priority chosen, the choice at that priority must exist and, with a division chosen, be that division; with
+ * only a division chosen, any choice of it matches. Status and search (name or NIM, any case) apply on top.
  */
 export function filterSubmissions(
   subs: readonly InternshipSubmission[],
@@ -254,7 +242,7 @@ export interface StatRow {
   count: number;
 }
 
-/** Today's `InternshipStatsCharts` counts: first choices or all, per department or per division, highest first. */
+/** The statistics' counts: first choices or all, per department or per division, highest first. */
 export function spartaStats(
   subs: readonly InternshipSubmission[],
   divisions: readonly DivisionInfo[],

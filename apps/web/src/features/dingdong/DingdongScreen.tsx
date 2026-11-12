@@ -60,9 +60,8 @@ function CourseRow({ course }: { course: Course }) {
 }
 
 /**
- * Ding Dong (garis/screens-more.js `scrDingdong`): the course folders of this semester's courses, in code order,
- * then Atur mata kuliah. Reads P0-B's current-courses query, which Mata kuliahku refreshes and the device keeps,
- * so the list also opens offline.
+ * Ding Dong: the course folders of this semester's courses, in code order, then Atur mata kuliah. Reads the
+ * current-courses query, which Mata kuliahku refreshes and the device keeps, so the list also opens offline.
  */
 export function DingdongScreen() {
   const courses = useQuery(currentCoursesQuery());

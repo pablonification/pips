@@ -1,6 +1,6 @@
 /**
- * The inbox's data (P3-C): the rooms and unread counts are the member side's (`features/curhat/data.ts`; for Welfare
- * the API sends every room and counts every room). The one write of its own is the pin.
+ * The inbox's data: the rooms and unread counts are the member side's (`features/curhat/data.ts`; for Welfare the API
+ * sends every room and counts every room). The one write of its own is the pin.
  */
 import { useMutation, type QueryClient } from '@tanstack/react-query';
 import { api } from '~/api/client';

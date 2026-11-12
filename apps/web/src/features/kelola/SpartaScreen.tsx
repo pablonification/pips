@@ -54,10 +54,9 @@ import {
 const s = copy.sparta;
 
 /**
- * Data SPARTA Magang (/kelola/sparta). The prototype has no screen (its row only toasts that the data "bisa dilihat
- * dan diekspor"), so this is today's admin page built from Garis parts, for the owner's review (OPEN-QUESTIONS D8):
- * search and filters kept in the URL, Statistik pilihan as CSS bars, a hairline table from 1024 px and labelled rows
- * below, and Export CSV of exactly the rows shown. Every page of submissions is loaded and filtered on the device.
+ * Data SPARTA Magang (/kelola/sparta): search and filters kept in the URL, Statistik pilihan as CSS bars, a hairline
+ * table from 1024 px and labelled rows below, and Export CSV of exactly the rows shown. Every page of submissions is
+ * loaded and filtered on the device.
  */
 export function SpartaScreen({ filters }: { filters: SpartaFilters }) {
   const navigate = useNavigate();
@@ -205,8 +204,8 @@ const URL_PAUSE_MS = 300;
 /**
  * The search box's text, and the URL following it (replace) when typing pauses or the box loses focus, so reload and
  * Back keep the search; a tap on a row blurs the box first. When the URL's query changes from elsewhere (Hapus filter,
- * Back, a link), the box follows it. Regression: writing the URL at every letter re-rendered the whole page per
- * keystroke, which stalled a slow phone (CI's solo check, 2026-11-03).
+ * Back, a link), the box follows it. Writing the URL at every letter would re-render the whole page per keystroke,
+ * which stalls a slow phone.
  */
 function useSearchText(
   urlQ: string | undefined,
@@ -335,7 +334,7 @@ function Toolbar({
   );
 }
 
-/** Statistik pilihan: today's charts as CSS bars, counting what matches the status filter. */
+/** Statistik pilihan: charts as CSS bars, counting what matches the status filter. */
 const Stats = memo(function Stats({
   submissions,
   divisions,
@@ -391,8 +390,8 @@ const Stats = memo(function Stats({
 
 /**
  * The previous list while a new search still matches the same rows ("p", "pe", … "pendaftar " all match every row), so
- * the memoised list below skips its re-render. Regression: each keystroke made a new array, and all 300 rows rendered
- * again on every keystroke (about 55 ms each on a slow phone; CI's solo check, 2026-11-03).
+ * the memoised list below skips its re-render. Without it each keystroke makes a new array, and all 300 rows render
+ * again on every keystroke (about 55 ms each on a slow phone).
  */
 function useSameRows<T>(rows: T[]): T[] {
   const [kept, setKept] = useState(rows);
@@ -406,8 +405,8 @@ type ListProps = {
   divisionById: ReadonlyMap<string, ReturnType<typeof divisionsOf>[number]>;
 };
 
-/** One tree (SPEC "responsive single trees"): the table from 1024 px, labelled rows below. Re-renders only when the
- * rows shown change, not on every keystroke in the search box. */
+/** One tree: the table from 1024 px, labelled rows below. Re-renders only when the rows shown change, not on every
+ * keystroke in the search box. */
 const SubmissionsList = memo(function SubmissionsList(props: ListProps) {
   const desktop = useMediaQuery(DESKTOP_QUERY);
   return desktop ? (
@@ -494,7 +493,7 @@ function SubmissionsRows({ rows, divisionById }: ListProps) {
                 ).map(([label, value]) => (
                   <div key={label}>
                     <dt className="t-cap text-fg-3">{label}</dt>
-                    {/* F2-011: the NIM in tabular figures, as everywhere else. */}
+                    {/* The NIM in tabular figures, as everywhere else. */}
                     <dd className={label === s.nim ? 't-sm num' : 't-sm'}>
                       {value}
                     </dd>

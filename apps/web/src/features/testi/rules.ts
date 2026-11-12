@@ -1,6 +1,5 @@
 /**
- * Testi Matkul's rules (P2-B), from the prototype's `scrTesti`, `testiTitle`, `testiMatches` and today's query
- * mapping. Pure, so `tests/testi-rules.test.ts` checks them without a browser.
+ * Testi Matkul's rules. Pure, so `tests/testi-rules.test.ts` checks them without a browser.
  */
 import type { Course, Testimoni } from '~/api/generated';
 import { fill } from '~/copy/fill';
@@ -22,8 +21,8 @@ export {
 } from './titles';
 
 /**
- * The bug fix: true when "{code} {name}" contains the trimmed query, ignoring case. Today's list lowercased the
- * query and compared it with upper-case codes, so a code never matched.
+ * True when "{code} {name}" contains the trimmed query, ignoring case. Both sides are lower-cased, so a query finds
+ * a code that is stored upper-case.
  */
 export function matchCourse(
   course: Pick<Course, 'code' | 'name'>,
@@ -40,9 +39,9 @@ const byCode = (a: Course, b: Course) =>
   a.code < b.code ? -1 : a.code > b.code ? 1 : 0;
 
 /**
- * Is a course in a list? Today's query mapping: a semester means that programme's mandatory courses of that
- * semester; Pilihan (and Mata Kuliah Umum, which is OTHER's Pilihan) means the programme's electives, whatever
- * semester number the catalogue gives them.
+ * Is a course in a list? A semester means that programme's mandatory courses of that semester; Pilihan (and Mata
+ * Kuliah Umum, which is OTHER's Pilihan) means the programme's electives, whatever semester number the catalogue
+ * gives them.
  */
 export function inList(course: Course, major: Major, key: ListKey): boolean {
   if (course.major !== major) return false;
@@ -62,7 +61,7 @@ export function listCourses(
     .sort(byCode);
 }
 
-/** The start screen's search over the whole catalogue; null while nothing is typed (`testiMatches`). */
+/** The start screen's search over the whole catalogue; null while nothing is typed. */
 export function searchCourses(catalogue: Course[], q: string): Course[] | null {
   if (!q.trim()) return null;
   return catalogue.filter((c) => matchCourse(c, q)).sort(byCode);
@@ -80,13 +79,12 @@ export function courseParams(course: Course) {
   };
 }
 
-/** "3 testimoni" or "Belum ada testimoni" (`testiCourseRow`). */
+/** "3 testimoni" or "Belum ada testimoni". */
 export const countLine = (n: number) =>
   n ? fill(copy.jumlahTestimoni, { jumlah: n }) : copy.belumAdaTestimoni;
 
 /**
- * "3 SKS" above the course name, or nothing when the catalogue has no credits. The page title already is the code
- * (owner, 2026-11-03; it read "IF2110 · 3 SKS" under the title "IF2110").
+ * "3 SKS" above the course name, or nothing when the catalogue has no credits. The page title already is the code.
  */
 export const creditsLine = (course: Pick<Course, 'credits'>) =>
   course.credits == null ? null : fill(copy.sks, { sks: course.credits });
@@ -117,14 +115,14 @@ const STI_FIELDS: [Field, string][] = [
   ['advice', copy.bagian.saran],
 ];
 
-/** A programme's own sections, in order, with their titles: what Tambah testimoni (P3-B) asks for. */
+/** A programme's own sections, in order, with their titles: what Tambah testimoni asks for. */
 export const sectionFields = (major: Major): readonly [Field, string][] =>
   major === 'STI' ? STI_FIELDS : IF_FIELDS;
 
 /**
  * A testimonial's sections: STI courses ask Kesan, Tantangan and Saran; every other programme Overview, Tugas and
- * Review Dosen. Empty ones are left out. Today's app shows every filled field whatever the programme, so the other
- * programme's fields follow the programme's own, and the lecturer comes last as "Dosen" (open questions 3 and 6).
+ * Review Dosen. Empty ones are left out. Every filled field shows whatever the programme, so the other programme's
+ * fields follow the programme's own, and the lecturer comes last as "Dosen".
  */
 export function sections(major: Major, t: Testimoni): Section[] {
   const [own, other] =
@@ -142,7 +140,7 @@ export function sections(major: Major, t: Testimoni): Section[] {
 
 /**
  * The byline: an unnamed author (null, empty or "Anonim") is "Anonim" with "?"; otherwise the name, with the first
- * letters of its first two words, as the prototype does ("Fikri, IF 2023" → "FI").
+ * letters of its first two words ("Dimas Aditya" → "DA").
  */
 export function authorOf(userName: string | null | undefined): {
   name: string;
@@ -161,20 +159,20 @@ export function authorOf(userName: string | null | undefined): {
 }
 
 /**
- * Garis v5's fold (`TESTI_LONG`): a section longer than this runs past six lines even in the widest card, so it folds
- * to six behind "Baca selengkapnya". Shorter text is never folded, so nothing is hidden without a control.
+ * A section longer than this runs past six lines even in the widest card, so it folds to six behind "Baca
+ * selengkapnya". Shorter text is never folded, so nothing is hidden without a control.
  */
 export const TESTI_LONG = 280;
 
 /** Whether a section folds while its card is closed. */
 export const isLong = (text: string) => text.length > TESTI_LONG;
 
-/** How many columns a course page may use (`data-n`): one per testimonial, at most three. */
+/** How many columns a course page may use: one per testimonial, at most three. */
 export const columnsFor = (count: number) => Math.max(1, Math.min(count, 3));
 
 export type Segment = { text: string; href?: string };
 
-/** Text split into plain runs and links, as today's `TestiContent` links URLs (`extractUrls`); line breaks kept. */
+/** Text split into plain runs and links (`extractUrls`); line breaks kept. */
 export function linkSegments(text: string): Segment[] {
   const urls = extractUrls(text);
   if (!urls.length) return [{ text }];

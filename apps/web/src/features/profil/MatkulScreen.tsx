@@ -39,9 +39,8 @@ export function refreshCourses(qc: ReturnType<typeof useQueryClient>) {
 }
 
 /**
- * Profil › Mata kuliahku (garis/screens-more.js `scrMatkul`): the semester, "Dipakai untuk apa?" (open by itself
- * with no courses), a row per course with its remove button, Jumlah SKS and Tambah mata kuliah. Removing is at once,
- * with Urungkan in the toast; this replaces today's swipe and Edit/Save mode.
+ * Profil › Mata kuliahku: the semester, "Dipakai untuk apa?" (open by itself with no courses), a row per course with
+ * its remove button, Jumlah SKS and Tambah mata kuliah. Removing is at once, with Urungkan in the toast.
  */
 export function MatkulScreen() {
   const qc = useQueryClient();
@@ -50,7 +49,7 @@ export function MatkulScreen() {
   const online = useOnline();
   const list = courses.data ?? [];
   // Writes still waiting for the server. The list is fetched again only when the last one answers, so a refetch
-  // never brings back a row whose removal is still on its way (review m2).
+  // never brings back a row whose removal is still on its way.
   const writing = useRef(0);
   const settled = () => {
     writing.current -= 1;
@@ -64,7 +63,7 @@ export function MatkulScreen() {
     el?.focus();
   };
 
-  /** Puts one row back at its place, leaving every other row as it is now (review m2). */
+  /** Puts one row back at its place, leaving every other row as it is now. */
   const putBack = (row: UserCourse, at: number) =>
     qc.setQueryData<UserCourse[]>([CURRENT_COURSES_QUERY_KEY], (cs) => {
       if (!cs || cs.some((c) => c.courseId === row.courseId)) return cs;
@@ -77,8 +76,7 @@ export function MatkulScreen() {
     const at = list.findIndex((c) => c.courseId === row.courseId);
     const next = list[at + 1];
     const code = row.course?.code ?? '';
-    // The row goes at once; focus moves to the next row's remove button, else to Tambah mata kuliah (the
-    // prototype's `rm-course`; review m1).
+    // The row goes at once; focus moves to the next row's remove button, else to Tambah mata kuliah.
     flushSync(() =>
       qc.setQueryData<UserCourse[]>([CURRENT_COURSES_QUERY_KEY], (cs) =>
         cs?.filter((c) => c.courseId !== row.courseId),
@@ -92,7 +90,7 @@ export function MatkulScreen() {
       .then(
         () => true,
         () => {
-          // Only this row comes back: another removal made meanwhile stays (review m2).
+          // Only this row comes back: another removal made meanwhile stays.
           toast.dismiss(shown);
           putBack(row, at);
           toast.error(fill(copy.hapusGagal, { kode: code }));
@@ -100,8 +98,8 @@ export function MatkulScreen() {
         },
       )
       .finally(settled);
-    // The toast with Urungkan shows at once, as the prototype's (review m3). Urungkan pressed before the server
-    // answers waits for the removal, so the PUT never lands before the DELETE.
+    // The toast with Urungkan shows at once. Urungkan pressed before the server answers waits for the removal, so the
+    // PUT never lands before the DELETE.
     const shown = toast.success(fill(copy.dihapus, { kode: code }), {
       action: {
         label: common.komponen.urungkan,

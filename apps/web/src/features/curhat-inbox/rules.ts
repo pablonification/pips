@@ -1,8 +1,8 @@
 /**
- * The Welfare inbox's rules (P3-C), pure so tests/curhat-inbox-rules.test.ts checks them without a browser: who sees
- * it, the order (pinned first, then newest message first, empty rooms last), the search and the Belum dibaca toggle,
- * whose message is whose (`fromOwner` decides the side, `isSender` decides "Kamu"), and what a failed write says.
- * The member side's rules (`features/curhat/rules.ts`) do the rest: names, initials, times, the thread.
+ * The Welfare inbox's rules, pure so tests/curhat-inbox-rules.test.ts checks them without a browser: who sees it, the
+ * order (pinned first, then newest message first, empty rooms last), the search and the Belum dibaca toggle, whose
+ * message is whose (`fromOwner` decides the side, `isSender` decides "Kamu"), and what a failed write says. The member
+ * side's rules (`features/curhat/rules.ts`) do the rest: names, initials, times, the thread.
  */
 import type { Chatroom, ChatroomMessage } from '~/api/generated';
 import { curhat as c } from '~/copy/curhat';
@@ -22,8 +22,6 @@ type WithRoles = Parameters<typeof can>[0];
 
 /** The inbox, its Kelola row and the pin are Welfare's (`curhatadmin`, through the capability map) only. */
 export const mayAnswerCurhat = (user: WithRoles) => can(user, 'respondCurhat');
-
-/* ================= Whose message ================= */
 
 /**
  * Who wrote a message, as Welfare sees it: you, a teammate, or the room's member. The side comes from `fromOwner`
@@ -76,8 +74,6 @@ export function inboxSpeakerSr(m: ThreadMessage, room: string): string {
   return fill(t.ruang.anggotaSr, { nama: room });
 }
 
-/* ================= The list ================= */
-
 export interface InboxFilter {
   /** The search, as typed (trimmed here). */
   q?: string;
@@ -108,7 +104,7 @@ export interface InboxView {
   empty: InboxEmpty | null;
 }
 
-/** The inbox as it shows: the search and the toggle together, pinned rooms first, each part in today's order. */
+/** The inbox as it shows: the search and the toggle together, pinned rooms first, each part newest message first. */
 export function inboxView(
   rooms: Chatroom[],
   filter: InboxFilter,
@@ -128,17 +124,13 @@ export function inboxView(
   return { pinned, rest, empty };
 }
 
-/* ================= Writes ================= */
-
 /**
- * What a failed write says: 401 or 403 is "no access" (the API answers a missing role with 401; P0-B's session check
- * is the only thing that signs anyone out), anything else the general line. Never "signed out".
+ * What a failed write says: 401 or 403 is "no access" (the API answers a missing role with 401; only the session
+ * check signs anyone out), anything else the general line. Never "signed out".
  */
 export function writeFailure(status: number | undefined): 'ditolak' | 'gagal' {
   return status === 401 || status === 403 ? 'ditolak' : 'gagal';
 }
-
-/* ================= Sending ================= */
 
 /** The reply that didn't go through: what it said, what it quoted, and its outbox entry (for the same device id). */
 export interface FailedReply {
@@ -149,9 +141,9 @@ export interface FailedReply {
 
 /**
  * Sending what's in the composer: the same text and quote as the reply that failed go again with its device id
- * (`CurhatClient.retry`), so a reply saved whose acknowledgement was lost is saved once (OPEN-QUESTIONS A11);
- * anything changed is a new message. If the failed entry has left the outbox (a rooms fetch brought the server's
- * copy and settled it, as after a reconnect) or was delivered meanwhile, the server has it: `saved`, send nothing.
+ * (`CurhatClient.retry`), so a reply saved whose acknowledgement was lost is saved once; anything changed is a new
+ * message. If the failed entry has left the outbox (a rooms fetch brought the server's copy and settled it, as after
+ * a reconnect) or was delivered meanwhile, the server has it: `saved`, send nothing.
  */
 export function sendPlan(
   failed: FailedReply | null,
@@ -174,9 +166,6 @@ export const failedWasSaved = (
 ) =>
   !outbox.some((e) => e.localId === failed.localId && e.status !== 'delivered');
 
-/**
- * The inbox draws only what the server saved (SPEC's corrections: no delivery states for Welfare): delivered
- * outbox entries, never Mengirim or Gagal.
- */
+/** The inbox draws only what the server saved (no delivery states for Welfare): delivered outbox entries. */
 export const deliveredOnly = (outbox: readonly OutboxEntry[]) =>
   outbox.filter((e) => e.status === 'delivered');

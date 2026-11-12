@@ -1,9 +1,8 @@
 /**
- * Opening and closing an event (brief item 6). The open event lives in the URL (`acara`, P0-B's param), so reload and
- * shared links reopen it:
+ * Opening and closing an event. The open event lives in the URL (`acara`), so reload and shared links reopen it:
  * - phones and tablets: a sheet over Beranda or Kalender (the page it was opened from); from anywhere else, over
  *   Kalender on the event's day;
- * - desktop: Kalender with the event in its side column, from anywhere (the prototype's `openEvent`).
+ * - desktop: Kalender with the event in its side column, from anywhere.
  * Opening adds a history entry, so Back closes the sheet; closing one opened here goes back, and one that came with
  * the page (a shared link, a reload) is closed in place.
  */
@@ -50,7 +49,7 @@ export function useCloseEvent() {
   const router = useRouter();
   const { pathname } = useLocation();
   return useCallback(
-    /** `then.hari` (P3-B, after Ubah acara on Kalender): close onto that day, replacing the entry instead of going back. */
+    /** `then.hari` (after Ubah acara on Kalender): close onto that day, replacing the entry instead of going back. */
     (id: string, then?: { hari: string }) => {
       if (then) {
         openedHere = null;

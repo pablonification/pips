@@ -22,7 +22,7 @@ import { openInstallSheet } from './install-store';
 
 type Muted = { userId: string; categoryId: string[] };
 
-/** Profil › Notifikasi (garis/screens-more.js `scrNotif`): this device's push card, then a switch per category. */
+/** Profil › Notifikasi: this device's push card, then a switch per category. */
 export function NotifikasiScreen() {
   const qc = useQueryClient();
   const categories = useQuery({
@@ -50,8 +50,8 @@ export function NotifikasiScreen() {
   // Switches still waiting for the server: the list is fetched again only after the last one answers.
   const writing = useRef(0);
 
-  // Optimistic: the switch moves at once; a failure puts only that switch back, with an error toast. Putting back
-  // the whole list as it was would undo another switch changed meanwhile (review m2).
+  // Optimistic: the switch moves at once; a failure puts only that switch back, with an error toast. Putting back the
+  // whole list as it was would undo another switch changed meanwhile.
   const toggle = useMutation({
     mutationFn: ({ row, on }: { row: CategoryRow; on: boolean }) =>
       on

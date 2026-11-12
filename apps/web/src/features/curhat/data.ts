@@ -1,8 +1,8 @@
 /**
- * Curhat's data (P2-C): the rooms (`GET /curhat/chatrooms`, there is no per-room endpoint), the unread counts, and
- * the writes. Everything lives under CHATROOMS_QUERY_KEY, so one refresh renews the rooms and the counts that
- * Beranda's "Balasan baru dari Welfare" (P1-A) and Layanan's count (P1-C) read. None of it is written to the
- * device: CHATROOMS_QUERY_KEY isn't on the persisted list (src/api/persistence-policy.ts; tests/curhat-rules.test.ts).
+ * Curhat's data: the rooms (`GET /curhat/chatrooms`, there is no per-room endpoint), the unread counts, and the
+ * writes. Everything lives under CHATROOMS_QUERY_KEY, so one refresh renews the rooms and the counts that Beranda's
+ * "Balasan baru dari Welfare" and Layanan's count read. None of it is written to the device: CHATROOMS_QUERY_KEY isn't
+ * on the persisted list (src/api/persistence-policy.ts; tests/curhat-rules.test.ts).
  */
 import { useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useSyncExternalStore } from 'react';
@@ -33,8 +33,6 @@ export function useCurhatUnread() {
     total: totalUnread(query.data),
   };
 }
-
-/* ================= The cache ================= */
 
 /** A message (Welfare's reply, or yours once the server saved it) goes into its room, once. */
 export function putMessage(qc: QueryClient, message: ChatroomMessage): boolean {
@@ -69,7 +67,7 @@ export function addRoom(qc: QueryClient, room: Chatroom) {
   );
 }
 
-/** Mark a room read on the server (story 97), clearing its count at once; the counts are then fetched again. */
+/** Mark a room read on the server, clearing its count at once; the counts are then fetched again. */
 export function markRoomRead(qc: QueryClient, chatroomId: string) {
   qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
     rows ? clearUnread(rows, chatroomId) : rows,
@@ -99,8 +97,6 @@ export function receiveMessage(
     );
 }
 
-/* ================= Writes ================= */
-
 export const useCreateRoom = () =>
   useMutation({ mutationFn: () => api.curhat.createChatroom() });
 
@@ -109,8 +105,6 @@ export const useDeleteRoom = () =>
     mutationFn: (chatroomId: string) =>
       api.curhat.deleteChatroom({ chatroomId }),
   });
-
-/* ================= The connection ================= */
 
 /** The area's connection, from the members' Curhat layout or Welfare's inbox (curhat-inbox/Area.tsx); null elsewhere. */
 export const CurhatClientContext = createContext<CurhatClient | null>(null);

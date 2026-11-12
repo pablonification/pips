@@ -1,7 +1,6 @@
 /**
  * Kalender's pieces, shared with Beranda's agenda card: a day's bars, one event row, a day's list, the legend and
- * the event detail (the prototype's `phoneMonth` bars, `agendaRow`, `dayList`, `legend` and `evInfo` in
- * garis/screens-core.js). Styles: kalender.css.
+ * the event detail. Styles: kalender.css.
  */
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
@@ -41,8 +40,8 @@ import { EventOptions } from '~/features/kelola-acara/EventOptions';
 import './kalender.css';
 
 /**
- * Up to three bars for a day's events: solid Akademik, hatched Himpunan. Decorative. Garis v5: a deadline draws as any
- * Akademik event (a full bar), since the app has only those two categories.
+ * Up to three bars for a day's events: solid Akademik, hatched Himpunan. Decorative. A deadline draws as any Akademik
+ * event (a full bar), since the app has only those two categories.
  */
 export function DayBars({ events }: { events: readonly CalEvent[] }) {
   return (
@@ -55,8 +54,8 @@ export function DayBars({ events }: { events: readonly CalEvent[] }) {
 }
 
 /**
- * One event row: start and end, the category bar, the title and its course (`agendaRow`). Garis v5: a deadline shows
- * its one time with nothing under it, and a solid bar like any Akademik event.
+ * One event row: start and end, the category bar, the title and its course. A deadline shows its one time with
+ * nothing under it, and a solid bar like any Akademik event.
  */
 export function AgendaRow({
   event: e,
@@ -189,7 +188,7 @@ export function EventRows({
   );
 }
 
-/** Akademik and Himpunan, with Atur mata kuliah at the end (`legend`; v5 has no "Batas waktu"). */
+/** Akademik and Himpunan, with Atur mata kuliah at the end. */
 export function Legend() {
   return (
     <div className="g-legend">
@@ -209,8 +208,8 @@ export function Legend() {
 }
 
 /**
- * The event detail (`evInfo`): its category (and "Sudah lewat" once ended), course and title, when, the description,
- * Pengingat H-1, then Google Calendar and, for an Akademik event, Ding Dong and Testi Matkul.
+ * The event detail: its category (and "Sudah lewat" once ended), course and title, when, the description, Pengingat
+ * H-1, then Google Calendar and, for an Akademik event, Ding Dong and Testi Matkul.
  */
 export function EventInfo({
   event: e,
@@ -233,7 +232,7 @@ export function EventInfo({
           {himpunan ? t.detail.himpunan : t.detail.akademik}
         </Tag>
         {isEnded(e, now) ? <Tag>{t.detail.sudahLewat}</Tag> : null}
-        {/* P3-B: Ubah acara and Hapus acara, for whoever may manage this category. */}
+        {/* Ubah acara and Hapus acara, for whoever may manage this category. */}
         <EventOptions event={e} />
       </div>
       <div>
