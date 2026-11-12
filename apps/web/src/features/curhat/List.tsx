@@ -4,7 +4,7 @@
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import { ApiError, type Chatroom } from '~/api/generated';
 import {
   Button,
@@ -47,27 +47,10 @@ import {
   unreadSr,
 } from './rules';
 import { wantComposerFocus } from './focus';
+import { useOnline } from '~/hooks/useOnline';
 
 /** Loading placeholders appear only after this long, so a quick answer doesn't flash them. */
 const SKELETON_DELAY_MS = 300;
-
-function subscribeOnline(onChange: () => void) {
-  window.addEventListener('online', onChange);
-  window.addEventListener('offline', onChange);
-  return () => {
-    window.removeEventListener('online', onChange);
-    window.removeEventListener('offline', onChange);
-  };
-}
-
-/** Whether the device says it is online. */
-export function useOnline(): boolean {
-  return useSyncExternalStore(
-    subscribeOnline,
-    () => navigator.onLine,
-    () => true,
-  );
-}
 
 export function useDelayed(active: boolean, ms = SKELETON_DELAY_MS) {
   const [late, setLate] = useState(false);

@@ -19,12 +19,13 @@ import { fill } from '~/copy/fill';
 import { lomba as copy } from '~/copy/lomba';
 import { serviceById } from '~/lib/services';
 import { cn } from '~/lib/utils';
-import { NewTab, useOnline } from '~/features/layanan-svc/parts';
+import { NewTab } from '~/features/layanan-svc/parts';
 import { LombaOptions, useTambahLomba } from '~/features/kelola-lomba/Manage';
 import { offlineUpdatedAt } from '~/features/layanan-svc/updated';
 import { deadlineLine, isOpen, isUrgent, rupiah, withScheme } from './rules';
 import { competitionsQuery } from './queries';
 import { Poster, usePosterViewer, type Viewing } from './Poster';
+import { useOnline } from '~/hooks/useOnline';
 
 /**
  * One competition: its poster, then the name, organiser, categories, the deadline and fee, and Daftar and Sumber at

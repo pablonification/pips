@@ -51,7 +51,6 @@ import {
   useEvent,
   useMonthsEvents,
   useNow,
-  useOnline,
 } from './data';
 import { DeskPickContext } from './desk-pick';
 import { EventSheet } from './EventSheet';
@@ -70,6 +69,7 @@ import {
   type CalEvent,
   type DeskPick,
 } from './rules';
+import { useOnline } from '~/hooks/useOnline';
 
 // Monday first: Sen … Min.
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0].map((d) => tanggal.hariPendek[d]);

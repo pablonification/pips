@@ -16,8 +16,8 @@ import { fill } from '~/copy/fill';
 import { clockWhen, shortWhen } from '~/lib/form/format';
 import { statusShown } from '~/lib/form/rules';
 import { serviceById } from '~/lib/services';
-import { useOnline } from './data';
 import '~/styles/garis/form.css';
+import { useOnline } from '~/hooks/useOnline';
 
 /** The card's last line: "5 bagian", or when it opens or closed. */
 function caption(f: FormListItem) {

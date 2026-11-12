@@ -38,6 +38,18 @@ export function hm(d: DateLike) {
   return `${pad(w.hours)}.${pad(w.minutes)}`;
 }
 
+/** "12.30", formatted by the browser in the Asia/Jakarta zone: the "diperbarui" time of an offline banner. */
+export function jamWib(ms: number) {
+  return new Intl.DateTimeFormat('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Jakarta',
+  })
+    .format(new Date(ms))
+    .replace(':', '.');
+}
+
 /** "Kamis, 8 Oktober" */
 export function dLong(d: DateLike) {
   const w = wib(d);

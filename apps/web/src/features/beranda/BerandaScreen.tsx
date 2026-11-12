@@ -59,7 +59,6 @@ import {
   useDelayed,
   useMonthsEvents,
   useNow,
-  useOnline,
   type MonthsState,
 } from '~/features/kalender/data';
 import { EventSheet } from '~/features/kalender/EventSheet';
@@ -93,6 +92,7 @@ import {
   type AttentionItem,
 } from './rules';
 import './beranda.css';
+import { useOnline } from '~/hooks/useOnline';
 
 interface BerandaSearch {
   hari?: string;

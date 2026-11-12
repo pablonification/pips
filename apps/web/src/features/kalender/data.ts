@@ -9,13 +9,7 @@ import {
   useQueryClient,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '~/api/client';
 import { CALENDAR_EVENTS_QUERY_KEY } from '~/api/constants';
 import { ApiError, type CalendarEvent } from '~/api/generated';
@@ -124,23 +118,6 @@ export function useEvent(
     !event && q.error instanceof ApiError && q.error.status === 404;
   return { event, missing, loading: !event && q.isFetching };
 }
-
-const onlineSubscribe = (cb: () => void) => {
-  window.addEventListener('online', cb);
-  window.addEventListener('offline', cb);
-  return () => {
-    window.removeEventListener('online', cb);
-    window.removeEventListener('offline', cb);
-  };
-};
-
-/** Whether the browser is online. */
-export const useOnline = () =>
-  useSyncExternalStore(
-    onlineSubscribe,
-    () => navigator.onLine,
-    () => true,
-  );
 
 /** The time now, renewed every minute, so ended events fade and "hari ini" moves at midnight. */
 export function useNow(): number {
