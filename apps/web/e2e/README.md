@@ -132,6 +132,7 @@ api.socket.answer('message', () => undefined); // hold acknowledgements back (a 
 api.socket.ack(api.socket.emitted('message')[0], { ok: true, message }); // answer a held one by hand
 api.socket.answerAsApi('message'); // answer as the API again
 api.socket.drop();     // the connection drops; reconnects fail until api.socket.restore()
+api.socket.hold();     // new connections wait at the handshake (api.socket.heldHandshakes) until api.socket.release()
 ```
 
 The app waits 10 s for an acknowledgement; move the clock with `page.clock.fastForward()` instead of waiting.
