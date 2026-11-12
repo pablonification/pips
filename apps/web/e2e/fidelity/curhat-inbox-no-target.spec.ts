@@ -4,7 +4,7 @@
  * Raka with `curhatadmin` is the Welfare member. Runs only with E2E_NO_TARGET_DIR set (the fidelity report skips
  * it); use the absolute path, since a relative one ends up under `wt/ops/` from a worktree:
  *
- *   E2E_PORT=4480 E2E_NO_TARGET_DIR=/Users/macbook/Documents/coding/hmif-app/ops/redesign/proposals/P3-C \
+ *   E2E_PORT=4480 E2E_NO_TARGET_DIR=<absolute path of a folder for the captures> \
  *     pnpm exec playwright test -c e2e e2e/fidelity/curhat-inbox-no-target.spec.ts \
  *     --project=fidelity-phone-light --project=fidelity-phone-dark --project=fidelity-tablet-light \
  *     --project=fidelity-tablet-dark --project=fidelity-desk-light --project=fidelity-desk-dark
