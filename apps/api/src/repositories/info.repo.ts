@@ -96,9 +96,6 @@ export function infoRelations(userId: string) {
   } as const;
 }
 
-/**
- * Create an info.
- */
 export async function createInfo(
   db: Database,
   data: Omit<
@@ -112,7 +109,7 @@ export async function createInfo(
   forGroups: z.infer<typeof CreateInfoBodySchema.shape.forGroups>,
 ) {
   // Who may post in each category is checked before this (checkPostCategories in the controller).
-  // transaction drizzle auto rollback kalo error
+  // Any error rolls the whole transaction back.
   return await db.transaction(async (tx) => {
     const isForAngkatan = forAngkatan !== undefined && forAngkatan.length > 0;
     const isForCourses =
@@ -129,7 +126,6 @@ export async function createInfo(
       .returning()
       .then(firstSure);
 
-    // Attach categories to the info with InfoCategory
     await createInfoCategory(
       tx,
       forCategories.map((categoryId) => ({
@@ -138,7 +134,6 @@ export async function createInfo(
       })),
     );
 
-    // If mediaUrls is supplied, then create those Media and attach them to the info with InfoMedia
     if (mediaUrls && mediaUrls.length > 0) {
       const newMedias = await createMediasFromUrl(
         tx,
@@ -156,7 +151,6 @@ export async function createInfo(
       );
     }
 
-    // If forAngkatan is supplied, then attach angkatan to the info with InfoAngkatan
     if (forAngkatan && forAngkatan.length > 0) {
       await createInfoAngkatan(
         tx,
@@ -166,7 +160,6 @@ export async function createInfo(
         })),
       );
     } else if (forCourses && forCourses.length > 0) {
-      // If forCourses is supplied, then attach courses to the info with InfoCourses
       await createInfoCourses(
         tx,
         forCourses.map((course) => ({
@@ -176,9 +169,7 @@ export async function createInfo(
         })),
       );
     } else if (forGroups && forGroups.length > 0) {
-      // can only either one of forCourses or forGroups
-
-      // check if roles is valid
+      // A post is for courses or for groups, never both; every group must be a real role.
       if (
         forGroups.some((role) => !rolesEnums.includes(role as UserRolesEnum))
       ) {
@@ -385,7 +376,7 @@ async function getFeedAudienceQuery(
 }
 
 /**
- * Tandai semua dibaca (owner, 2026-11-06): marks read, for the member, every post their feed shows, in one statement.
+ * Tandai semua dibaca marks read, for the member, every post their feed shows, in one statement.
  * Posts already read stay as they were. Returns how many were marked now.
  */
 export async function markAllInfosRead(
@@ -455,7 +446,6 @@ export async function getInfoById(
 
   if (!info) return info;
 
-  // If user is found, then add reactions to the object
   const reactions = await getReactions(db, { infoIds: [info.id] }, userId);
   return {
     ...info,
@@ -497,9 +487,6 @@ export async function notifyNewInfo(
       eq(count(userUnsubscribeCategories.categoryId), forCategories.length),
     )
     .then((res) => res.map((r) => r.userId));
-
-  // add self
-  // unsubs.push(info.creatorId);
 
   if (forCourses && forCourses.length > 0) {
     const { semesterCodeTaken, semesterYearTaken } =
@@ -564,7 +551,6 @@ export async function notifyNewInfo(
     return;
   }
 
-  // Send notification to all users
   await sendNotificationToAll(
     subscriptions,
     {
@@ -611,11 +597,8 @@ export async function claimRenotify(
 }
 
 /**
- * Renotifies info to subscribed user. No validation whether the info is already notified or not: claim it first
+ * Pushes a post again to its subscribed members. It doesn't check whether the post may be re-sent: claim it first
  * (`claimRenotify`).
- *
- * @param db Database
- * @param info Info to be renotified
  */
 export async function renotifyInfo(
   db: Database,

@@ -6,11 +6,9 @@ import postgres from 'postgres';
 /**
  * Brings drizzle's record of applied migrations back in step with its id counter, before migrating.
  *
- * Production's database had two migrations (0022, 0023) recorded by hand with explicit ids, so its counter stayed
- * behind the rows (24 rows, counter at 22). drizzle then gives the next record an id that already exists, and the
- * whole migration fails with "Key (id)=(23) already exists". Moving the counter to the highest id is harmless
- * everywhere else: on a database already in step it changes nothing that matters, and on a new one the table
- * doesn't exist yet.
+ * Production's database has two migrations (0022, 0023) recorded by hand with explicit ids, so its counter is
+ * behind the rows. drizzle then gives the next record an id that already exists and the migration fails with "Key
+ * (id)=(23) already exists". Moving the counter to the highest id changes nothing on a database already in step.
  */
 async function alignMigrationIds(sql: postgres.Sql) {
   const [table] = await sql<

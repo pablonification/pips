@@ -778,7 +778,7 @@ export const chatroomMessages = pgTable(
       .defaultNow(),
     /**
      * The id the sender's device gave the message (a UUID), so a resend after a lost acknowledgement is matched to the
-     * saved message instead of saved twice (P2-C). Null for messages from older clients.
+     * saved message instead of saved twice. Null for messages from older clients.
      */
     clientMessageId: text('client_message_id'),
   },
@@ -1192,8 +1192,7 @@ export const forms = pgTable('forms', {
 export type Form = InferSelectModel<typeof forms>;
 
 /**
- * Seasonal programmes and campaigns the app points members to while they're open (SPEC "Service registry,
- * programme windows and campaigns"). Open while is_active, from opens_at until closes_at (null: until switched
+ * Seasonal programmes and campaigns the app points members to while they're open. Open while is_active, from opens_at until closes_at (null: until switched
  * off); for everyone when both eligibility lists are empty, otherwise a listed angkatan or NIM.
  */
 export const programmeWindows = pgTable('programme_windows', {

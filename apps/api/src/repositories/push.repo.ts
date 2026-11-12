@@ -92,10 +92,7 @@ export function goneEndpoints(
 }
 
 /**
- * Remove push subscriptions that are gone (`goneEndpoints`).
- * @param db
- * @param results results from sendNotificationToAll
- * @returns
+ * Removes the push subscriptions that are gone (`goneEndpoints`), given the results of `sendNotificationToAll`.
  */
 export async function removeFailedPushSubscriptions(
   db: Database,

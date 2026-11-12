@@ -11,10 +11,7 @@ import {
   UpdateCourseSchema,
 } from '~/types/course.types';
 
-// User Course Repository
-
 export function getCurrentSemesterCodeAndYear() {
-  // Get current time to determine semester code and year
   const timeNow = new Date();
   const currentMonth = timeNow.getMonth();
   const currentYear = timeNow.getFullYear();
@@ -80,7 +77,7 @@ export function batchUpsertUserCourseQuery(
     .onConflictDoUpdate({
       target: [userCourses.userId, userCourses.courseId],
       // A course taken in an earlier semester and added again moves to this semester, so it shows in this
-      // semester's courses and leaves the catalogue (OPEN-QUESTIONS C2). The row is one per member and course.
+      // semester's courses and leaves the catalogue The row is one per member and course.
       set: {
         class: sql`excluded.class`,
         semesterCodeTaken: sql`excluded.semester_code_taken`,
@@ -157,8 +154,6 @@ export async function deleteUserCourse(
   return userCourseList;
 }
 
-// Course Repository
-
 export async function getListCourses(
   db: Database,
   q: z.infer<typeof ListCourseParamsSchema>,
@@ -170,8 +165,8 @@ export async function getListCourses(
   const semesterQ =
     q.semester !== undefined
       ? q.semester > 0
-        ? eq(courses.semester, q.semester) // Kalo nilainya angka sem normal, ya query di semester itu aja
-        : isNull(courses.semester) // Kalo nilianya 0, berarti bisa diambil di semua semester
+        ? eq(courses.semester, q.semester) // a regular semester: that semester only
+        : isNull(courses.semester) // 0: courses that can be taken in any semester
       : undefined;
   const typeQ = q.type ? eq(courses.type, q.type) : undefined;
   const sksQ = q.credits ? eq(courses.credits, q.credits) : undefined;
@@ -189,7 +184,8 @@ export async function getListCourses(
       )
     : undefined;
 
-  const onlyActive = eq(courses.isActive, true); // Only fetch active courses, disallow fetch for unavailable (kur2019)
+  // Only active courses: ones no longer offered (kur2019) are never listed.
+  const onlyActive = eq(courses.isActive, true);
 
   const where = and(
     curriculumYearQ,

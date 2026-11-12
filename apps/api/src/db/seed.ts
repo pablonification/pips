@@ -367,14 +367,6 @@ export async function runRolesGroupSeed() {
 
 async function runAllSeeds() {
   try {
-    // await runAngkatanSeed();
-    // await runUserSeed();
-    // await runCourses();
-    // await new Promise((resolve) => setTimeout(resolve, 6000));
-    // await runTestimoniSeed('testimoni-if.csv');
-    // await runTestimoniSeed('testimoni-sti.csv');
-    // await runCalendarSeed();
-    // await runRolesGroupSeed();
     await runPixelFormSeed(db);
   } catch (error) {
     console.log(error);
