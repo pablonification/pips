@@ -1,5 +1,5 @@
 /**
- * Tandai semua dibaca (owner, 2026-11-06: "ADD way to mark all as read"): beside Belum dibaca while anything is
+ * Tandai semua dibaca: beside Belum dibaca while anything is
  * unread, on phones, tablets and desktop in light and dark. One request; the count, the navigation badge and the list
  * follow; a failure says so with Coba lagi.
  */

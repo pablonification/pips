@@ -1,7 +1,7 @@
 /**
- * Global search's sources (P1-A): Tindakan and Pintasan to start, Kalender and Mata kuliah from the device's data,
+ * Global search's sources: Tindakan and Pintasan to start, Kalender and Mata kuliah from the device's data,
  * Pengumuman and Orang from the API from 3 characters, the theme and notification actions, the empty result, the
- * keyboard, and a failing API leaving the local groups. P0-C's journeys (shell.spec.ts) cover the palette itself.
+ * keyboard, and a failing API leaving the local groups. shell.spec.ts covers the palette itself.
  */
 import type { Page } from '@playwright/test';
 import type { CalendarEvent } from '../../src/api/generated';
@@ -88,7 +88,7 @@ test.describe('Raka', () => {
     page,
     db,
   }, testInfo) => {
-    // P3-B's add-event flow added Kuis 2 for IF3170 on 13 Oktober, 13.00–15.00 (the locked i-palette capture).
+    // The add-event flow added Kuis 2 for IF3170 on 13 Oktober, 13.00–15.00.
     db.events.push(
       event(
         'b10',
@@ -334,7 +334,7 @@ test('nothing found says so; a failing API leaves the local groups', async ({
   expect(await groups(page)).not.toContain('Orang');
 });
 
-test('regression (F2-001, F1-1): a search with no result passes axe, with the field still naming its list', async ({
+test('a search with no result passes axe, with the field still naming its list', async ({
   page,
 }, testInfo) => {
   await openSearch(page);
