@@ -303,7 +303,8 @@ export function visibleServices(
 }
 
 /**
- * A member service global search leaves out for whoever sees the Kelola row that replaces it: for Welfare, "Curhat Yuk!" leads to the inbox, which the Kelola row "Balas ruang curhat anggota" already finds,
+ * A member service global search leaves out for whoever sees the Kelola row that replaces it: for Welfare, "Curhat
+ * Yuk!" leads to the inbox, which the Kelola row "Balas ruang curhat anggota" already finds,
  * so search shows it once. Layanan and Beranda keep the member row.
  */
 const SEARCH_REPLACED_BY: Partial<Record<ServiceId, ServiceId>> = {

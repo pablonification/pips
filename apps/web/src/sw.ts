@@ -15,7 +15,8 @@ declare let self: ServiceWorkerGlobalScope;
 
 /*
  * What this service worker keeps:
- * - the precache: the app shell and every route chunk (vite.config.ts `injectManifest`); hashed file names, so an update downloads only the chunks that changed;
+ * - the precache: the app shell and every route chunk (vite.config.ts `injectManifest`); hashed file names, so an
+ *   update downloads only the chunks that changed;
  * - an app-shell fallback: any navigation in the app gets index.html, so the installed app opens offline;
  * - a bounded cache for same-origin images only. Nothing else, so no catch-all asset cache grows forever.
  */
