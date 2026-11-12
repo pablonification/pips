@@ -9,7 +9,7 @@ import path from 'node:path';
 import { BUDGETS, KIB, measureBuild, overBudget } from './lib/budgets.mjs';
 
 const dist = path.resolve(import.meta.dirname, '../dist');
-if (!fs.existsSync(path.join(dist, '.vite/manifest.json'))) {
+if (!fs.existsSync(path.join(`${dist}-meta`, 'manifest.json'))) {
   console.error(
     'budgets: no build in apps/web/dist; run `pnpm --filter web build` first',
   );

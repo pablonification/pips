@@ -166,3 +166,38 @@ test('budgets are strict by default since C1; BUDGETS_STRICT=0 is warn mode', as
   );
   assert.match(script, /process\.env\.BUDGETS_STRICT !== '0'/);
 });
+
+test('a build is measured from dist-meta/, beside it: the served folder carries no manifest', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const { measureBuild } = await import('../scripts/lib/budgets.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pips-budgets-'));
+  const dist = path.join(root, 'dist');
+  fs.mkdirSync(path.join(dist, 'assets'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'dist-meta'));
+  fs.writeFileSync(path.join(dist, 'assets/index.js'), 'console.info(1)');
+  fs.writeFileSync(path.join(dist, 'index.html'), '<div id="root"></div>');
+  fs.writeFileSync(
+    path.join(dist, 'sw.js'),
+    'precacheAndRoute([{url:"index.html",revision:"1"}])',
+  );
+  fs.writeFileSync(
+    path.join(root, 'dist-meta/manifest.json'),
+    JSON.stringify({
+      'index.html': { file: 'assets/index.js', isEntry: true },
+      'src/routes/login/index.tsx?tsr-split=component': {
+        file: 'assets/index.js',
+      },
+    }),
+  );
+  fs.writeFileSync(
+    path.join(root, 'dist-meta/chunk-modules.json'),
+    JSON.stringify({ 'assets/index.js': ['npm:react'] }),
+  );
+  const result = measureBuild(dist);
+  assert.deepEqual(
+    result.routes.map((r) => [r.route, r.packages]),
+    [['/login', ['react']]],
+  );
+});
