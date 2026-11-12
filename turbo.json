@@ -14,7 +14,8 @@
         ".env*"
       ],
       "outputs": [
-        "dist/**"
+        "dist/**",
+        "dist-meta/**"
       ]
     },
     "check": {

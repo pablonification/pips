@@ -3,6 +3,7 @@ import { useRouter } from '@tanstack/react-router';
 import { createContext, useEffect } from 'react';
 import { UserWithRoles } from '~/api/generated';
 import { common } from '~/copy/common';
+import { registerExistingPushOnce, unlinkPushAtLogout } from '~/lib/push';
 import { loginSearch } from '~/lib/safe-redirect';
 import {
   fetchSession,
@@ -30,15 +31,17 @@ export default function SessionProvider({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { data, failureCount, refetch } = useQuery({
-    queryKey: ['me'],
-    queryFn: fetchSession,
-    retry: sessionRetry,
-    retryDelay: sessionRetryDelay,
-    // Once per visit, even when the cache restored from the device is under a minute old: a session revoked
-    // since then must not leave the previous member's data on screen.
-    refetchOnMount: 'always',
-  });
+  const { data, failureCount, refetch, isFetchedAfterMount, status } = useQuery(
+    {
+      queryKey: ['me'],
+      queryFn: fetchSession,
+      retry: sessionRetry,
+      retryDelay: sessionRetryDelay,
+      // Once per visit, even when the cache restored from the device is under a minute old: a session revoked
+      // since then must not leave the previous member's data on screen.
+      refetchOnMount: 'always',
+    },
+  );
 
   useEffect(() => {
     if (data !== undefined) {
@@ -47,17 +50,24 @@ export default function SessionProvider({
     // Signed out by the server: nothing of this user's stays on the device, and sign-in brings them back here.
     // Navigated once, from an effect: a <Navigate> with a fresh `search` object re-navigates on every render.
     if (data === null) {
+      const chosen = takeChosenSignOut();
+      // Keluar has unlinked this device already; a session the server ended unlinks it here, so the member's
+      // notifications stop coming to a device they are no longer signed in on.
+      if (!chosen) void unlinkPushAtLogout();
       void forgetMemberOnDevice();
       void router.navigate({
         to: '/login',
         // Keluar goes to plain sign-in: the next member starts on Beranda, not on this page.
-        search: takeChosenSignOut()
-          ? {}
-          : loginSearch(router.state.location.href),
+        search: chosen ? {} : loginSearch(router.state.location.href),
         replace: true,
       });
     }
   }, [data, router]);
+
+  const confirmed = !!data && isFetchedAfterMount && status === 'success';
+  useEffect(() => {
+    if (confirmed) registerExistingPushOnce();
+  }, [confirmed]);
 
   if (data === null) return null;
 

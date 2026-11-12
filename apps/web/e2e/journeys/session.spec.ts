@@ -1,8 +1,11 @@
 import { withoutPicture } from '../fixtures/api';
 import { greeting, inMain, navLink } from '../support/app';
+import { fakeGoogle, googleRequests } from '../support/google';
 import { reply } from '../support/mock';
+import { E2E_SUBSCRIPTION, pushDevice } from '../support/push';
 import { strictAudit } from '../support/strict';
 import { expect, test } from '../support/test';
+import * as writes from '../support/writes';
 
 /*
  * Session resilience (SPEC "Session, persistence and resilience"): only a 401 from the session check signs a
@@ -36,6 +39,54 @@ const storedCache = (page: Page) =>
           get.onsuccess = () => {
             resolve(get.result ?? null);
             db.close();
+          };
+        };
+      }),
+  );
+
+/** How many things shared to PIPS! wait on the device for Buat pengumuman. */
+const sharedRecords = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<number>((resolve, reject) => {
+        const req = indexedDB.open('SharedContentDB', 1);
+        req.onupgradeneeded = () =>
+          req.result.createObjectStore('sharedContent', { keyPath: 'id' });
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => {
+          const count = req.result
+            .transaction('sharedContent')
+            .objectStore('sharedContent')
+            .count();
+          count.onsuccess = () => {
+            req.result.close();
+            resolve(count.result);
+          };
+        };
+      }),
+  );
+
+/** Something shared to PIPS! and not posted yet, as the share target leaves it. */
+const leaveShared = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const req = indexedDB.open('SharedContentDB', 1);
+        req.onupgradeneeded = () =>
+          req.result.createObjectStore('sharedContent', { keyPath: 'id' });
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => {
+          const tx = req.result.transaction('sharedContent', 'readwrite');
+          tx.objectStore('sharedContent').put({
+            id: 'data',
+            title: 'Catatan Nadia',
+            text: 'Belum selesai ditulis.',
+            url: '',
+            images: [],
+          });
+          tx.oncomplete = () => {
+            req.result.close();
+            resolve();
           };
         };
       }),
@@ -298,6 +349,8 @@ test('logging out never asks for notification permission, and clears what was ke
     .not.toBeNull();
   await expectCacheWritten(page);
   await page.goto('/profil');
+  await leaveShared(page);
+  expect(await sharedRecords(page)).toBe(1);
   // P1-C: Profil's Keluar, then its confirmation (today's "Log out" button is gone).
   await page.getByRole('main').getByRole('button', { name: 'Keluar' }).click();
   await page
@@ -314,4 +367,71 @@ test('logging out never asks for notification permission, and clears what was ke
     ),
   ).toBe(0);
   await expectNothingKept(page);
+  // What Nadia shared to PIPS! and didn't post would open in the next member's Buat.
+  expect(await sharedRecords(page)).toBe(0);
+});
+
+test.describe('signed out, with something shared to PIPS!', () => {
+  test.use({ persona: 'pengurus', signedIn: false });
+
+  test('what was shared while signed out opens in Buat after sign-in', async ({
+    page,
+    api,
+  }) => {
+    await fakeGoogle(page.context());
+    // On a slow device Buat's screen can start before its route's enter hook, which then emptied what the screen had
+    // just filled in. A slowed CPU makes that order likely.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
+    await page.goto('/pengumuman/tulis');
+    await expect(page).toHaveURL(/\/login\?redirect=/);
+    await leaveShared(page);
+    api.on('POST /api/auth/login/accesstoken', writes.loginAccessToken);
+    await expect
+      .poll(async () => (await googleRequests(page)).clients.length)
+      .toBe(1);
+    await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+    await expect(page).toHaveURL(/\/pengumuman\/tulis$/);
+    await expect(page.getByRole('textbox', { name: /^Judul/ })).toHaveValue(
+      'Catatan Nadia',
+    );
+  });
+});
+
+test.describe('a device with notifications on', () => {
+  test.use({ push: 'on' });
+
+  test('each start tells the server about its subscription once, asking nothing', async ({
+    page,
+    api,
+  }) => {
+    const registered = () => api.calls('POST /api/push/register');
+    await page.goto('/');
+    await expect(greeting(page)).toBeVisible();
+    await expect.poll(() => registered().length).toBe(1);
+    expect(registered()[0].body).toEqual(E2E_SUBSCRIPTION);
+    await navLink(page, 'Pengumuman').click();
+    await expect(page).toHaveURL(/\/pengumuman$/);
+    await page.waitForTimeout(500);
+    expect(registered()).toHaveLength(1);
+    await page.reload();
+    await expect(navLink(page, 'Pengumuman')).toBeVisible();
+    await expect.poll(() => registered().length).toBe(2);
+    expect((await pushDevice(page)).asks).toBe(0);
+  });
+
+  test('a session the server ended unlinks the device, as Keluar does', async ({
+    page,
+    api,
+  }) => {
+    api.on('GET /api/me', reply.status(401, { error: 'Unauthorized' }));
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/login(\?|$)/);
+    await expect.poll(() => api.calls('PUT /api/push/logout').length).toBe(1);
+    expect(api.calls('PUT /api/push/logout')[0].body).toEqual({
+      endpoint: E2E_SUBSCRIPTION.endpoint,
+    });
+    expect(api.calls('POST /api/push/register')).toHaveLength(0);
+    expect((await pushDevice(page)).asks).toBe(0);
+  });
 });

@@ -5,6 +5,7 @@ import { User, UserWithRoles } from '~/api/generated';
 import { forgetShell } from '~/components/shell/shell-state';
 import { forgetMember } from './forget-member';
 import { deleteAllDrafts } from './form/draft-store';
+import { deleteSharedData } from './share-db';
 import { isSignedOutError } from './session-policy';
 
 export { sessionRetry, sessionRetryDelay } from './session-policy';
@@ -25,13 +26,18 @@ export function takeChosenSignOut() {
   return chosen;
 }
 
-export function forgetMemberOnDevice() {
+export function forgetMemberOnDevice({
+  keepSharedContent = false,
+}: { keepSharedContent?: boolean } = {}) {
   return forgetMember({
     queryClient,
     removePersisted: clearPersistedQueries,
     storage: localStorage,
     forgetShell,
     removeFormDrafts: deleteAllDrafts,
+    removeSharedContent: keepSharedContent
+      ? undefined
+      : () => deleteSharedData().catch(() => undefined),
   });
 }
 

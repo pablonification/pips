@@ -60,10 +60,9 @@ jobs:
       # SPEC says (C1).
       - name: Production bundle, precache and service worker
         run: node apps/web/scripts/verify-production-bundle.mjs apps/web/dist
-      # SPEC's budgets: per-route JS, precache and fonts. Warn mode (BUDGETS_STRICT=0) while every route's first JS is
-      # still over 150 KiB (C1 report, "Needs Dev 1"); drop it to make the step fail over budget.
+      # Per-route JS before first render (capped at 205 KiB), precache and fonts; fails over budget.
       - name: Budgets
-        run: BUDGETS_STRICT=0 pnpm --filter web budgets
+        run: pnpm --filter web budgets
 
   api-db:
     name: api database tests
@@ -118,8 +117,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Both images build from the repository root, as Dokploy will build them.
+      # Placeholder addresses, so the content policy has an API, a file store and Sentry to name.
       - name: Build the web image
-        run: docker build -f apps/web/Dockerfile -t pips-web .
+        run: |
+          docker build -f apps/web/Dockerfile -t pips-web \
+            --build-arg VITE_API_URL=https://api.pips.test \
+            --build-arg VITE_MEDIA_URL=https://media.pips.test \
+            --build-arg VITE_SENTRY_DSN=https://key@o1.ingest.sentry.io/1 .
       - name: Build the api image
         run: docker build -f apps/api/Dockerfile -t pips-api .
       - name: The web image serves index.html, also for app routes
@@ -129,13 +133,38 @@ jobs:
           curl -fsS http://127.0.0.1:3000/ | grep -q '<div id="root">'
           curl -fsS http://127.0.0.1:3000/home | grep -q '<div id="root">'
           curl -fsS -o /dev/null http://127.0.0.1:3000/manifest.webmanifest
-          # The same headers as the Vercel deployment: every response is revalidated, so after a deploy no browser
-          # keeps an index.html that points at scripts the new image no longer has.
+          curl -fsS http://127.0.0.1:3000/pengumuman | grep -q '<div id="root">'
+          # Every response is revalidated, so after a deploy no browser keeps an index.html that points at scripts the
+          # new image no longer has; and every response carries the protective headers.
           for path in / /home /sw.js "/assets/$(docker exec web ls /srv/assets | grep -m1 '\.js$')"; do
             headers="$(curl -fsSI "http://127.0.0.1:3000$path")"
             grep -qi '^cache-control: public, max-age=0, must-revalidate' <<<"$headers"
             grep -qi '^document-policy: js-profiling' <<<"$headers"
+            grep -qi '^x-content-type-options: nosniff' <<<"$headers"
+            grep -qi '^referrer-policy: strict-origin-when-cross-origin' <<<"$headers"
+            grep -qi '^x-frame-options: DENY' <<<"$headers"
           done
+      - name: The web image sends its content policy, compresses, and answers a missing file with 404
+        run: |
+          csp="$(curl -fsSI http://127.0.0.1:3000/ | grep -i '^content-security-policy-report-only:')"
+          echo "$csp"
+          for source in "frame-ancestors 'none'" "'sha256-" https://api.pips.test wss://api.pips.test \
+            https://media.pips.test https://o1.ingest.sentry.io https://accounts.google.com/gsi/client; do
+            grep -qF "$source" <<<"$csp"
+          done
+          # The entry script, as index.html names it, comes compressed.
+          html="$(curl -fsS http://127.0.0.1:3000/)"
+          entry="$(grep -o -m1 'src="/assets/[^"]*\.js"' <<<"$html" | cut -d'"' -f2)"
+          test -n "$entry"
+          for encoding in gzip zstd; do
+            headers="$(curl -fsS -H "Accept-Encoding: $encoding" -D - -o /dev/null "http://127.0.0.1:3000$entry")"
+            grep -qi "^content-encoding: $encoding" <<<"$headers"
+          done
+          # A file that isn't in the build is a 404, not the app's page; build metadata isn't served.
+          for path in /assets/x.js /assets/x /x.png /.vite/manifest.json /chunk-modules.json; do
+            test "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:3000$path")" = 404
+          done
+          test "$(docker exec web find /srv -name '.vite' -o -name '*.map' | wc -l)" = 0
       - name: The api image starts and serves until it needs its database
         run: |
           # Placeholder settings only: nothing here is a real secret, and the database address leads nowhere.

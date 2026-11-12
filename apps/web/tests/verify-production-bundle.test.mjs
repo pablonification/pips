@@ -5,7 +5,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { verify } from '../scripts/verify-production-bundle.mjs';
+import {
+  buildToolsInDependencies,
+  verify,
+} from '../scripts/verify-production-bundle.mjs';
 
 /** A minimal production build: the shell, one route chunk, the logo, a manifest icon and a service worker. */
 const CLEAN_SW = [
@@ -129,4 +132,84 @@ test('the service worker fails without its fallback, image bound, push, clicks o
     /a catch-all asset cache/,
   );
   assert.match(verify(build({ 'sw.js': null })).join(), /no service worker/);
+});
+
+test('build metadata fails: a dot folder such as .vite, or chunk-modules.json', () => {
+  assert.match(
+    verify(build({ '.vite/manifest.json': '{}' })).join(),
+    /\.vite\/manifest\.json: build metadata/,
+  );
+  assert.match(
+    verify(build({ 'chunk-modules.json': '{}' })).join(),
+    /chunk-modules\.json: build metadata/,
+  );
+});
+
+test('a script or style that points at a source map fails', () => {
+  assert.match(
+    verify(
+      build({
+        'assets/index-a.js':
+          'console.info("app")\n//# sourceMappingURL=index-a.js.map\n',
+      }),
+    ).join(),
+    /assets\/index-a\.js: points at a source map/,
+  );
+  assert.match(
+    verify(
+      build({ 'assets/index-a.css': 'a{}\n/*# sourceMappingURL=x.css.map */' }),
+    ).join(),
+    /assets\/index-a\.css: points at a source map/,
+  );
+});
+
+test('index.html with a comment naming a work item fails', () => {
+  assert.match(
+    verify(
+      build({
+        'index.html':
+          '<!doctype html><!-- Theme before first paint (P0-A) --><div id="root"></div>',
+      }),
+    ).join(),
+    /index\.html: a comment names a work item \(P0-A\)/,
+  );
+  assert.deepEqual(
+    verify(
+      build({
+        'index.html':
+          '<!doctype html><!-- Theme before first paint --><div id="root"></div>',
+      }),
+    ),
+    [],
+  );
+});
+
+test('build tools listed as runtime dependencies fail', () => {
+  assert.deepEqual(
+    buildToolsInDependencies({
+      dependencies: { react: '^19', '@sentry/react': '^8' },
+      devDependencies: { vite: '^8', '@sentry/vite-plugin': '^2' },
+    }),
+    [],
+  );
+  assert.deepEqual(
+    buildToolsInDependencies({
+      dependencies: {
+        react: '^19',
+        '@sentry/vite-plugin': '^2',
+        'vite-plugin-radar': '^0.11',
+      },
+    }),
+    [
+      'package.json: @sentry/vite-plugin is a build tool in dependencies',
+      'package.json: vite-plugin-radar is a build tool in dependencies',
+    ],
+  );
+});
+
+test("the web app's own package.json lists no build tool as a runtime dependency", () => {
+  const pkg = JSON.parse(
+    fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+  );
+  assert.deepEqual(buildToolsInDependencies(pkg), []);
 });

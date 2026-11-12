@@ -141,14 +141,20 @@ export function removePhoto(key: string) {
   setCompose((s) => ({ ...s, photos: s.photos.filter((x) => x.key !== key) }));
 }
 
-/** The share target's title, text and images, once per opening (today's `getSharedData`). */
-let sharedTaken = false;
+/**
+ * The share target's title, text and images, once per opening. The route's `onEnter` and the screen's first
+ * effect can run in either order, so each opening has a number: what was read for an earlier opening is dropped,
+ * and a second call for the same opening does nothing.
+ */
+let opening = 0;
+let sharedTakenFor = -1;
 export function takeShared() {
-  if (sharedTaken) return;
-  sharedTaken = true;
+  if (sharedTakenFor === opening) return;
+  const mine = opening;
+  sharedTakenFor = mine;
   void getSharedData()
     .then((shared) => {
-      if (!shared) return;
+      if (!shared || mine !== opening) return;
       const body = [shared.text, shared.url].filter(Boolean).join('\n');
       patchDraft({
         title: (shared.title ?? '').slice(0, MAX_TITLE),
@@ -165,5 +171,6 @@ export function takeShared() {
 }
 export function composerOpened() {
   resetComposer();
-  sharedTaken = false;
+  opening += 1;
+  takeShared();
 }
