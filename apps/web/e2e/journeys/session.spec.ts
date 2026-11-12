@@ -379,6 +379,10 @@ test.describe('signed out, with something shared to PIPS!', () => {
     api,
   }) => {
     await fakeGoogle(page.context());
+    // On a slow device Buat's screen can start before its route's enter hook, which then emptied what the screen had
+    // just filled in. A slowed CPU makes that order likely.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
     await page.goto('/pengumuman/tulis');
     await expect(page).toHaveURL(/\/login\?redirect=/);
     await leaveShared(page);
