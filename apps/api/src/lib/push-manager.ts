@@ -127,7 +127,9 @@ function summarize(
     if (r.status === 'fulfilled' && r.value.success) summary.sent += 1;
     else {
       const code =
-        r.status === 'fulfilled' ? r.value.error.statusCode : undefined;
+        r.status === 'fulfilled' && !r.value.success
+          ? r.value.error.statusCode
+          : undefined;
       if (code === 404 || code === 410) summary.gone += 1;
       else {
         const key = code === undefined ? 'error' : String(code);
