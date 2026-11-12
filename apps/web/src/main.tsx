@@ -9,6 +9,7 @@ import { queryClient } from './api/client';
 import { RootErrorFallback } from './components/error-fallback';
 import { reloadOnPreloadError } from './lib/preload-recovery';
 import { runWhenSettled } from './lib/sw-register';
+import { createUpdateGate, holdsText } from './lib/update-gate';
 import './index.css';
 // Features register with the shell at start, so it imports no feature code: Testi Matkul titles its pages from
 // the URL (src/lib/shell/routes.ts), and Pengumuman counts its unread posts for the navigation badge
@@ -22,8 +23,24 @@ import { router } from './router';
 // A page's code that can't load (its file gone after a deploy) reloads the page once, onto the new build.
 reloadOnPreloadError();
 
-// The service worker (automatic updates reload the page) registers once the page has loaded, its first data has
-// arrived and the browser is idle (src/lib/sw-register.ts): the first paint never waits for it.
+// A new version reloads the page, but never over text being typed or a send in flight: then it waits for the next
+// page (src/lib/update-gate.ts).
+const update = createUpdateGate({
+  typing: () =>
+    holdsText(
+      document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+        'input, textarea',
+      ),
+    ),
+  sending: () => queryClient.isMutating() > 0,
+  reload: () => window.location.reload(),
+});
+router.subscribe('onResolved', (e) => {
+  if (e.pathChanged) update.navigated();
+});
+
+// The service worker registers once the page has loaded, its first data has arrived and the browser is idle
+// (src/lib/sw-register.ts): the first paint never waits for it.
 window.addEventListener(
   'load',
   () =>
@@ -33,7 +50,11 @@ window.addEventListener(
         subscribe: (listener) =>
           queryClient.getQueryCache().subscribe(listener),
       },
-      () => void registerSW({ immediate: true }),
+      () =>
+        void registerSW({
+          immediate: true,
+          onNeedReload: () => update.newVersion(),
+        }),
       {
         setTimeout: (cb, ms) => window.setTimeout(cb, ms),
         clearTimeout: (id) => window.clearTimeout(id as number),
