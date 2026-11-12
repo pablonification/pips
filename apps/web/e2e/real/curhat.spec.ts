@@ -28,11 +28,24 @@ test('a message reaches Welfare and the answer reaches the member, live', async 
     memberLog.getByText('Coba tulis dulu semua tugasnya', { exact: false }),
   ).toBeVisible();
 
+  // Welfare's socket has to be up before Nadia sends: a room shows its old messages (over HTTP) before that, and a
+  // message sent in between would never reach the open room. "40" is socket.io's answer to a connection; one
+  // response can carry several packets, with this character between them.
+  const PACKET_END = '\u001e';
+  const welfareConnected = welfare.waitForResponse(
+    async (r) =>
+      r.url().includes('/socket.io/') &&
+      r.request().method() === 'GET' &&
+      (await r.text().catch(() => ''))
+        .split(PACKET_END)
+        .some((packet) => packet.startsWith('40')),
+  );
   await welfare.goto(INBOX_ROOM);
   const welfareLog = welfare.getByRole('log', { name: /^Percakapan / });
   await expect(
     welfareLog.getByText('minggu ini tugasku menumpuk', { exact: false }),
   ).toBeVisible();
+  await welfareConnected;
 
   await page
     .getByRole('textbox', { name: 'Tulis pesan untuk tim Welfare' })

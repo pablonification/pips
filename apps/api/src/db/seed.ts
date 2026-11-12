@@ -1,11 +1,13 @@
 /**
  * Fills a migrated database with the made-up HMIF in `seed/sample-hmif.ts` and the form in `seed/pixel-form-seed.ts`,
- * then exits. Safe to run again: a row that is already there is left as it is. Refuses to run when `APP_ENV` is
- * production (also its default), so it never writes sample people into a real database.
+ * then exits. Safe to run again: a row that is already there is left as it is, except that the sample's own events
+ * and courses taken move to today's month and semester. Runs only when `APP_ENV` is `development`, so it never
+ * writes sample people into a database of real members.
  *
  *   pnpm --filter api db:seed
  */
 import 'dotenv/config';
+import { and, eq, ne, or } from 'drizzle-orm';
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { PgTable } from 'drizzle-orm/pg-core';
 import postgres from 'postgres';
@@ -21,9 +23,9 @@ export async function runSeed({
   appEnv = process.env.APP_ENV,
   now = new Date(),
 }: { url?: string; appEnv?: string; now?: Date } = {}): Promise<SeedCounts> {
-  if (appEnv !== 'development' && appEnv !== 'staging') {
+  if (appEnv !== 'development') {
     throw new Error(
-      `The seed runs only with APP_ENV=development or staging (it is ${appEnv ?? 'unset, which means production'}).`,
+      `The seed runs only with APP_ENV=development (it is ${appEnv ?? 'unset, which means production'}).`,
     );
   }
   if (!url) throw new Error('DATABASE_URL is required');
@@ -134,6 +136,42 @@ export async function runSeed({
       counts.forms = await runPixelFormSeed(
         tx as unknown as PostgresJsDatabase<typeof schema>,
       );
+
+      // Seeded on an earlier day: the sample's events and courses taken follow today, so Kalender and Mata kuliahku
+      // still show them. Only the sample's own rows move.
+      let moved = 0;
+      for (const { id, start, end } of sample.eventRows) {
+        if (!id) continue;
+        const { calendarEvent: e } = schema;
+        const rows = await tx
+          .update(e)
+          .set({ start, end })
+          .where(and(eq(e.id, id), or(ne(e.start, start), ne(e.end, end))))
+          .returning({ id: e.id });
+        moved += rows.length;
+      }
+      for (const row of sample.userCourseRows) {
+        const { userCourses: u } = schema;
+        const rows = await tx
+          .update(u)
+          .set({
+            semesterCodeTaken: row.semesterCodeTaken,
+            semesterYearTaken: row.semesterYearTaken,
+          })
+          .where(
+            and(
+              eq(u.userId, row.userId),
+              eq(u.courseId, courseId(row.courseId)),
+              or(
+                ne(u.semesterCodeTaken, row.semesterCodeTaken),
+                ne(u.semesterYearTaken, row.semesterYearTaken),
+              ),
+            ),
+          )
+          .returning({ courseId: u.courseId });
+        moved += rows.length;
+      }
+      counts['moved to today'] = moved;
       return counts;
     });
   } finally {
@@ -161,7 +199,7 @@ function idsBy<R extends { id?: string }, K>(
 if (require.main === module) {
   runSeed()
     .then((counts) => {
-      console.log('Seeded (rows added; 0 means it was already there):');
+      console.log('Seeded (rows added; 0 means they were already there):');
       for (const [label, n] of Object.entries(counts))
         console.log(`  ${label}: ${n}`);
     })

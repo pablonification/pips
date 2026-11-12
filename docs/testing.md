@@ -121,7 +121,7 @@ gap: a list the real API sent in another shape, a timer that only failed in a re
 - **Every journey fails on** a console error, a failed request or an API answer of 400 or more (`watch` in
   `support.ts`).
 - **They may run again on the same database,** so each one works from what an earlier run left (a reaction already
-  given, a form already sent).
+  given, a form already sent). The seed moves its own events and courses taken to today's month and semester each time.
 
 Run them with a local database whose name starts with `pips_`; they write to it:
 

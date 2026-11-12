@@ -84,12 +84,12 @@ page, `/mulai`.
 **5. Some data, and a member with roles.** Fill your database with a small made-up HMIF:
 
 ```bash
-pnpm --filter api db:seed         # prints what it added; running it again adds nothing
+pnpm --filter api db:seed         # prints what it added; run it again later to move its events to this month
 ```
 
 It adds four made-up members, two angkatan, categories, announcements with a comment and reactions, courses,
 calendar events this month and next, a competition, a testimonial, the PIXEL form and a Curhat room. Everything in it
-is invented (`apps/api/src/db/seed/sample-hmif.ts`). It refuses to run unless `APP_ENV` is `development` or `staging`.
+is invented (`apps/api/src/db/seed/sample-hmif.ts`). It refuses to run unless `APP_ENV` is `development`.
 Never copy real members' data into your database.
 
 The test login from step 4 is its own member, "Development Tester", with no roles and none of that data. To be one of
@@ -136,7 +136,7 @@ Change one sentence and watch a test notice.
 | `pnpm --filter web api` | Regenerate the web app's API client after an API route changed. |
 | `pnpm --filter api db:migrations` | Write a migration after `apps/api/src/db/schema.ts` changed. |
 | `pnpm --filter api db:migrate` | Apply migrations to `DATABASE_URL`. |
-| `pnpm --filter api db:seed` | Fill `DATABASE_URL` with the made-up sample data. Development and staging only. |
+| `pnpm --filter api db:seed` | Fill `DATABASE_URL` with the made-up sample data. Development only. |
 | `pnpm --filter web e2e:real` | The journeys against the real API. Needs `E2E_REAL_DATABASE_URL` ([docs/testing.md](docs/testing.md)). |
 
 `TEST_DATABASE_URL` must point at a local database whose name starts with `pips_test`, for example

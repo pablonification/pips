@@ -25,7 +25,7 @@ With `APP_ENV=development` the API documents itself: open `http://localhost:5000
 | `pnpm --filter api test:db` | Tests against a real database; needs `TEST_DATABASE_URL` ([testing](../../docs/testing.md)). |
 | `pnpm --filter api db:migrations` | Write a new migration into `drizzle/` after `src/db/schema.ts` changed. |
 | `pnpm --filter api db:migrate` | Apply the migrations to `DATABASE_URL`. |
-| `pnpm --filter api db:seed` | Fill `DATABASE_URL` with a small made-up HMIF (`src/db/seed/sample-hmif.ts`) and the PIXEL form. Safe to run again; refuses unless `APP_ENV` is `development` or `staging`. |
+| `pnpm --filter api db:seed` | Fill `DATABASE_URL` with a small made-up HMIF (`src/db/seed/sample-hmif.ts`) and the PIXEL form. Safe to run again: it adds nothing twice and moves its own events and courses taken to today's month and semester. Refuses unless `APP_ENV` is `development`. |
 | `pnpm --filter api openapi <file>` | Write the API's description to a file, with no server. The web app's client is built from it. |
 
 Migrations only add things, and never run one against a database that is not yours
