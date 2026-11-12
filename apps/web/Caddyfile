@@ -1,0 +1,11 @@
+# The web image's server. Same answers as the Vercel deployment (vercel.json): every path the build doesn't have
+# gets index.html (the app's own routes and legacy redirects), and every response is revalidated, so a browser never
+# keeps an index.html whose hashed scripts a newer deploy has removed.
+:3000 {
+	root * /srv
+	header Cache-Control "public, max-age=0, must-revalidate"
+	# Lets Sentry's browser profiling run when VITE_SENTRY_DSN is set (src/instrument.ts).
+	header Document-Policy "js-profiling"
+	try_files {path} /index.html
+	file_server
+}

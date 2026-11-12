@@ -69,6 +69,13 @@ jobs:
           curl -fsS http://127.0.0.1:3000/ | grep -q '<div id="root">'
           curl -fsS http://127.0.0.1:3000/home | grep -q '<div id="root">'
           curl -fsS -o /dev/null http://127.0.0.1:3000/manifest.webmanifest
+          # The same headers as the Vercel deployment: every response is revalidated, so after a deploy no browser
+          # keeps an index.html that points at scripts the new image no longer has.
+          for path in / /home /sw.js "/assets/$(docker exec web ls /srv/assets | grep -m1 '\.js$')"; do
+            headers="$(curl -fsSI "http://127.0.0.1:3000$path")"
+            grep -qi '^cache-control: public, max-age=0, must-revalidate' <<<"$headers"
+            grep -qi '^document-policy: js-profiling' <<<"$headers"
+          done
       - name: The api image starts and serves until it needs its database
         run: |
           # Placeholder settings only: nothing here is a real secret, and the database address leads nowhere.

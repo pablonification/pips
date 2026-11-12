@@ -17,15 +17,18 @@ ARG VITE_GOOGLE_CLIENT_ID
 ARG VITE_VAPID_KEY
 # The API's R2_PUBLIC_URL: only files there become links in Data SPARTA Magang. Optional.
 ARG VITE_MEDIA_URL
+# Error monitoring (src/instrument.ts). Optional: without it Sentry stays off.
+ARG VITE_SENTRY_DSN
 ENV VITE_API_URL=$VITE_API_URL \
     VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID \
     VITE_VAPID_KEY=$VITE_VAPID_KEY \
-    VITE_MEDIA_URL=$VITE_MEDIA_URL
+    VITE_MEDIA_URL=$VITE_MEDIA_URL \
+    VITE_SENTRY_DSN=$VITE_SENTRY_DSN
 RUN turbo run build --filter=web
 
 FROM caddy:2-alpine
 COPY --from=build /repo/apps/web/dist /srv
-RUN printf ':3000 {\n  root * /srv\n  try_files {path} /index.html\n  file_server\n}' > /etc/caddy/Caddyfile
+COPY apps/web/Caddyfile /etc/caddy/Caddyfile
 # Runs as an unprivileged user, with Caddy's own state in its home (the image's /config and /data belong to root).
 RUN addgroup -S web && adduser -S -G web -h /home/web web
 ENV XDG_CONFIG_HOME=/home/web/.config \
