@@ -1,7 +1,7 @@
 /**
- * Pengumuman's reads and writes. Query keys stay in `src/api/constants.ts` (today's `INFO_LIST_QUERY_KEY` and
- * `INFO_QUERY_KEY`), so P1-A's Beranda list and search refresh after these writes. Writes that change what the
- * member sees (read state, reactions) update every cached copy at once and roll back if the server refuses.
+ * Pengumuman's reads and writes. Query keys stay in `src/api/constants.ts` (`INFO_LIST_QUERY_KEY` and
+ * `INFO_QUERY_KEY`), so Beranda's list and search refresh after these writes. Writes that change what the member sees
+ * (read state, reactions) update every cached copy at once and roll back if the server refuses.
  */
 import {
   useInfiniteQuery,
@@ -61,7 +61,7 @@ export function useFeed(view: FeedView) {
       }),
     initialPageParam: 0,
     getNextPageParam: (last, pages) => nextOffset(last, pages.length),
-    // Stale data stays on screen while a refetch runs (SPEC "States").
+    // Stale data stays on screen while a refetch runs.
     placeholderData: (prev) => prev,
   });
 }
@@ -75,7 +75,7 @@ export const useInfo = (id: string) =>
 export const useComments = (id: string, enabled = true) =>
   useQuery({ ...infoCommentsQuery(id), enabled });
 
-/** Every category, for the filter (`GET /api/category`); today's key. */
+/** Every category, for the filter (`GET /api/category`). */
 export const useCategories = () =>
   useQuery({
     queryKey: [CATEGORIES_QUERY_KEY],
@@ -83,7 +83,7 @@ export const useCategories = () =>
     select: (d) => d.categories,
   });
 
-/** The categories this member may post in (`GET /api/category/info`); today's key. */
+/** The categories this member may post in (`GET /api/category/info`). */
 export const usePostableCategories = () =>
   useQuery({
     queryKey: [CATEGORIES_QUERY_KEY, 'info'],
@@ -98,7 +98,7 @@ export const useAngkatan = () =>
     staleTime: Infinity,
   });
 
-/** Your groups with their names (`GET /api/auth/groups`); today's key. */
+/** Your groups with their names (`GET /api/auth/groups`). */
 export const useGroups = () =>
   useQuery({
     queryKey: ['user-groups'],
@@ -171,8 +171,8 @@ export function useMarkRead() {
 }
 
 /**
- * Tandai semua dibaca (owner, 2026-11-06): the server marks the member's whole feed read; then the count, the badge,
- * Beranda's list and every cached post say so at once, and the lists reload from the server.
+ * Tandai semua dibaca: the server marks the member's whole feed read; then the count, the badge, Beranda's list and
+ * every cached post say so at once, and the lists reload from the server.
  */
 export function useMarkAllRead() {
   const qc = useQueryClient();

@@ -1,6 +1,6 @@
 /**
  * The composer's draft shape and a fresh one. On its own so the composer's store (which the route's enter and leave
- * hooks load with the app's first code) needs none of the feature's rules or copy (review minor 6).
+ * hooks load with the app's first code) needs none of the feature's rules or copy.
  */
 export type AudienceKind = 'all' | 'angkatan' | 'group';
 

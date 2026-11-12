@@ -1,8 +1,7 @@
 /**
- * Pengumuman's unread count for the shell's navigation badge (SPEC story 16), counted whatever the feed's search
- * and filter (`unreadN`). Registered at start (src/main.tsx), so the badge shows on every page; it loads only the
- * count's small modules, not the feature's rules, copy or dates (review minor 6), and the shell imports no feature
- * code.
+ * Pengumuman's unread count for the shell's navigation badge, counted whatever the feed's search and filter.
+ * Registered at start (src/main.tsx), so the badge shows on every page; it loads only the count's small modules, not
+ * the feature's rules, copy or dates, and the shell imports no feature code.
  */
 import {
   registerNavBadges,

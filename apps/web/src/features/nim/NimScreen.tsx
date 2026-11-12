@@ -58,9 +58,8 @@ function MemberRow({ m }: { m: NimFinderResult }) {
 }
 
 /**
- * NIM Finder (garis/screens-more.js `scrNim`, `nimResults`): search members by name or NIM from 3 characters, once
- * typing pauses; pick a row to copy the NIM. The query lives in the URL (`q`), so search's "Orang" and any link can
- * open it filled in, and reload keeps it.
+ * NIM Finder: search members by name or NIM from 3 characters, once typing pauses; pick a row to copy the NIM. The
+ * query lives in the URL (`q`), so search's "Orang" and any link can open it filled in, and reload keeps it.
  */
 export function NimScreen() {
   const { q: urlQ } = route.useSearch();

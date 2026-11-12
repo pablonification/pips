@@ -42,7 +42,7 @@ const MESSAGES = {
 } as const;
 
 const LAST = copy.slides.length - 1;
-/** The first slide's keys answer once the entrance has played (screens-masuk.js `masukRender`). */
+/** The first slide's keys answer once the entrance has played. */
 const ENTRANCE_MS = 900;
 
 const reduced = () =>
@@ -56,11 +56,10 @@ interface Float {
 }
 
 /**
- * Sign-in (`/login`, outside the shell): Garis v5's Masuk screen (garis/screens-masuk.js, locked 2026-11-02). A gold
- * keyboard of PIPS!'s services over four slides, then Masuk dengan Google, its hint and what went wrong. Phones and
- * tablets stack the hero over a sheet; desktop puts the hero and the slides on the left and signing in on the right.
- * Each slide lights its keys and a reaction rises; a tapped key presses down; the keys type while signing in.
- * The sign-in itself is useLogin's, unchanged. Staging builds add the test login.
+ * Sign-in (`/login`, outside the shell): a gold keyboard of PIPS!'s services over four slides, then Masuk dengan
+ * Google, its hint and what went wrong. Phones and tablets stack the hero over a sheet; desktop puts the hero and the
+ * slides on the left and signing in on the right. Each slide lights its keys and a reaction rises; a tapped key
+ * presses down; the keys type while signing in. The sign-in itself is useLogin's. Staging builds add the test login.
  */
 export function LoginScreen({ redirectTo }: { redirectTo: string | null }) {
   const { login, retry, pending, problem, devLogin } = useLogin(redirectTo);

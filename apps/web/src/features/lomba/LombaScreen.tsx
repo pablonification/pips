@@ -27,8 +27,8 @@ import { competitionsQuery } from './queries';
 import { Poster, usePosterViewer, type Viewing } from './Poster';
 
 /**
- * One competition (garis/screens-more.js `scrLomba`'s card): its poster (Garis v5), then the name, organiser,
- * categories, the deadline and fee, and Daftar and Sumber at the foot.
+ * One competition: its poster, then the name, organiser, categories, the deadline and fee, and Daftar and Sumber at
+ * the foot.
  */
 function LombaCard({
   c,
@@ -115,9 +115,9 @@ function LombaCard({
 }
 
 /**
- * Info Lomba for members (garis/screens-more.js `scrLomba`): open competitions, soonest deadline first, one clear
- * deadline each, with their posters: beside the facts on phones, a grid of poster cards on tablets and desktops. Every page is reachable (SPEC story 78): more load when the list's end scrolls into view, and
- * **Muat lagi** does the same from the keyboard. P3-B adds Tambah lomba, for cnc only.
+ * Info Lomba for members: open competitions, soonest deadline first, one clear deadline each, with their posters:
+ * beside the facts on phones, a grid of poster cards on tablets and desktops. Every page is reachable: more load when
+ * the list's end scrolls into view, and **Muat lagi** does the same from the keyboard. Tambah lomba is for `cnc` only.
  */
 export function LombaScreen() {
   const online = useOnline();
@@ -137,9 +137,9 @@ export function LombaScreen() {
     .flat()
     .filter((c) => isOpen(c.registrationDeadline, now));
 
-  // Keyboard users keep their place (P2-B review, finding 1): when a load started by Muat lagi (or the next page's
-  // Coba lagi) ends and the button that had focus is gone, focus goes to the first competition that arrived, to
-  // Coba lagi when it failed, or back to Muat lagi when more remain. Loads started by scrolling move nothing.
+  // Keyboard users keep their place: when a load started by Muat lagi (or the next page's Coba lagi) ends and the
+  // button that had focus is gone, focus goes to the first competition that arrived, to Coba lagi when it failed, or
+  // back to Muat lagi when more remain. Loads started by scrolling move nothing.
   const bodyId = useId();
   const moreRef = useRef<HTMLButtonElement>(null);
   const pressedAt = useRef<number | null>(null);

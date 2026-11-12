@@ -1,6 +1,6 @@
 /**
- * Info Lomba's 3:4 poster and the poster viewer (Garis v5: garis/screens-more.js `scrLomba` and `OV.poster`,
- * garis/v5-layanan.css). The poster is a button that opens it large on a dark backdrop, in both themes.
+ * Info Lomba's 3:4 poster and the poster viewer. The poster is a button that opens it large on a dark backdrop, in
+ * both themes.
  */
 import * as RD from '@radix-ui/react-dialog';
 import { useRef, useState } from 'react';
@@ -71,8 +71,8 @@ export function usePosterViewer() {
       }}
     >
       <RD.Portal>
-        {/* A tap that lands on the backdrop itself closes it too (regression: right after opening, a tap at the
-            window's edge could reach the backdrop rather than the layout, and the viewer stayed open). */}
+        {/* A tap that lands on the backdrop itself closes it too: right after opening, a tap at the window's edge
+            could reach the backdrop rather than the layout, and the viewer would stay open. */}
         <RD.Overlay className="g-pv-ov" onClick={() => setViewing(null)} />
         <RD.Content
           className="g-pv"
