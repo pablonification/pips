@@ -1,5 +1,5 @@
 import { MAX_CURHAT_MESSAGE } from '~/lib/limits';
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import { createSelectSchema } from 'drizzle-zod';
 import {
   Chatroom,
   chatroomLabels,
@@ -62,16 +62,6 @@ export const ChatroomIdParamsSchema = z.object({
       example: 'uuid',
     },
   }),
-});
-
-export const PutLabelChatroomSchema = z.object({
-  labelIds: z.string().array(),
-});
-
-export const CreateLabelChatroomBodySchema = createInsertSchema(
-  chatroomLabels,
-).omit({
-  id: true,
 });
 
 export const PinChatroomBodySchema = z.object({

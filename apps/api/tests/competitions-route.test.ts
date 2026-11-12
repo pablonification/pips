@@ -8,8 +8,10 @@ import { callRouter } from './support/router';
 import { testUser } from './support/session';
 
 let createCompetitionsRouter: typeof import('../src/controllers/competitions.controller').createCompetitionsRouter;
+const FILES = 'https://files.example.test';
+
 before(async () => {
-  usePlaceholderEnv();
+  usePlaceholderEnv({ R2_PUBLIC_URL: FILES });
   ({ createCompetitionsRouter } =
     await import('../src/controllers/competitions.controller'));
 });
@@ -105,10 +107,7 @@ test('regression (M1): PUT /competitions/{id} with an empty body answers 400, no
 });
 
 test('PUT /competitions/{id}: only the poster, replaced or removed, reaches the update', async () => {
-  for (const mediaUrls of [
-    ['https://pub-45e54d5755814b02b87e024df83efb57.r2.dev/abc-hology.png'],
-    [],
-  ]) {
+  for (const mediaUrls of [[`${FILES}/abc-hology.png`], []]) {
     const { router, writes } = setup(['cnc']);
     const res = await callRouter(
       router,
@@ -124,9 +123,7 @@ test('PUT /competitions/{id}: only the poster, replaced or removed, reaches the 
 
 test('POST /competitions: a poster comes as its uploaded address', async () => {
   const { router, writes } = setup(['cnc']);
-  const mediaUrls = [
-    'https://pub-45e54d5755814b02b87e024df83efb57.r2.dev/abc-hology.png',
-  ];
+  const mediaUrls = [`${FILES}/abc-hology.png`];
   const res = await callRouter(router, member, 'POST', '/competitions', {
     ...body,
     mediaUrls,
@@ -184,4 +181,47 @@ test('DELETE /competitions/{id}: cnc removes it; an unknown one is 404', async (
     (await callRouter(router, member, 'DELETE', '/competitions/nope')).status,
     404,
   );
+});
+
+const NOT_IN_THE_STORE = [
+  ['https://elsewhere.example.test/poster.jpg'],
+  ['javascript:alert(1)'],
+  ['http://files.example.test/poster.jpg'],
+  ['https://files.example.test.elsewhere.example/poster.jpg'],
+  ['https://files.example.test@elsewhere.example/poster.jpg'],
+  ['https://files.example.test:8443/poster.jpg'],
+  [FILES],
+  [`${FILES}/a.jpg`, 'https://elsewhere.example.test/b.jpg'],
+];
+
+test("POST /competitions: a competition's pictures are only the app's own uploads", async () => {
+  const { router, writes } = setup(['cnc']);
+  for (const mediaUrls of NOT_IN_THE_STORE) {
+    const res = await callRouter(router, member, 'POST', '/competitions', {
+      ...body,
+      mediaUrls,
+    });
+    assert.equal(res.status, 400, mediaUrls.join());
+  }
+  assert.deepEqual(writes, []);
+});
+
+test("PUT /competitions/{id}: a new picture must be the app's own upload; an edit that leaves the pictures alone is not refused", async () => {
+  const { router, writes } = setup(['cnc']);
+  for (const mediaUrls of NOT_IN_THE_STORE) {
+    const res = await callRouter(
+      router,
+      member,
+      'PUT',
+      '/competitions/lomba-1',
+      { name: 'Hology 9', mediaUrls },
+    );
+    assert.equal(res.status, 400, mediaUrls.join());
+  }
+  assert.deepEqual(writes, []);
+  const res = await callRouter(router, member, 'PUT', '/competitions/lomba-1', {
+    name: 'Hology 9',
+  });
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  assert.deepEqual(writes, [{ op: 'update', data: { name: 'Hology 9' } }]);
 });

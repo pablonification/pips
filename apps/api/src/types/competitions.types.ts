@@ -5,6 +5,8 @@ import {
   competitionMedias,
   competitions,
 } from '~/db/schema';
+import { env } from '~/configs/env.config';
+import { isFileStoreUrl } from '~/lib/media-url';
 import { addHours } from './calendar.types';
 import { MediaSchema } from './media.types';
 
@@ -38,12 +40,18 @@ export const CreateCompetitionSchema = createInsertSchema(competitions, {
 })
   .extend({
     mediaUrls: z
-      .array(z.string().url())
+      .array(
+        z
+          .string()
+          .url()
+          .refine((url) => isFileStoreUrl(url, env.R2_PUBLIC_URL), {
+            message: "Not a file in the app's file store",
+          }),
+      )
       .optional()
       .openapi({
         example: [
           'https://pub-45e54d5755814b02b87e024df83efb57.r2.dev/r176r3qcuqs3hg8o3dm93n35-asrielblunt.jpg',
-          'https://deleteMediaUrlsFieldIfNoMediaUrls.dev',
         ],
       }),
   })
@@ -74,12 +82,18 @@ export const UpdateCompetitionBodySchema = createInsertSchema(competitions, {
 })
   .extend({
     mediaUrls: z
-      .array(z.string().url())
+      .array(
+        z
+          .string()
+          .url()
+          .refine((url) => isFileStoreUrl(url, env.R2_PUBLIC_URL), {
+            message: "Not a file in the app's file store",
+          }),
+      )
       .optional()
       .openapi({
         example: [
           'https://pub-45e54d5755814b02b87e024df83efb57.r2.dev/r176r3qcuqs3hg8o3dm93n35-asrielblunt.jpg',
-          'https://deleteMediaUrlsFieldIfNoMediaUrls.dev',
         ],
       }),
   })

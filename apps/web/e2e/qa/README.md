@@ -15,7 +15,6 @@ Checks that cut across every page, written during F2 (the independent QA pass). 
 | `qa-sw` | `sw.spec.ts` | The service worker runs: the installed app opened offline, and the share target. | yes |
 | `qa-london-phone-light` | `journeys/{kalender,beranda,lomba,form,compose,announcements}.spec.ts` | The time-heavy journeys with the device in Europe/London: times stay in WIB. | yes |
 | `qa-perf` | `perf.spec.ts` | SPEC's lab phone on seven pages, three runs each: `QA_PERF_OUT=<file.jsonl>`. | no, by hand |
-| `qa-copy-<phone\|tablet\|desk>` | `copy.spec.ts` | The app's visible text against the locked prototype's, screen by screen: `QA_PROTOTYPE_URL` (the locked `source/` served locally) and `QA_COPY_OUT`. | no, by hand |
 
 `lib.ts` holds the pure rules (colours and contrast, the text normaliser, the motion threshold), unit-tested in
 `tests/qa-lib.test.ts`; `probe.ts` reads the facts in the page.

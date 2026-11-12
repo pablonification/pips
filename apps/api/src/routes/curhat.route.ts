@@ -1,12 +1,9 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import {
   ChatroomIdParamsSchema,
-  ChatroomLabelSchema,
   ChatroomSchema,
-  CreateLabelChatroomBodySchema,
   ListChatroomSchema,
   PinChatroomBodySchema,
-  PutLabelChatroomSchema,
 } from '~/types/curhat.types';
 import { ErrorSchema, ValidationErrorSchema } from '~/types/responses.type';
 
@@ -88,74 +85,6 @@ export const deleteChatroomRoute = createRoute({
       content: {
         'application/json': {
           schema: ErrorSchema,
-        },
-      },
-    },
-  },
-});
-
-export const putLabelChatroomRoute = createRoute({
-  operationId: 'putLabelChatroom',
-  tags: ['curhat'],
-  method: 'put',
-  path: '/curhat/chatroom/{chatroomId}/label',
-  description: 'Update chatroom labels',
-  request: {
-    params: ChatroomIdParamsSchema,
-    body: {
-      content: {
-        'application/json': {
-          schema: PutLabelChatroomSchema,
-        },
-      },
-      required: true,
-    },
-  },
-  responses: {
-    200: {
-      description: 'Chatroom labels updated',
-    },
-    400: {
-      description: 'Bad request',
-      content: {
-        'application/json': {
-          schema: z.union([ValidationErrorSchema, ErrorSchema]),
-        },
-      },
-    },
-  },
-});
-
-export const createLabelChatroomRoute = createRoute({
-  operationId: 'createLabelChatroom',
-  tags: ['curhat'],
-  method: 'post',
-  path: '/curhat/label',
-  description: 'Create new chatroom label',
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: CreateLabelChatroomBodySchema,
-        },
-      },
-      required: true,
-    },
-  },
-  responses: {
-    201: {
-      description: 'Chatroom label created',
-      content: {
-        'application/json': {
-          schema: ChatroomLabelSchema,
-        },
-      },
-    },
-    400: {
-      description: 'Bad request',
-      content: {
-        'application/json': {
-          schema: z.union([ValidationErrorSchema, ErrorSchema]),
         },
       },
     },

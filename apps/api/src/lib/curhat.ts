@@ -1,4 +1,5 @@
 import type { Chatroom, ChatroomMessage } from '~/db/schema';
+import type { PushData } from '~/lib/push-manager';
 
 /** A member may keep at most this many Curhat rooms at once. */
 export const CURHAT_MAX_ROOMS = 3;
@@ -12,6 +13,47 @@ export const CURHAT_ADMIN_ROLE = 'curhatadmin';
  * colon, so it can't clash with one, and naming it in `curhat:join` or a handshake finds no room and is refused.
  */
 export const CURHAT_WELFARE_ROOM = 'curhat:welfare';
+
+/** The only words a Curhat push carries: a lock screen is no place for anything from a message. */
+export const CURHAT_PUSH_TITLE = 'Pesan baru di Curhat Yuk!';
+
+const curhatPush = (url: string): PushData => ({
+  title: CURHAT_PUSH_TITLE,
+  options: { data: { url } },
+});
+
+/**
+ * The pushes a new message in `room` sends: its owner gets a link to their room, Welfare a link to the room in the
+ * inbox, and the sender nothing. Built from ids only, so no text from the message, the room or the sender can reach
+ * a device.
+ */
+export function curhatPushes({
+  room,
+  welfareIds,
+  senderId,
+}: {
+  room: Pick<Chatroom, 'id' | 'userId'>;
+  welfareIds: readonly string[];
+  senderId: string;
+}): Array<{ userIds: string[]; push: PushData }> {
+  const pushes: Array<{ userIds: string[]; push: PushData }> = [];
+  if (room.userId !== null && room.userId !== senderId) {
+    pushes.push({
+      userIds: [room.userId],
+      push: curhatPush(`/layanan/curhat/${room.id}`),
+    });
+  }
+  const welfare = [...new Set(welfareIds)].filter(
+    (id) => id !== senderId && id !== room.userId,
+  );
+  if (welfare.length > 0) {
+    pushes.push({
+      userIds: welfare,
+      push: curhatPush(`/kelola/curhat/${room.id}`),
+    });
+  }
+  return pushes;
+}
 
 /** Whether `roles` read and answer every room (Welfare). */
 export function isCurhatAdmin(roles: readonly string[]): boolean {

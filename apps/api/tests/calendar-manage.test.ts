@@ -142,6 +142,36 @@ test('POST /calendar/event: akademik adds a course event to Google Calendar, the
   assert.deepEqual(calls, ['insert Kuis 2']);
 });
 
+test('POST /calendar/event: when the database refuses the event, it is removed from Google Calendar again', async () => {
+  const { router, deps, calls } = setup(['akademik']);
+  const removed: string[] = [];
+  deps.createCalendarEvent = async () => {
+    throw new Error('database unreachable');
+  };
+  deps.google.remove = async (calendarId, eventId) => {
+    removed.push(`${calendarId} ${eventId}`);
+  };
+  const res = await callRouter(router, raka, 'POST', '/calendar/event', kuis2);
+  assert.equal(res.status, 500);
+  assert.deepEqual(calls, ['insert Kuis 2']);
+  assert.deepEqual(removed, ['akademik@group.calendar.google.com gcal-new']);
+});
+
+test('POST /calendar/event: when removing it again fails too, the answer is still the database error', async () => {
+  const { router, deps } = setup(['akademik']);
+  let tried = 0;
+  deps.createCalendarEvent = async () => {
+    throw new Error('database unreachable');
+  };
+  deps.google.remove = async () => {
+    tried++;
+    throw googleError(503);
+  };
+  const res = await callRouter(router, raka, 'POST', '/calendar/event', kuis2);
+  assert.equal(res.status, 500);
+  assert.equal(tried, 1);
+});
+
 test('POST /calendar/event: the role is checked by category on the server', async () => {
   const notAkademik = setup(['ring1', 'admin']);
   assert.equal(
