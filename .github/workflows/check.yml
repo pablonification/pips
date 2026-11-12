@@ -56,7 +56,7 @@ jobs:
             echo "Run 'pnpm --filter web api' and commit apps/web/src/api/generated."
             exit 1
           fi
-      # Fails on a file, export or dependency nothing uses (knip.json).
+      # Fails on a file, export or dependency nothing uses (knip.jsonc).
       - name: Nothing unused
         run: pnpm knip
       - name: Unit tests
