@@ -6,7 +6,7 @@
     "start": "cross-env NODE_ENV=production tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
     "db:migrations": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
     "check": "pnpm run typecheck && pnpm run codecheck",
