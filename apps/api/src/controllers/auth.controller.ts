@@ -71,7 +71,6 @@ loginRouter.openapi(loginRoute, async (c) => {
     'https://accounts.google.com/o/oauth2/v2/auth',
   );
 
-  // Make sure you define all of the google env in your .env file
   authorizationUrl.searchParams.set('client_id', env.GOOGLE_CLIENT_ID || '');
   authorizationUrl.searchParams.set(
     'redirect_uri',
@@ -92,7 +91,7 @@ loginRouter.openapi(loginRoute, async (c) => {
     maxAge: 10 * 60,
   });
 
-  return c.redirect(authorizationUrl.toString(), 302); // Redirect the user to Google Login
+  return c.redirect(authorizationUrl.toString(), 302);
 });
 
 loginRouter.openapi(loginAccessTokenRoute, async (c) => {
@@ -111,7 +110,6 @@ loginRouter.openapi(loginAccessTokenRoute, async (c) => {
     Sentry.captureException(err);
     return c.json({ error: 'Something went wrong' }, 500);
   }
-  // Find user in db, if not found return forbidden
   const { email, picture } = userInfo;
   const user = await getUserAndUpdatePicture(db, email, picture);
   if (!user) {
@@ -123,7 +121,6 @@ loginRouter.openapi(loginAccessTokenRoute, async (c) => {
     );
   }
 
-  // Create cookie
   const tokenPayload = JWTPayloadSchema.parse(user);
   const token = await generateJWT(tokenPayload);
 
@@ -145,7 +142,6 @@ loginRouter.openapi(authCallbackRoute, async (c) => {
   tokenEndpoint.searchParams.set('code', code);
   tokenEndpoint.searchParams.set('grant_type', 'authorization_code');
 
-  // Make sure you define all of the google env in your .env file
   tokenEndpoint.searchParams.set('client_id', env.GOOGLE_CLIENT_ID || '');
   tokenEndpoint.searchParams.set(
     'client_secret',
@@ -153,7 +149,6 @@ loginRouter.openapi(authCallbackRoute, async (c) => {
   );
   tokenEndpoint.searchParams.set('redirect_uri', env.GOOGLE_CALLBACK_URL || '');
 
-  // Fetch Token from Google Token endpoint and parse it into GoogleTokenDataSchema
   const tokenResponse = await fetch(
     tokenEndpoint.origin + tokenEndpoint.pathname,
     {
@@ -166,7 +161,6 @@ loginRouter.openapi(authCallbackRoute, async (c) => {
   );
   const tokenData = GoogleTokenDataSchema.parse(await tokenResponse.json());
 
-  // Fetch User Info from Google User Info endpoint and parse it into GoogleUserSchema
   const userInfoResponse = await fetch(
     'https://www.googleapis.com/oauth2/v2/userinfo',
     {
@@ -176,7 +170,6 @@ loginRouter.openapi(authCallbackRoute, async (c) => {
     },
   );
   const userInfo = GoogleUserSchema.parse(await userInfoResponse.json());
-  // Find user in db, if not found return forbidden
   const { email, picture } = userInfo;
   const user = await findUserByEmail(db, email);
   if (!user) {
@@ -190,7 +183,6 @@ loginRouter.openapi(authCallbackRoute, async (c) => {
 
   runInBackground('Last sign-in update', updateUserLastLogin(db, user.id));
 
-  // Create cookie
   const tokenPayload = JWTPayloadSchema.parse({ ...user, picture });
   const token = await generateJWT(tokenPayload);
 

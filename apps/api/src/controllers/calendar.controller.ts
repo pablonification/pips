@@ -169,12 +169,10 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       return c.json({ error: ENDS_BEFORE_START }, 400);
     }
 
-    // 1. Check if calendar group exists
     if (!calendarGroup?.googleCalendarUrl) {
       return c.json({ error: 'Calendar group not found' }, 404);
     }
 
-    // 2. Create event in GCal
     const event: calendar_v3.Schema$Event = {
       summary: title,
       description,
@@ -204,7 +202,6 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       return c.json({ error: 'Failed to create event' }, 400);
     }
 
-    // 3. Insert event to DB
     const nowAcademicContext = getCurrentSemesterCodeAndYear();
     const insertData: typeof calendarEvent.$inferInsert = {
       calendarGroupId: calendarGroup.id,
@@ -285,7 +282,6 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
     const { eventId } = c.req.valid('param');
     const { title, description, start, end } = c.req.valid('json');
 
-    // 1. Fetch data from DB, if exists
     const eventDB = await deps.getCalendarEventById({ eventId });
     if (!eventDB) {
       return c.json({ error: 'Event not found' }, 404);
@@ -314,14 +310,14 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
     }
 
     if (eventDB.calendarGroup.googleCalendarUrl === null) {
-      // Buat type check aja kalo calendar group url exists
+      // Narrows the type: the URL can be null in the database.
       return c.json(
         { error: "Event doesn't belong to any group, contact back-end!" },
         404,
       );
     }
 
-    // 2. If exists, ambil id sama groupId dan get event from GCal
+    // Google's copy fills the fields this edit doesn't send.
     let fetchedData: calendar_v3.Schema$Event;
     try {
       fetchedData = await deps.google.get(
@@ -336,7 +332,6 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       throw error;
     }
 
-    // 3. Update ke GCal dulu make data baru (logic samain kyk kemarin)
     const event: calendar_v3.Schema$Event = {
       summary: title ?? fetchedData.summary,
       description: description ?? fetchedData.description,
@@ -350,7 +345,6 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       },
     };
 
-    // console.log(event);
     try {
       await deps.google.update(
         eventDB.calendarGroup.googleCalendarUrl,
@@ -358,14 +352,12 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
         event,
       );
     } catch (error) {
-      // console.log(error);
       if (error instanceof GaxiosError) {
         return c.json(googleCalendarError(error), 400);
       }
       throw error;
     }
 
-    // 4. Update ke DB
     const updatedEvent = await deps.updateCalendarEvent(
       c.req.valid('json'),
       eventId,
@@ -403,7 +395,7 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       try {
         await deps.google.remove(calendarId, eventDB.googleCalendarId);
       } catch (error) {
-        // Already removed in Google Calendar: remove the row too, or the event could never be deleted (C6).
+        // Already removed in Google Calendar: remove the row too, or the event could never be deleted.
         const gone = await googleEventGone(error, async () => {
           await deps.google.getCalendar(calendarId);
         });

@@ -13,20 +13,14 @@ const defaultHook: Hook<any, any, any, any> = (result, c) => {
   }
 };
 
-/**
- *
- * @returns basic router with no middleware
- */
+/** A router with no middleware. */
 export function createRouter() {
   return new OpenAPIHono<{
     Variables: RequestIdVariables;
   }>({ defaultHook });
 }
 
-/**
- * For router that use this function, it will have user object in `c.var.user`.
- * @returns router with auth middleware.
- */
+/** A router that requires a session and puts the member in `c.var.user`. */
 export function createAuthRouter() {
   const authRouter = new OpenAPIHono<{
     Variables: {
@@ -34,7 +28,6 @@ export function createAuthRouter() {
     } & RequestIdVariables;
   }>({ defaultHook });
 
-  // JWT Hono Middleware
   authRouter.use(
     jwt({
       secret: env.JWT_SECRET,
@@ -43,7 +36,7 @@ export function createAuthRouter() {
     }),
   );
 
-  // Set user middleware. A token signed before the member's record changed shape is a session to sign in again.
+  // A token signed before the member's record changed shape is a session to sign in again.
   authRouter.use(async (c, next) => {
     const payload = JWTPayloadSchema.safeParse(c.var.jwtPayload);
     if (!payload.success) {
