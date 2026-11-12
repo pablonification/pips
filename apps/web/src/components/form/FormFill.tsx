@@ -84,7 +84,7 @@ function BackToList() {
   );
 }
 
-/** The thank-you (scrFill when done): the plaque, then Kembali ke Beranda. */
+/** The thank-you: the plaque, then Kembali ke Beranda. */
 function ThankYou({ title, focus }: { title: string; focus: boolean }) {
   const ref = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -213,7 +213,7 @@ function Closed({ form, draft }: { form: FormDetail; draft: Answers | null }) {
 }
 
 /**
- * Layanan › Form › a form (garis/screens-more.js `scrFill`), a focused flow: one section at a time with the
+ * Layanan › Form › a form, a focused flow: one section at a time with the
  * description on the first, "Bagian n dari N" and the Segbar, the questions, Lanjut checking the section, then the
  * check page and Kirim jawaban behind a confirmation; the thank-you plaque after. Every state the server can put the
  * form in has its own view.

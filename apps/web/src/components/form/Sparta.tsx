@@ -101,7 +101,7 @@ function closedLine(win: InternshipWindow) {
 }
 
 /**
- * The check list (the form's `reviewPage`, for SPARTA): Info umum, the four choices in order, and each chosen
+ * The check list: Info umum, the four choices in order, and each chosen
  * division's answers. With `onEdit`, each part has Ubah; read-only (closed, sent) it has none.
  */
 function SpartaCheck({
@@ -263,7 +263,7 @@ function Loading() {
 }
 
 /**
- * Layanan › Magang SPARTA (no locked design: composed from the form's template, OPEN-QUESTIONS D4). It answers deep
+ * Layanan › Magang SPARTA (built from the form's pieces). It answers deep
  * links and the old /home/internship; no list shows it while closed. The win and eligibility come from the server;
  * a member it isn't for never asks for the submission.
  */
