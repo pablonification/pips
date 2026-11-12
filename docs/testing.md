@@ -120,12 +120,13 @@ journey `@solo` for anything but timing.
 
 | Job | What |
 | --- | --- |
-| `commit messages` | Every commit is a Conventional Commit (`scripts/commit-messages.mjs`). |
+| `commit messages` | The repository's own checks (`node --test scripts/*.test.mjs`, which includes the privacy check that refuses a real person's details), then every commit is a Conventional Commit (`scripts/commit-messages.mjs`). |
 | `check, test and build` | Install, type check and lint, the generated API client matches the API, unit tests, production build, the bundle checks (no test login or gallery in production, route size cap). |
 | `api database tests` | The database tests on a throwaway PostgreSQL 16, and a check that the migrations match `schema.ts`. |
 | `docker images` | Both images build and start. The API stays up with no database and stops cleanly. |
 | `e2e shard 1/4` … `4/4` | Every journey and quality check in all projects, strict gates, split in four. |
 | `e2e solo` | The timed journeys, alone. |
+| `e2e (web journeys)` | One result that is green only when the four shards and the solo run all passed. |
 
 ## Traps
 
