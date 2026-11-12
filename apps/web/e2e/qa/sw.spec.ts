@@ -105,3 +105,39 @@ test('the share target opens Buat pengumuman with what was shared', async ({
   );
   expect(fields).toContain('Lomba UI/UX');
 });
+
+test('another website cannot fill in Buat pengumuman through the share target', async ({
+  page,
+  baseURL,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'qa-sw', 'qa-sw');
+  await page.goto('/');
+  await expect(greeting(page)).toBeVisible();
+  await controlled(page);
+  // The same server under another name is another site: its form posts carry its own origin.
+  const elsewhere = `${baseURL!.replace('127.0.0.1', 'localhost')}/elsewhere`;
+  await page.route(elsewhere, (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<form method="post" enctype="multipart/form-data" action="${baseURL}/share-file-handler">
+        <input name="title" value="Judul dari situs lain">
+        <input name="text" value="Teks dari situs lain">
+      </form>`,
+    }),
+  );
+  await page.goto(elsewhere);
+  await page.evaluate(() => document.querySelector('form')!.submit());
+  await page.waitForURL((url) => url.origin === baseURL);
+  await page.goto('/pengumuman/tulis');
+  await expect(page.getByRole('textbox').first()).toBeVisible();
+  const fields = await page.evaluate(() =>
+    [
+      ...document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+        'input, textarea',
+      ),
+    ]
+      .map((f) => f.value)
+      .join(' | '),
+  );
+  expect(fields).not.toContain('situs lain');
+});

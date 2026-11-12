@@ -30,6 +30,7 @@ import {
 } from '../fixtures/api';
 import { ApiMock } from './mock';
 import { installPushStub, type PushMode } from './push';
+import { logoutPush, registerPush } from './writes';
 
 export interface HarnessOptions {
   persona: PersonaKey | null;
@@ -113,9 +114,15 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
   },
 
   api: [
-    async ({ context, db, baseURL }, use, testInfo) => {
+    async ({ context, db, baseURL, push, persona }, use, testInfo) => {
       const api = new ApiMock(db, baseURL!);
       await api.install(context);
+      // A device with notifications on tells the server about its subscription at every start, and unlinks it
+      // when the session has ended; a test's own handlers still come first.
+      if ((push ?? (persona === 'pengurus' ? 'on' : 'off')) === 'on') {
+        api.on('POST /api/push/register', registerPush);
+        api.on('PUT /api/push/logout', logoutPush);
+      }
       await use(api);
       api.close();
       const counts = api.requests.reduce<Record<string, number>>(
