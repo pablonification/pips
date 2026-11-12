@@ -31,7 +31,7 @@ export function forgetMember({
   forgetShell: () => void;
   removeFormDrafts: () => PromiseLike<void> | void;
   removeSharedContent?: () => PromiseLike<void> | void;
-  removeUnsentText?: () => void;
+  removeUnsentText: () => void;
 }): Promise<void> {
   const removed = removePersisted();
   queryClient.setQueryData([ME_QUERY_KEY], null);
@@ -44,6 +44,6 @@ export function forgetMember({
   forgetShell();
   const drafts = removeFormDrafts();
   const shared = removeSharedContent?.();
-  removeUnsentText?.();
+  removeUnsentText();
   return Promise.all([removed, drafts, shared]).then(() => undefined);
 }

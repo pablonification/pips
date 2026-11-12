@@ -92,6 +92,38 @@ const leaveShared = (page: Page) =>
       }),
   );
 
+/** Text typed and not sent, kept in the tab (src/lib/unsent-text.ts): its keys. */
+const unsentKept = (page: Page) =>
+  page.evaluate(() =>
+    Object.keys(sessionStorage).filter((k) => k.startsWith('pips-unsent:')),
+  );
+
+/**
+ * Leaves unsent text in every kind of box that keeps it: a comment typed on p7 for real, and the composer's draft
+ * and both Curhat boxes (the member's and Welfare's) as they are kept.
+ */
+async function leaveUnsentText(
+  page: Page,
+  api: import('../support/mock').ApiMock,
+) {
+  api.on('POST /api/info/:infoId/read', writes.markRead);
+  await page.goto('/pengumuman/p7');
+  await page
+    .getByRole('textbox', { name: 'Tulis komentar' })
+    .fill('Di pos satpam?');
+  await expect
+    .poll(() => unsentKept(page))
+    .toContain('pips-unsent:komentar:p7');
+  await page.evaluate(() => {
+    sessionStorage.setItem(
+      'pips-unsent:tulis',
+      JSON.stringify({ title: 'Kuis 2', body: 'Dimajukan.', audience: [] }),
+    );
+    sessionStorage.setItem('pips-unsent:curhat:r1', 'Mau cerita, kak.');
+    sessionStorage.setItem('pips-unsent:curhat-balas:r1', 'Boleh, cerita aja.');
+  });
+}
+
 /** What a member leaves in localStorage besides the signed-out marker (`user` = "null"). */
 const memberStorage = (page: Page) =>
   page.evaluate(() => ({
@@ -110,6 +142,7 @@ async function expectNothingKept(page: Page) {
     const kept = await memberStorage(page);
     expect(kept.userAcademic).toBeNull();
     expect(kept.user === null || kept.user === 'null').toBe(true);
+    expect(await unsentKept(page)).toEqual([]);
     await page.waitForTimeout(250);
   } while (Date.now() < until);
 }
@@ -172,6 +205,7 @@ test('a 401 after a visit leaves nothing of Nadia on the device, not even a seco
   await expect
     .poll(async () => (await memberStorage(page)).userAcademic)
     .not.toBeNull();
+  await leaveUnsentText(page, api);
   await page.goto('/');
   await expect(page.getByText('Kuis 2')).toBeVisible();
   await expectCacheWritten(page);
@@ -231,6 +265,9 @@ test('a session that ends while writing: the send’s 401 checks the session, an
   await field.fill('Di pos satpam?');
   await page.getByRole('button', { name: 'Kirim komentar' }).click();
   await expect(page).toHaveURL(/\/login\?redirect=%2Fpengumuman%2Fp7$/);
+  // The comment typed is gone with the session: the next person on the device must not find it.
+  await page.waitForTimeout(500);
+  expect(await unsentKept(page)).toEqual([]);
 });
 
 test('offline, Nadia stays signed in and can move around; back online, the session is checked again', async ({
@@ -388,6 +425,7 @@ test('logging out never asks for notification permission, and clears what was ke
     .poll(async () => (await memberStorage(page)).userAcademic)
     .not.toBeNull();
   await expectCacheWritten(page);
+  await leaveUnsentText(page, api);
   await page.goto('/profil');
   await leaveShared(page);
   expect(await sharedRecords(page)).toBe(1);
