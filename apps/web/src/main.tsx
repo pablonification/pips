@@ -10,7 +10,6 @@ import { refetchFailed } from './api/reconnect';
 import { RootErrorFallback } from './components/error-fallback';
 import { reloadOnPreloadError } from './lib/preload-recovery';
 import { runWhenSettled } from './lib/sw-register';
-import { createUpdateGate, holdsText } from './lib/update-gate';
 import './index.css';
 // Features register with the shell at start, so it imports no feature code: Testi Matkul titles its pages from
 // the URL (src/lib/shell/routes.ts), and Pengumuman counts its unread posts for the navigation badge
@@ -27,24 +26,32 @@ reloadOnPreloadError();
 // Back online, pages that failed while offline load by themselves (src/api/reconnect.ts).
 window.addEventListener('online', () => void refetchFailed(queryClient));
 
-// A new version reloads the page, but never over text being typed or a send in flight: then it waits for the next
-// page (src/lib/update-gate.ts).
-const update = createUpdateGate({
-  typing: () =>
-    holdsText(
-      document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
-        'input, textarea',
-      ),
-    ),
-  sending: () => queryClient.isMutating() > 0,
-  reload: () => window.location.reload(),
-});
-router.subscribe('onResolved', (e) => {
-  if (e.pathChanged) update.navigated();
-});
-
 // The service worker registers once the page has loaded, its first data has arrived and the browser is idle
-// (src/lib/sw-register.ts): the first paint never waits for it.
+// (src/lib/sw-register.ts): the first paint never waits for it. A new version reloads the page, but never over text
+// being typed or a send in flight: then it waits for the next page (src/lib/update-gate.ts, loaded only then).
+function registerWorker() {
+  void import('./lib/update-gate')
+    .then(({ createUpdateGate, holdsText }) => {
+      const update = createUpdateGate({
+        typing: () =>
+          holdsText(
+            document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+              'input, textarea',
+            ),
+          ),
+        sending: () => queryClient.isMutating() > 0,
+        reload: () => window.location.reload(),
+      });
+      router.subscribe('onResolved', (e) => {
+        if (e.pathChanged) update.navigated();
+      });
+      return () => update.newVersion();
+    })
+    // Its code didn't load: the new version applies at the next start.
+    .catch(() => () => undefined)
+    .then((onNeedReload) => registerSW({ immediate: true, onNeedReload }));
+}
+
 window.addEventListener(
   'load',
   () =>
@@ -54,11 +61,7 @@ window.addEventListener(
         subscribe: (listener) =>
           queryClient.getQueryCache().subscribe(listener),
       },
-      () =>
-        void registerSW({
-          immediate: true,
-          onNeedReload: () => update.newVersion(),
-        }),
+      registerWorker,
       {
         setTimeout: (cb, ms) => window.setTimeout(cb, ms),
         clearTimeout: (id) => window.clearTimeout(id as number),
