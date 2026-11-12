@@ -63,7 +63,6 @@ const OPENAPI_CONFIG = {
     { name: 'user-finder', description: 'User Finder API' },
     { name: 'competitions', description: 'Competitions API' },
     { name: 'markdown', description: 'Markdown API' },
-    { name: 'recommendation', description: 'Recommendations API' },
     { name: 'curhat', description: 'Curhat API' },
     { name: 'internship', description: 'Internship API' },
     { name: 'form', description: 'Form API' },

@@ -95,12 +95,6 @@ export async function deleteDivision(db: Database, id: string) {
     .then(first);
 }
 
-export async function getDivisionById(db: Database, id: string) {
-  return await db.query.internshipDivisions.findFirst({
-    where: eq(internshipDivisions.id, id),
-  });
-}
-
 export async function getSubmissionByUserId(db: Database, userId: string) {
   return await db.query.internshipSubmissions.findFirst({
     where: eq(internshipSubmissions.userId, userId),
