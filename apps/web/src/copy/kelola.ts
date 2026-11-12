@@ -1,8 +1,6 @@
 /**
- * Kelola (P3-A): the hub, Live Counting, Rekap Form and Data SPARTA Magang. Where the prototype has the words they
- * are its own (garis/screens-more.js `scrLive`, `scrNim`, the Testi Matkul pager, garis/screens-core.js
- * `kelolaSummary`), else today's admin screens' in sentence case; the rest is new and listed in the P3-A report for
- * the owner (OPEN-QUESTIONS D8). The hub's rows come from the service registry.
+ * Kelola: the hub, Live Counting, Rekap Form and Data SPARTA Magang. The hub's rows come from the service
+ * registry.
  */
 export const kelola = {
   // The forms entry (/kelola/live) with two or more active forms; one forwards, none is today's empty line.
@@ -14,7 +12,7 @@ export const kelola = {
     gagal: 'Daftar form gagal dimuat.',
   },
   live: {
-    // The plaque (`scrLive`); "terakhir {hari}, {waktu} WIB" when the newest response isn't from today.
+    // The plaque; "terakhir {hari}, {waktu} WIB" when the newest response isn't from today.
     orangMengisi: 'orang sudah mengisi',
     terakhir: 'terakhir {waktu} WIB',
     terakhirHari: 'terakhir {hari}, {waktu} WIB',
@@ -34,14 +32,13 @@ export const kelola = {
   ekspor: {
     tombol: 'Export CSV',
     mengekspor: 'Mengekspor…',
-    // The prototype's toast without its "Contoh: ".
     jawaban: 'Rekap {jumlah} jawaban diunduh sebagai CSV.',
     sparta: 'Data {jumlah} pendaftar diunduh sebagai CSV.',
     gagal: 'CSV gagal diunduh.',
   },
   rekap: {
     judul: 'Rekap Form',
-    // NIM Finder's search (`scrNim`), and the start of its result line.
+    // NIM Finder's search, and the start of its result line.
     cari: 'Cari nama atau NIM',
     cariPlaceholder: 'Ketik nama atau NIM',
     hasil: '{jumlah} hasil.',
@@ -73,7 +70,7 @@ export const kelola = {
     perDepartemen: 'Per departemen',
     perDivisi: 'Per divisi',
     pilihanPertama: 'Pilihan 1 saja',
-    // Not "Semua pilihan": that's the Pilihan filter's "any priority" on the same screen (review P3-A m4).
+    // Not "Semua pilihan": that's the Pilihan filter's "any priority" on the same screen.
     semuaPilihanStat: 'Pilihan 1–4',
     kelompok: 'Kelompokkan',
     hitung: 'Hitung',
@@ -91,7 +88,7 @@ export const kelola = {
     hapusFilter: 'Hapus filter',
     kosongTanda: '–',
   },
-  // One submission, with today's labels in sentence case.
+  // One submission.
   pendaftar: {
     memuat: 'Memuat pendaftar…',
     gagal: 'Data pendaftar gagal dimuat.',

@@ -1,16 +1,13 @@
 /**
- * Form (P2-A): the list, filling, the check page, sending and the thank-you. Words are the prototype's
- * (`garis/screens-more.js` `scrForm`, `qBlock`, `savedMark`, `answerText`, `reviewPage`, `scrFill`, `OV.confirm`
- * `send-form`; `garis/app.js` `confirm-yes`). The states the prototype doesn't draw (Belum dibuka with its time and
- * countdown, Ditutup, not for your angkatan, not found, a failed send) are new copy (OPEN-QUESTIONS D5), listed in
- * the P2-A report.
+ * Form: the list, filling, the check page, sending and the thank-you, with the states of a form that isn't open
+ * (Belum dibuka with its time and countdown, Ditutup, not for your angkatan, not found) and a failed send.
  */
 export const form = {
   daftar: {
     kosongJudul: 'Belum ada form untukmu',
     kosongIsi: 'Form muncul di sini kalau HMIF membuka form untuk angkatanmu.',
     bagian: '{jumlah} bagian',
-    // New: the opening and closing time on a card (SPEC story 81).
+    // The opening and closing time on a card.
     dibuka: 'Dibuka {waktu}',
     ditutup: 'Ditutup {waktu}',
     gagal: 'Form gagal dimuat.',
@@ -44,7 +41,7 @@ export const form = {
     isi: 'Jawaban tidak bisa diubah setelah dikirim.',
     periksaLagi: 'Periksa lagi',
     kirim: 'Kirim',
-    // New: while it sends, and when it can't.
+    // While it sends, and when it can't.
     mengirim: 'Mengirim…',
     berhasil: 'Form berhasil dikirim!',
     gagal: 'Jawabanmu belum terkirim. Periksa koneksimu, lalu coba lagi.',
@@ -54,7 +51,7 @@ export const form = {
     isi: 'Jawabanmu sudah terkirim.',
     kembali: 'Kembali ke Beranda',
   },
-  // New: a form that hasn't opened yet (OPEN-QUESTIONS D5).
+  // A form that hasn't opened yet.
   belumDibuka: {
     dibuka: 'Dibuka {waktu}',
     sisa: 'Dibuka dalam {sisa}',
@@ -62,7 +59,7 @@ export const form = {
     gagal: 'Form belum bisa dibuka.',
     gagalIsi: 'Pertanyaannya belum sampai. Coba lagi sebentar lagi.',
   },
-  // New: closed, not for your angkatan, not found.
+  // Closed, not for your angkatan, not found.
   ditutup: {
     judul: 'Form ini sudah ditutup',
     isi: 'Ditutup {waktu}. Jawaban tidak bisa dikirim lagi.',

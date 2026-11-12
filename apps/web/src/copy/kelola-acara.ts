@@ -1,12 +1,7 @@
-/**
- * P3-B: adding, changing and deleting calendar events. The Akademik dialog is worded as the prototype words it
- * (garis/screens-core.js `addEventForm`, screens-more.js `OV.addev`, app.js's `addev` submit branch); everything
- * else is new copy (proposals, listed in the P3-B report).
- */
+/** Adding, changing and deleting calendar events. */
 export const kelolaAcara = {
   judul: {
     akademik: 'Tambah acara Akademik',
-    // New copy (proposals).
     himpunan: 'Tambah acara Himpunan',
     ubah: 'Ubah acara',
   },
@@ -16,7 +11,6 @@ export const kelolaAcara = {
   judulField: 'Judul',
   contohJudul: {
     akademik: 'Misalnya Kuis 2 atau Deadline Tugas Besar 1',
-    // New copy (proposal).
     himpunan: 'Misalnya Rapat Anggota HMIF',
   },
   tanggal: 'Tanggal',
@@ -29,13 +23,11 @@ export const kelolaAcara = {
   tambahkan: 'Tambahkan',
   galat: {
     judul: 'Tulis judul acara, misalnya Kuis 2.',
-    // New copy (proposals).
     waktu: 'Isi tanggal dan jam acara.',
     selesai: 'Jam selesai tidak boleh sebelum jam mulai.',
   },
   ditambahkanAkademik:
     'Acara ditambahkan ke kalender anggota {kode} dan Google Calendar-nya.',
-  // New copy (proposals).
   ditambahkanHimpunan:
     'Acara ditambahkan ke kalender semua anggota dan Google Calendar-nya.',
   jenis: 'Jenis acara',
@@ -51,7 +43,7 @@ export const kelolaAcara = {
     'Acara hilang dari kalender anggota dan Google Calendar-nya. Ini tidak bisa diurungkan.',
   hapusTombol: 'Hapus',
   dihapus: 'Acara dihapus.',
-  // New copy: the course catalogue failing inside the dialog, and its loading line.
+  // The course catalogue failing inside the dialog, and its loading line.
   katalogGagal: 'Mata kuliah gagal dimuat.',
   periksaKoneksi: 'Periksa koneksimu, lalu coba lagi.',
   memuatKatalog: 'Memuat mata kuliah…',

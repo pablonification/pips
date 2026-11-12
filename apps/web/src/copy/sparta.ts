@@ -1,9 +1,6 @@
 /**
- * Magang SPARTA for members (P2-A). The prototype has no member screen (the season is closed; the owner asked for it
- * to be built anyway, OPEN-QUESTIONS D4), so all of this is new copy, composed with the form's words where they mean the
- * same thing, listed in the P2-A report for the owner. The closing line is the prototype's ("Pendaftaran ditutup Min,
- * 23 Agu 2026 pukul 23.59", garis/app.js `A.svc`); the eligibility note is from `FEATURE_MAP` ("hanya untuk angkatan
- * 2025"); the step names are today's screen's, in sentence case, and so are its toasts.
+ * Magang SPARTA for members. Composed with the form's words where they mean the same thing. The closing line
+ * is "Pendaftaran ditutup Min, 23 Agu 2026 pukul 23.59"; the eligibility note is "hanya untuk angkatan 2025".
  */
 export const sparta = {
   memuat: 'Memuat Magang SPARTA…',

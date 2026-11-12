@@ -1,12 +1,7 @@
-/**
- * Profil, Mata kuliahku, Tambah mata kuliah, Notifikasi, Keluar, Kredit and Pasang PIPS! (P1-C). Words are the
- * prototype's (`garis/screens-more.js` `memberCard`, `scrProfil`, `scrMatkul`, `scrMatkulAdd`, `caddResults`,
- * `scrNotif`, `OV.confirm` logout; `garis/app.js` `rm-course`, `pick-c`, `add-courses`, `notif-cat`). Lines marked
- * "new" have no prototype wording (OPEN-QUESTIONS D3, D5, D10) and are listed in the P1-C report.
- */
+/** Profil, Mata kuliahku, Tambah mata kuliah, Notifikasi, Keluar, Kredit and Pasang PIPS!. */
 export const profil = {
   kartu: {
-    // The member card's accessible name (memberCard's aria-label).
+    // The member card's accessible name.
     label: 'Kartu anggota HMIF: {nama}, NIM {nim}',
   },
   info: {
@@ -35,9 +30,9 @@ export const profil = {
     judul: 'Keluar dari PIPS!?',
     isi: 'Kamu perlu masuk lagi dengan email mahasiswa (NIM@std.stei.itb.ac.id). Notifikasi di perangkat ini berhenti sampai kamu masuk lagi.',
     batal: 'Batal',
-    // New: sign-out failed; the member stays signed in.
+    // Sign-out failed; the member stays signed in.
     gagal: 'Gagal keluar. Periksa koneksimu, lalu coba lagi.',
-    // New: while sign-out runs.
+    // While sign-out runs.
     keluarProses: 'Keluar…',
   },
   notifikasi: {
@@ -47,7 +42,7 @@ export const profil = {
     wajibToast: 'Kategori {nama} wajib dari HMIF dan tidak bisa dimatikan.',
     catatan:
       'Ini hanya mengatur notifikasi. Semua pengumuman tetap muncul di Pengumuman.',
-    // New: a mute or unmute failed and the switch went back.
+    // A mute or unmute failed and the switch went back.
     gagal: 'Notifikasi {nama} gagal diubah. Periksa koneksimu, lalu coba lagi.',
   },
   matkul: {
@@ -60,10 +55,10 @@ export const profil = {
     tambah: 'Tambah mata kuliah',
     kosong: 'Belum ada mata kuliah semester ini',
     dihapus: '{kode} dihapus dari mata kuliahmu.',
-    // New: a remove or its undo failed; the list is put back as the server has it.
+    // A remove or its undo failed; the list is put back as the server has it.
     hapusGagal: '{kode} gagal dihapus. Periksa koneksimu, lalu coba lagi.',
     urungGagal: '{kode} gagal dikembalikan. Periksa koneksimu, lalu coba lagi.',
-    // New: the list couldn't load.
+    // The list couldn't load.
     gagalMuat: 'Mata kuliahmu gagal dimuat.',
   },
   tambah: {
@@ -75,16 +70,16 @@ export const profil = {
     pilihDulu: 'Pilih mata kuliah yang mau kamu tambahkan.',
     ditambahkan:
       '{jumlah} mata kuliah ditambahkan. Ding Dong dan Kalender ikut diperbarui.',
-    // New: sending the picks, and its failure (the picks stay).
+    // Sending the picks, and its failure (the picks stay).
     menambahkan: 'Menambahkan…',
     gagal: 'Mata kuliah gagal ditambahkan. Periksa koneksimu, lalu coba lagi.',
     gagalMuat: 'Daftar mata kuliah gagal dimuat.',
   },
-  // Kredit (a toast in the prototype; new copy): its load failed.
+  // Kredit: its load failed.
   kredit: {
     gagal: 'Kredit gagal dimuat.',
   },
-  // Pasang PIPS! (a toast in the prototype; new copy, OPEN-QUESTIONS D3).
+  // Pasang PIPS!.
   pasang: {
     judul: 'Pasang PIPS!',
     isi: 'Buka PIPS! langsung dari layar utama, seperti aplikasi lain. Di iPhone, notifikasi juga hanya sampai lewat PIPS! yang terpasang.',

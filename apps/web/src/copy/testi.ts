@@ -1,15 +1,11 @@
-/**
- * Testi Matkul (P2-B), worded as the prototype words it (garis/screens-more.js `scrTesti`, `testiTitle`,
- * `testiStart`, `testiCourseRow`, `testiCount`, `PROG`). Lines the prototype has no words for (errors, an unknown
- * course, loading) are new copy, listed in the P2-B report.
- */
+/** Testi Matkul: titles, course rows, testimonials, and the unknown-course, loading and error lines. */
 export const testi = {
   program: {
     IF: 'Teknik Informatika',
     STI: 'Sistem dan Teknologi Informasi',
     OTHER: 'Mata Kuliah Umum',
   },
-  // Titles (`testiTitle`): "IF · Semester 3", "IF · Pilihan".
+  // Titles: "IF · Semester 3", "IF · Pilihan".
   judulSemester: '{program} · Semester {semester}',
   judulPilihan: '{program} · Pilihan',
   semester: 'Semester {semester}',
@@ -32,19 +28,19 @@ export const testi = {
     kesan: 'Kesan',
     tantangan: 'Tantangan',
     saran: 'Saran',
-    // The lecturer's name (the API's `lecturer`), last: Garis v5's `testiCard`.
+    // The lecturer's name (the API's `lecturer`), last.
     dosen: 'Dosen',
   },
-  // Garis v5: a section over 280 characters folds to six lines behind these (`testiCard`).
+  // A section over 280 characters folds to six lines behind these.
   bacaSelengkapnya: 'Baca selengkapnya',
   ringkasLagi: 'Ringkas lagi',
   bukaDingdong: 'Buka Ding Dong {kode}',
   kosongIsi: 'Testimoni dikumpulkan divisi Akademik tiap akhir semester.',
-  // New copy: a course that isn't in the catalogue (an old or mistyped link), as Curhat's "Ruang tidak ditemukan".
+  // A course that isn't in the catalogue (an old or mistyped link).
   tidakDitemukan: 'Mata kuliah tidak ditemukan',
   tidakDitemukanIsi: 'Tautannya mungkin salah atau sudah tidak berlaku.',
   kembali: 'Kembali ke Testi Matkul',
-  // New copy: loading and failures.
+  // Loading and failures.
   memuatMatkul: 'Memuat mata kuliah…',
   memuatTestimoni: 'Memuat testimoni…',
   gagalMatkul: 'Mata kuliah gagal dimuat.',
