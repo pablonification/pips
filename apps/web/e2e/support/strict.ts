@@ -1,5 +1,5 @@
 /**
- * Strict quality gates for redesigned screens (P1-C brief, "Gates on every journey"), whatever E2E_GATES says:
+ * Strict quality gates for every screen, whatever E2E_GATES says:
  * - zero serious or critical axe violations on the whole page, text ≥ 12 px,
  *   `lang="id"`, no horizontal overflow (audit.ts);
  * - inputs at 16 px or more on touch layouts (no zoom on focus);
@@ -82,7 +82,7 @@ export async function touchInputsUnder16(page: Page): Promise<string[]> {
 /**
  * Tabs through the page (at most `max` stops); every focused element must show a focus indicator.
  *
- * The indicator is found by comparing the same control focused and blurred (review m7): Garis buttons, chips,
+ * The indicator is found by comparing the same control focused and blurred: Garis buttons, chips,
  * fields and switches carry a shadow at rest, so "has an outline or a shadow" passed controls with no focus style
  * at all. At each stop the gate reads the outline, shadow, border and background of the control, its ::before and
  * ::after, and its three nearest ancestors (Seg, the rating and the search box draw the ring on a wrapper that
@@ -172,7 +172,7 @@ export async function expectVisibleFocus(page: Page, max = 30) {
 
 /**
  * The navigation lights exactly the item for this route. Profil has no tab: on phones and tablets the tab you came
- * from stays lit, and none when Profil was opened directly (Dev 1's decision, as the locked screens show); on
+ * from stays lit, and none when Profil was opened directly; on
  * desktop your name at the sidebar's foot is the current page.
  */
 export async function expectLit(page: Page, testInfo: TestInfo, name: Lit) {
@@ -285,8 +285,7 @@ export async function expectFitsEverywhere(page: Page) {
 }
 
 /**
- * The top bar is sticky and see-through (the owner's locked design keeps it so: P3-C review, Dev 1's decision,
- * 2026-10-14), so a scrolled page passes under it. Where a scroll stops with a control straddling the bar's lower
+ * The top bar is sticky and see-through, so a scrolled page passes under it. Where a scroll stops with a control straddling the bar's lower
  * edge, axe's `target-size` reads that one still frame and counts the control and the bar's button as overlapping
  * targets, although the half under the bar is hidden and can't be tapped. This only moves the scroll up by the amount
  * a control straddles the edge (after the page has stopped scrolling by itself), so the audit measures the screen's

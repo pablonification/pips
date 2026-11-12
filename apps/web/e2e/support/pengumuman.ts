@@ -1,5 +1,5 @@
 /**
- * Helpers for the Pengumuman journeys (P1-B): where a post opens in each layout, the unread count in its three
+ * Helpers for the Pengumuman journeys: where a post opens in each layout, the unread count in its three
  * places, and the strict quality gates every state is checked against.
  */
 import {
@@ -28,7 +28,7 @@ export const inFeed = (page: Page, title: string) =>
 
 export const isDesk = (t: TestInfo) => layoutOf(t) === 'desktop';
 
-/** SPEC's gates, strict: zero serious or critical axe findings, no sideways scroll, no text under 12 px, lang id. */
+/** The strict gates: zero serious or critical axe findings, no sideways scroll, no text under 12 px, lang id. */
 export async function strictGates(
   page: Page,
   testInfo: TestInfo,
@@ -94,8 +94,7 @@ export async function expectFocused(locator: Locator) {
 }
 
 /**
- * A feed long enough to show what the short sample data hides (owner, 2026-11-06: desktop Pengumuman "broken as
- * hell" on real data): `n` posts, every one unread, with long titles, unbroken words and URLs (as real posts have),
+ * A feed long enough to show what the short sample data hides, such as a desktop Pengumuman that breaks on real data: `n` posts, every one unread, with long titles, unbroken words and URLs (as real posts have),
  * long text and a long author name. Newest first, a minute apart.
  */
 export function longPosts(base: Info, n = 30): Info[] {
@@ -121,7 +120,7 @@ export function longPosts(base: Info, n = 30): Info[] {
 }
 
 /**
- * Nothing scrolls sideways (owner, 2026-11-06): no element is scrolled to the side, and no scrolling area (the shell's,
+ * Nothing scrolls sideways: no element is scrolled to the side, and no scrolling area (the shell's,
  * Pengumuman's two columns) is wider than its box, so focusing something can't push the page sideways.
  */
 export async function expectNoSidewaysScroll(page: Page) {

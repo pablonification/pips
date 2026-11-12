@@ -5,18 +5,18 @@
  *   test sets `db.signedIn = true`.
  * - `installed`: whether the app runs as the installed PWA (`display-mode: standalone`, default true). The app reads
  *   it (lib/platform.ts) for Pasang PIPS! and the iOS push step; `installed: false` runs as a phone browser, which
- *   also checks the install tutorial P0-B removed stays gone.
+ *   also checks that no install tutorial is shown.
  * - `now`: the fixed clock (default: Kamis, 8 Oktober 2026, 13.35 WIB); null leaves the real clock.
  * - `platform`: what `navigator.platform` reports ('MacIntel', 'Linux x86_64'); null leaves the browser's own. The
- *   app names the search shortcut by platform (⌘K on Apple, Ctrl K elsewhere), so fidelity captures run as Linux,
- *   where the locked screens were rendered.
- * - `push` (P1-C): this device's notifications, `'off'` (permission default, not subscribed), `'on'` (granted and
- *   subscribed) or `'blocked'` (denied); null (default) follows the persona as the prototype does: off for Nadia, on
+ *   app names the search shortcut by platform (⌘K on Apple, Ctrl K elsewhere), so captures run as Linux,
+ *   as CI does.
+ * - `push`: this device's notifications, `'off'` (permission default, not subscribed), `'on'` (granted and
+ *   subscribed) or `'blocked'` (denied); null (default) follows the persona: off for Nadia, on
  *   for Raka. See push.ts for the stub and its helpers (`answerPermission`, `pushDevice`).
- * - `roles` (P3-A): the persona's roles for this test. A list adds roles (`roles: ['peoplemanage']`); `{ only: [...] }`
+ * - `roles`: the persona's roles for this test. A list adds roles (`roles: ['peoplemanage']`); `{ only: [...] }`
  *   replaces them (`roles: { only: ['peoplemanage'] }` is a peoplemanage-only member). Applied in the `db` fixture
  *   before the context seeds the session, so `GET /api/me` and the cached user agree. null (default) keeps them.
- * - `motion` (F1): `'off'` (default) adds the no-motion stylesheet below; `'on'` leaves the app's own transitions, for
+ * - `motion`: `'off'` (default) adds the no-motion stylesheet below; `'on'` leaves the app's own transitions, for
  *   the review recordings (pair it with `reducedMotion: 'no-preference'`).
  * - `api`: the mock layer (mock.ts). Its guard fails the test after it ends if any request went unanswered.
  */
