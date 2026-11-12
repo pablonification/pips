@@ -376,6 +376,77 @@ test.describe('catching up (Nadia)', () => {
   });
 });
 
+test.describe('a comment being written (Nadia)', () => {
+  test('a reload keeps the comment typed for that post only; sent, it is gone', async ({
+    page,
+    api,
+  }) => {
+    api
+      .on('POST /api/info/:infoId/read', writes.markRead)
+      .on('POST /api/comment', writes.comment);
+    await page.goto('/pengumuman/p7');
+    const field = page.getByRole('textbox', { name: 'Tulis komentar' });
+    await field.fill('Di pos satpam?');
+    await page.reload();
+    await expect(field).toHaveValue('Di pos satpam?');
+    await page.goto('/pengumuman/p6');
+    await expect(field).toHaveValue('');
+    await page.goto('/pengumuman/p7');
+    await expect(field).toHaveValue('Di pos satpam?');
+    await page.getByRole('button', { name: 'Kirim komentar' }).click();
+    await expect(detail(page).getByText('Di pos satpam?')).toBeVisible();
+    await expect(field).toHaveValue('');
+    await page.reload();
+    await expect(field).toHaveValue('');
+  });
+
+  test('offline, Kirim komentar fails at once with Coba lagi, and nothing goes out by itself once back online', async ({
+    page,
+    api,
+  }) => {
+    api
+      .on('POST /api/info/:infoId/read', writes.markRead)
+      .on('POST /api/comment', writes.comment);
+    await page.goto('/pengumuman/p7');
+    const field = page.getByRole('textbox', { name: 'Tulis komentar' });
+    await expect(field).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    await api.setOffline(true);
+    await field.fill('Di pos satpam?');
+    await page.getByRole('button', { name: 'Kirim komentar' }).click();
+    await expect(
+      page.getByText('Komentar gagal dikirim. Tulisanmu masih ada.'),
+    ).toBeVisible();
+    const tried = api.writes.length;
+    await api.setOffline(false);
+    await page.waitForTimeout(1_500);
+    expect(api.writes.length, 'nothing sent without a tap').toBe(tried);
+    await expect(field).toHaveValue('Di pos satpam?');
+  });
+
+  test('Kirim komentar is busy while the comment is on its way; a second press sends nothing', async ({
+    page,
+    api,
+  }) => {
+    api
+      .on('POST /api/info/:infoId/read', writes.markRead)
+      .on('POST /api/comment', reply.hang());
+    await page.goto('/pengumuman/p7');
+    const send = page.getByRole('button', { name: 'Kirim komentar' });
+    await page
+      .getByRole('textbox', { name: 'Tulis komentar' })
+      .fill('Di pos satpam?');
+    await expect(send).not.toHaveAttribute('aria-busy', 'true');
+    await send.click();
+    await expect(send).toHaveAttribute('aria-busy', 'true');
+    await expect(send).toHaveAttribute('aria-disabled', 'true');
+    // Sending again from the field (a click waits for the button to be enabled).
+    await page.getByRole('textbox', { name: 'Tulis komentar' }).press('Enter');
+    await page.waitForTimeout(500);
+    expect(api.calls('POST /api/comment')).toHaveLength(1);
+  });
+});
+
 test.describe('filter and search', () => {
   test('hiding Akademik sends its name; Terlama, Belum dibaca, search, the empty state, Tampilkan semua', async ({
     page,
@@ -611,7 +682,7 @@ test.describe('the author (Raka, admin)', () => {
     await page.keyboard.press('Escape');
     await expectFocused(menuButton(page, P1));
 
-    await page.goto('/pengumuman/p5');
+    await page.goto('/pengumuman/p6');
     await menuButton(page, P5).click();
     const open = page.getByRole('menuitem', { name: /^Umumkan ulang/ });
     await expect(open).toHaveAccessibleName(

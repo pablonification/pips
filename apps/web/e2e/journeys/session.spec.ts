@@ -193,6 +193,46 @@ test('a 401 from another request (a role check) does not sign out', async ({
   await expect(navLink(page, 'Pengumuman')).toBeVisible();
 });
 
+test('a session that ends while the app is open: the next page’s 401 checks the session, and sign-in takes over with the way back', async ({
+  page,
+  api,
+  db,
+}) => {
+  await page.goto('/layanan');
+  await expect(navLink(page, 'Layanan')).toBeVisible();
+  await expect.poll(() => api.calls('GET /api/me').length).toBeGreaterThan(0);
+  await page.waitForLoadState('networkidle');
+  const checks = api.calls('GET /api/me').length;
+  // Ended on the server (or signed out in another tab): every request answers 401 from now on.
+  db.signedIn = false;
+  await page
+    .getByRole('main')
+    .getByRole('link', { name: /^Info Lomba/ })
+    .click();
+  await expect(page).toHaveURL(/\/login\?redirect=%2Flayanan%2Flomba$/);
+  expect(api.calls('GET /api/me').length).toBeGreaterThan(checks);
+});
+
+test('a session that ends while writing: the send’s 401 checks the session, and sign-in takes over with the way back', async ({
+  page,
+  api,
+  db,
+}) => {
+  api
+    .on('POST /api/info/:infoId/read', writes.markRead)
+    .on('POST /api/comment', (req) =>
+      req.db.signedIn ? writes.comment(req) : reply.status(401),
+    );
+  await page.goto('/pengumuman/p7');
+  const field = page.getByRole('textbox', { name: 'Tulis komentar' });
+  await expect(field).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  db.signedIn = false;
+  await field.fill('Di pos satpam?');
+  await page.getByRole('button', { name: 'Kirim komentar' }).click();
+  await expect(page).toHaveURL(/\/login\?redirect=%2Fpengumuman%2Fp7$/);
+});
+
 test('offline, Nadia stays signed in and can move around; back online, the session is checked again', async ({
   page,
   api,

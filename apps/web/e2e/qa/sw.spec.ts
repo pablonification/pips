@@ -141,3 +141,57 @@ test('another website cannot fill in Buat pengumuman through the share target', 
   );
   expect(fields).not.toContain('situs lain');
 });
+
+test.describe('a new version while writing', () => {
+  // The real clock: the service worker's install and takeover run on the browser's own timers.
+  test.use({ now: null });
+
+  test('a new version arriving while Buat pengumuman holds text waits; the text stays, and the next page loads it', async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'qa-sw', 'qa-sw');
+    await page.goto('/');
+    await expect(greeting(page)).toBeVisible();
+    await controlled(page);
+    // The app registers its worker on each page once it has settled; it listens for a new version from then on.
+    const registering = page.waitForRequest(/workbox-window/, {
+      timeout: 30_000,
+    });
+    await page.goto('/pengumuman/tulis');
+    const body = page.getByRole('textbox', { name: 'Isi pengumuman' });
+    await expect(body).toBeVisible();
+    await registering;
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+    let loads = 0;
+    page.on('load', () => loads++);
+    await page.getByRole('textbox', { name: /^Judul/ }).fill('Kuis 2');
+    await body.fill('Kuis 2 dimajukan.');
+
+    // A deploy: a worker the page didn't register takes over, as the next version does. (The preview server's ETag
+    // doesn't change with the file, and a worker's update check isn't routed, so a changed sw.js can't stand in.)
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          navigator.serviceWorker.addEventListener('controllerchange', () =>
+            resolve(),
+          );
+          navigator.serviceWorker
+            .register('/sw.js?e2e=next-version')
+            .catch(reject);
+        }),
+    );
+    // The new version controls the page; the app was told and may reload now if it is going to.
+    await page.waitForTimeout(2_000);
+    expect(loads, 'no reload while text is in the composer').toBe(0);
+    await expect(page.getByRole('textbox', { name: /^Judul/ })).toHaveValue(
+      'Kuis 2',
+    );
+    await expect(body).toHaveValue('Kuis 2 dimajukan.');
+
+    // Leaving for another page applies it.
+    await page.getByRole('button', { name: 'Batal' }).click();
+    await expect.poll(() => loads).toBe(1);
+    await expect(page).toHaveURL(/\/pengumuman$/);
+  });
+});

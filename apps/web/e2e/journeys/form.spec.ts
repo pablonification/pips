@@ -206,6 +206,23 @@ test.describe('the list', () => {
     ).toBeVisible();
   });
 
+  test('a list that failed with no connection loads by itself when the connection returns', async ({
+    page,
+    api,
+  }) => {
+    api.on('GET /api/form', reply.abort('internetdisconnected'));
+    await page.goto('/layanan/form');
+    await expect(main(page).getByRole('alert')).toContainText(
+      'Form gagal dimuat.',
+      { timeout: 15_000 },
+    );
+    api.on('GET /api/form', ({ db }) => ({ forms: db.forms }));
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    await expect(
+      main(page).getByRole('link', { name: /Form Analisis Kondisi PIXEL/ }),
+    ).toBeVisible();
+  });
+
   test('offline, the last list stays with when it was updated', async ({
     page,
     api,
