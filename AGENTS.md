@@ -8,12 +8,14 @@ Garis and journey are explained in [CONTEXT.md](CONTEXT.md). Read it once.
 ## Never compromise
 
 - **Curhat Yuk! stays anonymous to Welfare.** The API never sends who owns a room or sent a message
-  (`apps/api/src/lib/curhat.ts`). A notification must carry no message text. Treat a privacy problem here as a
-  security problem.
+  (`apps/api/src/lib/curhat.ts`). A notification says only "Pesan baru di Curhat Yuk!" and carries nothing from a
+  message. Treat a privacy problem here as a security problem.
 - **A member sees only what their angkatan and roles allow, and the server decides.** The web app only mirrors it
   (`apps/web/src/lib/capabilities.ts`). Every new route needs its own role or audience check in the API.
 - **No real person's data in the repository.** Not in code, tests, fixtures, comments or commit messages. Use made-up
-  names and numbers. A test in `scripts/` fails on a real-looking student number or email.
+  names and numbers. `scripts/repo-privacy.test.mjs` fails on a student number or email address that could be
+  real, a path under someone's home folder, or a table of names beside numbers. A made-up student number has a
+  sequence of 900 or more (`13525901`); a made-up email uses it at `std.stei.itb.ac.id` or is at `example.com`.
 - **HMIF's logo is only the official file, whole**: `/logo/hmif.png`, shown through
   `apps/web/src/components/garis/HmifLogo.tsx`. Never redraw, crop, recolour or imitate it.
 - **The look is Garis, written by hand.** No component or icon library; lint rules in

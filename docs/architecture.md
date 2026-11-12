@@ -14,8 +14,9 @@ a web test keeps them equal ([decision 1](adr/0001-the-web-app-and-the-api-live-
 
 ## The API
 
-A request goes **route** → **controller** → **repository** and **lib**. The answer is checked against the route's
-description on the way out.
+A request goes **route** → **controller** → **repository** and **lib**. The request is checked against the route's
+description when it arrives (a bad one gets a 400). The answer is not checked on the way out
+([decision 3](adr/0003-every-api-route-is-described-and-the-web-client-is-generated-from-it.md)).
 
 | Folder (under `apps/api/src`) | What it is for | Open first |
 | --- | --- | --- |
@@ -122,17 +123,21 @@ that stays open so the server can send without being asked.
    [decision 9](adr/0009-curhat-messages-carry-an-id-made-on-the-device.md)), shows the message as sending, and emits
    it with a 10-second wait for the answer. With no connection it fails at once and is never queued, so it cannot be
    sent twice later. After 10 seconds it shows "Gagal" with Kirim ulang, which sends the same id again.
-7. **The server saves it.** `receiveMessage` in `websocket/curhat.ts` checks the session, the payload
-   (`CurhatMessagePayloadSchema`) and the room (`accessibleRoom` reads the roles again), then `saveMessage`
+7. **The server saves it.** `receiveMessage` in `websocket/curhat.ts` checks the session, the rate limit (30 messages
+   a minute per member, `RATE_LIMITS.curhatMessages` in `lib/limits.ts`; past it the message fails and Kirim ulang
+   works once the minute is over), the payload (`CurhatMessagePayloadSchema`) and the room (`accessibleRoom` reads
+   the roles again), then `saveMessage`
    (`chatroom.repo.ts`) inserts with "on conflict do nothing" on room and device id. A resend is not saved twice and
    the first copy is answered.
 8. **The server passes it on.** For each other socket in the room it checks access again, then emits `reply`, built by
    `toChatroomMessageResponse`. It says `fromOwner` and `isSender`, never who. A Welfare account that lost its role is
    removed from the room instead of receiving.
-9. **A push goes to the others.** `sendNotification` in `websocket/setup.ts` finds the room's owner and every
-   `curhatadmin` except the sender (`getChatroomParticipantIds`), then their devices, and sends through
-   `sendNotificationToAll` (`lib/push-manager.ts`: 50 at a time, 10 seconds each). A failure is logged and goes no
-   further: the message is already saved.
+9. **A push goes to the others.** `sendCurhatNotification` in `websocket/setup.ts` asks `curhatPushes`
+   (`lib/curhat.ts`) who to tell: the room's owner (a link to their room) and every `curhatadmin` (a link to the room
+   in the inbox), never the sender. The push carries ids only, so its text is always "Pesan baru di Curhat Yuk!".
+   Their devices are sent through `sendNotificationToAll` (`lib/push-manager.ts`: 50 at a time, 10 seconds each),
+   and devices the push service says are gone are deleted. A failure is logged and goes no further: the message is
+   already saved.
 10. **The member's app settles.** The `message` acknowledgement in `client.ts` puts the saved message in the rooms
     cache and retires the "sending" entry. If the acknowledgement was lost but the message was saved, the next fetch
     matches the device id (`settleOutbox` in `features/curhat/rules.ts`) so it never shows twice.
@@ -148,4 +153,4 @@ that stays open so the server can send without being asked.
 Things this trace shows. Anonymity stops at the API: the database stores who owns each room and who sent each
 message, and Welfare cannot see it through the app, but anyone with the database can. The API must run as one
 process, because rooms live in its memory ([decision 10](adr/0010-the-api-runs-as-one-process-and-keeps-its-state-in-memory.md)).
-Nothing from Curhat is written to the device's saved cache.
+Nothing from Curhat is written to the device's saved cache, and nothing from a message reaches a lock screen.
