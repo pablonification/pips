@@ -1,4 +1,4 @@
-// P3-A: Kelola's rules (src/features/kelola/rules.ts), run under a time zone that isn't WIB, so every time on screen
+// Kelola's rules (src/features/kelola/rules.ts), run under a time zone that isn't WIB, so every time on screen
 // is shown to be WIB whatever the device's zone.
 process.env.TZ = 'America/Los_Angeles';
 
@@ -87,8 +87,8 @@ test('gateRedirect: sends away only after the session check answered', () => {
   assert.equal(gateRedirect(kelolaAccess(raka, 'sparta'), true), null);
 });
 
-// Deviation since P0-B round 2 (services.ts): Tambah acara Akademik is akademik's only, since the server lets only
-// akademik add an Akademik event; the brief's ring1 row would lead to a 403. So ring1 alone has no Kelola tool.
+// Tambah acara Akademik is akademik's only, since the server lets only akademik add an Akademik event; a ring1 row
+// would lead to a 403. So ring1 alone has no Kelola tool.
 test('kelolaAccess: akademik alone has Tambah acara Akademik only; ring1 alone has none', () => {
   assert.deepEqual(
     kelolaServices(akademik).map((s) => s.label),
@@ -412,7 +412,7 @@ test('"–" for empty fields and missing priorities (a partial draft)', () => {
   assert.equal(priorityName(sub('y', {}, ['gone']), 1, byId), '–');
 });
 
-// Regression (CI's solo check, 2026-11-03): a search that still matches the same rows keeps the list, so its 300 rows
+// A search that still matches the same rows keeps the list, so its 300 rows
 // don't render again on every keystroke.
 test('sameItems: the same rows in the same order, by identity', () => {
   const [a, b] = subs;

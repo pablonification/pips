@@ -1,7 +1,6 @@
-// P3-A: Kelola's CSV files (src/features/kelola/csv.ts) against today's export code, byte for byte, plus the two
-// fixes: times in WIB whatever the device's zone, and `\r` quoted. C1 deleted today's exporters
-// (`kelola/live/$formId/-exportResponses.ts`, `kelola/sparta/-exportSubmissions.ts`); the files they wrote for these
-// same fixtures are kept in tests/fixtures/kelola-csv/ (name in `.name`, bytes with the BOM in `.csv`).
+// Kelola's CSV files (src/features/kelola/csv.ts) against the files the old exporters wrote, byte for byte, plus
+// the two fixes: times in WIB whatever the device's zone, and `\r` quoted. The files those exporters wrote for
+// these fixtures are kept in tests/fixtures/kelola-csv/ (name in `.name`, bytes with the BOM in `.csv`).
 import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
@@ -19,7 +18,7 @@ const db = buildDb('pengurus');
 const form = db.formDetails.pixel;
 const NOW = Date.parse('2026-10-08T06:35:12.000Z');
 
-/** The file today's exporter downloaded for these fixtures (name and bytes, BOM included), saved before C1. */
+/** The file the old exporter downloaded for these fixtures (name and bytes, BOM included). */
 function today(name: string): { filename: string; bytes: string } {
   const at = (ext: string) =>
     readFileSync(
@@ -148,7 +147,7 @@ test("SPARTA CSV: byte for byte today's file, partial drafts and a missing divis
   );
 });
 
-test('escapeCsvValue quotes ", comma and line breaks; regression: \\r too', () => {
+test('escapeCsvValue quotes ", comma, \\r and line breaks', () => {
   assert.equal(escapeCsvValue('biasa'), 'biasa');
   assert.equal(escapeCsvValue('a,b'), '"a,b"');
   assert.equal(escapeCsvValue('kata "kutip"'), '"kata ""kutip"""');

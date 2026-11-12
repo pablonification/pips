@@ -1,5 +1,5 @@
 // The design-system lint rules (eslint-rules/garis.mjs), run through the app's real ESLint config, so the test also
-// covers where they apply (GARIS_FILES in eslint.config.js): all of src since C1, the generated API client aside.
+// covers where they apply (GARIS_FILES in eslint.config.js): all of src, the generated API client aside.
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
@@ -84,7 +84,7 @@ test('monospace is rejected', async () => {
   assert.deepEqual(await rules(wrap(`<p style={{ fontFamily: 'Geist Mono, monospace' }} />`)), ['garis/no-monospace']);
 });
 
-test('since C1 the rules cover all of src, files outside the old new-code folders included', async () => {
+test('the rules cover all of src, files outside the old new-code folders included', async () => {
   const bad = wrap(`<div className="bg-white text-[13px] transition-all font-mono uppercase" />`);
   for (const f of [OUTSIDE, 'src/components/__x.tsx', 'src/hooks/__x.tsx', 'src/lib/__x.tsx', 'src/routes/__x.tsx', 'src/components/icons/__x.tsx', 'src/dev/garis/__x.tsx']) {
     const found = await rules(bad, f);

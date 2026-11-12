@@ -14,7 +14,7 @@ import {
 import { SERVICES } from '../src/lib/services';
 
 /*
- * The glossary check (SPEC story 155). Reads every module in src/copy/ and fails on a banned word, a service name
+ * The glossary check. Reads every module in src/copy/ and fails on a banned word, a service name
  * spelled differently from the registry, or capitals the app adds itself.
  */
 

@@ -59,14 +59,14 @@ test('only the Garis tokens exist: Tailwind’s defaults and the old classes com
   assert.doesNotMatch(index, /@config|hsl\(|--background:|scrollbar/);
 });
 
-test('the body takes the page’s colours from the tokens, as garis.css does', () => {
+test('the body takes the page’s colours from the tokens', () => {
   const base = fs.readFileSync(path.join(appDir, 'src/styles/garis/base.css'), 'utf8');
   const body = base.slice(base.indexOf('  body {'), base.indexOf('}', base.indexOf('  body {')));
   assert.match(body, /background: var\(--bg-page\);/);
   assert.match(body, /color: var\(--text\);/);
 });
 
-test('the type styles compile exactly as garis.css sets them', async () => {
+test('the type styles compile to the design system’s sizes', async () => {
   const out = await css(['t-display-l', 't-display', 't-title', 't-heading', 't-body-l', 't-body', 't-sub', 't-sm', 't-label', 't-cap', 't-micro', 't-figure', 't-figure-xl', 'disp', 'num']);
   const want = { 't-display-l': '32px', 't-display': '24px', 't-title': '20px', 't-heading': '17px', 't-body-l': '16px', 't-body': '15px', 't-sub': '15px', 't-sm': '14px', 't-label': '14px', 't-cap': '13px', 't-micro': '12px', 't-figure': '32px', 't-figure-xl': '56px' };
   for (const [cls, size] of Object.entries(want)) assert.match(rule(out, cls), new RegExp(`font-size: ${size}`), cls);
@@ -83,7 +83,7 @@ test('the type styles compile exactly as garis.css sets them', async () => {
 // "Kelas 02" tag in the gallery. The components put these modifier classes next to their g-* class; none may be a
 // Tailwind utility.
 test('no component modifier class is also a Tailwind utility', async () => {
-  // The components and the shell (P0-C).
+  // The components and the shell.
   const components = ['components.css', 'shell.css'].map((f) => fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8')).join('\n');
   const modifiers = new Set([...components.matchAll(/\.g-[\w-]+((?:\.[\w-]+)+)/g)].flatMap((m) => m[1].split('.').filter(Boolean)));
   for (const part of ['s16', 's20', 's24', 'f', 'gf', 'pp', 'k', 'o', 'w', 'r', 'c', 'l', 'b', 'n', 'box', 'handle', 'rule', 'hint', 'dis-ic', 'msg', 't-ic', 'act', 'sq', 'bars', 'glyph', 'radio'])

@@ -1,4 +1,4 @@
-// P3-B: the add-event dialog's rules (brief rules 2–5, 8) and the WIB times, under a device zone that isn't WIB.
+// The add-event dialog's rules and the WIB times, under a device zone that isn't WIB.
 process.env.TZ = 'America/New_York';
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
@@ -278,7 +278,7 @@ test('writes never sign out: 401 and 403 are "no access"; anything else is "not 
   }
 });
 
-test('regression (review m2): an event that ends on a later day keeps its days when edited', () => {
+test('an event that ends on a later day keeps its days when edited', () => {
   // Rapat Kerja, Selasa 13 to Kamis 15 Oktober, 09.00 to 17.00 WIB.
   const e: CalendarEvent = {
     id: 'h1',

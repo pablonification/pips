@@ -1,4 +1,4 @@
-// P3-C: the Welfare inbox's rules (src/features/curhat-inbox/rules.ts), on the harness's Welfare view (Raka with
+// The Welfare inbox's rules (src/features/curhat-inbox/rules.ts), on the harness's Welfare view (Raka with
 // curhatadmin: every room, the member's messages fromOwner), under a time zone that isn't WIB.
 process.env.TZ = 'America/Los_Angeles';
 
@@ -315,7 +315,7 @@ test('sending again unchanged reuses the failed reply’s device id; changed tex
   assert.deepEqual(sendPlan(null, 'x', null, outbox), { kind: 'send' });
 });
 
-// Review M1 (round 2): round 1 expected `send` here, which saved the reply twice after a reconnect's catch-up fetch.
+// A reply sent again after a reconnect's catch-up fetch must not be saved twice.
 test('a failed reply whose entry has settled or been delivered is saved: sending it unchanged sends nothing', () => {
   const failed = {
     localId: 'local-1',

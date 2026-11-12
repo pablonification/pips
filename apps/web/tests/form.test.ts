@@ -1,4 +1,4 @@
-// P2-A: the Form rules (src/lib/form/), checked against the server's own completeness check and the prototype.
+// The Form rules (src/lib/form/), checked against the server's own completeness check.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { findMissingRequiredQuestions } from '../../api/src/lib/form-answers';
@@ -50,7 +50,7 @@ const words = {
   kosong: copy.periksa.kosong,
 };
 
-/** Every answer the PIXEL form needs, as the prototype's check fills it (garis-check.mjs). */
+/** Every answer the PIXEL form needs. */
 const complete: Answers = {
   q1: 'Nadia Putri',
   q2: '13525045',
@@ -222,7 +222,7 @@ test('prefill: the account’s name and NIM; a draft wins, also an emptied answe
   assert.deepEqual(startingAnswers(plain, null, me), {});
 });
 
-test('the rating scale: the real label’s bracket moves under it; otherwise the prototype’s scale', () => {
+test('the rating scale: the real label’s bracket moves under it; otherwise the default scale', () => {
   assert.deepEqual(
     ratingParts(
       'Secara keseluruhan, gimana penilaian kamu soal Welcoming Party 2025? (1 = sangat kurang, 5 = sangat baik)',

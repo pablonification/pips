@@ -105,7 +105,7 @@ test('curhat:join checks access, and a test can change or withhold an answer', (
   );
 });
 
-// P2-C: a lost or late acknowledgement. The test holds the answer back, then answers it by hand.
+// A lost or late acknowledgement. The test holds the answer back, then answers it by hand.
 test('a held-back acknowledgement is answered later with ack(), on the connection that asked', () => {
   const db = buildDb('anggota');
   const server = new FakeSocketServer(db);
@@ -134,7 +134,7 @@ test('a held-back acknowledgement is answered later with ack(), on the connectio
   );
 });
 
-// P3-A: Live Counting's room joins admins only, as websocket/connection.ts.
+// Live Counting's room joins admins only, as websocket/connection.ts.
 test('formAdminId joins form-admin:{formId} for an admin only', () => {
   const raka = new FakeSocketServer(buildDb('pengurus'));
   assert.ok(

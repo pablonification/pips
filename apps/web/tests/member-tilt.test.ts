@@ -2,7 +2,7 @@ import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { tiltAt } from '../src/features/profil/member-tilt';
 
-/* The member card's tilt (Garis v5): at most 8° sideways and 6° up or down; the sheen follows the pointer across. */
+/* The member card's tilt: at most 8° sideways and 6° up or down; the sheen follows the pointer across. */
 
 const card = { left: 100, top: 50, width: 360, height: 227 };
 

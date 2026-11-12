@@ -6,7 +6,7 @@ import { OfflineBanner } from '../src/components/garis/State';
 
 /*
  * The offline banner names the last update when there is one, and says only "Offline" when nothing on the page has
- * come from the server (review P1-C m5: Profil showed the current time as the last update).
+ * come from the server (Profil must not show the current time as the last update).
  */
 
 test('the banner names the time of the last update', () => {
