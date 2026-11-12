@@ -427,7 +427,14 @@ function CommentForm({
         autoComplete="off"
         data-comment-field=""
       />
-      <Button type="submit" variant="gold" square aria-label={t.komentar.kirim}>
+      <Button
+        type="submit"
+        variant="gold"
+        square
+        aria-label={t.komentar.kirim}
+        aria-busy={post.isPending || undefined}
+        aria-disabled={post.isPending || undefined}
+      >
         <IconKirim size={16} />
       </Button>
     </form>
