@@ -12,6 +12,6 @@ export const Route = createFileRoute(
     prefetch(testimoniQuery(params.courseId));
   },
   component: TestiCourseScreen,
-  // `page`: the testimonial shown, 1-based as today's links.
+  // `page`: the testimonial shown, 1-based, as old links have it.
   validateSearch: (search) => testiSearchSchema.parse(search),
 });

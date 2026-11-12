@@ -8,7 +8,7 @@ import { deleteSharedData } from '~/lib/share-db';
 
 export const Route = createFileRoute('/_app/_left-navbar/pengumuman/tulis/')({
   component: ComposeScreen,
-  // The prototype starts each announcement fresh (open question 4); what the share target handed over is cleared
+  // Each announcement starts fresh; what the share target handed over is cleared
   // once the composer is left.
   onEnter: () => composerOpened(),
   onLeave() {

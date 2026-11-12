@@ -5,7 +5,7 @@ import {
 } from '@tanstack/react-router';
 
 /**
- * The Garis design-system gallery (P0-A): every token, type style, icon, brand mark and component, in both themes.
+ * The Garis design-system gallery: every token, type style, icon, brand mark and component, in both themes.
  * Development and staging only: in a production build `__GARIS_GALLERY__` is false, the import below is dropped and
  * the path sends members home (scripts/verify-production-bundle.mjs checks the gallery isn't shipped).
  */
