@@ -9,6 +9,7 @@ import {
   getCommentList,
   updateCommentContent,
 } from '~/repositories/comment.repo';
+import { canSeeInfo } from '~/repositories/info.repo';
 import { getUserRoles } from '~/repositories/user-role.repo';
 import {
   deleteCommentRoute,
@@ -28,6 +29,7 @@ export interface CommentDeps {
   deleteComment: WithoutDb<typeof deleteComment>;
   updateCommentContent: WithoutDb<typeof updateCommentContent>;
   getUserRoles: WithoutDb<typeof getUserRoles>;
+  canSeeInfo: WithoutDb<typeof canSeeInfo>;
 }
 
 const databaseDeps: CommentDeps = {
@@ -37,13 +39,23 @@ const databaseDeps: CommentDeps = {
   deleteComment: withDb(deleteComment),
   updateCommentContent: withDb(updateCommentContent),
   getUserRoles: withDb(getUserRoles),
+  canSeeInfo: withDb(canSeeInfo),
 };
 
 export function createCommentRouter(deps: CommentDeps = databaseDeps) {
   const commentRouter = createAuthRouter();
 
+  // A post's comments are seen by whoever may open the post, and by no one else.
+  const maySee = async (
+    infoId: string,
+    user: { id: string; angkatan: number },
+  ) => await deps.canSeeInfo(infoId, user.id, user.angkatan);
+
   commentRouter.openapi(getCommentsListRoute, async (c) => {
     const query = c.req.valid('query');
+    if (!(await maySee(query.infoId, c.var.user))) {
+      return c.json({ error: 'Info not found' }, 404);
+    }
     const comment = await deps.getCommentList(query, c.var.user.id);
     return c.json({ comment: comment.map(withAuthor) }, 200);
   });
@@ -51,7 +63,7 @@ export function createCommentRouter(deps: CommentDeps = databaseDeps) {
   commentRouter.openapi(getCommentsByIdRoute, async (c) => {
     const param = c.req.valid('param');
     const comment = await deps.getCommentById(param);
-    if (!comment) {
+    if (!comment || !(await maySee(comment.repliedInfoId, c.var.user))) {
       return c.json({ error: 'Comment not found' }, 404);
     }
     return c.json(withAuthor(comment), 200);
@@ -61,6 +73,9 @@ export function createCommentRouter(deps: CommentDeps = databaseDeps) {
     try {
       const data = c.req.valid('json');
       const userId = c.var.user.id;
+      if (!(await maySee(data.repliedInfoId, c.var.user))) {
+        return c.json({ error: 'Info not found' }, 404);
+      }
       const comment = await deps.createComment(data, userId);
       return c.json({ ...comment, creator: toAuthor(c.var.user) }, 201);
     } catch (err) {

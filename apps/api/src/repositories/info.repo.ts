@@ -403,21 +403,47 @@ export async function markAllInfosRead(
   return rows.length;
 }
 
+/**
+ * The posts `userId` may open: the same audience as the feed, its groups and its angkatan (a post for other angkatan
+ * must not open by its link, since the composer says only they can see it).
+ */
+async function infoAudience(
+  db: Database,
+  userId: string,
+  angkatanYear: number | undefined,
+) {
+  const userRoles = await getUserRoles(db, userId);
+  return and(
+    getInfoGroupQuery(db, userRoles),
+    getInfoAngkatanQuery(db, userId, angkatanYear),
+  );
+}
+
+/** Whether `userId` may open the post `infoId` (as `getInfoById`): its comments and reactions follow it. */
+export async function canSeeInfo(
+  db: Database,
+  infoId: string,
+  userId: string,
+  angkatanYear: number | undefined,
+) {
+  const row = await db
+    .select({ id: infos.id })
+    .from(infos)
+    .where(
+      and(eq(infos.id, infoId), await infoAudience(db, userId, angkatanYear)),
+    )
+    .then(first);
+  return row !== undefined;
+}
+
 export async function getInfoById(
   db: Database,
   id: string,
   userId: string,
   angkatanYear: number | undefined,
 ) {
-  const userRoles = await getUserRoles(db, userId);
   const info = await db.query.infos.findFirst({
-    where: and(
-      eq(infos.id, id),
-      // The same audience as the feed: its groups, and its angkatan (regression: a post for other angkatan opened
-      // by its link, though the composer says only they can see it).
-      getInfoGroupQuery(db, userRoles),
-      getInfoAngkatanQuery(db, userId, angkatanYear),
-    ),
+    where: and(eq(infos.id, id), await infoAudience(db, userId, angkatanYear)),
     with: infoRelations(userId),
   });
 

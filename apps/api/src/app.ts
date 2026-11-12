@@ -80,6 +80,10 @@ const SIGN_IN_PATHS = new Set([
   '/api/auth/google/callback',
 ]);
 
+function isCurhatPath(path: string) {
+  return path === '/api/curhat' || path.startsWith('/api/curhat/');
+}
+
 export function isDevelopmentOrStaging(config: { APP_ENV?: string }) {
   return config.APP_ENV === 'development' || config.APP_ENV === 'staging';
 }
@@ -149,7 +153,8 @@ export function createApp({
       method,
       type: 'request',
       duration: end - start,
-      userId: c.get('user' as any)?.id,
+      // A Curhat path names the room: with the member's id beside it, the log would say whose room it is.
+      userId: isCurhatPath(path) ? undefined : c.get('user' as any)?.id,
     });
   });
 
@@ -191,6 +196,10 @@ export function createApp({
   const signIn = createRateLimiter({ limit: limits.signIn, ...window });
   const writes = createRateLimiter({ limit: limits.writes, ...window });
   const previews = createRateLimiter({ limit: limits.previews, ...window });
+  const nimSearches = createRateLimiter({
+    limit: limits.nimSearches,
+    ...window,
+  });
   app.use(
     '/api/*',
     rateLimit(signIn, (c) =>
@@ -212,6 +221,10 @@ export function createApp({
   app.use(
     '/api/open-graph',
     rateLimit(previews, async (c) => await sessionUserId(c, env.JWT_SECRET)),
+  );
+  app.use(
+    '/api/user/nim',
+    rateLimit(nimSearches, async (c) => await sessionUserId(c, env.JWT_SECRET)),
   );
   app.get('/', (c) => c.json({ message: 'Server runs successfully' }));
   // For load balancers and monitoring: 200 while the API can reach its database, 503 when it can't or is shutting down.

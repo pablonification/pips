@@ -36,6 +36,7 @@ export class CommentService {
       },
       errors: {
         400: `Bad request: validation error`,
+        404: `Error`,
       },
     });
   }
@@ -139,6 +140,7 @@ export class CommentService {
       mediaType: 'application/json',
       errors: {
         400: `Error`,
+        404: `Error`,
         500: `Internal server error`,
       },
     });
