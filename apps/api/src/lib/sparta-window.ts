@@ -10,9 +10,9 @@ export const ELIGIBLE_SPARTA_ANGKATAN = [2025];
 // Manually approved exceptions: these NIMs are not angkatan 2025 but have
 // been designated eligible for the SPARTA internship form regardless.
 export const ELIGIBLE_SPARTA_NIM_OVERRIDES = [
-  '13524108', // Daffa Mutaqin Tetaputra
-  '18224053', // Nathan Pasha Athallah
-  '18224112', // Muhammad Reyna Athallah Agoes
+  '13524108',
+  '18224053',
+  '18224112',
 ];
 
 /**
