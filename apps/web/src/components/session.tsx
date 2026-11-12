@@ -95,7 +95,7 @@ export default function SessionProvider({
       );
     }
     // While the session is first checked (nothing of the member on the device yet): the Garis loading status, with
-    // its own Indonesian name (F2-002; it was an English "Loading..." outside the copy).
+    // an Indonesian name.
     return (
       <main className="flex min-h-dvh items-center justify-center p-6">
         <Skeleton label={common.komponen.memuat} className="w-full max-w-105">

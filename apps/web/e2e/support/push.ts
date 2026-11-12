@@ -1,12 +1,12 @@
 /**
- * The harness's `push` option (P1-C): this device's notification permission and push subscription.
+ * The harness's `push` option: this device's notification permission and push subscription.
  *
  * The harness blocks service workers, so the app's push code would never find a registration. An init script
  * stands in for the browser's pieces instead: `Notification` (permission, `requestPermission`),
  * `navigator.serviceWorker.ready` / `getRegistration()` (a registration whose `pushManager` subscribes and whose
  * `showNotification` records what it shows). Everything else on `navigator.serviceWorker` is the real one.
  *
- * - `'off'`: permission `default`, not subscribed (Nadia's default, as in the prototype);
+ * - `'off'`: permission `default`, not subscribed (Nadia's default);
  * - `'on'`: granted and subscribed (Raka's default);
  * - `'blocked'`: denied.
  *

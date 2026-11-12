@@ -63,7 +63,7 @@ export const formListQuery = () =>
     queryFn: () => api.form.listForms(),
   });
 
-/** One definition for Curhat's list, Layanan's count and Beranda's row (review of P2-C, minor 7). */
+/** One definition for Curhat's list, Layanan's count and Beranda's row. */
 export const curhatUnreadQuery = () =>
   queryOptions({
     queryKey: CURHAT_UNREAD_KEY,

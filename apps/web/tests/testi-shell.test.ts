@@ -10,7 +10,7 @@ import {
 // Testi Matkul registers its titles and parents with the shell, as the app does at start (src/main.tsx).
 import '../src/features/testi/shell';
 
-/* Testi Matkul inside the shell (P2-B): titles from the URL as the prototype's `testiTitle`, and Mata Kuliah Umum's
+/* Testi Matkul inside the shell: page titles from the URL, and Mata Kuliah Umum's
    list right below Testi Matkul (it has no semester step), so back and the breadcrumbs never pass a page that only
    redirects. */
 
@@ -75,8 +75,8 @@ test('Layanan stays lit on every level', () => {
 });
 
 test('Mata Kuliah Umum’s semester list has a title that names it, unlike its electives list', () => {
-  // P2-B review, finding 7: a mandatory MKU course (KU1101) goes back to /mata-kuliah-umum/1, which was titled
-  // "Mata Kuliah Umum" like the start row's electives list.
+  // A mandatory MKU course (KU1101) goes back to /mata-kuliah-umum/1, which is titled with its semester, unlike the
+  // start row's electives list "Mata Kuliah Umum".
   assert.equal(
     titleOf(LIST, { type: 'mata-kuliah-umum', semester: '1' }),
     'Mata Kuliah Umum · Semester 1',
@@ -89,7 +89,7 @@ test('Mata Kuliah Umum’s semester list has a title that names it, unlike its e
 });
 
 test('the lit item follows a parent that depends on the URL', () => {
-  // P2-B review, finding 6: activeItem dropped the params, so a URL-dependent parent was asked with none.
+  // activeItem passes the params on, so a URL-dependent parent is asked with them.
   const seen: Record<string, string>[] = [];
   registerRouteRules({
     '/dev/shell': {
@@ -107,7 +107,7 @@ test('the lit item follows a parent that depends on the URL', () => {
 });
 
 test('layering: the shell imports no feature code; features register their rules with it', async () => {
-  // P2-B review, finding 6 and Dev 1's decision: the shell's entry chunk carried Testi Matkul's code.
+  // The shell's entry chunk must not carry Testi Matkul's code.
   const fs = await import('node:fs');
   const path = await import('node:path');
   const root = path.resolve(import.meta.dirname, '../src');

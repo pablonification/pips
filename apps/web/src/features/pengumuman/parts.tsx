@@ -1,6 +1,5 @@
 /**
  * Pieces a card, a row and a post share: link previews, photos, the reaction picker, share, and small hooks.
- * From the prototype's garis/screens-core.js (`linkCard`, `picker`, `reactSummaryBtn`) and app.js (`share`).
  */
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -46,9 +45,6 @@ import {
   topReactions,
 } from './rules';
 
-/* ================= Small hooks ================= */
-
-/** Whether the element has scrolled into view (once): previews and paging load then. */
 /**
  * Whether the element is in view (or 200 px from it). Takes the element itself (a callback ref's state), so it
  * starts watching when the element first renders, not only when the component mounts: the feed's end marker
@@ -91,7 +87,7 @@ export const useOnline = () =>
     () => true,
   );
 
-/** After `ms`, true: skeletons appear only for a load slower than 300 ms (SPEC "States"). */
+/** After `ms`, true: skeletons appear only for a load slower than 300 ms. */
 export function useDelayed(active: boolean, ms = 300) {
   const [late, setLate] = useState(false);
   useEffect(() => {
@@ -133,9 +129,7 @@ export function useDismiss(
   }, [open, close, refs]);
 }
 
-/* ================= Text with its links ================= */
-
-/** The post's text with every link made a link (today's `renderInfoContent`, without its 300-character cut). */
+/** The post's text with every link made a link (no cut at a length). */
 export function Linkified({ text }: { text: string }) {
   const urls = extractUrls(text);
   if (!urls.length) return <>{text}</>;
@@ -164,14 +158,12 @@ export function Linkified({ text }: { text: string }) {
   );
 }
 
-/* ================= Link previews ================= */
-
 function useOpenGraph(url: string, enabled: boolean) {
   return useQuery({
     queryKey: ['openGraph', url],
     queryFn: () => api.openGraph.openGraphScrape({ url: absoluteUrl(url) }),
     enabled,
-    // As today: a preview is good for a day.
+    // A preview is good for a day.
     staleTime: 1000 * 60 * 60 * 24,
     retry: false,
   });
@@ -234,7 +226,7 @@ function LinkCard({
   );
 }
 
-/** One card per link in the post's text; Google Forms open inside PIPS! (today's `EmbeddedGform`). */
+/** One card per link in the post's text; Google Forms open inside PIPS!. */
 export function LinkCards({ info }: { info: Pick<Info, 'content'> }) {
   const urls = extractUrls(info.content);
   const [form, setForm] = useState<{ url: string; title: string } | null>(null);
@@ -274,8 +266,6 @@ export function LinkCards({ info }: { info: Pick<Info, 'content'> }) {
     </>
   );
 }
-
-/* ================= Photos ================= */
 
 type Medias = NonNullable<Info['infoMedias']>;
 
@@ -342,9 +332,7 @@ export function Photos({ medias }: { medias: Medias }) {
   );
 }
 
-/* ================= Reactions ================= */
-
-/** The six reactions; yours pressed (`picker`). Two rows of three on the narrowest phones (CSS). */
+/** The six reactions; yours pressed. Two rows of three on the narrowest phones (CSS). */
 export function ReactionPicker({
   mine,
   onPick,
@@ -387,7 +375,7 @@ export function ReactionPicker({
   );
 }
 
-/** The feed's reaction button: the top three stacked and the total (`reactSummaryBtn`). */
+/** The feed's reaction button: the top three stacked and the total. */
 export function ReactSummaryButton({
   reactions,
   open,
@@ -421,8 +409,6 @@ export function ReactSummaryButton({
 }
 
 export { myReaction };
-
-/* ================= Share ================= */
 
 export const postUrl = (id: string) =>
   `${window.location.origin}/pengumuman/${id}`;

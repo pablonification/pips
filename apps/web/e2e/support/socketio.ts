@@ -9,7 +9,7 @@
  * - drop every connection: `api.socket.drop()`, after which new connections fail until `api.socket.restore()`;
  * - change how an acknowledgement is answered: `api.socket.answer('message', () => ({ ok: false, error: 'server' }))`,
  *   or never answered (`() => undefined`), for the delivery states;
- * - answer one held-back acknowledgement later: `api.socket.ack(api.socket.emitted('message')[0], payload)` (P2-C).
+ * - answer one held-back acknowledgement later: `api.socket.ack(api.socket.emitted('message')[0], payload)`.
  *
  * Acknowledgements default to what the API answers (`apps/api/src/websocket/curhat.ts`), on the test's data:
  * `message` is refused without a session (`unauthorized`), outside your rooms (`forbidden`), with empty text or a
@@ -49,7 +49,7 @@ export interface Emitted {
   auth: Record<string, unknown>;
   /** Set when the app asked for an acknowledgement. */
   ackId?: number;
-  /** The connection that sent it (P2-C: `ack()` answers it there). */
+  /** The connection that sent it (`ack()` answers it there). */
   sid?: string;
 }
 /** Answers an acknowledgement; `undefined` means never answer. */
@@ -69,7 +69,7 @@ export class FakeSocketServer {
     this.answers.set('curhat:join', (data, s) => this.join(data, s));
   }
 
-  /** Answer `event`'s acknowledgements as the API does again, after `answer()` changed them (P2-C). */
+  /** Answer `event`'s acknowledgements as the API does again, after `answer()` changed them. */
   answerAsApi(event: 'message' | 'curhat:join'): void {
     this.answers.set(
       event,
@@ -80,7 +80,7 @@ export class FakeSocketServer {
   }
 
   /**
-   * Save every `message` as the API does but never answer it (P2-C): the acknowledgement is lost after the save, as
+   * Save every `message` as the API does but never answer it: the acknowledgement is lost after the save, as
    * when a phone network drops it. `ack()` can still answer one later; `answerAsApi('message')` undoes it.
    */
   saveWithoutAnswer(): void {
@@ -96,7 +96,7 @@ export class FakeSocketServer {
   }
 
   /**
-   * Answer one acknowledgement by hand (P2-C): `entry` is what `emitted()` recorded, `payload` the answer, sent as
+   * Answer one acknowledgement by hand: `entry` is what `emitted()` recorded, `payload` the answer, sent as
    * `43<id>[payload]` to the connection that asked. Use it after `answer(event, () => undefined)` held the answer
    * back, for a late or lost acknowledgement. Returns whether that connection was still there to receive it.
    */
@@ -144,7 +144,7 @@ export class FakeSocketServer {
 
   /**
    * The API ends every connection itself, as it does when a session expires (`socket.disconnect(true)`: the client
-   * hears `io server disconnect` and doesn't reconnect by itself). The transport stays up (P2-C).
+   * hears `io server disconnect` and doesn't reconnect by itself). The transport stays up.
    */
   endSessions(): void {
     for (const s of this.sessions.values()) {
@@ -263,7 +263,7 @@ export class FakeSocketServer {
     return this.db?.signedIn ? Object.keys(this.db.chatrooms) : [];
   }
 
-  /** Welfare (`curhatadmin`, P3-C): `db.chatrooms` holds every room, and the session joins Welfare's group room. */
+  /** Welfare (`curhatadmin`): `db.chatrooms` holds every room, and the session joins Welfare's group room. */
   private isWelfare(): boolean {
     return !!this.db?.signedIn && !!this.db.me?.roles.includes('curhatadmin');
   }
@@ -271,14 +271,14 @@ export class FakeSocketServer {
   private joinOnConnect(session: FakeSocket) {
     const mine = this.myRooms();
     if (session.auth.curhat === true) mine.forEach((r) => session.rooms.add(r));
-    // P3-C: as the API, a Welfare `curhat` handshake joins every room (all of `db.chatrooms`) and the group room
+    // As the API, a Welfare `curhat` handshake joins every room (all of `db.chatrooms`) and the group room
     // through which a room started later is joined (`curhat:welfare`).
     if (session.auth.curhat === true && this.isWelfare())
       session.rooms.add('curhat:welfare');
     const room = session.auth.chatroomId;
     if (typeof room === 'string' && mine.includes(room))
       session.rooms.add(room);
-    // P3-A: Live Counting's room, as the API (websocket/connection.ts): `form-admin:{formId}`, for admins only.
+    // Live Counting's room, as the API (websocket/connection.ts): `form-admin:{formId}`, for admins only.
     const form = session.auth.formAdminId;
     if (
       typeof form === 'string' &&
@@ -337,7 +337,7 @@ export class FakeSocketServer {
       content: message,
       createdAt: NOW,
       isSender: true,
-      // The owner's own room is the one they may delete (P3-C); Welfare's answers are never the owner's.
+      // The owner's own room is the one they may delete; Welfare's answers are never the owner's.
       fromOwner: room.canDelete === true,
       clientMessageId:
         typeof clientMessageId === 'string' ? clientMessageId : null,

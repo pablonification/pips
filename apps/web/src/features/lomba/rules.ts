@@ -1,7 +1,7 @@
 /**
- * Info Lomba's rules (P2-B), from the prototype's `scrLomba` and `rupiah`, and SPEC story 78 (every page
- * reachable). Pure, so `tests/lomba-rules.test.ts` checks them without a browser. Dates are WIB whatever the
- * device's zone (src/lib/dates.ts).
+ * Info Lomba's rules: open competitions, soonest deadline first, and every page reachable. Pure, so
+ * `tests/lomba-rules.test.ts` checks them without a browser. Dates are WIB whatever the device's zone
+ * (src/lib/dates.ts).
  */
 import type { Competition } from '~/api/generated';
 import { fill } from '~/copy/fill';
@@ -13,7 +13,7 @@ export const LOMBA_PAGE = 10;
 
 type Deadline = Competition['registrationDeadline'] | null | undefined;
 
-/** Still open by the app's clock, as the prototype keeps only `close > NOW` (a cached list can be old). */
+/** Still open by the app's clock (a cached list can be old). */
 export function isOpen(deadline: Deadline, now: number): boolean {
   if (!deadline) return true;
   const t = Date.parse(deadline);
@@ -25,7 +25,7 @@ export function deadlineLine(deadline: string): string {
   return fill(copy.tutup, { tanggal: dShort(deadline), jam: hm(deadline) });
 }
 
-/** Three calendar days (WIB) or fewer left: the line takes the danger colour (the prototype's `cd`). */
+/** Three calendar days (WIB) or fewer left: the line takes the danger colour. */
 export function isUrgent(deadline: string, now: number): boolean {
   return dayDiff(deadline, now) <= 3;
 }
@@ -41,7 +41,7 @@ export function rupiah(price: string | number | null | undefined): string {
   return `Rp${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 }
 
-/** A link as stored, with `https://` added when it has no scheme (as today's card does). */
+/** A link as stored, with `https://` added when it has no scheme. */
 export function withScheme(url: string): string {
   const u = url.trim();
   return /^https?:\/\//i.test(u) ? u : `https://${u.replace(/^\/+/, '')}`;
@@ -49,8 +49,7 @@ export function withScheme(url: string): string {
 
 /**
  * The offset of the next page: how many competitions the API has returned so far (not how many are shown after
- * leaving out closed ones), or undefined after a page shorter than a full one. Today's `PAGE_SIZE = 0` asked for
- * offset 0 again and never reached page 2.
+ * leaving out closed ones), or undefined after a page shorter than a full one.
  */
 export function nextOffset(pages: Competition[][]): number | undefined {
   const last = pages[pages.length - 1];
@@ -58,10 +57,7 @@ export function nextOffset(pages: Competition[][]): number | undefined {
   return pages.reduce((n, p) => n + p.length, 0);
 }
 
-/**
- * The competition's poster (Garis v5): its first media by `order`, as today's card takes `medias[0].media.url`; null
- * when it has none.
- */
+/** The competition's poster: its first media by `order`; null when it has none. */
 export function posterUrl(c: Pick<Competition, 'medias'>): string | null {
   const first = [...(c.medias ?? [])].sort((a, b) => a.order - b.order)[0];
   return first?.media.url || null;

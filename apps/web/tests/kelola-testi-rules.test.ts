@@ -1,4 +1,4 @@
-// P3-B: Tambah testimoni's rules (brief rule 7): sections by programme, empty ones null, at least one written.
+// Tambah testimoni's rules: sections by programme, empty ones null, at least one written.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import {

@@ -2,7 +2,7 @@ import { navLink } from '../support/app';
 import { expect, test } from '../support/test';
 
 /*
- * Every path in today's route tree still works: it lands, with its search string, on the screen's new URL
+ * Every path in the old route tree still works: it lands, with its search string, on the screen's new URL
  * (src/lib/legacy-redirects.ts), and the screen renders. Shared links, bookmarks, the installed app's history
  * and push notifications (/timeline/<id>) use these. Raka, so the Kelola pages render too.
  */
@@ -30,7 +30,7 @@ const REDIRECTS: Array<[from: string, to: string]> = [
   ['/home/internship/admin', '/kelola/sparta'],
   ['/home/internship/admin/sub-13525071', '/kelola/sparta/sub-13525071'],
   ['/home/admin', '/kelola'],
-  // P3-A: /kelola/live forwards to the only active form (replace), so the old link lands on its live page.
+  // /kelola/live forwards to the only active form (replace), so the old link lands on its live page.
   ['/home/admin/forms', '/kelola/live/pixel'],
   ['/home/admin/forms/pixel', '/kelola/live/pixel'],
   ['/home/rekomendasi/voucher-1', '/'],
@@ -51,7 +51,7 @@ for (const [from, to] of REDIRECTS) {
   test(`${from} → ${to}`, async ({ page, api }) => {
     api.on('POST /api/info/:infoId/read', () => ({}));
     await page.goto(from);
-    // The new path with the old link's search string; a screen may add its own view params (today's Kalender
+    // The new path with the old link's search string; a screen may add its own view params (Kalender
     // writes the day it opens on).
     const expected = new URL(to, 'http://x');
     await expect

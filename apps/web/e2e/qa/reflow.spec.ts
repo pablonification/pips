@@ -1,8 +1,8 @@
 /**
- * F2 (brief, "The matrix"; accessibility.md A12): 400 % zoom, a 1280 px wide window shown at 320 × 256 CSS px with
+ * 400 % zoom, a 1280 px wide window shown at 320 × 256 CSS px with
  * device scale 4, on the qa-reflow project. Every page as each person it differs for: no sideways scrolling, no
- * control cut off by the window, and the page's title still reachable. The other widths and 200 % zoom are the
- * review's sweep and the journeys' `expectFitsEverywhere`.
+ * control cut off by the window, and the page's title still reachable. The other widths and 200 % zoom are
+ * covered by the journeys' `expectFitsEverywhere`.
  */
 import { ROUTES } from '../review/routes';
 import { expect, test } from '../support/test';

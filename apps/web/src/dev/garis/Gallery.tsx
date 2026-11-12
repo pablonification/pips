@@ -1,8 +1,7 @@
 /**
- * The Garis gallery (/dev/garis, development and staging only): the prototype's design-system page
- * (hmif-garis-sistem.html, garis/system.js) rebuilt from the real components, then every token and the components
- * the page doesn't show. The fidelity tool compares `#sys` and `#kit` with the locked `system-cards` and
- * `system-kit` captures.
+ * The Garis gallery (/dev/garis, development and staging only): the design system's own page, built from the real
+ * components. It shows the type, colour, layers, icons and marks (`#sys`), then every token and component in both
+ * themes (`#kit`).
  */
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { IconCentang } from '~/components/icons/centang';
@@ -239,7 +238,7 @@ const NEW: [string, ReactNode][] = [
   ],
 ];
 
-/** The live tokens of the theme on screen, as the prototype's measureCards() reads them. */
+/** The live tokens of the theme on screen, as the page's cards read them. */
 function useTokenReader() {
   const { theme } = useTheme();
   const [tick, setTick] = useState(0);
@@ -415,7 +414,7 @@ function Swatch({
   );
 }
 
-/** The design-system cards (prototype `#sys`): type, content, colour, layers, icons, pills, marks, motion, voice. */
+/** The design-system cards (`#sys`): type, content, colour, layers, icons, pills, marks, motion, voice. */
 function SystemCards() {
   const hmifBronze = useTokenValue('--px-bronze');
   return (
@@ -780,7 +779,7 @@ function SystemCards() {
   );
 }
 
-/** One kit panel (prototype `#kit`), forced to a theme with .theme-light / .theme-dark. */
+/** One kit panel (`#kit`), forced to a theme with .theme-light / .theme-dark. */
 function KitPanel({
   theme,
   label,
@@ -996,10 +995,10 @@ function TokenPanel({ theme }: { theme: 'light' | 'dark' }) {
   );
 }
 
-/** Three of the prototype's announcement categories (data.js CATEGORIES), for the checkbox chips. */
 /** Sample counts for the reaction row, without the member's own. */
 const SAMPLE_REACTIONS = { grin: 12, fire: 7, party: 3 } as const;
 
+/** Three announcement categories, for the checkbox chips. */
 const CATEGORY_NAMES = {
   akademik: 'Akademik',
   himpunan: 'Himpunan',

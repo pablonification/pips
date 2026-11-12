@@ -1,5 +1,5 @@
 /**
- * Pasang PIPS! (P1-C; a toast in the prototype, built from Garis components): opened from Profil, it offers the way
+ * Pasang PIPS!: opened from Profil, it offers the way
  * this device installs PIPS!: Chrome's own prompt on Android, the steps on an iPhone, Chrome or Safari from LINE.
  */
 import type { Page } from '@playwright/test';

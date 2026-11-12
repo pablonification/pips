@@ -3,7 +3,7 @@ import { installStore } from '~/features/profil/install-store';
 import { pushStore } from './push-store';
 
 /*
- * The app-wide overlays opened from anywhere (P1-C): "Nyalakan notifikasi?" and Pasang PIPS!. Each loads on its
+ * The app-wide overlays opened from anywhere: "Nyalakan notifikasi?" and Pasang PIPS!. Each loads on its
  * first opening, not with the page: mounted eagerly at the root they put the dialog library on every route,
  * sign-in included (about 27 KiB gzip). Once open they stay mounted, so closing animates and returns focus.
  */

@@ -8,7 +8,7 @@ import {
 } from '../src/features/masuk/TestLoginForm';
 
 /*
- * The staging test login, with the flag on (P1-C brief, "component tests"): the production build can't show it, so
+ * The staging test login, with the flag on: the production build can't show it, so
  * the journeys never see it. Rendered here on its own; the sign-in screen renders it only when
  * __TEST_LOGIN_ENABLED__ is true (scripts/verify-production-bundle.mjs and tests/test-login-mode.test.mjs keep it
  * out of production).

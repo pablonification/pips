@@ -1,8 +1,8 @@
 /**
  * Generated images for the fixtures, so no test fetches a photo from Google or a CDN:
- * - `/__e2e__/avatar/<nim>.svg`: initials on a tinted circle (the prototype draws initials, not photos);
- * - `/__e2e__/media/poster-<name>.svg`: a 3:4 competition poster: Garis v5's own sample poster when
- *   `fixtures/posters/<name>.svg` exists (so captures match the locked screens), else a generated one;
+ * - `/__e2e__/avatar/<nim>.svg`: initials on a tinted circle (the samples have initials, not photos);
+ * - `/__e2e__/media/poster-<name>.svg`: a 3:4 competition poster: the sample poster when
+ *   `fixtures/posters/<name>.svg` exists (so captures are the same everywhere), else a generated one;
  * - `/__e2e__/media/<name>.svg`: a 4:3 post photo; an upload named `poster-…` (writes.presign) is a 3:4 poster.
  */
 import type { Route } from '@playwright/test';
@@ -16,7 +16,7 @@ const POSTERS = path.resolve(
   '../fixtures/posters',
 );
 
-/** The prototype's sample poster (garis/posters/<name>.svg), or null when there is none by that name. */
+/** The sample poster (fixtures/posters/<name>.svg), or null when there is none by that name. */
 function samplePoster(name: string): string | null {
   const m = /^poster-([\w-]+)$/.exec(name);
   const file = m && path.join(POSTERS, `${m[1]}.svg`);

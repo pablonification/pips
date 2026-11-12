@@ -1,7 +1,7 @@
 /**
- * A post (`postDetail`): byline, title, text with its links, link cards, photos, categories with the audience,
- * reactions and comments. On phones and tablets it is the page (its title the page's h1, share and the menu in the
- * top bar); on desktop the pane beside the list (the menu in the byline, no share).
+ * A post: byline, title, text with its links, link cards, photos, categories with the audience, reactions and
+ * comments. On phones and tablets it is the page (its title the page's h1, share and the menu in the top bar); on
+ * desktop the pane beside the list (the menu in the byline, no share).
  */
 import {
   useCallback,

@@ -1,6 +1,6 @@
-// C1: checks that keep the app clean once today's screens are gone (C1 brief, step 15). Each fails on a file that
-// comes back: an import of a removed package, a dependency or public file nothing uses, a module nothing reaches,
-// a link to an old path, a prototype stand-in string or a Google Fonts request.
+// Checks that keep the app clean: each fails on a file that comes back: an import of a removed package, a
+// dependency or public file nothing uses, a module nothing reaches, a link to an old path, a design-mockup
+// stand-in string or a Google Fonts request.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -27,7 +27,7 @@ function files(dir) {
     .filter((f) => f && fs.existsSync(path.join(appDir, f)));
 }
 
-/** Packages C1 removed. None may come back through an import. */
+/** Packages that were removed. None may come back through an import. */
 const REMOVED_PACKAGES = [
   'lucide-react',
   'framer-motion',
@@ -127,7 +127,7 @@ test('nothing in src, e2e, tests or scripts imports a removed package or a delet
   }
 });
 
-/** Packages used without an import in the code, each with its reason (C1 brief, step 9). */
+/** Packages used without an import in the code, each with its reason. */
 const INDIRECT = {
   'workbox-window':
     'virtual:pwa-register (vite-plugin-pwa) in src/main.tsx and src/lib/sw-register.ts loads it',
@@ -166,7 +166,7 @@ test('every dependency is imported, or used by a config or script for a reason l
 
 /**
  * Public files no code names, kept on purpose: browsers ask for favicon.ico by convention, and the old app icons
- * wait for HMIF to sign off the new icon and splash (C1 brief, open question 4).
+ * wait for HMIF to sign off the new icon and splash.
  */
 const PUBLIC_ALLOWED = {
   'public/favicon.ico': 'browsers request it by convention',
@@ -207,7 +207,7 @@ test('every public file is referenced by the app, the manifest, the service work
     assert.ok(fs.existsSync(path.join(appDir, f)), `${f} is allowed but gone`);
 });
 
-/** Modules only the unit tests use: the copy glossary is the glossary check's own list (P0-B, story 155). */
+/** Modules only the unit tests use: the copy glossary is the glossary check's own list. */
 const TEST_ONLY = ['src/copy/glossary.ts'];
 
 test('every module in src is reachable from main.tsx, sw.ts or a route file', () => {
@@ -255,7 +255,7 @@ const appCode = files('src').filter(
     !f.startsWith('src/api/generated/') &&
     f !== 'src/routeTree.gen.ts',
 );
-/** Today's first path segments; only P0-B's redirect table may name them. */
+/** The old app's first path segments; only the redirect table may name them. */
 const OLD_PATH =
   /^\/(home|timeline|settings|calendar|add-announcement|socket)(\/|$|\?|#)/;
 
@@ -270,7 +270,7 @@ test('no link, navigation or redirect to an old path outside the redirect table'
   assert.deepEqual(bad, []);
 });
 
-/** The prototype's own stand-ins (its app.js and screens-*.js), never shipped. */
+/** Stand-in strings from design mockups, never shipped. */
 const STAND_INS = [
   'Contoh:',
   '(contoh)',
@@ -280,7 +280,7 @@ const STAND_INS = [
   'Prototipe PIPS!',
 ];
 
-test('no prototype stand-in string, and no Google Fonts request', () => {
+test('no design-mockup stand-in string, and no Google Fonts request', () => {
   const bad = appCode.flatMap((f) =>
     strings(f)
       .filter((s) => STAND_INS.some((x) => s.text.includes(x)))

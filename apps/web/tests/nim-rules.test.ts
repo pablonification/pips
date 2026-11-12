@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import type { NimFinderResult } from '../src/api/generated';
 import { nimQuery, nimStatus, rankMembers } from '../src/features/nim/rules';
 
-/* NIM Finder (P2-B brief, "Tests"): ranking, the 3-character rule on the trimmed query, the status wording. */
+/* NIM Finder: ranking, the 3-character rule on the trimmed query, the status wording. */
 
 const m = (fullName: string, nim: string): NimFinderResult => ({
   fullName,
@@ -75,7 +75,7 @@ test('status wording, as nimResults words it', () => {
 });
 
 test('at the API’s cap of 30 the count reads "30+ hasil", so it isn’t taken for the total', () => {
-  // Dev 1's decision (P2-B round 2): P0-D returns at most 30 members (apps/api/src/lib/nim-finder.ts).
+  // The API returns at most 30 members (apps/api/src/lib/nim-finder.ts).
   assert.equal(
     nimStatus({ kind: 'done', count: 30, typed: '135' }),
     '30+ hasil. Pilih untuk menyalin NIM.',

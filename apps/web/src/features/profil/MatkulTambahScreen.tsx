@@ -63,9 +63,9 @@ function AddButton({
 }
 
 /**
- * Profil › Mata kuliahku › Tambah mata kuliah (garis/screens-more.js `scrMatkulAdd`, `caddResults`,
- * `addCoursesBtn`): search the catalogue, tap course rows to pick them (each row is one toggle, with a box at its end;
- * Garis v5 has no class), then Tambahkan (the top bar on phones and tablets, the page head on desktop). Search is not a form: Enter never reloads or submits.
+ * Profil › Mata kuliahku › Tambah mata kuliah: search the catalogue, tap course rows to pick them (each row is one
+ * toggle, with a box at its end), then Tambahkan (the top bar on phones and tablets, the page head on desktop).
+ * Search is not a form: Enter never reloads or submits.
  */
 export function MatkulTambahScreen({
   fromFirstRun,
@@ -113,8 +113,8 @@ export function MatkulTambahScreen({
     refreshCourses(qc);
     setPicks([]);
     toast.success(fill(copy.ditambahkan, { jumlah: count }));
-    // Back to the page Tambah mata kuliah came from, as the prototype's `back(m)`: going forward to it would leave
-    // this page in history, and Back would return to an empty Tambah mata kuliah (review M1).
+    // Back to the page Tambah mata kuliah came from: going forward to it would leave this page in history, and Back
+    // would return to an empty Tambah mata kuliah.
     const to = fromFirstRun ? '/mulai' : '/profil/matkul';
     if (previousEntryIs(router.history.location.state, to))
       router.history.back();
@@ -136,13 +136,13 @@ export function MatkulTambahScreen({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
-            // Regression: today's search sat in a <form>, and Enter reloaded the app.
+            // Not inside a <form>, so Enter must not reload the app.
             if (e.key === 'Enter') e.preventDefault();
           }}
         />
         {/* The list needs the catalogue and the member's own courses: either failing is the error, and Coba lagi
-            reads again whichever failed (regression: only the catalogue was retried, so a failed read of the
-            member's courses left the skeleton up for good). */}
+            reads again whichever failed, so a failed read of the member's courses can't leave the skeleton up for
+            good. */}
         {catalogue.isError || (mine.isError && !mine.data) ? (
           <ErrorState
             title={copy.gagalMuat}

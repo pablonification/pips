@@ -11,7 +11,7 @@ import type { CsvFile } from './csv';
 import { rowTime, type Bar } from './rules';
 import '~/styles/garis/kelola.css';
 
-/** A response row (`scrLive`'s Pengisi terbaru): NIM, name, major (and angkatan in Rekap Form), time. */
+/** A response row (Pengisi terbaru): NIM, name, major (and angkatan in Rekap Form), time. */
 export function ResponseRow({
   response: r,
   withAngkatan = false,
@@ -35,7 +35,7 @@ export function ResponseRow({
   );
 }
 
-/** One question's bars (`.hbars`): the value, a track filled to count / max, and the count. */
+/** One question's bars: the value, a track filled to count / max, and the count. */
 export function Bars({
   bars,
   wide = false,
@@ -99,7 +99,7 @@ export function useCsvExport(
   return { busy, start };
 }
 
-/** The paper Export CSV button (`unduh` icon). */
+/** The paper Export CSV button. */
 export function ExportButton({
   busy,
   onClick,

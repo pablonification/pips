@@ -33,7 +33,7 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     // The profile, nearby calendar events, the feed's first page and the courses stay on the device for up
-    // to 7 days, so the app opens with them, offline too (SPEC story 135).
+    // to 7 days, so the app opens with them, offline too.
     <PersistQueryClientProvider
       client={queryClient}
       persistOptions={{
@@ -44,7 +44,7 @@ function RootComponent() {
       }}
     >
       <Outlet />
-      {/* P1-C: the Garis toasts and the push prompt, for every page including sign-in and first run. */}
+      {/* The Garis toasts and the push prompt, for every page including sign-in and first run. */}
       <Toaster />
       <RootOverlays />
       <ReactQueryDevtools />

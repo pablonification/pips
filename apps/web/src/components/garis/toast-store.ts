@@ -1,6 +1,6 @@
 /**
- * The toast queue, separate from React so any code can raise a toast. Timing rules (SPEC "Accessibility"):
- * success toasts stay at least 5 s (8 s with an undo action, as in the prototype); error toasts stay until the
+ * The toast queue, separate from React so any code can raise a toast. Timing rules:
+ * success toasts stay at least 5 s (8 s with an undo action); error toasts stay until the
  * member dismisses them.
  */
 export type ToastTone = 'success' | 'error';
@@ -43,10 +43,8 @@ export function createToastStore(
     set: (fn: () => void, ms: number) => TimerHandle;
     clear: (handle: TimerHandle) => void;
   } = {
-    // Regression (2026-11-03, the real app on real data): `set: setTimeout` called it as this object's method, which
-    // browsers refuse ("Illegal invocation"), so every success toast threw and the code after it never ran: Tambahkan
-    // stayed on "Menambahkan…" though the courses were saved. The test harness's fake clock doesn't care, so no
-    // journey saw it.
+    // Through an arrow: browsers throw "Illegal invocation" when setTimeout is called as this object's method, and
+    // a fake clock in tests wouldn't show it.
     set: (fn, ms) => setTimeout(fn, ms),
     clear: (handle) => clearTimeout(handle),
   },
@@ -113,5 +111,4 @@ export function createToastStore(
   };
 }
 
-/** The app's toasts. */
 export const toast = createToastStore();

@@ -1,5 +1,5 @@
 /**
- * A fake Google Identity Services script (P1-C), so journeys click the real Masuk dengan Google. It answers
+ * A fake Google Identity Services script, so journeys click the real Masuk dengan Google. It answers
  * `https://accounts.google.com/gsi/client` ahead of the mock layer, which blocks every other origin; without it the
  * script never loads, as when Google is unreachable.
  *

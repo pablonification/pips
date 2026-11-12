@@ -9,7 +9,7 @@ import {
 } from './constants';
 
 /*
- * What the query cache keeps on the device between visits (SPEC "Performance architecture and budgets"):
+ * What the query cache keeps on the device between visits:
  * exactly the profile, calendar events for today ±7 days, the first page of announcements (and Beranda's unread
  * list, the same page unread only) and the courses,
  * kept at most 7 days. The service registry is code (src/lib/services.ts), so it is always there.
@@ -69,7 +69,7 @@ export function shouldPersistKey(key: Key, now: Date = new Date()): boolean {
 
 /**
  * Any data the member has seen, whatever the last refresh did: during a server outage a query keeps its data
- * but turns `error`, and dropping it then would open the next launch with nothing (SPEC story 135). Never a
+ * but turns `error`, and dropping it then would open the next launch with nothing. Never a
  * signed-out `me` (null), and never a query without data.
  */
 export function shouldPersistQuery(query: {

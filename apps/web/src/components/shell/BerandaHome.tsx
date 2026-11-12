@@ -1,7 +1,7 @@
 /**
- * Beranda's frame (the prototype's `scrBeranda` around its content). On phones and tablets: the gold header under
+ * Beranda's frame around its content. On phones and tablets: the gold header under
  * the shell's gold bar, with the greeting and the halftone growing toward its right edge (never HMIF's logo), then
- * the page body. `agenda` (P1-A's card) overlaps the header's lower edge. On desktop: the greeting as the page head.
+ * the page body. `agenda` (the agenda card) overlaps the header's lower edge. On desktop: the greeting as the page head.
  *
  * ```tsx
  * <BerandaHome agenda={<AgendaCard />}>
@@ -32,7 +32,7 @@ export function BerandaHome({
   const greeting = fill(common.shell.halo, {
     nama: firstNameOf(user.fullName),
   });
-  // One tree on every layout (review M2): P1-A's agenda and content keep their place, and their state, when the
+  // One tree on every layout: the agenda and content keep their place, and their state, when the
   // width crosses 1024 px; only the head changes (the gold header below 1024 px, the desktop head from there).
   return (
     <div className="g-home">

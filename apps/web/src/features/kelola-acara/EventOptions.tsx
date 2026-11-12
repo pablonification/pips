@@ -1,13 +1,12 @@
 /**
- * Ubah acara and Hapus acara (a proposal; FEATURES.md §15, SPEC story 112): in the event detail (the phone sheet
- * and desktop's side column), for whoever may manage that event's category, a `menuBtn`-style button opening
- * P0-A's Menu, like the prototype's `menuList`. Ubah acara is the add-event dialog filled from the event; Hapus
- * acara asks first (`OV.confirm`'s layout). The Garis set has no edit icon, so Ubah acara has none (its label keeps
- * the icon column). The dialog's code loads only when chosen.
+ * Ubah acara and Hapus acara: in the event detail (the phone sheet and desktop's side column), for whoever may manage
+ * that event's category, a button opening a menu. Ubah acara is the add-event dialog filled from the event; Hapus
+ * acara asks first. The Garis set has no edit icon, so Ubah acara has none (its label keeps the icon column). The
+ * dialog's code loads only when chosen.
  *
  * The dialogs live in one host per screen (`EventManageHost`), outside the slot that moves between the sheet and the
- * side column, so turning a tablet across 1024 px keeps an open dialog and what was typed (review m3). Kalender puts
- * the host around both layouts; elsewhere (Beranda's sheet, which never moves) the button brings its own.
+ * side column, so turning a tablet across 1024 px keeps an open dialog and what was typed. Kalender puts the host
+ * around both layouts; elsewhere (Beranda's sheet, which never moves) the button brings its own.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from '@tanstack/react-router';
@@ -105,7 +104,7 @@ function OptionsButton({ event }: { event: CalendarEvent }) {
         <IconButton
           label={fill(t.opsi, { judul: event.title })}
           size="sm"
-          // Overhangs the tag row instead of making it taller (review m8); touch layouts keep the 44 px area.
+          // Overhangs the tag row instead of making it taller; touch layouts keep the 44 px area.
           className="-my-[5px] ml-auto"
         >
           <IconLainnya size={20} />
@@ -153,7 +152,7 @@ function Dialogs({ target, onClose }: { target: Target; onClose: () => void }) {
     eventDeleted(qc, event);
     toast.success(t.dihapus);
     if (desk) {
-      // The side column chooses nothing (the brief), on the same day.
+      // The side column chooses nothing, on the same day.
       setPick?.('none');
       void navigate({
         to: '/kalender',
@@ -173,8 +172,8 @@ function Dialogs({ target, onClose }: { target: Target; onClose: () => void }) {
       closeEvent(event.id);
       return;
     }
-    // Kalender on the event's (maybe new) day (review m1): desktop's side column shows it, from the URL; on phones
-    // and tablets the detail closes onto the day's list.
+    // Kalender on the event's (maybe new) day: desktop's side column shows it, from the URL; on phones and tablets the
+    // detail closes onto the day's list.
     const hari = dayKeyOf(next.start);
     if (desk)
       void navigate({

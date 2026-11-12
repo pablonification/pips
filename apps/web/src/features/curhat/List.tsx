@@ -1,7 +1,6 @@
 /**
- * Layanan › Curhat Yuk! (garis/screens-more.js `scrCurhat`): the privacy note, your rooms on a ruled list (newest
- * message first), "{n} dari 3 ruang dipakai" and Mulai ruang baru. A pengurus without rooms sees the same screen,
- * empty (`*-pengurus-curhat-empty`).
+ * Layanan › Curhat Yuk!: the privacy note, your rooms on a ruled list (newest message first), "{n} dari 3 ruang
+ * dipakai" and Mulai ruang baru. A pengurus without rooms sees the same screen, empty.
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
@@ -49,7 +48,7 @@ import {
 } from './rules';
 import { wantComposerFocus } from './focus';
 
-/** Loading placeholders appear only after this long, so a quick answer doesn't flash them (SPEC "Patterns"). */
+/** Loading placeholders appear only after this long, so a quick answer doesn't flash them. */
 const SKELETON_DELAY_MS = 300;
 
 function subscribeOnline(onChange: () => void) {
@@ -81,13 +80,10 @@ export function useDelayed(active: boolean, ms = SKELETON_DELAY_MS) {
 }
 
 /**
- * Above the data already loaded: the device is offline (P0-A's banner, with the last update), or only Curhat's
- * connection is down ("Koneksi Curhat terputus. Menyambungkan lagi…", OPEN-QUESTIONS D7).
- */
-/**
- * The lost-connection banner: P0-A's offline banner when the device is offline, "Koneksi Curhat terputus…" when only
- * Curhat's connection is down. Its live region is always there, so the text is announced when it appears (a region
- * mounted with its text already inside often isn't); `display: contents` keeps it out of the layout while empty.
+ * The lost-connection banner: the offline banner (with the last update) when the device is offline, "Koneksi Curhat
+ * terputus. Menyambungkan lagi…" when only Curhat's connection is down. Its live region is always there, so the text
+ * is announced when it appears (a region mounted with its text already inside often isn't); `display: contents` keeps
+ * it out of the layout while empty.
  */
 export function ConnectionBanner({ updatedAt }: { updatedAt: number }) {
   const online = useOnline();
@@ -154,7 +150,7 @@ function NewRoom({ count }: { count: number }) {
   const full = isFull(count);
   const busy = create.isPending;
   const start = () => {
-    // Full: the button stays focusable and says why with a toast, without asking the server (app.js `new-room`).
+    // Full: the button stays focusable and says why with a toast, without asking the server.
     if (full) {
       toast.error(t.daftar.penuhToast);
       return;
@@ -166,7 +162,7 @@ function NewRoom({ count }: { count: number }) {
         void client?.join(room.id);
         toast.success(fill(t.daftar.dibuat, { nama: roomName(room.title) }));
         const path = `/layanan/curhat/${encodeURIComponent(room.id)}`;
-        // The new room opens with the composer focused, as the prototype does.
+        // The new room opens with the composer focused.
         keepFocusOnNavigationTo(path);
         wantComposerFocus();
         void navigate({

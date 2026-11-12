@@ -16,7 +16,7 @@ export interface ReactionButtonProps extends Omit<
   ref?: Ref<HTMLButtonElement>;
 }
 
-/** One reaction with its count, which the member can press (garis.css `.react`). */
+/** One reaction with its count, which the member can press. */
 export function ReactionButton({
   reaction,
   count,
@@ -40,7 +40,7 @@ export function ReactionButton({
   );
 }
 
-/** The row of reactions under a post (garis.css `.reacts`). */
+/** The row of reactions under a post. */
 export function Reactions({
   className,
   ...rest
@@ -49,7 +49,7 @@ export function Reactions({
 }
 
 /**
- * The top reactions overlapped, as on a feed row's reaction button (garis.css `.stackpx`). Decorative: the button
+ * The top reactions overlapped, as on a feed row's reaction button. Decorative: the button
  * names the reactions and the total.
  */
 export function ReactionStack({

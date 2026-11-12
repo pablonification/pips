@@ -1,6 +1,6 @@
 /**
- * One cell: quoted when it holds a quote, a comma or a line break. P3-A: `\r` too, so a pasted Windows line break
- * (`\r\n`, or a lone `\r`) no longer splits the row in a spreadsheet.
+ * One cell: quoted when it holds a quote, a comma or a line break. `\r` too, so a pasted Windows line break
+ * (`\r\n`, or a lone `\r`) doesn't split the row in a spreadsheet.
  *
  * Members write most cells, and a spreadsheet runs a cell that starts with `=`, `+`, `-` or `@` (or a tab or `\r`
  * before one) as a formula, so such a cell starts with `'` and is read as text. A lone dash and a plain number

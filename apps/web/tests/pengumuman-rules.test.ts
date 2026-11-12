@@ -176,7 +176,7 @@ test('the empty list says why: the search, then unread only, then the categories
     emptyReason({ excludeCategories: ['Umum'] }),
     'Tidak ada pengumuman di kategori yang ditampilkan.',
   );
-  // Nothing narrows the list (the order doesn't): no reason, and no Tampilkan semua (review minor 3).
+  // Nothing narrows the list (the order doesn't): no reason, and no Tampilkan semua.
   assert.equal(emptyReason({}), null);
   assert.equal(emptyReason({ sort: 'oldest' }), null);
   assert.equal(emptyReason({ search: '   ', excludeCategories: [] }), null);
@@ -462,7 +462,7 @@ test('composer: Umumkan is blocked while a photo uploads or has failed; finished
   );
 });
 
-test('the shell’s first code loads only Pengumuman’s small modules (the badge, the composer’s store), not its rules (review minor 6)', () => {
+test('the shell’s first code loads only Pengumuman’s small modules (the badge, the composer’s store), not its rules', () => {
   const read = (f: string) =>
     fs.readFileSync(path.resolve(import.meta.dirname, '../src', f), 'utf8');
   const imports = (src: string) =>
@@ -479,7 +479,7 @@ test('the shell’s first code loads only Pengumuman’s small modules (the badg
   assert.deepEqual(imports(read('features/pengumuman/unread.ts')), [
     '~/api/constants',
   ]);
-  // The first page is the shared query Beranda's list uses (P1-A round 3: one request for both), from the shared
+  // The first page is the shared query Beranda's list uses (one request for both), from the shared
   // query options, which hold only the client and the keys and are part of the app's first code already.
   assert.deepEqual(imports(read('features/pengumuman/unread-query.ts')), [
     '@tanstack/react-query',
@@ -520,7 +520,7 @@ test('link kinds: Google Forms open in PIPS!, Sheets get the sheet tile, others 
     'gform',
   );
   assert.equal(linkKind('https://forms.gle/abc'), 'gform');
-  // By the address only: a page that calls itself Google Forms, or mentions the address, isn't one (review minor 5).
+  // By the address only: a page that calls itself Google Forms, or mentions the address, isn't one.
   assert.equal(
     linkKind('https://example.org/x', {
       ogTitle: 'Google Forms: Sign-in',
@@ -568,7 +568,7 @@ test('a link alone on the last lines folds into its card; links inside the text 
     displayText('Daftar di sini\nbit.ly/DaftarGemastik'),
     'Daftar di sini',
   );
-  // Only a line that is a link with a card below, and looks like a link (review minor 4).
+  // Only a line that is a link with a card below, and looks like a link.
   assert.equal(
     displayText('Berkasnya terlampir.\nfile.pdf'),
     'Berkasnya terlampir.\nfile.pdf',

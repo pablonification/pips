@@ -15,7 +15,7 @@ export interface PopoverProps {
   className?: string;
 }
 
-/** A raised popover (garis.css `.picker`/`.menu` surface): Escape and outside clicks close it, focus returns. */
+/** A raised popover: Escape and outside clicks close it, focus returns. */
 export function Popover({
   trigger,
   children,

@@ -1,5 +1,5 @@
 /**
- * P3-B: helpers for the management journeys (manage-events, manage-lomba, manage-testi): the dialogs, the toasts,
+ * Helpers for the management journeys (manage-events, manage-lomba, manage-testi): the dialogs, the toasts,
  * the failures a write may meet and where focus lands after one.
  */
 import type { Page } from '@playwright/test';

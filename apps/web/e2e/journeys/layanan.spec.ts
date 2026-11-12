@@ -1,5 +1,5 @@
 /**
- * Layanan (P1-C): the registry's groups and rows in order, the badges, Kelola last for pengurus, internal links and
+ * Layanan: the registry's groups and rows in order, the badges, Kelola last for pengurus, internal links and
  * the external services (a new tab over https), with no search box.
  */
 import type { Page } from '@playwright/test';
@@ -47,7 +47,7 @@ test.describe('Nadia', () => {
     await expect(row(page, /^Ding Dong/)).toContainText(
       'Folder materi mata kuliahmu semester ini',
     );
-    // Badges as the prototype: Curhat's unread count by name, Form's open forms as a tag.
+    // Badges: Curhat's unread count by name, Form's open forms as a tag.
     await expect(row(page, /^Curhat Yuk!/)).toHaveAccessibleName(
       /1 pesan baru/,
     );
@@ -146,7 +146,7 @@ test.describe('Nadia', () => {
   });
 });
 
-test('regression (F2-003, F1-5): one h1 in the page at every layout, none hidden by CSS', async ({
+test('one h1 in the page at every layout, none hidden by CSS', async ({
   page,
 }) => {
   await page.goto('/layanan');
@@ -181,7 +181,7 @@ test.describe('Raka', () => {
       'href',
       '/kelola/sparta',
     );
-    // P3-B: /kelola/acara forwards to the add-event dialog over Kalender (/kalender?tambah=acara; manage-events.spec.ts).
+    // /kelola/acara forwards to the add-event dialog over Kalender (/kalender?tambah=acara; manage-events.spec.ts).
     await expect(row(page, /^Tambah acara Akademik/)).toHaveAttribute(
       'href',
       '/kelola/acara',

@@ -1,7 +1,7 @@
 /**
- * F2 (brief step 15) on the qa-perf project, run by hand (SPEC: the lab run isn't a gate on every push):
+ * Lab timings, on the qa-perf project, run by hand (the lab run isn't a gate on every push):
  *   QA_PERF_OUT=/tmp/perf.jsonl E2E_REUSE_BUILD=1 pnpm exec playwright test -c e2e --project=qa-perf
- * SPEC's lab phone as F1's lab (`review/lab.spec.ts`): CPU 4×, 1.6 Mbps down, 750 kbps up, 150 ms (the mock's
+ * The lab phone: CPU 4×, 1.6 Mbps down, 750 kbps up, 150 ms (the mock's
  * answers wait the 150 ms themselves, since the throttle doesn't reach them), a cold cache, 3 runs per page. Seven
  * pages, Live Counting as Raka. Each run appends FCP, LCP, CLS, TBT, the longest task, requests and KiB before
  * content, first-party JS before content, and on Beranda the tap to next paint, as one JSON line.

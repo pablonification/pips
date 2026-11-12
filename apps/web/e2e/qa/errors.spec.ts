@@ -1,5 +1,5 @@
 /**
- * F2 (brief step 8): what every page does when the API fails, and every not-found state.
+ * What every page does when the API fails, and every not-found state.
  * - Every read the page makes answers 503 (the session check, the profile and the roles stay up, as a member
  *   already signed in would have them): the page still has its title, says what failed in Indonesian with
  *   Coba lagi, and never shows the API's own text ("e2e: HTTP 503") or a programmer's word. Back up, Coba lagi
@@ -25,7 +25,7 @@ const KEPT = new Set([
 
 /**
  * Pages whose reads only add to what is already there, so a failure shows nothing by design: Layanan's and Kelola's
- * badges and counts (P1-C, P3-A), and Testi Matkul's first two lists, which are fixed (the catalogue they read is for
+ * badges and counts, and Testi Matkul's first two lists, which are fixed (the catalogue they read is for
  * search and the course pages, which say when it fails).
  */
 const SILENT = new Set([
@@ -96,7 +96,7 @@ for (const kind of ['503', 'dropped'] as const)
               r.outcome === 'explicit',
           ).length;
         // The app retries a failed read three times (1, 2 and 4 s apart) before it says so: wait for that. Layanan
-        // reads only its badges' counts, and shows none when they fail (P1-C, layanan.spec.ts "no badges while their
+        // reads only its badges' counts, and shows none when they fail (layanan.spec.ts "no badges while their
         // counts load or when they fail").
         if (reads() && !SILENT.has(path))
           await expect
@@ -133,7 +133,7 @@ for (const kind of ['503', 'dropped'] as const)
     });
   }
 
-// An unknown event id in Kalender's URL opens nothing and is dropped, by design (P1-A, kalender.spec.ts "an unknown
+// An unknown event id in Kalender's URL opens nothing and is dropped, by design (kalender.spec.ts "an unknown
 // event id opens nothing and is dropped"): Kalender itself is the way back.
 const NOT_FOUND: {
   url: string;

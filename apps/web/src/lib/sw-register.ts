@@ -2,8 +2,8 @@
  * When to register the service worker. The first paint doesn't need it, and once registered it precaches every route
  * chunk, which would compete with the first page's own requests on a slow connection. So it waits until the page has
  * loaded and nothing has been fetching for `quietMs` (the route's code, then its data, have arrived), then until the
- * browser is idle; or `maxWaitMs` after load, whatever happens. SPEC "Performance architecture and budgets": Beranda's
- * requests before content.
+ * browser is idle; or `maxWaitMs` after load, whatever happens. Keeping it out of the first page's requests keeps
+ * Beranda's requests before content low.
  */
 export interface SettleSource {
   /** How many queries are fetching now. */

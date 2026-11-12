@@ -6,7 +6,7 @@ export interface IconButtonProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'aria-label' | 'children'
 > {
-  /** Required: the button's Indonesian name, since it shows only an icon (SPEC "Components enforce names"). */
+  /** Required: the button's Indonesian name, since it shows only an icon. */
   label: string;
   children: ReactNode;
   /** 40 px by default, 34 px small; on touch layouts both get a 44 px hit area. */
@@ -15,7 +15,7 @@ export interface IconButtonProps extends Omit<
   ref?: Ref<HTMLButtonElement>;
 }
 
-/** A button that shows only an icon (garis.css `.icon-btn`). */
+/** A button that shows only an icon. */
 export function IconButton({
   label,
   size = 'md',

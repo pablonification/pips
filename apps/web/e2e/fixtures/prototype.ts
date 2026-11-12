@@ -1,8 +1,6 @@
 /**
- * The locked Garis v5 prototype's sample data, ported as is from
- * ops/ui-revamp-review/runtime/extra/garis-v5/locked-2026-11-02/source/garis/data.js.
+ * The sample data every journey starts from, in its own simple shapes.
  *
- * This file keeps the prototype's own shapes so a reviewer can compare it line by line with data.js.
  * `api.ts` turns it into the real API's shapes. Where the two disagree, see NOTES.md.
  */
 
@@ -19,7 +17,7 @@ export function wib(
   ).toISOString();
 }
 
-/** The prototype's "now": Kamis, 8 Oktober 2026, 13.35 WIB (see NOTES.md for why the harness uses it). */
+/** The sample "now": Kamis, 8 Oktober 2026, 13.35 WIB (see NOTES.md for why the harness uses it). */
 export const NOW = wib(10, 8, 13, 35);
 export const SEMESTER = {
   year: 2026,
@@ -139,7 +137,7 @@ export const COURSES: ProtoCourse[] = (
   drive,
 }));
 
-/** Courses each sample member set for this semester (Garis v5 has no class). */
+/** Courses each sample member set for this semester (no class). */
 export const MY_COURSES: Record<PersonaKey, string[]> = {
   anggota: ['IF2110', 'IF2120', 'IF2123', 'IF2130', 'IF2150', 'IF2180'],
   pengurus: ['IF3110', 'IF3130', 'IF3140', 'IF3141', 'IF3151', 'IF3170'],
@@ -404,7 +402,7 @@ export const PERSON_OF: Record<PersonaKey, PersonKey> = {
   pengurus: 'raka',
 };
 
-/** The six reactions, in the prototype's order. */
+/** The six reactions, in the app's order. */
 export const REACTIONS = [
   'grin',
   'heart-eyes',
@@ -557,7 +555,7 @@ export const POSTS: ProtoPost[] = [
     ],
   },
 ];
-/** Which posts each sample member had already read when the prototype opens. */
+/** Which posts each sample member had already read at the start. */
 export const READ0: Record<PersonaKey, string[]> = {
   anggota: ['p6', 'p7'],
   pengurus: ['p1', 'p4', 'p5', 'p6', 'p7'],
@@ -580,7 +578,7 @@ export interface ProtoLomba {
   open: string;
   close: string;
   price: number;
-  /** Garis v5: the sample poster's file name in garis/posters/ (and fixtures/posters/), without `.svg`. */
+  /** The sample poster's file name in fixtures/posters/, without `.svg`. */
   poster: string;
 }
 /**
@@ -871,7 +869,7 @@ export interface ProtoQuestion {
 }
 const OTHER_NOTE =
   'Sebutkan yang kamu maksud. (Kalau belum punya jawaban pasti, isi tanda "-".)';
-/** "Form Analisis Kondisi PIXEL" as the prototype shows it. Section ids come from the real seed. */
+/** "Form Analisis Kondisi PIXEL" as the sample shows it. Section ids come from the real seed. */
 export const PIXEL_FORM = {
   id: 'pixel',
   slug: 'pixel-analisis-kondisi-2025',
@@ -1052,7 +1050,7 @@ export const LIVE = {
   ] as [string, number][],
 };
 
-/** Layanan: the real Home tiles' external links (FEATURES.md §12). */
+/** Layanan: the real Home tiles' external links. */
 export const EXTERNAL_SERVICES = [
   {
     id: 'beasiswa',

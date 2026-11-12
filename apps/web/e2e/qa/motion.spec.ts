@@ -1,10 +1,10 @@
 /**
- * F2 (brief step 6; accessibility.md A11; SPEC stories 127 and 128) on the qa-motion project, where the harness
+ * Motion, on the qa-motion project, where the harness
  * leaves the app's own motion in (`motion: 'on'`: no no-motion stylesheet).
  * - Reduced motion: after first paint, a route change, and opening search, a sheet or dialog, a menu and a toast, and
  *   on Beranda's agenda strip and the Live Counting square, nothing moves for a second: no CSS animation or
  *   transition runs, and sampled frame by frame, the opened element's transform, opacity and box stay put.
- * - No preference: the shell (tab bar, rail, sidebar) never animates on first paint; overlays open in SPEC's times
+ * - No preference: the shell (tab bar, rail, sidebar) never animates on first paint; overlays open in their set times
  *   and close faster (or at once).
  */
 import type { Locator, Page } from '@playwright/test';
@@ -273,9 +273,11 @@ test.describe('no preference', () => {
     });
   });
 
-  test('overlays open in SPEC’s times and close faster', async ({ page }) => {
+  test('overlays open in their set times and close faster', async ({
+    page,
+  }) => {
     await page.goto('/profil');
-    // Garis v5's member card sweeps its sheen once on arrival (1.1 s); let it end, so only the overlay is timed.
+    // The member card sweeps its sheen once on arrival (1.1 s); let it end, so only the overlay is timed.
     await page.waitForFunction(
       () =>
         !!document.querySelector('.g-m-sheen') &&

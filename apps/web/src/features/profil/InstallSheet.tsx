@@ -17,8 +17,8 @@ const copy = profil.pasang;
 
 /**
  * Pasang PIPS! (a sheet on phones and tablets, a dialog on desktop), by platform: Android Chrome's own prompt, the
- * iPhone's steps, LINE told to open a real browser, or "already installed". Garis icons only. Mounted once at the
- * root; opened with `openInstallSheet()`.
+ * iPhone's steps, LINE told to open a real browser, or "already installed". Mounted once at the root; opened with
+ * `openInstallSheet()`.
  */
 export function InstallSheet() {
   const { open } = useSyncExternalStore(

@@ -8,7 +8,7 @@ import {
 } from '../src/api/timed-request';
 
 /*
- * Every API request has a time limit (web-robust 1): on a stalled network or a hung API a request used to wait for
+ * Every API request has a time limit: on a stalled network or a hung API a request must not wait for
  * the browser to give up, often minutes, with the screen's button stuck on "Mengirim…". Runs the generated client
  * on a fake `fetch` that never answers until it is aborted.
  */

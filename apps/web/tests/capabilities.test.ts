@@ -68,7 +68,7 @@ const SERVER: Record<Capability, () => string[]> = {
     return ['ring1'];
   },
   respondCurhat: () => {
-    // The role is one constant (P0-D), used by the Welfare list, pins and the room access rule.
+    // The role is one constant, used by the Welfare list, pins and the room access rule.
     const role = /CURHAT_ADMIN_ROLE\s*=\s*'([a-z0-9]+)'/.exec(
       api('lib/curhat.ts'),
     )![1];
@@ -97,7 +97,7 @@ test('every capability is checked against the server', () => {
   );
 });
 
-// The prototype's two personas (garis/data.js).
+// The two sample personas: a plain member and a pengurus.
 const nadia = { id: 'nadia', roles: [] as string[] };
 const raka = {
   id: 'raka',
@@ -137,7 +137,7 @@ test('posting: open categories for everyone, restricted ones by role, an empty l
   assert.equal(canPostInCategory(nadia, {}), true);
   assert.equal(canPostInCategory(nadia, { rolesAllowed: ['akademik'] }), false);
   assert.equal(canPostInCategory(raka, { rolesAllowed: ['akademik'] }), true);
-  // Review m1: the server lists a category only when rolesAllowed IS NULL or one of the member's roles is in it,
+  // The server lists a category only when rolesAllowed IS NULL or one of the member's roles is in it,
   // and an empty JSON array has no roles, so [] means nobody can post there.
   assert.equal(canPostInCategory(nadia, { rolesAllowed: [] }), false);
   assert.equal(canPostInCategory(raka, { rolesAllowed: [] }), false);
@@ -166,7 +166,7 @@ test('deleting: the author, or a moderator (admin)', () => {
   assert.equal(canDeleteContent(null, 'nadia'), false);
 });
 
-// P3-B: events by category. The server checks adding, changing and deleting the same way (calendar.controller.ts).
+// Events by category. The server checks adding, changing and deleting the same way (calendar.controller.ts).
 test('events: Akademik for akademik, Himpunan for ring1, Akademik first; changing follows the category', () => {
   assert.deepEqual(eventCategoriesFor(raka), ['akademik']);
   assert.deepEqual(eventCategoriesFor({ roles: ['ring1'] }), ['himpunan']);

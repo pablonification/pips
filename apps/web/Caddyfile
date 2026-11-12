@@ -5,8 +5,6 @@
 	root * /srv
 	encode zstd gzip
 	header Cache-Control "public, max-age=0, must-revalidate"
-	# Lets Sentry's browser profiling run when VITE_SENTRY_DSN is set (src/instrument.ts).
-	header Document-Policy "js-profiling"
 	header X-Content-Type-Options "nosniff"
 	header Referrer-Policy "strict-origin-when-cross-origin"
 	header X-Frame-Options "DENY"

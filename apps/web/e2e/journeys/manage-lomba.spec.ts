@@ -1,7 +1,7 @@
 /**
- * P3-B: managing Info Lomba for `cnc` (proposals): Tambah lomba with each validation error, its request and the new
+ * Managing Info Lomba for `cnc`: Tambah lomba with each validation error, its request and the new
  * card in deadline order; Ubah lomba without `mediaUrls`; Hapus lomba cancelled and confirmed. Nadia and Raka see
- * none of it (FEATURES.md gap 3). The poster (owner's decision, 2026-11-03): added, replaced and removed, a failed
+ * none of it. The poster: added, replaced and removed, a failed
  * upload, and the keyboard. Phone, tablet and desktop, light and dark, with strict gates.
  */
 import { readFileSync } from 'node:fs';
@@ -77,7 +77,7 @@ test.describe('cnc', () => {
     expect(posts(api)).toHaveLength(0);
     await strictGates(page, testInfo, 'tambah-lomba-errors', null);
     // The gates resize the window across 1024 px, where Tambah lomba moves between the top bar and the desktop head:
-    // the dialog stays open (review m3).
+    // the dialog stays open.
     await expect(d).toBeVisible();
 
     await fillHology(page);
@@ -240,7 +240,7 @@ test.describe('cnc', () => {
   const hapusConfirm = (page: Page) =>
     page.getByRole('alertdialog', { name: 'Hapus lomba ini?' });
 
-  test('regression (review M1): Ubah lomba with nothing changed sends nothing and closes, with no error', async ({
+  test('Ubah lomba with nothing changed sends nothing and closes, with no error', async ({
     page,
     api,
   }) => {
@@ -260,7 +260,7 @@ test.describe('cnc', () => {
     ).toBeFocused();
   });
 
-  test('regression (review m9): in the options menu, Ubah lomba lines up with Hapus lomba', async ({
+  test('in the options menu, Ubah lomba lines up with Hapus lomba', async ({
     page,
   }) => {
     await page.goto('/layanan/lomba');
@@ -277,7 +277,7 @@ test.describe('cnc', () => {
     ).toBeLessThan(1);
   });
 
-  test('regression (review m4): Hapus lomba while its request runs: Hapus is busy and deletes once', async ({
+  test('Hapus lomba while its request runs: Hapus is busy and deletes once', async ({
     page,
     api,
   }) => {
@@ -319,7 +319,7 @@ test.describe('cnc', () => {
       await expectStillSignedIn(page);
     });
 
-  test('regression (review m3): resizing across 1024 px (a tablet turned) keeps Tambah lomba open with what was typed', async ({
+  test('resizing across 1024 px (a tablet turned) keeps Tambah lomba open with what was typed', async ({
     page,
   }) => {
     await page.goto('/layanan/lomba');
@@ -369,7 +369,7 @@ test.describe('cnc', () => {
   });
 });
 
-/** A poster to pick: Garis v5's sample Hology poster, as a PNG image from the device (an SVG is never uploaded). */
+/** A poster to pick: the sample Hology poster, as a PNG image from the device (an SVG is never uploaded). */
 const POSTER_FILE = {
   name: 'poster-hology-8.png',
   mimeType: 'image/png',
@@ -608,7 +608,7 @@ test.describe('cnc: the poster', () => {
     expect('mediaUrls' in (posts(api)[0] as { body: object }).body).toBe(false);
   });
 
-  test('regression (review): a file the API would refuse is refused before anything is sent, and says why', async ({
+  test('a file the API would refuse is refused before anything is sent, and says why', async ({
     page,
     api,
   }, testInfo) => {
@@ -664,7 +664,7 @@ test.describe('cnc: the poster', () => {
     expect(api.calls('POST /api/media/upload')).toHaveLength(1);
   });
 
-  test("regression (review): the API's refusal is said as its reason, not as a failure to try again", async ({
+  test("the API's refusal is said as its reason, not as a failure to try again", async ({
     page,
     api,
   }) => {

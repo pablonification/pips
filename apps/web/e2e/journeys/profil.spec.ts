@@ -1,7 +1,6 @@
 /**
- * Profil (P1-C): the member card, Informasi akun, the setting rows, Tampilan, Keluar and Kredit, for Nadia and Raka.
- * Replaces profile.spec.ts (today's English settings); its checks live on here and in matkul.spec.ts and
- * notifikasi.spec.ts.
+ * Profil: the member card, Informasi akun, the setting rows, Tampilan, Keluar and Kredit, for Nadia and Raka.
+ * Courses are in matkul.spec.ts and notifications in notifikasi.spec.ts.
  */
 import type { Page } from '@playwright/test';
 import { greeting, layoutOf, navLink } from '../support/app';
@@ -82,7 +81,7 @@ test.describe('Nadia', () => {
       main(page).getByRole('group', { name: 'Tampilan aplikasi' }),
     ).toBeVisible();
 
-    // Keluar is centred in its column (the ghost button's own 4 px offset is the prototype's too).
+    // Keluar is centred in its column (the ghost button's own 4 px offset stays).
     const keluar = main(page).getByRole('button', { name: 'Keluar' });
     const k = (await keluar.boundingBox())!;
     const column = (await keluar.locator('..').boundingBox())!;
@@ -168,7 +167,7 @@ test.describe('Nadia', () => {
     await api.setOffline(false);
   });
 
-  test('regression: offline, the banner gives the time of the last data that loaded, never just “now”', async ({
+  test('offline, the banner gives the time of the last data that loaded, never just “now”', async ({
     page,
     api,
   }) => {
@@ -212,12 +211,12 @@ test.describe('Raka', () => {
         name: /^Notifikasi\s*Menyala di perangkat ini$/,
       }),
     ).toBeVisible();
-    // Kelola stays where the prototype puts it: last in Layanan, not in Profil (OPEN-QUESTIONS D1).
+    // Kelola is last in Layanan, not in Profil.
     await expect(main(page).getByText('Kelola')).toHaveCount(0);
     await strictGates(page, testInfo, 'profil-raka', 'Profil');
   });
 
-  test('regression: Grup shows no role keys while the group names load, nor after they fail', async ({
+  test('Grup shows no role keys while the group names load, nor after they fail', async ({
     page,
     api,
   }) => {
@@ -283,7 +282,7 @@ test.describe('Raka', () => {
       endpoint: E2E_SUBSCRIPTION.endpoint,
     });
     expect(db.pushSubscriptions).toEqual([]);
-    // Regression (SPEC "Removals"): sign-out never asks for notification permission.
+    // Sign-out never asks for notification permission.
     expect((await pushDevice(page)).asks).toBe(0);
     // Nothing of Raka stays on the device: "user" is the signed-out marker.
     expect(
@@ -317,7 +316,7 @@ test.describe('Raka', () => {
     await expect(error).toBeVisible();
     await expect(page).toHaveURL(/\/profil$/);
     await expect(card(page, 'Raka Pratama', '13524087')).toBeVisible();
-    // Regression: the device was unlinked before the failed sign-out; it is linked again.
+    // The device was unlinked before the failed sign-out; it is linked again.
     await expect.poll(() => db.pushSubscriptions).toEqual([E2E_SUBSCRIPTION]);
     expect(
       api
@@ -333,13 +332,13 @@ test.describe('Raka', () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
-  test('regression: a failed sign-out whose re-link meets a push service that never answers still ends Keluar…', async ({
+  test('a failed sign-out whose re-link meets a push service that never answers still ends Keluar…', async ({
     page,
     api,
     db,
   }) => {
     // The unlink failed, so the browser's subscription was ended; linking again then waited on the push service with
-    // no limit, and "Keluar…" stayed up with a dialog that can't be closed (2026-11-06 review).
+    // no limit, and "Keluar…" stayed up with a dialog that can't be closed.
     api.on('PUT /api/push/logout', reply.status(500));
     api.on('POST /api/push/register', writes.registerPush);
     api.on('POST /api/logout', reply.status(500));
@@ -367,7 +366,7 @@ test.describe('Raka', () => {
       .toBe(2);
   });
 
-  test('regression: when the device can’t be unlinked, Keluar still signs out and ends the browser’s subscription', async ({
+  test('when the device can’t be unlinked, Keluar still signs out and ends the browser’s subscription', async ({
     page,
     api,
     db,
@@ -409,8 +408,8 @@ test.describe('Raka', () => {
     expect((await pushDevice(page)).asks).toBe(0);
   });
 
-  // Regression (web-robust 2): /api/logout sits behind the login check, so an expired session answered 401 and the
-  // app said "Gagal keluar" with a Coba lagi that failed the same way. A 401 means already signed out.
+  // /api/logout sits behind the login check, so an expired session answers 401; the app must not say
+  // "Gagal keluar" with a Coba lagi that fails the same way. A 401 means already signed out.
   test('a sign-out answered 401 (the session had already ended) signs out on the device', async ({
     page,
     api,
@@ -439,9 +438,9 @@ test.describe('Raka', () => {
     expect(db.pushSubscriptions).toEqual([]);
   });
 
-  // Regression (web-robust 1): a sign-out the API never answered kept "Keluar…" (and the dialog, which can't close
-  // while it runs) until the browser gave up, often minutes. Every request now has a time limit. On the real clock:
-  // the limit is the browser's own timer (a fake clock once hid a real-browser timer bug).
+  // A sign-out the API never answers must not keep "Keluar…" (and the dialog, which can't close
+  // while it runs) up until the browser gives up, often minutes: every request has a time limit. On the real clock:
+  // the limit is the browser's own timer (a fake clock can hide a real-browser timer bug).
   test.describe('on the real clock', () => {
     test.use({ now: null });
     test('a sign-out the API never answers ends in Gagal keluar after the time limit, and Coba lagi works', async ({
@@ -572,7 +571,7 @@ test.describe('Kredit', () => {
     await expect(
       main(page).getByText('PIPS! dibuat dan dirawat oleh HMIF ITB.'),
     ).toBeVisible();
-    // The text's own "Credits" title goes: the page's title says it (owner's change, 2026-11-06).
+    // The text's own "Credits" title goes: the page's title says it.
     await expect(main(page).getByText('Credits')).toHaveCount(0);
     await strictGates(page, testInfo, 'kredit', 'Profil');
   });
@@ -699,7 +698,7 @@ test('opened directly, Profil and its pages light no tab; reached from a tab, th
         page.getByRole('link', { name: / Profil$/ }),
       ).toHaveAttribute('aria-current', 'page');
     } else {
-      // Phones and tablets: the locked screens light no tab (Dev 1's decision; P0-C lit Beranda).
+      // Phones and tablets: no tab is lit.
       await expect(lit).toHaveCount(0);
     }
   }
@@ -717,7 +716,7 @@ test('opened directly, Profil and its pages light no tab; reached from a tab, th
   await expect(lit).toHaveAccessibleName(/^Kalender/);
 });
 
-/* ---- Garis v5: the member card's halftone, sheen and tilt ---- */
+/* ---- The member card's halftone, sheen and tilt ---- */
 
 /** Records every CSS animation that starts, from the first paint (the sheen's sweep starts 250 ms in). */
 const recordAnimations = (page: Page) =>
@@ -791,7 +790,7 @@ async function logoUncovered(page: Page) {
   expect(result.w).toBe(72);
 }
 
-test.describe('the member card (v5)', () => {
+test.describe('the member card', () => {
   test.use({ motion: 'on', reducedMotion: 'no-preference' });
 
   test('the halftone sits across the lower right, below the logo; the logo stays uncovered', async ({
@@ -946,7 +945,7 @@ test.describe('the member card (v5)', () => {
   });
 });
 
-test.describe('the member card under reduced motion (v5)', () => {
+test.describe('the member card under reduced motion', () => {
   test.use({ motion: 'on', reducedMotion: 'reduce' });
 
   test('no sweep, no sheen and no tilt; the halftone stays and the logo is uncovered', async ({
@@ -972,9 +971,9 @@ test.describe('the member card under reduced motion (v5)', () => {
   });
 });
 
-// Regression (2026-11-03): every page change put the device's old copy of the member's semester back into the
-// cache as if fresh, so after one page change Profil showed it instead of the server's. It also redrew every screen
-// that reads it on every page change, so each letter typed in Data SPARTA Magang's search stalled a slow phone.
+// A page change must not put the device's old copy of the member's semester back into the
+// cache as if fresh, or Profil shows it instead of the server's. It must not redraw every screen
+// that reads it either, or each letter typed in Data SPARTA Magang's search stalls a slow phone.
 test("a page change keeps the server's semester, not the device's old copy", async ({
   page,
   db,

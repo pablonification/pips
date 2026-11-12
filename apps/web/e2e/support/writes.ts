@@ -173,7 +173,7 @@ export const deleteRoom: Handler = ({ db, params }) => {
 };
 
 /**
- * PUT /api/curhat/chatroom/:chatroomId/pin — Welfare pins or unpins a room for themselves (P3-C); 401 without
+ * PUT /api/curhat/chatroom/:chatroomId/pin — Welfare pins or unpins a room for themselves; 401 without
  * `curhatadmin`, as the controller answers a missing role.
  */
 export const pinRoom: Handler = ({ db, params, body }) => {
@@ -255,13 +255,13 @@ export const saveSpartaDraft: Handler = ({ db, body }) =>
 export const submitSparta: Handler = ({ db, body }) =>
   saveSparta(db, body, true);
 
-/* ---- P1-C: courses, notification categories, push, sign-in and sign-out ---- */
+/* ---- Courses, notification categories, push, sign-in and sign-out ---- */
 
 /**
  * PUT /api/course/take/batch — `[{ courseId, class? }]` into this semester, as the API: a missing class is stored as
- * the default class (Garis v5's app sends none; an older client's class is kept). Like the API's upsert on
- * `(userId, courseId)`, a course already in the list takes the new class and moves to this semester
- * (OPEN-QUESTIONS C2). 404 if a course doesn't exist; 400 if a class isn't a number.
+ * the default class (the app sends none; an older client's class is kept). Like the API's upsert on
+ * `(userId, courseId)`, a course already in the list takes the new class and moves to this semester.
+ * 404 if a course doesn't exist; 400 if a class isn't a number.
  */
 export const takeCourses: Handler = ({ db, body }) => {
   const picks = body as Array<{ courseId: string; class?: unknown }>;
@@ -381,7 +381,7 @@ export const loginNotAMember: Handler = () =>
 export const loginServerError: Handler = () =>
   reply.json({ error: 'e2e: server error' }, 500);
 
-// Pengumuman (P1-B), as `apps/api/src/controllers/{info,comment,reaction,media}.controller.ts`.
+// Pengumuman, as `apps/api/src/controllers/{info,comment,reaction,media}.controller.ts`.
 
 const isModerator = (db: Db) => db.me!.roles.includes('admin');
 const allComments = (db: Db) => Object.values(db.comments).flat();
@@ -546,7 +546,7 @@ export const presign: Handler = ({ body }) => {
   };
 };
 
-// P3-B: managing events, competitions and testimonials, as `apps/api/src/controllers/{calendar,competitions,
+// Managing events, competitions and testimonials, as `apps/api/src/controllers/{calendar,competitions,
 // testimoni}.controller.ts`. Events check the role by category and answer 403; competitions (`cnc`) and
 // testimonials (`akademik`) sit behind roleMiddleware, which answers 401 "Unauthorized".
 

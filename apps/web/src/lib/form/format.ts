@@ -1,7 +1,7 @@
 /**
- * Times for Form and Magang SPARTA, always in WIB (UTC+7, no daylight saving), as the prototype writes them:
+ * Times for Form and Magang SPARTA, always in WIB (UTC+7, no daylight saving), as these screens say them:
  * "Sab 12 Sep, 13.00" on a card, "Sabtu, 12 September 2026, 13.00 WIB" on the form, "Min, 23 Agu 2026 pukul 23.59"
- * for SPARTA (garis/data.js `FORMS.opens`, `A.svc`). Hand-rolled, so they don't depend on the browser's locale data.
+ * for SPARTA. Hand-rolled, so they don't depend on the browser's locale data.
  */
 const WIB_MS = 7 * 3600_000;
 

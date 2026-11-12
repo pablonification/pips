@@ -1,10 +1,9 @@
 /**
- * A Curhat room (garis/screens-more.js `scrRoom`; app.js `renderPhone`, `reply`, `reply-cancel`, `del-room` and the
- * chat submit): the thread oldest first with day lines, your bubbles in gold and Welfare's on the surface, Balas,
- * the composer, and deleting the room after confirming. A focused flow on phones and tablets (no tab bar or rail).
- * Laid out as a chat (owner's changes, 2026-11-06): the head and the composer stay pinned, a short thread sits at the
- * bottom by the composer, messages close together group with their time once, and Balas is an icon (`MessageRow`).
- * What you send shows at once and settles into Terkirim or Gagal with Kirim ulang (SPEC story 96; OPEN-QUESTIONS D7).
+ * A Curhat room: the thread oldest first with day lines, your bubbles in gold and Welfare's on the surface, Balas, the
+ * composer, and deleting the room after confirming. A focused flow on phones and tablets (no tab bar or rail).
+ * Laid out as a chat: the head and the composer stay pinned, a short thread sits at the bottom by the composer,
+ * messages close together group with their time once, and Balas is an icon (`MessageRow`).
+ * What you send shows at once and settles into Terkirim or Gagal with Kirim ulang.
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, useRouter } from '@tanstack/react-router';
@@ -61,7 +60,7 @@ import {
 
 const ROOM_ROUTE = '/_app/_left-navbar/layanan/curhat/$roomId' as const;
 
-/** A member's room. Welfare never gets here: the area's layout sends them to the same room in the inbox (P3-C). */
+/** A member's room. Welfare never gets here: the area's layout sends them to the same room in the inbox. */
 export function RoomScreen() {
   const { roomId } = useParams({ from: ROOM_ROUTE });
   const rooms = useRooms();
@@ -107,7 +106,7 @@ export function RoomSkeleton() {
   );
 }
 
-/** `scrRoom`'s not-found state: the room was deleted, or isn't yours. */
+/** The room was deleted, or isn't yours. */
 function NotFound() {
   const navigate = useNavigate();
   return (
@@ -164,7 +163,7 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
     };
   }, [client, roomId]);
 
-  // Opening it reads it (story 97): its count goes here, on the list, on Beranda and in Layanan.
+  // Opening it reads it: its count goes here, on the list, on Beranda and in Layanan.
   const read = useRef(false);
   const unreadHere = unread.byRoom[roomId] ?? 0;
   const unreadKnown = unread.query.isSuccess;
@@ -253,8 +252,8 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
         <div
           className="g-chat"
           role="log"
-          // Only what is added is read out (a new message, its Gagal line), once; not every change of a time line
-          // (review minor 5). The Gagal line is the one announcement of a failure.
+          // Only what is added is read out (a new message, its Gagal line), once; not every change of a time line.
+          // The Gagal line is the one announcement of a failure.
           aria-relevant="additions"
           aria-label={fill(t.ruang.percakapan, { nama: name })}
         >
@@ -284,7 +283,7 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
           onChange={setText}
           onSend={send}
           replyText={quoted}
-          // In the bar at the bottom, so it is in view at the newest message, where the room opens (review M1).
+          // In the bar at the bottom, so it is in view at the newest message, where the room opens.
           banner={<ConnectionBanner updatedAt={rooms.dataUpdatedAt} />}
           onCancelReply={() => {
             setReplyTo(null);
@@ -310,7 +309,7 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
 /**
  * A room opens at its newest message; sending (set the returned ref first), or receiving while at the newest
  * message, keeps you there, and so does the chat bar growing over the end of the thread. Shared with Welfare's
- * inbox (P3-C).
+ * inbox.
  */
 export function useFollowNewest(items: unknown) {
   useLayoutEffect(() => {

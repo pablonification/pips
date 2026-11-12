@@ -1,11 +1,11 @@
 /**
- * Kalender (the prototype's `scrKalender`, garis/screens-core.js). Phones and tablets: the title with Tambah acara,
- * the month with its buttons, the Monday-first grid, the chosen day's events and the legend; an event opens a sheet.
- * Desktop: the month as the page title, the bordered grid with up to two chips a day, and the 300 px column with the
- * day's events and the chosen event's detail. The chosen day (`hari`) and event (`acara`) live in the URL.
+ * Kalender. Phones and tablets: the title with Tambah acara, the month with its buttons, the Monday-first grid, the
+ * chosen day's events and the legend; an event opens a sheet. Desktop: the month as the page title, the bordered grid
+ * with up to two chips a day, and the 300 px column with the day's events and the chosen event's detail. The chosen
+ * day (`hari`) and event (`acara`) live in the URL.
  *
  * The grid takes one Tab stop; arrows move by a day or a week, Home and End to the week's ends, Page Up and Page Down
- * by a month, and Enter or Space chooses (SPEC "Kalender: Keyboard", not in the prototype; the look is unchanged).
+ * by a month, and Enter or Space chooses.
  */
 import { useNavigate } from '@tanstack/react-router';
 import {
@@ -79,7 +79,7 @@ const dayNumber = (k: DayKey) => Number(k.slice(8));
 export interface KalenderSearch {
   hari?: string;
   acara?: string;
-  /** P3-B: the add-event dialog is open (`tambah=acara`). */
+  /** The add-event dialog is open (`tambah=acara`). */
   tambah?: 'acara';
 }
 
@@ -169,8 +169,8 @@ export function KalenderScreen({ hari, acara, tambah }: KalenderSearch) {
         replace: true,
       });
   }, [desk, acara, urlEvent.missing, navigate]);
-  // A link with an event but no day (Beranda's, or one shared from a phone) shows it under its own day, as the
-  // prototype's `openEvent` does, not under today.
+  // A link with an event but no day (Beranda's, or one shared from a phone) shows it under its own day, not under
+  // today.
   const eventDay = urlEvent.event ? dayKeyOf(urlEvent.event.start) : null;
   useEffect(() => {
     if (desk && acara && !hari && eventDay)
@@ -316,9 +316,9 @@ export function KalenderScreen({ hari, acara, tambah }: KalenderSearch) {
     </PageBody>
   );
 
-  // P3-B: the add-event dialog over Kalender, the event options' dialogs, and the side column's choice after adding
-  // or deleting. They sit beside the layout, not inside it, so crossing 1024 px (a tablet turned), which swaps the
-  // layout, keeps an open dialog and what was typed (review m3).
+  // The add-event dialog over Kalender, the event options' dialogs, and the side column's choice after adding or
+  // deleting. They sit beside the layout, not inside it, so crossing 1024 px (a tablet turned), which swaps the
+  // layout, keeps an open dialog and what was typed.
   return (
     <DeskPickContext.Provider value={setPick}>
       <EventManageHost>
@@ -351,7 +351,7 @@ function tabStop({ cells, focusDay, chosen, view }: GridProps): DayKey {
   return `${view.year}-${String(view.month).padStart(2, '0')}-01`;
 }
 
-/** Phones and tablets: seven columns of day buttons, up to three bars each (`phoneMonth`). */
+/** Phones and tablets: seven columns of day buttons, up to three bars each. */
 function PhoneMonth(p: GridProps) {
   const stop = tabStop(p);
   return (
@@ -393,7 +393,7 @@ function PhoneMonth(p: GridProps) {
   );
 }
 
-/** Desktop: the bordered grid, at most two chips a day and "+N lagi" (`.dmonth`). */
+/** Desktop: the bordered grid, at most two chips a day and "+N lagi". */
 function DeskMonth(p: GridProps) {
   const stop = tabStop(p);
   return (

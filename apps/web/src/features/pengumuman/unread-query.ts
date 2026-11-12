@@ -4,7 +4,7 @@ import { api } from '~/api/client';
 import { unreadInfosQuery } from '~/api/queries';
 import { pageUnreadIds, UNREAD_KEY } from './unread';
 
-/** The unread posts' ids (open question 2: paged in the background, capped). Feeds the count everywhere. */
+/** The unread posts' ids (paged in the background, capped). Feeds the count everywhere. */
 export const useUnreadIds = (enabled = true) => {
   const client = useQueryClient();
   return useQuery({

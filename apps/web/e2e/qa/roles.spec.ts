@@ -1,6 +1,5 @@
 /**
- * F2 (brief step 14): each role sees exactly its own tools, and a member none (SPEC "Kelola and role-aware UI",
- * P0-B's capability map). Nadia's account with only the role under test (`roles: { only: [...] }`), at phone and
+ * Each role sees exactly its own tools, and a member none. Nadia's account with only the role under test (`roles: { only: [...] }`), at phone and
  * desktop: Kelola's rows, Kalender's Tambah acara and which kind it adds, Info Lomba's Tambah lomba and Testi
  * Matkul's Tambah testimoni.
  */

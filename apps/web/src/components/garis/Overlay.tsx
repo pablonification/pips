@@ -16,7 +16,7 @@ export interface OverlayProps {
   /** Read out with the title; leave out when the content speaks for itself. */
   description?: ReactNode;
   children?: ReactNode;
-  /** Actions at the end (garis.css `.ov-foot`), main action last. */
+  /** Actions at the end, main action last. */
   footer?: ReactNode;
   /** A narrower dialog (420 px) for short confirmations. */
   small?: boolean;
@@ -64,7 +64,7 @@ function Shell({
   closeLabel = common.actions.tutup,
 }: OverlayProps & { kind: 'sheet' | 'dialog' }) {
   // Radix returns focus only to its own Trigger; screens open overlays from their own buttons, so remember what had
-  // focus when it opened and go back there when it closes (SPEC: dialogs restore focus).
+  // focus when it opened and go back there when it closes.
   const returnTo = useRef<HTMLElement | null>(null);
   return (
     <RD.Root open={open} onOpenChange={onOpenChange}>
@@ -120,7 +120,7 @@ function Shell({
 }
 
 /**
- * A centred dialog (garis.css `.dlg`): raised, 560 px (420 small), traps focus, closes on Escape and returns focus to
+ * A centred dialog: raised, 560 px (420 small), traps focus, closes on Escape and returns focus to
  * the control that opened it. Use Modal unless the layout is known to be desktop.
  */
 export function Dialog(props: OverlayProps) {
@@ -128,14 +128,14 @@ export function Dialog(props: OverlayProps) {
 }
 
 /**
- * The phone bottom sheet (garis.css `.sheet`), which opens as a centred panel on tablets. Same focus behaviour as
+ * The phone bottom sheet, which opens as a centred panel on tablets. Same focus behaviour as
  * Dialog.
  */
 export function Sheet(props: OverlayProps) {
   return <Shell kind="sheet" {...props} />;
 }
 
-/** The prototype's overlay: a sheet on phones and tablets, a dialog on desktop (from 1024 px). */
+/** A sheet on phones and tablets, a dialog on desktop (from 1024 px). */
 export function Modal(props: OverlayProps) {
   const desktop = useMediaQuery(DESKTOP_QUERY);
   return <Shell kind={desktop ? 'dialog' : 'sheet'} {...props} />;

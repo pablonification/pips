@@ -1,5 +1,5 @@
-// P1-A: Beranda's rules (brief rules 4–7): follow-ups in order and from their signals only, Welfare replies from
-// your own rooms, the Kelola summary's form, the unread list.
+// Beranda's rules: follow-ups in order and from their signals only, Welfare replies from your own rooms, the
+// Kelola summary's form, the unread list.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import type {
@@ -259,7 +259,7 @@ test('unread list: the three (desktop: five) newest unread, a post without a tit
     ['p4', 'p1', 'p3'],
   );
   assert.deepEqual(unreadTop(undefined), []);
-  // Desktop (Garis v5): up to five.
+  // Desktop: up to five.
   assert.deepEqual(
     unreadTop(list, 5).map((i) => i.id),
     ['p4', 'p1', 'p3', 'p5'],

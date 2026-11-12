@@ -1,5 +1,5 @@
 /**
- * Focus after a navigation (SPEC "Route changes move focus to the h1"). The shell moves focus to the page's title
+ * Focus after a navigation. The shell moves focus to the page's title
  * once the new page has rendered. A screen's own title can appear later than that (its data still loading), and on
  * phones the top bar's title it replaces disappears, taking focus with it. So until the member next taps or types,
  * a `PageTitle` that appears takes focus itself, as long as focus is still where the shell put it.
@@ -23,8 +23,8 @@ export function focusPageTitle() {
 }
 
 /**
- * A screen can keep focus where the member is for one navigation: choosing a row in a split page's list (P1-B's
- * Pengumuman on desktop) opens its post beside the list, and focus stays on the row, not the page's title.
+ * A screen can keep focus where the member is for one navigation: choosing a row in a split page's list (Pengumuman
+ * on desktop) opens its post beside the list, and focus stays on the row, not the page's title.
  */
 let keepFor: string | null = null;
 export function keepFocusOnNavigationTo(pathname: string) {

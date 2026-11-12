@@ -1,8 +1,8 @@
 /**
- * Magang SPARTA for members (P2-A; no locked design, OPEN-QUESTIONS D4): closed now, with Nadia's draft read-only;
+ * Magang SPARTA for members: closed now, with Nadia's draft read-only;
  * Raka's eligibility note; no entry point while closed; and next season's flow under a window override (the four
  * steps, four choices reordered by keyboard, a draft saved on every step, send and lock), a failed save, and a late
- * write answered 403. Every size and theme, strict gates. Set P2A_SHOTS=<dir> to also write the report's captures.
+ * write answered 403. Every size and theme, strict gates. Set P2A_SHOTS=<dir> to also write captures.
  */
 import path from 'node:path';
 import type { Page, TestInfo } from '@playwright/test';
@@ -645,7 +645,7 @@ test('a 400 the screen can’t place: the error toast with Coba lagi, nothing lo
   await expect(main(page).getByText('Sudah dikirim')).toBeVisible();
 });
 
-// Regression (web-robust 1): a file upload on a stalled network said "Mengunggah…" until the browser gave up.
+// A file upload on a stalled network must give up instead of saying "Mengunggah…" until the browser does.
 test('a file upload that stalls fails after 30 s without progress; Unggah file again works', async ({
   page,
   api,
@@ -758,7 +758,7 @@ test('a file answer: Unggah file, Mengunggah…, then a link to the file, saved 
   await gates(page, testInfo, 'sparta-review-file');
 });
 
-test('regression (review): a file the API would refuse is refused before anything is sent, and says why', async ({
+test('a file the API would refuse is refused before anything is sent, and says why', async ({
   page,
   api,
   db,

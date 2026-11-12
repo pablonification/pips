@@ -1,15 +1,15 @@
 /**
- * What global search searches (the prototype's `palIndex` in garis/app.js). Each source is a hook that returns its
- * items in the order they should appear; `usePaletteItems` joins them, and P0-C's `paletteResults` ranks and groups
+ * What global search searches Each source is a hook that returns its
+ * items in the order they should appear; `usePaletteItems` joins them, and `paletteResults` ranks and groups
  * them (src/lib/shell/palette.ts). Sources, in order:
  * - Tindakan: Buat pengumuman and Tambah mata kuliah to start; Nyalakan notifikasi while it's off on this device, and
- *   the switch to the other theme, only when the query finds them (P1-A);
- * - Layanan: the service registry, the pinned ones as "Pintasan" to start (P0-C), without a member row a Kelola row
- *   replaces (`searchableServices`: Welfare finds Curhat Yuk! once, as the inbox; P3-C);
- * - Pengumuman: `GET /info?search=` from 3 characters (P1-A);
- * - Kalender: your events in the next 21 days (P1-A);
- * - Mata kuliah: this semester's courses, opening their Ding Dong folder (P1-A);
- * - Orang: `GET /user/nim?search=` from 3 characters, opening NIM Finder with the name (P1-A).
+ *   the switch to the other theme, only when the query finds them;
+ * - Layanan: the service registry, the pinned ones as "Pintasan" to start, without a member row a Kelola row
+ *   replaces (`searchableServices`: Welfare finds Curhat Yuk! once, as the inbox);
+ * - Pengumuman: `GET /info?search=` from 3 characters;
+ * - Kalender: your events in the next 21 days;
+ * - Mata kuliah: this semester's courses, opening their Ding Dong folder;
+ * - Orang: `GET /user/nim?search=` from 3 characters, opening NIM Finder with the name.
  * The two API sources wait for typing to pause, join when they answer, and are left out if they fail.
  */
 import { useQuery } from '@tanstack/react-query';
@@ -73,8 +73,6 @@ function useServiceItems(): PaletteItem[] {
     [user, navigate],
   );
 }
-
-/* ================= P1-A's sources ================= */
 
 function useActionItems(): PaletteItem[] {
   const navigate = useNavigate();
@@ -260,7 +258,7 @@ function usePeopleItems(query: string): {
 }
 
 /**
- * Every source's items for `query`, in the prototype's order, and whether the API's are still on their way (so an
+ * Every source's items for `query`, in the order above, and whether the API's are still on their way (so an
  * empty list isn't yet "no results").
  */
 export function usePaletteItems(query = ''): {

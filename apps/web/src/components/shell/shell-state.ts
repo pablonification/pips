@@ -1,9 +1,10 @@
 /**
  * What the shell remembers between pages, outside React: titles screens gave themselves, the history entries this
  * visit has seen (for back's label and whether history leads to a page of the app) and the last tab you were on
- * (Profil's back target on phones, and the tab Profil keeps lit; none when Profil was opened directly). Kept in sessionStorage, so a reload in the middle of a visit keeps them.
+ * (Profil's back target on phones, and the tab Profil keeps lit; none when Profil was opened directly).
+ * Kept in sessionStorage, so a reload in the middle of a visit keeps them.
  * Titles from data can be the member's (a Curhat room, a form), so `forgetShell()` clears all of it whenever the
- * member's data goes: at sign-out, on a 401 and when someone signs in (src/lib/forget-member.ts, review M5). Signing
+ * member's data goes: at sign-out, on a 401 and when someone signs in (src/lib/forget-member.ts. Signing
  * in also starts back's history afresh, so back never follows an entry from before.
  */
 import { useSyncExternalStore } from 'react';
@@ -65,7 +66,7 @@ let flushOnLeave = false;
 function save() {
   if (!flushOnLeave && typeof window !== 'undefined') {
     flushOnLeave = true;
-    // Without this a reload within 200 ms of a change forgot it (the tab you were on, a page's title).
+    // Without this a reload within 200 ms of a change would forget it (the tab you were on, a page's title).
     window.addEventListener('pagehide', flush);
   }
   if (writeTimer) return;
@@ -137,7 +138,7 @@ export function useLastRoot(): Destination | null {
 
 /**
  * Whether the history entry before this one is `pathname`, so a page that is done can go back to it instead of
- * adding an entry (Tambahkan in Tambah mata kuliah: the prototype's `back(m)`; review M1).
+ * adding an entry (Tambahkan in Tambah mata kuliah).
  */
 export function previousEntryIs(state: unknown, pathname: string): boolean {
   const index = (state as { __TSR_index?: number } | null)?.__TSR_index ?? 0;

@@ -1,6 +1,6 @@
 /**
- * Buat pengumuman (P1-B): a focused page on phones and tablets, a dialog over the split on desktop; validation with
- * the prototype's messages, the notification line, photos uploading with progress, the exact request body, and the
+ * Buat pengumuman: a focused page on phones and tablets, a dialog over the split on desktop; validation with
+ * its messages, the notification line, photos uploading with progress, the exact request body, and the
  * new post on top, read and focused. Strict gates at every step.
  */
 import type { Page, TestInfo } from '@playwright/test';
@@ -215,7 +215,7 @@ test.describe('Nadia', () => {
     }
   });
 
-  test('desktop, on a slow device: after posting, focus stays on the new row (regression: the closing dialog took it back to Buat) @desktop-only', async ({
+  test('desktop, on a slow device: after posting, focus stays on the new row @desktop-only', async ({
     page,
     api,
   }, testInfo) => {
@@ -255,7 +255,7 @@ test.describe('Nadia', () => {
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   });
 
-  // Regression (web-robust 1): a photo upload on a stalled network said "Mengunggah…" until the browser gave up.
+  // A photo upload on a stalled network must give up instead of saying "Mengunggah…" until the browser does.
   test('a photo upload that stalls fails after 30 s without progress, and Coba lagi uploads it', async ({
     page,
     api,
@@ -509,7 +509,7 @@ test.describe('Raka', () => {
 });
 
 test.describe('Nadia: photos the API would refuse', () => {
-  test('regression (review): a photo the API would refuse is refused before anything is sent, and says why', async ({
+  test('a photo the API would refuse is refused before anything is sent, and says why', async ({
     page,
     api,
   }, testInfo) => {
@@ -554,7 +554,7 @@ test.describe('Nadia: photos the API would refuse', () => {
     ]);
   });
 
-  test("regression (review): the API's refusal removes the photo and says why, with no Coba lagi", async ({
+  test("the API's refusal removes the photo and says why, with no Coba lagi", async ({
     page,
     api,
   }, testInfo) => {

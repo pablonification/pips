@@ -21,9 +21,8 @@ import { formCaption, formsEntry } from './rules';
 import '~/styles/garis/kelola.css';
 
 /**
- * Choosing a form (/kelola/live). One active form goes straight to its live page (replacing this entry, so back
- * goes to Kelola: the prototype's one tap); two or more list, in the API's order; none says so. There's no locked
- * screen for the list: it is Layanan's row with the form tile (a deviation for the owner).
+ * Choosing a form (/kelola/live). One active form goes straight to its live page (replacing this entry, so back goes
+ * to Kelola); two or more list, in the API's order; none says so. The list is Layanan's row with the form tile.
  */
 export function FormsEntry() {
   const forms = useQuery(adminFormsQuery());

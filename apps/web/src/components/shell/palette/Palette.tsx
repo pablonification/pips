@@ -1,5 +1,5 @@
 /**
- * Global search (the prototype's `#palette` dialog and `renderPal`): a field, the results in groups, and on
+ * Global search: a field, the results in groups, and on
  * desktop the key hints. cmdk gives the keyboard: arrows move through the results, Enter opens the chosen one
  * (the first, until you move), Escape closes. Loaded on demand the first time search opens.
  */
@@ -73,7 +73,7 @@ export default function Palette() {
               <D.Close className="g-pal-close">{common.actions.tutup}</D.Close>
             </div>
             {/* With no result the list leaves the accessibility tree (hidden): an empty listbox is an ARIA error
-                (axe aria-required-children, F2-001), and the field's aria-controls still points at it. The words
+                (axe aria-required-children), and the field's aria-controls still points at it. The words
                 then show in the list's own box, so nothing on screen moves. */}
             <Command.List
               className="g-pal-res"

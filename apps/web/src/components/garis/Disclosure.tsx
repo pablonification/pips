@@ -12,7 +12,7 @@ export interface DisclosureProps extends Omit<
 }
 
 /**
- * Secondary facts one tap away (garis.css `.disclosure`): a native details element with a 48 px summary row and a
+ * Secondary facts one tap away: a native details element with a 48 px summary row and a
  * chevron that turns. Pass `open` to open it when it is needed.
  */
 export function Disclosure({

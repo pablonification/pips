@@ -1,6 +1,5 @@
 /**
- * The app shell (SPEC "Information architecture and shell"; the prototype's `renderPhone` and `renderDesk` in
- * `garis/app.js`). One layout for every page inside the app:
+ * The app shell. One layout for every page inside the app:
  * - below 640 px a bottom tab bar, from 640 px the same items as an 88 px rail beside one column, both with a top
  *   bar (Beranda's is gold, with search and your avatar; a tab's page has search and the avatar; any other page
  *   has back and its title);
@@ -132,7 +131,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const paletteOpen = usePaletteOpen();
 
-  // "Mata kuliahku · PIPS!" in the browser tab and history (SPEC story 25).
+  // "Mata kuliahku · PIPS!" in the browser tab and history.
   useEffect(() => {
     document.title = fill(common.shell.judulDokumen, {
       judul: route.documentTitle,
@@ -148,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (route.meta.root) setLastRoot(route.meta.root);
   }, [route.meta.root]);
 
-  // On phones and tablets the browser's bar turns gold on Beranda, joining the header (SPEC "Beranda").
+  // On phones and tablets the browser's bar turns gold on Beranda, joining the header.
   const goldBar = route.path === '/' && !desk;
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');
@@ -290,7 +289,7 @@ function AvatarLink({ name, initials }: { name: string; initials: string }) {
 /* ================= The frame ================= */
 
 /**
- * One tree for every layout (review M2): the page (`main#isi` and what's in it) and its scrolling area stay at the
+ * One tree for every layout: the page (`main#isi` and what's in it) and its scrolling area stay at the
  * same place whatever the width, and only the chrome around them changes: the top bar and the tab bar or rail
  * below 1024 px, the sidebar and the breadcrumbs from 1024 px. So rotating a tablet or resizing a window across
  * 1024 px keeps what the member typed and where they were. Chrome that isn't shown renders as null in its slot.
@@ -421,7 +420,7 @@ function TopBar({
   return <header className={cn('g-top', beranda && 'gold')}>{bar}</header>;
 }
 
-/** Back: to the previous page when history has one from this app, otherwise up to the page above (SPEC story 18). */
+/** Back: to the previous page when history has one from this app, otherwise up to the page above. */
 function BackButton({
   route,
   lastRoot,
@@ -469,7 +468,7 @@ function TabBar({
         const on = active === d;
         const n = badges[d] ?? 0;
         const to = DESTINATION_PATH[d];
-        // A tab's own page again: back to its top, as the prototype does.
+        // A tab's own page again: back to its top.
         const onClick = (e: MouseEvent) => {
           if (pathname !== to) return;
           e.preventDefault();
@@ -514,7 +513,7 @@ function TabBar({
 
 /* ================= Desktop ================= */
 
-/** The desktop sidebar (`renderDesk`): the official logo, the wordmark, search, every destination, you at the foot. */
+/** The desktop sidebar: the official logo, the wordmark, search, every destination, you at the foot. */
 function Sidebar({
   route,
   lastRoot,
@@ -599,7 +598,7 @@ function Sidebar({
   );
 }
 
-/** "Layanan › Ding Dong": the page's ancestors from its sidebar item (`crumbs` in the prototype's `renderDesk`). */
+/** "Layanan › Ding Dong": the page's ancestors from its sidebar item. */
 function Crumbs({
   route,
   trail,

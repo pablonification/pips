@@ -1,4 +1,4 @@
-// F2-004: the URL's search params and the member kept on the device are checked by plain functions (src/lib/params.ts)
+// The URL's search params and the member kept on the device are checked by plain functions (src/lib/params.ts)
 // instead of zod, which loaded before every page's first render. Each check is held here to the zod schema it
 // replaced, on the same inputs: the same output (keys kept, dropped or left undefined) and the same throws.
 import assert from 'node:assert/strict';
@@ -22,7 +22,7 @@ const query = z.object({
     .optional()
     .catch(undefined),
 });
-/** The zod schemas as they were in src/lib/search-params.ts before F2-004. */
+/** The zod schemas the plain checks replaced. */
 const ZOD: Record<string, z.ZodTypeAny> = {
   kalenderSearchSchema: kalender,
   berandaSearchSchema: kalender,
@@ -233,8 +233,8 @@ test('the member kept on the device is read back as the zod schema read it', () 
     );
 });
 
-// Regression (web-robust 5): the API's `picture` is null for a member who never set a photo, and the saved copy of
-// such a member never read back, so every launch waited for the network.
+// The API's `picture` is null for a member who never set a photo; the saved copy of such a member must still read
+// back, so a launch doesn't wait for the network.
 test('a member without a photo reads back from the device', () => {
   const saved = {
     id: 'u2',

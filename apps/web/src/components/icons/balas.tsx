@@ -1,5 +1,4 @@
-// Not from the locked prototype: drawn for the owner's chat changes (2026-11-06) in the Garis frame, from the same
-// strokes as Kembali (the arrowhead) and Ulang (the curve), so it sits with the generated set.
+// Hand-drawn, not generated: the same strokes as Kembali (the arrowhead) and Ulang (the curve), in the Garis frame.
 import { GarisIcon, type IconProps } from './icon';
 
 /** Balas */

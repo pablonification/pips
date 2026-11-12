@@ -1,16 +1,15 @@
 /**
- * A room in Welfare's inbox (P3-C, a proposal): `scrRoom` with the sides swapped. The member's messages
- * (`fromOwner`) sit on the surface on the left under the room's name; yours and your teammates' in gold on the
- * right, a teammate's as "Welfare". Balas, the reply chip, day lines, the composer and the chat layout (pinned head
- * and composer, grouped messages; owner's changes, 2026-11-06) are the member side's.
+ * A room in Welfare's inbox, the member's room with the sides swapped. The member's messages (`fromOwner`) sit on the
+ * surface on the left under the room's name; yours and your teammates' in gold on the right, a teammate's as
+ * "Welfare". Balas, the reply chip, day lines, the composer and the chat layout (pinned head and composer, grouped
+ * messages) are the member side's.
  *
- * No delivery states (SPEC's corrections): a reply is drawn once the server acknowledges it, and the send button is
- * busy meanwhile. If it fails (refused as invalid or server, no answer in 10 s, or the connection down) a toast says
- * so and the text stays; sending it again unchanged reuses its device id (`CurhatClient.retry`), so a reply saved
- * whose acknowledgement was lost is saved once (A11). If a rooms fetch brings the server's copy first (the catch-up
- * after a reconnect), the reply counts as delivered and the composer lets go of it. `forbidden` and `unauthorized`
- * give no toast: the connection refetches the rooms and re-checks the session (`useCurhatConnection`). No delete:
- * only the member may.
+ * No delivery states: a reply is drawn once the server acknowledges it, and the send button is busy meanwhile. If it
+ * fails (refused as invalid or server, no answer in 10 s, or the connection down) a toast says so and the text stays;
+ * sending it again unchanged reuses its device id (`CurhatClient.retry`), so a reply saved whose acknowledgement was
+ * lost is saved once. If a rooms fetch brings the server's copy first (the catch-up after a reconnect), the reply
+ * counts as delivered and the composer lets go of it. `forbidden` and `unauthorized` give no toast: the connection
+ * refetches the rooms and re-checks the session (`useCurhatConnection`). No delete: only the member may.
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -84,7 +83,7 @@ export function InboxRoomScreen() {
   return <RoomSkeleton />;
 }
 
-/** `scrRoom`'s not-found state: the member deleted the room. Its button goes back to the inbox. */
+/** The member deleted the room. Its button goes back to the inbox. */
 function NotFound() {
   const navigate = useNavigate();
   return (
@@ -180,9 +179,8 @@ function Thread({ room }: { room: Chatroom }) {
       toast.error(t.ruang.gagal);
   }, [outbox, sending, setText]);
 
-  // A failed reply the server saved after all (review M1): a rooms fetch, such as the catch-up after a reconnect,
-  // brings its copy and settles the entry. It is delivered: the composer lets go of it, so sending "again" can't save
-  // a second copy.
+  // A failed reply the server saved after all: a rooms fetch, such as the catch-up after a reconnect, brings its copy
+  // and settles the entry. It is delivered: the composer lets go of it, so sending "again" can't save a second copy.
   useEffect(() => {
     if (!failed || !failedWasSaved(failed, outbox)) return;
     setFailed(null);

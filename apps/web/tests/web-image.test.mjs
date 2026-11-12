@@ -11,6 +11,7 @@ const read = (f) =>
   fs.readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 const caddyfile = read('Caddyfile');
 const dockerfile = read('Dockerfile');
+const vercelConfig = read('vercel.json');
 const directives = (policy) =>
   Object.fromEntries(
     policy.split(';').map((d) => {
@@ -44,6 +45,9 @@ test('every response carries the protective headers', () => {
       new RegExp(`^\\s*header ${name} "?${value}"?\\s*$`, 'm'),
     );
   assert.match(caddyfile, /^\s*import \/etc\/caddy\/csp\.caddy\s*$/m);
+  // Nothing in the app asks for browser profiling, so no server sends the header that allows it.
+  assert.doesNotMatch(caddyfile, /document-policy/i);
+  assert.doesNotMatch(vercelConfig, /document-policy/i);
   assert.match(
     dockerfile,
     /node apps\/web\/scripts\/csp\.mjs apps\/web\/dist\/index\.html > /,

@@ -1,6 +1,6 @@
 /**
- * Form (PIXEL) rules (P2-A), from the prototype's `garis/state.js` (`qVisible`, `qAnswered`, `sectionMissing`) and
- * `garis/screens-more.js` (`answerText`, `reviewPage`), on the API's shapes. They match the server's
+ * Form (PIXEL) rules on the API's shapes: which questions show, which are answered, what is missing, and how an
+ * answer reads on the check page. They match the server's
  * `findMissingRequiredQuestions` (apps/api/src/controllers/form.controller.ts), so what the screen calls complete is
  * what the server accepts.
  */
@@ -35,7 +35,7 @@ export function isAnswered(q: FormQuestion, answers: Answers): boolean {
   return typeof v === 'string' && v.trim() !== '';
 }
 
-/** The section's required questions still unanswered, in order (the prototype's `sectionMissing`). */
+/** The section's required questions still unanswered, in order. */
 export function sectionMissing(
   section: FormSection,
   answers: Answers,
@@ -86,7 +86,7 @@ export interface CheckWords {
 }
 
 /**
- * An answer as the member gave it, for the check page (the prototype's `answerText`): "Other" shows its follow-up
+ * An answer as the member gave it, for the check page: "Other" shows its follow-up
  * ("Lainnya: Main musik"), a rating "4 dari 5", a list joined with commas. Empty when not answered (the page then
  * says "Tidak diisi").
  */
@@ -122,7 +122,7 @@ export function checkRows(
 
 /**
  * The answers to start with: a saved draft wins; a question the draft doesn't hold that asks for prefill
- * (`fullName`, `nim`) starts with the account's value (SPEC story 84).
+ * (`fullName`, `nim`) starts with the account's value.
  */
 export function startingAnswers(
   sections: FormSection[],
@@ -140,8 +140,8 @@ export function startingAnswers(
 
 /**
  * A rating question's scale. The real PIXEL label carries it in brackets ("… 2025? (1 = sangat kurang, 5 = sangat
- * baik)"); the prototype shows it under the question. The API has no field for it (OPEN-QUESTIONS A3), so the
- * bracket moves under the label, and without one the prototype's scale is shown.
+ * baik)"); the screen shows it under the question. The API has no field for it, so the bracket moves under
+ * the label, and without one a default scale is shown.
  */
 export function ratingParts(
   label: string,
@@ -151,7 +151,7 @@ export function ratingParts(
   return m ? { label: m[1], hint: m[2] } : { label, hint: fallbackHint };
 }
 
-/** How a status shows on a card (the prototype's `statusTag`, plus Ditutup). */
+/** How a status shows on a card. */
 export type StatusShown = 'open' | 'soon' | 'done' | 'closed';
 
 export function statusShown(status: FormStatus): StatusShown {
@@ -161,11 +161,11 @@ export function statusShown(status: FormStatus): StatusShown {
   return 'open';
 }
 
-/** Days a form draft stays on the device (garis/state.js `DRAFT_DAYS`; bungkus `kadaluarsa` in hours). */
+/** Days a form draft stays on the device. */
 export const DRAFT_DAYS = 14;
 export const DRAFT_HOURS = DRAFT_DAYS * 24;
 
-/** The device store's key for a member's draft of a form, as today's app names it (so old drafts restore). */
+/** The device store's key for a member's draft of a form, kept stable so drafts saved earlier restore. */
 export const draftKey = (formId: string, userId: string) =>
   `hmif-form-${formId}-${userId}`;
 

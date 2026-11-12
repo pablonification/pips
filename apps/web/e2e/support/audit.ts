@@ -1,10 +1,10 @@
 /**
  * Quality gates measured on a page: axe, horizontal overflow, text size, the document language.
  *
- * Journeys run them `strict` by default (since C1): a page fails on SPEC's thresholds, no serious or critical
+ * Journeys run them `strict` by default: a page fails on these thresholds: no serious or critical
  * axe violation, no document overflow, no text under 12 px, `lang="id"`. `record` (E2E_GATES=record) only attaches
- * the results and fails nothing; the capture scripts (`e2e:before`, `e2e:compare-before`) use it, because the
- * before set records the app as it was before the redesign.
+ * the results and fails nothing; the capture scripts (`e2e:before`, `e2e:compare-before`) use it, because they record
+ * pages whatever their state.
  */
 import AxeBuilder from '@axe-core/playwright';
 import type { Page, TestInfo } from '@playwright/test';
@@ -107,7 +107,7 @@ export async function audit(page: Page): Promise<Audit> {
   return { axe: await runAxe(page), metrics: await measure(page) };
 }
 
-/** Problems against SPEC's gates; empty when the page passes. */
+/** Problems against the gates; empty when the page passes. */
 export function gateFailures(a: Audit): string[] {
   const out: string[] = [];
   const serious = a.axe.violations.filter(

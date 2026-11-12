@@ -1,4 +1,4 @@
-// P3-B: Tambah lomba and Ubah lomba's rules (brief rule 6), under a device zone that isn't WIB.
+// Tambah lomba and Ubah lomba's rules, under a device zone that isn't WIB.
 process.env.TZ = 'America/New_York';
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';

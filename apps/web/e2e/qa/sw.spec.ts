@@ -1,5 +1,5 @@
 /**
- * F2 (brief steps 7, 10 and 15) on the qa-sw project, the only one where the app's service worker runs
+ * The qa-sw project, the only one where the app's service worker runs
  * (`serviceWorkers: 'allow'`): the installed app opening with no network. Once the worker controls the page, the
  * network goes and the app is opened again: the shell comes from the worker's precache and the saved data from
  * IndexedDB, under the offline line. Also the share target: a photo shared to PIPS! opens Buat pengumuman with it.
@@ -60,7 +60,7 @@ test('a cold start offline as the installed app: the shell and the saved Beranda
     body: JSON.stringify({ launchMs, fcp }),
     contentType: 'application/json',
   });
-  // SPEC: the installed app's launch from the service worker, FCP ≤ 1 s and LCP ≤ 2 s. Unthrottled here, so this is
+  // The installed app's launch from the service worker: FCP ≤ 1 s and LCP ≤ 2 s. Unthrottled here, so this is
   // a floor, not the lab: the page's content (the greeting) within 2 s of the reload.
   expect(launchMs).toBeLessThan(2000);
   if (fcp !== null) expect(fcp).toBeLessThan(1000);

@@ -1,5 +1,5 @@
 /**
- * Every page of the app, for the sweep (F1 brief, step 8) and the catalogue's routes (step 3): the shell's route
+ * Every page of the app, for the route sweep and the flow catalogue: the shell's route
  * registry (src/lib/shell/routes.ts) plus /login. tests/review-routes.test.ts fails, at type check and when run, until
  * every route in the registry has an entry here. Each `$param` is filled with a fixture value.
  * Left out: /dev/shell (production builds drop it) and the forwarding routes /kelola/acara, /kelola/lomba and

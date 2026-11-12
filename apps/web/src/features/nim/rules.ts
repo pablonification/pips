@@ -1,6 +1,5 @@
 /**
- * NIM Finder's rules (P2-B), from the prototype's `nimResults` and SPEC "Layanan detail screens". Pure, so
- * `tests/nim-rules.test.ts` checks them without a browser.
+ * NIM Finder's rules. Pure, so `tests/nim-rules.test.ts` checks them without a browser.
  */
 import type { NimFinderResult } from '~/api/generated';
 import { fill } from '~/copy/fill';

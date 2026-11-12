@@ -55,7 +55,7 @@ export const queryClient = new QueryClient({
         return true;
       },
       gcTime: 1000 * 60 * 60 * 24, // 1 days
-      // Data seen in the last minute is reused, not refetched on every tab switch (SPEC story 134).
+      // Data seen in the last minute is reused, not refetched on every tab switch.
       staleTime: 60 * 1000,
     },
   },

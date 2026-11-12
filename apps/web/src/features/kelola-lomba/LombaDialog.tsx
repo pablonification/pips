@@ -1,8 +1,7 @@
 /**
- * Tambah lomba and Ubah lomba (a proposal; SPEC stories 113 and 117, FEATURES.md gap 3), for `cnc`. Built only
- * from the prototype's pieces: `addEventForm`'s layout in P0-A's Modal (a sheet on phones), `composeForm`'s
- * checkbox chips for the categories, `.kit-fields` for each date and time. Fields in the card's order, then the
- * poster (PosterField). Loaded on demand.
+ * Tambah lomba and Ubah lomba, for `cnc`: the add-event dialog's layout in a Modal (a sheet on phones), checkbox chips
+ * for the categories, and a date and time field pair for each date. Fields in the card's order, then the poster
+ * (PosterField). Loaded on demand.
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
@@ -85,7 +84,7 @@ export default function LombaDialog({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    // A poster still uploading or failed: said under it, and nothing is saved (as the composer's photos).
+    // A poster still uploading or failed: said under it, and nothing is saved.
     if (save.isPending || blocked) return;
     const found = validateLomba(draft, Date.now());
     setErrors(found);
@@ -94,7 +93,7 @@ export default function LombaDialog({
       requestAnimationFrame(() => document.getElementById(fid(first))?.focus());
       return;
     }
-    // Ubah lomba with nothing changed: nothing to send, so it closes as Batal does (review M1).
+    // Ubah lomba with nothing changed: nothing to send, so it closes as Batal does.
     if (competition && !Object.keys(changedFields(competition, draft)).length) {
       onOpenChange(false);
       return;

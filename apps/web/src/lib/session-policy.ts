@@ -1,7 +1,7 @@
 import { ApiError } from '~/api/generated';
 
 /*
- * When a failed session check signs you out (SPEC "Session, persistence and resilience"). Kept apart from the
+ * When a failed session check signs you out . Kept apart from the
  * API client so unit tests can load it.
  */
 

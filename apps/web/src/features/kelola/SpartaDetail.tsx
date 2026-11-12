@@ -26,9 +26,9 @@ import { choicesInOrder, orDash } from './rules';
 const p = copy.pendaftar;
 
 /**
- * One SPARTA submission (/kelola/sparta/$submissionId; no locked screen): the name as the title, "{NIM} · {jurusan} ·
- * {kelas}" and the status, ID LINE, experience and activities, then a card per choice in priority order with the
- * division's questions and answers. A partial draft shows what it has; "–" for an empty answer.
+ * One SPARTA submission (/kelola/sparta/$submissionId): the name as the title, "{NIM} · {jurusan} · {kelas}" and the
+ * status, ID LINE, experience and activities, then a card per choice in priority order with the division's questions
+ * and answers. A partial draft shows what it has; "–" for an empty answer.
  */
 export function SpartaDetail({ submissionId }: { submissionId: string }) {
   const sub = useQuery(spartaSubmissionByIdQuery(submissionId));
