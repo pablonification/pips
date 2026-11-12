@@ -922,6 +922,7 @@ test.describe('a room', () => {
     db,
   }) => {
     await openR1(page, api);
+    await caughtUp(api);
     delete db.chatrooms.r1;
     api.socket.answer('message', () => ({ ok: false, error: 'forbidden' }));
     await composer(page).fill(REPLY);
