@@ -71,31 +71,46 @@ test reads the web app's env files and expects the default port.
 **4. Start the web app.** In a second terminal:
 
 ```bash
-echo 'VITE_GOOGLE_CLIENT_ID=unused.apps.googleusercontent.com' >> apps/web/.env.local
+cp apps/web/.env.example apps/web/.env.local
 pnpm --filter web dev             # http://localhost:5173
 ```
 
-Without that value the sign-in page fails to load ("Bagian ini gagal dimuat"). With it, Google's button does
+`apps/web/.env.example` says what each setting is for; a first run needs only `VITE_GOOGLE_CLIENT_ID`, which the copy
+already has. Without it the sign-in page fails to load ("Bagian ini gagal dimuat"). With it, Google's button does
 nothing, which is fine: use the test-login form on the same page. It appears because `apps/web/.env.development` sets
 `VITE_ENABLE_TEST_LOGIN=true`. Sign in with `DEV_LOGIN_EMAIL` and the password you hashed. You land on the first-run
 page, `/mulai`.
 
-**5. Your account and some data.** The first test login creates one member, "Development Tester", with no roles.
-Only people already in the `users` table can sign in with Google, so test login is your way in. Give yourself a role
-to see the tools for pengurus (roles are in [CONTEXT.md](CONTEXT.md)), and add a category so announcements can be
-written:
+**5. Some data, and a member with roles.** Fill your database with a small made-up HMIF:
 
 ```bash
-psql postgresql://postgres:postgres@127.0.0.1:5432/pips -c "insert into user_roles (user_id, role) select id, 'admin' from users where nim = 'DEVTEST01'"
-psql postgresql://postgres:postgres@127.0.0.1:5432/pips -c "insert into categories (id, name, required_push, is_for_info) values ('akademik', 'Akademik', false, true)"
+pnpm --filter api db:seed         # prints what it added; running it again adds nothing
 ```
 
-No `psql` on your machine? With Docker, run the same SQL with
-`docker exec pips-db psql -U postgres pips -c "…"`.
+It adds four made-up members, two angkatan, categories, announcements with a comment and reactions, courses,
+calendar events this month and next, a competition, a testimonial, the PIXEL form and a Curhat room. Everything in it
+is invented (`apps/api/src/db/seed/sample-hmif.ts`). It refuses to run unless `APP_ENV` is `development` or `staging`.
+Never copy real members' data into your database.
 
-Reload the page. There is no sample data beyond this: courses, calendar events and announcements start empty, and
-`pnpm --filter api db:seed` only adds one form (it also never exits; press Ctrl+C). Add what you need with `psql` or
-through the app. Never copy real members' data into your database.
+The test login from step 4 is its own member, "Development Tester", with no roles and none of that data. To be one of
+the seeded members instead, set `LOGIN_BYPASS_KEY` in `apps/api/.env` (its comment has the command), restart the API,
+and open this address in the browser you use for the app, with your key:
+
+```
+http://localhost:5173/api/auth/login/bypass?token=<your key>&nim=13525901
+```
+
+It answers with the member's details and keeps you signed in; then open `http://localhost:5173/`. Pick the member by
+student number (roles are in [CONTEXT.md](CONTEXT.md)):
+
+| Student number | Who |
+| --- | --- |
+| `13525901` | Nadia, a plain anggota of angkatan 2025, with two courses, the open form and a Curhat room |
+| `13524901` | Raka, a pengurus with `admin` and `akademik` |
+| `18224902` | Sari, HMIF Welfare (`curhatadmin`): the Curhat inbox |
+| `13524903` | Bima, a plain anggota of angkatan 2024 |
+
+The route exists only on a development or staging API with a key of 32 characters or more; production never has it.
 
 ## Your first change
 
@@ -121,6 +136,8 @@ Change one sentence and watch a test notice.
 | `pnpm --filter web api` | Regenerate the web app's API client after an API route changed. |
 | `pnpm --filter api db:migrations` | Write a migration after `apps/api/src/db/schema.ts` changed. |
 | `pnpm --filter api db:migrate` | Apply migrations to `DATABASE_URL`. |
+| `pnpm --filter api db:seed` | Fill `DATABASE_URL` with the made-up sample data. Development and staging only. |
+| `pnpm --filter web e2e:real` | The journeys against the real API. Needs `E2E_REAL_DATABASE_URL` ([docs/testing.md](docs/testing.md)). |
 
 `TEST_DATABASE_URL` must point at a local database whose name starts with `pips_test`, for example
 `postgresql://postgres:postgres@127.0.0.1:5432/pips_test`. Create it with `createdb -h 127.0.0.1 -U postgres pips_test`, or with Docker

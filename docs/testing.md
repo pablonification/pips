@@ -1,12 +1,12 @@
 # Testing
 
-PIPS! has six kinds of test. Each catches a different mistake, so pick the lowest one that can show the problem.
+PIPS! has seven kinds of test. Each catches a different mistake, so pick the lowest one that can show the problem.
 A bug fix always gets a test that fails on the old code first. Words such as journey and gate are in
 [CONTEXT.md](../CONTEXT.md); why journeys work the way they do is in
 [decision 17](adr/0017-journeys-run-a-production-build-against-a-pretend-api-on-a-fixed-clock.md) and
 [18](adr/0018-every-journey-passes-quality-gates-and-screens-are-held-by-screenshots.md).
 
-## The six kinds
+## The seven kinds
 
 | Kind | Where | It is for | Run one file |
 | --- | --- | --- | --- |
@@ -16,6 +16,7 @@ A bug fix always gets a test that fails on the old code first. Words such as jou
 | Journey | `apps/web/e2e/journeys/*.spec.ts` | What a member sees and does, in a browser | `pnpm --filter web exec playwright test -c e2e --project=phone-light layanan` |
 | Quality checks | `apps/web/e2e/qa/`, and the gates inside every journey | Accessibility, keyboard, zoom, errors, motion, offline | by the same command, with a `qa-` project |
 | Visual reference | `apps/web/e2e/visual/` | A screen's look, kept as a screenshot | `pnpm --filter web exec playwright test -c e2e --project=visual-phone-light` |
+| Journey against the real API | `apps/web/e2e/real/*.spec.ts` | That the web app and the real API fit: shapes, statuses, roles, the socket, real timers | `pnpm --filter web e2e:real` (see below) |
 
 `pnpm test` runs the first two kinds, for both apps. `pnpm check` is the type check and lint, and it covers the test
 folders too (`apps/web` checks `tests/` and `e2e/` with their own tsconfig).
@@ -101,6 +102,41 @@ A journey tagged `@solo` times the browser's main thread, and another test runni
 journeys run on their own: `pnpm --filter web e2e:solo` (one worker), and CI gives them their own job. Do not tag a
 journey `@solo` for anything but timing.
 
+## Journeys against the real API
+
+Every other journey talks to the pretend API. A handful in `apps/web/e2e/real/` talk to the **real API** instead, on
+a database filled by `db:seed` with made-up data (`apps/api/src/db/seed/sample-hmif.ts`), on the **real clock**.
+They are there because the pretend API copies the real one's behaviour by hand, and bugs have slipped through that
+gap: a list the real API sent in another shape, a timer that only failed in a real browser.
+
+- **What runs.** `e2e/real/serve-api.mjs` migrates and seeds the database, then starts the API with made-up settings
+  on port 4691. `e2e/real/serve-web.mjs` builds the app for production pointing at that API and serves it on 4690.
+  The journeys run one at a time, at phone size, because they share the database.
+- **Signing in.** A journey becomes a seeded member through the API's login bypass (`signIn` in
+  `e2e/real/support.ts`): the API keeps its cookie in the browser context. That route exists only on a development
+  or staging API with a key of 32 characters or more (`apps/api/src/lib/login-bypass.ts`), so production never has
+  it.
+- **No outside service.** Google, file storage, Sentry and push lead nowhere, so a journey can't add a calendar event
+  (the API asks Google Calendar first) or upload a file.
+- **Every journey fails on** a console error, a failed request or an API answer of 400 or more (`watch` in
+  `support.ts`).
+- **They may run again on the same database,** so each one works from what an earlier run left (a reaction already
+  given, a form already sent).
+
+Run them with a local database whose name starts with `pips_`; they write to it:
+
+```bash
+createdb -h 127.0.0.1 -U postgres pips_real_e2e
+E2E_REAL_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/pips_real_e2e pnpm --filter web e2e:real
+```
+
+`E2E_REUSE_BUILD=1` reuses the last build. The whole set takes under a minute after the build.
+
+**When to add one.** Keep them few: they prove the two sides fit, not how a screen looks. Add one when a change
+crosses the line between the apps in a way the pretend API can't show: a new route the web app calls, a role or
+audience rule, the socket, or a timer. Add the data it needs to the seed (made up, like the rest), and make the
+journey wait for what it needs to see, never for a fixed time.
+
 ## Visual references
 
 `e2e/visual/visual.spec.ts` screenshots chosen screens and compares them with images kept in
@@ -128,15 +164,16 @@ journey `@solo` for anything but timing.
 | `docker images` | Both images build and start. The API stays up with no database and stops cleanly. |
 | `e2e shard 1/4` … `4/4` | Every journey and quality check in all projects, strict gates, split over four machines ("shards"). |
 | `e2e solo` | The timed journeys, alone. |
-| `e2e (web journeys)` | One result that is green only when the four shards and the solo run all passed. |
+| `e2e real api` | The journeys against the real API, on a throwaway PostgreSQL 16 seeded with made-up data. A few minutes. |
+| `e2e (web journeys)` | One result that is green only when the four shards, the solo run and the real-API run all passed. |
 
 ## Traps
 
 - **The clock is fake and the API is pretend, so a bug in a real timer or a real response can pass every journey.**
   When your change involves timers, sockets, push or data shaped by the real server, also try it once by hand against
   a local API ([CONTRIBUTING.md](../CONTRIBUTING.md), "First run").
-- **A journey passing offline from a pretend API says nothing about the real API.** The API's own tests and the
-  generated client are what keep the two honest.
+- **A journey passing against the pretend API says little about the real API.** The API's own tests, the generated
+  client and the journeys in `e2e/real/` are what keep the two honest.
 - **Screenshots are per platform.** See above.
 - **A timing budget that fails only when other tests run beside it** belongs in a `@solo` journey.
 - **Never skip, weaken or delete a test to get green.** If a test asserts the old behaviour, change the test and say
