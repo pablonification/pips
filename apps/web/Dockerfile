@@ -25,10 +25,13 @@ ENV VITE_API_URL=$VITE_API_URL \
     VITE_MEDIA_URL=$VITE_MEDIA_URL \
     VITE_SENTRY_DSN=$VITE_SENTRY_DSN
 RUN turbo run build --filter=web
+# The content policy names the API, the file store and Sentry from the same values (scripts/csp.mjs).
+RUN node apps/web/scripts/csp.mjs apps/web/dist/index.html > /repo/csp.caddy
 
 FROM caddy:2-alpine
 COPY --from=build /repo/apps/web/dist /srv
 COPY apps/web/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /repo/csp.caddy /etc/caddy/csp.caddy
 # Runs as an unprivileged user, with Caddy's own state in its home (the image's /config and /data belong to root).
 RUN addgroup -S web && adduser -S -G web -h /home/web web
 ENV XDG_CONFIG_HOME=/home/web/.config \

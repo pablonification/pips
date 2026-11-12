@@ -34,10 +34,15 @@ Keep today's environment. Changes:
 ## Web build arguments
 
 The same as today (`VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`, `VITE_VAPID_KEY`), plus `VITE_MEDIA_URL`, set to the
-API's `R2_PUBLIC_URL`: only files there become links in Data SPARTA Magang. Optional: `VITE_SENTRY_DSN` turns on
+API's `R2_PUBLIC_URL`: only files there become links in Data SPARTA Magang, and the image's content policy
+names it. The image build stops when it is missing. Optional: `VITE_SENTRY_DSN` turns on
 error monitoring (set it if the Vercel project has it).
 
-The web image answers like the Vercel deployment: unknown paths get `index.html`, and every response is revalidated.
+The web image's server (`apps/web/Caddyfile`): the app's own paths get `index.html`, a missing file answers 404,
+every response is compressed and revalidated, and it sends `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY` and a
+`Content-Security-Policy-Report-Only` built from the build arguments above. Report-only blocks nothing; switch it to
+`Content-Security-Policy` (`apps/web/scripts/csp.mjs`) only after a real Google sign-in, an upload and a post with a
+picture on staging leave no report in the browser's console.
 Today `app.hmif.dev` is served by Vercel, so its DNS has to point at the server for the Dokploy web app to take over.
 
 ## The database, before switching
