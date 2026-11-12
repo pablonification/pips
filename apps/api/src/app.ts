@@ -80,6 +80,10 @@ const SIGN_IN_PATHS = new Set([
   '/api/auth/google/callback',
 ]);
 
+function isCurhatPath(path: string) {
+  return path === '/api/curhat' || path.startsWith('/api/curhat/');
+}
+
 export function isDevelopmentOrStaging(config: { APP_ENV?: string }) {
   return config.APP_ENV === 'development' || config.APP_ENV === 'staging';
 }
@@ -149,7 +153,8 @@ export function createApp({
       method,
       type: 'request',
       duration: end - start,
-      userId: c.get('user' as any)?.id,
+      // A Curhat path names the room: with the member's id beside it, the log would say whose room it is.
+      userId: isCurhatPath(path) ? undefined : c.get('user' as any)?.id,
     });
   });
 
