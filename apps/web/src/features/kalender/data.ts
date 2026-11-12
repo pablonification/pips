@@ -9,7 +9,7 @@ import {
   useQueryClient,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { api } from '~/api/client';
 import { CALENDAR_EVENTS_QUERY_KEY } from '~/api/constants';
 import { ApiError, type CalendarEvent } from '~/api/generated';
