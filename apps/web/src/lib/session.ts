@@ -26,14 +26,18 @@ export function takeChosenSignOut() {
   return chosen;
 }
 
-export function forgetMemberOnDevice() {
+export function forgetMemberOnDevice({
+  keepSharedContent = false,
+}: { keepSharedContent?: boolean } = {}) {
   return forgetMember({
     queryClient,
     removePersisted: clearPersistedQueries,
     storage: localStorage,
     forgetShell,
     removeFormDrafts: deleteAllDrafts,
-    removeSharedContent: () => deleteSharedData().catch(() => undefined),
+    removeSharedContent: keepSharedContent
+      ? undefined
+      : () => deleteSharedData().catch(() => undefined),
   });
 }
 

@@ -1,9 +1,11 @@
 import { withoutPicture } from '../fixtures/api';
 import { greeting, inMain, navLink } from '../support/app';
+import { fakeGoogle, googleRequests } from '../support/google';
 import { reply } from '../support/mock';
 import { E2E_SUBSCRIPTION, pushDevice } from '../support/push';
 import { strictAudit } from '../support/strict';
 import { expect, test } from '../support/test';
+import * as writes from '../support/writes';
 
 /*
  * Session resilience (SPEC "Session, persistence and resilience"): only a 401 from the session check signs a
@@ -367,6 +369,29 @@ test('logging out never asks for notification permission, and clears what was ke
   await expectNothingKept(page);
   // What Nadia shared to PIPS! and didn't post would open in the next member's Buat.
   expect(await sharedRecords(page)).toBe(0);
+});
+
+test.describe('signed out, with something shared to PIPS!', () => {
+  test.use({ persona: 'pengurus', signedIn: false });
+
+  test('what was shared while signed out opens in Buat after sign-in', async ({
+    page,
+    api,
+  }) => {
+    await fakeGoogle(page.context());
+    await page.goto('/pengumuman/tulis');
+    await expect(page).toHaveURL(/\/login\?redirect=/);
+    await leaveShared(page);
+    api.on('POST /api/auth/login/accesstoken', writes.loginAccessToken);
+    await expect
+      .poll(async () => (await googleRequests(page)).clients.length)
+      .toBe(1);
+    await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+    await expect(page).toHaveURL(/\/pengumuman\/tulis$/);
+    await expect(page.getByRole('textbox', { name: /^Judul/ })).toHaveValue(
+      'Catatan Nadia',
+    );
+  });
 });
 
 test.describe('a device with notifications on', () => {

@@ -12,7 +12,8 @@ export const MEMBER_STORAGE_KEYS = ['userAcademic'] as const;
  * 3. every other query and mutation leaves memory, and the member's localStorage keys go;
  * 4. the shell forgets the page titles screens gave (a Curhat room's, a form's) and back's history (P0-C);
  * 5. form drafts on the device go (they hold a name, a NIM and answers; P2-A);
- * 6. what was shared to PIPS! and not yet posted goes, so the next member's Buat doesn't open with it.
+ * 6. what was shared to PIPS! and not yet posted goes, so the next member's Buat doesn't open with it. Not before
+ *    a sign-in: someone signed out who shares to PIPS! and then signs in must find it in Buat.
  */
 export function forgetMember({
   queryClient,
@@ -27,7 +28,7 @@ export function forgetMember({
   storage: Pick<Storage, 'removeItem' | 'setItem'>;
   forgetShell: () => void;
   removeFormDrafts: () => PromiseLike<void> | void;
-  removeSharedContent: () => PromiseLike<void> | void;
+  removeSharedContent?: () => PromiseLike<void> | void;
 }): Promise<void> {
   const removed = removePersisted();
   queryClient.setQueryData([ME_QUERY_KEY], null);
@@ -39,6 +40,6 @@ export function forgetMember({
   for (const key of MEMBER_STORAGE_KEYS) storage.removeItem(key);
   forgetShell();
   const drafts = removeFormDrafts();
-  const shared = removeSharedContent();
+  const shared = removeSharedContent?.();
   return Promise.all([removed, drafts, shared]).then(() => undefined);
 }
