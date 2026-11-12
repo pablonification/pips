@@ -1,4 +1,4 @@
-// Info Lomba's writes (P3-B): cnc only, checked on the server, and a free competition can be edited (C5).
+// Info Lomba's writes: cnc only, checked on the server, and a free competition can be edited.
 import { strict as assert } from 'node:assert';
 import { before, test } from 'node:test';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
@@ -68,7 +68,7 @@ const body = {
 };
 
 for (const price of [null, '0']) {
-  test(`regression (C5): PUT /competitions/{id} saves a free competition (price ${JSON.stringify(price)})`, async () => {
+  test(`PUT /competitions/{id} saves a free competition (price ${JSON.stringify(price)})`, async () => {
     const { router, writes } = setup(['cnc']);
     const res = await callRouter(
       router,
@@ -93,7 +93,7 @@ test('PUT /competitions/{id}: the other rules stay (name and organiser at least 
   assert.deepEqual(writes, []);
 });
 
-test('regression (M1): PUT /competitions/{id} with an empty body answers 400, not 500, and writes nothing', async () => {
+test('PUT /competitions/{id} with an empty body answers 400, not 500, and writes nothing', async () => {
   const { router, writes } = setup(['cnc']);
   const res = await callRouter(
     router,

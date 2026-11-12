@@ -1,5 +1,5 @@
 /*
-  Self-hosted fonts (SPEC "Typography"). No third-party font request: both files are served from /fonts/.
+  Self-hosted fonts. No third-party font request: both files are served from /fonts/.
   - Geist, variable 400–600, Latin and Latin Extended, preloaded by index.html.
   - Archivo Expanded 700: one static instance (width 125), Latin, for page titles, the greeting and brand marks.
   Built by scripts/fonts/build-fonts.py from the `geist` and `@fontsource-variable/archivo` packages (SIL OFL 1.1).

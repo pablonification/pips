@@ -1,8 +1,6 @@
 /**
- * Push notifications on this device (P1-C): the prompt, the Notifikasi card, the Profil row's state and the toasts.
- * Words are the prototype's (`garis/screens-more.js` `OV.push`, `scrNotif`, `scrProfil`; `garis/app.js` `push-allow`,
- * `push-deny`). The states the prototype doesn't draw (diblokir, perlu pasang, tidak didukung), the errors and the
- * test notification are new copy (OPEN-QUESTIONS D5), listed in the P1-C report.
+ * Push notifications on this device: the prompt, the Notifikasi card, the Profil row's state, the errors and the
+ * toasts.
  */
 export const push = {
   prompt: {
@@ -11,14 +9,14 @@ export const push = {
     iphone: 'Di iPhone, pasang PIPS! ke layar utama dulu.',
     nanti: 'Nanti saja',
     nyalakan: 'Nyalakan',
-    // New: while permission, subscription and registration run.
+    // While permission, subscription and registration run.
     menyalakan: 'Menyalakan…',
   },
   toast: {
     menyala: 'Notifikasi menyala di perangkat ini.',
     tetapMati: 'Notifikasi tetap mati. Nyalakan kapan saja di Profil.',
     ujiTerkirim: 'Notifikasi uji terkirim ke perangkat ini.',
-    // New: errors say what happened, then the fix.
+    // Errors say what happened, then the fix.
     gagal: 'Notifikasi belum menyala. Periksa koneksimu, lalu coba lagi.',
     diblokir:
       'Notifikasi diblokir di browser ini. Caranya membuka lagi ada di Profil › Notifikasi.',

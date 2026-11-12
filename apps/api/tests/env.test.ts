@@ -111,7 +111,7 @@ test('the shared staging host can turn test login on explicitly', () => {
   assert.equal(env.LISTEN_HOST, '127.0.0.1');
 });
 
-// Regression: Sentry traced and profiled every request (1.0), which costs CPU in a burst.
+// Tracing and profiling every request (a rate of 1.0) costs CPU in a burst, so the default is lower.
 test('Sentry samples 10% of requests unless told otherwise, and a bad value falls back', () => {
   const env = EnvSchema.parse(required);
   assert.equal(env.SENTRY_TRACES_SAMPLE_RATE, 0.1);

@@ -22,8 +22,8 @@ const post = (body: string) => ({
   options: { body, data: { url: '/timeline/p1' } },
 });
 
-// Regression: a post's whole text went into the push; past ~4 KB every push service refused it (413), so a long
-// announcement reached nobody.
+// A post's whole text must not go into the push: past ~4 KB every push service refuses it (413), so a long
+// announcement would reach nobody.
 test('a long post is cut to fit, ending in "…", with its title and link kept', () => {
   const data = post('Halo semua. '.repeat(2000));
   const fitted = pm.fitPushData(data);
@@ -77,7 +77,7 @@ test('every subscription is sent the fitted payload', async () => {
   for (const p of sent) assert.ok(bytes(p) <= pm.MAX_PUSH_PAYLOAD_BYTES);
 });
 
-// Regression: every send started at once (2,000+ devices, each a TLS connection and synchronous encryption).
+// Sends must not all start at once (2,000+ devices, each a TLS connection and synchronous encryption).
 test('at most 50 pushes are in flight at once, and every one is sent, results in order', async () => {
   let inFlight = 0;
   let peak = 0;
@@ -104,7 +104,7 @@ test('at most 50 pushes are in flight at once, and every one is sent, results in
   );
 });
 
-// Regression: web-push had no time limit, so a stalled push service held its share of the fan-out forever.
+// web-push has no time limit of its own, so without one a stalled push service holds its share of the fan-out forever.
 test('a push service that never answers is given up on after the timeout', async () => {
   const started = Date.now();
   const results = await pm.sendNotificationToAll([sub(1), sub(2)], post('x'), {
@@ -144,7 +144,7 @@ test('a refused push comes back with its endpoint, for pruning', async () => {
   );
 });
 
-// Regression: only 410 was pruned; a push service answering 404 for an unknown subscription kept it forever.
+// A push service answering 404 for an unknown subscription must be pruned like 410, or the subscription stays forever.
 test('subscriptions answered 404 or 410 are pruned; other failures stay', async () => {
   const { goneEndpoints } = await import('../src/repositories/push.repo');
   const codes = [410, 404, 413, 429, 500];

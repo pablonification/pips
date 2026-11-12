@@ -1,6 +1,6 @@
 /**
- * The words dates are said with (`src/lib/dates.ts`), as the prototype's garis/ui.js says them. Day and month
- * names are proper nouns in Indonesian, so they keep their capitals.
+ * The words dates are said with (`src/lib/dates.ts`). Day and month names are proper nouns in Indonesian, so they
+ * keep their capitals.
  */
 export const tanggal = {
   hari: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],

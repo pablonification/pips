@@ -107,8 +107,8 @@ test('questions show from opening (early access too), and stay visible once clos
   assert.equal(sectionCount({ sections: [1, 2, 3, 4, 5] }), 5);
 });
 
-// Regression (review M2): a form switched off before it opened counted as closed, and a closed form shows its
-// questions, so they leaked before opening. Visibility depends on opening alone, as it did before this branch.
+// A form switched off before it opened must not count as closed: a closed form shows its questions, so they would
+// leak before opening. Visibility depends on opening alone.
 test('a switched-off form, or one whose closing time is before its opening, hides its questions until it opens', () => {
   const before = opensAt.getTime() - 1;
   assert.equal(
@@ -282,7 +282,7 @@ test('GET /form/{id}: status; sections null until opening, kept once closed', as
   assert.equal(done.body.status, 'already_responded');
 });
 
-// Regression: answers were accepted for a form an admin had switched off (isActive was never checked).
+// `isActive` must be checked: answers must not be accepted for a form an admin switched off.
 test('a switched-off form refuses answers with 403 and saves nothing', async () => {
   const { router, saved, announced } = world(pixelForm({ isActive: false }));
   const res = await callRouter(
@@ -359,7 +359,7 @@ test('not open yet, not for your angkatan, missing answers, unknown form', async
   );
 });
 
-// P3-A, from the P2-A review: the questions went to every signed-in member who knew the form's id.
+// The questions must not go to every signed-in member who knows the form's id.
 test("GET /form/{id}: questions only for the form's angkatan or a form admin", async () => {
   const w = world(pixelForm(), false, { 'u-raka': ['admin'] });
   const eligible = await callRouter(w.router, nadia, 'GET', '/form/pixel');

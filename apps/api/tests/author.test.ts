@@ -20,7 +20,7 @@ const rakaRow = {
 const AUTHOR_KEYS = ['fullName', 'id', 'picture'];
 /** Fields of a member that no post, comment or reaction may carry, at any depth. */
 const PRIVATE_KEYS = [
-  // OPEN-QUESTIONS C10: bylines show no email (the locked prototype's byline is avatar, name and time).
+  // A byline shows an avatar, a name and a time, so no email.
   'email',
   'nim',
   'gender',
@@ -114,8 +114,8 @@ function infoRouter() {
   } as unknown as InfoDeps);
 }
 
-// Regression (review M3): the feed and a post sent each author's whole users row (email, gender, campus,
-// membership, angkatan, sign-in times) to every signed-in member.
+// The feed and a post must not send each author's whole users row (email, gender, campus, membership, angkatan,
+// sign-in times) to every signed-in member.
 test('GET /info and GET /info/{id} carry only the author fields', async () => {
   const list = await callRouter(infoRouter(), nadia, 'GET', '/info');
   assert.equal(list.status, 200);
@@ -156,7 +156,7 @@ function commentRouter() {
   return createCommentRouter(deps as unknown as CommentDeps);
 }
 
-// Regression (review M3): the comment list and a comment sent each commenter's whole users row.
+// The comment list and a comment must not send each commenter's whole users row.
 test('every comment route carries only the author fields', async () => {
   const list = await callRouter(
     commentRouter(),

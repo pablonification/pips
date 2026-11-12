@@ -39,6 +39,7 @@ import {
   type FeedView,
 } from './rules';
 import { UNREAD_KEY } from './unread';
+import { keepUnsent } from '~/lib/unsent-text';
 
 export const statusOf = (e: unknown) =>
   e instanceof ApiError ? e.status : undefined;
@@ -244,14 +245,23 @@ export function useReact() {
   });
 }
 
+/** One key per post, so a comment box can tell that a send for its post is still out. */
+export const postCommentKey = (infoId: string) => ['postComment', infoId];
+
 export function usePostComment(infoId: string) {
   const qc = useQueryClient();
   return useMutation({
+    mutationKey: postCommentKey(infoId),
     mutationFn: (content: string) =>
       api.comment.postComment({
         requestBody: { repliedInfoId: infoId, content },
       }),
+    // Offline, a send fails at once (the comment's error with Coba lagi) instead of waiting, paused, and going out
+    // later by itself.
+    networkMode: 'always',
     onSuccess: (created) => {
+      // Sent: its kept text goes, even when the member has opened another post meanwhile.
+      keepUnsent(`komentar:${infoId}`, '');
       qc.setQueryData<CommentWithReactions[]>(
         infoCommentsQuery(infoId).queryKey,
         (list) => [
@@ -331,6 +341,8 @@ export function useCreateInfo() {
         .catch(() => undefined);
       return created;
     },
+    // As a comment's: offline fails at once, and nothing is published later without a tap.
+    networkMode: 'always',
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: [INFO_LIST_QUERY_KEY] });
     },

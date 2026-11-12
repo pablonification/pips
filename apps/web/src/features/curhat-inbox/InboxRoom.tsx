@@ -15,6 +15,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUnsentText } from '~/hooks/useUnsentText';
 import type { Chatroom } from '~/api/generated';
 import { Button, EmptyState, ErrorState, toast } from '~/components/garis';
 import {
@@ -131,7 +132,7 @@ function Thread({ room }: { room: Chatroom }) {
     [room.messages, delivered],
   );
 
-  const [text, setText] = useState('');
+  const [text, setText] = useUnsentText(`curhat-balas:${roomId}`);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [sending, setSending] = useState<FailedReply | null>(null);
   const [failed, setFailed] = useState<FailedReply | null>(null);
@@ -177,7 +178,7 @@ function Thread({ room }: { room: Chatroom }) {
     setFailed(sending);
     if (entry.refusal !== 'forbidden' && entry.refusal !== 'unauthorized')
       toast.error(t.ruang.gagal);
-  }, [outbox, sending]);
+  }, [outbox, sending, setText]);
 
   // A failed reply the server saved after all (review M1): a rooms fetch, such as the catch-up after a reconnect,
   // brings its copy and settles the entry. It is delivered: the composer lets go of it, so sending "again" can't save
@@ -188,7 +189,7 @@ function Thread({ room }: { room: Chatroom }) {
     if (text.trim() !== failed.text) return;
     setText('');
     setReplyTo(null);
-  }, [outbox, failed, text]);
+  }, [outbox, failed, text, setText]);
 
   const quoted =
     replyTo === null

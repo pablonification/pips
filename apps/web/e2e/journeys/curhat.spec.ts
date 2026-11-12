@@ -448,6 +448,28 @@ test.describe('a room', () => {
     );
   });
 
+  test('a reload keeps the message typed in this room only; sent, it is gone', async ({
+    page,
+    api,
+  }) => {
+    canRead(api);
+    api.socket.answer('message', () => undefined);
+    await openR1(page);
+    await composer(page).fill('Aku masih bingung soal tugas.');
+    await page.reload();
+    await expect(log(page)).toBeVisible();
+    await expect(composer(page)).toHaveValue('Aku masih bingung soal tugas.');
+    await page.goto('/layanan/curhat/r2');
+    await expect(composer(page)).toHaveValue('');
+    await openR1(page);
+    await expect(composer(page)).toHaveValue('Aku masih bingung soal tugas.');
+    await sendButton(page).click();
+    await expect(composer(page)).toHaveValue('');
+    await page.reload();
+    await expect(log(page)).toBeVisible();
+    await expect(composer(page)).toHaveValue('');
+  });
+
   test('empty text doesn’t send; focus stays in the field', async ({
     page,
     api,

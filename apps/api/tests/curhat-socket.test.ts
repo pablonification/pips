@@ -24,8 +24,8 @@ import {
   testUser,
 } from './support/session';
 
-// A real socket.io server with storage faked, on P0-D's port range (4470–4479) unless another worker's range is
-// given (`API_SOCKET_TEST_PORT`), so two workers' API tests can run at once.
+// A real socket.io server with storage faked. The port can be set with `API_SOCKET_TEST_PORT`, so two runs of these
+// tests can go at once.
 const PORT = Number(process.env.API_SOCKET_TEST_PORT ?? 4471);
 const URL = `http://127.0.0.1:${PORT}`;
 
@@ -207,7 +207,7 @@ function collect(socket: ClientSocket, event: string) {
   return got;
 }
 
-// --- regressions (C3) ---
+// --- access to rooms ---
 
 test('a socket without a session joins no room, and its messages are refused and never saved', async () => {
   const anon = await client(null, { chatroomId: 'r1', curhat: true });
@@ -251,7 +251,7 @@ test('a forged or expired cookie counts as no session', async () => {
   });
 });
 
-// Regression (review minor 1): the session was read once, so a socket kept sending after its token expired.
+// The session must be checked again as it goes on, not read once: a socket must not keep sending after its token expires.
 test('a socket is cut off when its session expires', async () => {
   const socket = await client(
     null,
@@ -281,7 +281,8 @@ test('a socket is cut off when its session expires', async () => {
   );
 });
 
-// Regression (review minor 1): roles were read once, so Welfare kept every room after its role was taken away.
+// Roles must be checked again as the socket goes on, not read once: Welfare must not keep every room after its role is
+// taken away.
 test('Welfare loses access at once when its role is taken away', async () => {
   const w = await client(welfare, { chatroomId: 'r9' });
   const owner = await client(other, { chatroomId: 'r9' });
@@ -357,7 +358,7 @@ test('the message is saved under the signed-in member, whatever userId the paylo
   });
 });
 
-// --- delivery acknowledgement (SPEC API change 2) and anonymity ---
+// --- delivery acknowledgement and anonymity ---
 
 test('the acknowledgement carries the saved message as its sender sees it, with no userId', async () => {
   const socket = await client(nadia, { curhat: true });
@@ -485,7 +486,7 @@ test('reply reaches the other sockets in that room only, without any userId', as
   assert.deepEqual(pathsOfKey(toMember[0], 'userId'), []);
 });
 
-// --- the device's message id (P2-C round 2, OPEN-QUESTIONS A11) ---
+// --- the device's message id ---
 
 const CLIENT_ID = '7f3c2a10-5b1e-4c8d-9a6f-0e2b4d6c8a11';
 
@@ -593,7 +594,7 @@ test('a curhat handshake joins every room the member owns, and nothing else', as
   assert.deepEqual(await roomsOf(socket.id!), ['r1', 'r2']);
 });
 
-// --- Welfare's inbox (P3-C, OPEN-QUESTIONS A7) ---
+// --- Welfare's inbox ---
 
 test("a Welfare curhat handshake joins every room and Welfare's group room; a member's still only their own", async () => {
   const staff = await client(welfare, { curhat: true });
@@ -608,8 +609,8 @@ test("a Welfare curhat handshake joins every room and Welfare's group room; a me
   assert.deepEqual(await roomsOf(notWelfare.id!), []);
 });
 
-// Review m1 (round 2): the handshake read the room list, then joined the group room; a room created in between was
-// joined (`welfareJoin`) before this socket was in the group room, and so missed.
+// The handshake reads the room list, then joins the group room. A room created in between is joined (`welfareJoin`)
+// before this socket is in the group room, and must not be missed.
 test('a room created while a Welfare handshake reads the room list still reaches that socket', async () => {
   whileListingRooms = () => {
     rooms.push({ id: 'r-new', userId: nadia.id });
@@ -624,7 +625,7 @@ test('a room created while a Welfare handshake reads the room list still reaches
   );
 });
 
-// Review m2 (round 2): the group room's name can't be a room id (`createId` makes no colon), so a member can't reach
+// The group room's name can't be a room id (`createId` makes no colon), so a member can't reach
 // it by naming it.
 test("a member can't join Welfare's group room, by curhat:join, a message or the handshake", async () => {
   const joiner = await client(nadia, { curhat: true });
@@ -849,8 +850,8 @@ test('a message sent right after connecting, before the session is read, is not 
   assert.equal(ack.ok, true);
 });
 
-// Regression (web-robust 3): a role lookup that threw at the handshake left the session null while the socket stayed
-// connected, so Curhat looked connected but every send was refused `unauthorized`, and Live Counting heard nothing.
+// A role lookup that throws at the handshake must not leave the session null while the socket stays connected: Curhat
+// would look connected but refuse every send as `unauthorized`, and Live Counting would hear nothing.
 test('a role lookup that fails at the handshake refuses the connection; connecting again then works', async () => {
   failRoleLookups = true;
   const socket = connect(URL, {
@@ -925,7 +926,7 @@ test("Live Counting's formAdminId room still joins admins only", async () => {
   assert.deepEqual(await roomsOf(anon.id!), []);
 });
 
-// P3-A: what Live Counting relies on. A new response is announced to the form's admin room only.
+// What Live Counting relies on: a new response is announced to the form's admin room only.
 test('form:new-response reaches an admin socket, not a member or an anonymous one', async () => {
   const heard = {
     admin: [] as unknown[],

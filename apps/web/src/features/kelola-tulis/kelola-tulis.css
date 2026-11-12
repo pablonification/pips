@@ -1,8 +1,7 @@
 /*
-  P3-B: the management dialogs' few layout rules, ported from the prototype's garis/garis.css with the `g-` prefix,
-  values unchanged: `.compose` (the form's 18 px rhythm) and `.kit-fields` (Tanggal and Mulai side by side where there
-  is room, Selesai below). The rest is P0-A's components. Tokens only; part of the app's one stylesheet.
-*/
+  The management dialogs' few layout rules: the form's 18 px rhythm, and Tanggal and Mulai side by side where
+  there is room, Selesai below. The rest is the shared components. Tokens only; part of the app's one stylesheet.
+  */
 @layer components {
   .g-kelola-form {
     display: grid;
@@ -24,7 +23,7 @@
     min-width: 0;
   }
 
-  /* Tambah lomba's poster (owner's decision, 2026-11-03): the composer's photo tiles (pengumuman.css `.g-thumb`,
+  /* Tambah lomba's poster: the composer's photo tiles (pengumuman.css `.g-thumb`,
      `.g-add-photo`, values unchanged) at Info Lomba's 3:4 poster shape and 8 px corner, 120 px wide. */
   .g-poster-field {
     display: flex;

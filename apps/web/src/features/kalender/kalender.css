@@ -1,9 +1,8 @@
 /*
-  Kalender (P1-A) and the calendar marks Beranda's agenda card shares: ported from the prototype's garis/garis.css
-  (`.mbars`, `.agenda-item`, `.kbar`, `.legend`, `.month`, `.mday`, `.cal-head`, `.dmonth`, `.dcell`, `.dchip`,
-  `.dmore`, `.cal-split`, `.cal-side`, `.ev-info`, the 340 px phone rule) with the `g-` prefix, values unchanged.
-  Tokens only; part of the app's one stylesheet (vite.config.ts). tests/beranda-kalender-css.test.mjs checks it.
-*/
+  Kalender and the calendar marks Beranda's agenda card shares: day bars, event rows, the legend, the phone month,
+  the desktop month with its day column, and the event detail. Tokens only; part of the app's one stylesheet
+  (vite.config.ts). tests/beranda-kalender-css.test.mjs checks it.
+  */
 @layer components {
   /* ============ A day's bars (the strip, the phone month) ============ */
   .g-mbars {
@@ -308,7 +307,7 @@
     padding-block: 16px;
   }
 
-  /* ============ The narrowest phones (the prototype's `@container phone (max-width: 340px)`) ============ */
+  /* ============ The narrowest phones (container width up to 340 px) ============ */
   @media (max-width: 340px) {
     .g-month {
       margin-inline: -12px; /* seven 44 px days fit on a 320 px phone */

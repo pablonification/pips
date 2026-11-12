@@ -10,8 +10,8 @@ function assertAggregate(summary: unknown) {
   assert.ok(s.userReaction === undefined || typeof s.userReaction === 'string');
 }
 
-// Regression (2026-11-03, a copy of production's data): `GET /comments` sent `reactions: []` for a comment nobody had
-// reacted to, and the redesign's post page crashed ("Bagian ini gagal dimuat") on posts with such a comment.
+// A comment nobody reacted to must come back with empty counts, not a bare `reactions: []`: the post page can't read
+// that shape and fails to load the comments.
 test('a comment with no reactions gets an empty summary, in the documented shape', () => {
   const result = summarizeCommentReactions(['c-quiet'], [], []);
   assert.deepEqual(result, {

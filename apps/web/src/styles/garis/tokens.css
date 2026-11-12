@@ -1,5 +1,5 @@
 /*
-  Garis design tokens, ported exactly from the locked prototype (garis/garis.css, 2026-10-12).
+  Garis design tokens.
   Semantic tokens are named by role. Dark mode is the `.dark` class on <html> (set before first paint by the
   script in index.html); `.theme-light` and `.theme-dark` force a theme inside one element (the gallery uses them).
   Every text/background pair is checked in both themes by tests/garis-tokens.test.mjs (text ≥ 4.5:1, focus and
@@ -61,10 +61,10 @@
   --bg-hero: #f8c249;
   --text-on-hero: #1b1508;
   --hero-tone: rgb(27 21 8 / 0.13);
-  /* The member card (v5): its halftone is ink on gold in both themes; its sheen is softer in dark mode. */
+  /* The member card: its halftone is ink on gold in both themes; its sheen is softer in dark mode. */
   --member-tone: rgb(27 21 8 / 0.13);
   --member-sheen: rgb(255 255 255 / 0.38);
-  /* Masuk's second line on the gold hero (garis v5-masuk.css --mk-on-2). */
+  /* Masuk's second line on the gold hero. */
   --text-on-hero-2: #4a3a10;
   --avatar-on-hero: #ffffff;
   --glyph-fill: #f8c249;
@@ -120,14 +120,14 @@ html.dark,
 }
 
 /*
-  Fixed values the prototype writes inline in its component styles, named here so components hold no raw colour.
-  They are the same in both themes, as in the prototype.
+  Fixed values components use inline, named here so components hold no raw colour. They are the same in both
+  themes.
 */
 :root {
   --on-danger: #ffffff;
   --key-highlight: rgb(255 255 255 / 0.55);
   --key-highlight-pressed: rgb(255 255 255 / 0.3);
-  /* Masuk's paper keycaps (garis v5-masuk.css `.mk-key`). */
+  /* Masuk's paper keycaps. */
   --keycap-highlight: rgb(255 255 255 / 0.5);
   --plaque-highlight: rgb(255 255 255 / 0.45);
   --plaque-drop: rgb(27 21 8 / 0.6);
@@ -137,13 +137,13 @@ html.dark,
   --scrim-dialog: rgb(8 6 4 / 0.55);
   --thumb-scrim: rgb(27 21 8 / 0.72);
   --quote-tint: rgb(27 21 8 / 0.07);
-  /* Info Lomba's poster viewer (Garis v5's v5-layanan.css): a dark backdrop and light text in both themes. */
+  /* Info Lomba's poster viewer: a dark backdrop and light text in both themes. */
   --viewer-scrim: rgb(10 9 7 / 0.96);
   --viewer-text: #f3eee0;
   --viewer-focus: #f8c249;
   --viewer-hover: rgb(255 255 255 / 0.12);
   --viewer-outline: rgb(255 255 255 / 0.14);
-  /* The pixel reactions' palette (garis/ui.js PX_COL); the rim is --px-rim, which turns bronze in dark mode. */
+  /* The pixel reactions' palette; the rim is --px-rim, which turns bronze in dark mode. */
   --px-gold: #f8c249;
   --px-white: #ffffff;
   --px-red: #e5484d;
@@ -151,7 +151,7 @@ html.dark,
   --px-blue: #7cc7f2;
   --px-bronze: #966f16;
 
-  /* Motion (SPEC "Motion tokens"). */
+  /* Motion. */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-control: 100ms;
   --dur-overlay: 180ms;
@@ -170,7 +170,7 @@ html.dark,
 }
 
 /*
-  The tokens as Tailwind utilities. Backgrounds, text, lines and rings are separate scales (SPEC "Design tokens"),
+  The tokens as Tailwind utilities. Backgrounds, text, lines and rings are separate scales,
   so a text colour can't be used as a background: `bg-surface`, `text-fg-2`, `border-line`, `ring-focus`.
   `reference`: nothing is emitted here; each utility reads the custom property above, so the theme swaps at run time.
 */

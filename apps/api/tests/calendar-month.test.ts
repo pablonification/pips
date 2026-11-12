@@ -11,8 +11,8 @@ after(() => {
 
 const at = (iso: string) => ({ id: iso, start: new Date(iso) });
 
-// Regression: the month was read with getMonth() in the server's time zone, so under UTC an event from 00.00 to
-// 06.59 WIB on the 1st landed in the previous month.
+// The month is read in WIB, not the server's time zone: under UTC an event from 00.00 to 06.59 WIB on the 1st would
+// land in the previous month.
 test('an event early on the 1st (WIB) belongs to that month, on a server in UTC', () => {
   const firstOfNovember = at('2026-11-01T05:00:00+07:00'); // 31 Oct 22.00 UTC
   assert.deepEqual(
