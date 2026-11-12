@@ -237,7 +237,9 @@ function CommentsSection({ info, level }: { info: Info; level: 'h2' | 'h3' }) {
       {list.map((c) => (
         <CommentItem key={c.id} infoId={info.id} comment={c} field={field} />
       ))}
+      {/* Its own box and send per post: an answer for a post left behind never touches the open one. */}
       <CommentForm
+        key={info.id}
         infoId={info.id}
         field={field}
         count={comments?.length ?? 0}

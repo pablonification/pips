@@ -39,6 +39,7 @@ import {
   type FeedView,
 } from './rules';
 import { UNREAD_KEY } from './unread';
+import { keepUnsent } from '~/lib/unsent-text';
 
 export const statusOf = (e: unknown) =>
   e instanceof ApiError ? e.status : undefined;
@@ -255,6 +256,8 @@ export function usePostComment(infoId: string) {
     // later by itself.
     networkMode: 'always',
     onSuccess: (created) => {
+      // Sent: its kept text goes, even when the member has opened another post meanwhile.
+      keepUnsent(`komentar:${infoId}`, '');
       qc.setQueryData<CommentWithReactions[]>(
         infoCommentsQuery(infoId).queryKey,
         (list) => [

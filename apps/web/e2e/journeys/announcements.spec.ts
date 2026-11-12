@@ -400,6 +400,54 @@ test.describe('a comment being written (Nadia)', () => {
     await expect(field).toHaveValue('');
   });
 
+  test('desktop: a comment answered after opening another post leaves that post’s box alone, and the sent text isn’t kept @desktop-only', async ({
+    page,
+    api,
+  }, testInfo) => {
+    // p7's comment is answered only when the journey says so, after p6 is open and typed in.
+    let answer = () => {};
+    const released = new Promise<void>((resolve) => (answer = resolve));
+    api
+      .on('POST /api/info/:infoId/read', writes.markRead)
+      .on('POST /api/comment', async (req) => {
+        await released;
+        return writes.comment(req);
+      });
+    await page.goto('/pengumuman/p7');
+    const field = page.getByRole('textbox', { name: 'Tulis komentar' });
+    const send = page.getByRole('button', { name: 'Kirim komentar' });
+    await field.fill('Untuk p7');
+    const answered = page.waitForResponse(
+      (r) =>
+        r.url().endsWith('/api/comment') && r.request().method() === 'POST',
+    );
+    await send.click();
+    await postInList(page, testInfo, 'p6').click();
+    await expect(page).toHaveURL(/\/pengumuman\/p6$/);
+    await expect(field).toHaveValue('');
+    await field.fill('Untuk p6');
+    await expect(send).not.toHaveAttribute('aria-busy', 'true');
+    // p7's answer arrives while p6 is open.
+    await expect.poll(() => api.calls('POST /api/comment').length).toBe(1);
+    answer();
+    await answered;
+    await page.waitForTimeout(500);
+    await expect(field).toHaveValue('Untuk p6');
+    expect(
+      await page.evaluate(() =>
+        sessionStorage.getItem('pips-unsent:komentar:p7'),
+      ),
+      'the sent comment isn’t kept',
+    ).toBeNull();
+    await expect(detail(page).getByText('Untuk p7')).toHaveCount(0);
+    await postInList(page, testInfo, 'p7').click();
+    await expect(page).toHaveURL(/\/pengumuman\/p7$/);
+    await expect(detail(page).getByText('Untuk p7')).toBeVisible();
+    await expect(field).toHaveValue('');
+    await postInList(page, testInfo, 'p6').click();
+    await expect(field).toHaveValue('Untuk p6');
+  });
+
   test('offline, Kirim komentar fails at once with Coba lagi, and nothing goes out by itself once back online', async ({
     page,
     api,
