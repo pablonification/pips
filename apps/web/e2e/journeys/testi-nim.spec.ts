@@ -1,10 +1,9 @@
 /**
- * Testi Matkul and NIM Finder (P2-B). Phone, tablet and desktop, light and dark, with strict gates.
+ * Testi Matkul and NIM Finder. Phone, tablet and desktop, light and dark, with strict gates.
  *
- * T3 kept Testi Matkul's code search as an expected failure (today's list lowercased the query and compared it with
- * upper-case codes). The redesign fixes it; the journeys below must pass, and the `test.fail` is gone.
+ * A course code is found in lower or upper case.
  *
- * Garis v5: a course page shows every testimonial at once, read by scrolling (no pager), in one column on phones,
+ * A course page shows every testimonial at once, read by scrolling (no pager), in one column on phones,
  * two on tablets and 1024 px desktops and three at 1440; sections over 280 characters fold to six lines.
  */
 import type { Page, TestInfo } from '@playwright/test';
@@ -72,7 +71,7 @@ async function expectEveryCardReachable(page: Page, n: number) {
   ).toBeLessThanOrEqual(0);
 }
 
-/** The columns a layout gives (Garis v5): 1 under 640 px, 2 below 1440 (300 px each), 3 at 1440. */
+/** The columns a layout gives: 1 under 640 px, 2 below 1440 (300 px each), 3 at 1440. */
 const columnsAt = (width: number) => (width < 640 ? 1 : width < 1300 ? 2 : 3);
 const testiCalls = (api: { calls: (s: string) => unknown[] }) =>
   api.calls('GET /api/testimoni/course/:courseId').length;
@@ -128,8 +127,8 @@ test.describe('Testi Matkul by browsing', () => {
     await expect(page).toHaveURL(/\/teknik-informatika\/3\/course-IF2110$/);
     await expect(page).toHaveTitle('IF2110 · PIPS!');
     await expectUpTo(page, testInfo, 'IF · Semester 3');
-    // The code is the title, so the line above the name is only the credits (owner, 2026-11-03; regression: it
-    // read "IF2110 · 3 SKS" under the title "IF2110").
+    // The code is the title, so the line above the name is only the credits (it must not read "IF2110 · 3 SKS"
+    // under the title "IF2110").
     await expect(
       page
         .getByRole('heading', { level: 1, name: 'IF2110' })
@@ -383,7 +382,7 @@ test.describe('Testi Matkul by browsing', () => {
     page,
     db,
   }, testInfo) => {
-    // P2-B review, finding 7: KU1101 (OTHER, mandatory, semester 1) is reached only through search, and its list
+    // KU1101 (OTHER, mandatory, semester 1) is reached only through search, and its list
     // was titled "Mata Kuliah Umum", like the electives list the start screen opens.
     const base = db.courses.find((c) => c.code === 'DP3011')!;
     db.courses.push({
@@ -481,7 +480,7 @@ test.describe('Testi Matkul by browsing', () => {
 });
 
 test.describe('Testi Matkul by course code', () => {
-  test('regression: the start screen finds a code in lower and upper case; Enter changes nothing', async ({
+  test('the start screen finds a code in lower and upper case; Enter changes nothing', async ({
     page,
   }, testInfo) => {
     await page.goto('/layanan/testi');
@@ -508,10 +507,10 @@ test.describe('Testi Matkul by course code', () => {
     await strictGates(page, testInfo, 'testi-search', 'Layanan');
   });
 
-  test('regression: inside a course list reached by today’s old path, a code finds its course', async ({
+  test('inside a course list reached by an old path, a code finds its course', async ({
     page,
   }) => {
-    // The path T3's expected failure used, through P0-B's redirect.
+    // The old path, followed through its redirect.
     await page.goto('/home/testimoni/teknik-informatika/3');
     await expect(page).toHaveURL(/\/layanan\/testi\/teknik-informatika\/3$/);
     await expect(courseRows(page)).toHaveCount(6);
@@ -637,7 +636,7 @@ test.describe('NIM Finder', () => {
     page,
     api,
   }, testInfo) => {
-    // Dev 1's decision (P2-B round 2): the photo through the Garis Avatar, initials when there's none or it fails.
+    // The photo shows through the Garis Avatar, initials when there's none or it fails.
     api.on('GET /api/user/nim', () => [
       {
         fullName: 'Raka Pratama',
@@ -676,7 +675,7 @@ test.describe('NIM Finder', () => {
     page,
     api,
   }) => {
-    // Dev 1's decision (P2-B round 2): 30 is P0-D's cap, not the total, so the count says there may be more.
+    // 30 is the API's cap, not the total, so the count says there may be more.
     api.on('GET /api/user/nim', () =>
       Array.from({ length: 30 }, (_, i) => ({
         fullName: `Anggota ${String(i + 1).padStart(2, '0')}`,
@@ -779,8 +778,8 @@ test.describe('NIM Finder', () => {
     expect(api.calls('GET /api/user/nim')).toHaveLength(1);
   });
 
-  test('regression: a link with a NIM opens it filled in', async ({ page }) => {
-    // The router reads `?q=18225012` as a number; it was dropped and the page opened empty (P2-B round 2).
+  test('a link with a NIM opens it filled in', async ({ page }) => {
+    // The router reads `?q=18225012` as a number; it must not be dropped, or the page opens empty.
     await page.goto('/layanan/nim?q=18225012');
     await expect(
       main(page).getByRole('searchbox', { name: 'Cari nama atau NIM' }),
@@ -792,7 +791,7 @@ test.describe('NIM Finder', () => {
     ).toBeVisible();
   });
 
-  test('regression: fast typing sends one request, for the final query', async ({
+  test('fast typing sends one request, for the final query', async ({
     page,
     api,
   }) => {

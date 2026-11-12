@@ -1,5 +1,5 @@
 /**
- * The app shell (P0-C): the tab bar on phones, the rail on tablets, the sidebar on desktop, the top bar and back,
+ * The app shell: the tab bar on phones, the rail on tablets, the sidebar on desktop, the top bar and back,
  * the desktop breadcrumbs, Beranda's gold header, focused flows, global search, and their accessibility. Each
  * screen's own journeys check the pages inside.
  * "@phone-only" journeys run on phones and tablets (the touch layouts), "@desktop-only" ones on desktop.
@@ -75,8 +75,8 @@ async function expectFits(page: Page, where: string) {
 }
 
 /**
- * The navigation's destinations in order: each one's visible label, and its name. Pengumuman adds its unread count
- * (P1-B): a visible badge, and in the name ", 4 belum dibaca" on the tab bar and rail, " 4 belum dibaca" in the
+ * The navigation's destinations in order: each one's visible label, and its name. Pengumuman adds its unread count:
+ * a visible badge, and in the name ", 4 belum dibaca" on the tab bar and rail, " 4 belum dibaca" in the
  * sidebar (its words are a hidden span after the label).
  */
 async function expectDestinations(
@@ -114,7 +114,7 @@ test.describe('navigation', () => {
     const layout = layoutOf(testInfo);
     const nav = mainNav(page);
     await expect(nav).toHaveCount(1);
-    // Since P1-B, Pengumuman carries Nadia's unread count.
+    // Pengumuman carries Nadia's unread count.
     await expectDestinations(
       nav,
       ['Beranda', 'Pengumuman', 'Kalender', 'Layanan'],
@@ -247,7 +247,7 @@ test.describe('back', () => {
     await page.goto('/kalender');
     await page.getByRole('button', { name: 'Cari di PIPS!' }).click();
     await palette(page).getByRole('combobox').fill('ding');
-    // The service, not a course whose hint is "Ding Dong" (P1-A's Mata kuliah results).
+    // The service, not a course whose hint is "Ding Dong" (a Mata kuliah result).
     await palette(page)
       .getByRole('option', { name: /^Ding Dong/ })
       .click();
@@ -279,9 +279,9 @@ test.describe('back', () => {
 test.describe('focused flows', () => {
   for (const [path, title] of [
     ['/pengumuman/tulis', 'Buat pengumuman'],
-    // P2-A: the form's own title, as the prototype's phone top bar shows it (usePageTitle).
+    // The form's own title, as the phone top bar shows it (usePageTitle).
     ['/layanan/form/pixel', 'Form Analisis Kondisi PIXEL'],
-    // P2-C: the room's own name (usePageTitle).
+    // The room's own name (usePageTitle).
     ['/layanan/curhat/r1', 'Teal Koala'],
     ['/layanan/sparta', 'Magang SPARTA'],
   ] as const) {
@@ -289,7 +289,7 @@ test.describe('focused flows', () => {
       page,
       api,
     }) => {
-      // Opening a Curhat room reads its unread message (P2-C).
+      // Opening a Curhat room reads its unread message.
       api.on('POST /api/curhat/chatroom/:chatroomId/read', writes.readRoom);
       await page.goto(path);
       await expect(topTitle(page)).toHaveText(title);
@@ -312,9 +312,9 @@ test.describe('focused flows', () => {
   });
 });
 
-test.describe('today’s screens inside the shell', () => {
-  // Found in P3-C round 2: P2-C's clip rules sat nested inside another rule and never applied to the wrapper.
-  test('regression: the page wrapper clips sideways without becoming a scrolling box', async ({
+test.describe('screens inside the shell', () => {
+  // The clip rules must apply to the wrapper itself, not sit nested inside another rule.
+  test('the page wrapper clips sideways without becoming a scrolling box', async ({
     page,
   }) => {
     await page.goto('/layanan');
@@ -327,8 +327,7 @@ test.describe('today’s screens inside the shell', () => {
     page,
   }) => {
     await page.goto('/layanan/curhat');
-    // P2-C replaced today's screen; the redesigned one keeps the same check.
-    const button = page.getByRole('button', { name: 'Mulai ruang baru' });
+        const button = page.getByRole('button', { name: 'Mulai ruang baru' });
     await expect(button).toBeVisible();
     const b = (await button.boundingBox())!;
     const bar = (await page.locator('.g-tabbar').boundingBox())!;
@@ -382,7 +381,7 @@ test.describe('Beranda’s gold header', () => {
     );
   });
 
-  test('on tablets the gold bar and the greeting keep the locked screens’ edges beside the rail @phone-only', async ({
+  test('on tablets the gold bar and the greeting keep their edges beside the rail @phone-only', async ({
     page,
   }, testInfo) => {
     // Review M1: they were pulled into the 720 px column (31 px from the rail at 834 px, 115 px at 1000 px).
@@ -430,7 +429,7 @@ test.describe('global search', () => {
       'placeholder',
       'Cari layanan, pengumuman, acara, orang…',
     );
-    // P1-A's starting actions (Tindakan), then the four Pintasan.
+    // The starting actions (Tindakan), then the four Pintasan.
     await expect(palette(page).getByRole('option')).toHaveText([
       /^Buat pengumuman/,
       /^Tambah mata kuliah/,
@@ -445,7 +444,7 @@ test.describe('global search', () => {
     const hints = palette(page).getByText('Enter buka');
     if (layoutOf(testInfo) === 'desktop') await expect(hints).toBeVisible();
     else await expect(hints).toBeHidden();
-    // "kas" alone also finds "Nyalakan notifikasi" (notifiKASi) and posts from the API since P1-A, as the prototype.
+    // "kas" alone also finds "Nyalakan notifikasi" (notifiKASi) and posts from the API.
     await field.fill('bayar kas');
     await expect(palette(page).getByRole('option')).toHaveText([/^Bayar Kas!/]);
     await field.fill('nim');
@@ -461,8 +460,8 @@ test.describe('global search', () => {
     await expect(palette(page)).toHaveCount(0);
     await expect(page).toHaveURL(/\/layanan\/nim$/);
     await expect(page).toHaveTitle('NIM Finder · PIPS!');
-    // Focus moves to the new page's title: the top bar's on phones and tablets, the page head on desktop (P2-B's
-    // NIM Finder has one; today's screen didn't, so focus went to the main landmark).
+    // Focus moves to the new page's title: the top bar's on phones and tablets, the page head on desktop (NIM Finder
+    // has one; without it focus would go to the main landmark).
     if (layoutOf(testInfo) === 'desktop')
       await expect(
         page.getByRole('heading', { level: 1, name: 'NIM Finder' }),
@@ -506,7 +505,7 @@ test.describe('global search', () => {
     await expect(options.nth(0)).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('ArrowDown');
     await expect(options.nth(1)).toHaveAttribute('aria-selected', 'true');
-    // Past P1-A's two starting actions and Ding Dong and Testi Matkul to NIM Finder, the fifth.
+    // Past the two starting actions and Ding Dong and Testi Matkul to NIM Finder, the fifth.
     for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowDown');
     await expect(options.nth(4)).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('Enter');
@@ -539,8 +538,7 @@ test.describe('global search', () => {
       ['https://s.hmif.dev/BayarKasHMIF', '_blank', 'noopener,noreferrer'],
     ]);
     await expect(page).toHaveURL(/\/layanan$/);
-    // Review m1: focus was left on nothing. Opened from the keyboard, it goes to the page's title (Layanan has its
-    // own since P1-C; before, the page had none and focus went to main#isi).
+    // Opened from the keyboard, focus goes to the page's title (Layanan has its own), never to nothing or to main#isi.
     await expect(
       page
         .getByRole('heading', { level: 1, name: 'Layanan' })
@@ -584,7 +582,7 @@ test.describe('global search', () => {
   });
 });
 
-test.describe('the search shortcut’s name follows the platform, as the prototype’s', () => {
+test.describe('the search shortcut’s name follows the platform', () => {
   for (const [platform, label] of [
     ['MacIntel', '⌘K'],
     ['Linux x86_64', 'Ctrl K'],
@@ -624,7 +622,7 @@ test.describe('Kelola', () => {
     await page.goto('/kelola/live');
     await expectLit(page, 'Kelola');
     await expect(crumbs(page).getByRole('link')).toHaveText(['Kelola']);
-    // The prototype's titleOf and the locked desk-pengurus-live screen: "Kelola › Live Counting".
+    // The breadcrumb reads "Kelola › Live Counting".
     await expect(crumbs(page).locator('[aria-current="page"]')).toHaveText(
       'Live Counting',
     );
