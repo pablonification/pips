@@ -21,8 +21,12 @@ jobs:
           node-version: 22
       - name: The check's own tests
         run: node --test scripts/*.test.mjs
-      - name: Every new commit is a Conventional Commit
-        run: node scripts/commit-messages.mjs "origin/${{ github.base_ref }}" "${{ github.event.pull_request.head.sha }}"
+      - name: Every new commit, and the pull request's title, is a Conventional Commit
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: node scripts/commit-messages.mjs "origin/$BASE_REF" "$HEAD_SHA"
 
   check:
     name: check, test and build
