@@ -448,6 +448,39 @@ test.describe('a comment being written (Nadia)', () => {
     await expect(field).toHaveValue('Untuk p6');
   });
 
+  test('desktop: back on a post whose comment is still on its way, Kirim is busy and the comment is saved once @desktop-only', async ({
+    page,
+    api,
+  }, testInfo) => {
+    let answer = () => {};
+    const released = new Promise<void>((resolve) => (answer = resolve));
+    api
+      .on('POST /api/info/:infoId/read', writes.markRead)
+      .on('POST /api/comment', async (req) => {
+        await released;
+        return writes.comment(req);
+      });
+    await page.goto('/pengumuman/p7');
+    const field = page.getByRole('textbox', { name: 'Tulis komentar' });
+    const send = page.getByRole('button', { name: 'Kirim komentar' });
+    await field.fill('Untuk p7');
+    await send.click();
+    await expect.poll(() => api.calls('POST /api/comment').length).toBe(1);
+    await postInList(page, testInfo, 'p6').click();
+    await expect(page).toHaveURL(/\/pengumuman\/p6$/);
+    await postInList(page, testInfo, 'p7').click();
+    await expect(page).toHaveURL(/\/pengumuman\/p7$/);
+    // The first send is still out: the box shows what was typed, and sending again does nothing.
+    await expect(field).toHaveValue('Untuk p7');
+    await expect(send).toHaveAttribute('aria-busy', 'true');
+    await field.press('Enter');
+    answer();
+    await expect(detail(page).getByText('Untuk p7')).toHaveCount(1);
+    await expect(field).toHaveValue('');
+    await expect(send).not.toHaveAttribute('aria-busy', 'true');
+    expect(api.calls('POST /api/comment')).toHaveLength(1);
+  });
+
   test('offline, Kirim komentar fails at once with Coba lagi, and nothing goes out by itself once back online', async ({
     page,
     api,

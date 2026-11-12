@@ -11,6 +11,7 @@ import {
   type FormEvent,
   type RefObject,
 } from 'react';
+import { useIsMutating } from '@tanstack/react-query';
 import type { CommentWithReactions, Info } from '~/api/generated';
 import {
   Avatar,
@@ -39,11 +40,13 @@ import { useUnsentText } from '~/hooks/useUnsentText';
 import { can } from '~/lib/capabilities';
 import { dFull, rel } from '~/lib/dates';
 import { initialsOf } from '~/lib/shell/names';
+import { readUnsent } from '~/lib/unsent-text';
 import { cn } from '~/lib/utils';
 import {
   statusOf,
   useComments,
   useDeleteComment,
+  postCommentKey,
   usePostComment,
   useReact,
 } from './data';
@@ -391,6 +394,16 @@ function CommentForm({
       });
   }, [count, field]);
   const post = usePostComment(infoId);
+  // A member can leave a post while its comment is being sent and come back to a new box: that send still counts,
+  // or Kirim would send the comment again. When it ends, a sent comment's text leaves this box too.
+  const sending = useIsMutating({ mutationKey: postCommentKey(infoId) }) > 0;
+  const busy = post.isPending || sending;
+  const wasSending = useRef(sending);
+  useEffect(() => {
+    if (wasSending.current && !sending && !readUnsent(`komentar:${infoId}`))
+      setText('');
+    wasSending.current = sending;
+  }, [sending, infoId, setText]);
   const send = (content: string) =>
     post.mutate(content, {
       onSuccess: () => {
@@ -409,7 +422,7 @@ function CommentForm({
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const content = text.trim();
-    if (!content || post.isPending) {
+    if (!content || busy) {
       field.current?.focus();
       return;
     }
@@ -434,8 +447,8 @@ function CommentForm({
         variant="gold"
         square
         aria-label={t.komentar.kirim}
-        aria-busy={post.isPending || undefined}
-        aria-disabled={post.isPending || undefined}
+        aria-busy={busy || undefined}
+        aria-disabled={busy || undefined}
       >
         <IconKirim size={16} />
       </Button>

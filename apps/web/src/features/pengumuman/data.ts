@@ -245,9 +245,13 @@ export function useReact() {
   });
 }
 
+/** One key per post, so a comment box can tell that a send for its post is still out. */
+export const postCommentKey = (infoId: string) => ['postComment', infoId];
+
 export function usePostComment(infoId: string) {
   const qc = useQueryClient();
   return useMutation({
+    mutationKey: postCommentKey(infoId),
     mutationFn: (content: string) =>
       api.comment.postComment({
         requestBody: { repliedInfoId: infoId, content },
