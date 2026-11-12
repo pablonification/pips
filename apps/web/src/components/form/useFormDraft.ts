@@ -6,7 +6,7 @@ import { DRAFT_HOURS, draftKey, type Answers } from '~/lib/form/rules';
 export const DRAFT_DEBOUNCE_MS = 400;
 
 /**
- * A member's draft of a form on this device (key `hmif-form-<formId>-<userId>`, 14 days; today's store, see
+ * A member's draft of a form on this device (key `hmif-form-<formId>-<userId>`, 14 days; see
  * `lib/form/draft-store.ts`). Writes are debounced, and a write still waiting is made when the screen or the page goes
  * away. `clear()` is for after a successful send only.
  */

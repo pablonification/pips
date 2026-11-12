@@ -1,7 +1,6 @@
 /**
- * A post in the list: the card on phones and tablets (`postItem`) and the row beside the post on desktop
- * (`postCompact`). The title links to the post; on a card the stretched link makes the whole card open it while the
- * controls inside stay on top.
+ * A post in the list: the card on phones and tablets and the row beside the post on desktop. The title links to the
+ * post; on a card the stretched link makes the whole card open it while the controls inside stay on top.
  */
 import { Link } from '@tanstack/react-router';
 import { useCallback, useRef, useState } from 'react';

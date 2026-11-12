@@ -1,7 +1,6 @@
 /**
- * P3-B: the add-event dialog's rules (garis/screens-core.js `addEventForm`, app.js's `addev` submit branch), and
- * changing an event (a proposal). Pure, so `tests/kelola-acara-rules.test.ts` runs them under another time zone:
- * what is typed is WIB, what is sent is ISO, and what is shown back is WIB.
+ * The add-event dialog's rules, and changing an event. Pure, so `tests/kelola-acara-rules.test.ts` runs them under
+ * another time zone: what is typed is WIB, what is sent is ISO, and what is shown back is WIB.
  */
 import type { CalendarEvent, Course } from '~/api/generated';
 import { fill } from '~/copy/fill';
@@ -60,7 +59,7 @@ export function courseOptions(
     );
 }
 
-/** A fresh draft: the chosen day (today when none), 13.00 to 15.00, as the prototype's. */
+/** A fresh draft: the chosen day (today when none), 13.00 to 15.00. */
 export function newDraft(
   category: EventCategory,
   day: DayKey,
@@ -88,7 +87,7 @@ export function draftOf(e: CalendarEvent): EventDraft {
     title: e.title,
     date: s.day,
     start: s.time,
-    // The form shows one date; an event the API stored across midnight or days keeps its end's day (review m2).
+    // The form shows one date; an event the API stored across midnight or days keeps its end's day.
     end: en.time,
     endDays: Math.max(0, daysBetween(s.day, en.day)),
     description: e.description,
@@ -104,8 +103,8 @@ function instants(d: EventDraft) {
 }
 
 /**
- * The submit branch's checks: a title (it stays until the next submit, as the prototype's), a date and both times,
- * and an end not before the start. An end equal to the start is a deadline (one time in Kalender), so it's allowed.
+ * The submit checks: a title (it stays until the next submit), a date and both times, and an end not before the
+ * start. An end equal to the start is a deadline (one time in Kalender), so it's allowed.
  */
 export function validateEvent(d: EventDraft): EventErrors {
   const errors: EventErrors = {};
@@ -139,7 +138,7 @@ export function createBody(d: EventDraft) {
 
 /**
  * `PUT /calendar/event/{id}`: only what the API can change (the course and category stay). The start and end go only
- * when the date or a time changed, so an event the form can't show whole (across days) isn't cut to one (review m2).
+ * when the date or a time changed, so an event the form can't show whole (across days) isn't cut to one.
  */
 export function updateBody(d: EventDraft, e: CalendarEvent) {
   const was = draftOf(e);
@@ -161,8 +160,8 @@ export function inMyCalendar(
 }
 
 /**
- * Where Kalender goes after adding (the submit branch, `S.deskEv`): the event's day; on desktop the new event is
- * chosen in the side column when it's in your calendar, otherwise nothing is.
+ * Where Kalender goes after adding: the event's day; on desktop the new event is chosen in the side column when it's
+ * in your calendar, otherwise nothing is.
  */
 export function afterAdd(
   e: Pick<CalendarEvent, 'id' | 'start' | 'category' | 'courseId'>,

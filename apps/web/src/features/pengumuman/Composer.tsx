@@ -1,8 +1,7 @@
 /**
- * Buat pengumuman (`composeForm`, the `compose` submit handler): a focused page on phones and tablets, a dialog
- * over the split on desktop. The draft lives outside React, so rotating a tablet or resizing across 1024 px (page ↔
- * dialog) keeps what was typed; it starts fresh each time the composer opens, as the prototype does (open question
- * 4), except for what the share target hands over.
+ * Buat pengumuman: a focused page on phones and tablets, a dialog over the split on desktop. The draft lives outside
+ * React, so rotating a tablet or resizing across 1024 px (page ↔ dialog) keeps what was typed; it starts fresh each
+ * time the composer opens, except for what the share target hands over.
  */
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
@@ -292,7 +291,7 @@ export function ComposeForm({
             </Chip>
           ))}
         </Chips>
-        {/* F2-010: the categories didn't load, so nothing could be chosen and nothing said why. */}
+        {/* The categories didn't load, so nothing could be chosen: say why. */}
         {categories.isError && !cats ? (
           <ErrorState
             onRetry={() => void categories.refetch()}
@@ -476,7 +475,7 @@ export function ComposePage() {
 export function ComposeDialog() {
   const leave = useLeave();
   // After a post the new row has focus; the dialog's own return to Buat would take it back as the dialog unmounts,
-  // which on a slow device comes after the row was focused (CI on #9).
+  // which on a slow device comes after the row was focused.
   const sent = useRef(false);
   return (
     <Dialog

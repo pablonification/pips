@@ -25,7 +25,7 @@ export const myResponseQuery = (formId: string) =>
         null) as FormResponse | null,
   });
 
-/** How a send ended, for the screen to act on (SPEC "Send failures keep everything"). */
+/** How a send ended, for the screen to act on. */
 export type SendOutcome =
   | 'sent'
   | 'already' // 409: sent before (another tab, a lost answer): the thank-you

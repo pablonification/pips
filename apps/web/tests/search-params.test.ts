@@ -35,14 +35,14 @@ test('a bad value is dropped, never an error page', () => {
   });
 });
 
-test('regression: a NIM in a link is a query, though the router reads it as a number', () => {
-  // P2-B round 2: `/layanan/nim?q=13524087` opened an empty NIM Finder (`q` parsed as 13524087 and dropped).
+test('a NIM in a link is a query, though the router reads it as a number', () => {
+  // `/layanan/nim?q=13524087` must open NIM Finder with the number (the router parses `q` as 13524087).
   assert.deepEqual(querySearchSchema.parse({ q: 13524087 }), { q: '13524087' });
   assert.deepEqual(querySearchSchema.parse({ q: 135 }), { q: '135' });
 });
 
 test('a redirected old link with a bad value opens the page, never an error page', async () => {
-  // Review m4: `/timeline?unread=1` (a number, not true) or `?sort=…` with an object made validateSearch throw.
+  // `/timeline?unread=1` (a number, not true) or `?sort=…` with an object must not make validateSearch throw.
   const schemas = await import('../src/lib/search-params');
   assert.deepEqual(
     defined(
@@ -99,7 +99,7 @@ test('no route search schema throws, whatever the URL holds', async () => {
   const schemas = await import('../src/lib/search-params');
   const garbage = [{}, [], 'x', 0, -1, true, null, { a: { b: 1 } }];
   for (const [name, schema] of Object.entries(schemas)) {
-    // Every object schema (F2-004: plain checks, src/lib/params.ts, no longer zod); `dayParam` is a single check.
+    // Every object schema (plain checks, src/lib/params.ts); `dayParam` is a single check.
     if (typeof schema !== 'object' || !('shape' in schema)) continue;
     const keys = Object.keys(schema.shape);
     for (const value of garbage) {

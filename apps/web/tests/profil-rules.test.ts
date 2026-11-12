@@ -14,7 +14,7 @@ import {
 } from '../src/features/profil/rules';
 import { installWay } from '../src/features/profil/install-store';
 
-/* Profil's rules (P1-C brief, "Rules to unit-test"). */
+/* Profil's rules. */
 
 const cats = [
   { id: 'akademik', name: 'Akademik', requiredPush: false },
@@ -45,7 +45,7 @@ test('a required Akademik says why it is locked, not what it includes', () => {
 
 /* ---- The member card and Informasi akun ---- */
 
-test('programme names as the prototype’s PROG', () => {
+test('programme names', () => {
   assert.equal(programName('IF'), 'Teknik Informatika');
   assert.equal(programName('STI'), 'Sistem dan Teknologi Informasi');
 });
@@ -90,7 +90,7 @@ test('Grup: only with roles; group names, each once', () => {
   // A role the list doesn't name shows its key rather than nothing.
   assert.equal(groupsFact(['ring1'], groups), 'ring1');
   assert.equal(groupsFact(['akademik', 'akademik'], groups), 'Akademik');
-  // Regression (review m6): no role keys while the names load or after they fail.
+  // No role keys while the names load or after they fail.
   assert.equal(groupsFact(['akademik', 'admin'], undefined), null);
 });
 

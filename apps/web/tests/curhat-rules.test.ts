@@ -1,4 +1,4 @@
-// P2-C: Curhat Yuk!'s rules (src/features/curhat/rules.ts), on the harness's data (the prototype's rooms, as the API
+// Curhat Yuk!'s rules (src/features/curhat/rules.ts), on the harness's data (sample rooms, as the API
 // sends them): the list's order, previews, times, initials and names; the thread; the room limit; the delivery
 // states; Enter by pointer; unread counts; and Curhat kept out of the persisted cache.
 import { strict as assert } from 'node:assert';
@@ -278,7 +278,7 @@ test('delivery: Mengirim, then Terkirim once acknowledged; pending and failed me
   }
 });
 
-// Review M2 (OPEN-QUESTIONS A11): saved by the server, its acknowledgement lost (Gagal). Once the rooms are fetched
+// Saved by the server, its acknowledgement lost (Gagal). Once the rooms are fetched
 // again, the server's copy with the same device id is the one shown, delivered, and the Gagal copy is gone.
 test('delivery: a message saved whose acknowledgement was lost shows once, delivered, when the rooms hold it', () => {
   let outbox = outboxReducer([], { type: 'send', entry: entry() });
@@ -309,7 +309,7 @@ test('delivery: a message saved whose acknowledgement was lost shows once, deliv
   );
 });
 
-// Review minor 1: a refetch that started before the save lands with an older list and drops a delivered message.
+// A refetch that started before the save lands with an older list and drops a delivered message.
 test('settling: a delivered message the rooms lost is put back; one they hold is settled; unknown rooms wait', () => {
   const saved = msg('e2e-message-1', NOW, true, {
     chatroomId: 'r1',
@@ -403,7 +403,7 @@ test('a message is put in its room once, newest first', () => {
   assert.equal(withMessage(list, msg('b', NOW)), list);
 });
 
-test('regression: two messages saved at the same time keep the order they were sent in', () => {
+test('two messages saved at the same time keep the order they were sent in', () => {
   // As the room's cache holds them: newest first, each new one put in front (withMessage).
   let list = withMessage([], msg('satu', NOW, true));
   list = withMessage(list, msg('dua', NOW, true));

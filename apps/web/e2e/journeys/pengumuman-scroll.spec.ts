@@ -1,5 +1,5 @@
 /**
- * Pengumuman's scrolling on a long, real-looking feed (owner, 2026-11-06: desktop Pengumuman "broken as hell"). On
+ * Pengumuman's scrolling on a long, real-looking feed. On
  * desktop the list and the post scroll on their own, nothing else scrolls and neither column scrolls sideways; on
  * phones and tablets nothing scrolls sideways either. The sample data is too short to show it, so these use
  * `longPosts`: long titles, unbroken words and URLs, every post unread, more than one page.
@@ -47,13 +47,13 @@ test.describe('a long feed', () => {
     await page.goto('/pengumuman');
     await expect(postInList(page, testInfo, 'long0')).toBeVisible();
     await expectNoSidewaysScroll(page);
-    // The page area holds the two columns exactly: nothing is left for it to scroll (regression: the unread rows'
-    // screen-reader text, positioned against the page area, stretched it far below the list).
+    // The page area holds the two columns exactly: nothing is left for it to scroll (the unread rows'
+    // screen-reader text, positioned against the page area, must not stretch it far below the list).
     let o = await scrollOf(outer);
     expect(o.height).toBeLessThanOrEqual(o.client);
 
-    // Down the list (its next page loads), then a row far down: the list doesn't shift sideways (regression: the
-    // column widened to its longest word, and focusing the row scrolled it 14 px left, cutting every row off).
+    // Down the list (its next page loads), then a row far down: the list doesn't shift sideways (the
+    // column must not widen to its longest word, or focusing the row scrolls it left and cuts every row off).
     await wheelOver(page, list, 6);
     await expect(postInList(page, testInfo, 'long15')).toBeAttached();
     const row = postInList(page, testInfo, 'long8');
@@ -63,8 +63,8 @@ test.describe('a long feed', () => {
     await expectNoSidewaysScroll(page);
     const listBefore = (await scrollOf(list)).top;
 
-    // The post scrolls to its end; the page area and the list stay put (regression: the page area scrolled on
-    // after the post, the list's head left the window and the screen went blank).
+    // The post scrolls to its end; the page area and the list stay put (the page area must not scroll on
+    // after the post, or the list's head leaves the window and the screen goes blank).
     await wheelOver(page, pane, 12);
     const r = await scrollOf(pane);
     expect(r.top).toBeGreaterThan(0);

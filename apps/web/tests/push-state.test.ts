@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { detectPlatform, type Platform } from '../src/lib/platform';
 import { canAskForPush, pushStatus } from '../src/lib/push-state';
 
-/* Push state (the five states) and the iPhone, LINE and Android detection (P1-C brief, "Rules to unit-test"). */
+/* Push state (the five states) and the iPhone, LINE and Android detection. */
 
 const UA = {
   iphone17:

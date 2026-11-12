@@ -1,8 +1,8 @@
 import type { ServiceId } from '~/lib/services';
 
 /*
- * Layanan's badges (garis/screens-more.js `svcBadge`), unit-tested in tests/layanan-rules.test.ts. Groups, order,
- * Kelola per role and expired entries come from the registry's `servicesByGroup`.
+ * Layanan's badges, unit-tested in tests/layanan-rules.test.ts. Groups, order, Kelola per role and expired entries
+ * come from the registry's `servicesByGroup`.
  */
 
 /** Form's tag: forms open for you that you haven't answered (`status: 'open'`). */

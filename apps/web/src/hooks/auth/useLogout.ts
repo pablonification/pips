@@ -8,7 +8,7 @@ export default function useLogout() {
   const logoutMutation = useMutation({
     mutationFn: async () => {
       // Unregister this device's push subscription if it has one; never ask for permission here. It never fails:
-      // when the server can't unlink the device, its subscription ends here (review m4).
+      // when the server can't unlink the device, its subscription ends here.
       const unlinked = await unlinkPushAtLogout();
       try {
         await api.auth.logout();
@@ -16,7 +16,7 @@ export default function useLogout() {
         // A 401: the session had already ended (expired, or signed out elsewhere), so you are signed out; finish
         // here as after a sign-out, instead of a "Gagal keluar" whose Coba lagi would fail the same way.
         if (isSignedOutError(error)) return;
-        // Still signed in: link the device again, so notifications keep coming (regression, P1-C).
+        // Still signed in: link the device again, so notifications keep coming.
         if (unlinked) await relinkPush();
         throw error;
       }

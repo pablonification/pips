@@ -15,7 +15,7 @@ export interface TagProps extends HTMLAttributes<HTMLSpanElement> {
   icon?: ReactNode;
 }
 
-/** A static label (garis.css `.tag`): 24 px, Geist 12 px, sentence case. Use only when it adds something. */
+/** A static label: 24 px, Geist 12 px, sentence case. Use only when it adds something. */
 export function Tag({
   tone = 'default',
   icon,
@@ -37,8 +37,8 @@ export function Tag({
 export type FormStatus = 'open' | 'soon' | 'done' | 'closed';
 
 /**
- * A form's status, always icon + word + colour: Isi sekarang, Belum dibuka, Sudah diisi (garis/ui.js `statusTag`), and
- * Ditutup (P2-A; no locked design: the lock icon on the plain tag, like Belum dibuka).
+ * A form's status, always icon + word + colour: Isi sekarang, Belum dibuka, Sudah diisi, and
+ * Ditutup (the lock icon on the plain tag, like Belum dibuka).
  */
 export function StatusTag({
   status,
@@ -76,7 +76,7 @@ export function StatusTag({
   );
 }
 
-/** A count badge (garis.css `.count`): selected colours, tabular figures. Counts live in navigation. */
+/** A count badge: selected colours, tabular figures. Counts live in navigation. */
 export function Count({
   value,
   className,

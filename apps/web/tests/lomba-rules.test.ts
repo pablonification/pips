@@ -1,4 +1,4 @@
-// Info Lomba (P2-B brief, "Tests"). The device here runs in another time zone: dates must still come out in WIB.
+// Info Lomba. The device here runs in another time zone: dates must still come out in WIB.
 process.env.TZ = 'America/Los_Angeles';
 
 import { strict as assert } from 'node:assert';
@@ -74,7 +74,7 @@ test('links without a scheme get https://', () => {
 const page = (n: number) =>
   Array.from({ length: n }, (_, i) => ({ id: `c${i}` }) as Competition);
 
-test('regression: the next offset counts what the API returned, and stops after a short page', () => {
+test('the next offset counts what the API returned, and stops after a short page', () => {
   assert.equal(LOMBA_PAGE, 10);
   assert.equal(nextOffset([]), undefined);
   assert.equal(
@@ -87,7 +87,7 @@ test('regression: the next offset counts what the API returned, and stops after 
   assert.equal(nextOffset([page(3)]), undefined);
 });
 
-test('Garis v5: the poster is the first media by order, or none', () => {
+test('the poster is the first media by order, or none', () => {
   const media = (order: number, url: string) => ({
     competitionId: 'c',
     mediaId: `m${order}`,

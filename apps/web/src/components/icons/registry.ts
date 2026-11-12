@@ -204,7 +204,7 @@ export const GLYPHS: Record<
   layanan: GlyphLayanan,
 };
 
-/** What each icon means, as the prototype's design-system page names it. */
+/** What each icon means, in words. */
 export const ICON_LABELS: Record<IconKey, string> = {
   beranda: 'Beranda',
   pengumuman: 'Pengumuman',

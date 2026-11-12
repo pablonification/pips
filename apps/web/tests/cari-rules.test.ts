@@ -1,5 +1,5 @@
-// P1-A: global search's sources (brief rule 13): the 21-day window, the 3-character threshold, rows' words, and the
-// sources together through P0-C's ranking (label matches first, index order, at most 12, groups in order).
+// Global search's sources: the 21-day window, the 3-character threshold, rows' words, and the sources together
+// through the shared ranking (label matches first, index order, at most 12, groups in order).
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import type { CalendarEvent } from '../src/api/generated';
@@ -50,7 +50,7 @@ test('Kalender lists upcoming events within 21 days, by start', () => {
   );
 });
 
-test('rows read as the prototype’s: event hints, post labels, people', () => {
+test('rows read as designed: event hints, post labels, people', () => {
   assert.equal(eventHint(ev('k', '2026-10-13T13:00')), 'Sel 13 Okt 13.00');
   assert.equal(postLabel({ title: 'Jadwal UTS', content: 'x' }), 'Jadwal UTS');
   const long = 'a'.repeat(70);

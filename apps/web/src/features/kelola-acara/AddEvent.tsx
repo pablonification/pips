@@ -1,11 +1,11 @@
 /**
- * Tambah acara's place in Kalender (brief step 5). The dialog lives in the URL (`/kalender?tambah=acara`):
- * opening adds a history entry, so Back on a phone closes the sheet; closing one opened here goes back, and one that
- * came with the page (a link from Layanan or Kelola, a reload) is closed in place. Without the capability the param
- * is dropped and nothing opens. The dialog's code loads only when it opens, so members never download it.
+ * Tambah acara's place in Kalender. The dialog lives in the URL (`/kalender?tambah=acara`): opening adds a history
+ * entry, so Back on a phone closes the sheet; closing one opened here goes back, and one that came with the page (a
+ * link from Layanan or Kelola, a reload) is closed in place. Without the capability the param is dropped and nothing
+ * opens. The dialog's code loads only when it opens, so members never download it.
  *
- * After adding (the prototype's `addev` submit branch): Kalender on the event's day, on desktop the event chosen
- * when it's in your calendar (else nothing), the month refreshed, the toast, and focus on the page title.
+ * After adding: Kalender on the event's day, on desktop the event chosen when it's in your calendar (else nothing),
+ * the month refreshed, the toast, and focus on the page title.
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useRouter } from '@tanstack/react-router';
@@ -66,7 +66,7 @@ export function AddEventHost({ open, day }: { open: boolean; day: DayKey }) {
   useEffect(() => {
     if (open && !allowed) dropParam();
   }, [open, allowed, dropParam]);
-  // Closed some other way (the browser's Back): a dialog that later arrives with a link closes in place (review m5).
+  // Closed some other way (the browser's Back): a dialog that later arrives with a link closes in place.
   useEffect(() => {
     if (!open) openedHere = false;
   }, [open]);

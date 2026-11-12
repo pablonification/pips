@@ -1,8 +1,8 @@
 /**
- * P3-B: managing calendar events. Tambah acara Akademik (the locked `OV.addev`) from Kalender, Layanan's Kelola row
+ * Managing calendar events. Tambah acara Akademik from Kalender, Layanan's Kelola row
  * and the Kelola hub; its validation, request, result, failures, busy state and ways out. Who sees what, by role:
- * Himpunan events for `ring1` and the Seg for both roles (proposals), nothing for members. Ubah acara and Hapus
- * acara in the event detail (proposals). Phone, tablet and desktop, light and dark, with strict gates.
+ * Himpunan events for `ring1` and the Seg for both roles, nothing for members. Ubah acara and Hapus
+ * acara in the event detail. Phone, tablet and desktop, light and dark, with strict gates.
  */
 import type { Page, TestInfo } from '@playwright/test';
 import { layoutOf, navLink } from '../support/app';
@@ -36,7 +36,7 @@ const field = (page: Page, name: string, d = addDialog(page)) =>
 const posts = (api: { calls: (s: string) => unknown[] }) =>
   api.calls('POST /api/calendar/event');
 
-/** Kuis 2 for IF3170 on Selasa 13 Oktober, 13.00 to 15.00 (the locked `i-desk-kalender-after`). */
+/** Kuis 2 for IF3170 on Selasa 13 Oktober, 13.00 to 15.00. */
 async function fillKuis2(page: Page) {
   const d = addDialog(page);
   await field(page, 'Mata kuliah').selectOption('course-IF3170');
@@ -72,7 +72,7 @@ test.describe('Raka adds an Akademik event', () => {
     await expect(d).toBeVisible();
     // Focus on the first field (`focusOv`), once the courses have loaded.
     await expect(field(page, 'Mata kuliah')).toBeFocused();
-    // The locked defaults: the chosen day (today), 13.00 to 15.00, Raka's own courses first and the first chosen.
+    // The defaults: the chosen day (today), 13.00 to 15.00, Raka's own courses first and the first chosen.
     await expect(field(page, 'Tanggal')).toHaveValue('2026-10-08');
     await expect(field(page, 'Mulai')).toHaveValue('13:00');
     await expect(field(page, 'Selesai')).toHaveValue('15:00');
@@ -84,8 +84,8 @@ test.describe('Raka adds an Akademik event', () => {
     await expect(error).toBeVisible();
     await expect(field(page, 'Judul')).toBeFocused();
     await expect(field(page, 'Judul')).toHaveAttribute('aria-invalid', 'true');
-    // Regression: a field with an error shows the focus ring as well as its red edge (it showed only the edge). The
-    // first shadow is the 1.5 px inset edge in the danger colour, then the ring's two (review m10).
+    // A field with an error shows the focus ring as well as its red edge. The
+    // first shadow is the 1.5 px inset edge in the danger colour, then the ring's two.
     const { shadows, danger } = await field(page, 'Judul').evaluate((el) => {
       const probe = document.createElement('span');
       probe.style.color = 'var(--text-danger)';
@@ -382,7 +382,7 @@ test.describe('Raka changes and deletes Kuis 1 (IF3170)', () => {
     await f('Tanggal').fill('2026-10-14');
     await strictGates(page, testInfo, 'ubah-acara', null);
     // The gates resize the window across 1024 px, where the detail moves between the sheet and the side column: the
-    // dialog stays open with what was typed (review m3).
+    // dialog stays open with what was typed.
     await expect(d).toBeVisible();
     await expect(f('Tanggal')).toHaveValue('2026-10-14');
     await d.getByRole('button', { name: 'Simpan' }).click();
@@ -400,7 +400,7 @@ test.describe('Raka changes and deletes Kuis 1 (IF3170)', () => {
     );
     await expect(toastText(page, 'Acara diperbarui.')).toBeVisible();
     await expect(page).toHaveURL(/hari=2026-10-14/);
-    // Kuis 1 on its new day (review m1): desktop's side column shows it (it's in the URL); on phones and tablets the
+    // Kuis 1 on its new day: desktop's side column shows it (it's in the URL); on phones and tablets the
     // detail closes and the day's list has it. Focus on the page title, as after every other write.
     if (desk(testInfo)) {
       await expect(page).toHaveURL(/acara=b1/);
@@ -436,7 +436,7 @@ test.describe('Raka changes and deletes Kuis 1 (IF3170)', () => {
     ).toBeVisible();
     await expect(confirm.getByRole('button', { name: 'Batal' })).toBeFocused();
     await strictGates(page, testInfo, 'hapus-acara', null);
-    // As in Ubah acara: the confirmation stays open through the gates' resizing (review m3).
+    // As in Ubah acara: the confirmation stays open through the gates' resizing.
     await expect(confirm).toBeVisible();
     await confirm.getByRole('button', { name: 'Batal' }).click();
     await expect(confirm).toBeHidden();
@@ -464,7 +464,7 @@ test.describe('Raka changes and deletes Kuis 1 (IF3170)', () => {
   });
 });
 
-test.describe('Raka: what a change or a delete meets (review m10)', () => {
+test.describe('Raka: what a change or a delete meets', () => {
   test.use({ persona: 'pengurus' });
 
   const open = async (page: Page, testInfo: TestInfo, item: string) => {
@@ -512,14 +512,14 @@ test.describe('Raka: what a change or a delete meets (review m10)', () => {
     await expect(ubah(page)).toBeHidden();
     const puts = api.calls('PUT /api/calendar/event/:eventId');
     expect(puts).toHaveLength(1);
-    // Only the title changed: the event's start and end aren't sent (review m2).
+    // Only the title changed: the event's start and end aren't sent.
     expect(puts[0].body).toEqual({
       title: 'Kuis 1A',
       description: 'Pencarian dan heuristik.',
     });
   });
 
-  test('regression (review m4): Hapus acara while its request runs: Hapus is busy and deletes once', async ({
+  test('Hapus acara while its request runs: Hapus is busy and deletes once', async ({
     page,
     api,
   }, testInfo) => {
@@ -556,7 +556,7 @@ test.describe('Raka: what a change or a delete meets (review m10)', () => {
       await expectStillSignedIn(page);
     });
 
-  test('regression (review m3): resizing across 1024 px (a tablet turned) keeps Ubah acara open with what was typed', async ({
+  test('resizing across 1024 px (a tablet turned) keeps Ubah acara open with what was typed', async ({
     page,
   }, testInfo) => {
     await open(page, testInfo, 'Ubah acara');
@@ -577,7 +577,7 @@ test.describe('Raka: what a change or a delete meets (review m10)', () => {
     );
   });
 
-  test('regression (review m3): resizing across 1024 px keeps Tambah acara Akademik open with what was typed', async ({
+  test('resizing across 1024 px keeps Tambah acara Akademik open with what was typed', async ({
     page,
   }) => {
     await page.goto('/kalender');
@@ -679,7 +679,7 @@ test.describe('Raka: what a change or a delete meets (review m10)', () => {
 test.describe('Raka on a phone', () => {
   test.use({ persona: 'pengurus' });
 
-  test('regression (review m5): after Back closes Tambah acara, a dialog from Layanan’s Kelola row closes in place @phone-only', async ({
+  test('after Back closes Tambah acara, a dialog from Layanan’s Kelola row closes in place @phone-only', async ({
     page,
   }) => {
     await page.goto('/kalender');
@@ -704,7 +704,7 @@ test.describe('Raka on a phone', () => {
 test.describe('Raka: the event options button', () => {
   test.use({ persona: 'pengurus' });
 
-  test('regression (review m8, m9): the tag row keeps the tag’s height; Ubah acara lines up with Hapus acara', async ({
+  test('the tag row keeps the tag’s height; Ubah acara lines up with Hapus acara', async ({
     page,
   }, testInfo) => {
     await page.goto('/kalender?hari=2026-10-08&acara=b1');

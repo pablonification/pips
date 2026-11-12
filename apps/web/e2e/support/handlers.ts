@@ -68,7 +68,7 @@ function listInfos(infos: Info[], q: URLSearchParams): Info[] {
     infos
       .filter((i) => q.get('unread') !== 'true' || !i.isRead)
       // As the API (info.repo.ts): `excludeCategory` takes category names, and a post is left out when any of its
-      // categories is excluded; `search` matches the title and the content, never the author (P1-B).
+      // categories is excluded; `search` matches the title and the content, never the author.
       .filter(
         (i) =>
           !excluded.length ||
@@ -309,7 +309,7 @@ export const defaultHandlers: Record<string, Handler> = {
       responded: !!db.myResponses[form.id],
       nim,
     });
-    // P3-A: the questions only for the form's angkatan or a form admin (form.controller.ts, formQuestionsVisible).
+    // The questions only for the form's angkatan or a form admin (form.controller.ts, formQuestionsVisible).
     const forMe =
       form.eligibleAngkatan.includes(db.me!.angkatan) ||
       db.me!.roles.includes('admin');

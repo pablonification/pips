@@ -3,9 +3,9 @@ import type { UserWithRoles } from '~/api/generated';
 export type Role = UserWithRoles['roles'][number];
 
 /**
- * What each role may do, mirroring the server's checks (SPEC "Kelola and role-aware UI"). Every pengurus action
+ * What each role may do, mirroring the server's checks. Every pengurus action
  * renders through `can()`; members never see an action they can't complete. `tests/capabilities.test.ts` reads
- * the API's source and fails if a row here drifts from it. Add rows in their own commit (WORKER-RULES).
+ * the API's source and fails if a row here drifts from it.
  */
 export const CAPABILITY_ROLES = {
   /** Add a competition to Info Lomba: `competitions.controller.ts`, roleMiddleware(['cnc']). */
@@ -28,7 +28,6 @@ export const CAPABILITY_ROLES = {
   moderateContent: ['admin'],
   /** Change the shared course catalogue (API only today): `lib/authorization.ts`, COURSE_CATALOG_MANAGER_ROLES. */
   editCourseCatalog: ['akademik', 'admin'],
-  // P3-B
   /** Change or delete a competition in Info Lomba: `competitions.controller.ts`, the same roleMiddleware(['cnc']). */
   manageCompetition: ['cnc'],
 } as const satisfies Record<string, readonly Role[]>;
@@ -50,7 +49,7 @@ export function canCreateEvent(user: WithRoles): boolean {
   return can(user, 'createAkademikEvent') || can(user, 'createHimpunanEvent');
 }
 
-/* P3-B: calendar events by category, as `calendar.controller.ts` checks adding, changing and deleting them. */
+/* Calendar events by category, as `calendar.controller.ts` checks adding, changing and deleting them. */
 
 export type EventCategory = 'akademik' | 'himpunan';
 

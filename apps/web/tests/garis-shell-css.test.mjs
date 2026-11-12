@@ -1,5 +1,5 @@
-// P0-C: the shell's styles (src/styles/garis/shell.css) follow the design system's rules like the components do:
-// colours only from tokens, layers only from the one z-index scale, the prototype's breakpoints and sizes.
+// The shell's styles (src/styles/garis/shell.css) follow the design system's rules like the components do:
+// colours only from tokens, layers only from the one z-index scale, the breakpoints and sizes.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,7 +26,7 @@ test('layers come from the scale: search is a modal over its scrim, the skip lin
   assert.match(rule('.g-skip'), /z-index: var\(--z-toast\)/);
 });
 
-test('the prototype’s sizes: a 248 px sidebar, an 88 px rail from 640 px, a 720 px column, 44 px search and avatar on gold', () => {
+test('the sizes: a 248 px sidebar, an 88 px rail from 640 px, a 720 px column, 44 px search and avatar on gold', () => {
   assert.match(rule('.g-desk'), /grid-template-columns: 248px minmax\(0, 1fr\)/);
   assert.match(body, /@media \(min-width: 640px\) \{\s*\.g-shell \{\s*flex-direction: row;/);
   assert.match(body, /\.g-tabbar \{\s*order: -1;\s*flex: none;\s*width: 88px;/);
@@ -45,8 +45,8 @@ test('no text-transform and no font under 12 px', () => {
   assert.ok(sizes.length > 5 && sizes.every((s) => s >= 12), sizes.join(','));
 });
 
-// Garis v5 (2026-11-02): the sidebar brand fills the logo's height, and a narrow page's head is as narrow as its body.
-test('v5: the brand’s wordmark and HMIF ITB span the logo’s 36 px; a narrow page’s head stops at 760 px', () => {
+// The sidebar brand fills the logo's height, and a narrow page's head is as narrow as its body.
+test('the brand’s wordmark and HMIF ITB span the logo’s 36 px; a narrow page’s head stops at 760 px', () => {
   const brand = rule('.g-side-brand > div');
   assert.match(brand, /display: grid/);
   assert.match(brand, /align-content: space-between/);

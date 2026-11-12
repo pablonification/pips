@@ -1,11 +1,11 @@
 /**
- * Which `q` in the URL a search box takes as coming from outside (P2-B). The box answers at once and the URL
- * follows with `replace`, a moment behind, so the URL's values are often echoes of what was typed here; those
- * never overwrite the box. A value from outside (a link to this page, search's "Orang") replaces the text.
+ * Which `q` in the URL a search box takes as coming from outside. The box answers at once and the URL follows with
+ * `replace`, a moment behind, so the URL's values are often echoes of what was typed here; those never overwrite the
+ * box. A value from outside (a link to this page, search's "Orang") replaces the text.
  *
  * Only values typed since the URL last caught up count as echoes: once the URL shows the latest value written,
- * anything typed before it counts as outside again (P2-B review, finding 3: type "Raka Pratama", clear the box, then
- * open search's "Orang" for Raka, and the box stayed empty).
+ * anything typed before it counts as outside again (type "Raka Pratama", clear the box, then open search's "Orang"
+ * for Raka: the box must take it).
  */
 export function urlEcho(initial = '') {
   let ours = new Set([initial]);

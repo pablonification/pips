@@ -1,5 +1,5 @@
 /**
- * First run (`/mulai`, P1-C; SPEC stories 5–7, no locked design): after a sign-in with no shared link, on a device
+ * First run (`/mulai`): after a sign-in with no shared link, on a device
  * that hasn't finished or skipped it, while a step is open. Courses first, then notifications, then Beranda.
  */
 import { devices, type Page } from '@playwright/test';
@@ -87,7 +87,7 @@ test.describe('a new member', () => {
     const courses = step(page, 'Atur mata kuliah semester ini');
     await expect(courses).toContainText('Selesai');
     await expect(courses).toContainText('2 mata kuliah · 6 SKS');
-    // Regression (review M1): Tambahkan went forward to /mulai, so Back returned to an empty Tambah mata kuliah.
+    // Tambahkan goes back to /mulai instead of forward, so Back does not return to an empty Tambah mata kuliah.
     await expect(
       page.getByRole('button', { name: 'Kembali ke Tambah mata kuliah' }),
     ).toHaveCount(0);
@@ -186,7 +186,7 @@ test.describe('not installed', () => {
 test.describe('an iPhone outside the installed app @phone-only', () => {
   test.use({ installed: false, userAgent: devices['iPhone 15'].userAgent });
 
-  test('regression: one Pasang button, on the Pasang PIPS! step; the notification step says why it waits', async ({
+  test('one Pasang button, on the Pasang PIPS! step; the notification step says why it waits', async ({
     page,
   }) => {
     await page.goto('/mulai');
@@ -207,12 +207,12 @@ test.describe('an iPhone outside the installed app @phone-only', () => {
 });
 
 test.describe('first run on the real clock', () => {
-  // Regression (2026-11-03, the real app on real data): every success toast threw "Illegal invocation" in a real
-  // browser (the toast store called setTimeout as its own method), so Tambahkan from first run saved the courses but
-  // never came back to Mulai. The harness's fake clock hid it; this journey runs without it.
+  // A toast store that calls setTimeout as its own method throws "Illegal invocation" in a real browser, so
+  // Tambahkan from first run would save the courses but never come back to Mulai. The harness's fake clock
+  // hides that; this journey runs without it.
   test.use({ now: null });
 
-  test('regression: Atur → pick → Tambahkan → back on Mulai, with the courses done', async ({
+  test('Atur → pick → Tambahkan → back on Mulai, with the courses done', async ({
     page,
     api,
     db,

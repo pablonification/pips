@@ -13,7 +13,7 @@ export interface MenuProps {
   className?: string;
 }
 
-/** An action menu (garis.css `.menu`): arrow keys move, Enter acts, Escape closes and returns focus. */
+/** An action menu: arrow keys move, Enter acts, Escape closes and returns focus. */
 export function Menu({
   trigger,
   children,
@@ -32,7 +32,7 @@ export function Menu({
           sideOffset={4}
           collisionPadding={8}
           // Radix focuses the item under the pointer, which the browser may show as keyboard focus: note how the
-          // member is moving, so the ring is drawn for the keyboard only (garis.css shows hover as a fill).
+          // member is moving, so the ring is drawn for the keyboard only.
           onPointerMove={(e) => {
             e.currentTarget.dataset.input = 'pointer';
           }}
@@ -55,14 +55,13 @@ export interface MenuItemProps {
   hint?: ReactNode;
   danger?: boolean;
   /**
-   * Shown but not available now, as in the prototype's "Umumkan ulang": the item stays reachable by keyboard and is
+   * Shown but not available now ("Umumkan ulang"): the item stays reachable by keyboard and is
    * announced as unavailable (`aria-disabled`), give the reason as a hint. Choosing it keeps the menu open and still
-   * calls onSelect, so the screen can explain why (the prototype shows a toast).
+   * calls onSelect, so the screen can explain why, for example with a toast.
    */
   disabled?: boolean;
   /**
-   * No icon of its own, but its label lines up with the items that have one: the icon's column is kept empty, as in
-   * the prototype's `menuList`, where every item has an icon.
+   * No icon of its own, but its label lines up with the items that have one: the icon's column is kept empty.
    */
   inset?: boolean;
 }

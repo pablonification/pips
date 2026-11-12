@@ -1,6 +1,6 @@
 /**
- * F2's pure helpers for the cross-cutting checks in e2e/qa (unit-tested in tests/qa-lib.test.ts): colours and their
- * contrast, the text normaliser of the prototype copy check, and the motion sampler's threshold. Nothing here
+ * Pure helpers for the cross-cutting checks in e2e/qa (unit-tested in tests/qa-lib.test.ts): colours and their
+ * contrast, the text normaliser of the copy check, and the motion sampler's threshold. Nothing here
  * touches a page, so the same code runs in Node and, through `page.evaluate`, needs no copy.
  */
 
@@ -78,7 +78,7 @@ export function contrastRatio(a: Rgba, b: Rgba): number {
 }
 
 /**
- * Visible text, normalised for the copy check (brief step 11): typographic quotes and dashes as plain ones, every
+ * Visible text, normalised for the copy check: typographic quotes and dashes as plain ones, every
  * run of white space (non-breaking and thin spaces too) as one space, the ellipsis as three dots, trimmed.
  */
 export function normaliseText(s: string): string {
@@ -123,7 +123,7 @@ export interface MotionSample {
 }
 
 /**
- * Whether an element moved over its samples (brief step 6, A11): a change in its transform, an opacity change of
+ * Whether an element moved over its samples: a change in its transform, an opacity change of
  * more than 0.01, or its box moving or resizing by more than half a pixel. Layout that settles (a list filling in)
  * isn't motion, so the caller samples one element at a time, after it has been laid out.
  */
@@ -168,7 +168,7 @@ export function isMonospace(fontFamily: string): boolean {
     );
 }
 
-/** An image's `alt` that names nothing: a file name, or a generic word (A14). */
+/** An image's `alt` that names nothing: a file name, or a generic word. */
 export function badAlt(alt: string): boolean {
   const a = alt.trim().toLowerCase();
   if (/\.(png|jpe?g|gif|svg|webp|avif)$/.test(a)) return true;

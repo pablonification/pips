@@ -1,8 +1,6 @@
 /**
- * Beranda's rules (P1-A brief, rules 4–7): what needs following up and in which order, which Welfare replies count,
- * which form the Kelola summary shows, and the unread list. Pure, so `tests/beranda-rules.test.ts` checks them.
- * The prototype's versions: `attentionItems`, `roomUnread` (garis/state.js), `kelolaSummary`, `scrBeranda`
- * (garis/screens-core.js).
+ * Beranda's rules: what needs following up and in which order, which Welfare replies count, which form the Kelola
+ * summary shows, and the unread list. Pure, so `tests/beranda-rules.test.ts` checks them.
  */
 import type {
   AdminFormListItem,
@@ -27,9 +25,9 @@ export type AttentionItem =
   | { kind: 'push' };
 
 /**
- * Rooms with a new reply from Welfare (rule 5): only rooms you own (`canDelete`; a Welfare member's list holds
- * everyone's rooms), only messages Welfare sent (`isSender: false`), only rooms the unread count names. Latest
- * reply first. Built against P2-C's fixed read state: the API's count is then per room and excludes read messages.
+ * Rooms with a new reply from Welfare: only rooms you own (`canDelete`; a Welfare member's list holds everyone's
+ * rooms), only messages Welfare sent (`isSender: false`), only rooms the unread count names. Latest reply first. The
+ * API's count is per room and excludes read messages.
  */
 export function welfareRooms(
   rooms: ListChatroom | undefined,
@@ -66,7 +64,7 @@ export interface AttentionInput {
   pushOff: boolean;
 }
 
-/** Perlu ditindaklanjuti (rule 4), in this order, only from these signals; a row goes with its signal (rule 6). */
+/** Perlu ditindaklanjuti, in this order, only from these signals; a row goes with its signal. */
 export function attentionItems(input: AttentionInput): AttentionItem[] {
   const { now } = input;
   const items: AttentionItem[] = [];
@@ -88,8 +86,8 @@ export function attentionItems(input: AttentionInput): AttentionItem[] {
 }
 
 /**
- * The Kelola summary's form (rule 7): the first active form that has opened and hasn't closed, in the admin list's
- * order. Null hides the section.
+ * The Kelola summary's form: the first active form that has opened and hasn't closed, in the admin list's order. Null
+ * hides the section.
  */
 export function kelolaForm(
   forms: readonly AdminFormListItem[] | undefined,
@@ -105,7 +103,7 @@ export function kelolaForm(
   );
 }
 
-/** Pengumuman belum dibaca: the newest unread posts, three on phones and tablets, five on desktop (Garis v5). */
+/** Pengumuman belum dibaca: the newest unread posts, three on phones and tablets, five on desktop. */
 export function unreadTop(
   infos: readonly Info[] | undefined,
   count = 3,
@@ -123,9 +121,9 @@ export const postTitle = (i: Info) => i.title || i.content;
 export type SourceState = 'ready' | 'waiting' | 'failed' | 'offline';
 
 /**
- * One source's state (P1-A round 2). Without data: offline when the browser is offline or the query is paused (it
- * would wait for the network forever), failed once its retries are spent, otherwise still loading. Data, even stale
- * or kept on the device, is always shown.
+ * One source's state. Without data: offline when the browser is offline or the query is paused (it would wait for
+ * the network forever), failed once its retries are spent, otherwise still loading. Data, even stale or kept on the
+ * device, is always shown.
  */
 export function sourceState(
   q: {

@@ -1,9 +1,8 @@
 /**
- * Kelola › Curhat Yuk! (P3-C, a proposal: the prototype has no inbox, OPEN-QUESTIONS D9). Every member's room, built
- * from `scrCurhat`'s rows: the search over names and messages and the Belum dibaca chip (both in the URL, changed
- * with `replace`), pinned rooms under "Disematkan" then the rest under "Ruang lain", each row a link to its room with
- * its options button. No privacy note and no start-a-room button: those are the member's. Only the room's anonymous
- * name ever shows.
+ * Kelola › Curhat Yuk!: every member's room, with the search over names and messages and the Belum dibaca chip (both
+ * in the URL, changed with `replace`), pinned rooms under "Disematkan" then the rest under "Ruang lain", each row a
+ * link to its room with its options button. No privacy note and no start-a-room button: those are the member's. Only
+ * the room's anonymous name ever shows.
  */
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';

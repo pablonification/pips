@@ -18,7 +18,7 @@ function clearFailedToast() {
   failedToast = null;
 }
 
-/** The toast after Nyalakan or its Coba lagi (garis/app.js `push-allow`, `push-deny`; errors are new copy). */
+/** The toast after Nyalakan or its Coba lagi. */
 export function toastPushResult(result: Exclude<PushPromptResult, 'tutup'>) {
   clearFailedToast();
   if (result === 'aktif') toast.success(copy.toast.menyala);
@@ -47,7 +47,7 @@ function keepFocus() {
 }
 
 /**
- * "Nyalakan notifikasi?" (garis/screens-more.js `OV.push`). Mounted once at the root; opened with `openPushPrompt()`.
+ * "Nyalakan notifikasi?". Mounted once at the root; opened with `openPushPrompt()`.
  * Permission is asked only from its Nyalakan.
  */
 export function PushPrompt() {
@@ -108,7 +108,7 @@ export function PushPrompt() {
             </Button>
           </>
         ) : status === 'perlu-pasang' ? (
-          // As the Notifikasi card: on an iPhone outside the installed app, the way on is Pasang PIPS! (review m9).
+          // As on the Notifikasi card: on an iPhone outside the installed app, the way on is Pasang PIPS!.
           <Button
             variant="paper"
             onClick={() => {

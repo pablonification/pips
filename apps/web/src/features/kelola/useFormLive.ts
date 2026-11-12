@@ -13,14 +13,14 @@ export interface LiveResponseEvent {
 }
 
 /**
- * Live Counting's live updates (today's `useFormLiveCounting`), on the admin socket room the API checks on join.
+ * Live Counting's live updates, on the admin socket room the API checks on join.
  * - Connects with `auth: { formAdminId }` and the session cookie (`withCredentials`), to the API's origin;
  *   disconnects when the page closes. socket.io-client loads here only, by dynamic import.
  * - A new response: the event's total at once (the page shows the larger of it and the fetched count, so the
  *   number never goes backwards), then the count and the newest five are fetched again (rows carry the major).
  * - After a drop, on reconnecting: the count and the newest five again, so nothing missed is lost.
  * - If socket.io-client can't load, or the server ends the connection, it tries again (live-socket.ts).
- * Exported for Beranda's Kelola card, which could go live with it (story 38).
+ * Exported for Beranda's Kelola card, which could go live with it.
  */
 export function useFormLive(formId: string, enabled = true) {
   const queryClient = useQueryClient();

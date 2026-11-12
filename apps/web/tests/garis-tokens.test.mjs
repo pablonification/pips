@@ -1,5 +1,5 @@
-// The Garis tokens, measured from their source (src/styles/garis/tokens.css) in both themes, as SPEC "Design tokens"
-// requires: text ≥ 4.5:1 on every background it sits on, UI boundaries and the focus ring ≥ 3:1, and stacked
+// The Garis tokens, measured from their source (src/styles/garis/tokens.css) in both themes:
+// text ≥ 4.5:1 on every background it sits on, UI boundaries and the focus ring ≥ 3:1, and stacked
 // surfaces ≥ 1.11:1 apart or separated by a 1 px border.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -67,7 +67,7 @@ for (const [name, t] of Object.entries(themes)) {
       .map(([fg, bg]) => [fg, bg, contrast(hex(t, fg), hex(t, bg))])
       .filter(([, , r]) => r < 4.5)
       .map(([fg, bg, r]) => `${fg} on ${bg}: ${r.toFixed(2)}`);
-    // The status tags' fills (garis.css: success at 14 %, danger at 12 % over the surface).
+    // The status tags' fills: success at 14 %, danger at 12 % over the surface.
     const success = mix(hex(t, '--text-success'), 0.14, hex(t, '--bg-surface'));
     const danger = mix(hex(t, '--text-danger'), 0.12, hex(t, '--bg-surface'));
     if (contrast(hex(t, '--text-success'), success) < 4.5) low.push('success tag');
@@ -113,7 +113,7 @@ for (const [name, t] of Object.entries(themes)) {
       const rule = components.slice(components.indexOf(`${cls} {`), components.indexOf('}', components.indexOf(`${cls} {`)));
       if (!/0 0 0 1px var\(--border\)|var\(--shadow-raised\)|border/.test(rule)) bad.push(`${cls} has no border`);
     }
-    // The chrome (tab bar, sidebar) is 1.03:1 in dark mode: P0-C draws its 1 px border.
+    // The chrome (tab bar, sidebar) is 1.03:1 in dark mode, so it draws a 1 px border.
     assert.deepEqual(bad.filter((b) => !b.startsWith('--bg-chrome')), []);
   });
 }
@@ -122,7 +122,7 @@ test('the shadow-raised token puts a 1 px border ring under raised surfaces in b
   for (const t of [light, dark]) assert.match(t['--shadow-raised'], /^0 0 0 1px var\(--border\)/);
 });
 
-test('the values are the prototype’s (SPEC "Design tokens" table)', () => {
+test('the token values', () => {
   const want = {
     light: { '--bg-app': '#fcfbf8', '--bg-surface': '#ffffff', '--bg-muted': '#efece5', '--text': '#1b1508', '--text-2': '#594f3f', '--text-3': '#6b6250', '--text-accent': '#7a5a0e', '--text-danger': '#b42318', '--text-success': '#0f6e56', '--border': '#e4dfd4', '--border-strong': '#8a8170', '--focus': '#1b1508', '--danger-solid': '#c9302d', '--danger-edge': '#8e1f1c', '--bg-hero': '#f8c249', '--glyph-fill': '#f8c249' },
     dark: { '--bg-app': '#0a0907', '--bg-chrome': '#100e0b', '--bg-surface': '#181510', '--bg-raised': '#1f1b15', '--bg-muted': '#26211a', '--text': '#f3eee0', '--text-2': '#cbc2ae', '--text-3': '#a89f8a', '--text-accent': '#f8c249', '--text-danger': '#ff8a7a', '--text-success': '#4fd1ae', '--border': '#353025', '--border-strong': '#8a8170', '--focus': '#f8c249', '--bg-hero': '#33270b', '--glyph-fill': '#8f6714' },
@@ -131,14 +131,14 @@ test('the values are the prototype’s (SPEC "Design tokens" table)', () => {
     for (const [k, v] of Object.entries(values)) assert.equal(themes[name][k].toLowerCase(), v, `${name} ${k}`);
 });
 
-test('SPEC’s measured lows hold: tertiary on muted 5.10:1 light and 6.08:1 dark; ink on gold 11.06:1', () => {
+test('the measured lows hold: tertiary on muted 5.10:1 light and 6.08:1 dark; ink on gold 11.06:1', () => {
   assert.equal(contrast(light['--text-3'], light['--bg-muted']).toFixed(2), '5.10');
   assert.equal(contrast(dark['--text-3'], dark['--bg-muted']).toFixed(2), '6.08');
   assert.equal(contrast(light['--ink'], light['--gold']).toFixed(2), '11.06');
 });
 
-// Review M1: a menu or popover opened from inside a sheet or dialog rendered under the scrim (z-index 30 below 40/41).
-// Every layer now comes from one scale in tokens.css, poppers above the modal layers and toasts above everything.
+// A menu or popover opened from inside a sheet or dialog must not render under the scrim (z-index 30 below 40/41).
+// Every layer comes from one scale in tokens.css, poppers above the modal layers and toasts above everything.
 test('everything that floats takes its z-index from the one layer scale, poppers above sheets and dialogs', () => {
   const z = Object.fromEntries(
     Object.entries(light)

@@ -1,4 +1,4 @@
-// F2-004: vite.config.ts tells the bundler that the Garis components and icons (src/components/garis, icons) do
+// vite.config.ts tells the bundler that the Garis components and icons (src/components/garis, icons) do
 // nothing when imported, so a page importing one through the library's index doesn't carry every other one before its
 // first render. This keeps that true: no bare import (`import './x.css'`) and no top-level statement that runs
 // something (a call, an assignment, a listener); only imports, exports, declarations and types.

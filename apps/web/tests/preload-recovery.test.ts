@@ -1,4 +1,4 @@
-// web-robust 6: after a deploy, a tab still on the old build gets `vite:preloadError` for a page's code it hasn't
+// After a deploy, a tab still on the old build gets `vite:preloadError` for a page's code it hasn't
 // loaded yet (the new service worker deleted the old files). It reloads once onto the new build, never in a loop.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';

@@ -15,7 +15,7 @@ export interface QBlockProps {
   idPrefix: string;
 }
 
-/** The error under a question (garis/screens-more.js `qBlock` `err`). */
+/** The error under a question. */
 function Missing({ id }: { id: string }) {
   return (
     <p className="g-err t-cap" id={id}>
@@ -26,7 +26,7 @@ function Missing({ id }: { id: string }) {
 }
 
 /**
- * One question as the prototype's `qBlock` draws it: text and long text with a label; radio and checkbox as option
+ * One question: text and long text with a label; radio and checkbox as option
  * rows in a fieldset (checkbox adds "Boleh pilih lebih dari satu."); rating as five 48 px keycaps under a legend.
  * "(opsional)" follows an optional label; a prefilled question says it came from the account while it holds a value.
  */

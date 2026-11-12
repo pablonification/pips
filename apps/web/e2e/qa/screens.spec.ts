@@ -1,16 +1,16 @@
 /**
- * F2 (brief steps 5 and 12): the fixed rules on every page, as each person it differs for, at phone, tablet and
+ * The fixed rules on every page, as each person it differs for, at phone, tablet and
  * desktop in light and dark (the qa-<layout>-<theme> projects). On each page:
  * - the strict audit (axe, text ≥ 12 px, inputs 16 px on touch, `lang="id"`, no overflow): the sweep runs it too,
  *   but only in the review, so this keeps it in CI;
  * - landmarks: one `main`, one visible navigation named "Navigasi utama" in the shell, and one `h1` in the whole
- *   DOM (a second, hidden by CSS, is the duplicate SPEC's "one responsive tree" rules out: F1-5);
+ *   DOM (a second, hidden by CSS, is a duplicate the single responsive tree rules out);
  * - type: Archivo Expanded only on page titles, the greeting, the wordmark and the member card's name; no
  *   monospace; no `text-transform` adding capitals; tabular figures on times, NIMs and course codes on their own;
  * - icons: no `<img>` icons, every inline SVG hidden from screen readers (or a named image), no colour written
  *   into an SVG instead of currentColor or a token;
- * - images: an `alt` that isn't a file name or a generic word (A14);
- * - the official logo: where SPEC puts it (the desktop sidebar at 54 px, the member card at 72 px), never under
+ * - images: an `alt` that isn't a file name or a generic word;
+ * - the official logo: where it belongs (the desktop sidebar at 54 px, the member card at 72 px), never under
  *   40 px, never stretched;
  * - a polite status region from the start (toasts and counts are announced into it);
  * - external links named "… situs luar, tab baru";
@@ -129,8 +129,8 @@ for (const [path, route] of Object.entries(ROUTES))
           expect(logos.filter((l) => l.onCard).map((l) => l.w)).toEqual([72]);
         if (path === '/login') expect(logos.length).toBeGreaterThan(0);
 
-        // External links say they leave: "situs luar, tab baru" (SPEC story 67), "situs luar" on Beranda's tiles and
-        // Pintasan (SPEC "Beranda", as the prototype's `tile`), "tab baru" on an event's Google Calendar (`evInfo`).
+        // External links say they leave: "situs luar, tab baru", "situs luar" on Beranda's tiles and
+        // Pintasan, "tab baru" on an event's Google Calendar.
         // Not behind an open dialog: the page there is hidden from screen readers, so it has no names at all.
         const external = page.locator(
           'a[target="_blank"]:visible:not([aria-hidden="true"] *)',

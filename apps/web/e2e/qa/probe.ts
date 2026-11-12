@@ -13,7 +13,7 @@ import type { ApiMock } from '../support/mock';
 /** A qa project of the six layouts and themes (`qa-phone-light` …). */
 export const QA_LAYOUT = /^qa-(phone|tablet|desktop)-(light|dark)$/;
 
-/** Opens a page as the sweep does (F1 `review/sweep.spec.ts`) and waits until nothing is loading. */
+/** Opens a page as the route sweep does and waits until nothing is loading. */
 export async function openSettled(page: Page, api: ApiMock, url: string) {
   // Opening a post or a room marks it read.
   api.on('POST /api/info/:infoId/read', writes.markRead);
@@ -165,7 +165,7 @@ export function screenFacts(page: Page): Promise<ScreenFacts> {
     return {
       lang: document.documentElement.getAttribute('lang'),
       // A desk head below 1024 px that holds actions stays mounted, hidden, so an action's open dialog survives a
-      // tablet turning (P3-B; C1 report, Needs Dev 1 item 4): its h1 isn't counted. Any other hidden h1 is.
+      // tablet turning: its h1 isn't counted. Any other hidden h1 is.
       h1InDom: [...document.querySelectorAll('h1')]
         .filter(
           (h) =>
@@ -266,7 +266,7 @@ export function readStop(page: Page): Promise<Stop | null> {
     };
     // A box-shadow ring has its own gap layer (`0 0 0 2px var(--bg-app)` under `0 0 0 4px var(--focus)`): the ring is
     // the outer 2 px, so its width is the difference and it sits on the page.
-    // The control, what it holds (Beranda's tiles draw the ring on their keycap, as the prototype's `.tile-btn .key`),
+    // The control, what it holds (Beranda's tiles draw the ring on their keycap),
     // and its three nearest wrappers (a field's box, a segmented control).
     const ringNodes: Element[] = [
       el,

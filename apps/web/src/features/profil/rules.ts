@@ -14,7 +14,7 @@ export interface CategoryRow {
   on: boolean;
 }
 
-/** One switch per category, in the API's order (garis/screens-more.js `scrNotif`). */
+/** One switch per category, in the API's order. */
 export function categoryRows(
   categories: readonly Category[],
   muted: readonly string[],
@@ -34,7 +34,7 @@ export function categoryRows(
 
 /* ---- The member card and Informasi akun ---- */
 
-/** The programme's name (garis/screens-more.js `PROG`). */
+/** The programme's name. */
 export function programName(major: string): string {
   if (major === 'IF') return 'Teknik Informatika';
   if (major === 'STI') return 'Sistem dan Teknologi Informasi';
@@ -42,7 +42,7 @@ export function programName(major: string): string {
 }
 
 /**
- * The card's angkatan: "IF’25 · PIXEL" (`shortAng` plus the angkatan's name), the name only when `GET /api/angkatan`
+ * The card's angkatan: "IF’25 · PIXEL" (the short angkatan plus its name), the name only when `GET /api/angkatan`
  * gives a real one (not empty, not just the year).
  */
 export function angkatanLabel(
@@ -67,8 +67,8 @@ export function semesterLabel(a: Academic): string {
 }
 
 /**
- * Informasi akun's Grup: the groups' names, only for a member with roles. Nothing until the names have loaded, so
- * the row never shows role keys ("welfarenakademik") while they load or after they fail (review m6).
+ * Informasi akun's Grup: the groups' names, only for a member with roles. Nothing until the names have loaded, so the
+ * row never shows role keys ("welfarenakademik") while they load or after they fail.
  */
 export function groupsFact(
   roles: readonly string[],
@@ -91,8 +91,8 @@ export function totalSks(
 export const CATALOGUE_LIMIT = 10;
 
 /**
- * Tambah mata kuliah's results (garis/screens-more.js `caddResults`): the catalogue minus this semester's courses,
- * matching the code or name (any case), your major first, then your semester, then by code; at most 10.
+ * Tambah mata kuliah's results: the catalogue minus this semester's courses, matching the code or name (any case),
+ * your major first, then your semester, then by code; at most 10.
  */
 export function catalogueResults<
   C extends {
@@ -122,10 +122,10 @@ export function catalogueResults<
     .slice(0, CATALOGUE_LIMIT);
 }
 
-/** Picks: the course ids picked in Tambah mata kuliah, in the order they were picked. Garis v5 has no class. */
+/** The course ids picked in Tambah mata kuliah, in the order they were picked. */
 export type Picks = readonly string[];
 
-/** Tapping a course row (`pick-c`): picks it, or drops it when it is picked already; the other picks stay. */
+/** Tapping a course row: picks it, or drops it when it is picked already; the other picks stay. */
 export function togglePick(picks: Picks, courseId: string): Picks {
   return picks.includes(courseId)
     ? picks.filter((id) => id !== courseId)

@@ -1,8 +1,7 @@
 /**
  * The Curhat area's layout (`/layanan/curhat`): it owns the one connection, so it stays open between the list and a
- * room and closes when you leave (SPEC "Connection and delivery"). Welfare (`curhatadmin`) answers rooms in the
- * inbox at /kelola/curhat (P3-C), which opens its own connection the same way (`useCurhatConnection`); they are sent
- * there, room and all, with `replace`.
+ * room and closes when you leave. Welfare (`curhatadmin`) answers rooms in the inbox at /kelola/curhat, which opens
+ * its own connection the same way (`useCurhatConnection`); they are sent there, room and all, with `replace`.
  */
 import { hashKey, useQueryClient } from '@tanstack/react-query';
 import { Navigate, Outlet, useParams } from '@tanstack/react-router';
@@ -21,7 +20,7 @@ import {
 } from './data';
 import './curhat.css';
 
-/** The session check's key (components/session.tsx). */
+/** The session check's key (see components/session.tsx). */
 const ME_KEY = ['me'];
 
 export const isWelfare = (user: Parameters<typeof can>[0]) =>
@@ -34,8 +33,8 @@ export function CurhatArea() {
 }
 
 /**
- * Welfare never had the member side (P3-C): Layanan's row, Beranda's tile, search and the Welfare push
- * (`/home/curhat`, through P0-B's redirect) land in the inbox, a room in the same room there.
+ * Welfare has no member side: Layanan's row, Beranda's tile, search and the Welfare push (`/home/curhat`, redirected)
+ * land in the inbox, a room in the same room there.
  */
 function ToInbox() {
   const { roomId } = useParams({ strict: false });
@@ -67,10 +66,10 @@ function MemberArea() {
 }
 
 /**
- * The area's one connection, for members' Curhat and Welfare's inbox (P3-C): replies into the rooms cache, a catch-up
- * after a reconnect, delivered messages put into their room, refusals, the server ending the session, and what you
- * sent settled against the rooms cache. `welfare`: a `forbidden` refusal also re-checks the session, since for
- * Welfare it can mean the role was taken away (the gate then sends them on).
+ * The area's one connection, for members' Curhat and Welfare's inbox: replies into the rooms cache, a catch-up after
+ * a reconnect, delivered messages put into their room, refusals, the server ending the session, and what you sent
+ * settled against the rooms cache. `welfare`: a `forbidden` refusal also re-checks the session, since for Welfare it
+ * can mean the role was taken away (the gate then sends them on).
  */
 export function useCurhatConnection(
   options: { welfare?: boolean } = {},
@@ -108,7 +107,7 @@ export function useCurhatConnection(
     });
     // What you sent settles against the rooms cache whenever it changes, once no refetch is running: one that started
     // before a save would land with an older list (a delivered message the cache lost is put back), and the server's
-    // copy of a message whose acknowledgement was lost retires its Gagal entry (OPEN-QUESTIONS A11).
+    // copy of a message whose acknowledgement was lost retires its Gagal entry.
     const rooms = hashKey(ROOMS_KEY);
     const settle = () => {
       if (qc.isFetching({ queryKey: ROOMS_KEY, exact: true })) return;

@@ -1,7 +1,7 @@
 /**
- * Dates the way PIPS! says them (the prototype's `rel`, `dLong`, `dShort` and `hm` in garis/ui.js): Indonesian
+ * Dates the way PIPS! says them Indonesian
  * words, the time as "13.35", always in WIB (UTC+7, no daylight saving) whatever the device's zone. Shared by every
- * screen (P1-B made it; P1-A's Beranda and Kalender use the same words).
+ * screen.
  * The words are in `src/copy/tanggal.ts`.
  */
 import { fill } from '~/copy/fill';
@@ -50,7 +50,7 @@ export function dShort(d: DateLike) {
   return `${hariPendek[w.weekday]} ${w.day} ${bulanPendek[w.month]}`;
 }
 
-/** "Kamis, 8 Oktober 2026 · 12.30", a post's full date (the prototype's `postDetail` byline). */
+/** "Kamis, 8 Oktober 2026 · 12.30", a post's full date. */
 export function dFull(d: DateLike) {
   return `${dLong(d)} ${wib(d).year} · ${hm(d)}`;
 }
@@ -61,7 +61,7 @@ export function dayDiff(d: DateLike, now: DateLike = Date.now()) {
   return day(d) - day(now);
 }
 
-/** "baru saja", "40 menit lalu", "1 jam lalu", "kemarin", else "Sen 5 Okt" (the prototype's `rel`). */
+/** "baru saja", "40 menit lalu", "1 jam lalu", "kemarin", else "Sen 5 Okt". */
 export function rel(d: DateLike, now: DateLike = Date.now()) {
   const mins = Math.round((ms(now) - ms(d)) / 60000);
   const dd = dayDiff(d, now);

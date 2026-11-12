@@ -1,6 +1,6 @@
 /*
- * The Masuk screen's pieces (garis/screens-masuk.js, Garis v5): the keyboard header's keys, its halftone and the
- * slide data. The screen and its behaviour are in LoginScreen.tsx.
+ * The Masuk screen's pieces: the keyboard header's keys, its halftone and the slide data. The screen and its
+ * behaviour are in LoginScreen.tsx.
  *
  * The keys' glyphs and the halftone are drawn here rather than imported from components/icons and Halftone: those
  * modules live in the build's shared `ui` chunk (vite.config.ts), and loading it would put the push prompt, the
@@ -26,7 +26,7 @@ type Path = readonly [cls: 'gf' | 'f' | null, d: string];
 
 /**
  * Each key's two-tone glyph: Beranda's service glyphs (components/icons Glyph*, gold fill first, then the lines),
- * plus Pengumuman and Kalender with the prototype's own fills (`MK_FILL`) under their icons' lines.
+ * plus Pengumuman and Kalender with their own fills under their icons' lines.
  */
 export const KEY_PATHS: Record<Exclude<KeyName, 'pips'>, readonly Path[]> = {
   pengumuman: [
@@ -96,7 +96,7 @@ export function KeyGlyph({ name }: { name: Exclude<KeyName, 'pips'> }) {
   );
 }
 
-/** Beranda's halftone squares (halftone-geometry.ts, garis/ui.js `halftone()`): one row, repeated downward. */
+/** Beranda's halftone squares (halftone-geometry.ts): one row, repeated downward. */
 export function halftoneRow(length: number, cell = 8) {
   const n = Math.round(length / cell);
   const out: { x: number; y: number; size: number }[] = [];
@@ -139,14 +139,14 @@ export function MasukHalftone({ length }: { length: number }) {
   );
 }
 
-/** Three staggered rows of keys; the middle one is the gold PIPS! key (`MK_ROWS`). */
+/** Three staggered rows of keys; the middle one is the gold PIPS! key. */
 export const KEY_ROWS: KeyName[][] = [
   ['pengumuman', 'kalender', 'folder'],
   ['testi', 'pips', 'nim'],
   ['lomba', 'curhat', 'form'],
 ];
 
-/** The four pixel reactions around the board (`MK_PX`). */
+/** The four pixel reactions around the board. */
 export const BOARD_REACTIONS: [PixelReactionKey, string][] = [
   ['grin', 'p1'],
   ['heart-eyes', 'p2'],
@@ -154,7 +154,7 @@ export const BOARD_REACTIONS: [PixelReactionKey, string][] = [
   ['party', 'p4'],
 ];
 
-/** What each slide lights in the header, and the reaction that rises from its first key (`MASUK_SLIDES`). */
+/** What each slide lights in the header, and the reaction that rises from its first key. */
 export const SLIDE_HERO: { keys: KeyName[]; px: PixelReactionKey }[] = [
   { keys: ['pengumuman'], px: 'fire' },
   { keys: ['kalender'], px: 'screaming' },
@@ -163,8 +163,8 @@ export const SLIDE_HERO: { keys: KeyName[]; px: PixelReactionKey }[] = [
 ];
 
 /**
- * Google's "G", whole, in one colour: the button's ink (owner, 2026-11-02; Google's branding allows a monochrome G).
- * Hidden from screen readers: the button already says "Masuk dengan Google".
+ * Google's "G", whole, in one colour: the button's ink (Google's branding allows a monochrome G). Hidden from screen
+ * readers: the button already says "Masuk dengan Google".
  */
 export function GoogleG() {
   return (

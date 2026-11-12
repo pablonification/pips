@@ -20,8 +20,8 @@ import {
   TESTI_LONG,
 } from '../src/features/testi/rules';
 
-/* Testi Matkul (P2-B brief, "Tests"): matching (the code bug), the course-list mapping, sections, authors, titles,
-   the fold and the column count (Garis v5). */
+/* Testi Matkul: matching (a course is found by its code too), the course-list mapping, sections, authors, titles,
+   the fold and the column count. */
 
 const course = (
   code: string,
@@ -66,7 +66,7 @@ const ku1101 = course('KU1101', 'Pengantar Rekayasa dan Desain', {
 });
 const catalogue = [if2130, ii2110, if4010, dp3011, if2110, ku1101, if2210];
 
-test('regression: a course is found by its code in any case, and by its name', () => {
+test('a course is found by its code in any case, and by its name', () => {
   for (const q of [
     'if2110',
     'IF2110',
@@ -77,7 +77,7 @@ test('regression: a course is found by its code in any case, and by its name', (
   ])
     assert.equal(matchCourse(if2110, q), true, q);
   assert.equal(matchCourse(if2110, 'if2130'), false);
-  // Today's rule: the query lowercased, the code compared as stored (upper case). It never matched a code.
+  // The old rule compared the lowercased query with the code as stored (upper case), so it never matched a code.
   const today = (c: Course, q: string) =>
     c.name.toLowerCase().includes(q.toLowerCase()) ||
     c.code.includes(q.toLowerCase());
@@ -128,7 +128,7 @@ test('course lists: a semester is its mandatory courses; Pilihan and Mata Kuliah
   );
 });
 
-test('URL slugs: today’s programme and list values; anything else is unknown', () => {
+test('URL slugs: the programme and list values; anything else is unknown', () => {
   assert.equal(majorOfSlug('teknik-informatika'), 'IF');
   assert.equal(majorOfSlug('sistem-dan-teknologi-informasi'), 'STI');
   assert.equal(majorOfSlug('mata-kuliah-umum'), 'OTHER');
@@ -162,7 +162,7 @@ test('titles (testiTitle)', () => {
 test('row and header lines', () => {
   assert.equal(countLine(3), '3 testimoni');
   assert.equal(countLine(0), 'Belum ada testimoni');
-  // Regression (owner, 2026-11-03): the code under the title that is the code.
+  // The line under the title is the credits.
   assert.equal(creditsLine(if2110), '3 SKS');
   assert.equal(creditsLine({ credits: null }), null);
 });
@@ -215,7 +215,7 @@ test('authors: null, empty and "Anonim" are Anonim with "?"; others show initial
   assert.deepEqual(authorOf('nabila'), { name: 'nabila', initials: 'N' });
 });
 
-test('Garis v5: a section folds only past 280 characters, and a page uses one to three columns', () => {
+test('a section folds only past 280 characters, and a page uses one to three columns', () => {
   assert.equal(TESTI_LONG, 280);
   assert.equal(isLong('a'.repeat(280)), false);
   assert.equal(isLong('a'.repeat(281)), true);
@@ -227,7 +227,7 @@ test('Garis v5: a section folds only past 280 characters, and a page uses one to
   assert.equal(columnsFor(6), 3);
 });
 
-test('links in a testimonial are found as today’s app finds them, punctuation kept outside', () => {
+test('links in a testimonial are found as the old app found them, punctuation kept outside', () => {
   assert.deepEqual(linkSegments('tanpa tautan'), [{ text: 'tanpa tautan' }]);
   assert.deepEqual(linkSegments('Lihat https://example.org/a, lalu\nbaca.'), [
     { text: 'Lihat ' },

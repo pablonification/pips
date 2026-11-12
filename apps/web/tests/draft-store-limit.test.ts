@@ -1,4 +1,4 @@
-// Regression (web-robust 7): form drafts open IndexedDB with no time limit; where it never answers (an old WebKit
+// Form drafts open IndexedDB with no time limit; where it never answers (an old WebKit
 // bug) a form stayed on its skeleton waiting for its draft. Past the limit a read is no draft and a write says it
 // wasn't saved. An IndexedDB whose open never answers stands in for the bug.
 import { strict as assert } from 'node:assert';

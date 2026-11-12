@@ -53,10 +53,9 @@ import {
 import { jamWib, useOnline } from './useOnline';
 
 /**
- * The member card (garis/screens-more.js `memberCard`): status, name, NIM, programme and angkatan, the logo. Garis v5
- * adds PIPS!'s halftone across the lower right, below the logo, and a light sheen that sweeps once when the card
- * appears, then follows the pointer or a finger as the card tilts (member-tilt.ts). The logo sits above both,
- * untouched. Reduced motion: no tilt, sweep or sheen.
+ * The member card: status, name, NIM, programme and angkatan, the logo. PIPS!'s halftone runs across the lower right,
+ * below the logo, and a light sheen sweeps once when the card appears, then follows the pointer or a finger as the
+ * card tilts (member-tilt.ts). The logo sits above both, untouched. Reduced motion: no tilt, sweep or sheen.
  */
 export function MemberCard({ me }: { me: UserWithRoles }) {
   const angkatan = useQuery(angkatanQuery());
@@ -133,7 +132,7 @@ function PushRowState() {
   const { text, tone } = pushStatusWords(status);
   return (
     <>
-      {/* The prototype's "■", drawn: the app's Geist subset has no geometric shapes. */}
+      {/* A drawn "■": the app's Geist subset has no geometric shapes. */}
       <span
         aria-hidden="true"
         className={cn(
@@ -150,7 +149,7 @@ function PushRowState() {
   );
 }
 
-/** Keluar (garis/screens-more.js `OV.confirm` logout): a sheet on phones, a centred panel on tablets, a dialog on desktop. */
+/** Keluar: a sheet on phones, a centred panel on tablets, a dialog on desktop. */
 function Keluar() {
   const [open, setOpen] = useState(false);
   const { logoutAsync, isPending } = useLogout();
@@ -197,8 +196,8 @@ function Keluar() {
 }
 
 /**
- * Profil (garis/screens-more.js `scrProfil`): the member card, Informasi akun folded, the setting rows, Keluar
- * centred; on desktop the card and Informasi akun on the left, the rows and Keluar on the right (`.prof-grid`).
+ * Profil: the member card, Informasi akun folded, the setting rows, Keluar centred; on desktop the card and Informasi
+ * akun on the left, the rows and Keluar on the right.
  */
 export function ProfilScreen() {
   const me = useSession();
@@ -209,7 +208,7 @@ export function ProfilScreen() {
   const { preference, setPreference } = useTheme();
   const qc = useQueryClient();
   // The last time anything on this page came from the server: the newest of its queries, the member's own included.
-  // Never "now" when nothing loaded (review m5); then the banner leaves the time out.
+  // Never "now" when nothing loaded; then the banner leaves the time out.
   const updatedAt = Math.max(
     academic.dataUpdatedAt,
     groups.dataUpdatedAt,

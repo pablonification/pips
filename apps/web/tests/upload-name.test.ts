@@ -3,7 +3,7 @@ import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { presignBody } from '../src/lib/upload-name';
 
-test('regression: the name without its extension, and the extension as the type (never the MIME type)', () => {
+test('the name without its extension, and the extension as the type (never the MIME type)', () => {
   // Pengumuman sent { fileName: 'a.png', fileType: 'image/png' }: the stored address ended in "…a.png.image/png", whose
   // last part has no type, so the API couldn't save the post's media.
   assert.deepEqual(presignBody({ name: 'a.png', type: 'image/png', size: 1 }), {

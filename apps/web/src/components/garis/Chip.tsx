@@ -14,10 +14,9 @@ export interface ChipProps extends Omit<
   'onChange' | 'role'
 > {
   /**
-   * How the chip is read, as in the prototype:
+   * How the chip is read:
    * - `toggle` (default): a filter that is on or off (`aria-pressed`), like "Belum dibaca";
    * - `checkbox`: one of several choices (`role="checkbox"`), like the composer's categories; it shows a check.
-   * (Garis v5 dropped the class picker, the only radio chips, with its ChipGroup.)
    */
   kind?: ChipKind;
   /** On: the selected (inverse) fill. */
@@ -29,7 +28,7 @@ export interface ChipProps extends Omit<
   ref?: Ref<HTMLButtonElement>;
 }
 
-/** An interactive chip (garis.css `.chip`): bordered; selected, it becomes an inverse block. */
+/** An interactive chip: bordered; selected, it becomes an inverse block. */
 export function Chip({
   kind = 'toggle',
   selected,
@@ -65,13 +64,13 @@ export function Chip({
 }
 
 export interface ChipsProps extends HTMLAttributes<HTMLDivElement> {
-  /** Wrap onto more lines (garis.css `.ck-chips`, for checkbox chips in a form) instead of scrolling sideways. */
+  /** Wrap onto more lines instead of scrolling sideways. */
   wrap?: boolean;
   /** Names the group when its chips are checkboxes ("Pilih angkatan"); the row becomes `role="group"`. */
   label?: string;
 }
 
-/** A row of chips: scrolls sideways on a phone (garis.css `.chips`), or wraps in a form (`.ck-chips`). */
+/** A row of chips: scrolls sideways on a phone, or wraps in a form. */
 export function Chips({ wrap = false, label, className, ...rest }: ChipsProps) {
   return (
     <div

@@ -1,5 +1,5 @@
 /**
- * P3-B: Tambah testimoni on a Testi Matkul course page, for `akademik` (a proposal): IF sections on IF2110, STI
+ * Tambah testimoni on a Testi Matkul course page, for `akademik`: IF sections on IF2110, STI
  * sections on II2110, "Tulis minimal satu bagian.", the request, the new testimonial among the cards and the course
  * list's count up by one. Not for `admin` alone, nor for members. Phone, tablet and desktop, light and dark, with
  * strict gates.
@@ -25,7 +25,7 @@ const tambah = (page: Page) =>
     .getByRole('button', { name: 'Tambah testimoni' })
     .locator('visible=true');
 const add = (page: Page) => dialog(page, 'Tambah testimoni');
-/** A course page's testimonials (Garis v5: every one at once), each a list item headed by its author. */
+/** A course page's testimonials (every one at once), each a list item headed by its author. */
 const cards = (page: Page) =>
   main(page)
     .getByRole('listitem')
@@ -162,7 +162,7 @@ test.describe('Raka (akademik)', () => {
 
 test.describe('Raka (akademik), one Tambah testimoni', () => {
   test.use({ persona: 'pengurus' });
-  test('regression (F2-003, F1-5): Tambah testimoni is in the page once, where the layout shows it', async ({
+  test('Tambah testimoni is in the page once, where the layout shows it', async ({
     page,
   }) => {
     await page.goto(IF2110);
@@ -174,7 +174,7 @@ test.describe('Raka (akademik), one Tambah testimoni', () => {
     ).toHaveCount(1);
   });
 
-  test('regression (F2-003): turning a tablet across 1024 px keeps Tambah testimoni open with what was typed', async ({
+  test('turning a tablet across 1024 px keeps Tambah testimoni open with what was typed', async ({
     page,
   }) => {
     await page.goto(IF2110);

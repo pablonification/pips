@@ -7,9 +7,8 @@ import { ICONS } from '~/components/icons/registry';
 import { common } from '~/copy/common';
 import type { Service } from '~/lib/services';
 
-/** One service (garis/screens-more.js `svcRow`): icon tile, the members' name, its description, then a badge and a
- * chevron, or the external mark for a site outside PIPS! (a new tab). Layanan and the Kelola hub (P3-A) share it, so
- * their rows can't drift. */
+/** One service: icon tile, the members' name, its description, then a badge and a chevron, or the external mark for
+ * a site outside PIPS! (a new tab). Layanan and the Kelola hub share it, so their rows can't drift. */
 export function ServiceRow({
   service: s,
   badge,

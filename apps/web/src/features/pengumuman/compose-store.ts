@@ -140,8 +140,8 @@ export function startUpload(photo: Photo) {
     )
     .catch((err: unknown) => {
       if (!state.photos.some((p) => p.key === photo.key)) return;
-      // The API refused its type or size: trying again won't help, so the photo goes and the reason is said.
-      // Checked by name, not class: the store stays free of the upload code (it loads with the app's first code).
+      // The API refused its type or size: trying again won't help, so the photo goes and the reason is said. Checked
+      // by name, not class: the store stays free of the upload code (it loads with the app's first code).
       const refused = err as { name?: string; problem?: UploadProblem };
       if (refused.name === 'UploadRefused' && refused.problem) {
         const problem = refused.problem;

@@ -61,7 +61,7 @@ export function refreshPushState(): Promise<PushStatus> {
 
 /**
  * Opens "Nyalakan notifikasi?" (a sheet on phones and tablets, a small dialog on desktop). Call it only from a tap
- * (SPEC story 104: permission is asked only after the member chooses to). Resolves with how it ended. When this
+ * (permission is asked only after the member chooses to). Resolves with how it ended. When this
  * device is already on, it resolves at once with `'aktif'` and opens nothing.
  */
 export async function openPushPrompt(): Promise<PushPromptResult> {

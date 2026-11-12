@@ -19,7 +19,7 @@ import { serviceById } from '~/lib/services';
 import { useOnline } from './data';
 import '~/styles/garis/form.css';
 
-/** The card's last line: "5 bagian", or when it opens or closed (SPEC story 81; new on cards, OPEN-QUESTIONS D5). */
+/** The card's last line: "5 bagian", or when it opens or closed. */
 function caption(f: FormListItem) {
   const shown = statusShown(f.status);
   if (shown === 'soon')
@@ -30,7 +30,7 @@ function caption(f: FormListItem) {
 }
 
 /**
- * Layanan › Form (garis/screens-more.js `scrForm`): one card per form for your angkatan, in the server's order, each
+ * Layanan › Form: one card per form for your angkatan, in the server's order, each
  * with its status (icon, word, colour), title, description clamped to two lines and "5 bagian".
  */
 export function FormList() {

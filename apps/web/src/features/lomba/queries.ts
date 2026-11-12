@@ -3,8 +3,8 @@ import type { Competition } from '~/api/generated';
 import { nextOffset } from './rules';
 
 /**
- * Open competitions, soonest deadline first, 10 a page (the API's order and size). Under today's `competitions`
- * key, so adding a competition (P3-B) refreshes this list too.
+ * Open competitions, soonest deadline first, 10 a page (the API's order and size). Under the `competitions` key, so
+ * adding a competition refreshes this list too.
  */
 export const competitionsQuery = {
   queryKey: ['competitions', 'deadline'] as const,

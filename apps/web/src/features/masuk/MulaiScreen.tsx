@@ -70,9 +70,8 @@ function Step({
 }
 
 /**
- * First run (`/mulai`; SPEC stories 5–7, no locked design): this semester's courses, notifications on this device,
- * and, when not installed, Pasang PIPS!. Built from Beranda's "Perlu ditindaklanjuti" rows. Ke Beranda and Lewati
- * both remember the answer on this device.
+ * First run (`/mulai`): this semester's courses, notifications on this device, and, when not installed, Pasang PIPS!.
+ * Built from Beranda's "Perlu ditindaklanjuti" rows. Ke Beranda and Lewati both remember the answer on this device.
  */
 export function MulaiScreen() {
   const me = useSession();
@@ -117,7 +116,7 @@ export function MulaiScreen() {
                   copy.matkulIsi
                 )
               ) : courses.isError ? (
-                // F2-009: the courses didn't load; Atur still opens Tambah mata kuliah.
+                // The courses didn't load; Atur still opens Tambah mata kuliah.
                 profil.matkul.gagalMuat
               ) : (
                 <SkeletonBar width="50%" />

@@ -1,7 +1,6 @@
 /**
- * The member card's tilt (Garis v5, garis/screens-more.js, the tilt block at the end): the card leans toward the
- * pointer or finger, at most 8° sideways and 6° up or down, and the sheen follows it across. It settles back when the
- * pointer leaves. Nothing moves under reduced motion.
+ * The member card's tilt: the card leans toward the pointer or finger, at most 8° sideways and 6° up or down, and the
+ * sheen follows it across. It settles back when the pointer leaves. Nothing moves under reduced motion.
  */
 
 /** Where a pointer sits on the card, as the card's custom properties. */

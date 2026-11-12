@@ -18,7 +18,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   ref?: Ref<HTMLButtonElement>;
 }
 
-/** The Garis button (garis.css `.btn`): gold keycap, paper, ghost, danger and danger-ghost. */
+/** The Garis button: gold keycap, paper, ghost, danger and danger-ghost. */
 export function Button({
   variant = 'paper',
   size = 'md',
@@ -53,7 +53,7 @@ export interface LinkButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   ref?: Ref<HTMLButtonElement>;
 }
 
-/** A text action in the accent colour (garis.css `.link`), such as "Lihat semua". */
+/** A text action in the accent colour, such as "Lihat semua". */
 export function LinkButton({
   asChild = false,
   inText = false,

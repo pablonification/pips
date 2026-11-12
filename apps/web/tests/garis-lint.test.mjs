@@ -1,5 +1,5 @@
 // The design-system lint rules (eslint-rules/garis.mjs), run through the app's real ESLint config, so the test also
-// covers where they apply (GARIS_FILES in eslint.config.js): all of src since C1, the generated API client aside.
+// covers where they apply (GARIS_FILES in eslint.config.js): all of src, the generated API client aside.
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
@@ -8,7 +8,7 @@ import { ESLint } from 'eslint';
 const appDir = path.resolve(import.meta.dirname, '..');
 const eslint = new ESLint({ cwd: appDir });
 const NEW = 'src/components/garis/__lint-sample.tsx';
-// A file outside the folders the rules covered before C1 (today's route folders, components, hooks, lib).
+// A file outside the folders the rules covered earlier (the old route folders, components, hooks, lib).
 const OUTSIDE = 'src/routes/_app/__lint-sample.tsx';
 
 async function rules(code, file = NEW) {
@@ -43,14 +43,14 @@ test('arbitrary and non-Garis text sizes are rejected; the type styles pass', as
   assert.deepEqual(await rules(wrap(`<p className="t-display t-sm t-cap num text-fg-3" />`)), []);
 });
 
-// Review m6: a fixed size in a style object slipped past the text-size rule.
+// A fixed size in a style object must not slip past the text-size rule.
 test('a fixed font size in a style object is rejected; a component’s own size prop is its types’ business', async () => {
   for (const bad of [wrap(`<p style={{ fontSize: 11 }} />`), wrap(`<p style={{ fontSize: '0.7rem' }} />`), wrap('<p style={{ fontSize: `${11}px` }} />')])
     assert.deepEqual(await rules(bad), ['garis/no-arbitrary-text-size'], bad);
   assert.deepEqual(await rules(`export function W({ size }: { size: 15 | 20 }) {\n  return <b style={{ fontSize: size }} />;\n}\n`), []);
 });
 
-// Review m6: nothing stopped capitals added by CSS. Sentence case everywhere; the app adds no capitals of its own.
+// Nothing may add capitals by CSS. Sentence case everywhere; the app adds no capitals of its own.
 test('capitals added by styling are rejected: uppercase, capitalize, text-transform', async () => {
   for (const bad of [
     wrap(`<span className="uppercase" />`),
@@ -84,7 +84,7 @@ test('monospace is rejected', async () => {
   assert.deepEqual(await rules(wrap(`<p style={{ fontFamily: 'Geist Mono, monospace' }} />`)), ['garis/no-monospace']);
 });
 
-test('since C1 the rules cover all of src, files outside the old new-code folders included', async () => {
+test('the rules cover all of src, files outside the old new-code folders included', async () => {
   const bad = wrap(`<div className="bg-white text-[13px] transition-all font-mono uppercase" />`);
   for (const f of [OUTSIDE, 'src/components/__x.tsx', 'src/hooks/__x.tsx', 'src/lib/__x.tsx', 'src/routes/__x.tsx', 'src/components/icons/__x.tsx', 'src/dev/garis/__x.tsx']) {
     const found = await rules(bad, f);

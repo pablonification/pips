@@ -6,7 +6,7 @@ export const HMIF_LOGO_RATIO = 533 / 800;
 export const HMIF_LOGO_MIN_WIDTH = 40;
 
 export interface HmifLogoProps {
-  /** Width in px, at least 40 (today's app's smallest). The sidebar uses 54, the member card 72. */
+  /** Width in px, at least 40. The sidebar uses 54, the member card 72. */
   width: number;
   /** Alternative text; leave empty when a nearby word already names HMIF. */
   alt?: string;
@@ -16,8 +16,8 @@ export interface HmifLogoProps {
 }
 
 /**
- * HMIF ITB's logo: always the official file, whole. Never redraw, crop, recolour, stretch, outline or cover it
- * (the owner's rule, 2026-10-12). This component is the only way the app shows it.
+ * HMIF ITB's logo: always the official file, whole. Never redraw, crop, recolour, stretch, outline or cover it.
+ * This component is the only way the app shows it.
  */
 export function HmifLogo({
   width,

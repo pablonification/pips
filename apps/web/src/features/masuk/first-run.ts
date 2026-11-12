@@ -1,8 +1,7 @@
 import type { PushStatus } from '~/lib/push-state';
 
 /*
- * First run (SPEC stories 5–7): when it shows after a sign-in, and when each step is done. Pure, unit-tested
- * (tests/masuk-rules.test.ts).
+ * First run: when it shows after a sign-in, and when each step is done. Pure, unit-tested (tests/masuk-rules.test.ts).
  */
 
 /** This device's answer: finished or skipped, kept in localStorage. */
@@ -14,7 +13,7 @@ export interface FirstRunSignals {
   push: PushStatus;
 }
 
-/** Steps still open: courses not set, or notifications that can still be turned on (as Beranda's `attentionItems`). */
+/** Steps still open: courses not set, or notifications that can still be turned on. */
 export function openSteps(s: FirstRunSignals): Array<'matkul' | 'notif'> {
   const out: Array<'matkul' | 'notif'> = [];
   if (s.courseCount === 0) out.push('matkul');

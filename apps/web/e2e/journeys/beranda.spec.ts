@@ -1,8 +1,8 @@
 /**
- * Beranda (P1-A): the greeting, the agenda card and its strip, the service tiles, Perlu ditindaklanjuti and every
- * button in it, Pengumuman belum dibaca, Kelola; desktop's columns at every width (Garis v5); opening events; loading, errors, offline and empty
- * states; motion; and the gates at every width. Replaces T3's home.spec.ts, keeping what it checked (Raka's Kuis 1
- * not shown to Nadia, the tiles opening their services).
+ * Beranda: the greeting, the agenda card and its strip, the service tiles, Perlu ditindaklanjuti and every
+ * button in it, Pengumuman belum dibaca, Kelola; desktop's columns at every width; opening events; loading,
+ * errors, offline and empty states; motion; and the gates at every width. Raka's Kuis 1 is not shown to Nadia,
+ * and the tiles open their services.
  */
 import type { Page } from '@playwright/test';
 import type { CalendarEvent } from '../../src/api/generated';
@@ -41,10 +41,10 @@ const attentionRow = (page: Page, title: string | RegExp) =>
 const section = (page: Page, name: string) =>
   main(page).getByRole('heading', { name, exact: true }).locator('xpath=../..');
 const unreadSection = (page: Page) => section(page, 'Pengumuman belum dibaca');
-/** Nadia's unread posts Beranda lists: three on phones and tablets, all four on desktop (up to five, Garis v5). */
+/** Nadia's unread posts Beranda lists: three on phones and tablets, all four on desktop (up to five). */
 const unreadShown = (page: Page) =>
   (page.viewportSize()?.width ?? 0) >= 1024 ? 4 : 3;
-/** The service tiles, in the real Home's order, then Lainnya (every layout since Garis v5). */
+/** The service tiles, in the real Home's order, then Lainnya (every layout). */
 const tiles = (page: Page) =>
   page.getByRole('region', { name: 'Layanan' }).getByRole('link');
 const TILES = [
@@ -69,7 +69,7 @@ const BERANDA_API = [
   'GET /api/info',
 ];
 
-/** The query keys of the cache kept on the device (P0-B's persister), or none yet. */
+/** The query keys of the cache kept on the device, or none yet. */
 const storedKeys = (page: Page) =>
   page.evaluate(
     () =>
@@ -147,7 +147,7 @@ test.describe('Nadia', () => {
     // Raka's Kuis 1 (IF3170) is for a course Nadia doesn't take.
     expect(await mainText(page)).not.toContain('IF3170');
 
-    // Every service as tiles on every layout (Garis v5: desktop too, no Pintasan).
+    // Every service as tiles on every layout, desktop too.
     await expect(tiles(page)).toHaveText(TILES);
     await expect(
       main(page).getByRole('heading', { name: 'Pintasan' }),
@@ -191,8 +191,8 @@ test.describe('Nadia', () => {
   test('the gold bar keeps its height under a long page: 60 px, the field 8 px from its top @phone-only', async ({
     page,
   }) => {
-    // Regression: the top bar is a flex item of the scrolling column; with only a min-height it shrank to 58 px
-    // under Beranda's long page, moving everything up 2 px from the locked screens.
+    // The top bar is a flex item of the scrolling column; with only a min-height it would shrink to 58 px
+    // under Beranda's long page and move everything up 2 px.
     await page.goto('/');
     await expect.poll(() => attentionTitles(page)).toHaveLength(4);
     const bar = await page.locator('.g-top.gold').boundingBox();
@@ -225,8 +225,8 @@ test.describe('Nadia', () => {
       .getByRole('link', { name: 'NIM Finder' })
       .click();
     await expect(page).toHaveURL(/\/layanan\/nim$/);
-    // The page's h1 (P2-B's NIM Finder has no heading inside the page: the top bar is the h1 on phones and
-    // tablets), and the page's body, not only the top bar (carried over from home.spec.ts).
+    // The page's h1 (NIM Finder has no heading inside the page: the top bar is the h1 on phones and
+    // tablets), and the page's body, not only the top bar.
     await expect(
       page.getByRole('heading', { level: 1, name: 'NIM Finder' }),
     ).toBeVisible();
@@ -360,7 +360,7 @@ test.describe('Nadia', () => {
     api,
   }, testInfo) => {
     const desk = layoutOf(testInfo) === 'desktop';
-    // Curhat's room (P2-C) marks the room read when it opens.
+    // Curhat's room marks the room read when it opens.
     api.on('POST /api/curhat/chatroom/:chatroomId/read', writes.readRoom);
     await page.goto('/');
     await attentionRow(page, 'Deadline Tugas')
@@ -495,7 +495,7 @@ test.describe('Nadia', () => {
     expect(before).toBeLessThanOrEqual(15);
   });
 
-  test('a cold first load asks for at most 15 resources of any kind before the agenda card has its rows (SPEC budget; desktop adds its logo)', async ({
+  test('a cold first load asks for at most 15 resources of any kind before the agenda card has its rows (desktop adds its logo)', async ({
     page,
   }, testInfo) => {
     // Every request the page makes (document, scripts, styles, fonts, images, API), until the content is there.
@@ -518,7 +518,7 @@ test.describe('Nadia', () => {
       ),
       contentType: 'application/json',
     });
-    // SPEC's budget is for its lab phone profile (390 × 844); tablets meet it too. Desktop's sidebar also shows the
+    // The budget is measured on a 390 × 844 phone; tablets meet it too. Desktop's sidebar also shows the
     // official logo in its first paint: one image more.
     const desktop = layoutOf(testInfo) === 'desktop';
     expect(byType.image ?? 0).toBe(desktop ? 1 : 0);
@@ -527,11 +527,11 @@ test.describe('Nadia', () => {
     );
   });
 
-  test('regression: the first unread page is asked for once, for Beranda’s list and the navigation badge', async ({
+  test('the first unread page is asked for once, for Beranda’s list and the navigation badge', async ({
     page,
     api,
   }) => {
-    // After P1-B's badge joined Beranda, each asked for it on its own: one request over the budget.
+    // The navigation badge and Beranda's list share the query: asked for twice, it would be one request over the budget.
     await page.goto('/');
     await expect(
       unreadSection(page).getByRole('link', { name: /\(belum dibaca\)$/ }),
@@ -791,7 +791,7 @@ test.describe('states', () => {
         get: () => !(window as { pipsOffline?: boolean }).pipsOffline,
       }),
     );
-    // The unread posts haven't arrived when the signal goes: since round 3 the navigation badge asks for them on
+    // The unread posts haven't arrived when the signal goes: the navigation badge asks for them on
     // every page (the same query as Beranda's list), so they are held until the signal is back.
     let signalBack!: () => void;
     const held = new Promise<void>((resolve) => (signalBack = resolve));
@@ -935,7 +935,7 @@ test.describe('gates', () => {
   });
 });
 
-/* ================= Garis v5: desktop Beranda at every width ================= */
+/* ================= Desktop Beranda at every width ================= */
 
 /** Each piece's box on desktop Beranda (Kelola only for a pengurus with a form open). */
 async function deskBoxes(page: Page) {
@@ -1051,7 +1051,7 @@ test('desktop: up to five unread, a titled post with its two-line excerpt, an un
   await expect(link).toHaveAccessibleDescription(
     first.content.replace(/\s+/g, ' ').trim(),
   );
-  // Two lines at most, title and excerpt alike (regression: a `block` utility undid the clamp).
+  // Two lines at most, title and excerpt alike (a `block` utility would undo the clamp).
   const lines = await rows
     .locator('.g-clamp2')
     .evaluateAll((ls) =>
@@ -1086,7 +1086,7 @@ test('every post unread: desktop lists five, phones and tablets three', async ({
     await expect(unreadSection(page).locator('.g-hd-excerpt')).toHaveCount(0);
 });
 
-test('regression (v5): a clicked day keeps focus at once, never falling to the page in between', async ({
+test('a clicked day keeps focus at once, never falling to the page in between', async ({
   page,
 }) => {
   await page.goto('/');
@@ -1150,7 +1150,7 @@ test('regression (v5): a clicked day keeps focus at once, never falling to the p
   ).toEqual([]);
 });
 
-test('the strip draws a deadline like any Akademik event: a full bar, no short mark (Garis v5)', async ({
+test('the strip draws a deadline like any Akademik event: a full bar, no short mark', async ({
   page,
 }) => {
   await page.goto('/');
@@ -1169,13 +1169,13 @@ test('the strip draws a deadline like any Akademik event: a full bar, no short m
   for (const [bar, row] of bars) expect(bar).toBe(row);
 });
 
-test('regression: answers that arrive out of order never push down a section already shown @phone-only', async ({
+test('answers that arrive out of order never push down a section already shown @phone-only', async ({
   page,
   api,
 }) => {
   // The unread list answers first; Perlu ditindaklanjuti's sources answer after it, still before its skeleton (the
   // clock is paused, so 300 ms never pass). On a slow phone the list showed first and the follow-ups then landed
-  // above it, pushing it down (CI, 2026-11-03).
+  // above it, pushing it down.
   let release!: () => void;
   const held = new Promise<void>((r) => (release = r));
   for (const route of ['GET /api/form', 'GET /api/curhat/chatrooms'] as const) {

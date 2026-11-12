@@ -5,7 +5,7 @@ import { common } from '~/copy/common';
 
 type DivProps = HTMLAttributes<HTMLDivElement>;
 
-/** A card (garis.css `.card`): the surface fill with a 1 px ring, no drop. */
+/** A card: the surface fill with a 1 px ring, no drop. */
 export function Card({ className, ...rest }: DivProps) {
   return <div className={cn('g-card', className)} {...rest} />;
 }
@@ -29,7 +29,7 @@ export interface TileProps extends Omit<
   label?: string;
 }
 
-/** A 36 px icon tile for list rows (garis.css `.tile`). */
+/** A 36 px icon tile for list rows. */
 export function Tile({
   gold = false,
   size = 'md',
@@ -69,7 +69,7 @@ export interface SegbarProps {
   className?: string;
 }
 
-/** The segmented progress bar (garis.css `.segbar`): one segment per part. */
+/** The segmented progress bar: one segment per part. */
 export function Segbar({ total, done, label, className }: SegbarProps) {
   return (
     <div
@@ -87,7 +87,7 @@ export function Segbar({ total, done, label, className }: SegbarProps) {
   );
 }
 
-/** A muted note with an icon (garis.css `.note-box`), for a privacy note or a limit. */
+/** A muted note with an icon, for a privacy note or a limit. */
 export function NoteBox({
   icon,
   className,
@@ -102,7 +102,7 @@ export function NoteBox({
   );
 }
 
-/** State shown compactly instead of explained: "Draf tersimpan" with a check (garis.css `.saved`). */
+/** State shown compactly instead of explained: "Draf tersimpan" with a check. */
 export function Saved({
   children = common.komponen.drafTersimpan,
   className,
@@ -136,7 +136,7 @@ export interface MediaProps {
 
 /**
  * An image (or its placeholder) with the faint outline that keeps it off the page in both themes, keeping its space
- * while it loads (SPEC story 129). The one place new code renders <img> for content.
+ * while it loads. The one place new code renders <img> for content.
  */
 export function Media({
   src,

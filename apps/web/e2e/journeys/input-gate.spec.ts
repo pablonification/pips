@@ -1,7 +1,7 @@
 /**
  * The strict gate's 16 px check for touch layouts (support/strict.ts, `touchInputsUnder16`). A field under 16 px
  * makes a phone zoom on focus, so it fails; a file input takes no typed text and never zooms, so it doesn't count.
- * Regression (F1): Buat pengumuman's visually hidden photo input failed the gate.
+ * Buat pengumuman's visually hidden photo input must pass the gate.
  */
 import { touchInputsUnder16 } from '../support/strict';
 import { expect, test } from '../support/test';

@@ -1,5 +1,5 @@
 /**
- * What a screen gets from the shell (P0-C round 2), on the shell's test page (/dev/shell, src/dev/shell): its own
+ * What a screen gets from the shell, on the shell's test page (/dev/shell, src/dev/shell): its own
  * title under a top bar that names the section, a title from data, the page kept whole when the layout changes at
  * 1024 px, focus never hidden under the sticky top bar, and nothing of it kept after signing out.
  */
@@ -183,7 +183,7 @@ test.describe('signing out', () => {
     await expect(page).toHaveTitle('Ruang rahasia · PIPS!');
     await expect.poll(() => shellMemory(page)).toContain('Ruang rahasia');
     await page.goto('/profil');
-    // P1-C: Profil's Keluar, then its confirmation (today's "Log out" button is gone).
+    // Profil's Keluar, then its confirmation.
     await page
       .getByRole('main')
       .getByRole('button', { name: 'Keluar' })

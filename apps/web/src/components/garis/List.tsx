@@ -7,7 +7,7 @@ import type {
 } from 'react';
 import { cn } from '~/lib/utils';
 
-/** A list whose rows are separated by hairlines (garis.css `.ruled-list`). */
+/** A list whose rows are separated by hairlines. */
 export function RuledList({
   className,
   ...rest
@@ -16,7 +16,7 @@ export function RuledList({
 }
 
 /**
- * Facts as label and value rows on hairlines (garis.css `.facts-list`): Informasi akun, a competition's details. The
+ * Facts as label and value rows on hairlines: Informasi akun, a competition's details. The
  * label is muted on the left, the value on the right.
  */
 export function FactsList({
@@ -38,7 +38,7 @@ export function FactsList({
   );
 }
 
-/** A list row's content: icon or tile, then text, then whatever ends the row (garis.css `.item`). */
+/** A list row's content: icon or tile, then text, then whatever ends the row. */
 export function Item({
   center = false,
   className,
@@ -57,7 +57,7 @@ export interface RowButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> 
   ref?: Ref<HTMLButtonElement>;
 }
 
-/** A whole list row that acts (garis.css `.row-btn`); in a RuledList it gets the hover band. */
+/** A whole list row that acts; in a RuledList it gets the hover band. */
 export function RowButton({
   current,
   asChild = false,
@@ -80,7 +80,7 @@ export interface SectionHeadProps {
   title: ReactNode;
   /** The section's link or action, at the end. */
   action?: ReactNode;
-  /** A hairline from the title to the edge (garis.css `.sec-line`, phone Beranda). */
+  /** A hairline from the title to the edge. */
   line?: boolean;
   /** The heading level; sections inside a page are h2 by default. */
   level?: 2 | 3 | 4;
@@ -88,7 +88,7 @@ export interface SectionHeadProps {
   className?: string;
 }
 
-/** A section's title with its link (garis.css `.sec-head`, or `.sec-line` with the hairline). */
+/** A section's title with its link. */
 export function SectionHead({
   title,
   action,

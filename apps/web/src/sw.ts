@@ -14,9 +14,9 @@ import { sharedFromAnotherSite } from './lib/share-origin';
 declare let self: ServiceWorkerGlobalScope;
 
 /*
- * What this service worker keeps (SPEC "Service worker"):
- * - the precache: the app shell and every route chunk (vite.config.ts `injectManifest`), never the review
- *   prototypes; hashed file names, so an update downloads only the chunks that changed;
+ * What this service worker keeps:
+ * - the precache: the app shell and every route chunk (vite.config.ts `injectManifest`); hashed file names, so an
+ *   update downloads only the chunks that changed;
  * - an app-shell fallback: any navigation in the app gets index.html, so the installed app opens offline;
  * - a bounded cache for same-origin images only. Nothing else, so no catch-all asset cache grows forever.
  */
@@ -35,7 +35,7 @@ if (import.meta.env.PROD) {
 
   registerRoute(
     new NavigationRoute(createHandlerBoundToURL('/index.html'), {
-      // Not the app: the API, review material, the share target and anything that is a file.
+      // Not the app: the API, the /prototypes pages, the share target and anything that is a file.
       denylist: [
         /^\/api\//,
         /^\/socket\.io\//,
@@ -96,7 +96,7 @@ self.addEventListener('push', (e) => {
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  // The API still sends today's paths (/timeline/<id>); open the new URL directly, so an open window on it is
+  // The API still sends old paths (/timeline/<id>); open the new URL directly, so an open window on it is
   // focused instead of a second one opening.
   let url = new URL('/', location.href).href;
   if (e.notification.data && e.notification.data.url) {

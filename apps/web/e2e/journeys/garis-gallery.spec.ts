@@ -1,7 +1,7 @@
 /**
  * The Garis gallery (/dev/garis): the design system's components in the browser, at phone and desktop sizes in
  * light and dark. Behaviour (keyboard, focus trap and return, roles and names, Seg and Switch state, toast timing,
- * touch hit areas), the theme switch, the logo rule, and SPEC's quality gates in strict mode (no serious or critical
+ * touch hit areas), the theme switch, the logo rule, and the quality gates in strict mode (no serious or critical
  * axe violation, no overflow, no text under 12 px, lang="id").
  */
 import type { Page, TestInfo } from '@playwright/test';
@@ -11,7 +11,7 @@ import { expect, test } from '../support/test';
 test.use({ persona: null });
 
 const isPhone = (t: TestInfo) => t.project.name.startsWith('phone');
-/** Phones and tablets (P0-C's tablet projects): below 1024 px, Modal is a sheet and controls get 44 px targets. */
+/** Phones and tablets: below 1024 px, Modal is a sheet and controls get 44 px targets. */
 const isTouch = (t: TestInfo) => /^(phone|tablet)/.test(t.project.name);
 const isDark = (t: TestInfo) => t.project.name.endsWith('dark');
 
@@ -131,9 +131,9 @@ test('Seg is a radio group the arrow keys move; Switch and Chip report their sta
   await expect(chip).toHaveAttribute('aria-pressed', 'true');
 });
 
-// Review M4: chips could only be toggle buttons; the prototype also uses them as checkboxes (the composer's categories).
-// Garis v5 dropped the class picker, the only radio group of chips, so ChipGroup is gone with it.
-test('chips work as toggles and as checkboxes with a check; no radio chips are left (v5)', async ({
+// Chips work as toggle buttons and as checkboxes (the composer's categories). No screen has a radio group of
+// chips, so there is no ChipGroup.
+test('chips work as toggles and as checkboxes with a check; no radio chips are left', async ({
   page,
 }) => {
   await open(page);
@@ -240,8 +240,8 @@ test('a confirmation is an alert dialog with Batal focused, and its action runs'
   await expect(politeToasts(page).getByText('Ruang dihapus.')).toBeVisible();
 });
 
-// Review M3: Radix skipped the disabled item, so its reason couldn't be reached by keyboard and choosing it did
-// nothing. As in the prototype, it stays focusable (aria-disabled) and choosing it says why, keeping the menu open.
+// Radix skips a disabled item, so its reason couldn't be reached by keyboard and choosing it would do
+// nothing. It stays focusable (aria-disabled) and choosing it says why, keeping the menu open.
 test('a menu opens from the keyboard, its unavailable item stays reachable and says why, and focus returns', async ({
   page,
 }) => {
@@ -344,7 +344,7 @@ test('a menu opened inside a dialog shows above it, acts, and returns focus insi
   await expect(dialog).toBeHidden();
 });
 
-// The prototype's main pattern: a post's menu, then Hapus, then the confirmation. Closing it returns focus to the
+// The main pattern: a post's menu, then Hapus, then the confirmation. Closing it returns focus to the
 // menu's button, not to the page.
 test('a confirmation opened from a menu item returns focus to the menu button when it closes', async ({
   page,
@@ -575,8 +575,7 @@ test('every HMIF logo is the official file, whole, unstretched and at least 40 p
   page,
 }) => {
   await open(page);
-  // As ops/ui-revamp-review/tools/garis-check.mjs checks the prototype (review m7: also uncovered, unclipped and at
-  // full opacity): each copy is scrolled into view and its corners and centre must hit the image itself.
+  // Each copy must be uncovered, unclipped and at full opacity: each copy is scrolled into view and its corners and centre must hit the image itself.
   const report = await page.evaluate(async () => {
     const bad: string[] = [];
     const redrawn = document.querySelectorAll(

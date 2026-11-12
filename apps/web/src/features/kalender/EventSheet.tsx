@@ -1,7 +1,7 @@
 /**
- * "Detail acara" on phones and tablets (the prototype's `OV.event`): a bottom sheet on phones, a centred panel from
- * 640 px (P0-A's Sheet). It opens for the URL's `acara`; Escape, Tutup and Back close it, and focus returns to the
- * row that opened it. An id the API doesn't know opens nothing, and the param is dropped.
+ * "Detail acara" on phones and tablets: a bottom sheet on phones, a centred panel from 640 px. It opens for the URL's
+ * `acara`; Escape, Tutup and Back close it, and focus returns to the row that opened it. An id the API doesn't know
+ * opens nothing, and the param is dropped.
  */
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
@@ -49,8 +49,8 @@ export function EventSheet({
     event?.courseId !== undefined && event.courseId !== null
       ? courses.get(event.courseId)
       : undefined;
-  // P3-B: not opened under Ubah or Hapus acara that it wasn't already under (a tablet turned back from the desktop
-  // layout with one open); it opens once that dialog closes (review m3).
+  // Not opened under Ubah or Hapus acara that it wasn't already under (a tablet turned back from the desktop layout
+  // with one open); it opens once that dialog closes.
   const managing = useEventManaging();
   const [wasOpen, setWasOpen] = useState(false);
   const open = !!id && !!event && (!managing || wasOpen);

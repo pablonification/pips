@@ -1,7 +1,7 @@
 /**
- * The strict gate's focus check (support/strict.ts, review m7) must fail on a control with no focus style. Garis
- * buttons, switches and chips carry a shadow at rest, which the first version of the gate took for a focus ring.
- * Each case removes one component's focus style on a redesigned screen and expects the gate to fail on it; the
+ * The strict gate's focus check (support/strict.ts) must fail on a control with no focus style. Garis
+ * buttons, switches and chips carry a shadow at rest, which a naive gate would take for a focus ring.
+ * Each case removes one component's focus style on a screen and expects the gate to fail on it; the
  * same screens pass the gate unchanged in their own journeys (profil, notifikasi, matkul).
  */
 import { expectVisibleFocus } from '../support/strict';
@@ -23,7 +23,7 @@ const CASES = [
     fails: /focus indicator on BUTTON\[switch\]\|/,
   },
   {
-    // Garis v5 replaced the class chips (K1–K3) on this screen with one toggle per course row.
+    // One toggle per course row.
     what: 'a Garis row toggle (a course in Tambah mata kuliah)',
     url: '/profil/matkul/tambah',
     ready: 'Strategi Algoritma',

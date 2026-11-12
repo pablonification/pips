@@ -45,11 +45,10 @@ function Item({ t }: { t: ToastItem }) {
 }
 
 /**
- * Where toasts appear (garis.css `.toast`): bottom centre, above the tab bar on phones, following the theme.
- * Mount once, in the app shell. Two live regions are always in the page, like the prototype's one `#toast`
- * (SPEC "Accessibility": toasts announced): errors in an assertive one, successes in a polite one. A toast is added
- * inside them, so screen readers read each new one once. They carry `aria-live` themselves, so they stay readable
- * while a dialog hides the rest of the page.
+ * Where toasts appear: bottom centre, above the tab bar on phones, following the theme. Mount once, in the app
+ * shell. Two live regions are always in the page: errors in an assertive one, successes in a polite one. A toast
+ * is added inside them, so screen readers read each new one once. They carry `aria-live` themselves, so they stay
+ * readable while a dialog hides the rest of the page.
  */
 export function Toaster() {
   const items = useSyncExternalStore(toast.subscribe, toast.get, toast.get);

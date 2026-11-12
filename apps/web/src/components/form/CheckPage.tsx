@@ -16,7 +16,7 @@ const WORDS = {
 };
 
 /**
- * The check page's list (garis/screens-more.js `reviewPage`): each section with its answers as given ("Lainnya: …",
+ * The check page's list: each section with its answers as given ("Lainnya: …",
  * "4 dari 5", "Tidak diisi") and Ubah, which `onEdit` handles; without `onEdit` (a closed form) there is no Ubah.
  */
 export function CheckList({

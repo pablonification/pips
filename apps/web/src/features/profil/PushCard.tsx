@@ -7,9 +7,8 @@ import { push as copy } from '~/copy/push';
 import { showTestNotification } from '~/lib/push';
 
 /**
- * Notifikasi's card for this device (garis/screens-more.js `scrNotif`): Aktif with Kirim notifikasi uji, Belum aktif
- * with Nyalakan notifikasi. The prototype draws only those two; Diblokir, needs the installed app and unsupported
- * are written in the same card (new copy, P1-C report).
+ * Notifikasi's card for this device: Aktif with Kirim notifikasi uji, Belum aktif with Nyalakan notifikasi. Diblokir,
+ * needs the installed app and unsupported are written in the same card.
  */
 export function PushCard({ onInstall }: { onInstall?: () => void }) {
   const { status } = usePushState();

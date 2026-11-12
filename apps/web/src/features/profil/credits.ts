@@ -1,9 +1,9 @@
 /**
- * Kredit's structure (owner's change, 2026-11-06: "make credits more proper"). The server keeps the credits as
- * markdown (`GET /api/markdown/credits`): a "# Credits" title, a group ("## Panitia Khusus"), its teams and roles
- * ("### Frontend", "### Project Owner"), "#### Lead" and "#### Team" inside a team, and one person per line,
- * "Name - IF'21 - 13521089". This reads that shape into groups, teams and people, word for word. Anything else in the
- * text (a paragraph, a link, a person line of another form) gives null, and the page renders the markdown as before.
+ * Kredit's structure. The server keeps the credits as markdown (`GET /api/markdown/credits`): a "# Credits" title, a
+ * group ("## Panitia Khusus"), its teams and roles ("### Frontend", "### Project Owner"), "#### Lead" and "#### Team"
+ * inside a team, and one person per line, "Name - IF'21 - 13521901". This reads that shape into groups, teams and
+ * people, word for word. Anything else in the text (a paragraph, a link, a person line of another form) gives null,
+ * and the page renders the markdown as it is.
  */
 
 export interface CreditPerson {
@@ -35,7 +35,7 @@ const PERSON =
   /^(\p{L}[^[\]()*_`<>]*?)\s+[-–]\s+([A-Za-z]+'\d{2})\s+[-–]\s+(\d{8})$/u;
 const HEADING = /^(#{1,6})\s+(.+?)\s*#*$/;
 
-/** The page's own title already says it (content rule): a first heading that is just "Credits" or "Kredit" goes. */
+/** The page's own title already says it: a first heading that is just "Credits" or "Kredit" goes. */
 export function dropTitle(markdown: string): string {
   return markdown.replace(/^\s*#[ \t]+(credits|kredit)[ \t]*(\n|$)/i, '');
 }
@@ -112,5 +112,5 @@ export function runs(
   return out;
 }
 
-/** "IF'21 · 13521089". */
+/** "IF'21 · 13521901". */
 export const personLine = (p: CreditPerson) => `${p.angkatan} · ${p.nim}`;

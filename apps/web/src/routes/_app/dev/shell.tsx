@@ -8,7 +8,7 @@ import { coerceNumber, object, string } from '~/lib/params';
 const probeSearchSchema = object({ judul: string, lambat: coerceNumber });
 
 /**
- * A page inside the shell that uses every slot a screen has (P0-C round 2): its own title, a title from data, top-bar
+ * A page inside the shell that uses every slot a screen has: its own title, a title from data, top-bar
  * actions, a field and a long page. The shell's journeys run on it until real screens use the slots. Development and
  * staging only, like the gallery: in a production build the import below is dropped and the path sends members home.
  */

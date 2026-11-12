@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { runWhenSettled, type SettleTimers } from '../src/lib/sw-register';
 
 /*
- * When the service worker registers (P1-A round 2, the request budget): after a quiet second with nothing fetching
+ * When the service worker registers: after a quiet second with nothing fetching
  * and an idle moment, or 10 s after load.
  */
 

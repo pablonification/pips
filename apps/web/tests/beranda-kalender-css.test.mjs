@@ -1,7 +1,7 @@
-// P1-A: Beranda's and Kalender's styles (src/features/beranda/beranda.css, src/features/kalender/kalender.css) follow
+// Beranda's and Kalender's styles (src/features/beranda/beranda.css, src/features/kalender/kalender.css) follow
 // the design system: colours only from tokens, the type scale and nothing under 12 px, no capitals or monospace
 // added, layers inside the page, no `transition: all`, the bars' draw-in never under reduced motion, and the
-// prototype's narrow-phone and tablet rules.
+// narrow-phone and tablet rules.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -11,7 +11,7 @@ const read = (rel) =>
   fs
     .readFileSync(path.resolve(import.meta.dirname, '..', rel), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '');
-// Review m10: a header named a test file that doesn't exist. Every `tests/…` a header names must be there.
+// A header must not name a test file that doesn't exist. Every `tests/…` a header names must be there.
 test('the styles’ headers name test files that exist', () => {
   for (const rel of [
     'src/features/beranda/beranda.css',
@@ -127,9 +127,9 @@ test('tablets: the tiles in one row of eight; the narrowest phones: seven 44 px 
   );
 });
 
-// Review m8, Dev 1's decision: the Live Counting mark blinks four times like the prototype's `.live i`
-// (garis.css: `animation: blink 1s step-end 4`), and reduced motion stops it with every other animation.
-test('beranda: the Live Counting mark blinks four times, as the prototype', () => {
+// The Live Counting mark blinks four times (`animation: blink 1s step-end 4`), and reduced motion stops it with
+// every other animation.
+test('beranda: the Live Counting mark blinks four times', () => {
   const rule = FILES.beranda.match(/\.g-live i \{([^}]*)\}/);
   assert.ok(rule, '.g-live i exists');
   assert.match(rule[1], /animation:\s*g-blink 1s step-end 4;/);
@@ -140,8 +140,8 @@ test('beranda: the Live Counting mark blinks four times, as the prototype', () =
   );
 });
 
-// Garis v5 (2026-11-02, garis/v5-beranda.css): desktop Beranda's two columns from 1280 px, one column below.
-test('v5 desktop: one 800 px column below 1280 px, Kelola last; two columns up to 1440 px from 1280 px', () => {
+// Desktop Beranda's two columns from 1280 px, one column below.
+test('desktop: one 800 px column below 1280 px, Kelola last; two columns up to 1440 px from 1280 px', () => {
   const b = FILES.beranda;
   assert.match(b, /\.g-home-desk \{[^}]*grid-template-columns: minmax\(0, 1fr\);[^}]*max-width: 800px;/);
   assert.match(b, /\.g-hd-side \{[^}]*display: contents;/);
@@ -155,6 +155,6 @@ test('v5 desktop: one 800 px column below 1280 px, Kelola last; two columns up t
   assert.match(wide[1], /\.g-home-desk \.g-tiles \{\s*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\);/);
   assert.match(b, /\.g-home-desk \.g-ag-day \{\s*min-height: 88px;/);
   assert.match(b, /\.g-home-desk \.g-ag-day \.dn \{\s*font-size: 20px;/);
-  // Deadlines on the strip: DayBars draws them as any Akademik bar (Garis v5), so no point mark is left to style.
+  // Deadlines on the strip: DayBars draws them as any Akademik bar, so no point mark is left to style.
   assert.doesNotMatch(b, /\.point\b/);
 });

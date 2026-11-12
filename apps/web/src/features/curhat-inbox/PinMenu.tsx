@@ -1,8 +1,7 @@
 /**
- * A room's options (`menuBtn`, `menuList`): one item, Sematkan ruang or Lepas sematan (today's row menu has Pin and
- * Unpin). The Garis set has no pin icon, so the item has none. Busy while its request runs, so it can't send twice;
- * a failure says what happened without signing anyone out, and a 401 re-checks the session (`useRoleLoss`), so a
- * role taken away sends the member on.
+ * A room's options: one item, Sematkan ruang or Lepas sematan. The Garis set has no pin icon, so the item has none.
+ * Busy while its request runs, so it can't send twice; a failure says what happened without signing anyone out, and a
+ * 401 re-checks the session (`useRoleLoss`), so a role taken away sends the member on.
  */
 import { useQueryClient } from '@tanstack/react-query';
 import type { Chatroom } from '~/api/generated';

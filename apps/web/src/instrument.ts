@@ -1,7 +1,7 @@
 /**
  * Error monitoring. Without a DSN (VITE_SENTRY_DSN) it does nothing and loads nothing. With one, Sentry loads
- * after the first render in its own chunk, so it never counts towards a route's first-render JS (SPEC
- * "Performance architecture and budgets", "Third parties"). Errors and traces only.
+ * after the first render in its own chunk, so it never counts towards a route's first-render JS.
+ * Errors and traces only.
  */
 import type { Breadcrumb, BrowserOptions, ErrorEvent } from '@sentry/react';
 

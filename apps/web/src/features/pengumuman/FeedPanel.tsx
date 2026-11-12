@@ -1,7 +1,7 @@
 /**
- * The feed (`scrPengumuman`, `feedTools`, `feedList`): the title and Buat, search, Belum dibaca with the count, the
- * sort chip and Kategori, then the list: cards on phones and tablets, rows beside the post on desktop. Paging loads
- * the next page as the end scrolls into view (up to 5 pages), with Muat lagi as the fallback.
+ * The feed: the title and Buat, search, Belum dibaca with the count, the sort chip and Kategori, then the list: cards
+ * on phones and tablets, rows beside the post on desktop. Paging loads the next page as the end scrolls into view (up
+ * to 5 pages), with Muat lagi as the fallback.
  */
 import { Link } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -199,8 +199,8 @@ function FeedTools({ view }: { view: FeedView }) {
 }
 
 /**
- * Tandai semua dibaca (owner, 2026-11-06), beside Belum dibaca while anything is unread. Once done it goes, so focus
- * moves to Belum dibaca; a failure says so, with Coba lagi.
+ * Tandai semua dibaca, beside Belum dibaca while anything is unread. Once done it goes, so focus moves to Belum
+ * dibaca; a failure says so, with Coba lagi.
  */
 function MarkAllRead() {
   const markAll = useMarkAllRead();
@@ -231,7 +231,7 @@ function MarkAllRead() {
   );
 }
 
-/** "Kategori yang ditampilkan" (`OV.filter`): a switch per category; a sheet on phones, a dialog on desktop. */
+/** "Kategori yang ditampilkan": a switch per category; a sheet on phones, a dialog on desktop. */
 function FilterOverlay({
   open,
   onOpenChange,

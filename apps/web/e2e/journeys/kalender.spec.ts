@@ -1,8 +1,8 @@
 /**
- * Kalender (P1-A): today on open with its month asked for, a deadline and its detail, the reminder line for each push
+ * Kalender: today on open with its month asked for, a deadline and its detail, the reminder line for each push
  * state, the detail's links, the month buttons and Hari ini, the grid's keyboard model, desktop's chosen event,
- * "+N lagi", Tambah acara, the URL, and the loading, error and offline states. Replaces T3's calendar.spec.ts,
- * keeping what it checked (today's month asked for, Raka reaching the add-event flow, no history entry of its own).
+ * "+N lagi", Tambah acara, the URL, and the loading, error and offline states. Today's month is asked for, Raka
+ * reaches the add-event flow, and no history entry of its own is made.
  */
 import type { Page } from '@playwright/test';
 import type { CalendarEvent } from '../../src/api/generated';
@@ -90,7 +90,7 @@ test('opens on today, asking for this month; today’s events; the legend; no Ta
   await expect(
     main(page).getByRole('button', { name: 'Tambah acara' }),
   ).toHaveCount(0);
-  // v5: the legend is Akademik · Himpunan (and Atur mata kuliah); no "Batas waktu".
+  // The legend is Akademik · Himpunan (and Atur mata kuliah); no "Batas waktu".
   await expect(main(page).locator('.g-legend > span')).toHaveText([
     'Akademik',
     'Himpunan',
@@ -118,7 +118,7 @@ test('9 Oktober: the deadline shows one time, no Batas; its detail, reminder and
     // The day's row (named by its time first), not the grid's cell.
     .getByRole('button', { name: /^23\.59.*Deadline Tugas Besar 1/ });
   await expect(row).toContainText('23.59');
-  // v5: one time, nothing under it.
+  // One time, nothing under it.
   await expect(row).not.toContainText('Batas');
   await expect(row.locator('.time > *')).toHaveCount(1);
   if (!desk) await row.click();
@@ -166,7 +166,7 @@ const look = (el: import('@playwright/test').Locator) =>
     };
   });
 
-test('v5: a deadline draws as Akademik in the grid and the day list, with no outlined or short mark', async ({
+test('a deadline draws as Akademik in the grid and the day list, with no outlined or short mark', async ({
   page,
 }, testInfo) => {
   const desk = layoutOf(testInfo) === 'desktop';
@@ -223,7 +223,7 @@ test.describe('Pengingat H-1 with notifications on', () => {
   }, testInfo) => {
     const desk = layoutOf(testInfo) === 'desktop';
     await page.goto('/kalender?hari=2026-10-08&acara=a2');
-    // Regression (owner, 2026-11-03): it said "Sudah dikirim", though the server may never have sent it.
+    // It must not say "Sudah dikirim": the server may never have sent it.
     const line = detail(page, desk)
       .getByText('Pengingat H-1')
       .locator('xpath=following-sibling::p');
@@ -271,7 +271,7 @@ test('the month buttons choose today in today’s month, else the 1st; Hari ini 
   await expect(
     day(page, /^Minggu, 1 November/, 'November 2026'),
   ).toHaveAttribute('aria-pressed', 'true');
-  // A month away loads its own events (regression: today's calendar loaded the three months around today only).
+  // A month away loads its own events (not only the three months around today).
   await main(page).getByRole('button', { name: 'Bulan berikutnya' }).click();
   await expect(monthHeading(page, desk, 'Desember 2026')).toBeVisible();
   await expect.poll(() => asked(api)).toContain('month=12&year=2026');
@@ -491,7 +491,7 @@ test.describe('Raka, akademik', () => {
         }),
       ).toBeVisible();
     await main(page).getByRole('button', { name: 'Tambah acara' }).click();
-    // P3-B's dialog (the locked `OV.addev`): a sheet on phones, a panel on tablets and desktop; Raka adds Akademik events.
+    // The dialog is a sheet on phones, a panel on tablets and desktop; Raka adds Akademik events.
     await expect(
       page.getByRole('dialog', { name: 'Tambah acara Akademik' }),
     ).toBeVisible();

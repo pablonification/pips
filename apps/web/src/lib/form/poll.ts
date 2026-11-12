@@ -1,5 +1,5 @@
 /**
- * Waiting for a form to open (SPEC "Server windows"). The countdown runs on the device's clock, but the server decides:
+ * Waiting for a form to open. The countdown runs on the device's clock, but the server decides:
  * at zero the screen asks again, then every 3 s (plus up to 1 s of jitter, so a whole angkatan doesn't ask at once) for
  * at most 2 minutes. Questions show only when the server sends `sections`.
  */

@@ -1,8 +1,7 @@
 /**
- * The few checks the app makes on data it didn't receive from the API (F2-004): the URL's search params and the member
- * kept on the device. They were zod schemas, and zod (12.5 KiB gzip) then loaded before every page's first render
- * (SPEC "Performance architecture and budgets"). These do exactly what those schemas did, and
- * `tests/params.test.ts` holds them to zod's own answers on the same inputs:
+ * The few checks the app makes on data it didn't receive from the API: the URL's search params and the member
+ * kept on the device. Plain checks instead of zod, which would add 12.5 KiB (gzip) to every page's first render.
+ * They behave like the zod schemas, and `tests/params.test.ts` holds them to zod's own answers on the same inputs:
  * - `object(shape).parse(input)` keeps only the shape's keys (others are dropped), and throws on a non-object. Each
  *   key is zod's `.optional().catch(undefined)`: a key that is there but doesn't pass is kept as `undefined` (never
  *   an error page), a key that isn't there stays out;

@@ -1,30 +1,6 @@
 /**
- * Extracts all URLs from a given string.
- *
- * This function uses a regular expression to find and extract all URLs within the provided text.
- * It supports various URL formats, including HTTP, HTTPS, FTP, and URLs with or without schemes.
- *
- * @param {string} text - The input string from which to extract URLs.
- * @returns {string[]} An array of URLs found in the input string. Returns an empty array if no URLs are found.
- *
- * @example
- * const text = `
- * Here are some links:
- * - http://example.com
- * - https://www.example.com/path?query=string#fragment
- * - ftp://example.com/resource/file.txt
- * - Just a plain text here
- * - www.example.co.uk
- * `;
- *
- * const urls = extractUrls(text);
- * console.log(urls);
- * // Output: [
- * //   'http://example.com',
- * //   'https://www.example.com/path?query=string#fragment',
- * //   'ftp://example.com/resource/file.txt',
- * //   'www.example.co.uk'
- * // ]
+ * The distinct URLs in a text, in order of appearance: http, https and ftp addresses, and bare domains such as
+ * `www.example.co.uk`. Empty when there are none.
  */
 export function extractUrls(text: string): string[] {
   // The user-info before `@` and the number of domain labels are bounded so the pattern can't backtrack across the
@@ -35,18 +11,8 @@ export function extractUrls(text: string): string[] {
   return [...new Set(urls)];
 }
 
-/**
- * Removes all punctuation and symbol characters from the start and end of a string.
- *
- * @param {string} str - The input string from which to remove punctuation.
- * @returns {string} - The resulting string with punctuation removed from the start and end.
- *
- * @example
- * // Returns "Hello, world"
- * removePunctuation("!Hello, world!");
- */
+/** Removes punctuation and symbols from the start and end of a string: `"!Hello, world!"` gives `"Hello, world"`. */
 export function removePunctuation(str: string): string {
-  // Regular expression to match punctuation at the start and end of a string
   const punctuationRegex = /^[\p{P}\p{S}]+|[\p{P}\p{S}]+$/gu;
   return str.replace(punctuationRegex, '');
 }

@@ -1,7 +1,6 @@
 /**
- * Pengumuman's rules, pure so `tests/pengumuman-rules.test.ts` checks each one (the brief's "Rules to unit-test").
- * The prototype's versions are in garis/state.js (`feedPosts`, `audText`, `rTop`, `canRenotify`, `notifyLine`) and
- * the `compose` submit handler in garis/app.js; the server's in apps/api (`info.repo.ts`, `lib/renotify.ts`).
+ * Pengumuman's rules, pure so `tests/pengumuman-rules.test.ts` checks each one. The server's versions are in apps/api
+ * (`info.repo.ts`, `lib/renotify.ts`).
  *
  * Visibility is the server's: nothing here filters posts by angkatan or group.
  */
@@ -36,7 +35,7 @@ import {
 } from './unread';
 
 export { PAGE_SIZE };
-/** Paging loads by itself up to this many pages; after that only Muat lagi does (SPEC "Pengumuman"). */
+/** Paging loads by itself up to this many pages; after that only Muat lagi does. */
 export const AUTO_PAGES = 5;
 /** Umumkan ulang opens again this many hours after the last notification (apps/api `RENOTIFY_DIFF_HOURS`). */
 export const RENOTIFY_HOURS = 3;
@@ -47,7 +46,7 @@ export const MAX_BODY = MAX_INFO_ANNOUNCEMENT_LENGTH;
 
 export type Sort = 'newest' | 'oldest';
 
-/** The feed's view, as P0-B's `pengumumanSearchSchema` reads it from the URL (today's names). */
+/** The feed's view, as the route's `pengumumanSearchSchema` reads it from the URL. */
 export interface FeedView {
   search?: string;
   unread?: boolean;
@@ -81,7 +80,7 @@ export function canonicalView(view: FeedView): CanonicalView {
 export const isDefaultView = (view: FeedView) =>
   Object.values(canonicalView(view)).every((v) => v === undefined);
 
-/** The feed's query key (today's `INFO_LIST_QUERY_KEY` with the view), shared with P1-A's Beranda and search. */
+/** The feed's query key (`INFO_LIST_QUERY_KEY` with the view), shared with Beranda and search. */
 export function feedKey(listKey: string, view: FeedView) {
   const v = canonicalView(view);
   return [listKey, v.search, v.unread, v.excludeCategories, v.sort] as const;
@@ -122,8 +121,8 @@ export function toggleHidden(hidden: readonly string[], name: string) {
 }
 
 /**
- * Why the list is empty (`feedList`): the search first, then unread only, then the hidden categories. Null when
- * nothing narrows the list (there are no posts at all): then there's no reason to give and nothing to reset.
+ * Why the list is empty: the search first, then unread only, then the hidden categories. Null when nothing narrows
+ * the list (there are no posts at all): then there's no reason to give and nothing to reset.
  */
 export function emptyReason(view: FeedView): string | null {
   const v = canonicalView(view);
@@ -170,7 +169,7 @@ export const myReaction = (agg: ReactionAggregate) =>
 export const reactionTotal = (agg: ReactionAggregate) =>
   reactionCounts(agg).reduce((n, r) => n + r.count, 0);
 
-/** The three most given (ties keep the app's order), as the feed's stacked summary (`rTop`). */
+/** The three most given (ties keep the app's order), as the feed's stacked summary. */
 export function topReactions(agg: ReactionAggregate, n = 3) {
   return reactionCounts(agg)
     .filter((r) => r.count > 0)
@@ -210,7 +209,7 @@ export function applyReaction(
   return out;
 }
 
-/** The feed's reaction button's name (`reactSummaryBtn`). */
+/** The feed's reaction button's name. */
 export function summaryLabel(agg: ReactionAggregate) {
   const mine = myReaction(agg);
   const total = reactionTotal(agg);
@@ -293,11 +292,11 @@ export function menuModel(
 
 /* ================= Audience ================= */
 
-/** "2025 · PIXEL", or the year alone when the angkatan has no name (`angLabel`). */
+/** "2025 · PIXEL", or the year alone when the angkatan has no name. */
 export const angLabel = (a: Pick<Angkatan, 'year' | 'name'>) =>
   a.name ? `${a.year} · ${a.name}` : String(a.year);
 
-/** The audience line: "Untuk angkatan 2025 · PIXEL", "Untuk grup Akademik", "Untuk semua anggota" (`audText`). */
+/** The audience line: "Untuk angkatan 2025 · PIXEL", "Untuk grup Akademik", "Untuk semua anggota". */
 export function audText(info: Pick<Info, 'infoAngkatan' | 'infoGroups'>) {
   const ang = info.infoAngkatan ?? [];
   const groups = info.infoGroups ?? [];
@@ -334,7 +333,7 @@ export interface DraftErrors {
   aud?: string;
 }
 
-/** The `compose` submit handler's checks, with its exact messages. */
+/** The composer's checks, with their exact messages. */
 export function validateDraft(d: Draft): DraftErrors {
   const err: DraftErrors = {};
   if (!d.body.trim()) err.body = t.tulis.errIsi;
@@ -378,8 +377,8 @@ export function audienceKinds(groups: readonly UserGroup[]): AudienceKind[] {
 }
 
 /**
- * Who gets the push, and who sees the post (`notifyLine`). The server skips members who muted **all** the post's
- * categories (apps/api `notifyNewInfo`), hence "kecuali yang mematikan kategori A dan B".
+ * Who gets the push, and who sees the post. The server skips members who muted **all** the post's categories
+ * (apps/api `notifyNewInfo`), hence "kecuali yang mematikan kategori A dan B".
  */
 export function notifyLine(
   d: Pick<Draft, 'audType' | 'aud' | 'cats'>,
@@ -443,7 +442,7 @@ export type LinkKind = 'gform' | 'sheet' | 'web';
 /**
  * A link's card: Google Forms open inside PIPS!, Sheets get the sheet tile, others the link tile. Decided by the
  * link's own host and path only (and the address the preview was fetched for), never by what its page says about
- * itself, so no other site opens inside PIPS! (review minor 5).
+ * itself, so no other site opens inside PIPS!.
  */
 export function linkKind(
   url: string,
@@ -486,10 +485,9 @@ export function hostOf(url: string) {
 /* ================= Text ================= */
 
 /**
- * The post's text as shown: a link alone on one of its last lines is dropped, since its card follows right below
- * (the prototype keeps a post's link apart from its text; a deviation listed for the owner). Only a line that is
- * exactly a link with a card (`extractUrls`, as the cards use it) and looks like one (a scheme, `www.` or a path),
- * so a last line like "file.pdf" or "HMIF.ITB" stays. Links inside the text stay, made links.
+ * The post's text as shown: a link alone on one of its last lines is dropped, since its card follows right below.
+ * Only a line that is exactly a link with a card (`extractUrls`, as the cards use it) and looks like one (a scheme,
+ * `www.` or a path), so a last line like "file.pdf" or "HMIF.ITB" stays. Links inside the text stay, made links.
  */
 export function displayText(content: string) {
   const cards = new Set(extractUrls(content));

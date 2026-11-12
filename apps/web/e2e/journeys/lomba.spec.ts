@@ -1,8 +1,8 @@
 /**
- * Info Lomba for members (P2-B): open competitions, soonest deadline first, every page reachable. Phone, tablet and
+ * Info Lomba for members: open competitions, soonest deadline first, every page reachable. Phone, tablet and
  * desktop, light and dark, with strict gates.
  *
- * Garis v5: every competition's 3:4 poster, beside the facts on phones (104 px, 88 px on 320 px phones) and a grid of
+ * Every competition has a 3:4 poster, beside the facts on phones (104 px, 88 px on 320 px phones) and a grid of
  * poster cards on tablets (3 columns) and desktops (3 at 1024, 4 at 1440), Daftar lined up across each row. Tapping a
  * poster opens the poster viewer.
  */
@@ -42,7 +42,7 @@ function sizesFor(testInfo: TestInfo) {
     { width: 320, height: 640 },
   ];
 }
-/** Poster columns (Garis v5): phones one list; tablets 3; desktops 3 at 1024 and 4 at 1440. */
+/** Poster columns: phones one list; tablets 3; desktops 3 at 1024 and 4 at 1440. */
 const posterColumns = (width: number) =>
   width < 640 ? 1 : width < 1024 ? 3 : width < 1300 ? 3 : 4;
 
@@ -165,7 +165,7 @@ test.describe('Info Lomba', () => {
   });
 
   for (const how of ['scroll', 'Muat lagi'] as const) {
-    test(`regression: 12 competitions, the second page at offset 10 by ${how}, then no third request`, async ({
+    test(`12 competitions, the second page at offset 10 by ${how}, then no third request`, async ({
       page,
       api,
       db,
@@ -206,7 +206,7 @@ test.describe('Info Lomba', () => {
       expect(offsets(api)).toEqual(['0', '10']);
       // The second page was short: no more to ask for.
       await expect(more).toHaveCount(0);
-      // Regression (P2-B review, finding 1): the button went away with focus on it, dropping keyboard users to the
+      // The button goes away while focused, which would drop keyboard users to the
       // page's start. Focus moves to the first competition that just arrived.
       if (how === 'Muat lagi')
         await expect(
@@ -217,7 +217,7 @@ test.describe('Info Lomba', () => {
     });
   }
 
-  test('regression: when the next page fails, focus moves from Muat lagi to Coba lagi, then to what arrives', async ({
+  test('when the next page fails, focus moves from Muat lagi to Coba lagi, then to what arrives', async ({
     page,
     api,
     db,
@@ -305,7 +305,7 @@ test.describe('Info Lomba', () => {
   });
 });
 
-test.describe('Info Lomba posters (Garis v5)', () => {
+test.describe('Info Lomba posters', () => {
   test('every competition has its 3:4 poster: beside the facts on phones, a grid with Daftar lined up elsewhere', async ({
     page,
   }, testInfo) => {
@@ -525,7 +525,7 @@ test.describe('Info Lomba posters (Garis v5)', () => {
   });
 });
 
-// Regression (FEATURES.md gap 3): today's phone "+" showed to everyone. Only cnc may add a competition (P3-B).
+// Only cnc may add a competition; no one else sees the "+".
 for (const persona of ['anggota', 'pengurus'] as const) {
   test.describe(`Info Lomba for ${persona}`, () => {
     test.use({ persona });

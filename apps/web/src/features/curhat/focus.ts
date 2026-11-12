@@ -1,6 +1,6 @@
 /**
- * A room opened from Mulai ruang baru starts with the composer focused (app.js `new-room`), instead of the page's
- * title where the shell puts focus after a navigation.
+ * A room opened from Mulai ruang baru starts with the composer focused, instead of the page's title where the shell
+ * puts focus after a navigation.
  */
 let composerWanted = false;
 
@@ -15,7 +15,7 @@ export function takeComposerFocus(): boolean {
   return wanted;
 }
 
-/** The page's scrolling area (the shell's, P0-C). */
+/** The page's scrolling area (the shell's). */
 export const scroller = () =>
   document.querySelector<HTMLElement>('[data-scroll-restoration-id="isi"]');
 

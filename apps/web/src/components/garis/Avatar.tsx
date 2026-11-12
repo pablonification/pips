@@ -2,7 +2,6 @@ import { useState, type ButtonHTMLAttributes, type Ref } from 'react';
 import { cn } from '~/lib/utils';
 
 export interface AvatarProps {
-  /** One or two letters. */
   initials: string;
   /** The person's photo, when they have one: it covers the initials once it loads, and they stay if it fails. */
   picture?: string | null;
@@ -26,7 +25,7 @@ const classes = (
   );
 
 /**
- * A person's initials (garis.css `.avatar`), or their photo when there is one and it loads. Decorative: the name is
+ * A person's initials, or their photo when there is one and it loads. Decorative: the name is
  * always written next to it.
  */
 export function Avatar({

@@ -1,6 +1,5 @@
 /**
- * Helpers for P1-A's journeys (Beranda, Kalender, search): the strict gates on every screen they reach (SPEC
- * "Testing Decisions"), the widths and zoom the layouts must fit, touch targets and visible focus.
+ * Helpers for the Beranda, Kalender and search journeys: the strict gates on every screen they reach, the widths and zoom the layouts must fit, touch targets and visible focus.
  */
 import { expect, type Page, type TestInfo } from '@playwright/test';
 import { audit, gateFailures } from './audit';
@@ -105,7 +104,7 @@ export async function focusIsVisible(page: Page): Promise<boolean> {
     const ring =
       (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0) ||
       s.boxShadow !== 'none';
-    // A tile draws its ring on its key (garis.css `.tile-btn:focus-visible .key`).
+    // A tile draws its ring on its key (`.tile-btn:focus-visible .key`).
     const inner = el.querySelector<HTMLElement>('.key');
     const innerRing = inner
       ? getComputedStyle(inner).outlineStyle !== 'none'

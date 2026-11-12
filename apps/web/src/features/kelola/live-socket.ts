@@ -1,6 +1,6 @@
 /**
  * Live Counting's connection, kept apart from React and from socket.io's module so tests/live-socket.test.ts can
- * drive it with a fake socket and fake timers (web-robust 3 and 4):
+ * drive it with a fake socket and fake timers:
  * - socket.io-client loads on demand. If it can't (offline, or its file gone after a deploy), it tries again when the
  *   device is back online, or after 2, 4, 8… up to 30 s, instead of staying disconnected for good.
  * - The server can end the connection itself (`io server disconnect`: the session expired, or the server couldn't

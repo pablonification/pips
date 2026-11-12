@@ -25,7 +25,7 @@ import {
   type ShellPath,
 } from '../src/lib/shell/routes';
 
-/* The shell's rules (P0-C): the route table, back's parent, the lit navigation item, the desktop breadcrumbs,
+/* The shell's rules: the route table, back's parent, the lit navigation item, the desktop breadcrumbs,
    global search's results and shortcut, and the avatar's initials. */
 
 const PATHS = Object.keys(ROUTE_META) as ShellPath[];
@@ -60,10 +60,10 @@ test('every parent is a route of its own, and following parents always reaches a
   }
 });
 
-test('titles: members’ service names and the prototype’s page names', () => {
+test('titles: members’ service names and the app’s page names', () => {
   assert.equal(titleOf('/layanan/dingdong'), 'Ding Dong');
   assert.equal(titleOf('/layanan/curhat'), 'Curhat Yuk!');
-  // The prototype's titleOf and the locked desk-pengurus-live screen ("Kelola › Live Counting"); the page's own
+  // The top bar and breadcrumbs say "Kelola › Live Counting"; the page's own
   // heading is the long service name.
   assert.equal(titleOf('/kelola/live'), 'Live Counting');
   assert.equal(titleOf('/kelola/live/$formId'), 'Live Counting');
@@ -73,8 +73,8 @@ test('titles: members’ service names and the prototype’s page names', () => 
   for (const p of PATHS) assert.ok(titleOf(p, { id: 'x' }).length > 0, p);
 });
 
-test('document titles: the live page is "Live Counting & Rekap Form" in the browser tab (review P3-A m8)', () => {
-  // The top bar and breadcrumbs keep the prototype's short name; the browser tab names the whole service.
+test('document titles: the live page is "Live Counting & Rekap Form" in the browser tab', () => {
+  // The top bar and breadcrumbs keep the short name; the browser tab names the whole service.
   assert.equal(
     documentTitleOf('/kelola/live/$formId', { formId: 'pixel' }),
     'Live Counting & Rekap Form',
@@ -93,9 +93,9 @@ test('document titles: the live page is "Live Counting & Rekap Form" in the brow
       assert.equal(documentTitleOf(p, { id: 'x' }), titleOf(p, { id: 'x' }), p);
 });
 
-test('focused flows are the form, the composer, a Curhat room and Magang SPARTA (SPEC story 19; P2-A brief), and first run (P1-C)', () => {
+test('focused flows are the form, the composer, a Curhat room and Magang SPARTA, and first run', () => {
   assert.deepEqual(PATHS.filter((p) => ROUTE_META[p].focused).sort(), [
-    // P3-C: a room in Welfare's inbox, as the member's.
+    // A room in Welfare's inbox, as the member's.
     '/kelola/curhat/$roomId',
     '/layanan/curhat/$roomId',
     '/layanan/form/$formId',
@@ -113,17 +113,16 @@ test('the lit item: the tab a page is under; Kelola and Profil have their own on
     'layanan',
   );
   assert.equal(activeItem('/pengumuman/$id', 'desk'), 'pengumuman');
-  // Kelola is in Layanan on phones and tablets, its own sidebar item on desktop (the locked prototype).
+  // Kelola is in Layanan on phones and tablets, its own sidebar item on desktop.
   assert.equal(activeItem('/kelola/live/$formId', 'touch'), 'layanan');
   assert.equal(activeItem('/kelola/live/$formId', 'desk'), 'kelola');
-  // Profil keeps the tab you came from lit on phones (the prototype's stack); on desktop it is your name.
+  // Profil keeps the tab you came from lit on phones; on desktop it is your name.
   assert.equal(
     activeItem('/profil/notifikasi', 'touch', 'kalender'),
     'kalender',
   );
   assert.equal(activeItem('/profil/notifikasi', 'desk', 'kalender'), 'profil');
-  // Opened directly (no tab yet this visit), Profil and its pages light no tab, as the locked screens (Dev 1's
-  // decision; P0-C lit Beranda). Desktop still lights your name.
+  // Opened directly (no tab yet this visit), Profil and its pages light no tab. Desktop still lights your name.
   assert.equal(activeItem('/profil', 'touch'), null);
   assert.equal(activeItem('/profil/matkul/tambah', 'touch', null), null);
   assert.equal(activeItem('/profil', 'desk'), 'profil');
@@ -156,7 +155,7 @@ test('the desktop breadcrumbs start at the sidebar item and end at the page', ()
     '/layanan',
     '/layanan/dingdong',
   ]);
-  // P3-A: "Kelola › Live Counting", as the locked desk-pengurus-live capture; /kelola/live forwards to the only
+  // "Kelola › Live Counting"; /kelola/live forwards to the only
   // form, so it is never a form page's parent.
   assert.deepEqual(trail('/kelola/live/$formId', { formId: 'pixel' }), [
     '/kelola',
@@ -167,7 +166,7 @@ test('the desktop breadcrumbs start at the sidebar item and end at the page', ()
     '/kelola/live/pixel',
     '/kelola/live/pixel/rekap',
   ]);
-  // P3-C: Kelola › Curhat Yuk! › the room.
+  // Kelola › Curhat Yuk! › the room.
   assert.deepEqual(trail('/kelola/curhat/$roomId', { roomId: 'r1' }), [
     '/kelola',
     '/kelola/curhat',
@@ -204,8 +203,8 @@ test('the desktop breadcrumbs start at the sidebar item and end at the page', ()
     assert.equal(trailOf(p).length, 1, p);
 });
 
-test('a split page shows no breadcrumbs on desktop: the post beside the feed (the prototype’s openPost)', () => {
-  // Review M3: "Pengumuman › Pengumuman" over the post.
+test('a split page shows no breadcrumbs on desktop: the post beside the feed', () => {
+  // No "Pengumuman › Pengumuman" over the post.
   assert.deepEqual(deskCrumbs('/pengumuman/$id', { id: 'p1' }), []);
   assert.deepEqual(
     deskCrumbs('/layanan/dingdong').map((c) => c.href),

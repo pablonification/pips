@@ -1,6 +1,6 @@
 /**
- * The post's menu (`menuList`, `menuBtn`): mark read or unread for everyone, Umumkan ulang for the author, Hapus
- * for the author or admin. Every item renders through the capability map (`menuModel` uses `canDeleteContent`).
+ * The post's menu: mark read or unread for everyone, Umumkan ulang for the author, Hapus for the author or admin.
+ * Every item renders through the capability map (`menuModel` uses `canDeleteContent`).
  */
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';

@@ -1,7 +1,7 @@
 /**
- * The Kelola Curhat layout (P3-C): Welfare's one connection for the inbox and its rooms, opened only once
- * `KelolaGate` lets them in and closed when they leave. The handshake's `auth: { curhat: true }` joins Welfare to
- * every room (the API, OPEN-QUESTIONS A7); everything else is the member side's connection (`useCurhatConnection`).
+ * The Kelola Curhat layout: Welfare's one connection for the inbox and its rooms, opened only once `KelolaGate` lets
+ * them in and closed when they leave. The handshake's `auth: { curhat: true }` joins Welfare to every room; everything
+ * else is the member side's connection (`useCurhatConnection`).
  */
 import { Outlet } from '@tanstack/react-router';
 import { useCurhatConnection } from '~/features/curhat/Area';
