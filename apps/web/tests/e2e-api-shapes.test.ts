@@ -102,7 +102,7 @@ test('PIXEL q1 and q2 ask for prefill', () => {
   );
 });
 
-// Regression: the harness answered 404 when a member had no SPARTA submission; the API answers 200 null.
+// The harness answers 200 null when a member has no SPARTA submission, as the API does.
 test('SPARTA: 200 null without a submission, 401 for a member it is not for, and the window', () => {
   const nadia = buildDb('anggota');
   nadia.internshipSubmissions = [];

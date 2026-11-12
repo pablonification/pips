@@ -137,7 +137,7 @@ test('posting: open categories for everyone, restricted ones by role, an empty l
   assert.equal(canPostInCategory(nadia, {}), true);
   assert.equal(canPostInCategory(nadia, { rolesAllowed: ['akademik'] }), false);
   assert.equal(canPostInCategory(raka, { rolesAllowed: ['akademik'] }), true);
-  // Review m1: the server lists a category only when rolesAllowed IS NULL or one of the member's roles is in it,
+  // The server lists a category only when rolesAllowed IS NULL or one of the member's roles is in it,
   // and an empty JSON array has no roles, so [] means nobody can post there.
   assert.equal(canPostInCategory(nadia, { rolesAllowed: [] }), false);
   assert.equal(canPostInCategory(raka, { rolesAllowed: [] }), false);

@@ -346,7 +346,7 @@ test('the opening poll: waits for zero, then asks every 3–4 s, stops when sect
   assert.equal(polls, POLL_FOR_MS / POLL_EVERY_MS);
 });
 
-test('drafts: today’s key, 14 days, and today’s bungkus format (so its drafts restore)', () => {
+test('drafts: the same key, 14 days, and the same bungkus format (so earlier drafts restore)', () => {
   assert.equal(DRAFT_DAYS, 14);
   assert.equal(DRAFT_HOURS, 24 * 14, 'today’s kadaluarsa: 24 * 14');
   assert.equal(draftKey('pixel', 'u1'), 'hmif-form-pixel-u1');

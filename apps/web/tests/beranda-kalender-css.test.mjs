@@ -11,7 +11,7 @@ const read = (rel) =>
   fs
     .readFileSync(path.resolve(import.meta.dirname, '..', rel), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '');
-// Review m10: a header named a test file that doesn't exist. Every `tests/…` a header names must be there.
+// A header must not name a test file that doesn't exist. Every `tests/…` a header names must be there.
 test('the styles’ headers name test files that exist', () => {
   for (const rel of [
     'src/features/beranda/beranda.css',

@@ -8,7 +8,7 @@ import { ESLint } from 'eslint';
 const appDir = path.resolve(import.meta.dirname, '..');
 const eslint = new ESLint({ cwd: appDir });
 const NEW = 'src/components/garis/__lint-sample.tsx';
-// A file outside the folders the rules covered before C1 (today's route folders, components, hooks, lib).
+// A file outside the folders the rules covered earlier (the old route folders, components, hooks, lib).
 const OUTSIDE = 'src/routes/_app/__lint-sample.tsx';
 
 async function rules(code, file = NEW) {
@@ -43,14 +43,14 @@ test('arbitrary and non-Garis text sizes are rejected; the type styles pass', as
   assert.deepEqual(await rules(wrap(`<p className="t-display t-sm t-cap num text-fg-3" />`)), []);
 });
 
-// Review m6: a fixed size in a style object slipped past the text-size rule.
+// A fixed size in a style object must not slip past the text-size rule.
 test('a fixed font size in a style object is rejected; a component’s own size prop is its types’ business', async () => {
   for (const bad of [wrap(`<p style={{ fontSize: 11 }} />`), wrap(`<p style={{ fontSize: '0.7rem' }} />`), wrap('<p style={{ fontSize: `${11}px` }} />')])
     assert.deepEqual(await rules(bad), ['garis/no-arbitrary-text-size'], bad);
   assert.deepEqual(await rules(`export function W({ size }: { size: 15 | 20 }) {\n  return <b style={{ fontSize: size }} />;\n}\n`), []);
 });
 
-// Review m6: nothing stopped capitals added by CSS. Sentence case everywhere; the app adds no capitals of its own.
+// Nothing may add capitals by CSS. Sentence case everywhere; the app adds no capitals of its own.
 test('capitals added by styling are rejected: uppercase, capitalize, text-transform', async () => {
   for (const bad of [
     wrap(`<span className="uppercase" />`),

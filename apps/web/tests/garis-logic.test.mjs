@@ -47,7 +47,7 @@ test('a success toast leaves after 5 s, not before; an error toast never leaves 
   assert.equal(store.get().length, 0);
 });
 
-test('regression: the app\'s own timers call setTimeout as a plain function, as browsers require', () => {
+test('the app\'s own timers call setTimeout as a plain function, as browsers require', () => {
   // Browsers throw "Illegal invocation" when setTimeout runs as another object's method; Node doesn't, so the stand-ins
   // throw the same way. The store used to call `timers.set(...)` with `set: setTimeout`, and every success toast threw.
   const real = { set: globalThis.setTimeout, clear: globalThis.clearTimeout };
@@ -80,8 +80,8 @@ test('at most three toasts: the oldest success leaves first, errors are kept', (
   assert.deepEqual(store.get().map((t) => t.message), ['E', 'B', 'C']);
 });
 
-// Review m1: with three errors showing, a new success removed itself at once, and a fourth error evicted the oldest
-// error. Errors stay until the member dismisses them; only older successes make room.
+// With three errors showing, a new success must not remove itself at once, and a fourth error must not evict
+// the oldest error. Errors stay until the member dismisses them; only older successes make room.
 test('errors are never evicted: a new success still shows next to three errors, and a fourth error joins them', () => {
   const store = createToastStore(clock().timers);
   for (const m of ['E1', 'E2', 'E3']) store.error(m);

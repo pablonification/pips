@@ -37,7 +37,7 @@ test("the service keys' glyphs are Beranda's two-tone glyphs, path for path", ()
   }
 });
 
-test('Pengumuman and Kalender are their icons’ lines over the prototype’s fills (MK_FILL)', () => {
+test('Pengumuman and Kalender are their icons’ lines over fills (MK_FILL)', () => {
   assert.deepEqual(KEY_PATHS.pengumuman, [
     ['gf', 'M3.5 9h4L14 5v14l-6.5-4h-4z'],
     ...paths('pengumuman', 'IconPengumuman'),

@@ -1,4 +1,4 @@
-// P2-A: Magang SPARTA's rules (src/lib/form/sparta.ts): steps, the strict check against the draft one, priorities,
+// Magang SPARTA's rules (src/lib/form/sparta.ts): steps, the strict check against the draft one, priorities,
 // and the view from the server's window. The harness's writes (e2e/support/writes.ts) answer as the API's schemas do,
 // so the requests are also checked against them.
 import { strict as assert } from 'node:assert';
@@ -237,7 +237,7 @@ test('the harness (as the API) takes partial drafts, refuses a partial send, the
     status(call(writes.saveSpartaDraft, toRequest(full, divisions))),
     409,
   );
-  // Outside the window: 403, as the server since P0-D.
+  // Outside the window: 403, as the server.
   db.spartaWindow = { ...SPARTA_WINDOW };
   assert.equal(
     status(call(writes.saveSpartaDraft, toRequest(full, divisions))),
@@ -292,7 +292,7 @@ test('the view from the server: not eligible first, then closed, not open, open'
   assert.equal(spartaView({ ...w, status: 'open', eligible: true }), 'open');
 });
 
-test('checkbox answers are one string, as today’s screen stores them', () => {
+test('checkbox answers are one string, as the old screen stored them', () => {
   assert.deepEqual(checkboxValues('X, Y'), ['X', 'Y']);
   assert.deepEqual(checkboxValues(''), []);
   assert.deepEqual(checkboxValues(undefined), []);

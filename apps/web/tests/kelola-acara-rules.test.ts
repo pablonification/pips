@@ -134,7 +134,7 @@ test('validation: a title, a date and both times; an end before the start; equal
   assert.equal(firstError({ end: 'x' }), 'end');
 });
 
-test('the request body: Akademik with its course, trimmed, times as ISO (the brief’s exact body)', () => {
+test('the request body: Akademik with its course, trimmed, times as ISO', () => {
   const d = {
     ...newDraft('akademik', '2026-10-13', 'course-IF3170'),
     title: '  Kuis 2 ',

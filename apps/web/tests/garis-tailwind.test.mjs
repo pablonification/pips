@@ -79,9 +79,8 @@ test('the type styles compile to the design system’s sizes', async () => {
   assert.doesNotMatch(all, /font-family:[^;]*(?:monospace|Mono)/);
 });
 
-// Regression: Tag's "outline" tone also matched Tailwind's `outline` utility, drawing a dark outline round the
-// "Kelas 02" tag in the gallery. The components put these modifier classes next to their g-* class; none may be a
-// Tailwind utility.
+// Tag's "outline" tone must not also match Tailwind's `outline` utility, which drew a dark outline round a tag. The
+// components put these modifier classes next to their g-* class; none may be a Tailwind utility.
 test('no component modifier class is also a Tailwind utility', async () => {
   // The components and the shell.
   const components = ['components.css', 'shell.css'].map((f) => fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8')).join('\n');

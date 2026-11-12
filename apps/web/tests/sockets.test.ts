@@ -9,12 +9,12 @@ import { test } from 'node:test';
 const source = (file: string) =>
   fs.readFileSync(path.resolve(import.meta.dirname, '../src', file), 'utf8');
 
-// Regression: today's Curhat opened its sockets without credentials, which only worked while the API trusted any
-// room id a client sent.
+// Curhat must open its sockets with credentials: without them it only works while the API trusts any
+// room id a client sends.
 for (const file of [
-  // P2-C: the one connection for the Curhat area; P3-C's Welfare inbox shares it (`kelola/curhat/route.tsx`).
+  // The one connection for the Curhat area; the Welfare inbox shares it (`kelola/curhat/route.tsx`).
   'features/curhat/Area.tsx',
-  // P3-A: Live Counting's admin room.
+  // Live Counting's admin room.
   'features/kelola/useFormLive.ts',
 ]) {
   test(`every socket in ${file} sends the session cookie`, () => {

@@ -84,7 +84,7 @@ test("responses CSV: WIB times under another zone (today wrote the device's time
   );
   assert.equal(elsewhere.content, wib.content);
   assert.equal(elsewhere.filename, wib.filename);
-  // Regression: today's exporter writes Los Angeles times.
+  // The old exporter wrote times in the device's zone (Los Angeles here).
   const old = today('responses-los-angeles');
   assert.notEqual(old.bytes, bytesOf(wib.content));
   assert.match(old.bytes, /,07-10-2026 23:31$/m);
@@ -124,7 +124,7 @@ function spartaWorld() {
   return { divisions, byId, subs };
 }
 
-test("SPARTA CSV: byte for byte today's file, partial drafts and a missing division included", async (t) => {
+test("SPARTA CSV: byte for byte the old exporter's file, partial drafts and a missing division included", async (t) => {
   t.mock.timers.enable({ apis: ['Date'], now: NOW });
   const { divisions, byId, subs } = spartaWorld();
   const old = today('sparta');

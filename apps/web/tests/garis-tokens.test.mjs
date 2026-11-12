@@ -137,8 +137,8 @@ test('the measured lows hold: tertiary on muted 5.10:1 light and 6.08:1 dark; in
   assert.equal(contrast(light['--ink'], light['--gold']).toFixed(2), '11.06');
 });
 
-// Review M1: a menu or popover opened from inside a sheet or dialog rendered under the scrim (z-index 30 below 40/41).
-// Every layer now comes from one scale in tokens.css, poppers above the modal layers and toasts above everything.
+// A menu or popover opened from inside a sheet or dialog must not render under the scrim (z-index 30 below 40/41).
+// Every layer comes from one scale in tokens.css, poppers above the modal layers and toasts above everything.
 test('everything that floats takes its z-index from the one layer scale, poppers above sheets and dialogs', () => {
   const z = Object.fromEntries(
     Object.entries(light)

@@ -403,7 +403,7 @@ test('a message is put in its room once, newest first', () => {
   assert.equal(withMessage(list, msg('b', NOW)), list);
 });
 
-test('regression: two messages saved at the same time keep the order they were sent in', () => {
+test('two messages saved at the same time keep the order they were sent in', () => {
   // As the room's cache holds them: newest first, each new one put in front (withMessage).
   let list = withMessage([], msg('satu', NOW, true));
   list = withMessage(list, msg('dua', NOW, true));
