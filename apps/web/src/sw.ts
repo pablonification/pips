@@ -9,6 +9,7 @@ import {
 import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { legacyRedirectHref } from './lib/legacy-redirects';
+import { sharedFromAnotherSite } from './lib/share-origin';
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -147,6 +148,8 @@ interface SharedData {
 registerRoute(
   ({ url }) => url.pathname === '/share-file-handler',
   async ({ request }) => {
+    if (sharedFromAnotherSite(request.headers, self.location.origin))
+      return Response.redirect('/', 303);
     // Get the data from the submitted form.
     const formData = await request.formData();
     const title = formData.get('title') || '';

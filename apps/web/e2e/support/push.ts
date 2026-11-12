@@ -69,6 +69,7 @@ export async function installPushStub(context: BrowserContext, mode: PushMode) {
         hold: () => {
           held ??= [];
         },
+        waiting: () => held?.length ?? 0,
         release: () => {
           const waiting = held ?? [];
           held = null;
@@ -214,6 +215,19 @@ export async function pushDevice(page: Page): Promise<PushDevice> {
 export async function holdSubscribe(page: Page) {
   await page.evaluate(() =>
     (window as unknown as { __e2ePush: { hold: () => void } }).__e2ePush.hold(),
+  );
+}
+
+/**
+ * How many subscriptions `holdSubscribe` is keeping waiting. The app starts its time limit when it asks the push
+ * service, so a test waits for this before it moves the clock; moved earlier, the limit would start after the
+ * clock's run and never end.
+ */
+export async function subscribesWaiting(page: Page): Promise<number> {
+  return page.evaluate(() =>
+    (
+      window as unknown as { __e2ePush: { waiting: () => number } }
+    ).__e2ePush.waiting(),
   );
 }
 
