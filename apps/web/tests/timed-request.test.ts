@@ -99,3 +99,18 @@ test('cancelling still cancels, and clears the time limit', async () => {
   // Nothing fires after the limit would have passed.
   await new Promise((r) => setTimeout(r, 80));
 });
+
+test("the app's client sends an id as one part of the path", async () => {
+  // An id from the address bar is any text; `/` or `?` in it must not reach another route.
+  const { api } = await import('../src/api/client');
+  const urls: string[] = [];
+  globalThis.fetch = (async (url: string) => {
+    urls.push(String(url));
+    return new Response('{}', {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }) as typeof fetch;
+  await api.info.getInfoById({ infoId: '../me?' });
+  assert.deepEqual(urls, ['/api/info/..%2Fme%3F']);
+});

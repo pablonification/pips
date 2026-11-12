@@ -178,11 +178,15 @@ export async function enablePush(onLate?: () => void): Promise<EnableOutcome> {
   return 'aktif';
 }
 
+/** Whether this app start has already told the server about this device's subscription. */
+let linkedThisStart = false;
+
 /**
  * After a sign-in: a device that already has permission and a subscription is linked to the new session again,
  * without asking anything, so notifications keep arriving (the sign-out confirmation promises they resume).
  */
 export async function registerExistingPush() {
+  linkedThisStart = true;
   try {
     const sub = await existingPushSubscription();
     if (sub)
@@ -190,6 +194,15 @@ export async function registerExistingPush() {
   } catch {
     // Best effort: Profil › Notifikasi still offers to turn it on.
   }
+}
+
+/**
+ * Once per app start, when the server has confirmed the session: the device's existing subscription is registered
+ * again (the route is safe to repeat), so a device that looks on is one the server knows. Asks nothing.
+ */
+export function registerExistingPushOnce() {
+  if (linkedThisStart) return;
+  void registerExistingPush();
 }
 
 /**
