@@ -12,17 +12,31 @@ export const CreateOrUpdateReactionSchema = createInsertSchema(reactions).omit({
   creatorId: true,
 });
 
-export const CreateOrUpdateReactionParamsSchema = z.object({
-  infoId: z.string().optional().openapi({
-    example: '1',
-  }),
-  commentId: z.string().optional().openapi({
-    example: '1',
-  }),
-  reaction: z.string().openapi({
-    example: 'haha',
-  }),
-});
+/** The pixel reactions the app offers (apps/web/src/components/garis/pixel-art.ts). */
+export const REACTION_KINDS = [
+  'grin',
+  'heart-eyes',
+  'fire',
+  'cry',
+  'screaming',
+  'party',
+] as const;
+
+export const CreateOrUpdateReactionParamsSchema = z
+  .object({
+    infoId: z.string().min(1).optional().openapi({
+      example: '1',
+    }),
+    commentId: z.string().min(1).optional().openapi({
+      example: '1',
+    }),
+    reaction: z.enum(REACTION_KINDS).openapi({
+      example: 'fire',
+    }),
+  })
+  .refine((r) => (r.infoId === undefined) !== (r.commentId === undefined), {
+    message: 'A reaction is on a post or on a comment',
+  });
 
 export const ReactionQuerySchema = z.object({
   infoId: z.string().optional(),

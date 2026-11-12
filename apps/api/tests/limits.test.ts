@@ -103,6 +103,28 @@ test('a comment over 2,000 characters is refused, on posting and on editing', as
   assert.equal(ok.status, 201);
 });
 
+test('an empty or blank comment is refused, on posting and on editing', async () => {
+  const { calls, deps } = reached();
+  const router = createCommentRouter(deps);
+  for (const content of ['', ' ', '\n\t  \n']) {
+    const res = await callRouter(router, nadia, 'POST', '/comment', {
+      content,
+      repliedInfoId: 'i1',
+    });
+    assert.equal(res.status, 400, JSON.stringify(content));
+    const edit = await callRouter(router, nadia, 'PUT', '/comment/c1', {
+      content,
+    });
+    assert.equal(edit.status, 400, JSON.stringify(content));
+  }
+  assert.equal(calls.length, 0);
+  const ok = await callRouter(router, nadia, 'POST', '/comment', {
+    content: ' k ',
+    repliedInfoId: 'i1',
+  });
+  assert.equal(ok.status, 201);
+});
+
 test('a Curhat message over 5,000 characters is invalid', () => {
   const msg = (n: number) => ({ chatroomId: 'r1', message: 'm'.repeat(n) });
   assert.equal(CurhatMessagePayloadSchema.safeParse(msg(5000)).success, true);

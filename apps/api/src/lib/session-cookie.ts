@@ -13,7 +13,7 @@ export function sessionCookieOptions(): CookieOptions {
     path: '/',
     secure: true,
     httpOnly: true,
-    maxAge: parseInt(env.TOKEN_EXPIRATION),
+    maxAge: env.TOKEN_EXPIRATION,
     sameSite: 'Lax',
   };
 }

@@ -199,8 +199,8 @@ test("a post's comments and reactions follow its audience: 404 for another angka
     ['GET', '/reaction?infoId=ia-pixel'],
     ['GET', '/reaction?commentId=ia-pixel-comment'],
     ['POST', '/comment', { repliedInfoId: 'ia-pixel', content: 'Halo' }],
-    ['PUT', '/reaction', { infoId: 'ia-pixel', reaction: 'haha' }],
-    ['PUT', '/reaction', { commentId: 'ia-pixel-comment', reaction: 'haha' }],
+    ['PUT', '/reaction', { infoId: 'ia-pixel', reaction: 'fire' }],
+    ['PUT', '/reaction', { commentId: 'ia-pixel-comment', reaction: 'fire' }],
   ];
   // A post for a group the member isn't in: the same.
   const forGroup: Array<[string, string, unknown?]> = [
@@ -209,7 +209,7 @@ test("a post's comments and reactions follow its audience: 404 for another angka
     ['GET', '/comment/ia-dpp-comment'],
     ['GET', '/reaction?infoId=ia-dpp'],
     ['POST', '/comment', { repliedInfoId: 'ia-dpp', content: 'Halo' }],
-    ['PUT', '/reaction', { infoId: 'ia-dpp', reaction: 'haha' }],
+    ['PUT', '/reaction', { infoId: 'ia-dpp', reaction: 'fire' }],
   ];
   for (const [method, path, body] of forGroup)
     assert.equal(await nadia(method, path, body), 404, `${method} ${path}`);

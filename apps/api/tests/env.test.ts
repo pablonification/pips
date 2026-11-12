@@ -6,18 +6,76 @@ import { isDevLoginEnabled } from '../src/lib/dev-login';
 // The variables production must already have; everything else has a default.
 const required = {
   DATABASE_URL: 'postgres://user:pass@db.example.test:5432/hmif',
-  SMTP_HOST: 'smtp.example.test',
-  SMTP_PORT: '465',
-  SMTP_PASS: 'x',
   GOOGLE_CLIENT_ID: 'x',
   GOOGLE_CLIENT_SECRET: 'x',
   GOOGLE_CALLBACK_URL: 'https://app.example.test/callback',
-  JWT_SECRET: 'x',
+  JWT_SECRET: 'a-placeholder-secret-of-32-characters',
   TOKEN_EXPIRATION: '3600',
-  // Their defaults ('not-specified') aren't URLs, so these must be set too.
   R2_ENDPOINT: 'https://r2.example.test',
   R2_PUBLIC_URL: 'https://files.example.test',
+  VAPID_PUBLIC_KEY: 'placeholder-public-key',
+  VAPID_PRIVATE_KEY: 'placeholder-private-key',
 };
+
+const without = (key: keyof typeof required) => {
+  const rest: Record<string, string> = { ...required };
+  delete rest[key];
+  return rest;
+};
+
+const fieldErrors = (input: Record<string, string>) => {
+  const result = EnvSchema.safeParse(input);
+  assert.equal(result.success, false);
+  return result.error!.flatten().fieldErrors as Record<string, string[]>;
+};
+
+test('the API starts without mail settings, and the old ones are ignored', () => {
+  assert.doesNotThrow(() => EnvSchema.parse(required));
+  assert.doesNotThrow(() =>
+    EnvSchema.parse({
+      ...required,
+      SMTP_HOST: 'smtp.example.test',
+      SMTP_PORT: '465',
+      SMTP_PASS: 'x',
+      SMTP_USER: 'not an email',
+    }),
+  );
+});
+
+test('a session length is a whole number of seconds, at least a minute', () => {
+  assert.equal(EnvSchema.parse(required).TOKEN_EXPIRATION, 3600);
+  assert.equal(
+    EnvSchema.parse({ ...required, TOKEN_EXPIRATION: '2592000' })
+      .TOKEN_EXPIRATION,
+    2592000,
+  );
+  for (const bad of ['1h', '7d', 'abc', '59', '0', '-60', '90.5', '']) {
+    assert.ok(
+      fieldErrors({ ...required, TOKEN_EXPIRATION: bad }).TOKEN_EXPIRATION,
+      bad,
+    );
+  }
+});
+
+test('the session secret has at least 32 characters', () => {
+  for (const bad of ['', 'x', 'placeholder-secret', 'a'.repeat(31)]) {
+    assert.ok(fieldErrors({ ...required, JWT_SECRET: bad }).JWT_SECRET, bad);
+  }
+  assert.doesNotThrow(() =>
+    EnvSchema.parse({ ...required, JWT_SECRET: 'a'.repeat(32) }),
+  );
+});
+
+test('the file store and push keys are required, and a missing one is named as missing', () => {
+  for (const key of [
+    'R2_ENDPOINT',
+    'R2_PUBLIC_URL',
+    'VAPID_PUBLIC_KEY',
+    'VAPID_PRIVATE_KEY',
+  ] as const) {
+    assert.deepEqual(fieldErrors(without(key))[key], ['Required'], key);
+  }
+});
 
 test('production defaults: test login off, every interface', () => {
   const env = EnvSchema.parse(required);

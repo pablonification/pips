@@ -7,6 +7,7 @@ import { usePlaceholderEnv } from '../scripts/placeholder-env';
 // Starts the real server (`src/index.ts`, as `pnpm start` does) with placeholder settings on a free port in this
 // task's range, and checks it answers. The database address leads nowhere; nothing here needs it.
 const PORT = Number(process.env.API_START_TEST_PORT ?? 4349);
+const CALENDAR_KEY_MISSING = 'Kalender changes will fail';
 
 test(
   'the API still starts and answers after the app/server split',
@@ -53,5 +54,15 @@ test(
     assert.deepEqual(await res.json(), { message: 'Server runs successfully' });
     assert.equal((await fetch(`${base}/api/me`)).status, 401);
     assert.match(output, new RegExp(`Server is running on port ${PORT}`));
+    // The placeholder settings name no Kalender key file that exists: the API says so once and still serves.
+    assert.equal(output.split(CALENDAR_KEY_MISSING).length - 1, 1, output);
   },
 );
+
+test('no warning when the Kalender key file exists', async () => {
+  usePlaceholderEnv();
+  const { calendarKeyWarning } = await import('../src/lib/googleapi');
+  assert.equal(calendarKeyWarning(import.meta.filename), null);
+  const warning = calendarKeyWarning('/nonexistent/google_credentials.json');
+  assert.ok(warning?.includes(CALENDAR_KEY_MISSING));
+});
