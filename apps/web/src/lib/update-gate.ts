@@ -4,6 +4,22 @@
  * holds text or a send is in flight, and happens on the next move to another page; or the next start, which loads
  * the new version anyway.
  */
+/** Sends that live outside React Query (Curhat's outbox), each held while it has something unsent or failed. */
+const holds = new Set<() => boolean>();
+const onRelease = new Set<() => void>();
+const held = () => [...holds].some((unsent) => unsent());
+
+/**
+ * Holds a waiting update while `unsent()` is true. Call what it returns when the sends are dropped (the Curhat area
+ * closed): a waiting update may then apply, since that cleanup can run after the page change was already seen.
+ */
+export function holdUpdateWhile(unsent: () => boolean): () => void {
+  holds.add(unsent);
+  return () => {
+    if (holds.delete(unsent)) onRelease.forEach((retry) => retry());
+  };
+}
+
 export function createUpdateGate({
   typing,
   sending,
@@ -16,18 +32,21 @@ export function createUpdateGate({
   reload: () => void;
 }) {
   let waiting = false;
+  const busy = () => sending() || held();
+  /** Another page opened: the last page's boxes are gone (kept in the tab, src/lib/unsent-text.ts). */
+  const navigated = () => {
+    if (!waiting || busy()) return;
+    waiting = false;
+    reload();
+  };
+  onRelease.add(navigated);
   return {
     /** The new version is ready. */
     newVersion() {
-      if (typing() || sending()) waiting = true;
+      if (typing() || busy()) waiting = true;
       else reload();
     },
-    /** Another page opened: the last page's boxes are gone (kept in the tab, src/lib/unsent-text.ts). */
-    navigated() {
-      if (!waiting || sending()) return;
-      waiting = false;
-      reload();
-    },
+    navigated,
   };
 }
 

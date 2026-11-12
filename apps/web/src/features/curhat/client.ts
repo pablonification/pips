@@ -155,6 +155,16 @@ export class CurhatClient {
     return (this.options.now?.() ?? new Date()).toISOString();
   }
 
+  /** A message waits for its answer or failed ("Gagal · Kirim ulang"): it lives only here, in memory. */
+  hasUnsent(): boolean {
+    return (
+      !this.closed &&
+      this.state.outbox.some(
+        (e) => e.status === 'pending' || e.status === 'failed',
+      )
+    );
+  }
+
   /** Send a message to a room; it shows at once and settles into delivered or failed. */
   send(chatroomId: string, text: string, replyId: string | null): OutboxEntry {
     const entry: OutboxEntry = {

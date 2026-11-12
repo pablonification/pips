@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import useSession from '~/hooks/auth/useSession';
 import type { ListChatroom } from '~/api/generated';
 import { can } from '~/lib/capabilities';
+import { holdUpdateWhile } from '~/lib/update-gate';
 import { CurhatClient, DeferredSocket, type SocketLike } from './client';
 import {
   CurhatClientContext,
@@ -117,10 +118,14 @@ export function useCurhatConnection(
     const unsubscribe = qc.getQueryCache().subscribe((event) => {
       if (event.type === 'updated' && event.query.queryHash === rooms) settle();
     });
+    // A new version waits while a message is unsent or failed, since a reload would lose it; leaving the area drops
+    // the outbox, and the update may apply.
+    const release = holdUpdateWhile(() => c.hasUnsent());
     setClient(c);
     return () => {
       unsubscribe();
       c.close();
+      release();
     };
   }, [qc]);
 

@@ -1,6 +1,10 @@
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
-import { createUpdateGate, holdsText } from '../src/lib/update-gate';
+import {
+  createUpdateGate,
+  holdsText,
+  holdUpdateWhile,
+} from '../src/lib/update-gate';
 
 /*
  * A new version takes over the tab only when nothing would be lost: no text box holds text and nothing is being
@@ -86,4 +90,29 @@ test('which fields count as holding text', () => {
     assert.equal(holdsText([f({ type, value: 'on' })]), false, type);
   assert.equal(holdsText([f({ value: 'x', readOnly: true })]), false);
   assert.equal(holdsText([f({ value: 'x', disabled: true })]), false);
+});
+
+test('a Curhat message unsent or failed holds the update, past page changes, until the area lets go of it', () => {
+  const h = harness();
+  let unsent = true;
+  const release = holdUpdateWhile(() => unsent);
+  h.gate.newVersion();
+  assert.equal(h.reloads(), 0);
+  h.gate.navigated();
+  assert.equal(h.reloads(), 0, 'still unsent');
+  // Leaving the Curhat area drops its outbox and lets go; that page change may run before the area's cleanup.
+  unsent = false;
+  release();
+  assert.equal(h.reloads(), 1);
+  release();
+  assert.equal(h.reloads(), 1, 'once');
+});
+
+test('a hold that never had anything unsent changes nothing; letting go with no update waiting never reloads', () => {
+  const h = harness();
+  const release = holdUpdateWhile(() => false);
+  release();
+  assert.equal(h.reloads(), 0);
+  h.gate.newVersion();
+  assert.equal(h.reloads(), 1);
 });
