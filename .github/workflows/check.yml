@@ -281,12 +281,63 @@ jobs:
             apps/web/e2e/.results
           retention-days: 14
 
+  e2e-real:
+    name: e2e real api
+    # A few journeys with the production build talking to the real API, on a database seeded with made-up data
+    # (apps/web/e2e/real): the other journeys answer every request from a pretend API.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pips_real_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium for Playwright
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      # Migrates and seeds the database, starts the API on it with placeholder settings, builds the web app against
+      # that API and runs the journeys (apps/web/e2e/real/serve-api.mjs, serve-web.mjs).
+      - name: Journeys against the real API
+        run: pnpm --filter web run e2e:real
+        env:
+          E2E_REAL_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/pips_real_e2e
+      - name: Keep the report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report-real
+          path: |
+            apps/web/e2e/.report-real
+            apps/web/e2e/.results-real
+          retention-days: 14
+
   e2e-result:
     name: e2e (web journeys)
-    # One result for the four shards and the solo run, under the check name the merge protocol reads.
+    # One result for the four shards, the solo run and the real-API run, under the check name the merge protocol
+    # reads.
     if: ${{ always() && github.event_name == 'pull_request' }}
-    needs: [e2e, e2e-solo]
+    needs: [e2e, e2e-solo, e2e-real]
     runs-on: ubuntu-latest
     steps:
-      - name: Every shard and the solo run passed
-        run: test "${{ needs.e2e.result }}" = "success" && test "${{ needs.e2e-solo.result }}" = "success"
+      - name: Every shard, the solo run and the real-API run passed
+        run: |
+          test "${{ needs.e2e.result }}" = "success"
+          test "${{ needs.e2e-solo.result }}" = "success"
+          test "${{ needs.e2e-real.result }}" = "success"
