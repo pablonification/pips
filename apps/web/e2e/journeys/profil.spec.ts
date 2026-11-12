@@ -16,6 +16,11 @@ import { strictAudit, strictGates } from '../support/strict';
 import { expect, test } from '../support/test';
 import * as writes from '../support/writes';
 
+/** Every start registers a device with notifications on; what a test counts comes after it. */
+async function startRegistered(api: { calls: (spec: string) => unknown[] }) {
+  await expect.poll(() => api.calls('POST /api/push/register').length).toBe(1);
+}
+
 const main = (page: Page) => page.getByRole('main');
 const card = (page: Page, name: string, nim: string) =>
   main(page).getByRole('figure', {
@@ -244,10 +249,7 @@ test.describe('Raka', () => {
     api.on('POST /api/logout', writes.logout);
     db.pushSubscriptions = [E2E_SUBSCRIPTION];
     await page.goto('/profil');
-    // The start told the server about this device; what follows is Keluar's.
-    await expect
-      .poll(() => api.calls('POST /api/push/register').length)
-      .toBe(1);
+    await startRegistered(api);
     const before = api.writes.length;
     const keluar = main(page).getByRole('button', { name: 'Keluar' });
     await keluar.click();
@@ -304,6 +306,7 @@ test.describe('Raka', () => {
     );
     db.pushSubscriptions = [E2E_SUBSCRIPTION];
     await page.goto('/profil');
+    await startRegistered(api);
     await main(page).getByRole('button', { name: 'Keluar' }).click();
     await confirm(page).getByRole('button', { name: 'Keluar' }).click();
     const error = toastText(
@@ -315,9 +318,12 @@ test.describe('Raka', () => {
     await expect(card(page, 'Raka Pratama', '13524087')).toBeVisible();
     // Regression: the device was unlinked before the failed sign-out; it is linked again.
     await expect.poll(() => db.pushSubscriptions).toEqual([E2E_SUBSCRIPTION]);
-    expect(api.calls('POST /api/push/register').map((c) => c.body)).toEqual([
-      E2E_SUBSCRIPTION,
-    ]);
+    expect(
+      api
+        .calls('POST /api/push/register')
+        .slice(1)
+        .map((c) => c.body),
+    ).toEqual([E2E_SUBSCRIPTION]);
     expect((await pushDevice(page)).asks).toBe(0);
 
     fail = false;
@@ -338,6 +344,7 @@ test.describe('Raka', () => {
     api.on('POST /api/logout', reply.status(500));
     db.pushSubscriptions = [E2E_SUBSCRIPTION];
     await page.goto('/profil');
+    await startRegistered(api);
     await holdSubscribe(page);
     await main(page).getByRole('button', { name: 'Keluar' }).click();
     await confirm(page).getByRole('button', { name: 'Keluar' }).click();
@@ -355,7 +362,7 @@ test.describe('Raka', () => {
     await releaseSubscribe(page);
     await expect
       .poll(() => api.calls('POST /api/push/register').length)
-      .toBe(1);
+      .toBe(2);
   });
 
   test('regression: when the device can’t be unlinked, Keluar still signs out and ends the browser’s subscription', async ({
@@ -367,10 +374,12 @@ test.describe('Raka', () => {
     api.on('POST /api/logout', writes.logout);
     db.pushSubscriptions = [E2E_SUBSCRIPTION];
     await page.goto('/profil');
+    await startRegistered(api);
+    const before = api.writes.length;
     await main(page).getByRole('button', { name: 'Keluar' }).click();
     await confirm(page).getByRole('button', { name: 'Keluar' }).click();
     await expect(page).toHaveURL(/\/login$/);
-    const order = api.writes.map((w) => `${w.method} ${w.path}`);
+    const order = api.writes.slice(before).map((w) => `${w.method} ${w.path}`);
     expect(order).toEqual(['PUT /api/push/logout', 'POST /api/logout']);
     // Notifications stop on this device all the same: the browser's subscription is gone.
     expect((await pushDevice(page)).subscribed).toBe(false);
@@ -409,6 +418,7 @@ test.describe('Raka', () => {
     api.on('POST /api/logout', reply.status(401, { error: 'Unauthorized' }));
     db.pushSubscriptions = [E2E_SUBSCRIPTION];
     await page.goto('/profil');
+    await startRegistered(api);
     await main(page).getByRole('button', { name: 'Keluar' }).click();
     await confirm(page).getByRole('button', { name: 'Keluar' }).click();
     await expect(page).toHaveURL(/\/login$/);
@@ -423,7 +433,7 @@ test.describe('Raka', () => {
         localStorage.getItem('userAcademic'),
       ]),
     ).toEqual(['null', null]);
-    expect(api.calls('POST /api/push/register')).toEqual([]);
+    expect(api.calls('POST /api/push/register').slice(1)).toEqual([]);
     expect(db.pushSubscriptions).toEqual([]);
   });
 
