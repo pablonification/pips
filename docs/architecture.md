@@ -75,6 +75,12 @@ generated client everywhere.
 **Two pages you will touch.** `lib/shell/routes.ts` is the table of pages; TypeScript refuses to build until a new
 route has an entry. `lib/services.ts` is the list Layanan, Beranda and search read; a new service is one entry.
 
+**Where a change is written down.** A new page is registered in three places: the route file with the generated
+`routeTree.gen.ts` (`pnpm --filter web routes`), `lib/shell/routes.ts`, and `e2e/review/routes.ts` (the sweep). A new
+capability is edited in four: `lib/capabilities.ts`, the `SERVER` table in `tests/capabilities.test.ts` (which reads
+the API's check), `tests/services.test.ts` and `e2e/journeys/layanan.spec.ts`
+([add a screen](recipes/add-a-screen.md), [add a service](recipes/add-a-service-to-layanan.md)).
+
 ## Rules the code enforces on itself
 
 | Rule | Where | Runs |

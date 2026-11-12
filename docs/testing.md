@@ -53,6 +53,14 @@ export TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/pips_test
 pnpm --filter api test:db
 ```
 
+`createdb` comes with PostgreSQL's command-line tools. Without them, Node can make the database through the API's own
+`postgres` package (change the password and port to yours):
+
+```bash
+ADMIN_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres pnpm --filter api exec node --input-type=module \
+  -e "import postgres from 'postgres'; const sql = postgres(process.env.ADMIN_URL); await sql.unsafe('create database pips_test'); await sql.end()"
+```
+
 The tests migrate that database from empty themselves and run one file at a time. The first lines of
 `apps/api/tests/db/curhat.test.ts` show the setup to copy.
 
