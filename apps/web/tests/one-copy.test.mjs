@@ -29,3 +29,9 @@ test('useDelayed is defined once, in hooks/useDelayed.ts', () => {
     'hooks/useDelayed.ts',
   ]);
 });
+
+test('useNow is defined once, in hooks/useNow.ts', () => {
+  assert.deepEqual(definedIn(/(function|const)\s+useNow\b/), [
+    'hooks/useNow.ts',
+  ]);
+});

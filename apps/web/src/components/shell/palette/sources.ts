@@ -30,7 +30,7 @@ import {
   upcomingEvents,
   UPCOMING_DAYS,
 } from '~/features/cari/rules';
-import { useCourses, useMonthsEvents, useNow } from '~/features/kalender/data';
+import { useCourses, useMonthsEvents } from '~/features/kalender/data';
 import { useOpenEvent } from '~/features/kalender/open';
 import { evLabel } from '~/features/kalender/rules';
 import useSession from '~/hooks/auth/useSession';
@@ -44,6 +44,7 @@ import {
   type Service,
 } from '~/lib/services';
 import { useTheme } from '~/lib/theme/useTheme';
+import { useNow } from '~/hooks/useNow';
 
 /** Opens a service: its page, or an external site in a new tab (PIPS! stays open). */
 function openService(
@@ -172,7 +173,7 @@ function usePostItems(query: string): {
 }
 
 function useEventItems(): PaletteItem[] {
-  const now = useNow();
+  const now = useNow(60_000);
   const open = useOpenEvent();
   const courses = useCourses();
   const months = useMemo(

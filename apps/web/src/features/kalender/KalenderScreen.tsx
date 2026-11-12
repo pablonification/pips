@@ -45,7 +45,7 @@ import { cn } from '~/lib/utils';
 import { AddEventHost } from '~/features/kelola-acara/AddEvent';
 import { EventManageHost } from '~/features/kelola-acara/EventOptions';
 import { AddEventButton } from './AddEventButton';
-import { useCourses, useEvent, useMonthsEvents, useNow } from './data';
+import { useCourses, useEvent, useMonthsEvents } from './data';
 import { DeskPickContext } from './desk-pick';
 import { EventSheet } from './EventSheet';
 import { useOpenEvent } from './open';
@@ -65,6 +65,7 @@ import {
 } from './rules';
 import { useOnline } from '~/hooks/useOnline';
 import { useDelayed } from '~/hooks/useDelayed';
+import { useNow } from '~/hooks/useNow';
 
 // Monday first: Sen … Min.
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0].map((d) => tanggal.hariPendek[d]);
@@ -79,7 +80,7 @@ interface KalenderSearch {
 }
 
 export function KalenderScreen({ hari, acara, tambah }: KalenderSearch) {
-  const now = useNow();
+  const now = useNow(60_000);
   const today = dayKeyOf(now);
   const chosen = hari ?? today;
   const desk = useMediaQuery(DESKTOP_QUERY);

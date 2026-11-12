@@ -118,13 +118,3 @@ export function useEvent(
     !event && q.error instanceof ApiError && q.error.status === 404;
   return { event, missing, loading: !event && q.isFetching };
 }
-
-/** The time now, renewed every minute, so ended events fade and "hari ini" moves at midnight. */
-export function useNow(): number {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 60_000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
-}

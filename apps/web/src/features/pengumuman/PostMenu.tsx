@@ -32,7 +32,7 @@ import {
   renotifyHint,
   type FeedView,
 } from './rules';
-import { useNow } from './useNow';
+import { useNow } from '~/hooks/useNow';
 import { focusSoon } from './view';
 
 export function PostMenu({
@@ -46,7 +46,7 @@ export function PostMenu({
   size?: 'sm' | 'md';
 }) {
   const me = useSession();
-  const now = useNow();
+  const now = useNow(30_000);
   const model = menuModel(info, me);
   const mark = useMarkRead();
   const renotify = useRenotify();

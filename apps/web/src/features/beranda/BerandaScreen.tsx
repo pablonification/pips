@@ -57,7 +57,6 @@ import { cn } from '~/lib/utils';
 import {
   useCourses,
   useMonthsEvents,
-  useNow,
   type MonthsState,
 } from '~/features/kalender/data';
 import { EventSheet } from '~/features/kalender/EventSheet';
@@ -93,6 +92,7 @@ import {
 import './beranda.css';
 import { useOnline } from '~/hooks/useOnline';
 import { useDelayed } from '~/hooks/useDelayed';
+import { useNow } from '~/hooks/useNow';
 
 interface BerandaSearch {
   hari?: string;
@@ -115,7 +115,7 @@ function takeDraw(): boolean {
 }
 
 export function BerandaScreen({ hari, acara }: BerandaSearch) {
-  const now = useNow();
+  const now = useNow(60_000);
   const desk = useMediaQuery(DESKTOP_QUERY);
   const navigate = useNavigate();
   const days = useMemo(() => stripDays(now), [now]);
