@@ -10,14 +10,14 @@ import tseslint from 'typescript-eslint';
 import garis from './eslint-rules/garis.mjs';
 
 /**
- * Where only the Garis design system may be used (SPEC story 150): all of the app's code since C1 deleted today's
- * screens. The generated API client is the one exception; the token source is CSS (styles/garis/tokens.css), and
- * real content images are allowed by name in `garis/no-img-icon` below.
+ * Where only the Garis design system may be used: all of the app's code. The generated API client is the one
+ * exception; the token source is CSS (styles/garis/tokens.css), and real content images are allowed by name in
+ * `garis/no-img-icon` below.
  */
 export const GARIS_FILES = ['src/**/*.{ts,tsx}'];
 export const GARIS_IGNORES = ['src/api/generated/**'];
 
-// The rules of the previous .eslintrc.cjs, in flat config form. Only TypeScript files are linted, as before.
+// Only TypeScript files are linted.
 export default defineConfig([
   globalIgnores([
     'dist',
@@ -40,7 +40,7 @@ export default defineConfig([
       prettierRecommended,
       tailwind.configs.recommended,
     ],
-    // ESLint 9 started reporting unused eslint-disable comments by default; ESLint 8 didn't.
+    // ESLint reports unused eslint-disable comments by default; this turns it off.
     linterOptions: { reportUnusedDisableDirectives: 'off' },
     languageOptions: {
       ecmaVersion: 'latest',
@@ -57,7 +57,7 @@ export default defineConfig([
       },
     },
     rules: {
-      // eslint-plugin-react-hooks 4's recommended set. Version 7's set adds React Compiler rules (not yet).
+      // eslint-plugin-react-hooks 4's recommended set. Version 7's set adds React Compiler rules, which are not enabled.
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
       'react-refresh/only-export-components': 'off',
@@ -67,7 +67,7 @@ export default defineConfig([
         { ignoreRestSiblings: true },
       ],
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
-      // New in eslint-plugin-tailwindcss 4's recommended set; not among today's rules.
+      // Turned off from eslint-plugin-tailwindcss 4's recommended set.
       'tailwindcss/enforces-canonical-classname': 'off',
       'tailwindcss/important-modifier-suffix': 'off',
     },
@@ -94,7 +94,7 @@ export default defineConfig([
       'garis/no-icon-library': 'error',
       'garis/no-monospace': 'error',
       'garis/no-added-capitals': 'error',
-      // The shell's motion is CSS only (SPEC "Stack and foundations"); no animation library in new code.
+      // Motion is CSS only; no animation library.
       'no-restricted-imports': [
         'error',
         {
@@ -118,13 +118,13 @@ export default defineConfig([
             'accent|success|inverse|outlined|error|dialog|handle|rule|hint|dis-ic|msg|t-ic|act|sq|bars',
             // The shell's parts (src/styles/garis/shell.css) and the theme scopes.
             'cap|sub|s|lap|label|c2|theme-light|theme-dark',
-            // P1-A: Beranda's and Kalender's parts (src/features/beranda/beranda.css, kalender/kalender.css).
+            // Beranda's and Kalender's parts (src/features/beranda/beranda.css, kalender/kalender.css).
             'time|wd|dn|key|out|today|akademik|himpunan|point|past|h|d|tm|draw|two|grow|brief|prev|ext',
             // Pengumuman's parts (src/features/pengumuman/pengumuman.css).
             'who|meta|z|end|many|host|ttl|lbl|in|state|bar|del|opt|body|read|unread|lead|desk|failed',
             // Curhat's parts (src/features/curhat/curhat.css): a bubble's side, time line and quote.
             'me|them|tm|quote',
-            // Kelola's parts (src/styles/garis/kelola.css, P3-A).
+            // Kelola's parts (src/styles/garis/kelola.css).
             'nim|name|v|trk|flip|top',
           ],
         },
@@ -132,7 +132,7 @@ export default defineConfig([
     },
   },
   {
-    // The gallery's own page classes (src/dev/garis/gallery.css, ported from the prototype's docs.css).
+    // The gallery's own page classes (src/dev/garis/gallery.css).
     files: ['src/dev/garis/**/*.{ts,tsx}'],
     rules: {
       'tailwindcss/no-custom-classname': [
@@ -151,7 +151,7 @@ export default defineConfig([
     },
   },
   {
-    // P1-A: no reading or writing refs during render (React's rule; review m9 found one in Tambah acara).
+    // No reading or writing refs during render (React's rule).
     files: [
       'src/features/beranda/**/*.{ts,tsx}',
       'src/features/kalender/**/*.{ts,tsx}',
@@ -160,7 +160,7 @@ export default defineConfig([
     rules: { 'react-hooks/refs': 'error' },
   },
   {
-    // Playwright's fixtures call \`use()\`, which react-hooks 7 takes for React 19's \`use\`. The e2e code isn't React.
+    // Playwright's fixtures call `use()`, which react-hooks 7 takes for React 19's \`use\`. The e2e code isn't React.
     files: ['e2e/**/*.ts'],
     rules: { 'react-hooks/rules-of-hooks': 'off' },
   },

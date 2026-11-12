@@ -1,7 +1,7 @@
-// The import graph of `src`: which modules the app can reach from its entries (C1, step 1). Read with the
+// The import graph of `src`: which modules the app can reach from its entries. Read with the
 // TypeScript compiler's own import scanner, so static imports, re-exports, `import()` and CSS `@import` all count.
 //   node scripts/lib/reachable.mjs            # prints every module nothing reaches, with what imports it
-// tests/c1-clean.test.mjs keeps it as a check: every module in `src` is reachable.
+// tests/no-leftovers.test.mjs keeps it as a check: every module in `src` is reachable.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

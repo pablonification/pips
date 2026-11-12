@@ -1,10 +1,10 @@
-// The design-system rules for the redesign's code (SPEC story 150): new folders use only the Garis tokens, type
-// styles and icons. eslint.config.js applies them to all of src (GARIS_FILES) since C1.
+// The design-system rules: code uses only the Garis tokens, type styles and icons. eslint.config.js applies them
+// to all of src (GARIS_FILES).
 // tests/garis-lint.test.mjs checks each rule on good and bad samples.
 
 const COLOUR_UTILITY =
   /^(?:[\w@[\]&>:*-]+:)*!?-?(bg|text|border(?:-[xytrblse])?|ring(?:-offset)?|outline|fill|stroke|from|via|to|divide|decoration|placeholder|caret|accent|shadow)-(.+?)!?$/;
-// Colour names that aren't Garis tokens: Tailwind's palette and the old screens' palette.
+// Colour names that aren't Garis tokens: Tailwind's palette and the retired palette.
 const FOREIGN_COLOUR =
   /^(?:black|white|slate|gray|grey|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|primary|secondary|destructive|background|foreground|popover|card|input|info|warning|error|ring|border)(?:-|$)|^(?:muted|accent)-foreground$|^success-\d/;
 const ARBITRARY_COLOUR = /^\[.*(?:#[0-9a-f]{3,8}|rgba?\(|hsla?\(|oklch\(|oklab\(|lab\(|lch\(|color-mix\(|var\(--).*\]$/i;

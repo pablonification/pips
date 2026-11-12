@@ -1,8 +1,8 @@
-// Checks a production build against the performance budgets (SPEC "Performance architecture and budgets"):
-// per-route first-party JS before first render (≤ 205 KiB gzip, the cap; SPEC's 150 KiB target and 120 KiB
+// Checks a production build against the performance budgets:
+// per-route first-party JS before first render (≤ 205 KiB gzip, the cap; a 150 KiB target and 120 KiB
 // stretch are reported), the service worker's precache (≤ 1.5 MiB) and the fonts (exactly two files, Geist ≤ 50 KiB,
 // Archivo Expanded ≤ 30 KiB).
-//   pnpm --filter web build && pnpm --filter web budgets            # strict since C1: exits 1 over budget
+//   pnpm --filter web build && pnpm --filter web budgets            # strict: exits 1 over budget
 //   BUDGETS_STRICT=0 pnpm --filter web budgets                       # warn mode: prints, exits 0
 //   pnpm --filter web budgets --json out.json                        # also writes the numbers and each route's packages
 import fs from 'node:fs';

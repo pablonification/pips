@@ -611,7 +611,7 @@ const formAnalytics = {
   ],
 };
 
-/** SPARTA Magang has no other sample data; these are fictional samples for the admin table (see NOTES.md). */
+/** SPARTA Magang has no other sample data; these are fictional samples for the admin table (see fixtures/NOTES.md). */
 const internshipDepartments: InternshipDepartment[] = [
   {
     id: 'dept-akademik',

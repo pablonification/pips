@@ -9,7 +9,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { VitePluginRadar } from 'vite-plugin-radar';
 
 /**
- * Writes dist-meta/chunk-modules.json (by way of dist/.vite): for each JS chunk, the modules in it (npm packages by name, app files by
+ * Writes dist/.vite/chunk-modules.json: for each JS chunk, the modules in it (npm packages by name, app files by
  * path). The budget check (scripts/budgets.mjs) uses it to say which packages each route loads before its first
  * render, e.g. that socket.io-client loads only with Curhat and Live Counting.
  */
@@ -43,9 +43,8 @@ function chunkModules(): Plugin {
 }
 
 /**
- * Leaves the review prototypes (public/prototypes/, copied in by setup.sh, not in Git) out of production builds.
- * The dev server still serves them (staging and the owner's review); scripts/verify-production-bundle.mjs fails
- * a build that has them.
+ * Leaves public/prototypes/ (not tracked in Git) out of production builds. The dev server still serves it;
+ * scripts/verify-production-bundle.mjs fails a build that has it.
  */
 function noPrototypes(): Plugin {
   let outDir = '';
@@ -88,7 +87,7 @@ export default defineConfig(({ mode }) => {
   const appName = env.VITE_APP_NAME || 'PIPS!';
   const analyticsId = env.VITE_ANALYTICS_ID || null;
   // Where the dev server sends API requests. Not VITE_-prefixed, so it never reaches the bundle.
-  // Staging's API listens on 5000; on a Mac (AirPlay owns 5000) set DEV_API_ORIGIN, e.g. http://127.0.0.1:5100.
+  // Defaults to port 5000; on a Mac (AirPlay owns 5000) set DEV_API_ORIGIN, e.g. http://127.0.0.1:5100.
   const apiOrigin =
     loadEnv(mode, process.cwd(), 'DEV_API_ORIGIN').DEV_API_ORIGIN ||
     'http://127.0.0.1:5000';
@@ -140,12 +139,12 @@ export default defineConfig(({ mode }) => {
         },
         srcDir: 'src',
         filename: 'sw.ts',
-        // Icons: scripts/icons/build-icons.py, the official logo on ink.
+        // Icons are built by scripts/icons/build-icons.py: the official logo on ink.
         manifest: {
           name: appName,
           short_name: appName,
           description: 'Aplikasi resmi Himpunan Mahasiswa Informatika ITB',
-          // F2-007: the app is Indonesian (vite-plugin-pwa's default was "en").
+          // The app is Indonesian; the plugin's default is "en".
           lang: 'id',
           icons: [
             {
@@ -171,8 +170,7 @@ export default defineConfig(({ mode }) => {
               purpose: 'maskable',
             },
           ],
-          // F2-008: the install sheet's picture of the app is the redesigned sign-in (a capture at 390 × 844, 2×), not
-          // today's green English screen; its label is new copy, listed for the owner.
+          // The install sheet's picture of the app: the sign-in page, captured at 390 × 844, 2×.
           screenshots: [
             {
               sizes: '780x1688',
@@ -190,8 +188,8 @@ export default defineConfig(({ mode }) => {
             { name: 'Kalender', url: '/kalender' },
             { name: 'Layanan', url: '/layanan' },
           ],
-          // The app background (tokens.css --bg-app, light), so the status bar blends with the top bar; the splash is
-          // the official logo on ink (SPEC "Design tokens and theming"), so its background is HMIF's ink.
+          // theme_color is the light app background (tokens.css --bg-app), so the status bar blends with the top bar.
+          // The splash shows the official logo on ink, so its background is HMIF's ink.
           theme_color: '#FCFBF8',
           background_color: '#1B1508',
           display: 'standalone',
@@ -213,7 +211,7 @@ export default defineConfig(({ mode }) => {
           },
         },
         // The service worker (src/sw.ts) caches only what this precaches plus same-origin images; see its header.
-        // Precache: the app shell and every route chunk, never the review prototypes or other review material.
+        // Precache: the app shell and every route chunk, never public/prototypes/.
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,woff2}', 'logo/hmif.png'],
           globIgnores: ['prototypes/**', '**/*.map'],
@@ -221,7 +219,7 @@ export default defineConfig(({ mode }) => {
       }),
       // The router plugin must come before the React plugin. Every page's component loads on demand; the two layouts
       // every signed-in page sits in (the shell, and the layout under it) load with the app instead of as two more
-      // requests (P1-A round 2, the request budget). Sign-in loads them too: 4 KiB gzip.
+      // requests, which the request budget counts. Sign-in loads them too: 4 KiB gzip.
       tanstackRouter({
         target: 'react',
         autoCodeSplitting: true,
@@ -250,17 +248,16 @@ export default defineConfig(({ mode }) => {
       sourcemap: 'hidden',
       // dist-meta/manifest.json: chunks and their imports, read by the budget check (scripts/budgets.mjs).
       manifest: true,
-      // One stylesheet: the routes' own CSS is 1–2 KiB gzip each, less than a request costs (SPEC: ≤ 15 requests
-      // before Beranda's content).
+      // One stylesheet: the routes' own CSS is 1–2 KiB gzip each, less than a request costs (the budget is at most
+      // 15 requests before Beranda's content).
       cssCodeSplit: false,
-      // Fewer, larger chunks without loading code a route doesn't use (P1-A round 2; Beranda went from 49 scripts
-      // before its content to 4, and every route got lighter). Measured by the journey "a cold first load asks for at
-      // most 15 resources of any kind" (e2e/journeys/beranda.spec.ts).
+      // Fewer, larger chunks without loading code a route doesn't use. The journey "a cold first load asks for at
+      // most 15 resources of any kind" (e2e/journeys/beranda.spec.ts) measures it.
       rolldownOptions: {
-        // F2-004: the Garis components, the icons and the push module do nothing when imported (no CSS imports, no
+        // The Garis components, the icons and the push module do nothing when imported (no CSS imports, no
         // registration), so a page that imports one of them through an index (src/components/garis/index.ts,
-        // components/push/index.ts) no longer carries every other one, the dialogs, menus and popovers with Radix and
-        // Floating UI, before its first render. tests/garis-pure.test.mjs keeps them free of import-time effects.
+        // components/push/index.ts) doesn't carry every other one, with Radix and Floating UI, before its first
+        // render. tests/garis-pure.test.mjs keeps them free of import-time effects.
         treeshake: {
           moduleSideEffects: [
             {
@@ -276,8 +273,8 @@ export default defineConfig(({ mode }) => {
               { name: 'app', tags: ['$initial'], priority: 4 },
               // Small leaves most screens share: the Garis icons, the copy, Kalender's pieces that Beranda,
               // Kalender and search share, and the push state and prompt (Beranda, first run, Notifikasi and search
-              // use them; on their own they were two more requests before Beranda's content). F2-004: and Beranda's
-              // halftone, which on its own became one more request once the Garis components stopped riding in the entry.
+              // use them; on their own they would be two more requests before Beranda's content), and Beranda's
+              // halftone, which would be one more request on its own.
               {
                 name: 'ui',
                 test: /[\\/]src[\\/](components[\\/](icons|push)[\\/]|copy[\\/]|features[\\/]kalender[\\/]|components[\\/]garis[\\/](Halftone|halftone-geometry)\.tsx?$)/,

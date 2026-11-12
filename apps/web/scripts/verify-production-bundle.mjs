@@ -1,13 +1,13 @@
 // Fails if a production build in dist/ has anything that must never ship (run after `pnpm build`; CI does):
 // - development-only code: the test login, the Garis gallery (/dev/garis) or the shell's test page (/dev/shell).
 //   Staging-mode builds include them on purpose, so don't run this on them;
-// - the review prototypes (a `prototypes/` folder), any source map (`.map`) or a script or style pointing at one;
+// - a `prototypes/` folder, any source map (`.map`) or a script or style pointing at one;
 // - build metadata the server would hand out: a dot folder (`.vite/`) or `chunk-modules.json` (the budget check
 //   reads them from dist-meta/, beside the build);
 // - a comment in index.html naming a work item;
 // - a build tool in package.json's runtime dependencies;
 // - a precache (`self.__WB_MANIFEST` in sw.js) beyond the app shell and route chunks: no prototypes, no source maps,
-//   no images but the official logo and the manifest's icons, and at most 1.5 MiB (SPEC "Service worker");
+//   no images but the official logo and the manifest's icons, and at most 1.5 MiB;
 // - a service worker without the app-shell navigation fallback, the bounded same-origin image cache, push,
 //   notification clicks or the share target, or with a catch-all asset cache.
 //   node scripts/verify-production-bundle.mjs [dist]
@@ -24,7 +24,7 @@ const FORBIDDEN_TEXT = [
   'Halaman uji shell',
 ];
 
-// Task and finding ids from the delivery plan: P0-A, F2-007, T3, C1, PROD-PASS.
+// Task and finding ids such as P0-A, F2-007, T3, C1: none may appear in index.html.
 const WORK_ITEM = /\b(?:[PF]\d-[A-Z\d]+|[TC]\d|PROD-PASS)\b/;
 
 // Packages that only run while building; in `dependencies` they would look like part of the app.
@@ -126,7 +126,7 @@ export function verify(dir) {
   ];
   for (const [what, re] of needs)
     if (!re.test(sw)) problems.push(`sw.js: missing ${what}`);
-  // Today's worker cached every script, style and image as `assets-cache`; the new one only deletes that cache.
+  // An earlier worker cached every script, style and image as `assets-cache`; the current one only deletes that cache.
   const catchAll = [...sw.matchAll(/assets-cache/g)].filter(
     (m) => !/icons-cache/.test(sw.slice(m.index, m.index + 80)),
   );

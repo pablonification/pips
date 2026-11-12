@@ -1,6 +1,6 @@
-// Generates src/components/icons/ from the locked prototype's drawings (garis/ui.js: IC, IC_FILL, ICON_LABELS):
-// one file per icon, exporting the icon and, where the prototype has one, its two-tone service glyph.
-// Run once when the drawings change, then format:
+// Generates src/components/icons/, one file per icon (the icon and, where there is one, its two-tone service
+// glyph). It needs a ui.js file that exports IC, IC_FILL and ICON_LABELS, which is not in this repository; the
+// generated icons are committed, so most people never run it. Run it when the drawings change, then format:
 //   node scripts/garis/gen-icons.mjs <path to garis/ui.js> && pnpm exec prettier --write src/components/icons
 // tests/garis-icons.test.mjs checks the generated set against tests/fixtures/garis-icons.json (the same drawings).
 import fs from 'node:fs';
@@ -79,7 +79,7 @@ const registry = [
 ];
 fs.writeFileSync(path.join(out, 'registry.ts'), registry.join('\n') + '\n');
 
-// The drawings, for the unit test (so CI can check the components without the prototype's source).
+// The drawings, for the unit test (so CI can check the components without the ui.js file).
 fs.mkdirSync(path.join(appDir, 'tests/fixtures'), { recursive: true });
 fs.writeFileSync(
   path.join(appDir, 'tests/fixtures/garis-icons.json'),

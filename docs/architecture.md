@@ -85,7 +85,7 @@ route has an entry. `lib/services.ts` is the list Layanan, Beranda and search re
 | The web's role table matches the API's checks | `apps/web/tests/capabilities.test.ts` (reads the API's source as text) | `pnpm test` |
 | A new page has a title, parent and tab | `apps/web/tests/shell.test.ts` | `pnpm test` |
 | The shell imports no feature | `apps/web/tests/testi-shell.test.ts` | `pnpm test` |
-| No file nothing reaches, no unused package, no `console.log` | `apps/web/tests/c1-clean.test.mjs` | `pnpm test` |
+| No file nothing reaches, no unused package, no `console.log` | `apps/web/tests/no-leftovers.test.mjs` | `pnpm test` |
 | Upload type and size rules match the API's | `apps/web/tests/upload-policy.test.ts` | `pnpm test` |
 | Private data never reaches the device's cache | `apps/web/src/api/persistence-policy.ts`, `apps/web/tests/persistence-policy.test.ts` | `pnpm test` |
 | A production build has no test login, gallery or source maps | `apps/web/scripts/verify-production-bundle.mjs` | CI |
