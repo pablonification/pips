@@ -34,3 +34,5 @@ pnpm dev
 ```bash
 pnpm db:migrate
 ```
+
+In the production image: `node --import tsx src/db/migrate.ts` (see `DEPLOY.md` at the repository root).
