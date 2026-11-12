@@ -10,7 +10,7 @@ import {
   sectionCount,
 } from '~/lib/form-status';
 import { MAX_FORM_TEXT_ANSWER } from '~/lib/limits';
-import { roleMiddleware } from '~/middlewares/role.middleware';
+import { forRoles } from '~/middlewares/role.middleware';
 import {
   buildAnalytics,
   createFormResponse,
@@ -92,15 +92,14 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
     return c.json({ forms }, 200);
   });
 
-  formRouter.get(
-    listAllFormsRoute.getRoutingPath(),
-    roleMiddleware([...FORM_ADMIN_ROLES], deps.getUserRoles),
+  formRouter.openapi(
+    forRoles(listAllFormsRoute, FORM_ADMIN_ROLES, deps.getUserRoles),
+    async (c) => {
+      const activeForms = await deps.getActiveForms();
+      const forms = activeForms.map(({ sections: _sections, ...rest }) => rest);
+      return c.json({ forms }, 200);
+    },
   );
-  formRouter.openapi(listAllFormsRoute, async (c) => {
-    const activeForms = await deps.getActiveForms();
-    const forms = activeForms.map(({ sections: _sections, ...rest }) => rest);
-    return c.json({ forms }, 200);
-  });
 
   formRouter.openapi(getFormRoute, async (c) => {
     const { formId } = c.req.valid('param');
@@ -202,43 +201,43 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
     }
   });
 
-  formRouter.get(
-    listFormResponsesRoute.getRoutingPath(),
-    roleMiddleware([...FORM_ADMIN_ROLES], deps.getUserRoles),
+  formRouter.openapi(
+    forRoles(listFormResponsesRoute, FORM_ADMIN_ROLES, deps.getUserRoles),
+    async (c) => {
+      const { formId } = c.req.valid('param');
+      const query = c.req.valid('query');
+      const { responses, total } = await deps.getFormResponsesList(
+        formId,
+        query,
+      );
+      return c.json(
+        { responses, total, page: query.page, limit: query.limit },
+        200,
+      );
+    },
   );
-  formRouter.openapi(listFormResponsesRoute, async (c) => {
-    const { formId } = c.req.valid('param');
-    const query = c.req.valid('query');
-    const { responses, total } = await deps.getFormResponsesList(formId, query);
-    return c.json(
-      { responses, total, page: query.page, limit: query.limit },
-      200,
-    );
-  });
 
-  formRouter.get(
-    getFormResponsesCountRoute.getRoutingPath(),
-    roleMiddleware([...FORM_ADMIN_ROLES], deps.getUserRoles),
+  formRouter.openapi(
+    forRoles(getFormResponsesCountRoute, FORM_ADMIN_ROLES, deps.getUserRoles),
+    async (c) => {
+      const { formId } = c.req.valid('param');
+      const total = await deps.getFormResponsesCount(formId);
+      return c.json({ total }, 200);
+    },
   );
-  formRouter.openapi(getFormResponsesCountRoute, async (c) => {
-    const { formId } = c.req.valid('param');
-    const total = await deps.getFormResponsesCount(formId);
-    return c.json({ total }, 200);
-  });
 
-  formRouter.get(
-    getFormAnalyticsRoute.getRoutingPath(),
-    roleMiddleware([...FORM_ADMIN_ROLES], deps.getUserRoles),
+  formRouter.openapi(
+    forRoles(getFormAnalyticsRoute, FORM_ADMIN_ROLES, deps.getUserRoles),
+    async (c) => {
+      const { formId } = c.req.valid('param');
+      const form = await deps.getFormById(formId);
+      if (!form) return c.json({ error: 'Form not found' }, 404);
+
+      const responses = await deps.getFormResponsesForAnalytics(formId);
+      const analytics = buildAnalytics(form.sections, responses);
+      return c.json(analytics, 200);
+    },
   );
-  formRouter.openapi(getFormAnalyticsRoute, async (c) => {
-    const { formId } = c.req.valid('param');
-    const form = await deps.getFormById(formId);
-    if (!form) return c.json({ error: 'Form not found' }, 404);
-
-    const responses = await deps.getFormResponsesForAnalytics(formId);
-    const analytics = buildAnalytics(form.sections, responses);
-    return c.json(analytics, 200);
-  });
 
   return formRouter;
 }
