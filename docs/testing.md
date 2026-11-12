@@ -83,7 +83,7 @@ more than an hour. Run the spec you changed in one or two projects, with `E2E_WO
 ### Gates
 
 Every journey that ends in `strictGates(page, testInfo, name, lit)` (`e2e/support/strict.ts`) checks the screen for:
-no serious or critical accessibility problem (axe), no sideways scroll, no text under 12 px, `lang="id"`, inputs of at
+no serious or critical accessibility problem (found by axe, an accessibility checker), no sideways scroll, no text under 12 px, `lang="id"`, inputs of at
 least 16 px on touch layouts, a visible focus ring at every Tab stop, the right navigation item lit, and no overflow
 or clipped control at 320, 390, 768, 1024 and 1440 px and at 200 % zoom. `E2E_GATES=record` only records problems;
 CI leaves it unset, which is strict. A new screen needs a journey that calls `strictGates`.
@@ -109,9 +109,11 @@ journey `@solo` for anything but timing.
 - **They are per platform.** Every image exists as `…-darwin.png` (recorded on a Mac) and `…-linux.png` (what CI
   compares against). Fonts and rendering differ between machines, so never copy one into the other.
 - **Update on purpose.** `pnpm --filter web e2e:update` re-records every reference on your machine; review the
-  changed pictures in your pull request. For the Linux ones, run the **visual references** workflow from the
-  Actions tab on your branch: it records them in CI's container and commits them to the branch. Then trigger CI
-  again on that commit.
+  changed pictures in your pull request. The Linux ones are recorded by a workflow started by hand, which lives
+  on the `main` branch (GitHub runs hand-started workflows from there): `gh workflow run visual-references.yml -f
+  branch=<your branch>`, or the Actions tab, with your branch as its input. It records them in CI's container and
+  commits them to your branch. It needs write access to the repository, so from a fork ask a maintainer. That
+  commit doesn't start CI by itself: close and reopen the pull request to run it.
 - A reference that changes with no change of yours means the screen changed by accident.
 
 ## What CI runs
@@ -124,7 +126,7 @@ journey `@solo` for anything but timing.
 | `check, test and build` | The repository's own checks (`scripts/*.test.mjs`), install, type check and lint, the generated API client matches the API, unit tests, production build, the bundle checks (no test login or gallery in production, route size cap). |
 | `api database tests` | The database tests on a throwaway PostgreSQL 16, and a check that the migrations match `schema.ts`. |
 | `docker images` | Both images build and start. The API stays up with no database and stops cleanly. |
-| `e2e shard 1/4` … `4/4` | Every journey and quality check in all projects, strict gates, split in four. |
+| `e2e shard 1/4` … `4/4` | Every journey and quality check in all projects, strict gates, split over four machines ("shards"). |
 | `e2e solo` | The timed journeys, alone. |
 | `e2e (web journeys)` | One result that is green only when the four shards and the solo run all passed. |
 

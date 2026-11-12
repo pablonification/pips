@@ -71,8 +71,8 @@ Build screens from `~/components/garis`, not from raw elements, when a component
 Every list screen needs all of: loading (`Skeleton*`), empty (`EmptyState`), and error with "Coba lagi"
 (`ErrorState`). Status is always an icon, a word and a colour together (`StatusTag` does it); colour alone is never the
 message. On touch layouts every control has a hit area of at least 44 px (`styles/garis/components.css`).
-Dialogs and menus use Radix's unstyled behaviour pieces (focus trap, escape, return of focus) inside our own
-components; Radix is not a look.
+Dialogs and menus use Radix (a library of behaviour with no styling: focus trap, escape, return of focus) inside
+our own components; Radix is not a look.
 
 ## Icons
 

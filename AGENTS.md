@@ -34,6 +34,7 @@ Garis and journey are explained in [CONTEXT.md](CONTEXT.md). Read it once.
 | `apps/web/src/routes/` | One small file per address; it names a screen. |
 | `apps/web/src/features/<name>/` | One folder per area members know. Copy `beranda` or `kalender`. |
 | `apps/web/src/components/garis/`, `components/icons/`, `styles/garis/` | The design system. |
+| `apps/web/src/components/form/`, `lib/form/` | The Form and Magang SPARTA screens and their rules. |
 | `apps/web/src/components/shell/`, `lib/shell/routes.ts` | The frame around every page, and the table of pages. |
 | `apps/web/src/lib/services.ts`, `lib/capabilities.ts` | The service list, and who may do what. |
 | `apps/web/src/api/generated/` | The API client. Generated; never edit by hand. |
@@ -63,6 +64,8 @@ pnpm --filter api db:migrations          # write a migration after a schema.ts c
 - **Run the API as exactly one process.** Curhat rooms and reminders live in its memory (`docs/adr/0010-*`).
 - **Journeys run on a fixed clock against a pretend API** (`apps/web/e2e/support/mock.ts`). Timers, sockets and real
   data need one real check by hand: sign in to a local API and try it.
+- **A new API call the web app makes needs an answer in the pretend API** (`apps/web/e2e/support/handlers.ts`), or
+  every journey that reaches it fails: a request nobody answered fails the test.
 - **Never run the whole journey suite on your machine.** It takes over an hour; CI runs it. Run the file you changed.
 - **Screenshot references are per platform** (`*-darwin.png`, `*-linux.png`). CI records the Linux ones.
 - **A role check lives in the API first**, then is mirrored in `capabilities.ts`. A route with no check is open to every member.
@@ -88,8 +91,9 @@ Check every surface your change can touch:
 
 ## Pull requests
 
-- Branch from the branch pull requests merge into (`redesign` today). Title it as a Conventional Commit in plain words that say why it matters to a member:
-  `fix(api): refuse a push device that isn't a push service`. Pull requests are squash-merged.
+- Branch from the branch pull requests merge into (`redesign` today). Title it as a Conventional Commit in plain
+  words that say why it matters to a member: `fix(api): refuse a push device that isn't a push service`. Pull
+  requests are squash-merged: all of a pull request's commits become one commit, named by its title.
 - Fill in `.github/pull_request_template.md`.
 - Tools are not authors: no `Co-authored-by` for an AI tool. If an AI tool wrote the body or the code, end the body
   with a true line, `Made with <model> in <harness>.`, naming what really ran. Never copy it from an example.

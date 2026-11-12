@@ -10,10 +10,12 @@ You need Git, Node 22 or later, and a local PostgreSQL 16. About 30 minutes the 
 **1. Get the code and the tools.**
 
 ```bash
-git clone <the address from the green Code button on GitHub> pips && cd pips
+git clone -b redesign <the address from the green Code button on GitHub> pips && cd pips
 corepack enable          # installs the pnpm version this repository pins
 pnpm install
 ```
+
+`-b redesign` matters for now: the redesigned app lives on the `redesign` branch until it replaces `main`.
 
 **2. Start a PostgreSQL.** Pick one.
 
@@ -26,8 +28,13 @@ docker run -d --name pips-db -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTG
 If port 5432 is already taken on your machine, change the first number in `-p 5432:5432` (say to `5433`) and use that
 port in every database address below.
 
-Without Docker (install PostgreSQL 16 first, for example `brew install postgresql@16` or your Linux package
-manager; the commands `initdb`, `pg_ctl` and `createdb` come with it):
+Without Docker, install PostgreSQL 16 first (for example `brew install postgresql@16`, or your Linux package
+manager). Its commands `initdb`, `pg_ctl`, `createdb` and `psql` come with it. Homebrew doesn't put them on your
+PATH, so on a Mac run this once per terminal:
+
+```bash
+export PATH="$(brew --prefix postgresql@16)/bin:$PATH"
+```
 
 ```bash
 initdb -D ~/pips-pg -U postgres --auth=trust
@@ -35,7 +42,9 @@ pg_ctl -D ~/pips-pg -l ~/pips-pg/server.log start
 createdb -h 127.0.0.1 -U postgres pips
 ```
 
-Stop it later with `pg_ctl -D ~/pips-pg stop`. Windows: use Docker, or WSL.
+If port 5432 is taken, start it on another one (`pg_ctl -D ~/pips-pg -l ~/pips-pg/server.log -o "-p 5433" start`,
+then `createdb -h 127.0.0.1 -p 5433 -U postgres pips`) and use that port in every database address below. Stop it
+later with `pg_ctl -D ~/pips-pg stop`. Windows: use Docker, or WSL.
 
 **3. Set up the API.**
 
@@ -51,16 +60,18 @@ pnpm --filter api db:migrate      # prints "Migrations applied"
 pnpm --filter api dev             # prints "Server is running on port 5000"
 ```
 
-Check it: `curl http://localhost:5000/` answers `Server runs successfully`, and `http://localhost:5000/swagger` lists
-every route.
+Check it: `curl http://localhost:5000/` answers `{"message":"Server runs successfully"}`, and
+`http://localhost:5000/swagger` lists every route. A warning at start that `GOOGLE_CALENDAR_SECRET_PATH` names no
+file is normal on your machine: only Kalender's add, change and delete need that file.
 
-On a Mac, port 5000 belongs to AirPlay. Set `PORT=5100` in `apps/api/.env`, and put
-`DEV_API_ORIGIN=http://127.0.0.1:5100` in `apps/web/.env.development.local`.
+On a Mac, port 5000 belongs to AirPlay. Set `PORT=5100` in `apps/api/.env`, and start the web app in step 4 with
+`DEV_API_ORIGIN=http://127.0.0.1:5100 pnpm --filter web dev`. Give it on the command line, not in a file: a unit
+test reads the web app's env files and expects the default port.
 
 **4. Start the web app.** In a second terminal:
 
 ```bash
-echo 'VITE_GOOGLE_CLIENT_ID=unused.apps.googleusercontent.com' > apps/web/.env.local
+echo 'VITE_GOOGLE_CLIENT_ID=unused.apps.googleusercontent.com' >> apps/web/.env.local
 pnpm --filter web dev             # http://localhost:5173
 ```
 
