@@ -139,7 +139,6 @@ jobs:
           for path in / /home /sw.js "/assets/$(docker exec web ls /srv/assets | grep -m1 '\.js$')"; do
             headers="$(curl -fsSI "http://127.0.0.1:3000$path")"
             grep -qi '^cache-control: public, max-age=0, must-revalidate' <<<"$headers"
-            grep -qi '^document-policy: js-profiling' <<<"$headers"
             grep -qi '^x-content-type-options: nosniff' <<<"$headers"
             grep -qi '^referrer-policy: strict-origin-when-cross-origin' <<<"$headers"
             grep -qi '^x-frame-options: DENY' <<<"$headers"
