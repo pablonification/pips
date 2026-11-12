@@ -1,5 +1,5 @@
 /**
- * What kind of device and browser PIPS! runs in, for push notifications and Pasang PIPS! (SPEC stories 8, 106).
+ * What kind of device and browser PIPS! runs in, for push notifications and Pasang PIPS!.
  * Pure: the browser facts come in as arguments, so the rules are unit-tested (tests/push-state.test.ts).
  */
 

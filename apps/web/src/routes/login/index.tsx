@@ -23,7 +23,7 @@ export const Route = createFileRoute('/login/')({
   component: LoginRoute,
 });
 
-// The Google sign-in provider (and its script) belongs to this route only (SPEC "Third parties").
+// The Google sign-in provider (and its script) belongs to this route only.
 function LoginRoute(): JSX.Element {
   const { redirect } = Route.useSearch();
   return (

@@ -1,5 +1,5 @@
 /**
- * Global search's rules (the prototype's `renderPal` in `garis/app.js`), apart from React so they can be tested.
+ * Global search's rules apart from React so they can be tested.
  * With no query it shows the starting actions and the pinned services ("Pintasan"); with one, every item whose
  * label, hint or keywords contain it, label matches first, then in the sources' order, at most 12, grouped in the
  * order the groups first appear.
@@ -69,12 +69,12 @@ export function paletteResults(
   return groups;
 }
 
-/** The shortcut's name as the platform writes it (the prototype's `MOD`). */
+/** The shortcut's name as the platform writes it. */
 export function modKeyLabel(platform: string): string {
   return /Mac|iPhone|iPad/.test(platform) ? '⌘K' : 'Ctrl K';
 }
 
-/** Whether a key press should open search: Ctrl/⌘ K anywhere, `/` when not typing (SPEC story 22). */
+/** Whether a key press should open search: Ctrl/⌘ K anywhere, `/` when not typing. */
 export function opensPalette(e: {
   key: string;
   metaKey: boolean;

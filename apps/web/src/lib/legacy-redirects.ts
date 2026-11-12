@@ -1,10 +1,10 @@
 /**
- * Today's paths and where they live now. Every path in the old route tree has a row, so shared links, bookmarks,
+ * Old paths and where they live now. Every path in the old route tree has a row, so shared links, bookmarks,
  * the installed app's history and push notifications (`/timeline/<id>`) keep working. The search string and hash
  * are carried over unchanged by the caller.
  *
  * Pure and dependency-free: the router (`__root.tsx`), the service worker (`sw.ts`) and the unit tests use it.
- * A later task that moves a route adds a row here; never remove one.
+ * A route that moves gets a row here; never remove one.
  */
 export const LEGACY_REDIRECTS: ReadonlyArray<
   readonly [from: string, to: string]
@@ -29,7 +29,7 @@ export const LEGACY_REDIRECTS: ReadonlyArray<
   ['/home/admin', '/kelola'],
   ['/home/admin/forms', '/kelola/live'],
   ['/home/admin/forms/$formId', '/kelola/live/$formId'],
-  // Removed (SPEC "Removals"): the mock recommendation page and the socket debug page go to Beranda.
+  // Removed: the mock recommendation page and the socket debug page go to Beranda.
   ['/home/rekomendasi/$rekomendasiId', '/'],
   ['/socket', '/'],
   ['/timeline', '/pengumuman'],

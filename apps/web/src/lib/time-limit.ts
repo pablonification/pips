@@ -8,7 +8,7 @@ export class TimeLimitError extends Error {
 
 /**
  * `promise`, or a `TimeLimitError` after `ms`. For storage that may never answer: some WebKit versions leave an
- * IndexedDB open pending for good, and whatever waits on it would wait with it (web-robust 7).
+ * IndexedDB open pending for good, and whatever waits on it would wait with it.
  */
 export function withTimeLimit<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {

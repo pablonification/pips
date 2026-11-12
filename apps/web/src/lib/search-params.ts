@@ -11,12 +11,10 @@ import {
 } from './params';
 
 /*
- * View state that lives in the URL (SPEC "Information architecture and shell": every view is a link), so reload,
- * Back and shared links keep it. Names are short Indonesian words; screens that today already keep state in the
- * URL keep their names, so redirected old links keep their view. A value that doesn't parse is dropped, never
- * an error page. Later tasks add their params here (P3-A: `q`, `divisi`, `pilihan`, `status`; P3-B: `tambah`).
- * F2-004: plain checks (./params.ts) instead of zod, which loaded before every page; tests/params.test.ts holds them
- * to the zod schemas they replace.
+ * View state that lives in the URL (every view is a link), so reload, Back and shared links keep it. Names are
+ * short Indonesian words; names that old links already use are kept, so redirected links keep their view. A value
+ * that doesn't parse is dropped, never an error page. Plain checks (./params.ts) instead of zod, which would load
+ * before every page; tests/params.test.ts holds them to zod's answers.
  */
 
 /** A calendar day, `YYYY-MM-DD` in WIB. */
@@ -33,24 +31,24 @@ export const kalenderSearchSchema = object({
   acara: nonEmpty,
 });
 
-/** Beranda (P1-A): the strip's chosen day (`hari`) and the event open in its sheet on phones and tablets (`acara`). */
+/** Beranda: the strip's chosen day (`hari`) and the event open in its sheet on phones and tablets (`acara`). */
 export const berandaSearchSchema = kalenderSearchSchema;
 
-/** Every page in the app: `showAnnounce` opens today's desktop composer. */
+/** Every page in the app: `showAnnounce` is an old link's param that nothing reads now. */
 export const appSearchSchema = object({
   showAnnounce: boolean,
 });
 
-/** Kalender's route: the redesign's `hari` and `acara` (P1-A), and today's screen's `selected*` until it is replaced. */
+/** Kalender's route: `hari` and `acara`, plus the old `selected*` params that nothing reads now. */
 export const kalenderRouteSearchSchema = kalenderSearchSchema.extend({
-  // P3-B: the add-event dialog (`/kalender?tambah=acara`).
+  // The add-event dialog (`/kalender?tambah=acara`).
   tambah: literal('acara'),
   selectedDate: number,
   selectedMonth: number,
   selectedYear: number,
 });
 
-/** Pengumuman: today's names (`/timeline?…` links keep working through the redirect). */
+/** Pengumuman. The names are the old ones, so `/timeline?…` links keep working through the redirect. */
 export const pengumumanSearchSchema = object({
   search: string,
   unread: boolean,
@@ -60,7 +58,7 @@ export const pengumumanSearchSchema = object({
 
 /**
  * NIM Finder and other searches: the query (`q`). The router reads `?q=13524087` in a link as a number, and a NIM or
- * a course number is a query too, so a number is kept as its text (P2-B round 2); anything else unreadable is dropped.
+ * a course number is a query too, so a number is kept as its text; anything else unreadable is dropped.
  */
 export const querySearchSchema = object({
   q: (v): string | typeof INVALID =>
@@ -71,24 +69,24 @@ export const querySearchSchema = object({
         : INVALID,
 });
 
-/** Testi Matkul's testimonial pages: today's 1-based `page`. Programme, semester and course are path params. */
+/** Testi Matkul's testimonial pages: the 1-based `page`. Programme, semester and course are path params. */
 export const testiSearchSchema = object({
   page: number,
 });
 
-/** Tambah mata kuliah (P1-C): `dari=mulai` when it opened from first run, so Tambahkan goes back there. */
+/** Tambah mata kuliah: `dari=mulai` when it opened from first run, so Tambahkan goes back there. */
 export const matkulTambahSearchSchema = object({
   dari: literal('mulai'),
 });
 
-/** Rekap Form (P3-A): the search (`q`) and the 1-based page (`halaman`). */
+/** Rekap Form: the search (`q`) and the 1-based page (`halaman`). */
 export const rekapSearchSchema = object({
   q: string,
   halaman: (v): number | typeof INVALID =>
     typeof v === 'number' && Number.isInteger(v) && v >= 1 ? v : INVALID,
 });
 
-/** Data SPARTA Magang (P3-A): the search and every filter, so reload, Back and a shared link keep them. */
+/** Data SPARTA Magang: the search and every filter, so reload, Back and a shared link keep them. */
 export const spartaDataSearchSchema = object({
   q: string,
   divisi: nonEmpty,
@@ -97,7 +95,7 @@ export const spartaDataSearchSchema = object({
 });
 
 /**
- * Curhat Yuk!'s inbox for Welfare (P3-C): the search (`q`; a number is kept as its text, as `querySearchSchema`) and
+ * Curhat Yuk!'s inbox for Welfare: the search (`q`; a number is kept as its text, as `querySearchSchema`) and
  * the Belum dibaca toggle (`unread`, the name Pengumuman uses).
  */
 export const inboxSearchSchema = querySearchSchema.extend({

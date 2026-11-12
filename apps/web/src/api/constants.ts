@@ -17,5 +17,5 @@ export const CHATROOMS_QUERY_KEY = 'chatrooms';
 export const CURHAT_UNREAD_KEY = [CHATROOMS_QUERY_KEY, 'unread'] as const;
 export const FORM_QUERY_KEY = 'form';
 export const CREDITS_QUERY_KEY = 'credits';
-/** Beranda's unread list, under the feed's key (P1-A); kept on the device like the feed's first page. */
+/** Beranda's unread list, under the feed's key; kept on the device like the feed's first page. */
 export const UNREAD_INFOS_KEY_PART = 'beranda-unread';

@@ -2,11 +2,9 @@ import type { FileRouteTypes } from '~/routeTree.gen';
 import { type Capability, can } from './capabilities';
 
 /*
- * The service registry (SPEC "Service registry, programme windows and campaigns"): one typed list that Layanan,
- * Beranda's tiles, global search and analytics all read, so adding or retiring a service needs no layout code.
- * Entries come from the locked prototype (`garis/data.js` SERVICES and TILES, `garis/screens-more.js`
- * kelolaItems), checked against FEATURES.md: members' names, the real destinations, the real role rules.
- * Add entries in their own commit and don't reorder others' (WORKER-RULES, "Shared files").
+ * The service registry: one typed list that Layanan, Beranda's tiles, global search and analytics all read, so
+ * adding or retiring a service needs no layout code. Entries use members' names, the real destinations and the
+ * real role rules. Add entries without reordering the others.
  */
 
 export const SERVICE_GROUPS = [
@@ -18,7 +16,7 @@ export const SERVICE_GROUPS = [
 ] as const;
 export type ServiceGroup = (typeof SERVICE_GROUPS)[number];
 
-/** Keys of the Garis icon set (the prototype's `IC` in `garis/ui.js`); P0-A's icon components plug in by key. */
+/** Keys of the Garis icon set; the icon components plug in by key. */
 export type ServiceIconKey =
   | 'folder'
   | 'testi'
@@ -39,13 +37,13 @@ export type AppPath = FileRouteTypes['to'];
 
 interface ServiceBase {
   id: string;
-  /** The name members know. Never renamed (FEATURES.md, memory: feature grounding). */
+  /** The name members know. Never renamed. */
   label: string;
   description: string;
   group: ServiceGroup;
   /**
    * Who keeps it running: the role key of the team behind it where the code shows one, otherwise `pips` (the
-   * app's maintainers). Unconfirmed by HMIF; see the P0-B report.
+   * app's maintainers). Unconfirmed by HMIF.
    */
   owner: string;
   /**
@@ -145,8 +143,7 @@ export const SERVICES = [
     icon: 'lomba',
   },
   {
-    // Seasonal and closed (FEATURES.md §11): hidden from lists after its deadline, as the prototype hides it.
-    // The owner asked for the member side to be built anyway (2026-10-13); its route stays.
+    // Seasonal: hidden from lists after its deadline, but its route stays.
     id: 'sparta',
     label: 'Magang SPARTA',
     description: 'Pilihan divisi magang angkatan 2025',
@@ -204,7 +201,7 @@ export const SERVICES = [
     synonyms: ['surat', 'proposal', 'administrasi', 'peminjaman'],
     icon: 'surat',
   },
-  // Kelola: only the user's own tools (SPEC "Kelola and role-aware UI").
+  // Kelola: only the user's own tools.
   {
     id: 'live',
     label: 'Live Counting & Rekap Form',
@@ -230,9 +227,8 @@ export const SERVICES = [
     icon: 'kelola',
   },
   {
-    // Deviation (report, round 2): the prototype shows it to `akademik` and `ring1` alike, but its form adds a
-    // course's Akademik event, which the server allows `akademik` only (calendar.controller.ts); `ring1` adds
-    // Himpunan events from Kalender's "Tambah acara" (canCreateEvent). P3-B: /kelola/acara forwards to
+    // `akademik` only: the server lets only `akademik` add a course's Akademik event (calendar.controller.ts).
+    // `ring1` adds Himpunan events from Kalender's "Tambah acara" (canCreateEvent). /kelola/acara forwards to
     // /kalender?tambah=acara, the dialog over Kalender (a destination is a typed path, without a query).
     id: 'acara',
     label: 'Tambah acara Akademik',
@@ -245,7 +241,7 @@ export const SERVICES = [
     synonyms: ['acara', 'kalender', 'tambah'],
     icon: 'kalender',
   },
-  // P3-C: Welfare's inbox (a proposal, OPEN-QUESTIONS D9); the description is new copy.
+  // Welfare's inbox.
   {
     id: 'curhat-inbox',
     label: 'Curhat Yuk!',
@@ -262,7 +258,7 @@ export const SERVICES = [
 
 export type ServiceId = (typeof SERVICES)[number]['id'];
 
-/** Beranda's tiles on phones and tablets: seven services in today's Home order, then Lainnya (`garis/data.js` TILES). */
+/** Beranda's tiles on phones and tablets: seven services, then Lainnya. */
 export const BERANDA_TILES = [
   'dingdong',
   'nim',
@@ -273,7 +269,7 @@ export const BERANDA_TILES = [
   'kas',
 ] as const satisfies readonly ServiceId[];
 
-/** Pintasan: global search's start (`garis/data.js` PINS). Desktop Beranda shows every tile since Garis v5. */
+/** Pintasan: global search's start. Desktop Beranda shows every tile. */
 export const PINNED_SERVICES = [
   'dingdong',
   'testi',
@@ -307,8 +303,8 @@ export function visibleServices(
 }
 
 /**
- * A member service global search leaves out for whoever sees the Kelola row that replaces it (P3-C review, deviation
- * 5): for Welfare, "Curhat Yuk!" leads to the inbox, which the Kelola row "Balas ruang curhat anggota" already finds,
+ * A member service global search leaves out for whoever sees the Kelola row that replaces it: for Welfare, "Curhat
+ * Yuk!" leads to the inbox, which the Kelola row "Balas ruang curhat anggota" already finds,
  * so search shows it once. Layanan and Beranda keep the member row.
  */
 const SEARCH_REPLACED_BY: Partial<Record<ServiceId, ServiceId>> = {
@@ -328,7 +324,7 @@ export function searchableServices(
   });
 }
 
-/** `visibleServices` grouped in SPEC's order; groups with nothing visible are left out (Kelola for members). */
+/** `visibleServices` grouped in `SERVICE_GROUPS` order; groups with nothing visible are left out (Kelola for members). */
 export function servicesByGroup(user: WithRoles, now: Date = new Date()) {
   const visible = visibleServices(user, now);
   return SERVICE_GROUPS.map((group) => ({

@@ -3,7 +3,7 @@
 
 /** Where the preference is stored. */
 export const THEME_STORAGE_KEY = 'pips:theme';
-/** The status-bar colour per theme: the app background (SPEC "Switching mechanism"). */
+/** The status-bar colour per theme: the app background. */
 export const THEME_COLORS = { light: '#FCFBF8', dark: '#0A0907' };
 export const THEME_PREFERENCES = ['system', 'light', 'dark'];
 

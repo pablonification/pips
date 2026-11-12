@@ -1,7 +1,6 @@
 /**
- * Calendar days in WIB, as `YYYY-MM-DD` keys (the prototype's `dayKey`, `fromKey`, `addDays` and `monthCells` in
- * garis/ui.js and screens-core.js), whatever the device's time zone. A key names a day; `dayStart` is its first
- * instant (00.00 WIB). Shared by Beranda, Kalender and search (P1-A); the words for a day are in `./dates`.
+ * Calendar days in WIB, as `YYYY-MM-DD` keys whatever the device's time zone. A key names a day; `dayStart` is its first
+ * instant (00.00 WIB). Shared by Beranda, Kalender and search; the words for a day are in `./dates`.
  */
 import { wib } from './dates';
 
@@ -104,7 +103,7 @@ export function daysBetween(a: DayKey, b: DayKey): number {
   return Math.round((dayStart(b) - dayStart(a)) / DAY_MS);
 }
 
-/* P3-B: times typed in WIB (a native date and a time input) to and from the API's ISO strings. */
+/* Times typed in WIB (a native date and a time input) to and from the API's ISO strings. */
 
 /** A typed time, `HH:MM` (24 hours). */
 export type TimeKey = string;

@@ -23,7 +23,7 @@ export function contrast(a, b) {
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 }
 
-/** "17,5:1" (Indonesian decimal comma), two decimals under 2:1 as the prototype shows them. */
+/** "17,5:1" (Indonesian decimal comma), two decimals under 2:1. */
 export function formatRatio(r) {
   return `${r.toFixed(r < 2 ? 2 : 1).replace('.', ',')}:1`;
 }
