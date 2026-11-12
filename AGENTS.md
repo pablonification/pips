@@ -47,7 +47,7 @@ pnpm install
 pnpm --filter api dev                    # the API; needs apps/api/.env (CONTRIBUTING.md, "First run")
 pnpm --filter web dev                    # the web app on port 5173
 pnpm check && pnpm test                  # type check, lint and unit tests, both apps. Run before every pull request.
-pnpm build                               # production builds
+pnpm build                               # production build of the web app (the API runs its TypeScript directly)
 pnpm --filter api test:db                # real-database tests; needs TEST_DATABASE_URL (docs/testing.md)
 pnpm --filter web exec playwright test -c e2e --project=phone-light masuk   # one journey file, one project
 pnpm --filter web api                    # regenerate the API client after a route changed

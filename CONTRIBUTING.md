@@ -103,7 +103,7 @@ Change one sentence and watch a test notice.
 | --- | --- |
 | `pnpm check` | Type check and lint, both apps. |
 | `pnpm test` | Unit tests, both apps. The API's use no database. |
-| `pnpm build` | Production build of both apps. |
+| `pnpm build` | Production build of the web app. The API has no build step: it runs its TypeScript directly. |
 | `pnpm --filter api test:db` | API tests against a real database. Needs `TEST_DATABASE_URL`. |
 | `pnpm --filter web exec playwright test -c e2e --project=phone-light masuk` | One journey file at one size and theme. |
 | `pnpm --filter web exec playwright install chromium` | Once, to download the browser journeys use. |

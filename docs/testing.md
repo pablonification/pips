@@ -82,7 +82,7 @@ more than an hour. Run the spec you changed in one or two projects, with `E2E_WO
 
 ### Gates
 
-Every journey that ends in `strictGates(page, testInfo, name, title)` (`e2e/support/strict.ts`) checks the screen for:
+Every journey that ends in `strictGates(page, testInfo, name, lit)` (`e2e/support/strict.ts`) checks the screen for:
 no serious or critical accessibility problem (axe), no sideways scroll, no text under 12 px, `lang="id"`, inputs of at
 least 16 px on touch layouts, a visible focus ring at every Tab stop, the right navigation item lit, and no overflow
 or clipped control at 320, 390, 768, 1024 and 1440 px and at 200 % zoom. `E2E_GATES=record` only records problems;
