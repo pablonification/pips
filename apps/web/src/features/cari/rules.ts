@@ -1,7 +1,6 @@
 /**
- * Global search's sources (P1-A brief, rule 13; the prototype's `palIndex` in garis/app.js): what each group lists
- * and how its rows read. Ranking, grouping and the limit of 12 are P0-C's `paletteResults` (src/lib/shell/palette.ts).
- * Pure, so `tests/cari-rules.test.ts` checks them.
+ * Global search's sources: what each group lists and how its rows read. Ranking, grouping and the limit of 12 are in
+ * `paletteResults` (src/lib/shell/palette.ts). Pure, so `tests/cari-rules.test.ts` checks them.
  */
 import type { Info, NimFinderResult } from '~/api/generated';
 import { cari as t } from '~/copy/cari';
@@ -20,8 +19,8 @@ export const UPCOMING_DAYS = 21;
 export const asksApi = (query: string) => query.trim().length >= REMOTE_MIN;
 
 /**
- * Whether the API's results for `query` are still on their way (P1-A round 2): typing hasn't paused yet (`settled`
- * is the query the API was last asked about), or a request is out. Until then an empty list isn't "no results".
+ * Whether the API's results for `query` are still on their way: typing hasn't paused yet (`settled` is the query the
+ * API was last asked about), or a request is out. Until then an empty list isn't "no results".
  */
 export function remotePending(
   query: string,
@@ -33,8 +32,8 @@ export function remotePending(
 }
 
 /**
- * The highlighted result (P1-A round 2): the first, until the member moves the highlight; then theirs while it is
- * still listed. Results that arrive later and rank first take the highlight, as Enter runs the first (`app.js`).
+ * The highlighted result: the first, until the member moves the highlight; then theirs while it is still listed.
+ * Results that arrive later and rank first take the highlight, as Enter runs the first.
  */
 export function chosenResult(
   moved: string | null,
@@ -43,7 +42,7 @@ export function chosenResult(
   return moved !== null && ids.includes(moved) ? moved : (ids[0] ?? '');
 }
 
-/** Upcoming events within 21 days, by start (the prototype's `up`). */
+/** Upcoming events within 21 days, by start. */
 export function upcomingEvents(
   events: readonly CalEvent[],
   now: number,
@@ -64,6 +63,6 @@ export const eventHint = (e: CalEvent) =>
 export const postLabel = (i: Pick<Info, 'title' | 'content'>) =>
   i.title || fill(t.potong, { awal: i.content.slice(0, 64) });
 
-/** A person's hint: "13525045 · IF". Only name, NIM and programme, whatever else the API sends. */
+/** A person's hint: "13525901 · IF". Only name, NIM and programme, whatever else the API sends. */
 export const personHint = (p: Pick<NimFinderResult, 'nim' | 'major'>) =>
   fill(t.orang, { nim: p.nim, prodi: p.major });

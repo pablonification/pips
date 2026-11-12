@@ -188,8 +188,6 @@ export function changedFields(before: Competition, d: LombaDraft) {
   return changed;
 }
 
-/* ================= Poster ================= */
-
 /** A new poster on its way, or one that failed to upload (once uploaded, its address is the draft's `poster`). */
 export type PosterUpload =
   { status: 'uploading'; progress: number } | { status: 'failed' };

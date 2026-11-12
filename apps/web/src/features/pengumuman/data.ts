@@ -44,8 +44,6 @@ import { keepUnsent } from '~/lib/unsent-text';
 export const statusOf = (e: unknown) =>
   e instanceof ApiError ? e.status : undefined;
 
-/* ================= Reads ================= */
-
 type Feed = InfiniteData<Info[], number>;
 
 export function useFeed(view: FeedView) {
@@ -105,8 +103,6 @@ export const useGroups = () =>
     queryFn: () => api.auth.getUserGroups(),
   });
 
-/* ================= Cache updates ================= */
-
 /** Change one post wherever it is cached: every feed page and its detail. */
 export function patchInfo(qc: QueryClient, id: string, fn: (i: Info) => Info) {
   qc.setQueriesData<Feed>({ queryKey: [INFO_LIST_QUERY_KEY] }, (data) =>
@@ -148,8 +144,6 @@ function snapshot(qc: QueryClient, id: string): Snapshot {
 const restore = (qc: QueryClient, snap: Snapshot) => {
   for (const [key, data] of snap) qc.setQueryData(key, data);
 };
-
-/* ================= Writes ================= */
 
 /** Mark a post read or unread: the list, the post and the count change at once. */
 export function useMarkRead() {

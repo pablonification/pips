@@ -26,7 +26,7 @@ export function csvTime(at: string | number | Date): string {
   return `${pad(w.day)}-${pad(w.month + 1)}-${w.year} ${pad(w.hours)}:${pad(w.minutes)}`;
 }
 
-/** "2026-10-08-133500": the responses file's stamp in WIB (`YYYY-MM-DD-HHmmss`). */
+/** The responses file's stamp in WIB: `YYYY-MM-DD-HHmmss`. */
 function fileStamp(now: number | Date): string {
   const w = wib(now);
   const s = new Date(now).getUTCSeconds();

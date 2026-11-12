@@ -45,8 +45,6 @@ import {
   topReactions,
 } from './rules';
 
-/* ================= Small hooks ================= */
-
 /**
  * Whether the element is in view (or 200 px from it). Takes the element itself (a callback ref's state), so it
  * starts watching when the element first renders, not only when the component mounts: the feed's end marker
@@ -131,8 +129,6 @@ export function useDismiss(
   }, [open, close, refs]);
 }
 
-/* ================= Text with its links ================= */
-
 /** The post's text with every link made a link (no cut at a length). */
 export function Linkified({ text }: { text: string }) {
   const urls = extractUrls(text);
@@ -161,8 +157,6 @@ export function Linkified({ text }: { text: string }) {
     </>
   );
 }
-
-/* ================= Link previews ================= */
 
 function useOpenGraph(url: string, enabled: boolean) {
   return useQuery({
@@ -273,8 +267,6 @@ export function LinkCards({ info }: { info: Pick<Info, 'content'> }) {
   );
 }
 
-/* ================= Photos ================= */
-
 type Medias = NonNullable<Info['infoMedias']>;
 
 /** The post's photos in the 16:10 frame (lazy below the fold), opening the full-size viewer. */
@@ -339,8 +331,6 @@ export function Photos({ medias }: { medias: Medias }) {
     </>
   );
 }
-
-/* ================= Reactions ================= */
 
 /** The six reactions; yours pressed. Two rows of three on the narrowest phones (CSS). */
 export function ReactionPicker({
@@ -419,8 +409,6 @@ export function ReactSummaryButton({
 }
 
 export { myReaction };
-
-/* ================= Share ================= */
 
 export const postUrl = (id: string) =>
   `${window.location.origin}/pengumuman/${id}`;
