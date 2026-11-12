@@ -1,5 +1,5 @@
 /**
- * Form (PIXEL), P2-A: the list, filling section by section with drafts on the device, required errors, the check page,
+ * Form (PIXEL): the list, filling section by section with drafts on the device, required errors, the check page,
  * sending and its failures, the thank-you, and the states the server can put a form in (not open yet, closed, not for
  * your angkatan, not found). Every journey runs at phone, tablet and desktop size, light and dark, with strict gates.
  */
@@ -41,7 +41,7 @@ async function expectFocusedFlow(page: Page, testInfo: TestInfo) {
   else await expect(mainNav(page)).toHaveCount(0);
 }
 
-/** The draft this test's member has for the PIXEL form, read straight from the device (today's bungkus store). */
+/** The draft this test's member has for the PIXEL form, read straight from the device (the bungkus store). */
 async function storedDraft(page: Page, db: Db, userId = db.me!.id) {
   return page.evaluate(
     (key) =>
@@ -64,7 +64,7 @@ async function storedDraft(page: Page, db: Db, userId = db.me!.id) {
   );
 }
 
-/** A draft written the way today's screen writes it (bungkus 1.3.7's `simpan`), `ageDays` old. */
+/** A draft written the way the bungkus store's `simpan` writes it, `ageDays` old. */
 async function plantTodaysDraft(
   page: Page,
   db: Db,
@@ -121,7 +121,7 @@ test.describe('the list', () => {
     await expect(card).toContainText('Isi sekarang');
     await expect(card).toContainText('Bantu HMIF kenalan lebih dekat');
     await expect(card).toContainText('5 bagian');
-    // The status tag spans the card's width, as in the locked capture (the prototype's grid stretches it).
+    // The status tag spans the card's width, (the grid stretches it).
     const widths = await card.evaluate((el) => {
       const cs = getComputedStyle(el);
       const inner =
@@ -666,7 +666,7 @@ test.describe('send failures keep everything', () => {
     });
   }
 
-  // Regression (web-robust 1): a send the API never answered stayed on "Mengirim…" until the browser gave up.
+  // A send the API never answers must give up instead of staying on "Mengirim…" until the browser does.
   test('no answer: after the time limit, the error toast with Coba lagi; nothing lost', async ({
     page,
     api,

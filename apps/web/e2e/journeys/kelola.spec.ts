@@ -1,8 +1,8 @@
 /**
- * Kelola (P3-A): the hub, choosing a form, Live Counting with its socket, Rekap Form, the CSV exports and Data SPARTA
+ * Kelola: the hub, choosing a form, Live Counting with its socket, Rekap Form, the CSV exports and Data SPARTA
  * Magang with one submission. Persona Raka (akademik, admin) unless noted; Nadia (no roles) and a peoplemanage-only
  * member through the harness's `roles` option. Every journey runs at phone, tablet and desktop size, light and dark;
- * each screen passes the strict gates. Every assertion of the journey this replaces is kept or made stronger.
+ * each screen passes the strict gates.
  */
 import fs from 'node:fs';
 import type { Download, Page, TestInfo } from '@playwright/test';
@@ -41,7 +41,7 @@ const adminCalls = (api: ApiMock) =>
   ADMIN_CALLS.flatMap((spec) => api.calls(spec));
 
 test("Beranda's Kelola section leads to the hub", async ({ page }) => {
-  // Beranda's Kelola section (P1-A; today's Home had an Admin tile) leads to the hub.
+  // Beranda's Kelola section leads to the hub.
   await page.goto('/');
   await main(page)
     .getByRole('heading', { name: 'Kelola', exact: true })
@@ -57,7 +57,7 @@ test("Beranda's Kelola section leads to the hub", async ({ page }) => {
   ).toBeVisible();
 });
 
-// Regression (review P3-A m6): Beranda's card and the live page read one count, so a live event shows on both.
+// Beranda's card and the live page read one count, so a live event shows on both.
 test("Beranda's Kelola card and the live page share one count", async ({
   page,
   api,
@@ -421,7 +421,7 @@ test.describe('Live Counting', () => {
     ).toBeVisible();
     await expect(page.getByText('Simulasi pengisi baru')).toHaveCount(0);
     await expect(page.getByText(/Contoh/)).toHaveCount(0);
-    // The browser tab names the whole service (brief, Build 3; review P3-A m8); the top bar keeps "Live Counting".
+    // The browser tab names the whole service ; the top bar keeps "Live Counting".
     await expect(page).toHaveTitle('Live Counting & Rekap Form · PIPS!');
     // The count is in a polite live region; the square is still under reduced motion.
     await expect(plaque(page).locator('[aria-live="polite"]')).toContainText(
@@ -467,7 +467,7 @@ test.describe('Live Counting', () => {
     await expect(rows(page)).toHaveCount(5);
   });
 
-  // Regression (the race): a count request that answers after an event must not lower the number.
+  // A count request that answers after an event must not lower the number.
   test('a slow count answer arriving after an event never lowers the number', async ({
     page,
     api,
@@ -491,7 +491,7 @@ test.describe('Live Counting', () => {
     await expect(plaque(page).locator('.t-figure-xl')).toHaveText('143');
   });
 
-  // Regression (web-robust 3): the API now ends a connection whose session it couldn't read (as at expiry); socket.io
+  // The API ends a connection whose session it couldn't read (as at expiry); socket.io
   // doesn't reconnect by itself, so Live Counting checks the session and connects again.
   test('the server ending the connection: the session is checked, it connects again and catches up', async ({
     page,
@@ -518,9 +518,9 @@ test.describe('Live Counting', () => {
     await expect(plaque(page).locator('.t-figure-xl')).toHaveText('143');
   });
 
-  // Regression (web-robust 4): the socket code's dynamic import had no catch, so when it failed to load (offline, or
-  // its file gone after a deploy) Live Counting stayed disconnected for good. Chromium remembers a failed import, so
-  // here the page recovers by its one reload (web-robust 6); the retries themselves are in tests/live-socket.test.ts.
+  // When the socket code's dynamic import fails to load (offline, or its file gone after a deploy), Live Counting
+  // must not stay disconnected for good. Chromium remembers a failed import, so here the page recovers by its
+  // one reload; the retries themselves are in tests/live-socket.test.ts.
   test('the socket code failing to load: the page reloads once and goes live', async ({
     page,
     api,
@@ -756,7 +756,7 @@ test.describe('Live Counting', () => {
 // ---------------------------------------------------------------- Export
 
 test.describe('Export CSV', () => {
-  test("every response, today's file, WIB times; Mengekspor… and one request set for a double press", async ({
+  test("every response, the file, WIB times; Mengekspor… and one request set for a double press", async ({
     page,
     api,
   }) => {
@@ -909,7 +909,7 @@ test.describe('Rekap Form', () => {
     await strictGates(page, testInfo, 'rekap-empty', lit(testInfo));
   });
 
-  test('a page past the last goes to the last page (review P3-A m7)', async ({
+  test('a page past the last goes to the last page', async ({
     page,
   }) => {
     await page.goto('/kelola/live/pixel/rekap?halaman=99');
@@ -966,7 +966,7 @@ test.describe('Data SPARTA Magang', () => {
   }, testInfo) => {
     await page.goto('/kelola/sparta');
     await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-    // One tree (SPEC "responsive single trees"; review P3-A m2): the other layout's isn't in the page at all.
+    // One tree : the other layout's isn't in the page at all.
     if (touch(testInfo)) {
       await expect(table(page)).toHaveCount(0);
       await expect(spartaRows(page)).toHaveCount(3);
@@ -1073,7 +1073,7 @@ test.describe('Data SPARTA Magang', () => {
     await strictGates(page, testInfo, 'sparta-no-match', lit(testInfo));
     await main(page).getByRole('button', { name: 'Hapus filter' }).click();
     await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-    // Regression (review P3-A M1): the search box is cleared too, and the next letters search afresh.
+    // The search box is cleared too, and the next letters search afresh.
     await expect(search).toHaveValue('');
     await expect(page).not.toHaveURL(/q=/);
     await search.pressSequentially('tas');
@@ -1085,7 +1085,7 @@ test.describe('Data SPARTA Magang', () => {
     await expect(main(page).getByText('1 pendaftar')).toBeVisible();
   });
 
-  // Regression (2026-11-03): the URL now follows the box when typing pauses or the box loses focus, not at every letter.
+  // The URL follows the box when typing pauses or the box loses focus, not at every letter.
   test('a row tapped right after typing still keeps the search for Back', async ({
     page,
   }, testInfo) => {
@@ -1109,7 +1109,7 @@ test.describe('Data SPARTA Magang', () => {
     await expect(main(page).getByText('1 pendaftar')).toBeVisible();
   });
 
-  test("the filters' labels line up (review P3-A m5)", async ({ page }) => {
+  test("the filters' labels line up", async ({ page }) => {
     await page.goto('/kelola/sparta');
     await expect(main(page).getByText('3 pendaftar')).toBeVisible();
     const labels = main(page).locator('.g-sparta-filters .t-label');
@@ -1132,7 +1132,7 @@ test.describe('Data SPARTA Magang', () => {
     await page.setViewportSize(size);
   });
 
-  test('300 submissions: one tree, and typing a search keeps up (review P3-A m2) @solo', async ({
+  test('300 submissions: one tree, and typing a search keeps up @solo', async ({
     page,
     db,
   }, testInfo) => {
@@ -1154,9 +1154,8 @@ test.describe('Data SPARTA Magang', () => {
     }
     // Typing keeps up on a phone-speed CPU (4× slowdown): the list filters from a deferred query and re-renders only
     // when the rows shown change, so most keystrokes cost no long main-thread task (over 50 ms, measured by the
-    // browser). Before the fix each of the 12 keystrokes re-rendered both trees: 12 long tasks; after: 2 to 3.
-    // Up to three typings, judged by the best: a shared CI machine only ever adds long tasks (one solo run on
-    // 2026-11-03 got 7 while its others got 0 to 3), while the bug costs one on every keystroke, every time.
+    // browser). Re-rendering both trees on each of the 12 keystrokes would make 12 long tasks; the filter makes 2 to 3.
+    // Up to three typings, judged by the best: a shared CI machine only ever adds long tasks, while slow typing costs one on every keystroke, every time.
     const cdp = await page.context().newCDPSession(page);
     await page.evaluate(() => {
       const w = window as unknown as { __long: number[] };
@@ -1244,7 +1243,7 @@ test.describe('Data SPARTA Magang', () => {
       /^Competition and Community · Competition and Community\s*3$/,
       /^Career Development · Career Development\s*2$/,
     ]);
-    // Regression: at 320 px the long labels' column left the bars a few pixels wide; the label now sits above.
+    // At 320 px the long labels sit above the bars, so a label column can't leave them a few pixels wide.
     const size = page.viewportSize()!;
     await page.setViewportSize({ width: 320, height: size.height });
     await expect
@@ -1288,7 +1287,7 @@ test.describe('Data SPARTA Magang', () => {
     db.internshipSubmissions = [];
     await page.goto('/kelola/sparta');
     await expect(main(page).getByText('Belum ada pendaftar')).toBeVisible();
-    // One message (review P3-A m3): no statistics, toolbar, count or Export with nothing to act on.
+    // One message: no statistics, toolbar, count or Export with nothing to act on.
     await expect(
       main(page).getByText('Belum ada data pilihan untuk ditampilkan.'),
     ).toHaveCount(0);
@@ -1414,7 +1413,7 @@ test.describe('Data SPARTA Magang', () => {
     await expect(file).toHaveAttribute('target', '_blank');
   });
 
-  // Review P3-A m1: a member's file answer is any text they saved. Only a file in the app's storage
+  // A member's file answer is any text they saved. Only a file in the app's storage
   // (VITE_MEDIA_URL, https://media.pips.test in the harness) becomes a link; anything else is plain text.
   test("a file answer that isn't in the app's storage is plain text, never a link", async ({
     page,
