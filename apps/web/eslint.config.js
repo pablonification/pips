@@ -27,6 +27,10 @@ export default defineConfig([
     'e2e/.results',
     'e2e/.report',
     'e2e/.out',
+    'e2e/.build-real',
+    'e2e/.build-real-meta',
+    'e2e/.results-real',
+    'e2e/.report-real',
   ]),
   {
     files: ['**/*.{ts,tsx}'],
