@@ -127,7 +127,13 @@ test('a push service that never answers is given up on after the timeout', async
 test('a refused push comes back with its endpoint, for pruning', async () => {
   const results = await pm.sendNotificationToAll([sub(1)], post('x'), {
     send: async () => {
-      throw new WebPushError('gone', 410, {}, '', 'https://fcm.googleapis.com/fcm/send/1');
+      throw new WebPushError(
+        'gone',
+        410,
+        {},
+        '',
+        'https://fcm.googleapis.com/fcm/send/1',
+      );
     },
   });
   const r = results[0];
@@ -219,7 +225,10 @@ test('a saved device that is not at a push service is never connected to, and st
   const contacted: string[] = [];
   const results = await pm.sendNotificationToAll(
     [
-      { endpoint: 'https://127.0.0.1:4519/x', keys: { p256dh: 'p', auth: 'a' } },
+      {
+        endpoint: 'https://127.0.0.1:4519/x',
+        keys: { p256dh: 'p', auth: 'a' },
+      },
       sub(1),
       { endpoint: 'http://10.0.0.1/x', keys: { p256dh: 'p', auth: 'a' } },
     ],
