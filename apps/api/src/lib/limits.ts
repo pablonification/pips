@@ -3,6 +3,8 @@
 /** A post's title and text, as the composer allows (apps/web/src/lib/constants.ts). */
 export const MAX_POST_TITLE = 100;
 export const MAX_POST_CONTENT = 1000;
+/** Pictures on one post. The composer sets no limit; real posts have at most 7. */
+export const MAX_POST_MEDIA = 10;
 /** A comment, and a Curhat message: the app sets none, so these sit far above anything typed by hand. */
 export const MAX_COMMENT = 2000;
 export const MAX_CURHAT_MESSAGE = 5000;

@@ -103,6 +103,17 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
     } = c.req.valid('json');
     const { id } = c.var.user;
 
+    // One kind of audience per post, as the composer offers: the feed and the push read only one of them.
+    const audienceKinds = [forAngkatan, forCourses, forGroups].filter(
+      (audience) => audience?.length,
+    );
+    if (audienceKinds.length > 1) {
+      return c.json(
+        { error: 'A post is for angkatan, courses or groups, not more' },
+        400,
+      );
+    }
+
     const roles = await deps.getUserRoles(id);
     // A post aimed at groups reaches only the author's own groups, as the composer offers them (`GET /auth/groups`);
     // admin may aim at any.

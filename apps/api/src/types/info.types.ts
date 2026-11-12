@@ -7,7 +7,9 @@ import {
   infoMedias,
   infos,
 } from '~/db/schema';
-import { MAX_POST_CONTENT, MAX_POST_TITLE } from '~/lib/limits';
+import { env } from '~/configs/env.config';
+import { MAX_POST_CONTENT, MAX_POST_MEDIA, MAX_POST_TITLE } from '~/lib/limits';
+import { isFileStoreUrl } from '~/lib/media-url';
 import { AngkatanSchema } from './angkatan.types';
 import { CategorySchema } from './category.types';
 import { CourseSchema } from './course.types';
@@ -75,12 +77,19 @@ export const CreateInfoBodySchema = createInsertSchema(infos, {
   })
   .extend({
     mediaUrls: z
-      .array(z.string().url())
+      .array(
+        z
+          .string()
+          .url()
+          .refine((url) => isFileStoreUrl(url, env.R2_PUBLIC_URL), {
+            message: "Not a file in the app's file store",
+          }),
+      )
+      .max(MAX_POST_MEDIA)
       .optional()
       .openapi({
         example: [
           'https://pub-45e54d5755814b02b87e024df83efb57.r2.dev/r176r3qcuqs3hg8o3dm93n35-asrielblunt.jpg',
-          'https://deleteMediaUrlsFieldIfNoMediaUrls.dev',
         ],
       }),
     forCategories: z
