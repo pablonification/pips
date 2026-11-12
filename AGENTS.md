@@ -54,6 +54,8 @@ pnpm build                               # production build of the web app (the 
 pnpm --filter api test:db                # real-database tests; needs TEST_DATABASE_URL (docs/testing.md)
 pnpm --filter web exec playwright test -c e2e --project=phone-light masuk   # one journey file, one project
 pnpm --filter web api                    # regenerate the API client after a route changed
+pnpm --filter api db:seed                # fill a local database with made-up sample data (development only)
+pnpm --filter web e2e:real               # a few journeys against the real API; needs E2E_REAL_DATABASE_URL (docs/testing.md)
 pnpm --filter api db:migrations          # write a migration after a schema.ts change
 ```
 
