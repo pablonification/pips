@@ -36,6 +36,7 @@ function reached() {
       get: (_t, name: string) => async (data?: unknown) => {
         calls.push(name);
         if (name === 'getUserRoles') return ['admin'];
+        if (name === 'canSeeInfo') return true;
         if (name === 'getCategoriesByIds')
           return [{ id: 'cat-1', rolesAllowed: null }];
         if (name === 'createInfo' || name === 'createComment')
