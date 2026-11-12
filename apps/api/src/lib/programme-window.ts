@@ -1,9 +1,8 @@
 /**
  * The one window rule for everything that opens and closes on the server's clock: forms (`form-status.ts`),
  * Magang SPARTA (`sparta-window.ts`) and the programme windows (`GET /programme-windows`).
- *
- * A window is open from `opensAt` (inclusive; null means already open) until `closesAt` (exclusive; null means
- * until it's switched off), while it is active.
+ * A window is open from `opensAt` (inclusive; null: already open) until `closesAt` (exclusive; null: until switched
+ * off), while it is active.
  */
 export interface TimeWindow {
   opensAt: Date | string | null;

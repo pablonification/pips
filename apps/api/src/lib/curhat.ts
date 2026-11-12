@@ -8,7 +8,7 @@ export const CURHAT_MAX_ROOMS = 3;
 export const CURHAT_ADMIN_ROLE = 'curhatadmin';
 
 /**
- * The socket.io room every Welfare socket of the Curhat area joins (P3-C), so a room a member starts later can be
+ * The socket.io room every Welfare socket of the Curhat area joins, so a room a member starts later can be
  * joined by all of them at once (`socketsJoin`). Room ids come from `createId` (`db/schema.ts`), which never makes a
  * colon, so it can't clash with one, and naming it in `curhat:join` or a handshake finds no room and is refused.
  */
@@ -62,7 +62,7 @@ export function isCurhatAdmin(roles: readonly string[]): boolean {
 
 /**
  * Who may read, join and post in a Curhat room: its owner, or anyone with `curhatadmin`. Used by the chat socket
- * (joining and every message), the read marks and the unread counts; P3-B's Welfare inbox reuses it.
+ * (joining and every message), the read marks and the unread counts; the Welfare inbox reuses it.
  */
 export function canAccessChatroom(
   user: { id: string },
@@ -93,11 +93,11 @@ export interface ChatroomMessageResponse {
   createdAt: Date;
   isSender?: boolean;
   /**
-   * Whether the room's owner wrote it (P3-C, OPEN-QUESTIONS A7): Welfare tells the member's messages from a
+   * Whether the room's owner wrote it: Welfare tells the member's messages from a
    * teammate's. It says nothing about who anyone is.
    */
   fromOwner: boolean;
-  /** The sender's device id for the message (P2-C), shown only to the sender; null for everyone else. */
+  /** The sender's device id for the message, shown only to the sender; null for everyone else. */
   clientMessageId: string | null;
   reply?: Omit<
     ChatroomMessageResponse,
@@ -117,8 +117,8 @@ function messageFields(message: StoredMessage) {
 
 /**
  * Serialises a message of a room owned by `ownerId` for `viewerId`: `isSender` says whether they wrote it, and
- * `fromOwner` whether the room's owner did (P3-C); the quoted message comes without its sender. The device's id for
- * the message goes only to its sender, who matches it to what they sent (P2-C).
+ * `fromOwner` whether the room's owner did; the quoted message comes without its sender. The device's id for
+ * the message goes only to its sender, who matches it to what they sent.
  */
 export function toChatroomMessageResponse(
   message: StoredMessage & { reply?: StoredMessage | null },
@@ -183,7 +183,7 @@ export function toChatroomResponse(room: StoredRoom, viewerId: string) {
 
 /**
  * Unread messages per room for `viewer`: only rooms they may access, only messages they didn't send, and only
- * those without a read mark. Rooms with nothing unread are left out, as the SQL `GROUP BY` did before.
+ * those without a read mark. Rooms with nothing unread are left out.
  */
 export function countUnread(
   rooms: ReadonlyArray<

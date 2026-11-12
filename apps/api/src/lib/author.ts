@@ -2,8 +2,8 @@ import { users } from '~/db/schema';
 
 /**
  * What another member gets about the author of a post or a comment: the id (to show your own post's menu), the
- * name and the photo, as the redesign's bylines show them. Nothing else about a member (email, NIM, gender, campus,
- * angkatan, membership, sign-in times) leaves the API through a post, a comment or a reaction (OPEN-QUESTIONS C10).
+ * name and the photo, as bylines show them. Nothing else about a member (email, NIM, gender, campus,
+ * angkatan, membership, sign-in times) leaves the API through a post, a comment or a reaction.
  */
 export interface Author {
   id: string;

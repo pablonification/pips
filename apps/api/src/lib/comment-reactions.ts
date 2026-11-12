@@ -1,8 +1,7 @@
 /**
  * Each comment's reaction summary, in the shape `CommentWithReactions` documents (`ReactionAggregate`).
- * Regression (2026-11-03, found on a copy of production's data): a comment nobody had reacted to was sent
- * `reactions: []`, against that schema, and the redesign's post page crashed reading its counts.
- * Every comment asked for gets a summary, an empty one when it has no reactions.
+ * Every comment asked for gets a summary, an empty one when it has no reactions: sending `reactions: []` breaks
+ * that schema and the client reading the counts.
  */
 export interface CommentReactionSummary {
   totalReactions: number;

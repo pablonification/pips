@@ -1,7 +1,7 @@
 import { GaxiosError } from 'gaxios';
 
 /**
- * An event may end when it starts (a deadline, shown as "Batas"), never before (C6). Checked on the server, since
+ * An event may end when it starts (a deadline, shown as "Batas"), never before. Checked on the server, since
  * the API answers anyone, not only the app's form.
  */
 export function endsBeforeStart(start: Date, end: Date): boolean {
@@ -17,9 +17,9 @@ export function googleStatus(error: unknown): number | undefined {
 }
 
 /**
- * Whether deleting an event in PIPS! may remove its row after Google refused to delete it (C6). 410 (Gone): Google
+ * Whether deleting an event in PIPS! may remove its row after Google refused to delete it. 410 (Gone): Google
  * deleted it already. 404 means either that or a calendar the service account can't reach, so the calendar is
- * checked first: reachable, the event is gone; not reachable, the row stays (review m6). Any other failure keeps the
+ * checked first: reachable, the event is gone; not reachable, the row stays. Any other failure keeps the
  * row, so the two calendars stay the same.
  */
 export async function googleEventGone(
