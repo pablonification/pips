@@ -301,17 +301,17 @@ export const pixelFormSections: FormSection[] = [
   },
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function runPixelFormSeed(db: PostgresJsDatabase<any>) {
+/** Adds the PIXEL form unless it is there; returns how many forms it added. */
+export async function runPixelFormSeed(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: PostgresJsDatabase<any>,
+): Promise<number> {
   const existing = await db
     .select({ id: forms.id })
     .from(forms)
     .where(eq(forms.slug, PIXEL_FORM_SLUG));
 
-  if (existing.length > 0) {
-    console.log('⏭️  PIXEL form already seeded, skipping');
-    return;
-  }
+  if (existing.length > 0) return 0;
 
   await db.insert(forms).values({
     slug: PIXEL_FORM_SLUG,
@@ -325,5 +325,5 @@ export async function runPixelFormSeed(db: PostgresJsDatabase<any>) {
     order: 0,
   });
 
-  console.log('✅ Inserted PIXEL form into database!');
+  return 1;
 }
