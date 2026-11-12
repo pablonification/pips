@@ -32,8 +32,8 @@ description when it arrives (a bad one gets a 400). The answer is not checked on
 | `cron/` | One job, every minute, in production only: day-before reminders for calendar events. | `calendar-cron.ts` |
 | `db/` | The schema (every table), the connection, the migrate command, seed scripts. | `schema.ts`, `migrate.ts` |
 
-Next to `src`: `drizzle/` holds the migrations (one SQL file per change, numbered), `scripts/openapi.ts` writes the
-API's description to a file with no server, and `tests/` holds the API's tests ([testing](testing.md)).
+Next to `src`: `drizzle/` holds the migrations (one SQL file per change, numbered), `apps/api/scripts/openapi.ts`
+writes the API's description to a file with no server, and `tests/` holds the API's tests ([testing](testing.md)).
 
 **Which controller style to copy.** A controller either imports the database directly (`category.controller.ts`) or
 takes its storage as a parameter so a test can pass a fake (`programme-window.controller.ts`, with
