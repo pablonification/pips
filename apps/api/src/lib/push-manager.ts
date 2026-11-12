@@ -1,5 +1,7 @@
 import webpush from 'web-push';
 import { env } from '~/configs/env.config';
+import { logger } from '~/logger';
+import { isPushServiceEndpoint } from './push-service';
 
 webpush.setVapidDetails(
   'mailto:' + env.VAPID_MAILTO,
@@ -91,6 +93,49 @@ export interface SendOptions {
   send?: typeof webpush.sendNotification;
   timeoutMs?: number;
   concurrency?: number;
+  /** For tests; the API's logger otherwise. */
+  log?: (summary: PushSummary) => void;
+}
+
+/** One fan-out's outcome in counts: never an endpoint, a member or the push's text. */
+export interface PushSummary {
+  type: 'push';
+  devices: number;
+  sent: number;
+  /** Answered 404 or 410: pruned by the caller. */
+  gone: number;
+  /** By the push service's status code, or `error` when none answered (a timeout, a network error). */
+  failed: Record<string, number>;
+  /** Saved before the API checked endpoints, and not at a push service: never connected to. */
+  skipped: number;
+}
+
+function summarize(
+  devices: number,
+  skipped: number,
+  results: PromiseSettledResult<Awaited<ReturnType<typeof sendNotification>>>[],
+): PushSummary {
+  const summary: PushSummary = {
+    type: 'push',
+    devices,
+    sent: 0,
+    gone: 0,
+    failed: {},
+    skipped,
+  };
+  for (const r of results) {
+    if (r.status === 'fulfilled' && r.value.success) summary.sent += 1;
+    else {
+      const code =
+        r.status === 'fulfilled' ? r.value.error.statusCode : undefined;
+      if (code === 404 || code === 410) summary.gone += 1;
+      else {
+        const key = code === undefined ? 'error' : String(code);
+        summary.failed[key] = (summary.failed[key] ?? 0) + 1;
+      }
+    }
+  }
+  return summary;
 }
 
 /**
@@ -145,14 +190,21 @@ export async function sendNotification(
 /**
  *
  * send notification to all subscriptions using sendNotification function, at most `concurrency` at a time.
- * The results are in the subscriptions' order, as `Promise.allSettled` gives them.
+ * Subscriptions not at a push service are left out. The results are in the remaining subscriptions' order, as
+ * `Promise.allSettled` gives them. Logs one line of counts.
  */
 export async function sendNotificationToAll(
-  pushSubscriptions: webpush.PushSubscription[],
+  subscriptions: webpush.PushSubscription[],
   data: PushData,
   options: SendOptions = {},
 ) {
-  const { concurrency = PUSH_CONCURRENCY } = options;
+  const {
+    concurrency = PUSH_CONCURRENCY,
+    log = (summary) => logger.info(summary),
+  } = options;
+  const pushSubscriptions = subscriptions.filter((s) =>
+    isPushServiceEndpoint(s.endpoint),
+  );
   const fitted = fitPushData(data);
   const results = new Array<
     PromiseSettledResult<Awaited<ReturnType<typeof sendNotification>>>
@@ -179,6 +231,13 @@ export async function sendNotificationToAll(
     Array.from(
       { length: Math.min(Math.max(1, concurrency), pushSubscriptions.length) },
       worker,
+    ),
+  );
+  log(
+    summarize(
+      subscriptions.length,
+      subscriptions.length - pushSubscriptions.length,
+      results,
     ),
   );
   return results;
