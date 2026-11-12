@@ -1,25 +1,38 @@
 # PIPS!
 
-The HMIF ITB members app, in one repository:
+PIPS! is the members app of HMIF ITB, the Informatics students' association at Institut Teknologi Bandung.
+Members read announcements, check the calendar, use services such as Testi Matkul and Info Lomba, and talk to HMIF
+Welfare in Curhat Yuk!. It installs on a phone like a native app.
 
-| Folder | What | Was |
-| --- | --- | --- |
-| `apps/web` | The web app and PWA: React, Vite, TanStack Router and Query, Tailwind | `hmif-itb/hmif-app-fe` |
-| `apps/api` | The API: Hono with zod-openapi, Drizzle on PostgreSQL, socket.io | `hmif-itb/hmif-app-be` |
+| Folder | What |
+| --- | --- |
+| `apps/web` | The web app: React, Vite, TanStack Router and Query. |
+| `apps/api` | The API: Hono, PostgreSQL with Drizzle, socket.io. |
 
-Both folders keep their full Git history from the old repositories.
+## Quick start
 
-## Work on it
+You need Node 22 or later and a local PostgreSQL 16. [CONTRIBUTING.md](CONTRIBUTING.md) has the full first run,
+including a database and a test account.
 
 ```bash
-pnpm install                    # every app
-pnpm --filter web dev           # the web app on Vite
-pnpm --filter api dev           # the API (needs apps/api/.env; see apps/api/.env.example)
-pnpm check                      # type check and lint, every app
-pnpm test                       # unit tests, every app
-pnpm build                      # production builds
+corepack enable
+pnpm install
+cp apps/api/.env.example apps/api/.env      # then fix the lines marked CHANGE
+pnpm --filter api db:migrate && pnpm --filter api dev
+pnpm --filter web dev                       # in a second terminal: http://localhost:5173
 ```
 
-The web dev server sends `/api`, `/socket.io`, `/swagger` and `/doc` to the API at `http://127.0.0.1:5000`. Set `DEV_API_ORIGIN` (in the environment or `apps/web/.env.development.local`) to use another address, for example `DEV_API_ORIGIN=http://127.0.0.1:5100` on a Mac, where AirPlay owns port 5000. It has no `VITE_` prefix, so it never reaches the bundle.
+Before a pull request: `pnpm check && pnpm test`.
 
-Each app still has its own README, scripts and `.env.example`. The web app and the API deploy separately: [DEPLOY.md](DEPLOY.md) has the Dokploy settings and the database steps.
+## Read next
+
+- [CONTRIBUTING.md](CONTRIBUTING.md): set it up, make a first change, open a pull request.
+- [AGENTS.md](AGENTS.md): the rules for coding agents, and the ways to hurt yourself.
+- [docs/README.md](docs/README.md): architecture, testing, the design system, decision records.
+- [CONTEXT.md](CONTEXT.md): what angkatan, pengurus, Garis and journey mean.
+- [DEPLOY.md](DEPLOY.md): how both apps are deployed.
+- [SECURITY.md](SECURITY.md): how to report a problem privately.
+
+## Licence
+
+No licence: public to read, all rights reserved by HMIF ITB.
