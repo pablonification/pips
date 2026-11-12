@@ -3,7 +3,7 @@
  * registry.
  */
 export const kelola = {
-  // The forms entry (/kelola/live) with two or more active forms; one forwards, none is today's empty line.
+  // The forms entry (/kelola/live) with two or more active forms; one forwards, none shows the empty line.
   formulir: {
     belumAda: 'Belum ada form',
     dibuka: 'Dibuka {waktu}',

@@ -1,4 +1,7 @@
-/** Adding, changing and deleting competitions in Info Lomba, for cnc. The poster field words its upload as the composer's photos do. */
+/**
+ * Adding, changing and deleting competitions in Info Lomba, for cnc. The poster field words its upload as the
+ * composer's photos do.
+ */
 export const kelolaLomba = {
   tambah: 'Tambah lomba',
   ubahJudul: 'Ubah lomba',

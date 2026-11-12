@@ -136,7 +136,8 @@ export const PROPER_NOUNS = [
 ] as const;
 
 /**
- * Other products' names that contain a banned word (the event detail's "Google Calendar" button). The phrase as a whole is allowed; the banned word alone still isn't.
+ * Other products' names that contain a banned word (the event detail's "Google Calendar" button). The phrase as a
+ * whole is allowed; the banned word alone still isn't.
  */
 export const PRODUCT_NAMES = ['Google Calendar'] as const;
 

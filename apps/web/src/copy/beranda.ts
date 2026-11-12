@@ -1,4 +1,7 @@
-/** Beranda: the agenda card, services, attention rows and Kelola summary. The greeting is the shell's (`common.shell.halo`). */
+/**
+ * Beranda: the agenda card, services, attention rows and Kelola summary. The greeting is the shell's
+ * (`common.shell.halo`).
+ */
 export const beranda = {
   layanan: 'Layanan',
   lainnya: 'Lainnya',

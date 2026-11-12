@@ -297,8 +297,9 @@
     .g-tab {
       padding: 6px 0;
     }
-    /* The plain top bar joins the 720 px column. Beranda's gold bar and greeting don't: they stay 16 px and 18 px
-       from the rail (the later `.p-top.gold-bar` and `.hero` rules win over the column rule). Only the agenda slot and the body sit in the column. */
+    /* The plain top bar joins the 720 px column. Beranda's gold bar and greeting don't: they keep their own
+       padding (`.g-top.gold`, `.g-hero`), 16 px and 18 px from the rail. Only the agenda slot and the body sit in
+       the column. */
     .g-top:not(.gold) {
       padding-inline: max(14px, calc((100% - 720px) / 2 + 14px));
     }

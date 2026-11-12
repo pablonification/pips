@@ -141,7 +141,7 @@
     white-space: normal;
   }
   /* The delivery state in the time line, icon then word ("Mengirim", "Terkirim · 13.35"); the 16 px icon overhangs
-     the 12 px line, so the bubble keeps its height. */
+     the 12 px line, so the bubble's height doesn't change. */
   .g-bubble .tm .g-ic {
     flex: none;
   }

@@ -1,4 +1,4 @@
-/** Profil, Mata kuliahku, Tambah mata kuliah, Notifikasi, Keluar, Kredit and Pasang PIPS!. */
+/** Profil, Mata kuliahku, Tambah mata kuliah, Notifikasi, Keluar, Kredit and the Pasang PIPS! prompt. */
 export const profil = {
   kartu: {
     // The member card's accessible name.
@@ -79,7 +79,7 @@ export const profil = {
   kredit: {
     gagal: 'Kredit gagal dimuat.',
   },
-  // Pasang PIPS!.
+  // The Pasang PIPS! prompt.
   pasang: {
     judul: 'Pasang PIPS!',
     isi: 'Buka PIPS! langsung dari layar utama, seperti aplikasi lain. Di iPhone, notifikasi juga hanya sampai lewat PIPS! yang terpasang.',

@@ -1,4 +1,7 @@
-/** Push notifications on this device: the prompt, the Notifikasi card, the Profil row's state, the errors and the toasts. */
+/**
+ * Push notifications on this device: the prompt, the Notifikasi card, the Profil row's state, the errors and the
+ * toasts.
+ */
 export const push = {
   prompt: {
     judul: 'Nyalakan notifikasi?',

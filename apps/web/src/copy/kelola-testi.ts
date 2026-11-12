@@ -1,4 +1,7 @@
-/** Adding a testimonial on a Testi Matkul course page, for akademik. Section names are Testi Matkul's own (`copy/testi.ts`). */
+/**
+ * Adding a testimonial on a Testi Matkul course page, for akademik. Section names are Testi Matkul's own
+ * (`copy/testi.ts`).
+ */
 export const kelolaTesti = {
   tambah: 'Tambah testimoni',
   nama: 'Nama penulis',
