@@ -67,8 +67,8 @@ after(async () => {
   await client?.end();
 });
 
-// Regression (C4, review M1): the count and the insert were separate steps, so ten creates sent together all read
-// a count of 0 and all ten rooms were made.
+// The count and the insert must be one locked step: as separate steps, ten creates sent together all read a count of 0
+// and all ten rooms are made.
 test('ten creates sent together leave exactly three rooms', async () => {
   const { createChatroomWithinLimit } =
     await import('../../src/repositories/chatroom.repo');
@@ -89,8 +89,8 @@ test('ten creates sent together leave exactly three rooms', async () => {
   assert.equal(rows.length, 3);
 });
 
-// Review minor 5: unread counts loaded every message of every room for Welfare; they are one SQL count now,
-// and it must give exactly what the tested rule (countUnread) gives.
+// Unread counts are one SQL count, not every message of every room loaded for Welfare. It must give exactly what the
+// tested rule (countUnread) gives.
 test('the SQL unread count agrees with countUnread', async () => {
   const schema = await import('../../src/db/schema');
   const { getUnreadCounts } =
@@ -189,7 +189,7 @@ test('the SQL unread count agrees with countUnread', async () => {
   );
 });
 
-// P2-C round 2 (OPEN-QUESTIONS A11): a resend after a lost acknowledgement carries the same device id. Sent again,
+// A resend after a lost acknowledgement carries the same device id. Sent again,
 // or sent twice at once, it is saved once, and every send gets that one message back.
 test('a message id is saved once per room, even when the sends race', async () => {
   const schema = await import('../../src/db/schema');
