@@ -87,7 +87,6 @@ export { OpenGraphService } from './services/OpenGraphService';
 export { ProgrammeWindowService } from './services/ProgrammeWindowService';
 export { PushService } from './services/PushService';
 export { ReactionService } from './services/ReactionService';
-export { RecommendationService } from './services/RecommendationService';
 export { TestimoniService } from './services/TestimoniService';
 export { UnsubscribeService } from './services/UnsubscribeService';
 export { UserFinderService } from './services/UserFinderService';
