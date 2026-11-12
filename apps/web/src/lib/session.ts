@@ -7,6 +7,7 @@ import { forgetMember } from './forget-member';
 import { deleteAllDrafts } from './form/draft-store';
 import { deleteSharedData } from './share-db';
 import { isSignedOutError } from './session-policy';
+import { forgetUnsent } from './unsent-text';
 
 export { sessionRetry, sessionRetryDelay } from './session-policy';
 
@@ -35,6 +36,7 @@ export function forgetMemberOnDevice({
     storage: localStorage,
     forgetShell,
     removeFormDrafts: deleteAllDrafts,
+    removeUnsentText: () => forgetUnsent(),
     removeSharedContent: keepSharedContent
       ? undefined
       : () => deleteSharedData().catch(() => undefined),

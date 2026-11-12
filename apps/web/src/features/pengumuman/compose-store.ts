@@ -8,8 +8,9 @@ import {
   MAX_INFO_TITLE_LENGTH as MAX_TITLE,
 } from '~/lib/constants';
 import { getSharedData } from '~/lib/share-db';
+import { keepUnsent, readUnsent } from '~/lib/unsent-text';
 import type { UploadProblem } from '~/lib/upload-policy';
-import { freshDraft, type Draft } from './draft';
+import { freshDraft, type AudienceKind, type Draft } from './draft';
 import type { DraftErrors, UploadState } from './rules';
 
 export interface Photo {
@@ -44,8 +45,43 @@ let state = blank();
 const listeners = new Set<() => void>();
 export const setCompose = (fn: (s: ComposeState) => ComposeState) => {
   state = fn(state);
+  keepDraft(state.draft);
   for (const l of listeners) l();
 };
+
+/*
+ * The title, text and audience are also kept in the tab (src/lib/unsent-text.ts), so a reload doesn't wipe them;
+ * the next opening starts from them. Not the categories or photos.
+ */
+const KEPT = 'tulis';
+type KeptDraft = Pick<Draft, 'title' | 'body' | 'audType' | 'aud'>;
+function keepDraft({ title, body, audType, aud }: ComposeState['draft']) {
+  const blankDraft = !title && !body && audType === 'all' && !aud.length;
+  keepUnsent(
+    KEPT,
+    blankDraft ? '' : JSON.stringify({ title, body, audType, aud }),
+  );
+}
+const AUDIENCES: readonly AudienceKind[] = ['all', 'angkatan', 'group'];
+function keptDraft(): KeptDraft | null {
+  try {
+    const kept: unknown = JSON.parse(readUnsent(KEPT) ?? 'null');
+    if (!kept || typeof kept !== 'object' || Array.isArray(kept)) return null;
+    const { title, body, audType, aud } = kept as Record<string, unknown>;
+    if (typeof title !== 'string' || typeof body !== 'string') return null;
+    if (!AUDIENCES.includes(audType as AudienceKind)) return null;
+    if (!Array.isArray(aud) || !aud.every((a) => typeof a === 'string'))
+      return null;
+    return {
+      title: title.slice(0, MAX_TITLE),
+      body: body.slice(0, MAX_BODY),
+      audType: audType as AudienceKind,
+      aud,
+    };
+  } catch {
+    return null;
+  }
+}
 export const useCompose = () =>
   useSyncExternalStore(
     (l) => {
@@ -169,8 +205,11 @@ export function takeShared() {
     })
     .catch(() => undefined);
 }
+/** Opens with what the tab kept from before a reload; what the share target handed over then replaces it. */
 export function composerOpened() {
+  const kept = keptDraft();
   resetComposer();
+  if (kept) patchDraft(kept);
   opening += 1;
   takeShared();
 }

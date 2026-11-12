@@ -35,6 +35,7 @@ import { fill } from '~/copy/fill';
 import { pengumuman as t } from '~/copy/pengumuman';
 import { PageTitle, TopBarActions } from '~/components/shell/page';
 import useSession from '~/hooks/auth/useSession';
+import { useUnsentText } from '~/hooks/useUnsentText';
 import { can } from '~/lib/capabilities';
 import { dFull, rel } from '~/lib/dates';
 import { initialsOf } from '~/lib/shell/names';
@@ -379,7 +380,7 @@ function CommentForm({
   count: number;
 }) {
   const me = useSession();
-  const [text, setText] = useState('');
+  const [text, setText] = useUnsentText(`komentar:${infoId}`);
   // A sent comment lands above the field and pushes it down: keep the focused field in view.
   useEffect(() => {
     if (document.activeElement === field.current)
