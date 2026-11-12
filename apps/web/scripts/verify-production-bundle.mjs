@@ -1,14 +1,18 @@
 // Fails if a production build in dist/ has anything that must never ship (run after `pnpm build`; CI does):
 // - development-only code: the test login, the Garis gallery (/dev/garis) or the shell's test page (/dev/shell).
 //   Staging-mode builds include them on purpose, so don't run this on them;
-// - the review prototypes (a `prototypes/` folder) or any source map (`.map`);
+// - the review prototypes (a `prototypes/` folder), any source map (`.map`) or a script or style pointing at one;
+// - build metadata the server would hand out: a dot folder (`.vite/`) or `chunk-modules.json` (the budget check
+//   reads them from dist-meta/, beside the build);
+// - a comment in index.html naming a work item;
+// - a build tool in package.json's runtime dependencies;
 // - a precache (`self.__WB_MANIFEST` in sw.js) beyond the app shell and route chunks: no prototypes, no source maps,
 //   no images but the official logo and the manifest's icons, and at most 1.5 MiB (SPEC "Service worker");
 // - a service worker without the app-shell navigation fallback, the bounded same-origin image cache, push,
 //   notification clicks or the share target, or with a catch-all asset cache.
 //   node scripts/verify-production-bundle.mjs [dist]
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BUDGETS, KIB, precacheUrls } from './lib/budgets.mjs';
 
@@ -19,6 +23,21 @@ const FORBIDDEN_TEXT = [
   // A sentence only the shell's test page has (src/dev/shell/).
   'Halaman uji shell',
 ];
+
+// Task and finding ids from the delivery plan: P0-A, F2-007, T3, C1, PROD-PASS.
+const WORK_ITEM = /\b(?:[PF]\d-[A-Z\d]+|[TC]\d|PROD-PASS)\b/;
+
+// Packages that only run while building; in `dependencies` they would look like part of the app.
+const BUILD_TOOL =
+  /^(?:vite|typescript|eslint.*|@vitejs\/.+|@types\/.+|.*vite-plugin.*|@tailwindcss\/vite)$/;
+
+/** The build tools `pkg` (a package.json) lists as runtime dependencies. */
+export function buildToolsInDependencies(pkg) {
+  return Object.keys(pkg.dependencies ?? {})
+    .filter((name) => BUILD_TOOL.test(name))
+    .sort()
+    .map((name) => `package.json: ${name} is a build tool in dependencies`);
+}
 
 /** Every file in `dir`, relative to it with `/` separators. */
 function files(dir) {
@@ -55,6 +74,23 @@ export function verify(dir) {
     problems.push('prototypes/: the review prototypes are in the build');
   for (const f of all.filter((f) => f.endsWith('.map')))
     problems.push(`${f}: a source map is in the build`);
+  for (const f of all.filter(
+    (f) =>
+      f.split('/').some((p) => p.startsWith('.')) ||
+      /(^|\/)chunk-modules\.json$/.test(f),
+  ))
+    problems.push(`${f}: build metadata is in the build`);
+  for (const f of all.filter((f) => /\.(js|css)$/.test(f)))
+    if (/[#@] sourceMappingURL=/.test(readFileSync(join(dir, f), 'utf8')))
+      problems.push(`${f}: points at a source map`);
+  if (all.includes('index.html')) {
+    const html = readFileSync(join(dir, 'index.html'), 'utf8');
+    for (const [, comment] of html.matchAll(/<!--([\s\S]*?)-->/g)) {
+      const label = WORK_ITEM.exec(comment);
+      if (label)
+        problems.push(`index.html: a comment names a work item (${label[0]})`);
+    }
+  }
 
   if (!all.includes('sw.js')) {
     problems.push('sw.js: no service worker');
@@ -101,7 +137,13 @@ export function verify(dir) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const dir = process.argv[2] ?? 'dist';
-  const problems = verify(dir);
+  const pkg = resolve(dirname(resolve(dir)), 'package.json');
+  const problems = [
+    ...verify(dir),
+    ...(existsSync(pkg)
+      ? buildToolsInDependencies(JSON.parse(readFileSync(pkg, 'utf8')))
+      : []),
+  ];
   if (problems.length) {
     console.error(
       `The production build in ${dir} has what must not ship:\n${problems.join('\n')}`,
@@ -109,6 +151,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(1);
   }
   console.log(
-    `ok: ${dir} has no development-only code, prototypes or source maps; the precache and service worker are as SPEC says`,
+    `ok: ${dir} has no development-only code, prototypes, source maps or build metadata; the precache and service worker are as SPEC says`,
   );
 }

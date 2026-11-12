@@ -2,14 +2,14 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
-import { rmSync } from 'node:fs';
+import { existsSync, renameSync, rmSync } from 'node:fs';
 import path from 'path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { VitePluginRadar } from 'vite-plugin-radar';
 
 /**
- * Writes dist/.vite/chunk-modules.json: for each JS chunk, the modules in it (npm packages by name, app files by
+ * Writes dist-meta/chunk-modules.json (by way of dist/.vite): for each JS chunk, the modules in it (npm packages by name, app files by
  * path). The budget check (scripts/budgets.mjs) uses it to say which packages each route loads before its first
  * render, e.g. that socket.io-client loads only with Curhat and Live Counting.
  */
@@ -57,6 +57,27 @@ function noPrototypes(): Plugin {
     },
     closeBundle() {
       rmSync(path.join(outDir, 'prototypes'), { recursive: true, force: true });
+    },
+  };
+}
+
+/**
+ * Moves dist/.vite (Vite's manifest and chunk-modules.json) beside the build, to dist-meta/, so the server never hands
+ * out the list of source files and packages; the budget check reads it there.
+ */
+function buildMetaOutsideDist(): Plugin {
+  let outDir = '';
+  return {
+    name: 'pips-build-meta-outside-dist',
+    apply: 'build',
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    closeBundle() {
+      const meta = `${outDir}-meta`;
+      rmSync(meta, { recursive: true, force: true });
+      if (existsSync(path.join(outDir, '.vite')))
+        renameSync(path.join(outDir, '.vite'), meta);
     },
   };
 }
@@ -215,6 +236,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       chunkModules(),
       noPrototypes(),
+      buildMetaOutsideDist(),
       sentryVitePlugin({
         authToken: env.SENTRY_AUTH_TOKEN,
         org: env.SENTRY_ORG || 'hmif',
@@ -224,8 +246,9 @@ export default defineConfig(({ mode }) => {
     ],
 
     build: {
-      sourcemap: true,
-      // dist/.vite/manifest.json: chunks and their imports, read by the budget check (scripts/budgets.mjs).
+      // Maps for Sentry's upload only: no script names one, and delete-sourcemap.js removes them after the build.
+      sourcemap: 'hidden',
+      // dist-meta/manifest.json: chunks and their imports, read by the budget check (scripts/budgets.mjs).
       manifest: true,
       // One stylesheet: the routes' own CSS is 1–2 KiB gzip each, less than a request costs (SPEC: ≤ 15 requests
       // before Beranda's content).
