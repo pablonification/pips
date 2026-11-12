@@ -16,6 +16,8 @@ sometimes shared or lost, and some of what the app holds (Curhat messages, form 
   API's answers (`apps/web/src/sw.ts`).
 - Sign-out, a 401 from the session check, and a new sign-in each wipe everything of the member: the saved cache,
   what is in memory, the member's `localStorage` keys and the form drafts (`apps/web/src/lib/forget-member.ts`).
+  Sign-out and a session that ended also remove content someone shared to PIPS! and had not posted yet. A new
+  sign-in keeps it, so a person who shares to PIPS! while signed out finds it in Buat after signing in.
 - A storage that is full, missing or never answers must not break the app: it carries on without the cache, after a
   3-second limit.
 

@@ -15,7 +15,8 @@ change to shared styles can alter many screens without anyone looking.
   `apps/web/e2e/qa/` and run in CI.
 - **Visual references.** Screenshots kept in Git (`apps/web/e2e/visual/`) are compared on every run, and a screen
   may differ by at most 0.1 % of its pixels. They are kept per platform: macOS ones recorded on a laptop with
-  `pnpm --filter web e2e:update`, and Linux ones recorded in CI's own container, because CI is the judge and fonts
+  `pnpm --filter web e2e:update`, and Linux ones recorded in CI's own container by the manual `visual references`
+  workflow (run from the Actions tab), because CI is the judge and fonts
   render differently on each system.
 
 ## What else was possible
