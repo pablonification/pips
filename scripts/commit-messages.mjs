@@ -1,9 +1,8 @@
-// Conventional Commits check for pull requests (the owner's rule from 2026-10-13, 06:45 WIB).
+// Conventional Commits check for pull requests.
 //   node scripts/commit-messages.mjs <base> [head]
-// Checks the first line of every commit in base..head committed after the rule started; older commits are
-// history and stay as they are. When PR_TITLE is set it checks the pull request's title too: pull requests are
-// squash-merged, so the title becomes the commit on the shared branch. The same pattern is in the workspace's commit-msg hook
-// (ops/redesign/hooks/commit-msg in pips-workspace).
+// Checks the first line of every commit in base..head committed after RULE_START; older commits are history and
+// stay as they are. When PR_TITLE is set it checks the pull request's title too: pull requests are squash-merged,
+// so the title becomes the commit on the shared branch.
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 

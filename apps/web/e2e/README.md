@@ -1,11 +1,11 @@
 # PIPS! browser harness
 
 Playwright drives a **production build** of the web app, served locally with `vite preview`. Every request the
-app makes is answered from typed fixtures built from the locked Garis v4 prototype's sample data, with a fixed
-clock. Nothing reaches a real API, Google, Sentry or any other site.
+app makes is answered from typed fixtures built from sample data (`fixtures/prototype.ts`), with a fixed clock.
+Nothing reaches a real API, Google, Sentry or any other site.
 
-The Mac this runs on is shared and short of disk: run `ops/redesign/disk-guard.sh` (in the workspace) before each
-command below, run one at a time, and use at most 2 workers (`E2E_WORKERS=2`, the default; WORKER-RULES.md).
+The journeys are heavy: run one command at a time, and use at most 2 workers (`E2E_WORKERS=2`, the default). Never
+run the whole suite on your own machine; CI does.
 
 ## Commands
 
@@ -25,18 +25,17 @@ Arguments after the script name go to Playwright, e.g. `pnpm --filter web e2e --
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `E2E_REUSE_BUILD=1` | Reuse the last build in `e2e/.build` instead of building again (builds take minutes here). Rebuild after changing app code. |
 | `E2E_WORKERS`       | Parallel browsers (default 2).                                                                                              |
-| `E2E_PORT`          | The preview port (default 4310, inside this worktree's range 4310–4319).                                                    |
+| `E2E_PORT`          | The preview port (default 4310).                                                                                            |
 | `E2E_GATES=record`  | Only record the quality gates instead of failing on them.                                                                   |
 
-Outside the workspace (CI), `E2E_REUSE_BUILD` is unset and the web server builds first. Playwright's own output
-goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
+In CI, `E2E_REUSE_BUILD` is unset and the web server builds first. Playwright's own output goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
 
 ## What every test gets
 
 `support/test.ts` extends Playwright's `test`. Import `test` and `expect` from there:
 
 - **Projects** (`playwright.config.ts`): `phone-light`, `phone-dark` (390 × 844, touch, device scale 2, a phone
-  user agent), `tablet-light`, `tablet-dark` (834 × 1112, touch, device scale 2, a tablet user agent; P0-C) and
+  user agent), `tablet-light`, `tablet-dark` (834 × 1112, touch, device scale 2, a tablet user agent) and
   `desktop-light`, `desktop-dark` (1440 × 900). Tag a test `@phone-only` or `@desktop-only` when only one layout
   has the feature; the other projects leave it out. Tablets are touch layouts below 1024 px, so they run
   `@phone-only` tests too. `support/app.ts` has `layoutOf(testInfo)` ('phone',
@@ -44,7 +43,7 @@ goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
 - **Timed journeys:** tag a journey `@solo` when it times the main thread (long tasks, frame budgets). The journey
   projects leave it out; `pnpm --filter web e2e:solo` runs it in `solo-<layout>-<theme>` with one worker, so no
   neighbouring test competes for the CPU. CI runs it as its own job. The whole suite is `e2e`, then `e2e:solo`.
-- **The shell** (P0-C): `navLink(page, 'Beranda' | 'Pengumuman' | 'Kalender' | 'Layanan' | 'Profil')` finds a
+- **The shell:** `navLink(page, 'Beranda' | 'Pengumuman' | 'Kalender' | 'Layanan' | 'Profil')` finds a
   destination in whichever navigation the layout shows (Profil: your avatar, or your name in the sidebar);
   `greeting(page, 'Nadia')` is Beranda's "Halo, Nadia"; `inMain(page, text)` finds text in the page, not the
   shell. On phones and tablets a drill-down page's title is also the top bar's `h1` (unless the screen shows its own
@@ -54,15 +53,15 @@ goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
   page below Layanan with its own title, top-bar actions, a field and 30 buttons; `?judul=…` gives it a title from
   data. `journeys/shell-page.spec.ts` checks the shell's slots on it until real screens use them.
 - **Defaults:** time zone `Asia/Jakarta`, locale `id-ID`, service workers blocked, reduced motion, CSS
-  animations and transitions off, and a fixed clock: **Kamis, 8 Oktober 2026, 13.35 WIB** (the prototype's
+  animations and transitions off, and a fixed clock: **Kamis, 8 Oktober 2026, 13.35 WIB** (the sample data's
   "now"; see `fixtures/NOTES.md`). Time then runs normally from there.
 - **Options** (set with `test.use({...})`):
   - `persona`: `'anggota'` (Nadia Putri, IF 2025 PIXEL; default) or `'pengurus'` (Raka Pratama, IF 2024, with
     `akademik` and `admin`), or `null` for nobody.
   - `signedIn` (default `true`): signed out, the API answers 401 until the test sets `db.signedIn = true`.
   - `installed` (default `true`): runs as the installed PWA (`display-mode: standalone`), which the app reads for
-    Pasang PIPS! and the iOS push step. `installed: false` runs as a phone browser (and checks the install tutorial
-    P0-B removed stays gone).
+    Pasang PIPS! and the iOS push step. `installed: false` runs as a phone browser (and checks the removed install tutorial
+    stays gone).
   - `now`: another fixed time (ISO string), or `null` for the real clock.
   - `platform`: what `navigator.platform` reports (`'MacIntel'`, `'Linux x86_64'`), or `null` (default) for the
     browser's own. The app names the search shortcut by platform (⌘K on Apple, Ctrl K elsewhere).
@@ -70,11 +69,11 @@ goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
 
 ## Fixtures
 
-- `fixtures/prototype.ts`: the prototype's `garis/data.js`, ported as is.
+- `fixtures/prototype.ts`: the sample data (members, posts, events, courses, forms), as plain objects.
 - `fixtures/api.ts`: the same data in the real API's shapes, typed with `src/api/generated`, so `pnpm typecheck`
   fails if the API changes shape. `buildDb(persona)` gives one persona's view (visibility, read state, courses,
   rooms, forms).
-- `fixtures/NOTES.md`: every place where the prototype's data doesn't fit the API, and what the fixtures do.
+- `fixtures/NOTES.md`: every place where the sample data doesn't fit the API, and what the fixtures do.
 - Images: avatars, posters and post photos are drawn by the mock layer at `/__e2e__/…` (`support/media.ts`).
 
 ## The mock layer and its guard
@@ -120,9 +119,9 @@ test('…', async ({ page, api, db }) => {
 
 ### Sockets
 
-Members' Curhat opens one socket.io connection for the whole area (`auth: { curhat: true }`, P2-C); so does
-Welfare's inbox at /kelola/curhat (P3-C), whose handshake joins every room and the `curhat:welfare` group room.
-Live Counting opens one with `auth.formAdminId`. The fake speaks P0-D's protocol: the handshake joins your rooms
+Members' Curhat opens one socket.io connection for the whole area (`auth: { curhat: true }`); so does
+Welfare's inbox at /kelola/curhat, whose handshake joins every room and the `curhat:welfare` group room.
+Live Counting opens one with `auth.formAdminId`. The fake speaks the API's protocol: the handshake joins your rooms
 (`FakeSocket.rooms`), `curhat:join` adds one, and `message` is acknowledged as the API does. It records what the app emits, and lets a test push events and steer answers:
 
 ```ts
@@ -149,16 +148,18 @@ The app waits 10 s for an acknowledgement; move the clock with `page.clock.fastF
 ## Quality gates
 
 `support/audit.ts` measures axe (WCAG 2.2 A/AA and best practice), document horizontal overflow, text under 12 px
-and `lang`. The gates are **strict** by default (since C1): a journey fails on any serious or critical axe
-violation, any overflow, any text under 12 px or `lang` other than `id`; the results are attached to each test as
-`gates-<name>.json`. `E2E_GATES=record` only attaches them. `support/strict.ts` adds the redesign's stricter checks
+and `lang`. The gates are **strict** by default: a journey fails on any serious or critical axe
+violation, any overflow, any text under 12 px or `lang` other than `id`. The results are attached to each test as
+`gates-<name>.json`. `E2E_GATES=record` only attaches them. `support/strict.ts` adds stricter checks
 (focus, inputs on touch, the lit navigation item, every window width).
 
 ## Visual references
 
 `e2e/visual/visual.spec.ts` compares states with committed reference images (`toHaveScreenshot`, at most 0.1 %
 of pixels may differ). References are per platform: record the macOS ones with `e2e:update`, and the Linux ones in
-CI's container with the `visual references` workflow; review their diffs in the pull request.
+CI's container with the `visual references` workflow; review their diffs in the pull request. That workflow's file,
+`visual-references.yml`, is only on the `main` branch, because GitHub runs a hand-started workflow from the default
+branch: start it with `gh workflow run visual-references.yml -f branch=<your branch>`.
 
 ## CI
 
