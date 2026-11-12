@@ -1,8 +1,7 @@
 /**
- * V5 Masuk (garis/screens-masuk.js, locked 2026-11-02): the keyboard header, the four slides, Masuk dengan Google with
+ * Masuk: the keyboard header, the four slides, Masuk dengan Google with
  * Google's one-colour G, the loader, every real error state, at phone, tablet and desktop in light and dark. The
- * sign-in flow itself (redirects, Coba lagi's token, Google's popup) is sign-in.spec.ts's; garis-check.mjs section 4f
- * is the prototype's own version of these checks. Motion with no preference is in qa/motion.spec.ts.
+ * sign-in flow itself (redirects, Coba lagi's token, Google's popup) is sign-in.spec.ts's. Motion with no preference is in qa/motion.spec.ts.
  */
 import type { Locator, Page } from '@playwright/test';
 import { layoutOf } from '../support/app';
@@ -13,7 +12,7 @@ import { expect, test } from '../support/test';
 import * as writes from '../support/writes';
 
 const SLIDES = ['Pengumuman', 'Kalender', 'Layanan', 'Curhat Yuk!'];
-/** The keys each slide lights in the header (screens-masuk.js `MASUK_SLIDES`). */
+/** The keys each slide lights in the header. */
 const LIT = [
   ['pengumuman'],
   ['kalender'],
@@ -92,7 +91,7 @@ test('the keyboard header, the greeting, the slides and Masuk dengan Google, in 
     'carousel',
   );
   await expect(carousel(page).getByRole('group')).toHaveCount(4);
-  // The owner removed the hint under the greeting (2026-11-04).
+  // There is no hint under the greeting.
   await expect(
     page.getByText(/Pakai akun Google email mahasiswamu/),
   ).toHaveCount(0);
@@ -395,7 +394,7 @@ test('after resizing across 1024 px the slide shown stays the same @desktop-only
   await onSlide(page, 2);
 });
 
-// Regression (V5): the header's glyphs and halftone once came from the build's shared `ui` chunk, which brought the
+// The header's glyphs and halftone must not come from the build's shared `ui` chunk: it brings the
 // push prompt, the dialogs and their libraries before sign-in's first render (/login 144 → 190 KiB gzip).
 test('a cold first load of sign-in leaves out the shared ui chunk', async ({
   page,

@@ -1,5 +1,5 @@
 /**
- * Profil › Notifikasi and the push module (P1-C): this device's card in every state, the prompt (the only place
+ * Profil › Notifikasi and the push module: this device's card in every state, the prompt (the only place
  * that asks for permission), the test notification, and a switch per category.
  */
 import { devices, type Page } from '@playwright/test';
@@ -178,12 +178,12 @@ test.describe('the device card', () => {
     ).toBeVisible();
   });
 
-  test('regression: a push service that never answers ends Menyalakan… with Coba lagi, and a late answer still turns it on, once', async ({
+  test('a push service that never answers ends Menyalakan… with Coba lagi, and a late answer still turns it on, once', async ({
     page,
     api,
     db,
   }) => {
-    // 2026-11-06, the real app on real data: Chrome's push service didn't answer, and the prompt said "Menyalakan…"
+    // When Chrome's push service doesn't answer, the prompt must not say "Menyalakan…"
     // for good, with no way out but closing the tab.
     api.on('POST /api/push/register', writes.registerPush);
     await page.goto('/profil/notifikasi');
@@ -268,10 +268,10 @@ test.describe('the device card', () => {
       expect((await pushDevice(page)).asks).toBe(0);
     });
 
-    test('regression: the prompt opened from elsewhere (Beranda, search) offers Pasang PIPS!, not only Tutup', async ({
+    test('the prompt opened from elsewhere (Beranda, search) offers Pasang PIPS!, not only Tutup', async ({
       page,
     }) => {
-      // The shell's test page opens the prompt as Beranda's row and search do (P1-A).
+      // The shell's test page opens the prompt as Beranda's row and search do.
       await page.goto('/dev/shell');
       await page
         .getByRole('button', { name: 'Buka prompt notifikasi' })
@@ -389,7 +389,7 @@ test.describe('Kategori pengumuman', () => {
     await expect(sw(page, 'Beasiswa')).toHaveAttribute('aria-checked', 'true');
   });
 
-  test('regression: a failed mute puts back only its own switch, not one changed meanwhile', async ({
+  test('a failed mute puts back only its own switch, not one changed meanwhile', async ({
     page,
     api,
     db,
