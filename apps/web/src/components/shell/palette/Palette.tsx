@@ -73,7 +73,7 @@ export default function Palette() {
               <D.Close className="g-pal-close">{common.actions.tutup}</D.Close>
             </div>
             {/* With no result the list leaves the accessibility tree (hidden): an empty listbox is an ARIA error
-                (axe aria-required-children, F2-001), and the field's aria-controls still points at it. The words
+                (axe aria-required-children), and the field's aria-controls still points at it. The words
                 then show in the list's own box, so nothing on screen moves. */}
             <Command.List
               className="g-pal-res"
