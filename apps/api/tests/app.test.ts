@@ -27,6 +27,54 @@ test('signed-out requests are refused before any database call', async () => {
   }
 });
 
+test('a signed session whose content no longer fits answers 401 and clears the cookie', async () => {
+  const { sessionCookie, testUser } = await import('./support/session');
+  const stale = testUser('u-nadia', { angkatan: 'x' as unknown as number });
+  for (const path of ['/api/me', '/api/info']) {
+    const res = await app.request(path, {
+      headers: { Cookie: await sessionCookie(stale) },
+    });
+    assert.equal(res.status, 401, path);
+    assert.match(
+      res.headers.get('set-cookie') ?? '',
+      /hmif-app\.access-cookie=;.*Max-Age=0/,
+      path,
+    );
+  }
+});
+
+test("the request log never ties a member to a Curhat room; other paths keep the member's id", async () => {
+  const { sessionCookie, testUser } = await import('./support/session');
+  const { logger } = await import('../src/logger');
+  const cookie = await sessionCookie(testUser('u-nadia'));
+  const entries: Array<Record<string, unknown>> = [];
+  const original = { info: logger.info, error: logger.error };
+  (logger as any).info = (entry: Record<string, unknown>) => {
+    if (entry?.type === 'request') entries.push(entry);
+    return logger;
+  };
+  (logger as any).error = () => logger;
+  try {
+    for (const path of [
+      '/api/curhat/chatroom/room-1/read',
+      '/api/curhat/chatrooms',
+      '/api/info',
+    ])
+      await app.request(path, { headers: { Cookie: cookie } });
+  } finally {
+    Object.assign(logger, original);
+  }
+  const byPath = Object.fromEntries(entries.map((e) => [e.path, e]));
+  for (const path of [
+    '/api/curhat/chatroom/room-1/read',
+    '/api/curhat/chatrooms',
+  ]) {
+    assert.ok(byPath[path], path);
+    assert.equal(byPath[path].userId, undefined, path);
+  }
+  assert.equal(byPath['/api/info'].userId, 'u-nadia');
+});
+
 test('the OpenAPI document lists the API and is the same whenever it is generated', async () => {
   const doc = JSON.parse(JSON.stringify(openApiDocument(app))) as {
     paths: Record<string, unknown>;

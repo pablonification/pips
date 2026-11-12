@@ -3,8 +3,10 @@ import * as Sentry from '@sentry/node';
 import { Server, type ServerOptions } from 'socket.io';
 import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
+import { RATE_LIMITS, RATE_WINDOW_MS } from '~/lib/limits';
 import { isAllowedOrigin } from '~/lib/origin';
 import { sendNotificationToAll } from '~/lib/push-manager';
+import { createRateLimiter } from '~/lib/rate-limit';
 import {
   getChatroomMessageById,
   getAllChatroomIds,
@@ -87,6 +89,10 @@ export default function setupWebsocket(httpServer: ServerType) {
           await getChatroomMessageById(db, messageId),
         saveMessage: async (message) => await saveMessage(db, message),
         notifyParticipants: sendNotification,
+        messageLimiter: createRateLimiter({
+          limit: RATE_LIMITS.curhatMessages,
+          windowMs: RATE_WINDOW_MS,
+        }),
         onError: (error) => Sentry.captureException(error),
       },
     }),
