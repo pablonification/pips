@@ -27,6 +27,22 @@ test('signed-out requests are refused before any database call', async () => {
   }
 });
 
+test('a signed session whose content no longer fits answers 401 and clears the cookie', async () => {
+  const { sessionCookie, testUser } = await import('./support/session');
+  const stale = testUser('u-nadia', { angkatan: 'x' as unknown as number });
+  for (const path of ['/api/me', '/api/info']) {
+    const res = await app.request(path, {
+      headers: { Cookie: await sessionCookie(stale) },
+    });
+    assert.equal(res.status, 401, path);
+    assert.match(
+      res.headers.get('set-cookie') ?? '',
+      /hmif-app\.access-cookie=;.*Max-Age=0/,
+      path,
+    );
+  }
+});
+
 test('the OpenAPI document lists the API and is the same whenever it is generated', async () => {
   const doc = JSON.parse(JSON.stringify(openApiDocument(app))) as {
     paths: Record<string, unknown>;
