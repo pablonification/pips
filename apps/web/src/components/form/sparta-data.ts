@@ -4,7 +4,6 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { api } from '~/api/client';
-import { uploadMedia } from '~/lib/upload';
 import {
   ApiError,
   type DraftInternshipSubmission,
@@ -102,9 +101,3 @@ export function saveDraftOnLeave(requestBody: DraftInternshipSubmission) {
     // Nothing to tell: the page is gone.
   });
 }
-
-/**
- * A file answer: a presigned upload (`POST /media/upload`), resolves to the file's URL. The
- * type and size are checked first (`lib/upload-policy.ts`), and a refusal rejects with `UploadRefused`.
- */
-export const uploadFile = (file: File) => uploadMedia(file, 'file');

@@ -5,7 +5,7 @@ import { ME_QUERY_KEY } from '~/api/constants';
 import { ApiError } from '~/api/generated';
 import { SessionCheckedContext } from '~/components/session';
 import useSession from '~/hooks/auth/useSession';
-import { gateRedirect, kelolaAccess, type KelolaPage } from './rules';
+import { gateRedirect, kelolaAccess, type KelolaPage } from './access';
 
 /**
  * Shows a Kelola page only to the roles the capability map allows. Anyone else is sent on with `replace`: to the hub
