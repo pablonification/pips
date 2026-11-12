@@ -22,7 +22,7 @@ live together. PIPS! began as a React app and a separate API, and members alread
 
 ## What it costs
 - The two apps are a generation apart in tooling. The web app is on ESLint 10 and TypeScript 6; the API is still on
-  ESLint 8 (an older config style), TypeScript 5.4, Drizzle 0.33 and zod 3. A contributor learns two lint setups.
+  ESLint 8 (an older config style), TypeScript 5.4 and Drizzle 0.33. A contributor learns two lint setups.
 - The web app is a single-page app: it needs JavaScript to show anything, and every page's code has to be kept small
   on purpose (see 0012).
 
