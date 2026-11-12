@@ -34,6 +34,9 @@ export class CompetitionsService {
       sourceUrl: string;
       registrationUrl: string;
       categories?: CompetitionCategories;
+      /**
+       * Pictures must be files in the app's file store.
+       */
       mediaUrls?: Array<string>;
     },
   }): CancelablePromise<{
@@ -129,6 +132,9 @@ export class CompetitionsService {
       sourceUrl?: string;
       registrationUrl?: string;
       categories?: CompetitionCategories;
+      /**
+       * Pictures must be files in the app's file store.
+       */
       mediaUrls?: Array<string>;
     },
   }): CancelablePromise<{

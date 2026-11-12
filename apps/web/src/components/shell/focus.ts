@@ -6,6 +6,7 @@
  */
 let titleDue = false;
 let listening = false;
+let frame = 0;
 
 const visible = (el: HTMLElement) =>
   typeof el.checkVisibility === 'function'
@@ -41,13 +42,16 @@ export function focusAfterNavigation(pathname?: string) {
   }
   if (!listening) {
     listening = true;
-    // Once the member acts, focus is theirs again.
-    const done = () => (titleDue = false);
+    // Once the member acts, focus is theirs again: also when the frame below hasn't come yet (a busy device).
+    const done = () => {
+      titleDue = false;
+      cancelAnimationFrame(frame);
+    };
     window.addEventListener('pointerdown', done, true);
     window.addEventListener('keydown', done, true);
   }
   titleDue = true;
-  requestAnimationFrame(focusPageTitle);
+  frame = requestAnimationFrame(focusPageTitle);
 }
 
 /** A screen's own title has just appeared (PageTitle, before paint). */

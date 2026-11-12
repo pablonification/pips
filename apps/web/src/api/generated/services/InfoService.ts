@@ -64,6 +64,9 @@ export class InfoService {
     requestBody: {
       title: string;
       content: string;
+      /**
+       * Pictures must be files in the app's file store.
+       */
       mediaUrls?: Array<string>;
       forCategories: Array<string>;
       forAngkatan?: Array<string>;

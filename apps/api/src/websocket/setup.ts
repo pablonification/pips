@@ -106,7 +106,8 @@ export default function setupWebsocket(httpServer: ServerType) {
 
 /**
  * Pushes a new message's other participants (`curhatPushes`), then forgets the devices the push service says are
- * gone.
+ * gone. Each group is handled on its own: one group's failure doesn't cost the other its push, and is thrown once
+ * every group has been tried.
  */
 export async function sendCurhatNotification(
   database: Database,
@@ -118,17 +119,26 @@ export async function sendCurhatNotification(
     getUsersByRole(database, CURHAT_ADMIN_ROLE),
   ]);
   if (!room) return;
+  const errors: unknown[] = [];
   for (const { userIds, push } of curhatPushes({
     room,
     welfareIds: welfare.map((u) => u.id),
     senderId: msg.senderId,
   })) {
-    const subscriptions = await getPushSubscriptionsByUserIds(
-      database,
-      userIds,
-    );
-    if (subscriptions.length === 0) continue;
-    const results = await send(subscriptions, push);
-    await removeFailedPushSubscriptions(database, results);
+    try {
+      const subscriptions = await getPushSubscriptionsByUserIds(
+        database,
+        userIds,
+      );
+      if (subscriptions.length === 0) continue;
+      const results = await send(subscriptions, push);
+      await removeFailedPushSubscriptions(database, results);
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+  if (errors.length === 1) throw errors[0];
+  if (errors.length > 1) {
+    throw new AggregateError(errors, 'Curhat push failed for several groups');
   }
 }
