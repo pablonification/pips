@@ -227,3 +227,92 @@ test('a Curhat push reaches the owner and Welfare with no text, and forgets the 
   ]);
   assert.ok(!JSON.stringify(sent).includes('Contoh judul ruang'));
 });
+
+test("a failed clean-up after the owner's push doesn't cost Welfare theirs", async () => {
+  const { sendCurhatNotification } = await import('../../src/websocket/setup');
+  const webpush = (await import('web-push')).default;
+  const keys = { p256dh: 'p', auth: 'a' };
+  await db.insert(schema.chatrooms).values({
+    id: 'ps-room-cleanup',
+    userId: 'ps-nadia',
+    title: 'Contoh judul ruang',
+  });
+  await db
+    .insert(schema.userRoles)
+    .values({ userId: 'ps-raka', role: 'curhatadmin' })
+    .onConflictDoNothing();
+  await db.insert(schema.pushSubscriptions).values([
+    { endpoint: endpoint('ps-nadia', 80), userId: 'ps-nadia', keys },
+    { endpoint: endpoint('ps-raka', 80), userId: 'ps-raka', keys },
+  ]);
+  const ownersDevice = endpoint('ps-nadia', 80);
+  const sent: string[][] = [];
+  const send = (async (subscriptions) => {
+    const ours = subscriptions
+      .filter((s) => /\/ps-[a-z]+-80$/.test(s.endpoint))
+      .map((s) => s.endpoint);
+    sent.push(ours);
+    return ours.map((e) => ({
+      status: 'fulfilled' as const,
+      value:
+        e === ownersDevice
+          ? {
+              success: false as const,
+              error: new webpush.WebPushError('Gone', 410, {}, '', e),
+              endpoint: e,
+            }
+          : {
+              success: true as const,
+              result: { statusCode: 201, body: '', headers: {} },
+            },
+    }));
+  }) as unknown as typeof import('../../src/lib/push-manager').sendNotificationToAll;
+  const failing = new Proxy(db, {
+    get(target, prop, receiver) {
+      if (prop === 'delete') {
+        return () => {
+          throw new Error('the clean-up failed');
+        };
+      }
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+
+  await assert.rejects(
+    sendCurhatNotification(
+      failing,
+      { chatroomId: 'ps-room-cleanup', senderId: 'ps-other' },
+      send,
+    ),
+    /the clean-up failed/,
+  );
+  assert.deepEqual(sent, [[ownersDevice], [endpoint('ps-raka', 80)]]);
+});
+
+test("a push that can't be sent to the owner doesn't cost Welfare theirs", async () => {
+  const { sendCurhatNotification } = await import('../../src/websocket/setup');
+  const sent: string[][] = [];
+  const send = (async (subscriptions) => {
+    const ours = subscriptions
+      .filter((s) => /\/ps-[a-z]+-80$/.test(s.endpoint))
+      .map((s) => s.endpoint);
+    sent.push(ours);
+    if (ours.includes(endpoint('ps-nadia', 80))) {
+      throw new Error('the push service is down');
+    }
+    return [];
+  }) as unknown as typeof import('../../src/lib/push-manager').sendNotificationToAll;
+
+  await assert.rejects(
+    sendCurhatNotification(
+      db,
+      { chatroomId: 'ps-room-cleanup', senderId: 'ps-other' },
+      send,
+    ),
+    /the push service is down/,
+  );
+  assert.deepEqual(sent, [
+    [endpoint('ps-nadia', 80)],
+    [endpoint('ps-raka', 80)],
+  ]);
+});

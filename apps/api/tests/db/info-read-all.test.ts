@@ -36,23 +36,29 @@ const USERS = [
 ] as const;
 const POSTS = ['ra-all', 'ra-pixel', 'ra-akademik', 'ra-old'];
 
-before(async () => {
-  const testUrl = throwawayUrl();
-  usePlaceholderEnv({ DATABASE_URL: testUrl });
-  const postgres = (await import('postgres')).default;
-  const { drizzle } = await import('drizzle-orm/postgres-js');
-  const { migrate } = await import('drizzle-orm/postgres-js/migrator');
-  const { inArray } = await import('drizzle-orm');
+async function cleanUp() {
   const schema = await import('../../src/db/schema');
-  client = postgres(testUrl, { max: 4, onnotice: () => {} });
-  db = drizzle(client, { schema });
-  await migrate(db, { migrationsFolder: './drizzle' });
+  const { inArray } = await import('drizzle-orm');
+  await db.delete(schema.infos).where(inArray(schema.infos.id, POSTS));
   await db.delete(schema.users).where(
     inArray(
       schema.users.id,
       USERS.map(([id]) => id),
     ),
   );
+}
+
+before(async () => {
+  const testUrl = throwawayUrl();
+  usePlaceholderEnv({ DATABASE_URL: testUrl });
+  const postgres = (await import('postgres')).default;
+  const { drizzle } = await import('drizzle-orm/postgres-js');
+  const { migrate } = await import('drizzle-orm/postgres-js/migrator');
+  const schema = await import('../../src/db/schema');
+  client = postgres(testUrl, { max: 4, onnotice: () => {} });
+  db = drizzle(client, { schema });
+  await migrate(db, { migrationsFolder: './drizzle' });
+  await cleanUp();
   for (const [year, name] of [
     [2023, 'ra-2023'],
     [2024, 'ra-2024'],
@@ -109,17 +115,7 @@ before(async () => {
 });
 
 after(async () => {
-  if (db) {
-    const schema = await import('../../src/db/schema');
-    const { inArray } = await import('drizzle-orm');
-    await db.delete(schema.infos).where(inArray(schema.infos.id, POSTS));
-    await db.delete(schema.users).where(
-      inArray(
-        schema.users.id,
-        USERS.map(([id]) => id),
-      ),
-    );
-  }
+  if (db) await cleanUp();
   await client?.end();
 });
 
