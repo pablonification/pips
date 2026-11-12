@@ -157,9 +157,9 @@ violation, any overflow, any text under 12 px or `lang` other than `id`. The res
 
 `e2e/visual/visual.spec.ts` compares states with committed reference images (`toHaveScreenshot`, at most 0.1 %
 of pixels may differ). References are per platform: record the macOS ones with `e2e:update`, and the Linux ones in
-CI's container with the `visual references` workflow; review their diffs in the pull request. That workflow's file
-(`.github/workflows/visual-references.yml`) lives on `main`, because GitHub runs a hand-started workflow from the
-default branch: start it with `gh workflow run visual-references.yml -f branch=<your branch>`.
+CI's container with the `visual references` workflow; review their diffs in the pull request. That workflow's file,
+`visual-references.yml`, is only on the `main` branch, because GitHub runs a hand-started workflow from the default
+branch: start it with `gh workflow run visual-references.yml -f branch=<your branch>`.
 
 ## CI
 
