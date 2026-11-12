@@ -66,8 +66,8 @@ function MemberArea() {
 }
 
 /**
- * The area's one connection, for members' Curhat and Welfare's inbox: replies into the rooms cache, a catch-up after
- * a reconnect, delivered messages put into their room, refusals, the server ending the session, and what you sent
+ * The area's one connection, for members' Curhat and Welfare's inbox: replies into the rooms cache, a catch-up on
+ * each connection, delivered messages put into their room, refusals, the server ending the session, and what you sent
  * settled against the rooms cache. `welfare`: a `forbidden` refusal also re-checks the session, since for Welfare it
  * can mean the role was taken away (the gate then sends them on).
  */
@@ -81,8 +81,9 @@ export function useCurhatConnection(
   useEffect(() => {
     const c: CurhatClient = new CurhatClient(new DeferredSocket(openSocket), {
       onReply: (message) => receiveMessage(qc, c, message),
-      // Back after a drop: fetch the rooms and counts again to catch what was missed.
-      onReconnect: () => {
+      // Connected, at first or after a drop: fetch the rooms and counts again to catch what was missed. Only what is
+      // on screen is fetched; a rooms fetch still running started too early and is started again.
+      onConnect: () => {
         void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
         void qc.invalidateQueries({ queryKey: UNREAD_KEY });
       },
