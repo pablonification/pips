@@ -19,8 +19,8 @@ test('this month in WIB, whatever the server time zone', () => {
   });
 });
 
-// Regression: the default was `new Date().getMonth() + 1`, read once when the module loaded, so a server started
-// in September answered September for the rest of its life.
+// The default must be read per request: a default read once when the module loads (`new Date().getMonth() + 1`)
+// would make a server started in September answer September for the rest of its life.
 test('a request without month or year gets the month it is made in, not the month the server started', () => {
   mock.timers.enable({ apis: ['Date'], now: Date.UTC(2026, 8, 15, 5) });
   try {

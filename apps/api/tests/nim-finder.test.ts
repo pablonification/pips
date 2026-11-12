@@ -28,7 +28,7 @@ test('% _ and \\ are taken literally', () => {
   assert.equal(escapeLike('Raka 135'), 'Raka 135');
 });
 
-// Regression (C8): "%%%" was put into the pattern as is ("%%%%%"), so it listed every member.
+// "%%%" must not go into the pattern as is ("%%%%%"), which would list every member.
 test('the query matches the text literally, selects only the four public columns and is capped', () => {
   const query = nimFinderQuery(db, { search: '%%%' }).toSQL();
   const sql = query.sql;
@@ -81,8 +81,8 @@ test('a result keeps only name, NIM, programme and photo', () => {
   });
 });
 
-// Regression (SPEC API change 4): whole user rows (email, gender, membership, campus, sign-in times) reached every
-// member, because the route's schema doesn't strip responses.
+// Whole user rows (email, gender, membership, campus, sign-in times) must not reach every member: the route's schema
+// doesn't strip responses.
 test('GET /user/nim returns only the four fields, whatever the storage hands back', async () => {
   const full = {
     ...testUser('u-raka', { fullName: 'Raka Pratama', nim: '13524045' }),

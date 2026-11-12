@@ -51,7 +51,7 @@ test('without it, Node 22 ends the process (why the logger exists)', () => {
   assert.doesNotMatch(run.stdout, /still serving/);
 });
 
-// Regression: creating a post started its push fan-out with `void`, so a failure in it was unhandled.
+// The push fan-out after creating a post must not be started with `void`: a failure in it would be unhandled.
 test('POST /info answers 201 when the push fan-out fails, and the failure is logged', async () => {
   usePlaceholderEnv();
   const { createInfoRouter } =

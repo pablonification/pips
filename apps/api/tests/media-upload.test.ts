@@ -118,14 +118,22 @@ test('signed out, nothing is signed', async () => {
   assert.equal(res.status, 401);
 });
 
-test('regression (review): an SVG is never signed, since it can carry a script that runs on the media domain', async () => {
-  const res = await presign({ fileName: 'poster', fileType: 'svg', fileSize: 500 });
+test('an SVG is never signed, since it can carry a script that runs on the media domain', async () => {
+  const res = await presign({
+    fileName: 'poster',
+    fileType: 'svg',
+    fileSize: 500,
+  });
   assert.equal(res.status, 400);
   assert.equal(res.body.presignedUrl, undefined);
 });
 
-test('regression (review): the upload address carries no checksum of an empty body, which storage would refuse', async () => {
-  const res = await presign({ fileName: 'poster', fileType: 'png', fileSize: 48213 });
+test('the upload address carries no checksum of an empty body, which storage would refuse', async () => {
+  const res = await presign({
+    fileName: 'poster',
+    fileType: 'png',
+    fileSize: 48213,
+  });
   assert.equal(res.status, 200);
   const url = new URL(res.body.presignedUrl);
   const checksums = [...url.searchParams.keys()].filter((k) =>

@@ -234,7 +234,7 @@ interface World {
   reads: Array<{ userId: string; messageId: string }>;
   created: Array<{ title: string; userId: string }>;
   locks: Record<string, Promise<void>>;
-  /** Rooms Welfare's sockets were told to join (P3-C); `welfareJoinFails` makes the join throw. */
+  /** Rooms Welfare's sockets were told to join; `welfareJoinFails` makes the join throw. */
   welfareJoined: string[];
   welfareJoinFails?: boolean;
   pins: Array<{ chatroomId: string; userId: string; isPinned: boolean }>;
@@ -374,7 +374,7 @@ test('every Curhat route needs a session', async () => {
   }
 });
 
-// Regression (C4): the limit read `chatroomMap.keys.length`, the arity of `Map.prototype.keys` (always 0).
+// The limit must count the rooms, not read `chatroomMap.keys.length`, which is the arity of the `keys` method (always 0).
 test('a fourth room is refused with 400; a third is still allowed', async () => {
   const world = newWorld();
   const third = await call(world, nadia, 'POST', '/curhat/chatroom');
@@ -386,8 +386,8 @@ test('a fourth room is refused with 400; a third is still allowed', async () => 
   assert.equal(world.created.length, 1, 'no fourth room was created');
 });
 
-// Regression (review M1): the route counted, then created in a separate step, so creates sent together all
-// passed. The route now has one locked step to call; the real lock is tested against PostgreSQL in tests/db/.
+// Counting and then creating in separate steps lets creates sent together all pass. The route calls one locked step;
+// the real lock is tested against PostgreSQL in tests/db/.
 test('five creates sent together make one room and refuse the rest', async () => {
   const world = newWorld();
   const results = await Promise.all(
@@ -472,8 +472,8 @@ test('no userId at any depth in either view of the room list', async () => {
   assert.equal(welfareView.body.r1.canDelete, false);
 });
 
-// Regression (C3): the unread list covered every room in the database (handing their ids to any member) and
-// counted the caller's own messages.
+// The unread list must not cover every room in the database (that hands their ids to any member) or count the
+// caller's own messages.
 test('unread covers only your rooms and only messages you did not send', async () => {
   const { status, body } = await call(
     newWorld(),
@@ -502,7 +502,7 @@ test('unread covers only your rooms and only messages you did not send', async (
   );
 });
 
-// Regression: the read route was defined but never mounted, so it answered 401 and nothing wrote read marks.
+// The read route must be mounted: unmounted, it answers 401 and nothing writes read marks.
 test('reading a room marks it read, clears its unread count, and is safe to repeat', async () => {
   const world = newWorld();
   const first = await call(world, nadia, 'POST', '/curhat/chatroom/r1/read');
@@ -571,7 +571,7 @@ test('the OpenAPI document: the unread route takes no path parameter, and the re
   }
 });
 
-// --- Welfare's inbox (P3-C, OPEN-QUESTIONS A7) ---
+// --- Welfare's inbox ---
 
 test('fromOwner says whether the room owner wrote each message, the same in every view, and never who', () => {
   const r = room('r1', nadia.id, [
