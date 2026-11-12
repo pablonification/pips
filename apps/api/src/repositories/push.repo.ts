@@ -57,12 +57,6 @@ export async function createOrUpdatePushSubscription(
   });
 }
 
-export async function getPushSubscriptionsByUser(db: Database, userId: string) {
-  return await db.query.pushSubscriptions.findMany({
-    where: eq(pushSubscriptions.userId, userId),
-  });
-}
-
 export async function getPushSubscriptionsByUserIds(
   db: Database,
   userIds: string[],
