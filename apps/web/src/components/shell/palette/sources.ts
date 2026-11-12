@@ -35,6 +35,7 @@ import { useOpenEvent } from '~/features/kalender/open';
 import { evLabel } from '~/features/kalender/rules';
 import useSession from '~/hooks/auth/useSession';
 import { rel } from '~/lib/dates';
+import { httpHref } from '~/lib/file-link';
 import { dayKeyOf, daysFrom, monthsOf } from '~/lib/days';
 import type { PaletteItem } from '~/lib/shell/palette';
 import {
@@ -216,8 +217,8 @@ function useCourseItems(): PaletteItem[] {
             hint: cari.dingDong,
             keywords: cari.kataMatkul,
             run: () => {
-              if (c.dingdongUrl)
-                window.open(c.dingdongUrl, '_blank', 'noopener,noreferrer');
+              const href = httpHref(c.dingdongUrl);
+              if (href) window.open(href, '_blank', 'noopener,noreferrer');
               else void navigate({ to: '/layanan/dingdong' });
             },
           },
