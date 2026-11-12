@@ -24,9 +24,9 @@ import { fetchAllResponses, responsesPageQuery } from './queries';
 import { pageCount } from './rules';
 
 /**
- * Rekap Form (/kelola/live/$formId/rekap; no locked screen, open question 2's default): every response, searchable
- * by NIM or name with NIM Finder's field, 20 a page with Testi Matkul's pager, and Export CSV of the matches. The
- * query (`q`) and the page (`halaman`) live in the URL. Per-question answers are only in the CSV.
+ * Rekap Form (/kelola/live/$formId/rekap): every response, searchable by NIM or name with NIM Finder's field, 20 a
+ * page with Testi Matkul's pager, and Export CSV of the matches. The query (`q`) and the page (`halaman`) live in the
+ * URL. Per-question answers are only in the CSV.
  */
 export function RekapScreen({
   formId,

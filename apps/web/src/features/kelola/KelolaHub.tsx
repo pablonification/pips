@@ -6,9 +6,9 @@ import { ServiceRow } from '../layanan/ServiceRow';
 import { kelolaServices } from './rules';
 
 /**
- * Kelola (garis/screens-more.js `scrKelola`): the registry's Kelola rows this member may use, in its order, with
- * Layanan's own row (tile, name, description, chevron; no badges). Phones and tablets: the top bar's "Kelola" is
- * the heading. Desktop: `deskHead('Kelola')`, one 760 px column.
+ * Kelola: the registry's Kelola rows this member may use, in its order, with Layanan's own row (tile, name,
+ * description, chevron; no badges). Phones and tablets: the top bar's "Kelola" is the heading. Desktop: the page head,
+ * one 760 px column.
  */
 export function KelolaHub() {
   const me = useSession();

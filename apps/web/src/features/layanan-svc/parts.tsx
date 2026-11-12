@@ -1,7 +1,6 @@
 /**
- * Pieces Ding Dong, Testi Matkul, NIM Finder and Info Lomba share (P2-B): the external mark and chevron that end a
- * row (garis/ui.js `extMark`, `chev`), whether the browser is online, and one way to show a list's loading, error
- * and offline states with P0-A's components (P2-B brief, "States").
+ * Pieces Ding Dong, Testi Matkul, NIM Finder and Info Lomba share: the external mark and chevron that end a row,
+ * whether the browser is online, and one way to show a list's loading, error and offline states.
  */
 import type { UseQueryResult } from '@tanstack/react-query';
 import {
@@ -36,8 +35,8 @@ export function useOnline() {
 }
 
 /**
- * A search box's text that also lives in the URL (P0-B's `q`), so Back and reload keep it and a link can open the
- * page filled in. The box answers at once; the URL follows with `replace`, a moment behind, and those values never
+ * A search box's text that also lives in the URL (`q`), so Back and reload keep it and a link can open the page
+ * filled in. The box answers at once; the URL follows with `replace`, a moment behind, and those values never
  * overwrite what's typed. A `q` arriving from outside (another link to this page) replaces the text (`urlEcho`).
  */
 export function useUrlText(
@@ -60,8 +59,8 @@ export function useUrlText(
 }
 
 /**
- * The value after typing has paused for `ms`. Each change cancels the one before (today's NIM Finder never did, so
- * every keystroke's value was applied and each one of 3 or more characters sent its own request).
+ * The value after typing has paused for `ms`. Each change cancels the one before, so only the settled value is used
+ * and each keystroke doesn't send its own request.
  */
 export function useDebounced<T>(value: T, ms: number): T {
   const [settled, setSettled] = useState(value);
@@ -72,7 +71,7 @@ export function useDebounced<T>(value: T, ms: number): T {
   return settled;
 }
 
-/** The ↗ that ends a row opening another site, with its hidden "(situs luar, tab baru)" (`extMark`). */
+/** The ↗ that ends a row opening another site, with its hidden "(situs luar, tab baru)". */
 export function ExtMark() {
   return (
     <span className="g-chev">
@@ -82,7 +81,7 @@ export function ExtMark() {
   );
 }
 
-/** The chevron that ends a row opening a page (`chev`). */
+/** The chevron that ends a row opening a page. */
 export function Chev() {
   return (
     <span className="g-chev">

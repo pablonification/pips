@@ -28,16 +28,15 @@ function Badge({ badge }: { badge: ServiceBadge | null }) {
 }
 
 /**
- * Layanan (garis/screens-more.js `scrLayanan`, `serviceGroups`): the registry's groups in order, then Kelola for
- * pengurus through the capability map. No search box (owner, 2026-10-12): global search finds services too. One
- * column on phones and tablets, two on desktop.
+ * Layanan: the registry's groups in order, then Kelola for pengurus through the capability map. No search box: global
+ * search finds services too. One column on phones and tablets, two on desktop.
  */
 export function LayananScreen() {
   const me = useSession();
   const unread = useQuery(curhatUnreadQuery());
   const forms = useQuery(formListQuery());
   const groups = servicesByGroup(me);
-  // The page's title once: the desk head's from 1024 px, this one below (F2-003; it was hidden by CSS on desktop).
+  // The page's title once: the desk head's from 1024 px, this one below.
   const desk = useMediaQuery(DESKTOP_QUERY);
   const data = {
     unread: unread.data ? totalUnread(unread.data) : undefined,

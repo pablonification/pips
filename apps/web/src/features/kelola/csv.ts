@@ -1,8 +1,7 @@
 /*
- * Kelola's two CSV files (P3-A), the same files today's admin screens make (`-exportResponses.ts`,
- * `-exportSubmissions.ts`): headers, column order, cell values, file names and the UTF-8 BOM, so admins'
- * spreadsheets keep reading them. Two changes: times are WIB whatever the device's zone (today they were the
- * device's), and a `\r` in a cell is quoted (src/lib/csv.ts). Pure: the screens download what these return.
+ * Kelola's two CSV files: headers, column order, cell values, file names and the UTF-8 BOM are fixed, so admins'
+ * spreadsheets keep reading them. Times are WIB whatever the device's zone, and a `\r` in a cell is quoted
+ * (src/lib/csv.ts). Pure: the screens download what these return.
  */
 import type {
   AdminFormResponseItem,
@@ -21,13 +20,13 @@ export interface CsvFile {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-/** "08-10-2026 13:31": a response's time in WIB (today's `DD-MM-YYYY HH:mm`). */
+/** "08-10-2026 13:31": a response's time in WIB (`DD-MM-YYYY HH:mm`). */
 export function csvTime(at: string | number | Date): string {
   const w = wib(at);
   return `${pad(w.day)}-${pad(w.month + 1)}-${w.year} ${pad(w.hours)}:${pad(w.minutes)}`;
 }
 
-/** "2026-10-08-133500": the responses file's stamp in WIB (today's `YYYY-MM-DD-HHmmss`). */
+/** "2026-10-08-133500": the responses file's stamp in WIB (`YYYY-MM-DD-HHmmss`). */
 function fileStamp(now: number | Date): string {
   const w = wib(now);
   const s = new Date(now).getUTCSeconds();
@@ -121,7 +120,7 @@ export function submissionsCsv(
       return [label, answers];
     }),
   ]);
-  // Today's stamp: the ISO time (UTC) with ":" and "T" as "-".
+  // The ISO time (UTC) with ":" and "T" as "-".
   const stamp = new Date(now).toISOString().slice(0, 19).replace(/[:T]/g, '-');
   return {
     filename: `internship-submissions-${stamp}.csv`,

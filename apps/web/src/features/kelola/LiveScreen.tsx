@@ -37,9 +37,9 @@ import { formIsOpen, liveTotal, plaqueLine, questionBars } from './rules';
 import { useFormLive } from './useFormLive';
 
 /**
- * Live Counting (garis/screens-more.js `scrLive`): the plaque (live square and the form's title, the count, the last
- * response's time), Pengisi terbaru with Semua to Rekap Form, Analitik jawaban as CSS bars, and Export CSV. The count
- * and the rows follow the admin socket; the bars refresh on load and refocus. Each block fails on its own.
+ * Live Counting: the plaque (live square and the form's title, the count, the last response's time), Pengisi terbaru
+ * with Semua to Rekap Form, Analitik jawaban as CSS bars, and Export CSV. The count and the rows follow the admin
+ * socket; the bars refresh on load and refocus. Each block fails on its own.
  */
 export function LiveScreen({ formId }: { formId: string }) {
   const form = useQuery(formDetailQuery(formId));
