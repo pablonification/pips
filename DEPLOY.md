@@ -22,7 +22,11 @@ Keep today's environment. Changes:
 
 - **Add `CLIENT_IP_HEADER=cf-connecting-ip`.** `app-api.hmif.dev` is behind Cloudflare, so the server only sees
   Cloudflare's addresses. Without this, the sign-in rate limit counts every member behind the same Cloudflare
-  address together.
+  address together. It is safe only while the API is reachable through Cloudflare alone (today the server's ports
+  don't answer from outside); otherwise anyone could write the header and dodge the limits.
+- **Google sign-in** now accepts only tokens issued to `GOOGLE_CLIENT_ID` or to an id in `GOOGLE_ALLOWED_CLIENT_IDS`.
+  Today the web's `VITE_GOOGLE_CLIENT_ID` and the API's `GOOGLE_CLIENT_ID` are the same; keep them so, or list the
+  web's id in `GOOGLE_ALLOWED_CLIENT_IDS`.
 - `NIXPACKS_NODE_VERSION` is no longer used (the image brings Node 22). `LOGIN_BYPASS_KEY` is ignored in production
   and can go.
 - Optional: `SENTRY_DSN`, `DB_STATEMENT_TIMEOUT_MS` (default 15 s). The rest is in `apps/api/.env.example`.
@@ -30,7 +34,8 @@ Keep today's environment. Changes:
 ## Web build arguments
 
 The same as today (`VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`, `VITE_VAPID_KEY`), plus `VITE_MEDIA_URL`, set to the
-API's `R2_PUBLIC_URL`: only files there become links in Data SPARTA Magang.
+API's `R2_PUBLIC_URL`: only files there become links in Data SPARTA Magang. Optional: `VITE_SENTRY_DSN` turns on
+error monitoring (set it if the Vercel project has it).
 
 The web image answers like the Vercel deployment: unknown paths get `index.html`, and every response is revalidated.
 Today `app.hmif.dev` is served by Vercel, so its DNS has to point at the server for the Dokploy web app to take over.
@@ -46,7 +51,8 @@ Migrate first, then switch.
    docker exec $(docker ps -q -f name=postgres-hmif) sh -c 'pg_dump -U "$POSTGRES_USER" -Fc hmif_app_db' > hmif-before-redesign.dump
    ```
 
-2. Build the API image once and migrate with it, on Dokploy's network. Use the Backend's `DATABASE_URL`:
+2. Build the API image once from a checkout of this repository on the server, and migrate with it on Dokploy's
+   network. Use the Backend's `DATABASE_URL`:
 
    ```bash
    docker build -f apps/api/Dockerfile -t pips-api .

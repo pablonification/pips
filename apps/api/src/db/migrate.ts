@@ -12,7 +12,7 @@ import postgres from 'postgres';
  * everywhere else: on a database already in step it changes nothing that matters, and on a new one the table
  * doesn't exist yet.
  */
-export async function alignMigrationIds(sql: postgres.Sql) {
+async function alignMigrationIds(sql: postgres.Sql) {
   const [table] = await sql<
     Array<{ exists: boolean }>
   >`select to_regclass('drizzle.__drizzle_migrations') is not null as exists`;
