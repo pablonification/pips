@@ -12,7 +12,6 @@ import {
 } from '~/db/schema';
 import { TChatroom } from '~/types/curhat.types';
 import { canCreateChatroom } from '~/lib/curhat';
-import { getUsersByRole } from './user-role.repo';
 
 type ChatroomWithMessages = Chatroom & {
   messages: ChatroomMessage[];
@@ -123,15 +122,6 @@ export async function saveMessage(
   });
   if (!existing) throw new Error('A skipped message was not found');
   return { message: existing, created: false };
-}
-
-export async function getChatroomById(db: Database, chatroomId: string) {
-  return await db.query.chatrooms.findFirst({
-    where: eq(chatrooms.id, chatroomId),
-    with: {
-      messages: true,
-    },
-  });
 }
 
 /** A room's id and owner: what the access check needs, without its messages. */
@@ -280,28 +270,4 @@ export async function pinChatroom(
         );
     }
   });
-}
-
-/**
- * Get the ids of all curhat admin and the user who created the chatroom
- */
-export async function getChatroomParticipantIds(
-  db: Database,
-  chatroomId: string,
-) {
-  const chatroomPromise = getChatroomById(db, chatroomId);
-  const adminUsersPromise = getUsersByRole(db, 'curhatadmin');
-
-  const [chatroom, adminUsers] = await Promise.all([
-    chatroomPromise,
-    adminUsersPromise,
-  ]);
-
-  if (!chatroom) {
-    return [];
-  }
-
-  return [chatroom.userId, ...adminUsers.map((u) => u.id)].filter(
-    (id): id is string => id !== null,
-  );
 }
