@@ -3,7 +3,7 @@
  * "Sab 12 Sep, 13.00" on a card, "Sabtu, 12 September 2026, 13.00 WIB" on the form, "Min, 23 Agu 2026 pukul 23.59"
  * for SPARTA. Hand-rolled, so they don't depend on the browser's locale data.
  */
-const WIB_MS = 7 * 3600_000;
+import { WIB_OFFSET_MS } from '../dates';
 
 const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const HARI_PENDEK = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
@@ -37,7 +37,7 @@ const BULAN_PENDEK = [
 ];
 
 function wib(at: string | Date | number) {
-  const d = new Date(new Date(at).getTime() + WIB_MS);
+  const d = new Date(new Date(at).getTime() + WIB_OFFSET_MS);
   const pad = (n: number) => String(n).padStart(2, '0');
   return {
     day: d.getUTCDay(),

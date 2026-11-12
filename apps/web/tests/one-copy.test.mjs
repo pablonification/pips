@@ -41,3 +41,7 @@ test('statusOf is defined once, in api/client.ts', () => {
     'api/client.ts',
   ]);
 });
+
+test('the WIB offset is written once, in lib/dates.ts', () => {
+  assert.deepEqual(definedIn(/\b7 \* (60 \* 60|3600)/), ['lib/dates.ts']);
+});

@@ -7,7 +7,7 @@
 import { fill } from '~/copy/fill';
 import { tanggal } from '~/copy/tanggal';
 
-const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+export const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const { hari, hariPendek, bulan, bulanPendek } = tanggal;
