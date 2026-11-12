@@ -3,9 +3,8 @@ import { api } from '~/api/client';
 import { COURSE_CATALOGUE_QUERY_KEY } from '~/api/constants';
 
 /**
- * The whole course catalogue (active courses, ordered by code), fetched once: the start search, every course list
- * and the course page's header come from it. The same key and shape as Tambah mata kuliah's (P1-C), so the two
- * share one request.
+ * The whole course catalogue (active courses, ordered by code), fetched once: the start search, every course list and
+ * the course page's header come from it. The same key and shape as Tambah mata kuliah's, so the two share one request.
  */
 export const catalogueQuery = () =>
   queryOptions({

@@ -1,8 +1,8 @@
 /**
- * Testi Matkul (garis/screens-more.js `scrTesti` and its helpers): read-only testimonials, by programme → semester →
- * course, or by searching every course by code or name from the start. Programme, list and course are path params
- * (P0-B, today's values, which P1-A links to); the searches are `q`. Since Garis v5 a course page shows every
- * testimonial at once, read by scrolling; today's `page` is still accepted so old links open, and changes nothing.
+ * Testi Matkul: read-only testimonials, by programme → semester → course, or by searching every course by code or
+ * name from the start. Programme, list and course are path params (which Beranda links to); the searches are `q`. A
+ * course page shows every testimonial at once, read by scrolling; the old `page` param is still accepted so old links
+ * open, and changes nothing.
  */
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi, Link, Navigate } from '@tanstack/react-router';
@@ -81,9 +81,9 @@ function Page({
 }: {
   title: string;
   gap?: string;
-  /** Desktop's 1,180 px column (a course page's testimonials, Garis v5's `testi-wide`). */
+  /** Desktop's 1,180 px column (a course page's testimonials). */
   wide?: boolean;
-  /** Desktop's header actions (P3-B's Tambah testimoni). */
+  /** Desktop's header actions (Tambah testimoni). */
   actions?: ReactNode;
   children: ReactNode;
 }) {
@@ -135,7 +135,7 @@ function StartResult({
   return <CourseRow course={course} count={settled && inView} rowRef={ref} />;
 }
 
-/** The start (`testiStart`): search every course, or browse IF, STI and Mata Kuliah Umum. */
+/** The start: search every course, or browse IF, STI and Mata Kuliah Umum. */
 export function TestiStartScreen() {
   const { q: urlQ } = startRoute.useSearch();
   const navigate = startRoute.useNavigate();
@@ -284,7 +284,7 @@ export function TestiListScreen() {
   );
 }
 
-/** **Buka Ding Dong IF2110**, in the course's header (Garis v5): the folder in a new tab, or the toast when it has none. */
+/** **Buka Ding Dong IF2110**, in the course's header: the folder in a new tab, or the toast when it has none. */
 function DingdongLink({ course }: { course: Course }) {
   const label = fill(copy.bukaDingdong, { kode: course.code });
   const href = httpHref(course.dingdongUrl);
@@ -325,8 +325,8 @@ function Kept({ text }: { text: string }) {
 }
 
 /**
- * One testimonial (Garis v5's `testiCard`): the author, then the programme's sections and Dosen. A section over 280
- * characters folds to six lines behind **Baca selengkapnya**, which becomes **Ringkas lagi** once open.
+ * One testimonial: the author, then the programme's sections and Dosen. A section over 280 characters folds to six
+ * lines behind **Baca selengkapnya**, which becomes **Ringkas lagi** once open.
  */
 function TestiCard({ major, t }: { major: Course['major']; t: Testimoni }) {
   const [open, setOpen] = useState(false);
@@ -369,8 +369,8 @@ function TestiCard({ major, t }: { major: Course['major']; t: Testimoni }) {
 }
 
 /**
- * Every testimonial at once, in the API's order (Garis v5): one stack on phones, columns of at least 300 px wider up
- * (two on tablets and 1024 px desktops, three at 1440). Columns read top to bottom, as the keyboard does.
+ * Every testimonial at once, in the API's order: one stack on phones, columns of at least 300 px wider up (two on
+ * tablets and 1024 px desktops, three at 1440). Columns read top to bottom, as the keyboard does.
  */
 function Testimonials({ course }: { course: Course }) {
   const list = useQuery(testimoniQuery(course.id));
@@ -400,7 +400,7 @@ function Testimonials({ course }: { course: Course }) {
   );
 }
 
-/** A course's page (`scrTesti` with a code): code and credits, the name and Buka Ding Dong, then every testimonial. */
+/** A course's page: code and credits, the name and Buka Ding Dong, then every testimonial. */
 export function TestiCourseScreen() {
   const { courseId } = courseRoute.useParams();
   const catalogue = useQuery(catalogueQuery());
@@ -461,7 +461,7 @@ export function TestiCourseScreen() {
             ) : null}
             <h2 className="mt-0.5 t-title">{course.name}</h2>
           </div>
-          {/* P3-B: phones and tablets put Tambah testimoni at the end of the course's header row. */}
+          {/* Phones and tablets put Tambah testimoni at the end of the course's header row. */}
           {desk ? null : tambah.button}
         </div>
         <DingdongLink course={course} />

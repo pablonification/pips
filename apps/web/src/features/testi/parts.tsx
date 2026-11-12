@@ -1,6 +1,5 @@
 /**
- * Testi Matkul's rows and states (P2-B), from garis/screens-more.js `testiRow`, `testiCourseRow` and `scrRoom`'s
- * not-found pattern.
+ * Testi Matkul's rows and states.
  */
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';

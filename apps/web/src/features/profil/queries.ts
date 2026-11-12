@@ -12,7 +12,7 @@ export const groupsQuery = () =>
     staleTime: Infinity,
   });
 
-/** The angkatan names, for the member card ("IF’25 · PIXEL"). Same key as today's `useAngkatanList`. */
+/** The angkatan names, for the member card ("IF’25 · PIXEL"). */
 export const angkatanQuery = () =>
   queryOptions({
     queryKey: [ANGKATAN_QUERY_KEY],

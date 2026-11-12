@@ -1,8 +1,8 @@
 import { currentPlatform, type Platform } from '~/lib/platform';
 
 /*
- * Pasang PIPS! (SPEC story 8): Android Chrome's saved `beforeinstallprompt`, and which way of installing fits this
- * device. Opened from Profil, Notifikasi (an iPhone outside the installed app) and first run.
+ * Pasang PIPS!: Android Chrome's saved `beforeinstallprompt`, and which way of installing fits this device. Opened
+ * from Profil, Notifikasi (an iPhone outside the installed app) and first run.
  */
 
 interface InstallPromptEvent extends Event {
@@ -55,8 +55,8 @@ export const installStore = {
 };
 
 if (typeof window !== 'undefined') {
-  // Chrome fires this once it considers PIPS! installable; keep it for the Pasang PIPS! button instead of its
-  // own mini bar (SPEC story 8: the Android prompt is offered from Profil and first run).
+  // Chrome fires this once it considers PIPS! installable; keep it for the Pasang PIPS! button instead of its own mini
+  // bar (the Android prompt is offered from Profil and first run).
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     set({ deferred: e as InstallPromptEvent });
