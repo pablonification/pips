@@ -27,7 +27,8 @@ const HOME_PATH_FILES = new Set(['AGENTS.md']);
 const NIM = /(?<![0-9])1[0-9]{2}(?:1[5-9]|2[0-9])[0-9]{3}(?![0-9])/g;
 const EMAIL =
   /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
-const URL_PASSWORD = /\/\/[^\s/@]*:[^\s/@]*@/g;
+// The user part of an address (`https://user@host/`, `postgres://user:pass@host/`) is not an email address.
+const URL_USER = /\/\/[^\s/@]*@/g;
 const IMAGE_SUFFIX = /^(png|jpe?g|gif|webp|avif|svg|ico)$/i;
 const EXAMPLE_DOMAIN =
   /(^|\.)(example\.(com|org|net)|example|test|invalid|localhost)$/i;
@@ -35,6 +36,10 @@ const STUDENT_DOMAIN = /^[0-9]{8}@std\.stei\.itb\.ac\.id$/i;
 const MADE_UP_LOCAL = /^(example|nim|placeholder|noreply|no-reply)$/i;
 const HOME_PATH =
   /\/Users\/[A-Za-z0-9._-]+\/|\/home\/pabs\b|\/home\/(?!web\/|app\/|node\/|api\/)[A-Za-z][A-Za-z0-9_-]*\/(?:coding|Documents|Downloads|Desktop|\.[A-Za-z])/;
+
+// No programme takes 900 students in a year, so a sequence from 900 up is never a real member's number. New sample
+// numbers come from this range.
+const isMadeUpNim = (nim) => Number(nim.slice(5)) >= 900;
 
 const mask = (value) => `${value.slice(0, 6)}…`;
 const sha256 = (value) => createHash('sha256').update(value).digest('hex');
@@ -44,11 +49,11 @@ export function problemsIn(file, text, hashes = behaviourHashes) {
   const found = [];
   const lines = text.split('\n');
   lines.forEach((raw, index) => {
-    const line = raw.replace(URL_PASSWORD, '//');
+    const line = raw.replace(URL_USER, '//');
     const at = index + 1;
 
     for (const nim of line.match(NIM) ?? []) {
-      if (sampleNims.has(nim)) continue;
+      if (isMadeUpNim(nim) || sampleNims.has(nim)) continue;
       if (behaviourFiles.has(file) && hashes.has(sha256(nim))) continue;
       found.push({ line: at, kind: 'student number', shown: mask(nim) });
     }
@@ -63,7 +68,11 @@ export function problemsIn(file, text, hashes = behaviourHashes) {
       )
         continue;
       if (email.toLowerCase() === 'noreply@anthropic.com') continue;
-      if (STUDENT_DOMAIN.test(email) && sampleNims.has(local)) continue;
+      if (
+        STUDENT_DOMAIN.test(email) &&
+        (isMadeUpNim(local) || sampleNims.has(local))
+      )
+        continue;
       found.push({ line: at, kind: 'email address', shown: mask(email) });
     }
 
@@ -152,11 +161,34 @@ test('a student number that is not on the sample list is refused', () => {
 
 test('a student number of another programme, or glued to letters, is refused', () => {
   for (const line of [
-    `const nim = '${madeUpNim('165', '29999')}';`,
-    `const nim = '${madeUpNim('196', '29999')}';`,
-    `id=nim${madeUpNim('135', '29999')}x`,
+    `const nim = '${madeUpNim('165', '29899')}';`,
+    `const nim = '${madeUpNim('196', '29899')}';`,
+    `id=nim${madeUpNim('135', '29899')}x`,
   ])
     assert.equal(problemsIn('apps/x.ts', line).length, 1, line.slice(0, 12));
+});
+
+test('a sample number from the made-up range passes without being listed', () => {
+  const madeUp = madeUpNim('135', '25951');
+  assert.ok(!sampleNims.has(madeUp));
+  assert.deepEqual(problemsIn('apps/x.ts', `const nim = '${madeUp}';`), []);
+  assert.deepEqual(
+    problemsIn(
+      'apps/x.ts',
+      `const email = '${madeUp}${at}std.stei.itb.ac.id';`,
+    ),
+    [],
+  );
+});
+
+test('the user part of an address is not an email address', () => {
+  assert.deepEqual(
+    problemsIn(
+      'apps/x.ts',
+      `const a = 'https://user${at}fcm.googleapis.com/x';`,
+    ),
+    [],
+  );
 });
 
 test('a number on the sample list passes', () => {
@@ -183,7 +215,7 @@ test('numbers that are not student numbers pass', () => {
 });
 
 test('the failure message shows at most six characters of the value', () => {
-  const unknown = madeUpNim('182', '29999');
+  const unknown = madeUpNim('182', '29899');
   const [found] = problemsIn('apps/x.ts', unknown);
   assert.equal(found.shown, `${unknown.slice(0, 6)}…`);
   assert.ok(!found.shown.includes(unknown));
@@ -208,7 +240,7 @@ test('an email address that is not clearly made up is refused', () => {
 });
 
 test('a student address with an unknown number is refused, a sample one passes', () => {
-  const unknown = madeUpNim('135', '29998');
+  const unknown = madeUpNim('135', '29898');
   assert.equal(
     problemsIn('x.md', `${unknown}${at}std.stei.itb.ac.id`).length,
     2,

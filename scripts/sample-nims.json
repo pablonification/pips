@@ -1,6 +1,6 @@
 {
   "sampleNims": {
-    "comment": "Made-up sample student numbers used by fixtures and tests. A new one must never be a real member's number: pick numbers from a range no member can hold. The entries below predate this check; a later change moves them to such a range.",
+    "comment": "Made-up sample student numbers used by fixtures and tests. A new one must never be a real member's number, and doesn't belong here: use a sequence of 900 or more (13525901), which no member can hold and the check always allows. The entries below predate the check.",
     "nims": [
       "13113599",
       "13125999",
