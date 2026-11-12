@@ -195,6 +195,14 @@ test('a device is registered only at a browser push service, over https', async 
     'https://notify.windows.com.evil.example/x',
     'https://fcm.googleapis.com:8443/fcm/send/abc',
     'https://user@fcm.googleapis.com/fcm/send/abc',
+    // Read differently by the URL standard and by the parser the push library connects with.
+    'https://localhost%2Enotify.windows.com/x',
+    'https://127.0.0.1%2Enotify.windows.com/x',
+    'https://db%2Efcm.googleapis.com/x',
+    'https:fcm.googleapis.com/fcm/send/abc',
+    'https:/fcm.googleapis.com/fcm/send/abc',
+    'https://fcm.googleapis.com\\@localhost/x',
+    ' https://fcm.googleapis.com/fcm/send/abc',
   ])
     assert.equal((await register(endpoint)).status, 400, endpoint);
 });
@@ -208,7 +216,6 @@ test("the browsers' push services are all accepted", async () => {
     'https://wns2-sg2p.notify.windows.com/w/?token=BQYAAA',
     'https://jmt17.google.com/fcm/send/abc',
     'https://android.googleapis.com/gcm/send/abc',
-    'https://FCM.googleapis.com/fcm/send/abc',
   ])
     assert.ok(isPushServiceEndpoint(endpoint), endpoint);
   for (const endpoint of [
@@ -216,6 +223,7 @@ test("the browsers' push services are all accepted", async () => {
     'https://notify.windows.com/x',
     'https://windows.com/x',
     'https://push.apple.com/x',
+    'https://FCM.googleapis.com/fcm/send/abc',
     'not a url',
   ])
     assert.ok(!isPushServiceEndpoint(endpoint), endpoint);
