@@ -9,6 +9,7 @@ import {
 import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { legacyRedirectHref } from './lib/legacy-redirects';
+import { sharedFromAnotherSite } from './lib/share-origin';
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -144,21 +145,11 @@ interface SharedData {
   }[];
 }
 
-/**
- * Whether a share reached the app from another website rather than from this device's share sheet. Chrome doesn't
- * show a service worker `Sec-Fetch-Site`, only `Origin`. A share from the share sheet carries no origin, or `null`, so
- * `null` is never refused, and a site that hides its origin (no-referrer) still gets through.
- */
-function sharedFromAnotherSite(request: Request) {
-  if (request.headers.get('Sec-Fetch-Site') === 'cross-site') return true;
-  const origin = request.headers.get('Origin');
-  return !!origin && origin !== 'null' && origin !== self.location.origin;
-}
-
 registerRoute(
   ({ url }) => url.pathname === '/share-file-handler',
   async ({ request }) => {
-    if (sharedFromAnotherSite(request)) return Response.redirect('/', 303);
+    if (sharedFromAnotherSite(request.headers, self.location.origin))
+      return Response.redirect('/', 303);
     // Get the data from the submitted form.
     const formData = await request.formData();
     const title = formData.get('title') || '';
