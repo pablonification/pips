@@ -33,7 +33,7 @@ export interface PushData {
  * (413), and encryption adds about 100; 3,000 leaves room and is far more than a notification shows.
  */
 export const MAX_PUSH_PAYLOAD_BYTES = 3000;
-/** How many pushes are in flight at once: a burst to 2,000 devices no longer opens 2,000 connections together. */
+/** How many pushes are in flight at once, so a burst to 2,000 devices doesn't open 2,000 connections together. */
 export const PUSH_CONCURRENCY = 50;
 /** A push service that hasn't answered by then is given up on, so a stalled one can't hold a fan-out open. */
 export const PUSH_TIMEOUT_MS = 10_000;
@@ -64,7 +64,7 @@ function longestFitting(text: string, fits: (candidate: string) => boolean) {
 
 /**
  * The push as sent: unchanged when its JSON fits in `maxBytes`, otherwise with its body (then, if need be, its title)
- * cut short with "…". A post's whole text used to go out, so a long announcement was refused for every member.
+ * cut short with "…". Without the cut, a long announcement would be refused for every member.
  */
 export function fitPushData(
   data: PushData,
@@ -143,8 +143,7 @@ function summarize(
 }
 
 /**
- *
- * send notification to a single subscriber.
+ * Sends a notification to a single subscriber.
  * If success, return the send result, otherwise return the error and the given endpoint.
  * A push service that doesn't answer within `timeoutMs` rejects it.
  */
@@ -192,8 +191,7 @@ export async function sendNotification(
 }
 
 /**
- *
- * send notification to all subscriptions using sendNotification function, at most `concurrency` at a time.
+ * Sends a notification to all subscriptions using `sendNotification`, at most `concurrency` at a time.
  * Subscriptions not at a push service are left out. The results are in the remaining subscriptions' order, as
  * `Promise.allSettled` gives them. Logs one line of counts.
  */

@@ -38,11 +38,3 @@ export const createPutObjectPresignedUrl = async (
     },
   );
 };
-
-// S3.send(new ListObjectsV2Command({ Bucket: env.R2_BUCKET_NAME }))
-//   .then((res) => {
-//     console.log(res);
-//   })
-//   .catch((err) => {
-//     console.error(err);
-//   });

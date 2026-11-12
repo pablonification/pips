@@ -103,7 +103,7 @@ userUnsubscribeRouter.openapi(postUserUnsubscribeCategoryRoute, async (c) => {
 
   let res = await postUserUnsubcribeCategory(db, data);
   if (!res) {
-    // If unsubscription is already in DB
+    // Already unsubscribed: answer with the existing record.
     res = {
       userId: id,
       categoryId,
@@ -133,7 +133,6 @@ userUnsubscribeRouter.openapi(
     const res = await Promise.allSettled(checkRequiredPromises);
     res.forEach((result) => {
       if (result.status === 'fulfilled') {
-        // Category was not found
         if (result.value.requiredPush === null) {
           categoriesNotFound.push(result.value.id);
         } else if (result.value.requiredPush) {

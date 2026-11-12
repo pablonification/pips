@@ -7,8 +7,7 @@ import {
 /** Magang SPARTA is for angkatan 2025, plus these manually approved exceptions. */
 export const ELIGIBLE_SPARTA_ANGKATAN = [2025];
 
-// Manually approved exceptions: these NIMs are not angkatan 2025 but have
-// been designated eligible for the SPARTA internship form regardless.
+// Manually approved exceptions: not angkatan 2025, but eligible for the SPARTA internship form anyway.
 export const ELIGIBLE_SPARTA_NIM_OVERRIDES = [
   '13524108',
   '18224053',
@@ -16,8 +15,8 @@ export const ELIGIBLE_SPARTA_NIM_OVERRIDES = [
 ];
 
 /**
- * When SPARTA takes applications, on the server's clock. It closed Minggu, 23 Agustus 2026, 23.59 WIB (the date
- * today's client hard-coded); the next season's dates aren't known, so it has no opening time.
+ * When SPARTA takes applications, on the server's clock. It closed Minggu, 23 Agustus 2026, 23.59 WIB;
+ * the next season's dates aren't known, so it has no opening time.
  */
 export const SPARTA_WINDOW = {
   opensAt: null as Date | null,

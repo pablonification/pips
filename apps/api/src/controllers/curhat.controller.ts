@@ -57,7 +57,7 @@ export interface CurhatDeps {
     isPinned: boolean,
   ) => Promise<void>;
   /**
-   * A member started a room: every connected Welfare socket of the Curhat area joins it (P3-C), so its first message
+   * A member started a room: every connected Welfare socket of the Curhat area joins it, so its first message
    * reaches Welfare live. The socket's per-receiver check still drops a socket whose role was taken away.
    */
   welfareJoin: (chatroomId: string) => void;

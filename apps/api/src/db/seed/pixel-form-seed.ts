@@ -242,9 +242,7 @@ export const pixelFormSections: FormSection[] = [
         id: 'q17',
         label: 'Jika tidak tertarik, kenapa?',
         type: 'textarea',
-        // Only relevant (and required) when Q16 = "Tidak tertarik" — see
-        // plan's judgment call #1 (forcing everyone to answer "why not
-        // interested" would be a logical fallacy).
+        // Only shown (and required) when q16 is "Tidak tertarik": someone who is interested has nothing to explain.
         dependsOn: { questionId: 'q16', value: 'Tidak tertarik' },
       },
       {

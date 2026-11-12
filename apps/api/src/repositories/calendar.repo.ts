@@ -37,10 +37,6 @@ export async function getCalendarEvent(
     ? await getCalendarEventWithCoursesJoin(db, courseCode, major, searchPhrase)
     : await getCalendarEventOnly(db, searchPhrase);
 
-  // courseCode and major filter are applied in the helper function
-  // both helper functions return only list of CalendarEvents
-  // see helper functions at the bottom of this code
-
   if (category) {
     calendarEvents = calendarEvents.filter((event) =>
       event.category.toLowerCase().includes(category.toLowerCase()),
@@ -100,11 +96,10 @@ export async function getCalendarGroupByCourseId(
     return;
   }
 
-  // must be if2021 or sti2021 based code or ifelective or stielective
+  // The course's code: a major plus its curriculum year (if2021, sti2021), or ifelective or stielective.
   let code = course.major.toLowerCase();
 
   if (course.type === 'Mandatory' && course.semester !== null) {
-    // 1-4
     const courseYear = Math.floor((course.semester - 1) / 2);
     const year = current.semesterYearTaken;
     code += (year - courseYear).toString();
@@ -210,7 +205,7 @@ export async function getPersonalCalendar(
   const userCourseIds = (await getUserCourse(db, user.id, true)).map(
     (c) => c.courseId,
   );
-  // Only the requested month (in WIB) is read; it used to read every Himpunan event ever and pick the month here.
+  // Only the requested month (in WIB) is read, so the database picks it, not the app.
   const { from, until } = wibMonthRange(query);
   const inMonth = and(
     gte(calendarEvent.start, from),
@@ -219,7 +214,7 @@ export async function getPersonalCalendar(
 
   const academicEvents =
     userCourseIds.length > 0
-      ? await db // Get academic events based on user context
+      ? await db
           .select()
           .from(calendarEvent)
           .where(

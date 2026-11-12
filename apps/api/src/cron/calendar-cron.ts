@@ -37,7 +37,7 @@ export interface Reminder {
 /**
  * The day-before (H-1) reminders for `events`, in the app's words: an event of a course goes to the students taking
  * it this semester who haven't muted Akademik, any other event to everyone with notifications on. A student with no
- * device subscribed is skipped (that used to throw and stop every later reminder of the minute).
+ * device subscribed is skipped, not an error that would stop the rest of the minute's reminders.
  */
 export function buildReminders(input: {
   events: CalendarEvent[];
@@ -104,11 +104,10 @@ export interface ReminderDeps {
 
 /**
  * One run of the reminder job (every minute): every event starting 24 hours after a minute not yet covered gets its
- * reminder, once. The first run after start covers its own minute only, as the job always did; after that a run picks
- * up any minute a failed, slow or skipped run left (up to `REMINDER_CATCH_UP_MS`), so a busy minute no longer loses
- * reminders. A run that fails before sending leaves its minutes for the next one; a run while another is still going
- * does nothing. What was covered is kept in memory: minutes while the API is down (a restart) are still missed,
- * since remembering them would need a new column.
+ * reminder, once. The first run after start covers its own minute only; after that a run picks up any minute that a
+ * failed, slow or skipped run left (up to `REMINDER_CATCH_UP_MS`). A run that fails before sending leaves its minutes
+ * for the next one; a run that starts while another is still going does nothing. What was covered is kept in
+ * memory, so minutes during a restart are missed; remembering them would need a column.
  */
 export function createReminderRun(deps: ReminderDeps) {
   let coveredUntil: number | undefined;

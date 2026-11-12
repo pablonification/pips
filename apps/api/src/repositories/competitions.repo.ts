@@ -41,7 +41,7 @@ export const createCompetition = async (
 /**
  * The competition's own row for an update: its columns set, or, when only the poster changes (`mediaUrls` is a list
  * of posters, not a column), read as it is. Setting nothing would build `update … set  where`, which Postgres refuses,
- * so replacing or removing just the poster failed.
+ * so replacing or removing just the poster would fail.
  */
 export function competitionRowQuery(
   db: Database,

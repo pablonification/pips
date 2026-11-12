@@ -74,7 +74,6 @@ export function createCompetitionsRouter(
       if (Object.keys(data).length === 0)
         return c.json({ error: 'Nothing to update' }, 400);
 
-      // Check if competition exists
       const existingCompetition = await deps.getCompetitionById(id);
       if (!existingCompetition)
         return c.json({ error: 'Competition not found' }, 404);

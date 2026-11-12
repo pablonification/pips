@@ -127,9 +127,9 @@ export const UpdateCalendarEventBodySchema = createInsertSchema(calendarEvent, {
 
 export const CalendarGroupSchema = createSelectSchema(calendarGroup);
 
-// Missing month or year means this month in WIB, read per request. A `.default(new Date()…)` was read once when
-// the server started, so a server started in September kept answering September, and the OpenAPI document (and
-// the web client generated from it) changed with the month it was generated in.
+// Missing month or year means this month in WIB, read per request. A `.default(new Date()…)` would be read once at
+// server start: the server would keep answering the month it started in, and the OpenAPI document (and the web client
+// generated from it) would change with the month it was built in.
 export const PersonalCalendarParamSchema = z.object({
   month: z.coerce
     .number()

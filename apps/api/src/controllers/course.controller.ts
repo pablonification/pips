@@ -44,8 +44,6 @@ courseRouter.delete(
   roleMiddleware([...COURSE_CATALOG_MANAGER_ROLES]),
 );
 
-// User Course Controller
-
 courseRouter.openapi(createUserCourseRoute, async (c) => {
   try {
     const userId = c.var.user.id;
@@ -83,8 +81,6 @@ courseRouter.openapi(deleteUserCourseRoute, async (c) => {
     return c.json({ error: 'Course not found' }, 404);
   return c.json(userCourse, 200);
 });
-
-// Course Controller
 
 courseRouter.openapi(listCourseRoute, async (c) => {
   const courses = await getListCourses(db, c.req.valid('query'));
@@ -143,13 +139,11 @@ courseRouter.openapi(createOrUpdateBatchUserCourseRoute, async (c) => {
     }),
   );
 
-  // Filter out undefined values
   const validCourses = existingCourses.filter((d) => d !== undefined) as Array<{
     courseId: string;
     class: number;
   }>;
 
-  // Check if there are any courses not found
   if (validCourses.length !== data.length) {
     return c.json({ error: 'Some courses not found' }, 404);
   }

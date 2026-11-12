@@ -18,7 +18,7 @@ export interface TestimoniDeps {
   getTestimoniByCourseId: WithoutDb<typeof getTestimoniByCourseId>;
 }
 
-/** A testimonial as members see it: without its author's user id (review m7). */
+/** A testimonial as members see it: without its author's user id. */
 function withoutAuthor<T extends { userId: string | null }>({
   userId: _userId,
   ...testimonial

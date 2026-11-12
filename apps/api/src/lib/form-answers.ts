@@ -13,9 +13,8 @@ interface Question {
 /**
  * Returns labels of required questions that were not answered. A question is
  * only required if it doesn't have a `dependsOn`, or its `dependsOn`
- * condition is satisfied by the submitted answers (see plan's judgment call
- * on question #17 — conditionally-required questions aren't required when
- * N/A).
+ * condition is satisfied by the submitted answers: a conditional question that
+ * doesn't apply is not required.
  */
 export function findMissingRequiredQuestions(
   sections: Array<{ questions: Question[] }>,

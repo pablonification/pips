@@ -12,8 +12,7 @@ export function renotifyAvailableAt(
 }
 
 /**
- * Whether Umumkan ulang is open: once `hours` have passed since the last push, to the millisecond. (It used to
- * count whole hours and need more than three of them, so it stayed locked until four hours had passed.)
+ * Whether Umumkan ulang is open: once `hours` have passed since the last push, to the millisecond.
  */
 export function canRenotify(
   lastNotifiedAt: Date | string,

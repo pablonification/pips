@@ -10,7 +10,7 @@ export async function trackBackground<T>(work: Promise<T>): Promise<T> {
 
 /**
  * Work a request starts but doesn't wait for (a push fan-out, the last sign-in time). Its failure is logged and goes
- * no further: Node 22 ends the process on an unhandled rejection, so one failed database write in a burst used to
+ * no further: Node 22 ends the process on an unhandled rejection, so one failed database write in a burst would
  * take down the API and every socket with it. Shutdown waits for it a few seconds (`settleBackground`).
  */
 export function runInBackground(

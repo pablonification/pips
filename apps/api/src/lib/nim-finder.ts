@@ -5,7 +5,7 @@ import { users } from '~/db/schema';
 export const NIM_FINDER_LIMIT = 30;
 
 /**
- * The only fields NIM Finder returns (SPEC API change 4): name, NIM, programme and photo. Nothing else about a
+ * The only fields NIM Finder returns: name, NIM, programme and photo. Nothing else about a
  * member (id, email, gender, membership, campus, angkatan, sign-in times) leaves the API through it.
  */
 export const NIM_FINDER_COLUMNS = {

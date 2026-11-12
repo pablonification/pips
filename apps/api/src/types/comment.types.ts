@@ -74,18 +74,3 @@ export const CommentPostBodySchema = createInsertSchema(comments, {
     content: 'Halo! Saya ingin komen, kerja bagus!',
     repliedInfoId: 'b5kg9vo1xzyutser1zhbi8le',
   });
-
-// export const CommentUpdateBodySchema = z.object({
-//   content: z.string().openapi({
-//     example: 'Keren nih info',
-//   }),
-// });
-
-// export const CommentPostBodySchema = z.object({
-//   infoId: z.string().openapi({
-//     example: 'uuid',
-//   }),
-//   content: z.string().openapi({
-//     example: 'my comment!',
-//   }),
-// });

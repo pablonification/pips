@@ -32,7 +32,7 @@ export const rolesEnums = [
   'cnb',
   'medcon',
   'visdes',
-  // IIT,
+  // IIT
   'iit',
   'iitfinance',
   'iithr',

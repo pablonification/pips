@@ -85,7 +85,7 @@ export interface NewChatroomMessage {
   chatroomId: string;
   content: string;
   replyId: string | null;
-  /** The sender's device id for the message (P2-C); null from older clients. */
+  /** The sender's device id for the message; null from older clients. */
   clientMessageId: string | null;
 }
 
@@ -104,7 +104,7 @@ export function insertMessageQuery(db: Database, message: NewChatroomMessage) {
 }
 
 /**
- * Saves a message once per device id (P2-C): a resend with a `clientMessageId` the room already has saves nothing
+ * Saves a message once per device id: a resend with a `clientMessageId` the room already has saves nothing
  * and gives back the message saved the first time, with `created: false`. Two sends racing with the same id are
  * settled by the unique index: the second waits for the first, skips, then reads it.
  */
@@ -140,7 +140,7 @@ export async function getOwnedChatroomIds(db: Database, userId: string) {
   return rows.map((r) => r.id);
 }
 
-/** Every room's id, for a Welfare socket of the Curhat area (P3-C). */
+/** Every room's id, for a Welfare socket of the Curhat area. */
 export async function getAllChatroomIds(db: Database) {
   const rows = await db.select({ id: chatrooms.id }).from(chatrooms);
   return rows.map((r) => r.id);
@@ -157,7 +157,7 @@ export function lockMemberQuery(userId: string) {
 /**
  * Creates a room for `data.userId` unless they already have the most rooms allowed; answers `null` then. The
  * count and the insert run in one transaction behind a lock on the member's row, so parallel requests can't all
- * see the same count and slip past the limit (C4).
+ * see the same count and slip past the limit.
  */
 export async function createChatroomWithinLimit(
   db: Database,

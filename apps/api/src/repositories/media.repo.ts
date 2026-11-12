@@ -1,7 +1,7 @@
 import { Database } from '~/db/drizzle';
 import { medias } from '~/db/schema';
 
-// EXAMPLE URL -> https://pub-45e54d5755814b02b87e024df83efb57.r2.dev/r176r3qcuqs3hg8o3dm93n35-asrielblunt.jpg
+// A stored file's address ends in <random id>-<the file's own name>: …/r176r3qcuqs3hg8o3dm93n35-photo.jpg
 export const createMediasFromUrl = async (
   db: Database,
   urls: string[],
@@ -11,7 +11,7 @@ export const createMediasFromUrl = async (
     .insert(medias)
     .values(
       urls.map((url) => {
-        const file = url.split('/').at(-1); // asrielblunt.jpg
+        const file = url.split('/').at(-1); // r176r3qcuqs3hg8o3dm93n35-photo.jpg
         if (!file) {
           throw Error('Invalid URL');
         }
