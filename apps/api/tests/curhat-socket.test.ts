@@ -8,6 +8,7 @@ import type { ChatroomMessage } from '../src/db/schema';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
 import type { CurhatDeps } from '../src/controllers/curhat.controller';
 import { CURHAT_WELFARE_ROOM } from '../src/lib/curhat';
+import { RATE_LIMITS, RATE_WINDOW_MS } from '../src/lib/limits';
 import {
   createConnectionHandler,
   formAdminRoom,
@@ -48,8 +49,14 @@ let failSaves: boolean;
 let failRoleLookups: boolean;
 /** Runs after Welfare's handshake has read the room list, before it returns: a room created in that window. */
 let whileListingRooms: (() => Promise<void> | void) | undefined;
+/** The message limiter's clock: each test starts in a new window. */
+let clock = 0;
+let messageLimiter: ReturnType<
+  typeof import('../src/lib/rate-limit').createRateLimiter
+>;
 
 beforeEach(() => {
+  clock += RATE_WINDOW_MS;
   rooms = [
     { id: 'r1', userId: nadia.id },
     { id: 'r2', userId: nadia.id },
@@ -86,6 +93,13 @@ let io: Server;
 const clients: ClientSocket[] = [];
 
 before(async () => {
+  usePlaceholderEnv();
+  const { createRateLimiter } = await import('../src/lib/rate-limit');
+  messageLimiter = createRateLimiter({
+    limit: RATE_LIMITS.curhatMessages,
+    windowMs: RATE_WINDOW_MS,
+    now: () => clock,
+  });
   http = createServer();
   io = new Server(http);
   io.on(
@@ -138,6 +152,7 @@ before(async () => {
         notifyParticipants: async (m) => {
           notified.push(m);
         },
+        messageLimiter,
       },
     }),
   );
@@ -388,6 +403,52 @@ test('a failed save answers server', async () => {
     ok: false,
     error: 'server',
   });
+});
+
+test('a member sends at most 30 messages a minute; the next is refused as a failed send, not saved and not pushed', async () => {
+  const socket = await client(nadia, { curhat: true });
+  const saved = messages.length;
+  for (let i = 0; i < 30; i++) {
+    const ack = await send(socket, { chatroomId: 'r1', message: `halo ${i}` });
+    assert.equal(ack.ok, true, `message ${i + 1}`);
+  }
+  assert.deepEqual(
+    await send(socket, { chatroomId: 'r1', message: 'satu lagi' }),
+    { ok: false, error: 'server' },
+  );
+  assert.equal(messages.length, saved + 30);
+  assert.equal(notified.length, 30);
+  // Another socket of the same member shares the count; another member doesn't.
+  const again = await client(nadia, { curhat: true });
+  assert.equal(
+    (await send(again, { chatroomId: 'r2', message: 'x' })).ok,
+    false,
+  );
+  const someoneElse = await client(other, { curhat: true });
+  assert.equal(
+    (await send(someoneElse, { chatroomId: 'r9', message: 'x' })).ok,
+    true,
+  );
+  // The next minute, sending works again.
+  clock += RATE_WINDOW_MS;
+  assert.equal(
+    (await send(socket, { chatroomId: 'r1', message: 'x' })).ok,
+    true,
+  );
+});
+
+test("Welfare's replies have the same limit", async () => {
+  const staff = await client(welfare, { curhat: true });
+  for (let i = 0; i < 30; i++)
+    assert.equal(
+      (await send(staff, { chatroomId: 'r1', message: `balas ${i}` })).ok,
+      true,
+    );
+  assert.deepEqual(await send(staff, { chatroomId: 'r9', message: 'x' }), {
+    ok: false,
+    error: 'server',
+  });
+  assert.equal(notified.length, 30);
 });
 
 test('reply reaches the other sockets in that room only, without any userId', async () => {

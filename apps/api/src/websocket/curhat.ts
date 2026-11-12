@@ -44,6 +44,8 @@ export interface CurhatSocketDeps {
     senderId: string;
     content: string;
   }) => Promise<void>;
+  /** Counts each member's messages (`RATE_LIMITS.curhatMessages`), shared by every socket of the server. */
+  messageLimiter: { hit: (key: string) => { ok: boolean } };
   onError?: (error: unknown) => void;
 }
 
@@ -116,6 +118,9 @@ export function registerCurhatSocket(
   async function receiveMessage(payload: unknown): Promise<CurhatMessageAck> {
     const s = await liveSession();
     if (!s) return refuse('unauthorized');
+    // `server`: the client shows it as failed, and Kirim ulang works once the minute is over.
+    if (!deps.messageLimiter.hit(`user:${s.userId}`).ok)
+      return refuse('server');
 
     const parsed = CurhatMessagePayloadSchema.safeParse(payload);
     if (!parsed.success || parsed.data.message.trim() === '') {

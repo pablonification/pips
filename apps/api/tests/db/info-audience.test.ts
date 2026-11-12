@@ -87,6 +87,14 @@ before(async () => {
       isForGroups: false,
     },
     {
+      id: 'ia-dpp',
+      creatorId: 'ia-raka',
+      title: 'Untuk DPP',
+      content: 'Hanya untuk DPP.',
+      isForAngkatan: false,
+      isForGroups: true,
+    },
+    {
       id: 'ia-all',
       creatorId: 'ia-raka',
       title: 'Untuk semua',
@@ -98,6 +106,25 @@ before(async () => {
   await db
     .insert(schema.infoAngkatan)
     .values({ infoId: 'ia-pixel', angkatanId: idOf(2025) });
+  await db.insert(schema.infoGroups).values({ infoId: 'ia-dpp', role: 'dpp' });
+  await db.insert(schema.comments).values([
+    {
+      id: 'ia-pixel-comment',
+      repliedInfoId: 'ia-pixel',
+      creatorId: 'ia-nadia',
+      content: 'Komentar untuk PIXEL.',
+    },
+    {
+      id: 'ia-dpp-comment',
+      repliedInfoId: 'ia-dpp',
+      creatorId: 'ia-raka',
+      content: 'Komentar untuk DPP.',
+    },
+  ]);
+  await db.insert(schema.reactions).values([
+    { infoId: 'ia-pixel', creatorId: 'ia-nadia', reaction: 'haha' },
+    { commentId: 'ia-pixel-comment', creatorId: 'ia-raka', reaction: 'haha' },
+  ]);
 });
 
 after(async () => {
@@ -112,6 +139,7 @@ after(async () => {
     );
   }
   await client?.end();
+  await (await import('../../src/db/drizzle')).closeDatabase();
 });
 
 test('a post for one angkatan opens for that angkatan and its author, not for another angkatan', async () => {
@@ -141,4 +169,79 @@ test('the feed and the link agree: another angkatan sees the post in neither', a
   assert.deepEqual(await feed('ia-nadia', 2025), ['ia-all', 'ia-pixel']);
   assert.deepEqual(await feed('ia-raka', 2024), ['ia-all', 'ia-pixel']);
   assert.deepEqual(await feed('ia-dimas', 2023), ['ia-all']);
+});
+
+test("a post's comments and reactions follow its audience: 404 for another angkatan, as the post itself", async () => {
+  const { createApp } = await import('../../src/app');
+  const { sessionCookie, testUser } = await import('../support/session');
+  const app = createApp();
+  const as =
+    (id: string, nim: string, angkatan: number) =>
+    async (method: string, path: string, body?: unknown) =>
+      (
+        await app.request(`/api${path}`, {
+          method,
+          headers: {
+            Origin: 'http://localhost:5173',
+            Cookie: await sessionCookie(testUser(id, { nim, angkatan })),
+            ...(body ? { 'Content-Type': 'application/json' } : {}),
+          },
+          body: body ? JSON.stringify(body) : undefined,
+        })
+      ).status;
+  const dimas = as('ia-dimas', '13523901', 2023);
+  const nadia = as('ia-nadia', '13525901', 2025);
+
+  const calls: Array<[string, string, unknown?]> = [
+    ['GET', '/info/ia-pixel'],
+    ['GET', '/comments?infoId=ia-pixel'],
+    ['GET', '/comment/ia-pixel-comment'],
+    ['GET', '/reaction?infoId=ia-pixel'],
+    ['GET', '/reaction?commentId=ia-pixel-comment'],
+    ['POST', '/comment', { repliedInfoId: 'ia-pixel', content: 'Halo' }],
+    ['PUT', '/reaction', { infoId: 'ia-pixel', reaction: 'haha' }],
+    ['PUT', '/reaction', { commentId: 'ia-pixel-comment', reaction: 'haha' }],
+  ];
+  // A post for a group the member isn't in: the same.
+  const forGroup: Array<[string, string, unknown?]> = [
+    ['GET', '/info/ia-dpp'],
+    ['GET', '/comments?infoId=ia-dpp'],
+    ['GET', '/comment/ia-dpp-comment'],
+    ['GET', '/reaction?infoId=ia-dpp'],
+    ['POST', '/comment', { repliedInfoId: 'ia-dpp', content: 'Halo' }],
+    ['PUT', '/reaction', { infoId: 'ia-dpp', reaction: 'haha' }],
+  ];
+  for (const [method, path, body] of forGroup)
+    assert.equal(await nadia(method, path, body), 404, `${method} ${path}`);
+  for (const [method, path, body] of calls)
+    assert.equal(await dimas(method, path, body), 404, `${method} ${path}`);
+  const { eq } = await import('drizzle-orm');
+  const schema = await import('../../src/db/schema');
+  assert.equal(
+    (
+      await db
+        .select()
+        .from(schema.comments)
+        .where(eq(schema.comments.creatorId, 'ia-dimas'))
+    ).length,
+    0,
+    'nothing saved',
+  );
+  assert.equal(
+    (
+      await db
+        .select()
+        .from(schema.reactions)
+        .where(eq(schema.reactions.creatorId, 'ia-dimas'))
+    ).length,
+    0,
+    'nothing saved',
+  );
+
+  // The post's own audience still gets everything.
+  for (const [method, path, body] of calls)
+    assert.ok(
+      [200, 201].includes(await nadia(method, path, body)),
+      `${method} ${path}`,
+    );
 });
