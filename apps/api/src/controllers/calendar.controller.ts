@@ -221,7 +221,26 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       googleCalendarUrl: eventGCal.htmlLink,
       googleCalendarId: eventGCal.id,
     };
-    const createdEvent = await deps.createCalendarEvent(insertData);
+    let createdEvent;
+    try {
+      createdEvent = await deps.createCalendarEvent(insertData);
+    } catch (error) {
+      // Otherwise the event stays in Google Calendar with no row to change or delete it from the app.
+      const googleCalendarId = eventGCal.id;
+      await deps.google
+        .remove(calendarGroup.googleCalendarUrl, googleCalendarId)
+        .catch((removeError: unknown) => {
+          logger.error({
+            type: 'google-calendar',
+            message:
+              'An event the database refused is still in Google Calendar',
+            googleCalendarId,
+            cause: (removeError as Error)?.message,
+          });
+          Sentry.captureException(removeError);
+        });
+      throw error;
+    }
     return c.json(createdEvent, 201);
   });
 
