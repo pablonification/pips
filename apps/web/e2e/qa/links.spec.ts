@@ -1,5 +1,5 @@
 /**
- * F2 (brief steps 9, 10 and 12): sign-in's redirect check against every unsafe target, the installed app's
+ * Sign-in's redirect check against every unsafe target, the installed app's
  * manifest, and the theme colour.
  */
 import type { Page } from '@playwright/test';
@@ -58,7 +58,7 @@ test.describe('redirect validation', () => {
           .poll(async () => (await googleRequests(page)).clients.length)
           .toBe(1);
         await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
-        // A first sign-in with no courses set goes to first run (P1-C), else Beranda: never the other site.
+        // A first sign-in with no courses set goes to first run, else Beranda: never the other site.
         await expect(page).toHaveURL(/^http:\/\/127\.0\.0\.1:\d+\/(mulai)?$/);
         await expect(page.locator('h1:visible')).toHaveCount(1);
         expect(api.blocked.filter((b) => /evil/.test(b.path))).toEqual([]);
@@ -107,7 +107,7 @@ test.describe('the installed app', () => {
       await expect(page).toHaveURL(new RegExp(`${s.url}$`));
       await expect(page.locator('h1:visible')).toHaveCount(1);
     }
-    // An install screenshot shows the app as it is now (F2-008: it was today's green English sign-in, "Login page"):
+    // An install screenshot shows the app as it is now (not an old English sign-in, "Login page"):
     // labelled in Indonesian, a real JPEG or PNG of the size it says.
     for (const shot of manifest.screenshots ?? []) {
       expect(shot.label ?? '', `screenshot ${shot.src}`).not.toMatch(

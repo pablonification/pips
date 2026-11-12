@@ -1,7 +1,7 @@
 /**
  * Visual regression: screenshots compared with committed reference images (`toHaveScreenshot`).
  *
- * Each redesign task added a state to VISUAL_STATES for the screens it finished and recorded the references with
+ * Each screen has a state in VISUAL_STATES, and its references are recorded with
  * `pnpm --filter web e2e:update` (in e2e/visual/visual.spec.ts-snapshots/). References change only through that
  * command, and their diffs are reviewed in the pull request. They are per platform: the macOS ones come from this
  * command, the Linux ones from the `visual references` workflow in CI's container.
@@ -18,7 +18,7 @@ const fromStates = (ids: string[]) =>
 
 /** States with committed references. Same shape as capture/states.ts. */
 export const VISUAL_STATES: CaptureState[] = [
-  // P3-A: Live Counting and the Data SPARTA Magang table.
+  // Live Counting and the Data SPARTA Magang table.
   {
     id: 'kelola-live',
     title: 'Live Counting',
@@ -33,7 +33,7 @@ export const VISUAL_STATES: CaptureState[] = [
     path: '/kelola/sparta',
     ready: (p) => p.getByRole('main').getByText('3 pendaftar'),
   },
-  // P1-A: Beranda's and Kalender's main views, the event sheet and search.
+  // Beranda's and Kalender's main views, the event sheet and search.
   {
     id: 'beranda',
     title: 'Beranda',
@@ -83,7 +83,7 @@ export const VISUAL_STATES: CaptureState[] = [
         .getByRole('dialog', { name: 'Pencarian global' })
         .filter({ has: p.getByRole('option', { name: /^Bayar Kas!/ }) }),
   },
-  // P2-B: Ding Dong, Testi Matkul, NIM Finder and Info Lomba.
+  // Ding Dong, Testi Matkul, NIM Finder and Info Lomba.
   ...fromStates([
     'dingdong',
     'dingdong-empty',
