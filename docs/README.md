@@ -18,15 +18,13 @@ Coding agents start at [AGENTS.md](../AGENTS.md).
 
 ## Recipes
 
-Step-by-step guides for the common changes. They are not written yet:
+Step-by-step guides for the common changes. Each was written by doing the job once on a small made-up example, so
+the paths, commands and error messages in them are real.
 
-- Add a screen
-- Add an API route
-- Add a migration
-- Add a service to Layanan
-
-Until then, copy a neighbour: `apps/web/src/features/beranda/` for a screen, and the route files named in
-[architecture.md](architecture.md) for an API route.
+- [Add a screen](recipes/add-a-screen.md)
+- [Add an API route](recipes/add-an-api-route.md)
+- [Add a migration](recipes/add-a-migration.md)
+- [Add a service to Layanan](recipes/add-a-service-to-layanan.md)
 
 ## Running it
 

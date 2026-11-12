@@ -88,9 +88,8 @@ export const CreateInfoBodySchema = createInsertSchema(infos, {
       .max(MAX_POST_MEDIA)
       .optional()
       .openapi({
-        example: [
-          'https://pub-45e54d5755814b02b87e024df83efb57.r2.dev/r176r3qcuqs3hg8o3dm93n35-asrielblunt.jpg',
-        ],
+        description: "Pictures must be files in the app's file store.",
+        example: ['https://files.example.com/contoh-poster.jpg'],
       }),
     forCategories: z
       .array(z.string())

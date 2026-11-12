@@ -40,19 +40,24 @@ const WELFARE = ['or-w1', 'or-w2'];
 let client: import('postgres').Sql;
 let db: import('../../src/db/drizzle').Database;
 
+async function cleanUp() {
+  const { inArray } = await import('drizzle-orm');
+  const schema = await import('../../src/db/schema');
+  await db.delete(schema.users).where(inArray(schema.users.id, MEMBERS));
+}
+
 before(async () => {
   const testUrl = throwawayUrl();
   usePlaceholderEnv({ DATABASE_URL: testUrl });
   const postgres = (await import('postgres')).default;
   const { drizzle } = await import('drizzle-orm/postgres-js');
   const { migrate } = await import('drizzle-orm/postgres-js/migrator');
-  const { inArray } = await import('drizzle-orm');
   const schema = await import('../../src/db/schema');
   client = postgres(testUrl, { max: 4, onnotice: () => {} });
   db = drizzle(client, { schema });
   await migrate(db, { migrationsFolder: './drizzle' });
 
-  await db.delete(schema.users).where(inArray(schema.users.id, MEMBERS));
+  await cleanUp();
   await db
     .insert(schema.angkatan)
     .values({ year: 2025, name: 'PIXEL' })
@@ -120,6 +125,7 @@ before(async () => {
 });
 
 after(async () => {
+  if (db) await cleanUp();
   await client?.end();
 });
 
@@ -143,7 +149,8 @@ async function unread(userId: string) {
 
 async function marks() {
   const [{ count }] = await client<{ count: number }[]>`
-    select count(*)::int as count from chatroom_message_reads where user_id like 'or-%'`;
+    select count(*)::int as count from chatroom_message_reads
+    where user_id like 'or-%' and chatroom_message_id like 'or-%'`;
   return count;
 }
 
