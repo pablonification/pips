@@ -19,6 +19,10 @@ twice, on phones whose connection drops all the time. The hard case: the server 
   connection is down or no answer comes in 10 seconds, the message shows "Gagal".
 - Anonymity is kept by what the API sends. Messages carry `fromOwner` and `isSender`, never a user id
   (`apps/api/src/lib/curhat.ts`). A member may have at most three rooms.
+- A member, and each Welfare member, may send 30 messages a minute (`RATE_LIMITS.curhatMessages` in
+  `apps/api/src/lib/limits.ts`, counted in memory for every socket together).
+- A notification carries no text from a message, a room or a sender. It says only "Pesan baru di Curhat Yuk!" and
+  opens the room: the member's own, or the room in Welfare's inbox (`curhatPushes` in `apps/api/src/lib/curhat.ts`).
 
 ## What else was possible
 - Plain requests with polling: simpler, but slow to show a reply and wasteful on a phone.
@@ -30,7 +34,8 @@ twice, on phones whose connection drops all the time. The hard case: the server 
   `apps/api/tests/curhat-socket.test.ts`, `apps/api/tests/db/curhat.test.ts`).
 - A failed message lives only in memory. Leaving the Curhat area or closing the app drops it.
 - Anonymity stops at the API's edge. The database still stores who owns each room and who wrote each message, and
-  anyone with database access can read it. Welfare cannot see it through the app.
+  anyone with database access can read it. Welfare cannot see it through the app, and a lock screen shows nothing
+  of a message.
 - Messages from older app versions have no id, so the repeat protection does not cover them.
 
 ## When to revisit
