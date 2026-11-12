@@ -80,7 +80,15 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
     if (unread) {
       await deps.deleteReadInfo(data);
     } else {
-      await deps.createReadInfo(data);
+      try {
+        await deps.createReadInfo(data);
+      } catch (error) {
+        // The read mark points at a post that doesn't exist (a foreign-key violation).
+        if ((error as { code?: string } | null)?.code === '23503') {
+          return c.json({ error: 'Info not found' }, 404);
+        }
+        throw error;
+      }
     }
     return c.json({}, 200);
   });
@@ -102,6 +110,17 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
       ...data
     } = c.req.valid('json');
     const { id } = c.var.user;
+
+    // One kind of audience per post, as the composer offers: the feed and the push read only one of them.
+    const audienceKinds = [forAngkatan, forCourses, forGroups].filter(
+      (audience) => audience?.length,
+    );
+    if (audienceKinds.length > 1) {
+      return c.json(
+        { error: 'A post is for angkatan, courses or groups, not more' },
+        400,
+      );
+    }
 
     const roles = await deps.getUserRoles(id);
     // A post aimed at groups reaches only the author's own groups, as the composer offers them (`GET /auth/groups`);

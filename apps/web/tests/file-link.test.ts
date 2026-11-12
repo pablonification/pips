@@ -1,6 +1,7 @@
 import { strict as assert } from 'node:assert';
+import { readFileSync, readdirSync } from 'node:fs';
 import { test } from 'node:test';
-import { fileHref } from '../src/lib/file-link';
+import { fileHref, httpHref } from '../src/lib/file-link';
 
 const STORAGE = 'https://media.hmif.dev';
 
@@ -126,4 +127,48 @@ test('an unreadable storage setting links nothing; an empty one falls back to ht
     fileHref('https://media.hmif.dev/a.pdf', '  '),
     'https://media.hmif.dev/a.pdf',
   );
+});
+
+test('an address from data links only when it is http(s), with no storage rule', () => {
+  assert.equal(
+    httpHref('https://drive.google.com/drive/folders/abc?usp=sharing'),
+    'https://drive.google.com/drive/folders/abc?usp=sharing',
+  );
+  assert.equal(
+    httpHref('http://files.hmif.dev/a.pdf'),
+    'http://files.hmif.dev/a.pdf',
+  );
+  for (const value of [
+    'javascript:alert(1)',
+    ' JavaScript:alert(1)',
+    'java\tscript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:msgbox(1)',
+    'file:///etc/passwd',
+    '//evil.example/a',
+    '/layanan',
+    'drive.google.com/x',
+    'https://user:pass@evil.example/',
+    '',
+    null,
+    undefined,
+  ])
+    assert.equal(httpHref(value), null, String(value));
+});
+
+test('every Ding Dong address reaches a link or a new tab through httpHref', () => {
+  // A course's folder is any text akademik saved; the screens, search and Testi Matkul must all check it.
+  const root = new URL('../src/', import.meta.url);
+  const files = readdirSync(root, { recursive: true, encoding: 'utf8' }).filter(
+    (f) => /\.tsx?$/.test(f) && !f.startsWith('api/generated'),
+  );
+  const uses = files.flatMap((f) =>
+    readFileSync(new URL(f, root), 'utf8')
+      .split('\n')
+      .filter((line) => line.includes('dingdongUrl'))
+      .map((line) => [f, line.trim()]),
+  );
+  assert.ok(uses.length >= 3, 'the screens that open a folder');
+  for (const [file, line] of uses)
+    assert.match(line, /httpHref\([\w.?]*dingdongUrl\)/, `${file}: ${line}`);
 });

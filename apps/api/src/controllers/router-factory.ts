@@ -1,8 +1,10 @@
 import { Hook, OpenAPIHono, z } from '@hono/zod-openapi';
+import { deleteCookie } from 'hono/cookie';
 import { jwt } from 'hono/jwt';
 import type { RequestIdVariables } from 'hono/request-id';
 import { env } from '~/configs/env.config';
 import { JWT_ALG } from '~/lib/jwt';
+import { SESSION_COOKIE } from '~/lib/session-cookie';
 import { JWTPayloadSchema } from '~/types/login.types';
 
 const defaultHook: Hook<any, any, any, any> = (result, c) => {
@@ -36,15 +38,19 @@ export function createAuthRouter() {
   authRouter.use(
     jwt({
       secret: env.JWT_SECRET,
-      cookie: 'hmif-app.access-cookie',
+      cookie: SESSION_COOKIE,
       alg: JWT_ALG,
     }),
   );
 
-  // Set user middleware
+  // Set user middleware. A token signed before the member's record changed shape is a session to sign in again.
   authRouter.use(async (c, next) => {
-    const payload = JWTPayloadSchema.parse(c.var.jwtPayload);
-    c.set('user', payload);
+    const payload = JWTPayloadSchema.safeParse(c.var.jwtPayload);
+    if (!payload.success) {
+      deleteCookie(c, SESSION_COOKIE);
+      return c.text('Unauthorized', 401);
+    }
+    c.set('user', payload.data);
     await next();
   });
 

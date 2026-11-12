@@ -33,6 +33,10 @@ export const postReadInfoRoute = createRoute({
         },
       },
     },
+    404: {
+      description: 'No such post',
+      content: { 'application/json': { schema: ErrorSchema } },
+    },
   },
 });
 

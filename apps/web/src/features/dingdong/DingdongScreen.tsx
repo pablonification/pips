@@ -15,11 +15,13 @@ import {
 import { IconFolder } from '~/components/icons/folder';
 import { DeskHead, PageBody } from '~/components/shell/page';
 import { dingdong as copy } from '~/copy/dingdong';
+import { httpHref } from '~/lib/file-link';
 import { serviceById } from '~/lib/services';
 import { ExtMark, Loaded } from '~/features/layanan-svc/parts';
 import { noFolderToast } from './no-folder';
 
 function CourseRow({ course }: { course: Course }) {
+  const href = httpHref(course.dingdongUrl);
   const inner = (
     <span className="g-svc-row">
       <Tile>
@@ -29,7 +31,7 @@ function CourseRow({ course }: { course: Course }) {
         <span className="block t-label strong code">{course.code}</span>
         <span className="block t-sm">{course.name}</span>
       </span>
-      {course.dingdongUrl ? (
+      {href ? (
         <ExtMark />
       ) : (
         <span className="t-cap text-fg-3">{copy.belumAdaFolder}</span>
@@ -38,13 +40,9 @@ function CourseRow({ course }: { course: Course }) {
   );
   return (
     <li>
-      {course.dingdongUrl ? (
+      {href ? (
         <RowButton asChild>
-          <a
-            href={course.dingdongUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href={href} target="_blank" rel="noopener noreferrer">
             {inner}
           </a>
         </RowButton>

@@ -32,6 +32,7 @@ export const getCommentsListRoute = createRoute({
       },
     },
     400: validationErrorResponse,
+    404: errorResponse,
   },
 });
 
@@ -142,6 +143,7 @@ export const postCommentRoute = createRoute({
       },
     },
     400: errorResponse,
+    404: errorResponse,
     500: {
       description: 'Internal server error',
       content: {

@@ -51,7 +51,8 @@ export const CommentIdParamSchema = z.object({
 });
 
 export const CommentUpdateBodySchema = createInsertSchema(comments, {
-  content: (schema) => schema.content.max(MAX_COMMENT),
+  content: (schema) =>
+    schema.content.max(MAX_COMMENT).regex(/\S/, 'A comment needs text'),
 })
   .pick({
     content: true,
@@ -61,7 +62,8 @@ export const CommentUpdateBodySchema = createInsertSchema(comments, {
   });
 
 export const CommentPostBodySchema = createInsertSchema(comments, {
-  content: (schema) => schema.content.max(MAX_COMMENT),
+  content: (schema) =>
+    schema.content.max(MAX_COMMENT).regex(/\S/, 'A comment needs text'),
 })
   .omit({
     id: true,

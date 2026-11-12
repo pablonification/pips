@@ -13,10 +13,6 @@ export const CreateCourseSchema = createInsertSchema(courses).omit({
 
 export const UpdateCourseSchema = CreateCourseSchema.partial();
 
-export const SingleCourseSchema = z.object({
-  course: CourseSchema,
-});
-
 export const ListCourseSchema = z.object({
   courses: z.array(CourseSchema),
 });

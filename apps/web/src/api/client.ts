@@ -16,9 +16,11 @@ import { RequestTimeoutError, timedHttpRequest } from './timed-request';
 
 export const api = new ApiClient(
   {
-    BASE: import.meta.env.VITE_API_URL,
+    BASE: import.meta.env?.VITE_API_URL ?? '',
     WITH_CREDENTIALS: true,
     CREDENTIALS: 'include',
+    // An id is one path part: the generated default (`encodeURI`) leaves `/` and `?` in it.
+    ENCODE_PATH: encodeURIComponent,
   },
   // Every request has a time limit, so a stalled network ends in the screen's error and Coba lagi.
   timedHttpRequest(),

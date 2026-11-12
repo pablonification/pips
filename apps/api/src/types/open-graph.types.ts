@@ -20,12 +20,6 @@ export const OpenGraphErrorSchema = z.object({
   success: z.boolean().default(false),
 });
 
-export const CustomMetaTagsSchema = z.object({
-  fieldName: z.string(),
-  multiple: z.boolean(),
-  property: z.string(),
-});
-
 export const TwitterImageObjectSchema = z.object({
   alt: z.string().optional(),
   height: z.number().optional(),

@@ -39,6 +39,17 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Type check and lint
         run: pnpm check
+      # The web app's API client is generated from the API and committed: a route changed without regenerating it
+      # would ship a client that lies about the shapes. Status also catches new and deleted files.
+      - name: The generated API client matches the API
+        run: |
+          pnpm --filter web api
+          changed="$(git status --porcelain -- apps/web/src/api/generated)"
+          if [ -n "$changed" ]; then
+            echo "$changed"
+            echo "Run 'pnpm --filter web api' and commit apps/web/src/api/generated."
+            exit 1
+          fi
       - name: Unit tests
         run: pnpm test
       - name: Production build
@@ -47,10 +58,56 @@ jobs:
       # SPEC says (C1).
       - name: Production bundle, precache and service worker
         run: node apps/web/scripts/verify-production-bundle.mjs apps/web/dist
-      # SPEC's budgets: per-route JS, precache and fonts. Warn mode (BUDGETS_STRICT=0) while every route's first JS is
-      # still over 150 KiB (C1 report, "Needs Dev 1"); drop it to make the step fail over budget.
+      # Per-route JS before first render (capped at 205 KiB), precache and fonts; fails over budget.
       - name: Budgets
-        run: BUDGETS_STRICT=0 pnpm --filter web budgets
+        run: pnpm --filter web budgets
+
+  api-db:
+    name: api database tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # 16 is the local development cluster's version; production runs a newer one.
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pips_test_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # The tests refuse any database that is not local and named pips_test*; they migrate it themselves, and the
+      # migration test creates more databases beside it, so the role is a superuser.
+      TEST_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/pips_test_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      # The post audience SQL, the room limit under parallel requests, a resent Curhat message saved once, the
+      # migration counter repair, search with odd characters and the statement timeout only show on a real database.
+      - name: Database tests
+        run: pnpm --filter api test:db
+      # drizzle-kit writes a new migration when the schema differs from the last snapshot: any new file is drift.
+      - name: The migrations match the schema
+        working-directory: apps/api
+        run: |
+          rm -rf .drizzle-check
+          cp -R drizzle .drizzle-check
+          DATABASE_URL=unused pnpm exec drizzle-kit generate --dialect postgresql --schema ./src/db/schema.ts --out .drizzle-check
+          if ! diff -r drizzle .drizzle-check; then
+            echo "schema.ts has changes no migration covers: run 'pnpm --filter api db:migrations' and commit the result."
+            exit 1
+          fi
 
   docker:
     name: docker images
@@ -58,8 +115,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Both images build from the repository root, as Dokploy will build them.
+      # Placeholder addresses, so the content policy has an API, a file store and Sentry to name.
       - name: Build the web image
-        run: docker build -f apps/web/Dockerfile -t pips-web .
+        run: |
+          docker build -f apps/web/Dockerfile -t pips-web \
+            --build-arg VITE_API_URL=https://api.pips.test \
+            --build-arg VITE_MEDIA_URL=https://media.pips.test \
+            --build-arg VITE_SENTRY_DSN=https://key@o1.ingest.sentry.io/1 .
       - name: Build the api image
         run: docker build -f apps/api/Dockerfile -t pips-api .
       - name: The web image serves index.html, also for app routes
@@ -69,13 +131,38 @@ jobs:
           curl -fsS http://127.0.0.1:3000/ | grep -q '<div id="root">'
           curl -fsS http://127.0.0.1:3000/home | grep -q '<div id="root">'
           curl -fsS -o /dev/null http://127.0.0.1:3000/manifest.webmanifest
-          # The same headers as the Vercel deployment: every response is revalidated, so after a deploy no browser
-          # keeps an index.html that points at scripts the new image no longer has.
+          curl -fsS http://127.0.0.1:3000/pengumuman | grep -q '<div id="root">'
+          # Every response is revalidated, so after a deploy no browser keeps an index.html that points at scripts the
+          # new image no longer has; and every response carries the protective headers.
           for path in / /home /sw.js "/assets/$(docker exec web ls /srv/assets | grep -m1 '\.js$')"; do
             headers="$(curl -fsSI "http://127.0.0.1:3000$path")"
             grep -qi '^cache-control: public, max-age=0, must-revalidate' <<<"$headers"
             grep -qi '^document-policy: js-profiling' <<<"$headers"
+            grep -qi '^x-content-type-options: nosniff' <<<"$headers"
+            grep -qi '^referrer-policy: strict-origin-when-cross-origin' <<<"$headers"
+            grep -qi '^x-frame-options: DENY' <<<"$headers"
           done
+      - name: The web image sends its content policy, compresses, and answers a missing file with 404
+        run: |
+          csp="$(curl -fsSI http://127.0.0.1:3000/ | grep -i '^content-security-policy-report-only:')"
+          echo "$csp"
+          for source in "frame-ancestors 'none'" "'sha256-" https://api.pips.test wss://api.pips.test \
+            https://media.pips.test https://o1.ingest.sentry.io https://accounts.google.com/gsi/client; do
+            grep -qF "$source" <<<"$csp"
+          done
+          # The entry script, as index.html names it, comes compressed.
+          html="$(curl -fsS http://127.0.0.1:3000/)"
+          entry="$(grep -o -m1 'src="/assets/[^"]*\.js"' <<<"$html" | cut -d'"' -f2)"
+          test -n "$entry"
+          for encoding in gzip zstd; do
+            headers="$(curl -fsS -H "Accept-Encoding: $encoding" -D - -o /dev/null "http://127.0.0.1:3000$entry")"
+            grep -qi "^content-encoding: $encoding" <<<"$headers"
+          done
+          # A file that isn't in the build is a 404, not the app's page; build metadata isn't served.
+          for path in /assets/x.js /assets/x /x.png /.vite/manifest.json /chunk-modules.json; do
+            test "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:3000$path")" = 404
+          done
+          test "$(docker exec web find /srv -name '.vite' -o -name '*.map' | wc -l)" = 0
       - name: The api image starts and serves until it needs its database
         run: |
           # Placeholder settings only: nothing here is a real secret, and the database address leads nowhere.
@@ -85,10 +172,9 @@ jobs:
           docker run -d --name api -p 5000:5000 \
             -e VAPID_PUBLIC_KEY="$PUB" -e VAPID_PRIVATE_KEY="$PRIV" \
             -e DATABASE_URL=postgres://pips:pips@127.0.0.1:1/pips \
-            -e SMTP_HOST=localhost -e SMTP_PORT=25 -e SMTP_PASS=ci \
             -e GOOGLE_CLIENT_ID=ci -e GOOGLE_CLIENT_SECRET=ci \
             -e GOOGLE_CALLBACK_URL=http://127.0.0.1/callback \
-            -e JWT_SECRET=ci -e TOKEN_EXPIRATION=1h \
+            -e JWT_SECRET=ci-placeholder-secret-of-32-characters -e TOKEN_EXPIRATION=3600 \
             -e R2_ENDPOINT=http://127.0.0.1:1 -e R2_PUBLIC_URL=http://127.0.0.1:1 \
             pips-api
           for i in $(seq 1 60); do curl -fsS http://127.0.0.1:5000/ -o /dev/null && break; sleep 1; done
