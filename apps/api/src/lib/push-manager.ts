@@ -113,7 +113,9 @@ export interface PushSummary {
 function summarize(
   devices: number,
   skipped: number,
-  results: PromiseSettledResult<Awaited<ReturnType<typeof sendNotification>>>[],
+  results: Array<
+    PromiseSettledResult<Awaited<ReturnType<typeof sendNotification>>>
+  >,
 ): PushSummary {
   const summary: PushSummary = {
     type: 'push',
