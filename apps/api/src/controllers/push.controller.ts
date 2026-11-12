@@ -1,7 +1,7 @@
 import { db } from '~/db/drizzle';
 import { runInBackground } from '~/lib/background';
 import { sendNotificationToAll } from '~/lib/push-manager';
-import { roleMiddleware } from '~/middlewares/role.middleware';
+import { forRoles } from '~/middlewares/role.middleware';
 import {
   createOrUpdatePushSubscription,
   getAllPushSubscriptions,
@@ -38,23 +38,22 @@ export function createPushRouter(
     return c.json({}, 201);
   });
 
-  pushRouter.post(
-    pushBroadcastRoute.getRoutingPath(),
-    roleMiddleware(['ring1'], deps.getUserRoles),
-  );
-  pushRouter.openapi(pushBroadcastRoute, async (c) => {
-    const subscriptions = await getAllPushSubscriptions(db);
-    runInBackground(
-      'Broadcast push',
-      sendNotificationToAll(subscriptions, c.req.valid('json')).then(
-        async (results) => {
-          await removeFailedPushSubscriptions(db, results);
-        },
-      ),
-    );
+  pushRouter.openapi(
+    forRoles(pushBroadcastRoute, ['ring1'], deps.getUserRoles),
+    async (c) => {
+      const subscriptions = await getAllPushSubscriptions(db);
+      runInBackground(
+        'Broadcast push',
+        sendNotificationToAll(subscriptions, c.req.valid('json')).then(
+          async (results) => {
+            await removeFailedPushSubscriptions(db, results);
+          },
+        ),
+      );
 
-    return c.json({}, 200);
-  });
+      return c.json({}, 200);
+    },
+  );
 
   return pushRouter;
 }
