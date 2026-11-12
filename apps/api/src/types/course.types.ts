@@ -43,8 +43,6 @@ export const CourseIdRequestBodySchema = z.object({
   courseId: z.string(),
 });
 
-// User Course Schemas
-
 export const UserCourseSchema = createSelectSchema(userCourses)
   .extend({
     course: CourseSchema.optional(),
@@ -54,9 +52,8 @@ export const UserCourseSchema = createSelectSchema(userCourses)
 export const ListUserCourseSchema = z.array(UserCourseSchema);
 
 /**
- * The class a course is stored with when the request names none. Garis v5 dropped the class from Mata kuliahku
- * (nothing in the app used it), so today's app sends only `courseId`; the column stays `NOT NULL`, so no migration is
- * needed. Older clients that still send a class keep it.
+ * The class a course is stored with when the request names none. The app sends only `courseId`; the column is
+ * `NOT NULL`, so this fills it. A client that still sends a class keeps it.
  */
 export const DEFAULT_COURSE_CLASS = 1;
 

@@ -128,7 +128,6 @@ export function createApp({
 
   app.onError((err, c) => {
     if (err instanceof HTTPException) {
-      // Get the custom response
       return err.getResponse();
     }
 

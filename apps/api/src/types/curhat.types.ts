@@ -81,7 +81,7 @@ export const CurhatMessagePayloadSchema = z
     message: z.string().max(MAX_CURHAT_MESSAGE),
     replyId: z.string().min(1).nullish(),
     /**
-     * The device's id for this message (a UUID, P2-C). Sending it again with the same id, after a lost
+     * The device's id for this message (a UUID). Sending it again with the same id, after a lost
      * acknowledgement, saves nothing new: the acknowledgement carries the message saved the first time.
      */
     clientMessageId: z.string().uuid().nullish(),
@@ -114,7 +114,7 @@ const CurhatQuotedMessageSchema = z.object({
 
 export const CurhatSocketMessageSchema = CurhatQuotedMessageSchema.extend({
   isSender: z.boolean(),
-  /** Whether the room's owner wrote it (P3-C): the member's message, not Welfare's. Says nothing about who. */
+  /** Whether the room's owner wrote it: the member's message, not Welfare's. Says nothing about who. */
   fromOwner: z.boolean(),
   /** The device's id for the message, only for its sender (`isSender`); null for everyone else and older clients. */
   clientMessageId: z.string().nullable(),

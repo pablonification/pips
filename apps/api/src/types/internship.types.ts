@@ -116,7 +116,7 @@ export const UpsertInternshipSubmissionSchema = z.object({
 });
 
 /**
- * A draft, saved on every step (SPEC "Autosave"): Kelas and ID Line may still be empty, and up to 4 choices, each
+ * A draft, saved on every step: Kelas and ID Line may still be empty, and up to 4 choices, each
  * division and each priority (1–4) at most once. Sending (`/submit`) still needs the strict schema above.
  */
 export const DraftInternshipSubmissionSchema = z

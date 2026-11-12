@@ -24,7 +24,7 @@ export interface CurhatSocketDeps {
     chatroomId: string,
   ) => Promise<{ id: string; userId: string | null } | undefined>;
   getOwnedChatroomIds: (userId: string) => Promise<string[]>;
-  /** Every room's id: a Welfare socket of the Curhat area joins them all (P3-C). */
+  /** Every room's id: a Welfare socket of the Curhat area joins them all. */
   getAllChatroomIds: () => Promise<string[]>;
   getMessage: (messageId: string) => Promise<ChatroomMessage | undefined>;
   /**
@@ -72,10 +72,9 @@ function onTheWire(message: ChatroomMessageResponse) {
 /**
  * Curhat on one socket. The member is the signed-in session, never an id the client sends; every join and every
  * message checks `canAccessChatroom`. Old clients still work: a handshake `chatroomId` joins that room after the
- * check, and `message` without an acknowledgement callback is still saved and relayed. A `clientMessageId` (the
- * device's id for the message) makes sending it again safe: the repeat is answered with the copy already saved.
- *
- * Handlers are registered at once and wait for the session, so nothing sent right after connecting is lost.
+ * check, and `message` without an acknowledgement callback is still saved and relayed. A `clientMessageId` makes
+ * sending again safe: the repeat is answered with the copy already saved. Handlers wait for the session, so nothing
+ * sent right after connecting is lost.
  */
 export function registerCurhatSocket(
   socket: Socket,
@@ -146,7 +145,7 @@ export function registerCurhatSocket(
     });
 
     if (!created) {
-      // A resend after a lost acknowledgement (P2-C): answer with the copy saved the first time; it was relayed and
+      // A resend after a lost acknowledgement: answer with the copy saved the first time; it was relayed and
       // notified then. An id that is someone else's in this room is never answered with their message.
       if (saved.userId !== s.userId) return refuse('invalid');
       const firstQuote = saved.replyId
@@ -168,7 +167,7 @@ export function registerCurhatSocket(
     const receivers = await socket.nsp.in(chatroomId).fetchSockets();
     for (const receiver of receivers) {
       if (receiver.id === socket.id) continue;
-      // `reply` keeps today's shape (no quoted message); `isSender` is for whoever receives it.
+      // `reply` carries no quoted message; `isSender` is for whoever receives it.
       const receiverId = (receiver.data as { userId?: string }).userId;
       // Someone who lost access since joining (Welfare's role taken away) leaves the room instead.
       if (!receiverId || !(await mayAccess(receiverId, chatroomId))) {
@@ -225,7 +224,7 @@ export function registerCurhatSocket(
     const s = await session;
     if (!s) return;
     const auth = (socket.handshake.auth ?? {}) as Record<string, unknown>;
-    // One connection for the whole Curhat area: every room the member owns. Welfare's (P3-C) joins every room,
+    // One connection for the whole Curhat area: every room the member owns. Welfare's joins every room,
     // and the Welfare group room, through which a room started later is joined (`curhat.controller.ts`).
     if (auth.curhat === true) {
       if (isCurhatAdmin(s.roles)) {
@@ -237,7 +236,7 @@ export function registerCurhatSocket(
         if (owned.length) await socket.join(owned);
       }
     }
-    // Today's screens open one socket per room.
+    // A client may open one socket per room.
     if (typeof auth.chatroomId === 'string' && auth.chatroomId) {
       if (await mayAccess(s.userId, auth.chatroomId)) {
         await socket.join(auth.chatroomId);

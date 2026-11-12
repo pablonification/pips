@@ -2,7 +2,7 @@ import { z } from '@hono/zod-openapi';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { testimonies } from '~/db/schema';
 
-// No userId: the author stays private, even when the testimonial is shown as "Anonim" (review m7).
+// No userId: the author stays private, even when the testimonial is shown as "Anonim".
 export const TestimoniSchema = createSelectSchema(testimonies, {
   createdAt: z.union([z.string(), z.date()]),
 })
