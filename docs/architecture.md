@@ -94,6 +94,7 @@ route has an entry. `lib/services.ts` is the list Layanan, Beranda and search re
 | The generated client, the migrations and the schema agree | `.github/workflows/check.yml` | CI |
 | Commit messages are Conventional Commits | `scripts/commit-messages.mjs` | CI |
 | No real member's details in any tracked file | `scripts/repo-privacy.test.mjs` | CI |
+| The docs' links, paths and commands exist; `AGENTS.md` stays small | `scripts/docs-true.test.mjs` | CI |
 
 Nothing stops an API controller from querying the database directly, and nothing checks that a controller has a
 role check. Review those by eye.
