@@ -1,7 +1,6 @@
 /**
- * Tambah testimoni (a proposal; SPEC story 112), for `akademik`, on a Testi Matkul course page. Built only from the
- * prototype's pieces: `addEventForm`'s layout in P0-A's Modal (a sheet on phones), opening with the course on a
- * `composeForm`-style byline row, then the author, the programme's sections and the lecturer. Loaded on demand.
+ * Tambah testimoni, for `akademik`, on a Testi Matkul course page: the add-event dialog's layout in a Modal (a sheet
+ * on phones), opening with the course, then the author, the programme's sections and the lecturer. Loaded on demand.
  */
 import { useMutation } from '@tanstack/react-query';
 import { useId, useRef, useState, type FormEvent } from 'react';

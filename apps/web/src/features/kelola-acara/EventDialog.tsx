@@ -1,8 +1,8 @@
 /**
- * Tambah acara Akademik (the prototype's `addEventForm` in `OV.addev`, locked) and its proposals: Tambah acara
- * Himpunan for `ring1`, the Seg for members with both roles, and Ubah acara. P0-A's Modal: a sheet on phones, a
- * centred panel on tablets, a dialog on desktop, focus on the first field, trapped, Esc closes and focus returns.
- * Loaded on demand (members never download it). The screen that opens it decides what happens after a save.
+ * Tambah acara Akademik and its variants: Tambah acara Himpunan for `ring1`, the Seg for members with both roles, and
+ * Ubah acara. A sheet on phones, a centred panel on tablets, a dialog on desktop, focus on the first field, trapped,
+ * Esc closes and focus returns. Loaded on demand (members never download it). The screen that opens it decides what
+ * happens after a save.
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -74,7 +74,7 @@ export default function EventDialog({
       ? draftOf(mode.event)
       : newDraft(mode.categories[0], mode.day),
   );
-  // As the prototype's submit branch: errors are set on submit and stay until the next one.
+  // Errors are set on submit and stay until the next one.
   const [errors, setErrors] = useState<EventErrors>({});
   const form = useRef<HTMLFormElement>(null);
   const akademik = draft.category === 'akademik';
@@ -100,8 +100,8 @@ export default function EventDialog({
   const catalogueFailed =
     catalogueMissing && (catalogue.isError || mine.isError);
 
-  // Opened before the course catalogue arrived, the dialog had no field to focus (`focusOv` focuses the first
-  // one): move focus there once the fields appear, unless the member has already moved it to a field.
+  // Opened before the course catalogue arrived, the dialog had no field to focus: move focus there once the fields
+  // appear, unless the member has already moved it to a field.
   const fieldsShown = useRef(!catalogueMissing);
   useEffect(() => {
     if (catalogueMissing || fieldsShown.current) return;
@@ -207,7 +207,7 @@ export default function EventDialog({
       onOpenChange={onOpenChange}
       title={title}
       onOpenAutoFocus={(e) => {
-        // The first field, as the prototype's `focusOv` (not the close button).
+        // The first field (not the close button).
         const first = form.current?.querySelector<HTMLElement>(
           'input, select, textarea',
         );

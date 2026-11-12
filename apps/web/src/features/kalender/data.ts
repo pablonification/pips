@@ -1,7 +1,7 @@
 /**
- * Kalender's reads, shared by Beranda's agenda card, Kalender and search. Each month is fetched once under P0-B's
+ * Kalender's reads, shared by Beranda's agenda card, Kalender and search. Each month is fetched once under one shared
  * key (`calendarEventsQuery`), so the strip, the grid and search share it, the persisted cache keeps today ±7 days,
- * and P3-B's writes refresh every screen. Always both `month` and `year` (the API's defaults are the server's).
+ * and event writes refresh every screen. Always both `month` and `year` (the API's defaults are the server's).
  */
 import {
   useQueries,
@@ -83,7 +83,7 @@ export function useMonthsEvents(months: readonly Month[]): MonthsState {
   });
 }
 
-/** This semester's courses, by id (P0-B's key: Mata kuliahku's changes refresh it). */
+/** This semester's courses, by id (Mata kuliahku's changes refresh it). */
 export function useCourses() {
   const q = useQuery(currentCoursesQuery());
   const byId = useMemo(() => coursesById(q.data), [q.data]);
@@ -152,7 +152,7 @@ export function useNow(): number {
   return now;
 }
 
-/** After `ms`, true while `active`: skeletons appear only for a load slower than 300 ms (SPEC "States"). */
+/** After `ms`, true while `active`: skeletons appear only for a load slower than 300 ms. */
 export function useDelayed(active: boolean, ms = 300): boolean {
   const [late, setLate] = useState(false);
   useEffect(() => {

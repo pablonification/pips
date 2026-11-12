@@ -1,9 +1,7 @@
 /**
- * Kalender's rules (P1-A brief, rules 1–3, 8–12): which events a day has, deadlines and ended events, the course
- * line, the event detail's lines, the reminder, accessible names, the keyboard model of the month grid and which day
- * and event are chosen. Pure, so `tests/kalender-rules.test.ts` checks them; every day is a WIB day.
- * The prototype's versions: `eventsOn`, `isPoint`, `isPastEv`, `evLabel` (garis/state.js), `agendaRow`, `evInfo`,
- * `phoneMonth`, `scrKalender` (garis/screens-core.js), `cal-day`, `cal-month`, `cal-today` (garis/app.js).
+ * Kalender's rules: which events a day has, deadlines and ended events, the course line, the event detail's lines, the
+ * reminder, accessible names, the keyboard model of the month grid and which day and event are chosen. Pure, so
+ * `tests/kalender-rules.test.ts` checks them; every day is a WIB day.
  */
 import type { CalendarEvent, Course, UserCourse } from '~/api/generated';
 import { fill } from '~/copy/fill';
@@ -29,24 +27,22 @@ export type CalEvent = CalendarEvent;
 
 const ms = (iso: string) => Date.parse(iso);
 
-/* ================= Events (rules 1–3) ================= */
-
-/** A deadline is a point in time: it starts and ends at once (rule 2). */
+/** A deadline is a point in time: it starts and ends at once. */
 export const isPoint = (e: CalEvent) => ms(e.start) === ms(e.end);
 
-/** Ended: its end is before now (rule 3). A deadline ends at its time. */
+/** Ended: its end is before now. A deadline ends at its time. */
 export const isEnded = (e: CalEvent, now: number) => ms(e.end) < now;
 
 export const isHimpunan = (e: CalEvent) => e.category === 'himpunan';
 
-/** The WIB day an event starts on: the day it belongs to (rule 1). */
+/** The WIB day an event starts on: the day it belongs to. */
 export const startDay = (e: CalEvent): DayKey => dayKeyOf(e.start);
 
 /** By start, then title, so equal starts keep one order everywhere. */
 export const byStart = (a: CalEvent, b: CalEvent) =>
   ms(a.start) - ms(b.start) || a.title.localeCompare(b.title);
 
-/** A day's events: those that start on it, by start (rule 1). The API already filters who sees what. */
+/** A day's events: those that start on it, by start. The API already filters who sees what. */
 export function eventsOn(events: readonly CalEvent[], day: DayKey): CalEvent[] {
   return events.filter((e) => startDay(e) === day).sort(byStart);
 }
@@ -60,8 +56,6 @@ export function mergeEvents(
   return [...seen.values()].sort(byStart);
 }
 
-/* ================= Courses ================= */
-
 /** This semester's courses by id: an Akademik event's `courseId` names one of them. */
 export function coursesById(
   taken: readonly UserCourse[] | undefined,
@@ -74,18 +68,16 @@ export function coursesById(
 export const courseOf = (e: CalEvent, courses: ReadonlyMap<string, Course>) =>
   e.courseId ? courses.get(e.courseId) : undefined;
 
-/** A row's second line (`agendaRow`): "IF2123 Aljabar Linier dan Geometri", or "Acara Himpunan". */
+/** A row's second line: "IF2123 Aljabar Linier dan Geometri", or "Acara Himpunan". */
 export function courseLine(e: CalEvent, course: Course | undefined): string {
   if (course) return `${course.code} ${course.name}`;
   return isHimpunan(e) ? t.acaraHimpunan : '';
 }
 
-/** An event named with its course code (`evLabel`): "Kuis 2 · IF2123". */
+/** An event named with its course code: "Kuis 2 · IF2123". */
 export function evLabel(e: CalEvent, course: Course | undefined): string {
   return course ? `${e.title} · ${course.code}` : e.title;
 }
-
-/* ================= The event detail (`evInfo`) ================= */
 
 /** "15.00–16.40 WIB", or "Paling lambat 23.59 WIB" for a deadline. */
 export function timeLine(e: CalEvent): string {
@@ -100,9 +92,9 @@ export const dateLine = (e: CalEvent) =>
   `${dLong(e.start)} ${wib(e.start).year}`;
 
 /**
- * Pengingat H-1 (rule 11): sent 24 hours before the start, only to a device with notifications on. Once that time has
- * passed it says only when, never "Sudah dikirim": no reminder goes for an event added later than that, to a member who
- * added the course later, or to one who muted Akademik (owner, 2026-11-03; regression: it claimed every one was sent).
+ * Pengingat H-1: sent 24 hours before the start, only to a device with notifications on. Once that time has passed it
+ * says only when, never "Sudah dikirim": no reminder goes for an event added later than that, to a member who added
+ * the course later, or to one who muted Akademik.
  */
 export function reminderLine(
   e: CalEvent,
@@ -117,7 +109,7 @@ export function reminderLine(
   });
 }
 
-/** Testi Matkul's page for a course: today's URL (`/layanan/testi/$type/$semester/$courseId`, P0-B). */
+/** Testi Matkul's page for a course (`/layanan/testi/$type/$semester/$courseId`). */
 export function testiParams(course: Course) {
   const type =
     course.major === 'IF'
@@ -132,9 +124,7 @@ export function testiParams(course: Course) {
   return { type, semester, courseId: course.id };
 }
 
-/* ================= Words for days ================= */
-
-/** "hari ini", "besok", "kemarin", else "Sen 12 Okt" (`whenDay`). */
+/** "hari ini", "besok", "kemarin", else "Sen 12 Okt". */
 export function whenDay(d: string | number, now: number): string {
   const dd = dayDiff(d, now);
   if (dd === 0) return t.kapan.hariIni;
@@ -149,7 +139,7 @@ export const capFirst = (s: string) => s.replace(/^./, (c) => c.toUpperCase());
 const count = (n: number) =>
   n ? fill(t.nama.jumlahAcara, { jumlah: n }) : t.nama.tidakAdaAcara;
 
-/** A day's name on Beranda's strip (rule 9): "Kamis, 8 Oktober, hari ini, 2 acara". */
+/** A day's name on Beranda's strip: "Kamis, 8 Oktober, hari ini, 2 acara". */
 export function stripDayName(
   day: DayKey,
   index: number,
@@ -200,8 +190,6 @@ const dayStartOf = (day: DayKey) => {
   return Date.UTC(year, month - 1, d, 5);
 };
 
-/* ================= Beranda's strip (rule 8) ================= */
-
 /** Eight days from today. */
 export const stripDays = (now: number): DayKey[] => daysFrom(dayKeyOf(now), 8);
 
@@ -216,12 +204,10 @@ export function chosenStripDay(
   return fromUrl && days.includes(fromUrl) ? fromUrl : days[0];
 }
 
-/* ================= Kalender's month (rules 10, keyboard) ================= */
-
 /** The months a month's grid shows (its outside days too), so their bars are there. */
 export const gridMonths = (view: Month): Month[] => monthsOf(monthCells(view));
 
-/** The month buttons choose today in today's month, otherwise the 1st (`cal-month`). */
+/** The month buttons choose today in today's month, otherwise the 1st. */
 export function monthChangeDay(view: Month, now: number): DayKey {
   const today = dayKeyOf(now);
   return sameMonth(view, monthOf(today)) ? today : dayInMonth(view, 1);
@@ -238,9 +224,8 @@ export type GridKey =
   | 'PageDown';
 
 /**
- * Where focus goes in the month grid (SPEC "Kalender: Keyboard"): arrows a day or a week, Home and End the week's
- * Monday and Sunday, Page Up and Page Down the same date a month earlier or later (the last day of a shorter month).
- * Null for any other key.
+ * Where focus goes in the month grid: arrows a day or a week, Home and End the week's Monday and Sunday, Page Up and
+ * Page Down the same date a month earlier or later (the last day of a shorter month). Null for any other key.
  */
 export function moveFocus(day: DayKey, key: string): DayKey | null {
   switch (key) {
@@ -267,11 +252,10 @@ export function moveFocus(day: DayKey, key: string): DayKey | null {
 }
 
 /**
- * Desktop's chosen event when the URL names none (rule 10, the prototype's `deskEv`): choosing a day chooses its first
- * event; otherwise, on today, the first event not yet ended (Kuis 2 for Nadia at 13.35, the Sharing Session for Raka);
- * on any other day none (changing the month clears it).
+ * Desktop's chosen event when the URL names none: choosing a day chooses its first event; otherwise, on today, the
+ * first event not yet ended; on any other day none (changing the month clears it).
  */
-/** How the day was chosen; `none` (P3-B): after adding or deleting, the column chooses nothing. */
+/** How the day was chosen; `none`: after adding or deleting, the column chooses nothing. */
 export type DeskPick = 'first' | 'auto' | 'none';
 
 export function deskDefaultEvent(

@@ -1,7 +1,7 @@
 /**
- * P3-B: Tambah testimoni's rules (a proposal; SPEC story 112). The sections are the programme's own, from Testi
- * Matkul's rule (`sectionFields`); empty ones are sent as null, at least one must be written, and an empty author
- * name is null (shown "Anonim"). Pure, so `tests/kelola-testi-rules.test.ts` checks them without a browser.
+ * Tambah testimoni's rules. The sections are the programme's own, from Testi Matkul's rule (`sectionFields`); empty
+ * ones are sent as null, at least one must be written, and an empty author name is null (shown "Anonim"). Pure, so
+ * `tests/kelola-testi-rules.test.ts` checks them without a browser.
  */
 import { kelolaTesti as t } from '~/copy/kelola-testi';
 import { sectionFields, type Major } from '~/features/testi/rules';

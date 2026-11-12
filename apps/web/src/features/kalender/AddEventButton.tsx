@@ -1,6 +1,6 @@
 /**
- * Tambah acara (`addEvBtn`), for `akademik` or `ring1` only. It opens P3-B's add-event dialog
- * (`/kalender?tambah=acara`), where a member with both roles chooses Akademik or Himpunan.
+ * Tambah acara, for `akademik` or `ring1` only. It opens the add-event dialog (`/kalender?tambah=acara`), where a
+ * member with both roles chooses Akademik or Himpunan.
  */
 import { Button } from '~/components/garis';
 import { IconTambah } from '~/components/icons/tambah';
