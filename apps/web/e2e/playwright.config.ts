@@ -4,12 +4,7 @@
  * Projects:
  * - journeys:  phone-light, phone-dark, tablet-light, tablet-dark, desktop-light, desktop-dark (e2e/journeys)
  * - solo:      solo-<phone|tablet|desktop>-<theme>: the journeys tagged @solo, alone (`e2e:solo`, one worker)
- * - captures:  capture-phone-light … capture-desktop-dark (e2e/capture; used by e2e:before and e2e:compare-before)
  * - visual:    visual-phone-light … visual-desktop-dark (e2e/visual; reference screenshots)
- * - fidelity:  fidelity-<phone|tablet|desk>-<light|dark> (e2e/fidelity), at the locked prototype screens' sizes
- * - review (F1, run only by `pnpm --filter web review`, never by `e2e` or CI): review-<phone|tablet|desktop>-<theme>
- *   and review-narrow320-light (the recorded flows, e2e/review/flows), review-stills-<layout>-<theme>,
- *   review-sweep-<width>-<theme>, review-lab-phone and review-package. See e2e/review/README.md.
  */
 import {
   defineConfig,
@@ -46,23 +41,6 @@ export const DESKTOP = {
   isMobile: false,
   hasTouch: false,
 };
-/** Sizes of the locked prototype screens (ops/ui-revamp-review/tools/garis-check.mjs). */
-export const FIDELITY = {
-  phone: { ...PHONE, viewport: { width: 390, height: 800 } },
-  tablet: {
-    viewport: { width: 834, height: 1068 },
-    deviceScaleFactor: 1,
-    isMobile: true,
-    hasTouch: true,
-    userAgent: devices['Galaxy Tab S4'].userAgent,
-  },
-  desk: {
-    viewport: { width: 1440, height: 956 },
-    deviceScaleFactor: 1,
-    isMobile: false,
-    hasTouch: false,
-  },
-};
 const THEMES = ['light', 'dark'] as const;
 
 const JOURNEY_SIZES = { phone: PHONE, tablet: TABLET, desktop: DESKTOP };
@@ -93,28 +71,12 @@ const projects: Project[] = [
   ),
   ...(['phone', 'desktop'] as const).flatMap((size) =>
     THEMES.map((theme) => ({
-      name: `capture-${size}-${theme}`,
-      testDir: './capture',
-      grepInvert: size === 'phone' ? /@desktop-only/ : /@phone-only/,
-      use: { ...(size === 'phone' ? PHONE : DESKTOP), colorScheme: theme },
-    })),
-  ),
-  ...(['phone', 'desktop'] as const).flatMap((size) =>
-    THEMES.map((theme) => ({
       name: `visual-${size}-${theme}`,
       testDir: './visual',
       grepInvert: size === 'phone' ? /@desktop-only/ : /@phone-only/,
       use: { ...(size === 'phone' ? PHONE : DESKTOP), colorScheme: theme },
     })),
   ),
-  ...(['phone', 'tablet', 'desk'] as const).flatMap((layout) =>
-    THEMES.map((theme) => ({
-      name: `fidelity-${layout}-${theme}`,
-      testDir: './fidelity',
-      use: { ...FIDELITY[layout], colorScheme: theme },
-    })),
-  ),
-  ...reviewProjects(),
   ...qaProjects(),
 ];
 
@@ -122,11 +84,10 @@ const projects: Project[] = [
  * F2's cross-cutting checks (e2e/qa, see its README). In CI's `e2e` script: qa-<layout>-<theme> (the fixed rules, the
  * Tab walk, errors, links and roles on every page), qa-reflow (400 % zoom), qa-motion (the app's own motion under
  * reduced motion), qa-sw (the service worker: the installed app offline, the share target) and qa-london (the
- * time-heavy journeys in another device time zone). qa-perf (SPEC's lab phone) and qa-copy-<layout> (the text against
- * the served prototype) run by hand only.
+ * time-heavy journeys in another device time zone). qa-perf (SPEC's lab phone) runs by hand only.
  */
 function qaProjects(): Project[] {
-  const SPECIAL = /(reflow|motion|sw|perf|copy)\.spec\.ts$/;
+  const SPECIAL = /(reflow|motion|sw|perf)\.spec\.ts$/;
   return [
     ...(['phone', 'tablet', 'desktop'] as const).flatMap((size) =>
       THEMES.map((theme) => ({
@@ -167,13 +128,6 @@ function qaProjects(): Project[] {
       fullyParallel: false,
       use: { ...PHONE, colorScheme: 'light' },
     },
-    // The copy check against the served prototype (qa/copy.spec.ts), by hand: the prototype isn't in Git.
-    ...(['phone', 'tablet', 'desk'] as const).map((layout): Project => ({
-      name: `qa-copy-${layout}`,
-      testDir: './qa',
-      testMatch: /copy\.spec\.ts$/,
-      use: { ...FIDELITY[layout], colorScheme: 'light' },
-    })),
     {
       // Times must show in WIB whatever the device's zone (SPEC "Copy and language"; brief "The matrix").
       name: 'qa-london-phone-light',
@@ -182,121 +136,6 @@ function qaProjects(): Project[] {
         /(kalender|beranda|lomba|form|compose|announcements)\.spec\.ts$/,
       grepInvert: /@desktop-only/,
       use: { ...PHONE, colorScheme: 'light', timezoneId: 'Europe/London' },
-    },
-  ];
-}
-
-/**
- * F1's review projects. The flows record a video at the viewport's size and keep the app's own motion
- * (`motion: 'on'`, no reduced motion). `REVIEW_VIDEO=off` runs the same flows as plain tests (part 1, and any check
- * without recording). Both overlays are off by default, because the pilot (F1 part 2) showed each covering the app:
- * `REVIEW_ACTIONS=on` draws the pointer with Playwright's action label (code such as "Check getByRole(…)", over the
- * phone header's title and buttons; Playwright draws no pointer without it), and `REVIEW_STEP_TITLES=on` adds the
- * step titles (with the spec's path and tags, over the tab bar). The index lists the steps with their times.
- */
-function reviewProjects(): Project[] {
-  const video = (viewport: { width: number; height: number }) =>
-    process.env.REVIEW_VIDEO === 'off'
-      ? ('off' as const)
-      : {
-          mode: 'on' as const,
-          size: viewport,
-          show: {
-            ...(process.env.REVIEW_ACTIONS !== 'on'
-              ? {}
-              : {
-                  actions: {
-                    cursor: 'pointer' as const,
-                    duration: 500,
-                    position: 'top-right' as const,
-                    fontSize: 14,
-                  },
-                }),
-            ...(process.env.REVIEW_STEP_TITLES === 'on'
-              ? {
-                  test: {
-                    level: 'step' as const,
-                    position: 'bottom' as const,
-                    fontSize: 14,
-                  },
-                }
-              : {}),
-          },
-        };
-  const NARROW320 = { ...PHONE, viewport: { width: 320, height: 844 } };
-  const sizes = { phone: PHONE, tablet: TABLET, desktop: DESKTOP };
-  const flows = [
-    ...(['phone', 'tablet', 'desktop'] as const).flatMap((layout) =>
-      THEMES.map((theme) => ({
-        name: `review-${layout}-${theme}`,
-        size: sizes[layout],
-        theme,
-      })),
-    ),
-    {
-      name: 'review-narrow320-light',
-      size: NARROW320,
-      theme: 'light' as const,
-    },
-  ].map(({ name, size, theme }): Project => ({
-    name,
-    testDir: './review/flows',
-    testMatch: /\.flow\.ts$/,
-    use: {
-      ...size,
-      colorScheme: theme,
-      reducedMotion: 'no-preference',
-      video: video(size.viewport),
-      motion: 'on',
-    } as Project['use'],
-  }));
-  const stills = (['phone', 'tablet', 'desktop'] as const).flatMap((layout) =>
-    THEMES.map((theme): Project => ({
-      name: `review-stills-${layout}-${theme}`,
-      testDir: './review',
-      testMatch: /stills\.spec\.ts$/,
-      use: { ...sizes[layout], colorScheme: theme },
-    })),
-  );
-  // The sweep's widths (SPEC story 146): touch below 1024 px; 200 % zoom on a 1440 × 900 window is 720 × 450 CSS px.
-  const SWEEP = {
-    '320': { ...PHONE, viewport: { width: 320, height: 844 } },
-    '390': PHONE,
-    '768': { ...TABLET, viewport: { width: 768, height: 1024 } },
-    '1024': { ...DESKTOP, viewport: { width: 1024, height: 768 } },
-    '1440': DESKTOP,
-    zoom200: {
-      ...DESKTOP,
-      viewport: { width: 720, height: 450 },
-      deviceScaleFactor: 2,
-    },
-  };
-  const sweep = Object.entries(SWEEP).flatMap(([width, size]) =>
-    THEMES.map((theme): Project => ({
-      name: `review-sweep-${width}-${theme}`,
-      testDir: './review',
-      testMatch: /sweep\.spec\.ts$/,
-      use: { ...size, colorScheme: theme },
-    })),
-  );
-  return [
-    ...flows,
-    ...stills,
-    ...sweep,
-    {
-      // SPEC's lab phone (lab.spec.ts throttles CPU and network itself), one browser at a time, a cold cache.
-      name: 'review-lab-phone',
-      testDir: './review',
-      testMatch: /lab\.spec\.ts$/,
-      fullyParallel: false,
-      use: { ...PHONE, colorScheme: 'light' },
-    },
-    {
-      // The built package opened from the file system (package.spec.ts); it needs no app server.
-      name: 'review-package',
-      testDir: './review',
-      testMatch: /package\.spec\.ts$/,
-      use: { ...DESKTOP, colorScheme: 'light' },
     },
   ];
 }

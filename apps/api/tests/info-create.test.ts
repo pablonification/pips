@@ -4,9 +4,11 @@ import { usePlaceholderEnv } from '../scripts/placeholder-env';
 import { callRouter } from './support/router';
 import { testUser } from './support/session';
 
+const FILES = 'https://files.example.test';
+
 let createInfoRouter: typeof import('../src/controllers/info.controller').createInfoRouter;
 before(async () => {
-  usePlaceholderEnv();
+  usePlaceholderEnv({ R2_PUBLIC_URL: FILES });
   ({ createInfoRouter } = await import('../src/controllers/info.controller'));
 });
 
@@ -110,4 +112,56 @@ test('pengurus still post to their own groups, admin to any, and everyone withou
     201,
   );
   assert.equal(created.length, 4);
+});
+
+test("a post's pictures are only the app's own uploads, at most 10", async () => {
+  const { created, router: r } = router();
+  for (const mediaUrls of [
+    ['https://elsewhere.example.test/pic.jpg'],
+    ['javascript:alert(1)'],
+    ['http://files.example.test/pic.jpg'],
+    ['https://files.example.test.elsewhere.example/pic.jpg'],
+    ['https://files.example.test@elsewhere.example/pic.jpg'],
+    ['https://files.example.test:8443/pic.jpg'],
+    [FILES],
+    [`${FILES}/a.jpg`, 'https://elsewhere.example.test/b.jpg'],
+    Array.from({ length: 11 }, (_, i) => `${FILES}/p${i}.jpg`),
+  ]) {
+    const res = await callRouter(r, raka, 'POST', '/info', post({ mediaUrls }));
+    assert.equal(res.status, 400, mediaUrls.join());
+  }
+  assert.equal(created.length, 0);
+  for (const mediaUrls of [
+    [`${FILES}/r176r3qcuqs3hg8o3dm93n35-kuis.jpg`],
+    Array.from({ length: 10 }, (_, i) => `${FILES}/p${i}.jpg`),
+  ]) {
+    const res = await callRouter(r, raka, 'POST', '/info', post({ mediaUrls }));
+    assert.equal(res.status, 201, mediaUrls.join());
+  }
+});
+
+test('a post has one kind of audience: angkatan, courses or groups', async () => {
+  const { created, router: r } = router();
+  const angkatan = { forAngkatan: ['2025'] };
+  const courses = { forCourses: [{ courseId: 'course-IF2123' }] };
+  const groups = { forGroups: ['akademik'] };
+  for (const audience of [
+    { ...angkatan, ...groups },
+    { ...angkatan, ...courses },
+    { ...courses, ...groups },
+    { ...angkatan, ...courses, ...groups },
+  ]) {
+    const res = await callRouter(r, raka, 'POST', '/info', post(audience));
+    assert.equal(res.status, 400, Object.keys(audience).join());
+  }
+  assert.equal(created.length, 0);
+  for (const audience of [
+    angkatan,
+    courses,
+    groups,
+    { ...angkatan, forGroups: [], forCourses: [] },
+  ]) {
+    const res = await callRouter(r, raka, 'POST', '/info', post(audience));
+    assert.equal(res.status, 201, Object.keys(audience).join());
+  }
 });

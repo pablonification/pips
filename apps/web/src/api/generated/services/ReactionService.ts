@@ -42,7 +42,7 @@ export class ReactionService {
     requestBody?: {
       infoId?: string;
       commentId?: string;
-      reaction: string;
+      reaction: 'grin' | 'heart-eyes' | 'fire' | 'cry' | 'screaming' | 'party';
     },
   }): CancelablePromise<Reaction> {
     return this.httpRequest.request({

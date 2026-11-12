@@ -20,12 +20,6 @@ export const validationErrorResponse = {
   description: 'Bad request: validation error',
 } as const satisfies ResponseItem;
 
-export const AuthorizationErrorSchema = z
-  .object({
-    error: z.string(),
-  })
-  .openapi('AuthorizationError');
-
 export const authorizaitonErrorResponse = {
   content: {
     'text/plain': {

@@ -68,8 +68,6 @@ export const CalendarEventGcal = z
   })
   .openapi('CalendarEventGcal');
 
-export const CalendarEventList = z.array(CalendarEvent);
-
 export const CalendarCategory = z
   .enum(calendarGroup.category.enumValues)
   .openapi('CalendarCategory', { example: 'himpunan' });
@@ -142,7 +140,9 @@ export const PersonalCalendarParamSchema = z.object({
     .transform((month) => month ?? currentWibMonthYear().month),
   year: z.coerce
     .number()
+    .int()
     .min(1)
+    .max(9999)
     .optional()
     .openapi({ example: 2021 })
     .transform((year) => year ?? currentWibMonthYear().year),

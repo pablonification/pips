@@ -13,6 +13,12 @@ export async function findUserByEmail(db: Database, email: string) {
   });
 }
 
+export async function findUserById(db: Database, id: string) {
+  return await db.query.users.findFirst({
+    where: eq(users.id, id),
+  });
+}
+
 export async function updateUserLastLogin(db: Database, id: string) {
   return await db
     .update(users)

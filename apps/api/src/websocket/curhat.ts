@@ -38,11 +38,10 @@ export interface CurhatSocketDeps {
     replyId: string | null;
     clientMessageId: string | null;
   }) => Promise<{ message: ChatroomMessage; created: boolean }>;
-  /** Tells the room's other participants (owner and Welfare), never the sender. */
+  /** Tells the room's other participants (owner and Welfare), never the sender. Given no text from the message. */
   notifyParticipants: (message: {
     chatroomId: string;
     senderId: string;
-    content: string;
   }) => Promise<void>;
   /** Counts each member's messages (`RATE_LIMITS.curhatMessages`), shared by every socket of the server. */
   messageLimiter: { hit: (key: string) => { ok: boolean } };
@@ -185,7 +184,7 @@ export function registerCurhatSocket(
     }
 
     deps
-      .notifyParticipants({ chatroomId, senderId: s.userId, content })
+      .notifyParticipants({ chatroomId, senderId: s.userId })
       .catch((error) => deps.onError?.(error));
 
     return {

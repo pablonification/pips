@@ -172,10 +172,9 @@ jobs:
           docker run -d --name api -p 5000:5000 \
             -e VAPID_PUBLIC_KEY="$PUB" -e VAPID_PRIVATE_KEY="$PRIV" \
             -e DATABASE_URL=postgres://pips:pips@127.0.0.1:1/pips \
-            -e SMTP_HOST=localhost -e SMTP_PORT=25 -e SMTP_PASS=ci \
             -e GOOGLE_CLIENT_ID=ci -e GOOGLE_CLIENT_SECRET=ci \
             -e GOOGLE_CALLBACK_URL=http://127.0.0.1/callback \
-            -e JWT_SECRET=ci -e TOKEN_EXPIRATION=1h \
+            -e JWT_SECRET=ci-placeholder-secret-of-32-characters -e TOKEN_EXPIRATION=3600 \
             -e R2_ENDPOINT=http://127.0.0.1:1 -e R2_PUBLIC_URL=http://127.0.0.1:1 \
             pips-api
           for i in $(seq 1 60); do curl -fsS http://127.0.0.1:5000/ -o /dev/null && break; sleep 1; done

@@ -22,6 +22,7 @@ import {
 import { SESSION_COOKIE, sessionCookieOptions } from '~/lib/session-cookie';
 import {
   findUserByEmail,
+  findUserById,
   getUserAndUpdatePicture,
   getUserGroups,
   updateUserLastLogin,
@@ -49,12 +50,16 @@ export const loginRouter = createRouter();
 const OAUTH_STATE_COOKIE = 'hmif-app.oauth-state';
 export const loginProtectedRouter = createAuthRouter();
 
-const generateJWT = async (payload: object) => {
-  const now = Date.now();
+/** A session is renewed with use, but never past this long after the sign-in that started it. */
+const MAX_SESSION_AGE_SECONDS = 180 * 24 * 3600;
+
+/** `since`: when the member signed in, in seconds; a renewal passes the first token's value on. */
+const generateJWT = async (payload: object, since = Date.now() / 1000) => {
   return await sign(
     {
       ...payload,
-      exp: now.valueOf() / 1000 + parseInt(env.TOKEN_EXPIRATION),
+      since,
+      exp: Date.now() / 1000 + env.TOKEN_EXPIRATION,
     },
     env.JWT_SECRET,
     JWT_ALG,
@@ -226,8 +231,31 @@ loginProtectedRouter.openapi(logoutRoute, async (c) => {
 });
 
 loginProtectedRouter.openapi(selfRoute, async (c) => {
-  const user = c.var.user;
+  let user = c.var.user;
   runInBackground('Last sign-in update', updateUserLastLogin(db, user.id));
+  // A session in use renews itself once past half its life, so a member who keeps using the app stays signed in.
+  // The token only holds the member as they were at sign-in, so a renewal reads the member again: someone removed
+  // since then is signed out, and a corrected name or angkatan reaches the session.
+  const now = Date.now() / 1000;
+  const { exp, since } = c.var.jwtPayload as { exp?: number; since?: number };
+  const signedInAt = typeof since === 'number' ? since : now;
+  if (
+    Number(exp) - now < env.TOKEN_EXPIRATION / 2 &&
+    now - signedInAt < MAX_SESSION_AGE_SECONDS
+  ) {
+    const current = await findUserById(db, user.id);
+    if (!current) {
+      deleteCookie(c, SESSION_COOKIE);
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+    user = JWTPayloadSchema.parse(current);
+    setCookie(
+      c,
+      SESSION_COOKIE,
+      await generateJWT(user, signedInAt),
+      sessionCookieOptions(),
+    );
+  }
   const roles = await getUserRoles(db, user.id);
   return c.json({ ...user, roles }, 200);
 });
@@ -283,7 +311,7 @@ if (isDevLoginEnabled(env) && devLoginEmail && devLoginPasswordHash) {
       secure,
       httpOnly: true,
       sameSite: 'Lax',
-      maxAge: parseInt(env.TOKEN_EXPIRATION),
+      maxAge: env.TOKEN_EXPIRATION,
     });
     await updateUserLastLogin(db, user.id);
     return c.json(payload, 200);

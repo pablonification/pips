@@ -48,3 +48,17 @@ test('month and year from the query are kept and checked', () => {
     false,
   );
 });
+
+test('a year past what a date can hold is refused, not sent to the database', () => {
+  for (const year of ['999999', '10000', '0']) {
+    assert.equal(
+      PersonalCalendarParamSchema.safeParse({ month: '1', year }).success,
+      false,
+      year,
+    );
+  }
+  assert.equal(
+    PersonalCalendarParamSchema.parse({ month: '1', year: '9999' }).year,
+    9999,
+  );
+});
