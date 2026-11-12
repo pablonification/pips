@@ -730,7 +730,7 @@ test.describe('the author (Raka, admin)', () => {
     await page.keyboard.press('Escape');
     await expectFocused(menuButton(page, P1));
 
-    await page.goto('/pengumuman/p6');
+    await page.goto('/pengumuman/p5');
     await menuButton(page, P5).click();
     const open = page.getByRole('menuitem', { name: /^Umumkan ulang/ });
     await expect(open).toHaveAccessibleName(
