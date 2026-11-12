@@ -1,17 +1,17 @@
 /**
- * Curhat's connection and what you sent (P2-C; SPEC "Curhat Yuk!", "Connection and delivery"): one socket for the
- * whole area, opened by the Curhat layout and closed when you leave it. The API's protocol is P0-D's
- * (apps/api/src/websocket/curhat.ts): the handshake `auth: { curhat: true }` joins every room you own, `curhat:join`
- * adds a room started later, and `message` is acknowledged with `{ ok: true, message }` or `{ ok: false, error }`.
+ * Curhat's connection and what you sent: one socket for the whole area, opened by the Curhat layout and closed when
+ * you leave it. The API's protocol (apps/api/src/websocket/curhat.ts): the handshake `auth: { curhat: true }` joins
+ * every room you own, `curhat:join` adds a room started later, and `message` is acknowledged with
+ * `{ ok: true, message }` or `{ ok: false, error }`.
  *
- * Sending (story 96): a message shows at once as pending ("Mengirim"). It is delivered on `{ ok: true }`, and fails
- * on `{ ok: false }`, when no acknowledgement arrives within ACK_TIMEOUT_MS, when the connection drops before it
- * does, or when the connection is down at the moment you send. It is only ever emitted while connected, so socket.io
- * never buffers it to send later, maybe twice. Failed messages stay until Kirim ulang delivers them.
+ * Sending: a message shows at once as pending ("Mengirim"). It is delivered on `{ ok: true }`, and fails on
+ * `{ ok: false }`, when no acknowledgement arrives within ACK_TIMEOUT_MS, when the connection drops before it does,
+ * or when the connection is down at the moment you send. It is only ever emitted while connected, so socket.io never
+ * buffers it to send later, maybe twice. Failed messages stay until Kirim ulang delivers them.
  *
  * Every message carries the device's id for it (`clientMessageId`, a UUID), and Kirim ulang sends the same id, so
- * the server saves it once and answers a repeat with the copy it saved (OPEN-QUESTIONS A11). When the server's copy
- * reaches the rooms cache, `settle()` retires the entry: a message saved whose acknowledgement was lost shows once.
+ * the server saves it once and answers a repeat with the copy it saved. When the server's copy reaches the rooms
+ * cache, `settle()` retires the entry: a message saved whose acknowledgement was lost shows once.
  *
  * Pure of React and of socket.io's module (the socket is passed in), so tests/curhat-client.test.ts drives it with a
  * fake socket.
@@ -303,9 +303,9 @@ export class CurhatClient {
 }
 
 /**
- * A socket whose code loads on demand (P0-B: socket.io-client loads only inside the area that uses it). Listeners
- * wait for it; until it has loaded it isn't connected, so sending fails at once. If the code can't load (offline
- * before it was ever cached), it reports a failed connection and tries again when the device is back online.
+ * A socket whose code loads on demand: socket.io-client loads only inside the area that uses it. Listeners wait for
+ * it; until it has loaded it isn't connected, so sending fails at once. If the code can't load (offline before it was
+ * ever cached), it reports a failed connection and tries again when the device is back online.
  */
 export class DeferredSocket implements SocketLike {
   private real: SocketLike | null = null;

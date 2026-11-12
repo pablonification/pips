@@ -1,11 +1,9 @@
 /**
- * Beranda (the prototype's `scrBeranda`, garis/screens-core.js), inside P0-C's frame (`BerandaHome`: the gold header
- * and greeting on phones and tablets, the greeting as the page head on desktop).
- * - Phones and tablets: the agenda card over the header's edge, the service tiles, Perlu ditindaklanjuti, Pengumuman
- *   belum dibaca and, for admins, Kelola.
- * - Desktop (Garis v5): the same pieces. From 1280 px, two columns: the agenda card and Pengumuman belum dibaca (up to
- *   five, with their excerpts) in the wide one; every service as tiles, Perlu ditindaklanjuti and Kelola beside them.
- *   Below 1280 px, one column in the phone's order (beranda.css).
+ * Beranda. Phones and tablets: a gold header with the greeting, the agenda card over its edge, the service tiles,
+ * Perlu ditindaklanjuti, Pengumuman belum dibaca and, for admins, Kelola.
+ * Desktop: the greeting is the page head. From 1280 px there are two columns: the agenda card and Pengumuman belum
+ * dibaca (up to five, with their excerpts) in the wide one; every service as tiles, Perlu ditindaklanjuti and Kelola
+ * beside them. Below 1280 px, one column in the phone's order (beranda.css).
  * Each section loads and fails on its own; the agenda card never waits for the others.
  */
 import { useQuery } from '@tanstack/react-query';
@@ -101,7 +99,7 @@ export interface BerandaSearch {
   acara?: string;
 }
 
-/** The bars draw in once per session (rule 8), never under reduced motion (CSS). */
+/** The bars draw in once per session, never under reduced motion (CSS). */
 const DRAWN_KEY = 'pips:agenda-drawn';
 let drawnThisPage = false;
 function takeDraw(): boolean {
@@ -135,7 +133,7 @@ export function BerandaScreen({ hari, acara }: BerandaSearch) {
     online,
   });
 
-  // An event link on desktop opens Kalender's side column (the prototype's `openEvent`).
+  // An event link on desktop opens Kalender's side column.
   useEffect(() => {
     if (desk && acara)
       void navigate({
@@ -217,9 +215,8 @@ export function BerandaScreen({ hari, acara }: BerandaSearch) {
 /**
  * Phones and tablets: the body fills in from the top. A section shows once every section above it has its size (its
  * content, its error, or after 300 ms its skeleton), so an answer that arrives late never pushes down what is already
- * on screen (SPEC's layout-shift budget; regression: on a slow phone the follow-ups landed above the unread list
- * already shown, CI 2026-11-03). The sections stay mounted while hidden, so their requests start as before. Desktop's
- * columns are left as they are.
+ * on screen. The sections stay mounted while hidden, so their requests start at once. Desktop's columns are left as
+ * they are.
  */
 function useFillOrder({
   agenda,
@@ -252,8 +249,6 @@ function useFillOrder({
     kelola: !agendaBlank && !attentionBlank && !unreadBlank,
   };
 }
-
-/* ================= The agenda card (`agendaCard`) ================= */
 
 function AgendaCard({
   days,
@@ -339,8 +334,6 @@ function AgendaCard({
   );
 }
 
-/* ================= Service tiles (`homeTiles`), on every layout since Garis v5 ================= */
-
 function ServiceLink({
   service: s,
   className,
@@ -421,9 +414,7 @@ function AllLink({ to }: { to: '/layanan' | '/pengumuman' | '/kelola' }) {
   );
 }
 
-/* ================= Perlu ditindaklanjuti (`attention`) ================= */
-
-/** Perlu ditindaklanjuti's sources (rule 6), and whether any is still on its way. */
+/** Perlu ditindaklanjuti's sources, and whether any is still on its way. */
 function useAttentionSources(
   courses: ReturnType<typeof useCourses>,
   online: boolean,
@@ -477,7 +468,7 @@ function Attention({
       push.status !== 'tidak-didukung',
   });
 
-  // The rows whose signals are known (rule 6), then one line for the sources that failed or aren't kept offline.
+  // The rows whose signals are known, then one line for the sources that failed or aren't kept offline.
   const gap = failed.length ? (
     <ErrorState
       className="g-sec-error"
@@ -677,8 +668,6 @@ function DeadlineTitle({ event, code }: { event: CalEvent; code?: string }) {
   );
 }
 
-/* ================= Pengumuman belum dibaca (`postCompact(p, m, true)`) ================= */
-
 function Unread({
   desk = false,
   hidden = false,
@@ -742,9 +731,9 @@ function Unread({
 }
 
 /**
- * `excerpt` (desktop): a titled post's text under its title, two lines, as on Pengumuman. A post with no title is
- * already its own text. The link is named by its title; the excerpt describes it. The text is the post's own, as
- * Beranda shows an untitled post's (Pengumuman's `displayText` would add three script requests to the first load).
+ * `excerpt` (desktop): a titled post's text under its title, two lines. A post with no title is already its own text.
+ * The link is named by its title; the excerpt describes it. The text is the post's own: Pengumuman's `displayText`
+ * would add three script requests to the first load.
  */
 function UnreadRow({ info, excerpt }: { info: Info; excerpt: boolean }) {
   const id = useId();
@@ -780,8 +769,6 @@ function UnreadRow({ info, excerpt }: { info: Info; excerpt: boolean }) {
     </li>
   );
 }
-
-/* ================= Kelola (`kelolaSummary`) ================= */
 
 function KelolaSummary({
   desk = false,

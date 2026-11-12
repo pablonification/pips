@@ -1,9 +1,7 @@
 /**
- * Curhat Yuk!'s rules (P2-C), pure so tests/curhat-rules.test.ts checks them without a browser: the list's order,
- * previews and times, a room's thread (oldest first, day separators in WIB, quotes), the delivery states of what you
- * send, the Enter key by pointer type, and unread counts. From the prototype (garis/state.js `MAX_ROOMS`,
- * `roomUnread`, `curhatUnread`; screens-more.js `roomIni`, `scrCurhat`, `scrRoom`; app.js `titleOf`) and today's
- * screen (`sortChats` in layanan/curhat/-components/chatlist.tsx).
+ * Curhat Yuk!'s rules, pure so tests/curhat-rules.test.ts checks them without a browser: the list's order, previews
+ * and times, a room's thread (oldest first, day separators in WIB, quotes), the delivery states of what you send, the
+ * Enter key by pointer type, and unread counts.
  */
 import type { Chatroom, ChatroomMessage } from '~/api/generated';
 import { curhat as t } from '~/copy/curhat';
@@ -11,16 +9,16 @@ import { fill } from '~/copy/fill';
 import { totalUnread, unreadByRoom, type UnreadRow } from '~/lib/curhat-unread';
 import { dayDiff, dLong, dShort, hm, wib } from '~/lib/dates';
 
-/** At most three rooms per member; the server refuses a fourth with 400 (state.js `MAX_ROOMS`). */
+/** At most three rooms per member; the server refuses a fourth with 400. */
 export const MAX_ROOMS = 3;
-/** A message with no acknowledgement after this long has failed (SPEC story 96). */
+/** A message with no acknowledgement after this long has failed. */
 export const ACK_TIMEOUT_MS = 10_000;
-/** Quotes are cut after this many characters, then "…" (scrRoom). */
+/** Quotes are cut after this many characters, then "…". */
 export const QUOTE_MAX = 90;
 
 /**
- * A room's name as the member sees it. The server names rooms in lower case ("teal koala"); like the prototype and
- * today's screen, each word starts with a capital, as a name. A room without a name is "Ruang" (`titleOf`).
+ * A room's name as the member sees it. The server names rooms in lower case ("teal koala"); each word starts with a
+ * capital, as a name. A room without a name is "Ruang".
  */
 export function roomName(title: string | null | undefined): string {
   const words = (title ?? '').trim().split(/\s+/).filter(Boolean);
@@ -28,7 +26,7 @@ export function roomName(title: string | null | undefined): string {
   return words.map((w) => w[0].toLocaleUpperCase('id') + w.slice(1)).join(' ');
 }
 
-/** The gold square's letters: the first letter of each word of the name ("TK"), as `roomIni`. */
+/** The gold square's letters: the first letter of each word of the name ("TK"). */
 export function roomInitials(name: string): string {
   return name
     .split(/\s+/)
@@ -47,7 +45,7 @@ export function lastMessage(room: Chatroom): ChatroomMessage | undefined {
   return last;
 }
 
-/** Newest message first; rooms without messages last, in the server's order (today's `sortChats`). Members have no pins. */
+/** Newest message first; rooms without messages last, in the server's order. Members have no pins. */
 export function sortRooms(rooms: Chatroom[]): Chatroom[] {
   return [...rooms].sort((a, b) => {
     const la = lastMessage(a);
@@ -90,8 +88,6 @@ export function quoteText(text: string): string {
   return text.length > QUOTE_MAX ? `${text.slice(0, QUOTE_MAX)}…` : text;
 }
 
-/* ================= Sending ================= */
-
 /**
  * A message you sent: not acknowledged yet (`pending`), failed (`failed`), or acknowledged (`delivered`, with the
  * server's copy) but not yet in the rooms cache. `clientMessageId` is the device's id for it (a UUID), sent with
@@ -108,7 +104,7 @@ export interface OutboxEntry {
   at: string;
   /** The server's copy, once delivered. */
   message?: ChatroomMessage;
-  /** Why the server refused it, when it said (P3-C: the inbox toasts every failure but these two). */
+  /** Why the server refused it, when it said (the inbox toasts every failure but these two). */
   refusal?: Refusal;
 }
 
@@ -169,8 +165,8 @@ function serverHolds(
 }
 
 /**
- * Matches what you sent to the rooms cache (P2-C round 2, OPEN-QUESTIONS A11), after the cache changes and while no
- * refetch is running (a refetch that started before a save would overwrite it with an older list):
+ * Matches what you sent to the rooms cache, after the cache changes and while no refetch is running (a refetch that
+ * started before a save would overwrite it with an older list):
  * - an entry whose copy the cache holds is settled, whatever its state: a message saved whose acknowledgement was
  *   lost (Gagal) is then shown once, delivered;
  * - a delivered entry the cache lost is put back (`restore`); its next settle removes it.
@@ -191,7 +187,7 @@ export function settleOutbox(
   return { settled, restore };
 }
 
-/** Why the server refused a message (P0-D's `CurhatSocketError`). */
+/** Why the server refused a message. */
 export type Refusal = 'unauthorized' | 'forbidden' | 'invalid' | 'server';
 const REFUSALS: readonly string[] = [
   'unauthorized',
@@ -227,8 +223,6 @@ export function withMessage(
   return [message, ...list].sort((a, b) => time(b) - time(a));
 }
 
-/* ================= The thread ================= */
-
 export type Delivery = 'pending' | 'failed' | 'delivered';
 
 export interface ThreadMessage {
@@ -238,7 +232,7 @@ export interface ThreadMessage {
   id: string | null;
   localId?: string;
   mine: boolean;
-  /** The room's owner wrote it (the server's `fromOwner`): Welfare's inbox draws it on the member's side (P3-C). */
+  /** The room's owner wrote it (the server's `fromOwner`): Welfare's inbox draws it on the member's side. */
   fromOwner?: boolean;
   text: string;
   at: string;
@@ -268,8 +262,8 @@ const dayKey = (at: string) => {
 };
 
 /**
- * A room's thread as scrRoom draws it: oldest first, a day line before each new WIB day ("Hari ini" or "Selasa,
- * 6 Oktober"), then what you sent that isn't confirmed yet, last. History from the server counts as delivered.
+ * A room's thread: oldest first, a day line before each new WIB day ("Hari ini" or "Selasa, 6 Oktober"), then what
+ * you sent that isn't confirmed yet, last. History from the server counts as delivered.
  */
 export function buildThread(
   messages: ChatroomMessage[] | undefined,
@@ -350,7 +344,7 @@ export function buildThread(
   return items;
 }
 
-/** Messages from one side this close together sit as one group (owner's chat changes, 2026-11-06). */
+/** Messages from one side this close together sit as one group. */
 export const GROUP_GAP_MS = 5 * 60_000;
 
 /** A message's place in its group: `start` is its first bubble, `end` its last (where the time is shown). */
@@ -360,7 +354,8 @@ export type GroupedItem =
 /**
  * Groups a thread as chat apps do: consecutive messages from the same side (`side`; the member's own by default,
  * Welfare's inbox passes its own), on the same day and at most five minutes apart, join into one group with tight
- * spacing and the time once, on its last bubble. `side` is who the group is (any value compared with ===). A failed message ends its group (its Gagal line sits under it).
+ * spacing and the time once, on its last bubble. `side` is who the group is (any value compared with ===). A failed
+ * message ends its group (its Gagal line sits under it).
  */
 export function groupThread(
   items: ThreadItem[],
@@ -386,12 +381,10 @@ export function groupThread(
 /** Only a delivered message can be replied to (Balas); a failed one offers Kirim ulang instead. */
 export const canReply = (m: ThreadMessage) => m.delivery === 'delivered';
 
-/* ================= The composer ================= */
-
 /**
- * What Enter does in the composer (SPEC story 98): on a touch keyboard (coarse pointer) it starts a new line and only
- * the button sends; with a fine pointer Enter sends and Shift+Enter starts a new line. Enter while an input method is
- * composing a word is the IME's.
+ * What Enter does in the composer: on a touch keyboard (coarse pointer) it starts a new line and only the button
+ * sends; with a fine pointer Enter sends and Shift+Enter starts a new line. Enter while an input method is composing
+ * a word is the IME's.
  */
 export function enterAction(e: {
   key: string;
@@ -403,8 +396,6 @@ export function enterAction(e: {
   if (e.coarse || e.shiftKey) return 'newline';
   return 'send';
 }
-
-/* ================= Unread ================= */
 
 export { totalUnread, unreadByRoom, type UnreadRow };
 
