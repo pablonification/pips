@@ -41,6 +41,17 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Type check and lint
         run: pnpm check
+      # The web app's API client is generated from the API and committed: a route changed without regenerating it
+      # would ship a client that lies about the shapes. Status also catches new and deleted files.
+      - name: The generated API client matches the API
+        run: |
+          pnpm --filter web api
+          changed="$(git status --porcelain -- apps/web/src/api/generated)"
+          if [ -n "$changed" ]; then
+            echo "$changed"
+            echo "Run 'pnpm --filter web api' and commit apps/web/src/api/generated."
+            exit 1
+          fi
       - name: Unit tests
         run: pnpm test
       - name: Production build
@@ -53,6 +64,53 @@ jobs:
       # still over 150 KiB (C1 report, "Needs Dev 1"); drop it to make the step fail over budget.
       - name: Budgets
         run: BUDGETS_STRICT=0 pnpm --filter web budgets
+
+  api-db:
+    name: api database tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # 16 is the local development cluster's version; production runs a newer one.
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pips_test_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # The tests refuse any database that is not local and named pips_test*; they migrate it themselves, and the
+      # migration test creates more databases beside it, so the role is a superuser.
+      TEST_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/pips_test_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      # The post audience SQL, the room limit under parallel requests, a resent Curhat message saved once, the
+      # migration counter repair, search with odd characters and the statement timeout only show on a real database.
+      - name: Database tests
+        run: pnpm --filter api test:db
+      # drizzle-kit writes a new migration when the schema differs from the last snapshot: any new file is drift.
+      - name: The migrations match the schema
+        working-directory: apps/api
+        run: |
+          rm -rf .drizzle-check
+          cp -R drizzle .drizzle-check
+          DATABASE_URL=unused pnpm exec drizzle-kit generate --dialect postgresql --schema ./src/db/schema.ts --out .drizzle-check
+          if ! diff -r drizzle .drizzle-check; then
+            echo "schema.ts has changes no migration covers: run 'pnpm --filter api db:migrations' and commit the result."
+            exit 1
+          fi
 
   docker:
     name: docker images
