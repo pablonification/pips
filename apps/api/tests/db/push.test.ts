@@ -247,7 +247,7 @@ test("a failed clean-up after the owner's push doesn't cost Welfare theirs", asy
   ]);
   const ownersDevice = endpoint('ps-nadia', 80);
   const sent: string[][] = [];
-  const send = (async (subscriptions) => {
+  const send = (async (subscriptions: Array<{ endpoint: string }>) => {
     const ours = subscriptions
       .filter((s) => /\/ps-[a-z]+-80$/.test(s.endpoint))
       .map((s) => s.endpoint);
@@ -292,7 +292,7 @@ test("a failed clean-up after the owner's push doesn't cost Welfare theirs", asy
 test("a push that can't be sent to the owner doesn't cost Welfare theirs", async () => {
   const { sendCurhatNotification } = await import('../../src/websocket/setup');
   const sent: string[][] = [];
-  const send = (async (subscriptions) => {
+  const send = (async (subscriptions: Array<{ endpoint: string }>) => {
     const ours = subscriptions
       .filter((s) => /\/ps-[a-z]+-80$/.test(s.endpoint))
       .map((s) => s.endpoint);
