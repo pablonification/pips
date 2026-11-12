@@ -17,9 +17,8 @@ test('a new client sends no class: the course is stored with the default class',
   const { BatchCreateOrUpdateUserCourseSchema, DEFAULT_COURSE_CLASS } =
     await import('../src/types/course.types');
   const { db } = await import('../src/db/drizzle');
-  const { batchUpsertUserCourseQuery } = await import(
-    '../src/repositories/course.repo'
-  );
+  const { batchUpsertUserCourseQuery } =
+    await import('../src/repositories/course.repo');
   const parsed = BatchCreateOrUpdateUserCourseSchema.parse([
     { courseId: 'course-IF2211' },
     { courseId: 'course-IF2230' },
@@ -54,16 +53,18 @@ test('an old client still sends a class: it is kept', async () => {
     CreateUserCourseSchema.parse({ courseId: 'course-IF2211', class: 3 }),
     { courseId: 'course-IF2211', class: 3 },
   );
-  assert.deepEqual(CreateUserCourseSchema.parse({ courseId: 'course-IF2211' }), {
-    courseId: 'course-IF2211',
-    class: 1,
-  });
+  assert.deepEqual(
+    CreateUserCourseSchema.parse({ courseId: 'course-IF2211' }),
+    {
+      courseId: 'course-IF2211',
+      class: 1,
+    },
+  );
 });
 
 test('a class that is not a number is still refused, and a course id is still required', async () => {
-  const { BatchCreateOrUpdateUserCourseSchema } = await import(
-    '../src/types/course.types'
-  );
+  const { BatchCreateOrUpdateUserCourseSchema } =
+    await import('../src/types/course.types');
   assert.equal(
     BatchCreateOrUpdateUserCourseSchema.safeParse([
       { courseId: 'course-IF2211', class: 'K2' },

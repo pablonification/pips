@@ -346,16 +346,35 @@ test("Google's own error message never reaches the client, on any calendar write
     throw googleError(403);
   };
   const cases = [
-    { method: 'POST', path: '/calendar/event', body: kuis2, google: { insert: failing } },
-    { method: 'PUT', path: '/calendar/event/ev-1', body: { title: 'Kuis 3' }, google: { update: failing } },
-    { method: 'DELETE', path: '/calendar/event/ev-1', body: undefined, google: { remove: failing } },
+    {
+      method: 'POST',
+      path: '/calendar/event',
+      body: kuis2,
+      google: { insert: failing },
+    },
+    {
+      method: 'PUT',
+      path: '/calendar/event/ev-1',
+      body: { title: 'Kuis 3' },
+      google: { update: failing },
+    },
+    {
+      method: 'DELETE',
+      path: '/calendar/event/ev-1',
+      body: undefined,
+      google: { remove: failing },
+    },
   ] as const;
   for (const { method, path, body, google } of cases) {
     const { router, deps } = setup(['akademik']);
     Object.assign(deps.google, google);
     const res = await callRouter(router, raka, method, path, body);
     assert.equal(res.status, 400, `${method} ${path}`);
-    assert.doesNotMatch(JSON.stringify(res.body), /Google says/, `${method} ${path}`);
+    assert.doesNotMatch(
+      JSON.stringify(res.body),
+      /Google says/,
+      `${method} ${path}`,
+    );
     assert.deepEqual(res.body, { error: GOOGLE_CALENDAR_FAILED });
   }
 });
@@ -372,7 +391,9 @@ test("an event Google can't find answers a fixed 404, not Google's message", asy
       request: { responseURL: '' },
     } as never);
   };
-  const res = await callRouter(router, raka, 'PUT', '/calendar/event/ev-1', { title: 'Kuis 3' });
+  const res = await callRouter(router, raka, 'PUT', '/calendar/event/ev-1', {
+    title: 'Kuis 3',
+  });
   assert.equal(res.status, 404);
   assert.deepEqual(res.body, { error: 'Event not found' });
 });
