@@ -19,9 +19,9 @@ Copy **Ding Dong** for a list page: `routes/_app/_left-navbar/layanan/dingdong/i
      component: DingdongScreen,
    });
    ```
-2. **Let the router learn the new route.** `src/routeTree.gen.ts` is written by Vite, so start the web app once
-   (`pnpm --filter web dev`), wait for "ready", stop it, and commit the changed `routeTree.gen.ts`. Until then the
-   type check fails at your `createFileRoute` line (see "What will stop you").
+2. **Let the router learn the new route.** Run `pnpm --filter web routes`: it writes `src/routeTree.gen.ts` from the
+   route files and exits. Commit the changed file. Until then the type check fails at your `createFileRoute` line (see
+   "What will stop you").
 3. **Put the words in a copy module**, `apps/web/src/copy/contoh.ts`, like `copy/dingdong.ts`: one object with the
    page title (`judul`), the sentences and the loading, error and empty messages, in Indonesian, speaking to
    *kamu*. `tests/copy.test.ts` reads every file in `copy/` on its own, so it checks yours with no registration.
