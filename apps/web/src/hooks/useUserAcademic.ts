@@ -18,10 +18,9 @@ export function useUserAcademic() {
 }
 
 /**
- * The device's copy (written by today's app), into an empty cache only, and marked out of date so the server's answer
- * replaces it once per visit (the query never goes stale by time). Regression (2026-11-03): it ran on every page
- * change and put the copy back as fresh: the server was never asked, so the semester stayed as saved, and every screen
- * reading it redrew on each page change, which stalled a slow phone at each letter typed in a search kept in the URL.
+ * Seeds an empty cache from the device's copy, marked out of date so the server's answer replaces it once per visit
+ * (the query never goes stale by time). It must not run over a loaded cache: putting the copy back as fresh on every
+ * page change skips the server and redraws every screen that reads it.
  */
 export function initialLoadUserAcademic() {
   if (queryClient.getQueryData(['userAcademic']) !== undefined) return;
