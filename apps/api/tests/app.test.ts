@@ -114,3 +114,40 @@ test('/health: 200 while the database answers, 503 when it fails or hangs', asyn
   assert.equal((await stuck.request('/health')).status, 503);
   assert.ok(Date.now() - started < 3000, 'gives up after 2 s');
 });
+
+test('the recommendation routes are gone: a signed-in member gets 404 from each, and the document lists none', async () => {
+  const { sessionCookie, testUser } = await import('./support/session');
+  const cookie = await sessionCookie(testUser('u-nadia'));
+  const voucher = {
+    title: 'Contoh voucher',
+    imageURL: 'https://example.com/a.jpg',
+    link: 'https://example.com',
+    startPeriod: '2026-10-01T00:00:00.000Z',
+    endPeriod: '2026-10-31T00:00:00.000Z',
+    description: 'Contoh',
+  };
+  const review = { rating: 5, review: 'Contoh ulasan' };
+  const routes: Array<[method: string, path: string, body?: unknown]> = [
+    ['POST', '/api/recommendation/voucher', voucher],
+    ['POST', '/api/recommendation/co-working-space', voucher],
+    ['POST', '/api/recommendation/voucher/v-1/review', review],
+    ['POST', '/api/recommendation/co-working-space/c-1/review', review],
+    ['DELETE', '/api/recommendation/voucher/v-1/review/u-nadia'],
+    ['DELETE', '/api/recommendation/co-working-space/c-1/review/u-nadia'],
+  ];
+  for (const [method, path, body] of routes) {
+    const res = await app.request(path, {
+      method,
+      headers: { Cookie: cookie, 'content-type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    assert.equal(res.status, 404, `${method} ${path}`);
+  }
+  const doc = JSON.parse(JSON.stringify(openApiDocument(app))) as {
+    paths: Record<string, unknown>;
+  };
+  assert.deepEqual(
+    Object.keys(doc.paths).filter((p) => p.includes('recommendation')),
+    [],
+  );
+});

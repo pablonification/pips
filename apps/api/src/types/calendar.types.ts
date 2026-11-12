@@ -68,8 +68,6 @@ export const CalendarEventGcal = z
   })
   .openapi('CalendarEventGcal');
 
-export const CalendarEventList = z.array(CalendarEvent);
-
 export const CalendarCategory = z
   .enum(calendarGroup.category.enumValues)
   .openapi('CalendarCategory', { example: 'himpunan' });
