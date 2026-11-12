@@ -336,6 +336,8 @@ jobs:
           path: |
             apps/web/e2e/.report-real
             apps/web/e2e/.results-real
+          # Both folders start with a dot, and the action leaves hidden files out unless told.
+          include-hidden-files: true
           retention-days: 14
 
   e2e-result:
