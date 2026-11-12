@@ -29,7 +29,7 @@ export function formAdminRoom(formId: string) {
   return `form-admin:${formId}`;
 }
 
-export interface ConnectionDeps {
+interface ConnectionDeps {
   jwtSecret: string;
   getUserRoles: (userId: string) => Promise<string[]>;
   curhat: Omit<CurhatSocketDeps, 'getUserRoles'>;

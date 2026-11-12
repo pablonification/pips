@@ -49,7 +49,7 @@ export function Item({
   );
 }
 
-export interface RowButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface RowButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** The row for the page that is open (desktop split views). */
   current?: boolean;
   /** Renders the child (a router link) as the row. */
@@ -76,7 +76,7 @@ export function RowButton({
   );
 }
 
-export interface SectionHeadProps {
+interface SectionHeadProps {
   title: ReactNode;
   /** The section's link or action, at the end. */
   action?: ReactNode;

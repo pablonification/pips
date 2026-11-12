@@ -27,7 +27,7 @@ export const mayAnswerCurhat = (user: WithRoles) => can(user, 'respondCurhat');
  * Who wrote a message, as Welfare sees it: you, a teammate, or the room's member. The side comes from `fromOwner`
  * (the member's on the left, Welfare's in gold on the right); "Kamu" from `isSender`.
  */
-export type Speaker = 'kamu' | 'welfare' | 'anggota';
+type Speaker = 'kamu' | 'welfare' | 'anggota';
 
 export function speakerOf(m: {
   isSender?: boolean;
@@ -93,9 +93,9 @@ export function matchesSearch(room: Chatroom, q: string | undefined): boolean {
   );
 }
 
-export type InboxEmpty = 'none' | 'noMatch' | 'allRead';
+type InboxEmpty = 'none' | 'noMatch' | 'allRead';
 
-export interface InboxView {
+interface InboxView {
   /** Pinned rooms, newest message first. */
   pinned: Chatroom[];
   /** The rest, newest message first, rooms without messages last. */

@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { cn } from '~/lib/utils';
 import { halftoneSquares } from './halftone-geometry';
 
-export interface HalftoneProps {
+interface HalftoneProps {
   /** How far the squares grow, in px (the phone header uses 216). */
   length?: number;
   /** The grid, in px. */

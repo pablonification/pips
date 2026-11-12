@@ -15,7 +15,7 @@ export interface SegOption<V extends string> {
   icon?: ReactNode;
 }
 
-export interface SegProps<V extends string> {
+interface SegProps<V extends string> {
   /** The group's name for screen readers ("Tema"). */
   label: string;
   options: SegOption<V>[];
@@ -62,7 +62,7 @@ export function Seg<V extends string>({
   );
 }
 
-export interface SwitchProps extends Omit<
+interface SwitchProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'onChange' | 'role' | 'aria-checked'
 > {
@@ -102,7 +102,7 @@ export function Switch({
   );
 }
 
-export interface OptionProps extends Omit<
+interface OptionProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'type'
 > {
@@ -153,7 +153,7 @@ export function Options({
   );
 }
 
-export interface RatingProps {
+interface RatingProps {
   /** The question ("Seberapa puas kamu dengan PIXEL?"). */
   label: ReactNode;
   /** What the ends mean, under the question. */

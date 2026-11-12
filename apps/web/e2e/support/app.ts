@@ -13,10 +13,6 @@ export const layoutOf = (testInfo: TestInfo): 'phone' | 'tablet' | 'desktop' =>
       ? 'phone'
       : 'desktop';
 
-/** The page's rendered text (`innerText`, so hidden elements are left out), for text split across elements. */
-export const pageText = (page: Page) =>
-  page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
-
 /**
  * The shell's way to a destination, whichever layout shows it: a tab, a rail or sidebar item, and for
  * Profil your avatar (phones and tablets) or your name at the sidebar's foot (desktop).
@@ -30,40 +26,6 @@ export const navLink = (
     : page
         .getByRole('navigation', { name: 'Navigasi utama' })
         .getByRole('link', { name: new RegExp(`^${name}`) });
-
-/** Waits until web fonts are ready, images have loaded, and nothing moves between two frames. */
-export async function settle(page: Page): Promise<void> {
-  await page.evaluate(async () => {
-    await document.fonts.ready;
-    await Promise.all(
-      [...document.images]
-        .filter((img) => !img.complete)
-        .map(
-          (img) =>
-            new Promise((resolve) => {
-              img.addEventListener('load', resolve, { once: true });
-              img.addEventListener('error', resolve, { once: true });
-            }),
-        ),
-    );
-    const frames = () =>
-      new Promise((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(resolve)),
-      );
-    await frames();
-    // Paint every image again now that it is decoded. Chromium sometimes draws an image before its decode has
-    // finished and keeps that raster; an SVG at a fractional position (a search field's clear button) then lands half a
-    // pixel apart from one run to the next.
-    const images = [...document.images].map((img) => ({
-      img,
-      visibility: img.style.visibility,
-    }));
-    for (const { img } of images) img.style.visibility = 'hidden';
-    await frames();
-    for (const { img, visibility } of images) img.style.visibility = visibility;
-    await frames();
-  });
-}
 
 /** Beranda's greeting from the shell ("Halo, Nadia"): Beranda is open and the member is signed in. */
 export const greeting = (page: Page, firstName = 'Nadia') =>

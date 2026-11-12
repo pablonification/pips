@@ -5,7 +5,7 @@ import { openLiveSocket } from './live-socket';
 import { formResponsesCountKey, latestResponsesQuery } from './queries';
 
 /** What the API emits to `form-admin:{formId}` after each new response (no major). */
-export interface LiveResponseEvent {
+interface LiveResponseEvent {
   total: number;
   nim: string;
   fullName: string;

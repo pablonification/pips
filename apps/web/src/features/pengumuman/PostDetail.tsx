@@ -74,7 +74,7 @@ import {
 import { useNow } from './useNow';
 import { focusSoon, type FeedSearch } from './view';
 
-export const COMMENT_FIELD = 'komentar';
+const COMMENT_FIELD = 'komentar';
 
 export function PostDetail({
   info,

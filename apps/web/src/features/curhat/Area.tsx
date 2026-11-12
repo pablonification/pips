@@ -46,7 +46,7 @@ function ToInbox() {
 }
 
 /** The area's socket: socket.io-client loads on demand, and the handshake carries the session cookie. */
-export function openSocket(): Promise<SocketLike> {
+function openSocket(): Promise<SocketLike> {
   return import('socket.io-client').then(({ io }) =>
     io(import.meta.env.VITE_API_URL, {
       // The API reads the session from the cookie on the handshake (another origin in production).

@@ -5,7 +5,7 @@ import { form as copy } from '~/copy/form';
 import { cn } from '~/lib/utils';
 import { ratingParts, type AnswerValue } from '~/lib/form/rules';
 
-export interface QBlockProps {
+interface QBlockProps {
   q: FormQuestion;
   value: AnswerValue | undefined;
   onChange: (id: string, value: AnswerValue) => void;

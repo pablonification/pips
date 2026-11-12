@@ -39,7 +39,7 @@ export type LombaField =
 export type LombaErrors = Partial<Record<LombaField, string>>;
 
 /** Top to bottom, the order errors are focused in. */
-export const LOMBA_FIELDS: readonly LombaField[] = [
+const LOMBA_FIELDS: readonly LombaField[] = [
   'name',
   'organizer',
   'open',

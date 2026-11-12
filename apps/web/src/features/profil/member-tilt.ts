@@ -4,7 +4,7 @@
  */
 
 /** Where a pointer sits on the card, as the card's custom properties. */
-export interface Tilt {
+interface Tilt {
   /** The turn round the vertical axis (`rotateY`), in degrees: ±8. */
   rx: number;
   /** The turn round the horizontal axis (`rotateX`), in degrees: ±6. */

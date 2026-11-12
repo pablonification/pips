@@ -14,7 +14,7 @@ export const MAX_ROOMS = 3;
 /** A message with no acknowledgement after this long has failed. */
 export const ACK_TIMEOUT_MS = 10_000;
 /** Quotes are cut after this many characters, then "…". */
-export const QUOTE_MAX = 90;
+const QUOTE_MAX = 90;
 
 /**
  * A room's name as the member sees it. The server names rooms in lower case ("teal koala"); each word starts with a
@@ -247,7 +247,7 @@ export interface ThreadDay {
   key: string;
   label: string;
 }
-export type ThreadItem = ThreadMessage | ThreadDay;
+type ThreadItem = ThreadMessage | ThreadDay;
 
 /**
  * A message's key in the thread: your own by their device id, so the bubble you sent stays the same element from

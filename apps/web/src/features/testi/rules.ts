@@ -170,7 +170,7 @@ export const isLong = (text: string) => text.length > TESTI_LONG;
 /** How many columns a course page may use: one per testimonial, at most three. */
 export const columnsFor = (count: number) => Math.max(1, Math.min(count, 3));
 
-export type Segment = { text: string; href?: string };
+type Segment = { text: string; href?: string };
 
 /** Text split into plain runs and links (`extractUrls`); line breaks kept. */
 export function linkSegments(text: string): Segment[] {

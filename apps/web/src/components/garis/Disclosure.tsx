@@ -2,7 +2,7 @@ import type { DetailsHTMLAttributes, ReactNode } from 'react';
 import { IconBawah } from '~/components/icons/bawah';
 import { cn } from '~/lib/utils';
 
-export interface DisclosureProps extends Omit<
+interface DisclosureProps extends Omit<
   DetailsHTMLAttributes<HTMLDetailsElement>,
   'title'
 > {

@@ -38,7 +38,7 @@ export function useOpenAddEvent() {
 }
 
 /** The ids of this semester's courses, from the cache Kalender already has. */
-export function myCourseIds(taken: readonly UserCourse[] | undefined) {
+function myCourseIds(taken: readonly UserCourse[] | undefined) {
   return new Set((taken ?? []).map((c) => c.courseId));
 }
 

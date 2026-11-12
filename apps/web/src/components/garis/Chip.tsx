@@ -9,7 +9,7 @@ import { cn } from '~/lib/utils';
 
 export type ChipKind = 'toggle' | 'checkbox';
 
-export interface ChipProps extends Omit<
+interface ChipProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'onChange' | 'role'
 > {
@@ -63,7 +63,7 @@ export function Chip({
   );
 }
 
-export interface ChipsProps extends HTMLAttributes<HTMLDivElement> {
+interface ChipsProps extends HTMLAttributes<HTMLDivElement> {
   /** Wrap onto more lines instead of scrolling sideways. */
   wrap?: boolean;
   /** Names the group when its chips are checkboxes ("Pilih angkatan"); the row becomes `role="group"`. */

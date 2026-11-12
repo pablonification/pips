@@ -17,7 +17,7 @@ export { THEME_PREFERENCES } from './theme-core.mjs';
 
 const query = () => window.matchMedia('(prefers-color-scheme: dark)');
 
-export function readPreference(): ThemePreference {
+function readPreference(): ThemePreference {
   try {
     return parsePreference(localStorage.getItem(THEME_STORAGE_KEY));
   } catch {

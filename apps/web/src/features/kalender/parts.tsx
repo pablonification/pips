@@ -57,7 +57,7 @@ export function DayBars({ events }: { events: readonly CalEvent[] }) {
  * One event row: start and end, the category bar, the title and its course. A deadline shows its one time with
  * nothing under it, and a solid bar like any Akademik event.
  */
-export function AgendaRow({
+function AgendaRow({
   event: e,
   course,
   now,
@@ -107,7 +107,7 @@ export function AgendaRow({
 }
 
 /** What a list of events shows while it has none to show: loading, failed, offline and not kept, or empty. */
-export interface ListState {
+interface ListState {
   loading: boolean;
   failed: boolean;
   offline: boolean;

@@ -9,7 +9,7 @@ import { dShort, dayDiff, hm } from '~/lib/dates';
 import { byStart, type CalEvent } from '~/features/kalender/rules';
 
 /** Pengumuman and Orang ask the API from this many characters (NIM Finder's own minimum). */
-export const REMOTE_MIN = 3;
+const REMOTE_MIN = 3;
 /** How long typing must pause before the API is asked. */
 export const REMOTE_DEBOUNCE_MS = 250;
 /** Kalender lists upcoming events this many days ahead. */

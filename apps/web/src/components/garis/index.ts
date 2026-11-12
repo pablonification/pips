@@ -3,17 +3,9 @@
  * Styles: src/styles/garis/. Icons: src/components/icons/. Gallery: /dev/garis (development builds).
  */
 export { Avatar, AvatarButton } from './Avatar';
-export { Button, LinkButton, type ButtonVariant } from './Button';
-export { Chip, Chips, type ChipKind } from './Chip';
-export {
-  Checkbox,
-  Options,
-  Radio,
-  Rating,
-  Seg,
-  Switch,
-  type SegOption,
-} from './Choice';
+export { Button, LinkButton } from './Button';
+export { Chip, Chips } from './Chip';
+export { Checkbox, Options, Radio, Rating, Seg, Switch } from './Choice';
 export { Disclosure } from './Disclosure';
 export { Field, Input, Searchbox, Select, Textarea } from './Field';
 export { Halftone } from './Halftone';
@@ -41,8 +33,7 @@ export {
   SkeletonRow,
 } from './State';
 export { Card, Media, NoteBox, Plaque, Saved, Segbar, Tile } from './Surface';
-export { Count, StatusTag, Tag, type FormStatus, type TagTone } from './Tag';
-export { Toaster } from './Toast';
+export { Count, StatusTag, Tag } from './Tag';
 export { toast } from './toast-store';
 export { Wordmark } from './Wordmark';
 export { DESKTOP_QUERY, useMediaQuery } from './useMediaQuery';

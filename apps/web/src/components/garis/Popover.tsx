@@ -2,7 +2,7 @@ import * as RP from '@radix-ui/react-popover';
 import type { ReactNode } from 'react';
 import { cn } from '~/lib/utils';
 
-export interface PopoverProps {
+interface PopoverProps {
   /** The control that opens it (rendered as is: pass a Button or IconButton). */
   trigger: ReactNode;
   children: ReactNode;

@@ -3,11 +3,6 @@ import { z } from 'zod';
 import { isSpartaEligible } from '~/lib/sparta-window';
 import { JWTPayloadSchema } from '~/types/login.types';
 
-export {
-  ELIGIBLE_SPARTA_ANGKATAN,
-  ELIGIBLE_SPARTA_NIM_OVERRIDES,
-} from '~/lib/sparta-window';
-
 const factory = createFactory<{
   Variables: {
     user: z.infer<typeof JWTPayloadSchema>;

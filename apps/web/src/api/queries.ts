@@ -111,20 +111,3 @@ export const infoCommentsQuery = (infoId: string) =>
         .getCommentsList({ infoId, sort: 'oldest' })
         .then((res) => res.comment),
   });
-
-/** The months (1–12) that the days from `now - before` to `now + after` touch, in the device's time zone. */
-export function monthsAround(now: Date, beforeDays: number, afterDays: number) {
-  const months: Array<{ month: number; year: number }> = [];
-  const day = 24 * 60 * 60 * 1000;
-  for (
-    let t = now.getTime() - beforeDays * day;
-    t <= now.getTime() + afterDays * day;
-    t += day
-  ) {
-    const d = new Date(t);
-    const m = { month: d.getMonth() + 1, year: d.getFullYear() };
-    if (!months.some((x) => x.month === m.month && x.year === m.year))
-      months.push(m);
-  }
-  return months;
-}

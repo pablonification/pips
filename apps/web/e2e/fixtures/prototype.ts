@@ -87,7 +87,7 @@ export const PERSONAS: Record<PersonaKey, Persona> = {
 };
 export const email = (nim: string) => `${nim}@std.stei.itb.ac.id`;
 
-export interface ProtoCourse {
+interface ProtoCourse {
   code: string;
   name: string;
   sks: number;
@@ -143,7 +143,7 @@ export const MY_COURSES: Record<PersonaKey, string[]> = {
   pengurus: ['IF3110', 'IF3130', 'IF3140', 'IF3141', 'IF3151', 'IF3170'],
 };
 
-export interface ProtoEvent {
+interface ProtoEvent {
   id: string;
   cat: 'himpunan' | 'akademik';
   code?: string;
@@ -360,7 +360,7 @@ export const EVENTS: ProtoEvent[] = [
   },
 ];
 
-export interface ProtoCategory {
+interface ProtoCategory {
   id: string;
   name: string;
   roles: RoleKey[] | null;
@@ -380,7 +380,7 @@ export const CATEGORIES: ProtoCategory[] = [
   { id: 'umum', name: 'Umum', roles: null, required: false },
 ];
 
-export interface ProtoPerson {
+interface ProtoPerson {
   name: string;
   nim: string;
   ang: number;
@@ -570,7 +570,7 @@ export type LombaCategory =
   | 'Business IT Case'
   | 'Innovation'
   | 'Web Development';
-export interface ProtoLomba {
+interface ProtoLomba {
   id: string;
   name: string;
   org: string;
@@ -658,7 +658,7 @@ export const LOMBA: ProtoLomba[] = [
  * Tantangan, Saran; either may add Dosen, the lecturer's name, as `lecturer`). Counts and texts are samples. Lecturer
  * names are left out on purpose.
  */
-export type ProtoTesti =
+type ProtoTesti =
   | { by: string; overview: string; tugas: string; dosen: string }
   | { by: string; kesan: string; tantangan: string; saran: string };
 export const TESTI: Record<string, ProtoTesti[]> = {
@@ -791,7 +791,7 @@ export const MEMBERS: [string, string, 'IF' | 'STI'][] = [
   ['Putri Maharani', '18225044', 'STI'],
 ];
 
-export interface ProtoMessage {
+interface ProtoMessage {
   id: string;
   me: boolean;
   at: string;
@@ -858,7 +858,7 @@ export const ROOMS: Record<
   pengurus: [],
 };
 
-export interface ProtoQuestion {
+interface ProtoQuestion {
   id: string;
   label: string;
   type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating';
@@ -1049,23 +1049,3 @@ export const LIVE = {
     ['Tidak tertarik', 12],
   ] as [string, number][],
 };
-
-/** Layanan: the real Home tiles' external links. */
-export const EXTERNAL_SERVICES = [
-  {
-    id: 'beasiswa',
-    name: 'Beasiswa',
-    url: 'https://s.hmif.dev/MadingBeasiswa',
-  },
-  { id: 'kas', name: 'Bayar Kas!', url: 'https://s.hmif.dev/BayarKasHMIF' },
-  {
-    id: 'surat',
-    name: 'Surat & Proposal',
-    url: 'https://s.hmif.dev/LayananAdministrasiHMIF2526',
-  },
-  {
-    id: 'lowongan',
-    name: 'LowonginAja!',
-    url: 'https://s.hmif.dev/LowonginAja!',
-  },
-];

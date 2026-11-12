@@ -11,7 +11,7 @@ interface InstallPromptEvent extends Event {
 }
 
 /** How this device installs PIPS!. */
-export type InstallWay =
+type InstallWay =
   /** Already running as the installed app. */
   | 'terpasang'
   /** Android Chrome offered its install prompt: one button. */

@@ -14,7 +14,7 @@ import { PushSubscription, pushSubscriptions } from '~/db/schema';
 import { sendNotificationToAll } from '~/lib/push-manager';
 
 /** The most devices one member keeps; the most any real member had was 13. */
-export const MAX_DEVICES_PER_MEMBER = 20;
+const MAX_DEVICES_PER_MEMBER = 20;
 
 /**
  * Create a push subscription. If subscription endpoint exist, update the existing subscription, as just registered.

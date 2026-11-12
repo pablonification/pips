@@ -51,7 +51,7 @@ export function welfareRooms(
   );
 }
 
-export interface AttentionInput {
+interface AttentionInput {
   now: number;
   /** Events of the days around today; only deadlines still ahead today or tomorrow count. */
   events: readonly CalEvent[];
@@ -118,7 +118,7 @@ export function unreadTop(
 export const postTitle = (i: Info) => i.title || i.content;
 
 /** What a section shows for one of its sources: its data, a skeleton, the error, or the offline state. */
-export type SourceState = 'ready' | 'waiting' | 'failed' | 'offline';
+type SourceState = 'ready' | 'waiting' | 'failed' | 'offline';
 
 /**
  * One source's state. Without data: offline when the browser is offline or the query is paused (it would wait for

@@ -26,14 +26,14 @@ export const myResponseQuery = (formId: string) =>
   });
 
 /** How a send ended, for the screen to act on. */
-export type SendOutcome =
+type SendOutcome =
   | 'sent'
   | 'already' // 409: sent before (another tab, a lost answer): the thank-you
   | 'closed' // 403: closed or not open: the closed view
   | 'incomplete' // 400: the server found a missing answer: back to that section
   | 'failed'; // offline, network or 5xx: keep everything, Coba lagi
 
-export function sendOutcome(error: unknown): SendOutcome {
+function sendOutcome(error: unknown): SendOutcome {
   if (error instanceof ApiError) {
     if (error.status === 409) return 'already';
     if (error.status === 403) return 'closed';

@@ -43,7 +43,7 @@ export interface FakeSocket {
   /** Rooms this connection is in (see the header for how they're joined). */
   rooms: Set<string>;
 }
-export interface Emitted {
+interface Emitted {
   event: string;
   data: unknown;
   auth: Record<string, unknown>;
@@ -53,7 +53,7 @@ export interface Emitted {
   sid?: string;
 }
 /** Answers an acknowledgement; `undefined` means never answer. */
-export type AckAnswer = (data: unknown, socket: FakeSocket) => unknown;
+type AckAnswer = (data: unknown, socket: FakeSocket) => unknown;
 
 export class FakeSocketServer {
   readonly sessions = new Map<string, FakeSocket>();

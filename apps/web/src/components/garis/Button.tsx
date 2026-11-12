@@ -5,7 +5,7 @@ import { cn } from '~/lib/utils';
 export type ButtonVariant =
   'gold' | 'paper' | 'ghost' | 'danger' | 'danger-ghost';
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** gold: the one main action (a keycap that presses down); paper: secondary; ghost: quiet; danger. */
   variant?: ButtonVariant;
   /** sm is the 34 px compact button for rows (its touch hit area still reaches 44 px). */
@@ -46,7 +46,7 @@ export function Button({
   );
 }
 
-export interface LinkButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface LinkButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
   /** Inside running text: no extended hit area, so it doesn't overlap the words around it. */
   inText?: boolean;

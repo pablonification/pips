@@ -59,7 +59,7 @@ export interface FeedView {
  * The view in its one canonical form: the default view is all `undefined`, which is also the query key the
  * device keeps for offline use (api/persistence-policy.ts keeps the feed "with no search, filter or sort").
  */
-export interface CanonicalView {
+interface CanonicalView {
   search: string | undefined;
   unread: true | undefined;
   excludeCategories: string[] | undefined;
@@ -150,7 +150,7 @@ export function withReadState(
 /* ================= Reactions (one per person) ================= */
 
 export const REACTION_KEYS = PIXEL_REACTION_KEYS;
-export const isReactionKey = (k: unknown): k is PixelReactionKey =>
+const isReactionKey = (k: unknown): k is PixelReactionKey =>
   typeof k === 'string' && (REACTION_KEYS as string[]).includes(k);
 export const reactionLabel = (k: PixelReactionKey) => PIXEL_REACTION_LABELS[k];
 
@@ -265,7 +265,7 @@ export const renotifyHint = (info: Pick<Info, 'lastNotifiedAt'>) =>
 
 type Me = { id: string; roles?: readonly string[] | null } | null | undefined;
 
-export interface MenuModel {
+interface MenuModel {
   /** "Tandai sudah dibaca" or "Tandai belum dibaca": everyone. */
   mark: 'read' | 'unread';
   /** Umumkan ulang: the author only. */
@@ -437,7 +437,7 @@ export const uploadedUrls = (uploads: readonly UploadState[]) =>
 
 /* ================= Links ================= */
 
-export type LinkKind = 'gform' | 'sheet' | 'web';
+type LinkKind = 'gform' | 'sheet' | 'web';
 
 /**
  * A link's card: Google Forms open inside PIPS!, Sheets get the sheet tile, others the link tile. Decided by the

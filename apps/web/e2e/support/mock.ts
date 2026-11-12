@@ -18,7 +18,7 @@ import { serveMedia } from './media';
 import { FakeSocketServer } from './socketio';
 
 const BRAND = Symbol('mock-reply');
-export type MockReply =
+type MockReply =
   | {
       [BRAND]: true;
       kind: 'json';
@@ -103,7 +103,7 @@ interface Registered {
   explicit: boolean;
 }
 
-export interface RecordedRequest {
+interface RecordedRequest {
   method: string;
   path: string;
   query: string;

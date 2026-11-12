@@ -23,7 +23,7 @@ export const SPARTA_STEPS = [
   'pilih',
   'pertanyaan',
 ] as const;
-export type SpartaStep = (typeof SPARTA_STEPS)[number];
+type SpartaStep = (typeof SPARTA_STEPS)[number];
 
 /** Checkbox answers are stored as one string, joined with this separator. */
 export const CHECKBOX_SEPARATOR = ', ';
@@ -220,7 +220,7 @@ export function moveChoice(
 }
 
 /** What the screen shows: who can't take part, closed, not open yet, or open. Eligibility comes from the server. */
-export type SpartaView = 'not-eligible' | 'closed' | 'not-open' | 'open';
+type SpartaView = 'not-eligible' | 'closed' | 'not-open' | 'open';
 
 export function spartaView(window: InternshipWindow): SpartaView {
   if (!window.eligible) return 'not-eligible';

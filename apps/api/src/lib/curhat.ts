@@ -15,7 +15,7 @@ export const CURHAT_ADMIN_ROLE = 'curhatadmin';
 export const CURHAT_WELFARE_ROOM = 'curhat:welfare';
 
 /** The only words a Curhat push carries: a lock screen is no place for anything from a message. */
-export const CURHAT_PUSH_TITLE = 'Pesan baru di Curhat Yuk!';
+const CURHAT_PUSH_TITLE = 'Pesan baru di Curhat Yuk!';
 
 const curhatPush = (url: string): PushData => ({
   title: CURHAT_PUSH_TITLE,

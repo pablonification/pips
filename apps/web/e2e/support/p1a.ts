@@ -119,5 +119,3 @@ export const mainText = (page: Page) =>
     () =>
       document.querySelector('#isi')?.textContent?.replace(/\s+/g, ' ') ?? '',
   );
-
-export const isDark = (t: TestInfo) => t.project.name.endsWith('dark');

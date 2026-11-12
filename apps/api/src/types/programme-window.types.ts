@@ -1,7 +1,7 @@
 import { z } from '@hono/zod-openapi';
 
 /** A programme or campaign open now for the signed-in member. The eligibility lists stay on the server. */
-export const ProgrammeWindowSchema = z
+const ProgrammeWindowSchema = z
   .object({
     id: z.string(),
     slug: z.string(),

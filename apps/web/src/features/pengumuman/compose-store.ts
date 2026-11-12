@@ -21,11 +21,11 @@ export interface Photo {
   abort?: AbortController;
 }
 /** A picked file that can't be uploaded, and why: said under the photos until the next pick. */
-export interface RefusedPhoto {
+interface RefusedPhoto {
   name: string;
   problem: UploadProblem;
 }
-export interface ComposeState {
+interface ComposeState {
   draft: Omit<Draft, 'mediaUrls'>;
   photos: Photo[];
   errors: DraftErrors;
@@ -109,7 +109,7 @@ export const patchDraft = (
     if (clear) delete errors[clear];
     return { ...s, draft: { ...s.draft, ...d }, errors };
   });
-export const patchPhoto = (key: string, p: Partial<Photo>) =>
+const patchPhoto = (key: string, p: Partial<Photo>) =>
   setCompose((s) => ({
     ...s,
     photos: s.photos.map((x) => (x.key === key ? { ...x, ...p } : x)),

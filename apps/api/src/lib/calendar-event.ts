@@ -11,7 +11,7 @@ export function endsBeforeStart(start: Date, end: Date): boolean {
 export const ENDS_BEFORE_START = 'An event cannot end before it starts';
 
 /** Google's HTTP status for a refused call, or undefined for anything that isn't Google's error. */
-export function googleStatus(error: unknown): number | undefined {
+function googleStatus(error: unknown): number | undefined {
   if (!(error instanceof GaxiosError)) return undefined;
   return error.status ?? error.response?.status;
 }

@@ -17,7 +17,7 @@ type Out<S extends Shape, Strict extends boolean> = Strict extends true
   ? { [K in keyof S]: Exclude<ReturnType<S[K]>, typeof INVALID> }
   : { [K in keyof S]?: Exclude<ReturnType<S[K]>, typeof INVALID> };
 
-export interface ObjectSchema<S extends Shape, Strict extends boolean = false> {
+interface ObjectSchema<S extends Shape, Strict extends boolean = false> {
   readonly shape: S;
   parse(input: unknown): Out<S, Strict>;
   /** The same check with more keys (zod's `.extend`). */
@@ -52,12 +52,6 @@ export function object<S extends Shape, Strict extends boolean = false>(
     },
   };
 }
-
-/** A check that also lets `undefined` through (zod's `.optional()`). */
-export const optional =
-  <T>(check: Check<T>): Check<T | undefined> =>
-  (v) =>
-    v === undefined ? undefined : check(v);
 
 export const string: Check<string> = (v) =>
   typeof v === 'string' ? v : INVALID;

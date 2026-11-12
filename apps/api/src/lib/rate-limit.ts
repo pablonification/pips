@@ -53,12 +53,12 @@ export function createRateLimiter(options: {
 }
 
 /** Where the client's address is read from (`CLIENT_IP_HEADER`). */
-export const CLIENT_IP_SOURCES = [
+const CLIENT_IP_SOURCES = [
   'x-forwarded-for',
   'cf-connecting-ip',
   'none',
 ] as const;
-export type ClientIpSource = (typeof CLIENT_IP_SOURCES)[number];
+type ClientIpSource = (typeof CLIENT_IP_SOURCES)[number];
 
 /**
  * The client's address, from the one source the deployment trusts:

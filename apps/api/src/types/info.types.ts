@@ -18,19 +18,19 @@ import { MediaSchema } from './media.types';
 import { ReactionResponseSchema } from './reaction.types';
 import { UserGroupSchema } from './user.types';
 
-export const InfoCategorySchema = createSelectSchema(infoCategories).extend({
+const InfoCategorySchema = createSelectSchema(infoCategories).extend({
   category: CategorySchema,
 });
 
-export const InfoMediaSchema = createSelectSchema(infoMedias).extend({
+const InfoMediaSchema = createSelectSchema(infoMedias).extend({
   media: MediaSchema,
 });
 
-export const InfoAngkatanSchema = createSelectSchema(infoAngkatan).extend({
+const InfoAngkatanSchema = createSelectSchema(infoAngkatan).extend({
   angkatan: AngkatanSchema,
 });
 
-export const InfoCourseSchema = createSelectSchema(infoCourses).extend({
+const InfoCourseSchema = createSelectSchema(infoCourses).extend({
   course: CourseSchema,
 });
 
@@ -57,7 +57,7 @@ export const InfoSchema = createSelectSchema(infos, {
   })
   .openapi('Info');
 
-export const CreateInfoForCoursesFieldItemSchema = z.object({
+const CreateInfoForCoursesFieldItemSchema = z.object({
   courseId: z.string(),
   class: z.number().optional(),
 });

@@ -55,7 +55,7 @@ export function angkatanLabel(
   return name && name !== String(year) ? `${short} · ${name}` : short;
 }
 
-export interface Academic {
+interface Academic {
   semester?: number;
   semesterYear: number;
   semesterCode: 'Ganjil' | 'Genap';

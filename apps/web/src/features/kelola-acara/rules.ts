@@ -35,12 +35,7 @@ export type EventField = 'title' | 'date' | 'start' | 'end';
 export type EventErrors = Partial<Record<EventField, string>>;
 
 /** The order errors are checked and focused in: top to bottom. */
-export const EVENT_FIELDS: readonly EventField[] = [
-  'title',
-  'date',
-  'start',
-  'end',
-];
+const EVENT_FIELDS: readonly EventField[] = ['title', 'date', 'start', 'end'];
 
 /**
  * The courses an Akademik event can be for: the catalogue without `OTHER` (Mata Kuliah Umum has no calendar),

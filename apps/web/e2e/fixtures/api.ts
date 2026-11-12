@@ -72,7 +72,7 @@ const userId = (nim: string) => `user-${nim}`;
 const majorOf = (nim: string): 'IF' | 'STI' =>
   nim.startsWith('182') ? 'STI' : 'IF';
 
-export function personUser(key: PersonKey): User {
+function personUser(key: PersonKey): User {
   const p = PEOPLE[key];
   return {
     id: userId(p.nim),
@@ -100,7 +100,7 @@ export function authorOf(user: User): Author {
   };
 }
 
-export function personaUser(persona: PersonaKey): UserWithRoles {
+function personaUser(persona: PersonaKey): UserWithRoles {
   const p = PERSONAS[persona];
   return {
     ...personUser(PERSON_OF[persona]),
@@ -117,7 +117,7 @@ export const withoutPicture = <T extends User>(user: T): T => ({
   picture: null,
 });
 
-export const angkatanList: Angkatan[] = ANGKATAN.map((a) => ({
+const angkatanList: Angkatan[] = ANGKATAN.map((a) => ({
   id: `angkatan-${a.year}`,
   year: a.year,
   name: a.name ?? '',
@@ -480,8 +480,8 @@ export function formSectionsVisibleFor(
 }
 
 /** Magang SPARTA's audience and window, as the API has them (apps/api/src/lib/sparta-window.ts). */
-export const SPARTA_ELIGIBLE_ANGKATAN = [2025];
-export const SPARTA_ELIGIBLE_NIMS = ['13524108', '18224053', '18224112'];
+const SPARTA_ELIGIBLE_ANGKATAN = [2025];
+const SPARTA_ELIGIBLE_NIMS = ['13524108', '18224053', '18224112'];
 /** Closed Minggu, 23 Agustus 2026, 23.59 WIB; no known opening. Tests open it by changing `db.spartaWindow`. */
 export const SPARTA_WINDOW = {
   opensAt: null as string | null,

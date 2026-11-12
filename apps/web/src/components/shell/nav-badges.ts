@@ -8,7 +8,7 @@ import type { Destination } from '~/lib/shell/routes';
 
 export type NavBadges = Partial<Record<Destination, number>>;
 
-export interface NavBadgeSource {
+interface NavBadgeSource {
   /** A hook returning the counts per destination. */
   useBadges: () => NavBadges;
   /** A count as shown, for example "99+" past a cap. */

@@ -10,7 +10,7 @@ const DB_NAME = 'pips-query-cache';
 const STORE = 'cache';
 const KEY = 'client';
 /** The persisted cache is written at most once per this many milliseconds. */
-export const PERSIST_THROTTLE_MS = 1000;
+const PERSIST_THROTTLE_MS = 1000;
 /**
  * How long reading or removing the persisted cache may take. Where IndexedDB never answers (an old WebKit bug), the
  * app would otherwise stay on its skeleton for good; past this it carries on without the cache.
@@ -97,7 +97,7 @@ function open() {
  * IndexedDB is unavailable (private mode on some browsers), the app simply works without a persisted cache.
  * Requests on one store run in the order they are made, so a delete made after a write lands after it.
  */
-export const idbClientStore: ClientStore = {
+const idbClientStore: ClientStore = {
   async get() {
     return (await (await open()).get(STORE, KEY)) as
       PersistedClient | undefined;

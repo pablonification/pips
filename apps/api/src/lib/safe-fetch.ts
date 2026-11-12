@@ -78,7 +78,7 @@ export interface FetchPageOptions {
   ports?: readonly number[];
 }
 
-export interface FetchedPage {
+interface FetchedPage {
   /** The address finally fetched, after redirects. */
   url: string;
   status: number;
@@ -96,7 +96,7 @@ const DEFAULTS = {
 } satisfies Required<FetchPageOptions>;
 
 /** Checks an address before connecting: scheme, credentials, port and, for an IP written out, the IP itself. */
-export function checkUrl(
+function checkUrl(
   raw: string,
   options: Pick<FetchPageOptions, 'isAllowedAddress' | 'ports'> = {},
 ) {

@@ -1,21 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
-import { api, queryClient } from '~/api/client';
-
-export function useUserAcademic() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['userAcademic'],
-    queryFn: () => api.userProfile.getUserAcademic(),
-  });
-
-  useEffect(() => {
-    if (data) {
-      localStorage.setItem('userAcademic', JSON.stringify(data));
-    }
-  }, [data]);
-
-  return { userAcademic: data, isLoading, error };
-}
+import { queryClient } from '~/api/client';
 
 /**
  * Seeds an empty cache from the device's copy, marked out of date so the server's answer replaces it once per visit

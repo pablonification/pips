@@ -25,7 +25,6 @@ const query = z.object({
 /** The zod schemas the plain checks replaced. */
 const ZOD: Record<string, z.ZodTypeAny> = {
   kalenderSearchSchema: kalender,
-  berandaSearchSchema: kalender,
   appSearchSchema: z.object({
     showAnnounce: z.boolean().optional().catch(undefined),
   }),

@@ -33,7 +33,7 @@ export function isSpartaEligible(user: { angkatan: number; nim: string }) {
   );
 }
 
-export interface SpartaWindow {
+interface SpartaWindow {
   opensAt: Date | null;
   closesAt: Date | null;
   status: WindowStatus;

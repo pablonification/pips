@@ -86,7 +86,7 @@ function useLeave() {
   };
 }
 
-export function ComposeForm({
+function ComposeForm({
   desk,
   onCancel,
   onSent,

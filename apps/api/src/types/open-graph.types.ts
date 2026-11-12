@@ -20,21 +20,21 @@ export const OpenGraphErrorSchema = z.object({
   success: z.boolean().default(false),
 });
 
-export const TwitterImageObjectSchema = z.object({
+const TwitterImageObjectSchema = z.object({
   alt: z.string().optional(),
   height: z.number().optional(),
   url: z.string(),
   width: z.number().optional(),
 });
 
-export const TwitterPlayerObjectSchema = z.object({
+const TwitterPlayerObjectSchema = z.object({
   height: z.number().optional(),
   stream: z.string().optional(),
   url: z.string(),
   width: z.number().optional(),
 });
 
-export const ImageObjectSchema = z.object({
+const ImageObjectSchema = z.object({
   height: z.union([z.string(), z.number()]).optional(),
   type: z.string().optional(),
   url: z.string(),
@@ -42,20 +42,20 @@ export const ImageObjectSchema = z.object({
   alt: z.string().optional(),
 });
 
-export const VideoObjectSchema = z.object({
+const VideoObjectSchema = z.object({
   height: z.number().optional(),
   type: z.string().optional(),
   url: z.string(),
   width: z.number().optional(),
 });
 
-export const MusicSongObjectSchema = z.object({
+const MusicSongObjectSchema = z.object({
   disc: z.string().optional(),
   track: z.number().optional(),
   url: z.string(),
 });
 
-export const OgObjectInteralSchema = z.object({
+const OgObjectInteralSchema = z.object({
   alAndroidAppName: z.string().optional(),
   alAndroidClass: z.string().optional(),
   alAndroidPackage: z.string().optional(),

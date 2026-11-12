@@ -36,7 +36,7 @@ export const spartaSubmissionQuery = () =>
         null) as InternshipSubmission | null,
   });
 
-export type SpartaWriteOutcome =
+type SpartaWriteOutcome =
   | 'ok'
   | 'closed' // 403: outside the window
   | 'locked' // 409: sent before

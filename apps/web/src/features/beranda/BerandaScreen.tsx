@@ -94,7 +94,7 @@ import {
 } from './rules';
 import './beranda.css';
 
-export interface BerandaSearch {
+interface BerandaSearch {
   hari?: string;
   acara?: string;
 }

@@ -104,7 +104,7 @@ export const useGroups = () =>
   });
 
 /** Change one post wherever it is cached: every feed page and its detail. */
-export function patchInfo(qc: QueryClient, id: string, fn: (i: Info) => Info) {
+function patchInfo(qc: QueryClient, id: string, fn: (i: Info) => Info) {
   qc.setQueriesData<Feed>({ queryKey: [INFO_LIST_QUERY_KEY] }, (data) =>
     data && Array.isArray(data.pages)
       ? {
@@ -117,7 +117,7 @@ export function patchInfo(qc: QueryClient, id: string, fn: (i: Info) => Info) {
 }
 
 /** Take a deleted post out of every feed, the count and its detail. */
-export function dropInfo(qc: QueryClient, id: string) {
+function dropInfo(qc: QueryClient, id: string) {
   qc.setQueriesData<Feed>({ queryKey: [INFO_LIST_QUERY_KEY] }, (data) =>
     data && Array.isArray(data.pages)
       ? { ...data, pages: data.pages.map((p) => p.filter((i) => i.id !== id)) }
@@ -189,7 +189,7 @@ export function useMarkAllRead() {
   });
 }
 
-export type ReactTarget =
+type ReactTarget =
   | { kind: 'info'; infoId: string }
   | { kind: 'comment'; infoId: string; commentId: string };
 

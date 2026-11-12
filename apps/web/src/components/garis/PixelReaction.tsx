@@ -5,7 +5,7 @@ import {
   type PixelReactionKey,
 } from './pixel-art';
 
-export interface PixelReactionProps {
+interface PixelReactionProps {
   reaction: PixelReactionKey;
   /** Size in px (the art is 10 × 10, drawn crisp at any size). */
   size?: number;

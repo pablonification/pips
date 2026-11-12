@@ -7,7 +7,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import { canonicalView, type FeedView } from './rules';
 
-export const LAYOUT_ID = '/_app/_left-navbar/pengumuman' as const;
+const LAYOUT_ID = '/_app/_left-navbar/pengumuman' as const;
 
 /** The view as links carry it, so the post and the composer keep it. */
 export type FeedSearch = FeedView;
@@ -98,4 +98,4 @@ export function focusSoon(
 }
 
 /** How long focusSoon keeps an element in focus while the page settles. */
-export const FOCUS_WINDOW_MS = 1500;
+const FOCUS_WINDOW_MS = 1500;

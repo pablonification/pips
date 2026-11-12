@@ -3,7 +3,7 @@
  * Pure: the browser facts come in as arguments, so the rules are unit-tested (tests/push-state.test.ts).
  */
 
-export interface PlatformFacts {
+interface PlatformFacts {
   userAgent: string;
   /** `navigator.platform`: iPadOS 13+ reports MacIntel with touch. */
   platform?: string;

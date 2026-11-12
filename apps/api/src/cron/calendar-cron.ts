@@ -22,14 +22,14 @@ const DAY_MS = 24 * 60 * MINUTE_MS;
  */
 export const REMINDER_CATCH_UP_MS = 6 * 60 * MINUTE_MS;
 
-export interface ReminderCourse {
+interface ReminderCourse {
   id: string;
   code: string;
   name: string;
   userCourses: Array<{ userId: string }>;
 }
 
-export interface Reminder {
+interface Reminder {
   subscriptions: PushSubscription[];
   data: PushData;
 }
@@ -39,7 +39,7 @@ export interface Reminder {
  * it this semester who haven't muted Akademik, any other event to everyone with notifications on. A student with no
  * device subscribed is skipped, not an error that would stop the rest of the minute's reminders.
  */
-export function buildReminders(input: {
+function buildReminders(input: {
   events: CalendarEvent[];
   courses: ReminderCourse[];
   subscriptions: PushSubscription[];
@@ -86,7 +86,7 @@ export function buildReminders(input: {
   return reminders;
 }
 
-export interface ReminderDeps {
+interface ReminderDeps {
   now: () => number;
   /** Events starting from `from` (included) until `until` (excluded). */
   readEvents: (from: Date, until: Date) => Promise<CalendarEvent[]>;
@@ -160,7 +160,7 @@ export function createReminderRun(deps: ReminderDeps) {
   };
 }
 
-export const runReminders = createReminderRun({
+const runReminders = createReminderRun({
   now: () => Date.now(),
   readEvents: async (from, until) =>
     await getCalendarEventsStartingBetween(db, from, until),

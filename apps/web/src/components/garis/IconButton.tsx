@@ -2,7 +2,7 @@ import { Slot } from '@radix-ui/react-slot';
 import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
 import { cn } from '~/lib/utils';
 
-export interface IconButtonProps extends Omit<
+interface IconButtonProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'aria-label' | 'children'
 > {

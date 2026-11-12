@@ -8,7 +8,7 @@ import { IconButton } from './IconButton';
 import { common } from '~/copy/common';
 import { DESKTOP_QUERY, useMediaQuery } from './useMediaQuery';
 
-export interface OverlayProps {
+interface OverlayProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Required: the overlay's heading and accessible name. */
@@ -141,7 +141,7 @@ export function Modal(props: OverlayProps) {
   return <Shell kind={desktop ? 'dialog' : 'sheet'} {...props} />;
 }
 
-export interface ConfirmProps extends Omit<
+interface ConfirmProps extends Omit<
   OverlayProps,
   'footer' | 'role' | 'children'
 > {

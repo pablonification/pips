@@ -12,13 +12,13 @@ import {
  * How long an upload may go without progress. A big file on weak wifi can take minutes, so the limit is on silence,
  * not on the whole upload: any bytes sent (or the answer arriving) start it again.
  */
-export const UPLOAD_STALL_MS = 30_000;
+const UPLOAD_STALL_MS = 30_000;
 
 /**
  * PUTs a file to a storage address with progress. It fails when the storage answers an error, the connection drops,
  * `signal` aborts it, or nothing moves for `stallMs`.
  */
-export function putFile(
+function putFile(
   url: string,
   file: File,
   options: {

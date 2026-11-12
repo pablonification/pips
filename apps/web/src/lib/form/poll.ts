@@ -7,7 +7,7 @@ export const POLL_EVERY_MS = 3000;
 export const POLL_JITTER_MS = 1000;
 export const POLL_FOR_MS = 120_000;
 
-export type OpeningStep =
+type OpeningStep =
   /** Still counting down: check again at `at` (the opening time). */
   | { kind: 'wait'; at: number }
   /** Ask the server now, then again after `delay`. */

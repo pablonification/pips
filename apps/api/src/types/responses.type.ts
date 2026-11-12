@@ -1,8 +1,6 @@
 import { createRoute, z } from '@hono/zod-openapi';
 
-export type ResponseItem = Parameters<
-  typeof createRoute
->[0]['responses'][string];
+type ResponseItem = Parameters<typeof createRoute>[0]['responses'][string];
 
 export const ValidationErrorSchema = z
   .object({
@@ -51,12 +49,3 @@ export const ServerErrorSchema = z
     error: z.string(),
   })
   .openapi('Internal Server Error');
-
-export const serverErrorResponse = {
-  content: {
-    'application/json': {
-      schema: ServerErrorSchema,
-    },
-  },
-  description: 'Something went wrong!',
-} as const satisfies ResponseItem;

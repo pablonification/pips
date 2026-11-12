@@ -188,7 +188,7 @@ export async function createInfo(
   });
 }
 
-export const createInfoCategory = async (
+const createInfoCategory = async (
   db: Database,
   data: Array<InferInsertModel<typeof infoCategories>>,
 ) => {
@@ -199,28 +199,28 @@ export const createInfoCategory = async (
     .then(firstSure);
 };
 
-export const createInfoMedia = async (
+const createInfoMedia = async (
   db: Database,
   data: Array<Omit<InferInsertModel<typeof infoMedias>, 'createdAt'>>,
 ) => {
   return await db.insert(infoMedias).values(data).returning();
 };
 
-export const createInfoAngkatan = async (
+const createInfoAngkatan = async (
   db: Database,
   data: Array<InferInsertModel<typeof infoAngkatan>>,
 ) => {
   return await db.insert(infoAngkatan).values(data).returning();
 };
 
-export const createInfoCourses = async (
+const createInfoCourses = async (
   db: Database,
   data: Array<InferInsertModel<typeof infoCourses>>,
 ) => {
   return await db.insert(infoCourses).values(data).returning();
 };
 
-export const createInfoGroups = async (
+const createInfoGroups = async (
   db: Database,
   data: Array<InferInsertModel<typeof infoGroups>>,
 ) => {

@@ -14,7 +14,7 @@ export const COURSE_CATALOG_MANAGER_ROLES = [
   'admin',
 ] as const satisfies readonly UserRolesEnum[];
 
-export interface Actor {
+interface Actor {
   id: string;
   roles: readonly string[];
 }

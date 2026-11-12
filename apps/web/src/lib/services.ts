@@ -14,10 +14,10 @@ export const SERVICE_GROUPS = [
   'Administrasi',
   'Kelola',
 ] as const;
-export type ServiceGroup = (typeof SERVICE_GROUPS)[number];
+type ServiceGroup = (typeof SERVICE_GROUPS)[number];
 
 /** Keys of the Garis icon set; the icon components plug in by key. */
-export type ServiceIconKey =
+type ServiceIconKey =
   | 'folder'
   | 'testi'
   | 'nim'
@@ -33,7 +33,7 @@ export type ServiceIconKey =
   | 'kalender';
 
 /** A path in the app's route tree, checked by TypeScript. */
-export type AppPath = FileRouteTypes['to'];
+type AppPath = FileRouteTypes['to'];
 
 interface ServiceBase {
   id: string;

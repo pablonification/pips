@@ -10,9 +10,7 @@ import { isFileStoreUrl } from '~/lib/media-url';
 import { addHours } from './calendar.types';
 import { MediaSchema } from './media.types';
 
-export const CompetitionMediaSchema = createSelectSchema(
-  competitionMedias,
-).extend({
+const CompetitionMediaSchema = createSelectSchema(competitionMedias).extend({
   media: MediaSchema,
 });
 

@@ -21,7 +21,7 @@ import {
 } from '~/lib/upload-policy';
 import type { PosterUpload } from './rules';
 
-export interface PosterFieldProps {
+interface PosterFieldProps {
   id: string;
   /** The stored or uploaded poster's address; null for none. */
   poster: string | null;

@@ -8,7 +8,7 @@ import {
   type ThemePreference,
 } from './theme';
 
-export interface ThemeState {
+interface ThemeState {
   /** What the member chose: system (default), light or dark. */
   preference: ThemePreference;
   /** The theme on screen now. */

@@ -1,5 +1,5 @@
 /** A promise that never settled within its time limit. */
-export class TimeLimitError extends Error {
+class TimeLimitError extends Error {
   constructor(readonly ms: number) {
     super(`No answer within ${ms} ms`);
     this.name = 'TimeLimitError';

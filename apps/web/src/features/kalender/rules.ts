@@ -65,9 +65,6 @@ export function coursesById(
   return out;
 }
 
-export const courseOf = (e: CalEvent, courses: ReadonlyMap<string, Course>) =>
-  e.courseId ? courses.get(e.courseId) : undefined;
-
 /** A row's second line: "IF2123 Aljabar Linier dan Geometri", or "Acara Himpunan". */
 export function courseLine(e: CalEvent, course: Course | undefined): string {
   if (course) return `${course.code} ${course.name}`;
@@ -212,16 +209,6 @@ export function monthChangeDay(view: Month, now: number): DayKey {
   const today = dayKeyOf(now);
   return sameMonth(view, monthOf(today)) ? today : dayInMonth(view, 1);
 }
-
-export type GridKey =
-  | 'ArrowLeft'
-  | 'ArrowRight'
-  | 'ArrowUp'
-  | 'ArrowDown'
-  | 'Home'
-  | 'End'
-  | 'PageUp'
-  | 'PageDown';
 
 /**
  * Where focus goes in the month grid: arrows a day or a week, Home and End the week's Monday and Sunday, Page Up and

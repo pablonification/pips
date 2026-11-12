@@ -80,7 +80,7 @@ export async function getWelfareChatrooms(db: Database, userId: string) {
   return processChatrooms(crms, pinned);
 }
 
-export interface NewChatroomMessage {
+interface NewChatroomMessage {
   userId: string;
   chatroomId: string;
   content: string;

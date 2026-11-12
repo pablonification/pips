@@ -1,6 +1,6 @@
 import type { UserWithRoles } from '~/api/generated';
 
-export type Role = UserWithRoles['roles'][number];
+type Role = UserWithRoles['roles'][number];
 
 /**
  * What each role may do, mirroring the server's checks. Every pengurus action

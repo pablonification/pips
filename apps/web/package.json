@@ -8,7 +8,7 @@
     "api-staging": "openapi --input https://api.app-staging.hmif.dev/doc --output src/api/generated --indent 2 --useUnionTypes --useOptions --name ApiClient",
     "dev": "vite",
     "build": "tsc && vite build && node delete-sourcemap.js",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "lint:debug": "eslint ./src --debug",
     "lint:fix": "eslint ./src --fix",
     "preview": "vite preview",

@@ -6,7 +6,7 @@ import { Button } from './Button';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
 
-export interface EmptyStateProps {
+interface EmptyStateProps {
   /** What will appear here ("Belum ada form untukmu"). */
   title: ReactNode;
   /** When or how it will appear, or the next step. */
@@ -32,7 +32,7 @@ export function EmptyState({
   );
 }
 
-export interface ErrorStateProps {
+interface ErrorStateProps {
   /** What happened, in Indonesian, without raw API text ("Pengumuman gagal dimuat"). */
   title?: ReactNode;
   /** The cause and the fix, when known. */
@@ -75,7 +75,7 @@ export function ErrorState({
   );
 }
 
-export interface OfflineBannerProps {
+interface OfflineBannerProps {
   /** When the data on screen was last updated, as "07.45" (WIB, the app's time format); left out when unknown. */
   updatedAt?: string;
   className?: string;
@@ -95,7 +95,7 @@ export function OfflineBanner({ updatedAt, className }: OfflineBannerProps) {
   );
 }
 
-export interface SkeletonProps {
+interface SkeletonProps {
   /** Names what is loading ("Memuat pengumuman…"). */
   label?: string;
   className?: string;
