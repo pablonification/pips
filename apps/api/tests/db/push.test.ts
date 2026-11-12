@@ -40,6 +40,7 @@ async function cleanUp() {
   await db
     .delete(schema.pushSubscriptions)
     .where(like(schema.pushSubscriptions.endpoint, '%/ps-%'));
+  await db.delete(schema.chatrooms).where(like(schema.chatrooms.id, 'ps-%'));
   await db.delete(schema.users).where(
     inArray(
       schema.users.id,
@@ -144,4 +145,85 @@ test("a member keeps at most 20 devices: a 21st replaces that member's oldest", 
   assert.equal(after.length, 20);
   assert.ok(after.includes(endpoint('ps-nadia', 1)));
   assert.ok(!after.includes(endpoint('ps-nadia', 2)));
+});
+
+test('a Curhat push reaches the owner and Welfare with no text, and forgets the devices the push service says are gone', async () => {
+  const { sendCurhatNotification } = await import('../../src/websocket/setup');
+  const webpush = (await import('web-push')).default;
+  const keys = { p256dh: 'p', auth: 'a' };
+  await db.insert(schema.chatrooms).values({
+    id: 'ps-room',
+    userId: 'ps-nadia',
+    title: 'Contoh judul ruang',
+  });
+  await db
+    .insert(schema.userRoles)
+    .values({ userId: 'ps-raka', role: 'curhatadmin' });
+  await db.insert(schema.pushSubscriptions).values([
+    { endpoint: endpoint('ps-nadia', 90), userId: 'ps-nadia', keys },
+    { endpoint: endpoint('ps-raka', 90), userId: 'ps-raka', keys },
+    { endpoint: endpoint('ps-raka', 91), userId: 'ps-raka', keys },
+  ]);
+  const gone = endpoint('ps-raka', 91);
+  const sent: Array<{ endpoints: string[]; push: unknown }> = [];
+  const send = (async (subscriptions, push) => {
+    // This test's devices only: the earlier test left others for the same members.
+    const ours = subscriptions.filter((s) =>
+      /\/ps-[a-z]+-9\d$/.test(s.endpoint),
+    );
+    sent.push({ endpoints: ours.map((s) => s.endpoint).sort(), push });
+    return ours.map((s) =>
+      s.endpoint === gone
+        ? {
+            status: 'fulfilled' as const,
+            value: {
+              success: false as const,
+              error: new webpush.WebPushError('Gone', 410, {}, '', gone),
+              endpoint: gone,
+            },
+          }
+        : {
+            status: 'fulfilled' as const,
+            value: {
+              success: true as const,
+              result: { statusCode: 201, body: '', headers: {} },
+            },
+          },
+    );
+  }) as typeof import('../../src/lib/push-manager').sendNotificationToAll;
+
+  await sendCurhatNotification(
+    db,
+    { chatroomId: 'ps-room', senderId: 'ps-nadia' },
+    send,
+  );
+  assert.deepEqual(sent, [
+    {
+      endpoints: [endpoint('ps-raka', 90), gone],
+      push: {
+        title: 'Pesan baru di Curhat Yuk!',
+        options: { data: { url: '/kelola/curhat/ps-room' } },
+      },
+    },
+  ]);
+  const raka = await devicesOf('ps-raka');
+  assert.ok(raka.includes(endpoint('ps-raka', 90)), 'a working device stays');
+  assert.ok(!raka.includes(gone), 'a gone device is forgotten');
+
+  sent.length = 0;
+  await sendCurhatNotification(
+    db,
+    { chatroomId: 'ps-room', senderId: 'ps-raka' },
+    send,
+  );
+  assert.deepEqual(sent, [
+    {
+      endpoints: [endpoint('ps-nadia', 90)],
+      push: {
+        title: 'Pesan baru di Curhat Yuk!',
+        options: { data: { url: '/layanan/curhat/ps-room' } },
+      },
+    },
+  ]);
+  assert.ok(!JSON.stringify(sent).includes('Contoh judul ruang'));
 });

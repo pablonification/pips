@@ -2,7 +2,7 @@ import { ServerType } from '@hono/node-server';
 import * as Sentry from '@sentry/node';
 import { Server, type ServerOptions } from 'socket.io';
 import { env } from '~/configs/env.config';
-import { db } from '~/db/drizzle';
+import { db, type Database } from '~/db/drizzle';
 import { CURHAT_ADMIN_ROLE, curhatPushes } from '~/lib/curhat';
 import { RATE_LIMITS, RATE_WINDOW_MS } from '~/lib/limits';
 import { isAllowedOrigin } from '~/lib/origin';
@@ -91,7 +91,9 @@ export default function setupWebsocket(httpServer: ServerType) {
         getMessage: async (messageId) =>
           await getChatroomMessageById(db, messageId),
         saveMessage: async (message) => await saveMessage(db, message),
-        notifyParticipants: sendNotification,
+        notifyParticipants: async (msg) => {
+          await sendCurhatNotification(db, msg);
+        },
         messageLimiter: createRateLimiter({
           limit: RATE_LIMITS.curhatMessages,
           windowMs: RATE_WINDOW_MS,
@@ -106,10 +108,14 @@ export default function setupWebsocket(httpServer: ServerType) {
  * Pushes a new message's other participants (`curhatPushes`), then forgets the devices the push service says are
  * gone.
  */
-async function sendNotification(msg: { chatroomId: string; senderId: string }) {
+export async function sendCurhatNotification(
+  database: Database,
+  msg: { chatroomId: string; senderId: string },
+  send: typeof sendNotificationToAll = sendNotificationToAll,
+) {
   const [room, welfare] = await Promise.all([
-    getChatroomOwner(db, msg.chatroomId),
-    getUsersByRole(db, CURHAT_ADMIN_ROLE),
+    getChatroomOwner(database, msg.chatroomId),
+    getUsersByRole(database, CURHAT_ADMIN_ROLE),
   ]);
   if (!room) return;
   for (const { userIds, push } of curhatPushes({
@@ -117,9 +123,12 @@ async function sendNotification(msg: { chatroomId: string; senderId: string }) {
     welfareIds: welfare.map((u) => u.id),
     senderId: msg.senderId,
   })) {
-    const subscriptions = await getPushSubscriptionsByUserIds(db, userIds);
+    const subscriptions = await getPushSubscriptionsByUserIds(
+      database,
+      userIds,
+    );
     if (subscriptions.length === 0) continue;
-    const results = await sendNotificationToAll(subscriptions, push);
-    await removeFailedPushSubscriptions(db, results);
+    const results = await send(subscriptions, push);
+    await removeFailedPushSubscriptions(database, results);
   }
 }
