@@ -273,7 +273,9 @@ test.describe('no preference', () => {
     });
   });
 
-  test('overlays open in their set times and close faster', async ({ page }) => {
+  test('overlays open in their set times and close faster', async ({
+    page,
+  }) => {
     await page.goto('/profil');
     // The member card sweeps its sheen once on arrival (1.1 s); let it end, so only the overlay is timed.
     await page.waitForFunction(

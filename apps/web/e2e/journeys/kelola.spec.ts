@@ -756,7 +756,7 @@ test.describe('Live Counting', () => {
 // ---------------------------------------------------------------- Export
 
 test.describe('Export CSV', () => {
-  test("every response, the file, WIB times; Mengekspor… and one request set for a double press", async ({
+  test('every response, the file, WIB times; Mengekspor… and one request set for a double press', async ({
     page,
     api,
   }) => {
@@ -909,9 +909,7 @@ test.describe('Rekap Form', () => {
     await strictGates(page, testInfo, 'rekap-empty', lit(testInfo));
   });
 
-  test('a page past the last goes to the last page', async ({
-    page,
-  }) => {
+  test('a page past the last goes to the last page', async ({ page }) => {
     await page.goto('/kelola/live/pixel/rekap?halaman=99');
     await expect(page).toHaveURL(/halaman=8$/);
     await expect(main(page).getByText('8 / 8')).toBeVisible();

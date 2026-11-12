@@ -327,7 +327,7 @@ test.describe('screens inside the shell', () => {
     page,
   }) => {
     await page.goto('/layanan/curhat');
-        const button = page.getByRole('button', { name: 'Mulai ruang baru' });
+    const button = page.getByRole('button', { name: 'Mulai ruang baru' });
     await expect(button).toBeVisible();
     const b = (await button.boundingBox())!;
     const bar = (await page.locator('.g-tabbar').boundingBox())!;
