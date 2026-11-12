@@ -21,6 +21,8 @@ export const RATE_LIMITS = {
   writes: 300,
   /** Link previews (each fetches a page elsewhere), per member. */
   previews: 120,
+  /** NIM Finder searches, per member: each returns up to 30 members, so the list can't be copied whole. */
+  nimSearches: 60,
   /** Curhat messages on the socket, per member (Welfare's replies too): each is saved and pushed. */
   curhatMessages: 30,
 };
