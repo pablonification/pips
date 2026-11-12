@@ -1,12 +1,28 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import test, { after } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { loadConfigFromFile } from 'vite';
 
+const configFile = fileURLToPath(new URL('../vite.config.ts', import.meta.url));
+// The config reads .env files from the working directory. An empty one keeps a developer's own untracked
+// .env.*.local files out of what these tests check.
+const emptyDir = mkdtempSync(path.join(tmpdir(), 'dev-api-origin-'));
+const startDir = process.cwd();
+process.chdir(emptyDir);
+after(() => {
+  process.chdir(startDir);
+  rmSync(emptyDir, { recursive: true, force: true });
+});
+
 async function proxy() {
-  const { config } = await loadConfigFromFile({
-    mode: 'development',
-    command: 'serve',
-  });
+  const { config } = await loadConfigFromFile(
+    { mode: 'development', command: 'serve' },
+    configFile,
+    emptyDir,
+  );
   return config.server.proxy;
 }
 
@@ -41,10 +57,11 @@ test('the dev server proxies the API to 127.0.0.1:5000 by default, or to DEV_API
 test('DEV_API_ORIGIN never reaches the bundle', async () => {
   process.env.DEV_API_ORIGIN = 'http://127.0.0.1:5100';
   try {
-    const { config } = await loadConfigFromFile({
-      mode: 'production',
-      command: 'build',
-    });
+    const { config } = await loadConfigFromFile(
+      { mode: 'production', command: 'build' },
+      configFile,
+      emptyDir,
+    );
     assert.equal(JSON.stringify(config.define).includes('5100'), false);
     assert.equal(config.envPrefix, undefined);
   } finally {
