@@ -54,7 +54,7 @@ reactionRouter.openapi(getReactionsRoute, async (c) => {
     db,
     q.commentId
       ? { commentIds: [q.commentId] }
-      : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- one of the two ids is set: checked at the top
         { infoIds: [q.infoId!] },
     c.var.user.id,
   );

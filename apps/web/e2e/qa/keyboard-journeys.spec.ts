@@ -33,7 +33,7 @@ async function tabTo(page: Page, target: Locator, back = false) {
 const main = (page: Page) => page.getByRole('main');
 
 // Playwright reads the fixtures from an object pattern, so it stays, empty.
-// eslint-disable-next-line no-empty-pattern
+// eslint-disable-next-line no-empty-pattern -- Playwright reads which fixtures a test wants from this pattern: none
 test.beforeEach(({}, testInfo) => {
   test.skip(
     !LAYOUTS.test(testInfo.project.name),
