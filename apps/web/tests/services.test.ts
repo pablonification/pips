@@ -43,7 +43,7 @@ test("members' names, exactly as they know them", () => {
   }
 });
 
-test("Layanan for Nadia, group by group and in order", () => {
+test('Layanan for Nadia, group by group and in order', () => {
   assert.deepEqual(
     servicesByGroup(nadia, NOW).map((g) => [
       g.group,
