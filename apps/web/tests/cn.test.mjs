@@ -34,10 +34,7 @@ const OWN =
   /^(g-[\w-]+|t-[\w-]+|disp|num|code|strong|s\d+|glyph|sm|lg|round|full|wide|square|in-text|center|radio|dialog|urgent|me|them|unread|read|desk|many|draw|today|lap|gold|out|point|himpunan|akademik|past|z|block|sheet|default)$/;
 
 test('cn joins and drops empty values, merging nothing', () => {
-  assert.equal(
-    cn('g-btn', false, 'gold', undefined, 'w-full'),
-    'g-btn gold w-full',
-  );
+  assert.equal(cn('g-btn', false, 'gold', undefined, 'w-full'), 'g-btn gold w-full');
   assert.equal(cn('text-fg-2', 'text-fg-3'), 'text-fg-2 text-fg-3');
 });
 

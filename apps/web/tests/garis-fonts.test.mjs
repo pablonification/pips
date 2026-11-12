@@ -25,16 +25,10 @@ test('fonts.css declares both faces from /fonts/ with font-display, plus metric-
   const faces = [...css.matchAll(/@font-face\s*{([^}]*)}/g)].map((m) => m[1]);
   const geist = faces.find((f) => /font-family: 'Geist';/.test(f));
   const archivo = faces.find((f) => /font-family: 'Archivo Expanded';/.test(f));
-  assert.match(
-    geist,
-    /url\('\/fonts\/geist-latin-400-600\.woff2'\) format\('woff2'\)/,
-  );
+  assert.match(geist, /url\('\/fonts\/geist-latin-400-600\.woff2'\) format\('woff2'\)/);
   assert.match(geist, /font-weight: 400 600/);
   assert.match(geist, /font-display: swap/);
-  assert.match(
-    archivo,
-    /url\('\/fonts\/archivo-expanded-700-latin\.woff2'\) format\('woff2'\)/,
-  );
+  assert.match(archivo, /url\('\/fonts\/archivo-expanded-700-latin\.woff2'\) format\('woff2'\)/);
   assert.match(archivo, /font-weight: 700/);
   assert.match(archivo, /font-display: swap/);
   for (const fb of ['Geist Fallback', 'Archivo Expanded Fallback']) {
@@ -47,9 +41,7 @@ test('fonts.css declares both faces from /fonts/ with font-display, plus metric-
 
 test('index.html preloads Geist, the one preloaded font, and requests no third-party fonts', () => {
   const html = read('index.html').toString();
-  const preloads = [...html.matchAll(/<link[^>]*rel="preload"[^>]*>/g)].map(
-    (m) => m[0],
-  );
+  const preloads = [...html.matchAll(/<link[^>]*rel="preload"[^>]*>/g)].map((m) => m[0]);
   const fonts = preloads.filter((l) => /as="font"/.test(l));
   assert.equal(fonts.length, 1);
   assert.match(fonts[0], /href="\/fonts\/geist-latin-400-600\.woff2"/);
@@ -60,21 +52,11 @@ test('index.html preloads Geist, the one preloaded font, and requests no third-p
 
 test('no stylesheet in src loads a font from another origin, and no monospace face is shipped', () => {
   const walk = (d) =>
-    fs
-      .readdirSync(d, { withFileTypes: true })
-      .flatMap((e) =>
-        e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)],
-      );
-  const css = walk(path.join(appDir, 'src')).filter((f) => f.endsWith('.css'));
-  for (const f of css)
-    assert.doesNotMatch(
-      fs.readFileSync(f, 'utf8'),
-      /fonts\.(googleapis|gstatic)\.com/,
-      f,
+    fs.readdirSync(d, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)],
     );
+  const css = walk(path.join(appDir, 'src')).filter((f) => f.endsWith('.css'));
+  for (const f of css) assert.doesNotMatch(fs.readFileSync(f, 'utf8'), /fonts\.(googleapis|gstatic)\.com/, f);
   const files = fs.readdirSync(path.join(appDir, 'public/fonts'));
-  assert.deepEqual(files.sort(), [
-    'archivo-expanded-700-latin.woff2',
-    'geist-latin-400-600.woff2',
-  ]);
+  assert.deepEqual(files.sort(), ['archivo-expanded-700-latin.woff2', 'geist-latin-400-600.woff2']);
 });

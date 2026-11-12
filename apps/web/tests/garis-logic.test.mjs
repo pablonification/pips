@@ -1,26 +1,10 @@
 // Logic behind the Garis components: toast timing, the pixel reactions, the halftone and the theme rules.
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  createToastStore,
-  MAX_TOASTS,
-  SUCCESS_MS,
-  SUCCESS_WITH_ACTION_MS,
-  toastDuration,
-} from '../src/components/garis/toast-store.ts';
-import {
-  PIXEL_REACTION_KEYS,
-  PIXEL_REACTION_LABELS,
-  PIXEL_REACTIONS,
-  pixelRuns,
-} from '../src/components/garis/pixel-art.ts';
+import { createToastStore, MAX_TOASTS, SUCCESS_MS, SUCCESS_WITH_ACTION_MS, toastDuration } from '../src/components/garis/toast-store.ts';
+import { PIXEL_REACTION_KEYS, PIXEL_REACTION_LABELS, PIXEL_REACTIONS, pixelRuns } from '../src/components/garis/pixel-art.ts';
 import { halftoneSquares } from '../src/components/garis/halftone-geometry.ts';
-import {
-  parsePreference,
-  resolveTheme,
-  THEME_COLORS,
-  THEME_STORAGE_KEY,
-} from '../src/lib/theme/theme-core.mjs';
+import { parsePreference, resolveTheme, THEME_COLORS, THEME_STORAGE_KEY } from '../src/lib/theme/theme-core.mjs';
 
 /** Fake timers: run() fires everything due by `now`. */
 function clock() {
@@ -54,30 +38,23 @@ test('a success toast leaves after 5 s, not before; an error toast never leaves 
   store.success('Komentar terkirim.');
   store.error('Komentar gagal terkirim.');
   c.advance(4999);
-  assert.deepEqual(
-    store.get().map((t) => t.message),
-    ['Komentar terkirim.', 'Komentar gagal terkirim.'],
-  );
+  assert.deepEqual(store.get().map((t) => t.message), ['Komentar terkirim.', 'Komentar gagal terkirim.']);
   c.advance(1);
-  assert.deepEqual(
-    store.get().map((t) => t.message),
-    ['Komentar gagal terkirim.'],
-  );
+  assert.deepEqual(store.get().map((t) => t.message), ['Komentar gagal terkirim.']);
   c.advance(10 * 60_000);
   assert.equal(store.get().length, 1);
   store.dismiss(store.get()[0].id);
   assert.equal(store.get().length, 0);
 });
 
-test("the app's own timers call setTimeout as a plain function, as browsers require", () => {
+test('the app\'s own timers call setTimeout as a plain function, as browsers require', () => {
   // Browsers throw "Illegal invocation" when setTimeout runs as another object's method; Node doesn't, so the stand-ins
   // throw the same way. The store used to call `timers.set(...)` with `set: setTimeout`, and every success toast threw.
   const real = { set: globalThis.setTimeout, clear: globalThis.clearTimeout };
   const calls = [];
   const strict = (name) =>
     function (...args) {
-      if (this !== undefined && this !== globalThis)
-        throw new TypeError('Illegal invocation');
+      if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
       calls.push(name);
       return name === 'set' ? real.set(...args) : real.clear(...args);
     };
@@ -100,10 +77,7 @@ test('at most three toasts: the oldest success leaves first, errors are kept', (
   store.error('E');
   for (const m of ['A', 'B', 'C']) store.success(m);
   assert.equal(store.get().length, MAX_TOASTS);
-  assert.deepEqual(
-    store.get().map((t) => t.message),
-    ['E', 'B', 'C'],
-  );
+  assert.deepEqual(store.get().map((t) => t.message), ['E', 'B', 'C']);
 });
 
 // With three errors showing, a new success must not remove itself at once, and a fourth error must not evict
@@ -112,17 +86,11 @@ test('errors are never evicted: a new success still shows next to three errors, 
   const store = createToastStore(clock().timers);
   for (const m of ['E1', 'E2', 'E3']) store.error(m);
   store.success('S');
-  assert.deepEqual(
-    store.get().map((t) => t.message),
-    ['E1', 'E2', 'E3', 'S'],
-  );
+  assert.deepEqual(store.get().map((t) => t.message), ['E1', 'E2', 'E3', 'S']);
 
   const errors = createToastStore(clock().timers);
   for (const m of ['E1', 'E2', 'E3', 'E4']) errors.error(m);
-  assert.deepEqual(
-    errors.get().map((t) => t.message),
-    ['E1', 'E2', 'E3', 'E4'],
-  );
+  assert.deepEqual(errors.get().map((t) => t.message), ['E1', 'E2', 'E3', 'E4']);
 });
 
 test('a new toast makes room by removing the oldest older success, never itself', () => {
@@ -131,16 +99,10 @@ test('a new toast makes room by removing the oldest older success, never itself'
   store.error('E1');
   store.error('E2');
   store.error('E3');
-  assert.deepEqual(
-    store.get().map((t) => t.message),
-    ['E1', 'E2', 'E3'],
-  );
+  assert.deepEqual(store.get().map((t) => t.message), ['E1', 'E2', 'E3']);
   store.success('B');
   store.success('C');
-  assert.deepEqual(
-    store.get().map((t) => t.message),
-    ['E1', 'E2', 'E3', 'C'],
-  );
+  assert.deepEqual(store.get().map((t) => t.message), ['E1', 'E2', 'E3', 'C']);
 });
 
 test('subscribers hear every change', () => {
@@ -155,26 +117,11 @@ test('subscribers hear every change', () => {
 });
 
 test('the six pixel reactions are 10 × 10, named as the app names them', () => {
-  assert.deepEqual(PIXEL_REACTION_KEYS, [
-    'grin',
-    'heart-eyes',
-    'fire',
-    'cry',
-    'screaming',
-    'party',
-  ]);
-  assert.deepEqual(Object.values(PIXEL_REACTION_LABELS), [
-    'Senyum lebar',
-    'Suka banget',
-    'Keren',
-    'Sedih',
-    'Kaget',
-    'Rayakan',
-  ]);
+  assert.deepEqual(PIXEL_REACTION_KEYS, ['grin', 'heart-eyes', 'fire', 'cry', 'screaming', 'party']);
+  assert.deepEqual(Object.values(PIXEL_REACTION_LABELS), ['Senyum lebar', 'Suka banget', 'Keren', 'Sedih', 'Kaget', 'Rayakan']);
   for (const k of PIXEL_REACTION_KEYS) {
     assert.equal(PIXEL_REACTIONS[k].length, 10, k);
-    for (const row of PIXEL_REACTIONS[k])
-      assert.match(row, /^[.#owrclb]{10}$/, k);
+    for (const row of PIXEL_REACTIONS[k]) assert.match(row, /^[.#owrclb]{10}$/, k);
   }
 });
 
@@ -182,18 +129,11 @@ test('pixel runs cover every non-empty pixel exactly once, with the rim as class
   for (const k of PIXEL_REACTION_KEYS) {
     const filled = PIXEL_REACTIONS[k].join('').replace(/\./g, '').length;
     const runs = pixelRuns(k);
-    assert.equal(
-      runs.reduce((n, r) => n + r.width, 0),
-      filled,
-      k,
-    );
+    assert.equal(runs.reduce((n, r) => n + r.width, 0), filled, k);
     for (const r of runs) {
       const ch = PIXEL_REACTIONS[k][r.y][r.x];
       assert.equal(r.colour, ch === '#' ? 'k' : ch, k);
-      assert.equal(
-        PIXEL_REACTIONS[k][r.y].slice(r.x, r.x + r.width),
-        ch.repeat(r.width),
-      );
+      assert.equal(PIXEL_REACTIONS[k][r.y].slice(r.x, r.x + r.width), ch.repeat(r.width));
     }
   }
 });

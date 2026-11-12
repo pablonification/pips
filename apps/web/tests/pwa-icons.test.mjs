@@ -8,8 +8,7 @@ import { PNG } from 'pngjs';
 
 const appDir = path.resolve(import.meta.dirname, '..');
 const read = (f) => fs.readFileSync(path.join(appDir, f), 'utf8');
-const png = (f) =>
-  PNG.sync.read(fs.readFileSync(path.join(appDir, 'public', f)));
+const png = (f) => PNG.sync.read(fs.readFileSync(path.join(appDir, 'public', f)));
 const INK = [0x1b, 0x15, 0x08];
 
 test('the manifest: the light app background as theme colour, ink behind the splash, the icons it names exist', () => {
@@ -18,14 +17,10 @@ test('the manifest: the light app background as theme colour, ink behind the spl
   assert.match(vite, /background_color: '#1B1508'/);
   assert.match(read('src/styles/garis/tokens.css'), /--bg-app: #fcfbf8;/);
   assert.match(read('src/styles/garis/tokens.css'), /--ink: #1b1508;/);
-  for (const [, src] of vite.matchAll(/src: '\/(android-chrome[^']+)'/g))
-    assert.ok(fs.existsSync(path.join(appDir, 'public', src)), src);
+  for (const [, src] of vite.matchAll(/src: '\/(android-chrome[^']+)'/g)) assert.ok(fs.existsSync(path.join(appDir, 'public', src)), src);
   // Fonts are precached; no Google Fonts are cached at run time (the fonts are self-hosted).
   assert.match(vite, /globPatterns: \[[^\]]*woff2/);
-  assert.doesNotMatch(
-    read('src/sw.ts'),
-    /registerRoute\([^)]*fonts\.(googleapis|gstatic)/,
-  );
+  assert.doesNotMatch(read('src/sw.ts'), /registerRoute\([^)]*fonts\.(googleapis|gstatic)/);
 });
 
 test('the page is called PIPS!, and no redrawn logo is linked', () => {
@@ -33,10 +28,7 @@ test('the page is called PIPS!, and no redrawn logo is linked', () => {
   assert.match(html, /<title>PIPS!<\/title>/);
   assert.doesNotMatch(html, /HMIF App|safari-pinned-tab|mask-icon/);
   assert.ok(!fs.existsSync(path.join(appDir, 'public/safari-pinned-tab.svg')));
-  assert.match(
-    read('src/sw.ts'),
-    /icon: '\/push-icon-192x192\.png',\s+badge: '\/push-badge-96x96\.png'/,
-  );
+  assert.match(read('src/sw.ts'), /icon: '\/push-icon-192x192\.png',\s+badge: '\/push-badge-96x96\.png'/);
 });
 
 test('every icon is square, ink at the edges, with the logo whole in the middle', () => {
@@ -57,32 +49,16 @@ test('every icon is square, ink at the edges, with the logo whole in the middle'
     const img = png(f);
     assert.equal(img.width, size, f);
     assert.equal(img.height, size, f);
-    const at = (x, y) => [
-      ...img.data.slice((y * size + x) * 4, (y * size + x) * 4 + 3),
-    ];
-    for (const [x, y] of [
-      [0, 0],
-      [size - 1, 0],
-      [0, size - 1],
-      [size - 1, size - 1],
-    ])
-      assert.deepEqual(at(x, y), INK, `${f} corner`);
+    const at = (x, y) => [...img.data.slice((y * size + x) * 4, (y * size + x) * 4 + 3)];
+    for (const [x, y] of [[0, 0], [size - 1, 0], [0, size - 1], [size - 1, size - 1]]) assert.deepEqual(at(x, y), INK, `${f} corner`);
     if (size < 96) continue;
     // The logo keeps its 800 × 533 shape: the non-ink box around the centre is 3:2.
     let [x0, y0, x1, y1] = [size, size, 0, 0];
     for (let y = 0; y < size; y++)
       for (let x = 0; x < size; x++) {
         const p = at(x, y);
-        if (
-          Math.abs(p[0] - INK[0]) +
-            Math.abs(p[1] - INK[1]) +
-            Math.abs(p[2] - INK[2]) >
-          24
-        ) {
-          x0 = Math.min(x0, x);
-          y0 = Math.min(y0, y);
-          x1 = Math.max(x1, x);
-          y1 = Math.max(y1, y);
+        if (Math.abs(p[0] - INK[0]) + Math.abs(p[1] - INK[1]) + Math.abs(p[2] - INK[2]) > 24) {
+          x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
         }
       }
     const ratio = (x1 - x0 + 1) / (y1 - y0 + 1);
@@ -126,8 +102,7 @@ function weights(from, to) {
     const min = Math.max(Math.trunc(center - support + 0.5), 0);
     const max = Math.min(Math.trunc(center + support + 0.5), from);
     const k = [];
-    for (let x = min; x < max; x++)
-      k.push(lanczos((x - center + 0.5) / filterscale));
+    for (let x = min; x < max; x++) k.push(lanczos((x - center + 0.5) / filterscale));
     const sum = k.reduce((a, b) => a + b, 0);
     return { min, k: k.map((w) => w / sum) };
   });
@@ -148,23 +123,16 @@ function logoOnInk(logo, width, height) {
     for (let x = 0; x < width; x++)
       for (let c = 0; c < 4; c++) {
         let v = 0;
-        wx[x].k.forEach(
-          (w, j) => (v += w * pre[(y * logo.width + wx[x].min + j) * 4 + c]),
-        );
+        wx[x].k.forEach((w, j) => (v += w * pre[(y * logo.width + wx[x].min + j) * 4 + c]));
         rows[(y * width + x) * 4 + c] = v;
       }
   const out = new Float64Array(width * height * 3);
   for (let y = 0; y < height; y++)
     for (let x = 0; x < width; x++) {
       const px = [0, 0, 0, 0];
-      for (let c = 0; c < 4; c++)
-        wy[y].k.forEach(
-          (w, j) => (px[c] += w * rows[((wy[y].min + j) * width + x) * 4 + c]),
-        );
+      for (let c = 0; c < 4; c++) wy[y].k.forEach((w, j) => (px[c] += w * rows[((wy[y].min + j) * width + x) * 4 + c]));
       const a = Math.min(1, Math.max(0, px[3] / 255));
-      for (let c = 0; c < 3; c++)
-        out[(y * width + x) * 3 + c] =
-          Math.min(255, Math.max(0, px[c])) + (1 - a) * INK[c];
+      for (let c = 0; c < 3; c++) out[(y * width + x) * 3 + c] = Math.min(255, Math.max(0, px[c])) + (1 - a) * INK[c];
     }
   return out;
 }
@@ -181,10 +149,7 @@ function logoDifference(icon, logo, share) {
   for (let y = 0; y < height; y++)
     for (let x = 0; x < width; x++)
       for (let c = 0; c < 3; c++)
-        sum += Math.abs(
-          icon.data[((top + y) * size + left + x) * 4 + c] -
-            want[(y * width + x) * 3 + c],
-        );
+        sum += Math.abs(icon.data[((top + y) * size + left + x) * 4 + c] - want[(y * width + x) * 3 + c]);
   return sum / (width * height * 3);
 }
 
@@ -192,10 +157,7 @@ test('every icon shows the official logo itself, unaltered: the same pixels as p
   const logo = png('logo/hmif.png');
   for (const [f, share] of Object.entries(SHARES)) {
     const diff = logoDifference(png(f), logo, share);
-    assert.ok(
-      diff < 1.5,
-      `${f}: differs from the official logo by ${diff.toFixed(2)} on average`,
-    );
+    assert.ok(diff < 1.5, `${f}: differs from the official logo by ${diff.toFixed(2)} on average`);
   }
 });
 
@@ -213,8 +175,6 @@ test('the comparison catches a recoloured or redrawn logo', () => {
   const mirrored = { ...icon, data: Buffer.from(icon.data) };
   for (let y = 0; y < 512; y++)
     for (let x = 0; x < 512; x++)
-      for (let c = 0; c < 4; c++)
-        mirrored.data[(y * 512 + x) * 4 + c] =
-          icon.data[(y * 512 + 511 - x) * 4 + c];
+      for (let c = 0; c < 4; c++) mirrored.data[(y * 512 + x) * 4 + c] = icon.data[(y * 512 + 511 - x) * 4 + c];
   assert.ok(logoDifference(mirrored, logo, 0.7) >= 1.5);
 });

@@ -7,18 +7,11 @@ import test from 'node:test';
 
 const appDir = path.resolve(import.meta.dirname, '..');
 const require = createRequire(import.meta.url);
-const { compile } = require(
-  createRequire(require.resolve('@tailwindcss/vite')).resolve(
-    '@tailwindcss/node',
-  ),
-);
+const { compile } = require(createRequire(require.resolve('@tailwindcss/vite')).resolve('@tailwindcss/node'));
 
 async function css(candidates) {
   const entry = path.join(appDir, 'src/index.css');
-  const compiler = await compile(fs.readFileSync(entry, 'utf8'), {
-    base: path.dirname(entry),
-    onDependency: () => {},
-  });
+  const compiler = await compile(fs.readFileSync(entry, 'utf8'), { base: path.dirname(entry), onDependency: () => {} });
   return compiler.build(candidates);
 }
 const escape = (c) => `.${c.replace(/[:/[\]().%]/g, (m) => `\\${m}`)}`;
@@ -28,23 +21,8 @@ function rule(output, cls) {
 }
 
 test('token utilities read the theme’s custom properties, so the theme swaps at run time', async () => {
-  const out = await css([
-    'bg-surface',
-    'bg-muted',
-    'bg-accent',
-    'text-fg',
-    'text-fg-2',
-    'text-accent',
-    'border-line',
-    'ring-focus',
-    'outline-focus',
-    'rounded-card',
-    'shadow-raised',
-  ]);
-  assert.match(
-    rule(out, 'bg-surface'),
-    /background-color: var\(--bg-surface\)/,
-  );
+  const out = await css(['bg-surface', 'bg-muted', 'bg-accent', 'text-fg', 'text-fg-2', 'text-accent', 'border-line', 'ring-focus', 'outline-focus', 'rounded-card', 'shadow-raised']);
+  assert.match(rule(out, 'bg-surface'), /background-color: var\(--bg-surface\)/);
   assert.match(rule(out, 'bg-muted'), /background-color: var\(--bg-muted\)/);
   assert.match(rule(out, 'bg-accent'), /background-color: var\(--bg-accent\)/);
   assert.match(rule(out, 'text-fg'), /color: var\(--text\)/);
@@ -69,35 +47,11 @@ test('backgrounds, text and lines are separate scales: a text token is not a bac
 // C1: Tailwind's own palette, font stacks, text sizes, radii and shadows are reset (src/index.css), so only the
 // Garis tokens exist; the old shadcn and Tailwind 3 classes went with tailwind.config.js.
 test('only the Garis tokens exist: Tailwind’s defaults and the old classes compile to nothing', async () => {
-  const gone = [
-    'bg-white',
-    'text-gray-500',
-    'bg-green-300',
-    'text-neutral-black',
-    'text-sm',
-    'text-xl',
-    'rounded-md',
-    'shadow-sm',
-    'font-sans',
-    'font-mono',
-    'font-inter',
-    'border-border',
-    'bg-background',
-    'bg-sc-accent',
-    'text-heading-md',
-    'text-body-xl',
-  ];
+  const gone = ['bg-white', 'text-gray-500', 'bg-green-300', 'text-neutral-black', 'text-sm', 'text-xl', 'rounded-md', 'shadow-sm', 'font-sans', 'font-mono', 'font-inter', 'border-border', 'bg-background', 'bg-sc-accent', 'text-heading-md', 'text-body-xl'];
   const out = await css(gone);
   for (const cls of gone) assert.equal(rule(out, cls), null, cls);
   // The token utilities in the same namespaces still compile.
-  const kept = await css([
-    'rounded-card',
-    'shadow-raised',
-    'bg-muted',
-    'text-fg-2',
-    'border-line',
-    'font-semibold',
-  ]);
+  const kept = await css(['rounded-card', 'shadow-raised', 'bg-muted', 'text-fg-2', 'border-line', 'font-semibold']);
   assert.match(rule(kept, 'rounded-card'), /border-radius: 12px/);
   assert.match(rule(kept, 'shadow-raised'), /var\(--shadow-raised\)/);
   assert.match(rule(kept, 'font-semibold'), /font-weight/);
@@ -106,62 +60,20 @@ test('only the Garis tokens exist: Tailwind’s defaults and the old classes com
 });
 
 test('the body takes the page’s colours from the tokens', () => {
-  const base = fs.readFileSync(
-    path.join(appDir, 'src/styles/garis/base.css'),
-    'utf8',
-  );
-  const body = base.slice(
-    base.indexOf('  body {'),
-    base.indexOf('}', base.indexOf('  body {')),
-  );
+  const base = fs.readFileSync(path.join(appDir, 'src/styles/garis/base.css'), 'utf8');
+  const body = base.slice(base.indexOf('  body {'), base.indexOf('}', base.indexOf('  body {')));
   assert.match(body, /background: var\(--bg-page\);/);
   assert.match(body, /color: var\(--text\);/);
 });
 
 test('the type styles compile to the design system’s sizes', async () => {
-  const out = await css([
-    't-display-l',
-    't-display',
-    't-title',
-    't-heading',
-    't-body-l',
-    't-body',
-    't-sub',
-    't-sm',
-    't-label',
-    't-cap',
-    't-micro',
-    't-figure',
-    't-figure-xl',
-    'disp',
-    'num',
-  ]);
-  const want = {
-    't-display-l': '32px',
-    't-display': '24px',
-    't-title': '20px',
-    't-heading': '17px',
-    't-body-l': '16px',
-    't-body': '15px',
-    't-sub': '15px',
-    't-sm': '14px',
-    't-label': '14px',
-    't-cap': '13px',
-    't-micro': '12px',
-    't-figure': '32px',
-    't-figure-xl': '56px',
-  };
-  for (const [cls, size] of Object.entries(want))
-    assert.match(rule(out, cls), new RegExp(`font-size: ${size}`), cls);
-  for (const cls of ['t-display-l', 't-display', 'disp'])
-    assert.match(rule(out, cls), /font-family: var\(--font-display\)/);
+  const out = await css(['t-display-l', 't-display', 't-title', 't-heading', 't-body-l', 't-body', 't-sub', 't-sm', 't-label', 't-cap', 't-micro', 't-figure', 't-figure-xl', 'disp', 'num']);
+  const want = { 't-display-l': '32px', 't-display': '24px', 't-title': '20px', 't-heading': '17px', 't-body-l': '16px', 't-body': '15px', 't-sub': '15px', 't-sm': '14px', 't-label': '14px', 't-cap': '13px', 't-micro': '12px', 't-figure': '32px', 't-figure-xl': '56px' };
+  for (const [cls, size] of Object.entries(want)) assert.match(rule(out, cls), new RegExp(`font-size: ${size}`), cls);
+  for (const cls of ['t-display-l', 't-display', 'disp']) assert.match(rule(out, cls), /font-family: var\(--font-display\)/);
   assert.match(rule(out, 'num'), /tabular-nums/);
   // Nothing under 12 px anywhere in the design system's CSS.
-  const all = ['type.css', 'components.css', 'shell.css']
-    .map((f) =>
-      fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8'),
-    )
-    .join('\n');
+  const all = ['type.css', 'components.css', 'shell.css'].map((f) => fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8')).join('\n');
   const sizes = [...all.matchAll(/font-size: (\d+)px/g)].map((m) => +m[1]);
   assert.ok(sizes.length > 10 && sizes.every((s) => s >= 12), sizes.join(','));
   assert.doesNotMatch(all, /font-family:[^;]*(?:monospace|Mono)/);
@@ -171,44 +83,9 @@ test('the type styles compile to the design system’s sizes', async () => {
 // components put these modifier classes next to their g-* class; none may be a Tailwind utility.
 test('no component modifier class is also a Tailwind utility', async () => {
   // The components and the shell.
-  const components = ['components.css', 'shell.css']
-    .map((f) =>
-      fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8'),
-    )
-    .join('\n');
-  const modifiers = new Set(
-    [...components.matchAll(/\.g-[\w-]+((?:\.[\w-]+)+)/g)].flatMap((m) =>
-      m[1].split('.').filter(Boolean),
-    ),
-  );
-  for (const part of [
-    's16',
-    's20',
-    's24',
-    'f',
-    'gf',
-    'pp',
-    'k',
-    'o',
-    'w',
-    'r',
-    'c',
-    'l',
-    'b',
-    'n',
-    'box',
-    'handle',
-    'rule',
-    'hint',
-    'dis-ic',
-    'msg',
-    't-ic',
-    'act',
-    'sq',
-    'bars',
-    'glyph',
-    'radio',
-  ])
+  const components = ['components.css', 'shell.css'].map((f) => fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8')).join('\n');
+  const modifiers = new Set([...components.matchAll(/\.g-[\w-]+((?:\.[\w-]+)+)/g)].flatMap((m) => m[1].split('.').filter(Boolean)));
+  for (const part of ['s16', 's20', 's24', 'f', 'gf', 'pp', 'k', 'o', 'w', 'r', 'c', 'l', 'b', 'n', 'box', 'handle', 'rule', 'hint', 'dis-ic', 'msg', 't-ic', 'act', 'sq', 'bars', 'glyph', 'radio'])
     modifiers.add(part);
   // Each modifier alone must add nothing to what Tailwind generates without it.
   const base = await css([]);
@@ -221,11 +98,7 @@ test('no component modifier class is also a Tailwind utility', async () => {
 });
 
 test('reduced motion removes all motion; nothing uses transition: all', () => {
-  const comp = ['components.css', 'shell.css']
-    .map((f) =>
-      fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8'),
-    )
-    .join('\n');
+  const comp = ['components.css', 'shell.css'].map((f) => fs.readFileSync(path.join(appDir, 'src/styles/garis', f), 'utf8')).join('\n');
   assert.doesNotMatch(comp, /transition:\s*all|transition-property:\s*all/);
   assert.match(comp, /prefers-reduced-motion: reduce/);
 });
