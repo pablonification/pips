@@ -54,6 +54,9 @@ is not yours.
    `models/Angkatan.ts` gained `note: string | null`, and the web type check then failed in the pretend API's sample
    data, `error TS2322 … Property 'note' is missing` in `apps/web/e2e/fixtures/api.ts`. Either `.omit` a private column
    from the answer, or add the field to the sample data. Commit the regenerated client.
+   A column a form fills reaches further: the route's input type and its unit test, the pretend API's answer to the
+   write (`apps/web/e2e/support/writes.ts`), the seed (`apps/api/src/db/seed/sample-hmif.ts`), and any journey that
+   presses Tab through the form, because the new field is one more stop.
 7. **Drop your throwaway database** and check `git status` shows only what you meant to commit.
 
 ## What will stop you

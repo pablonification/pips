@@ -64,6 +64,8 @@ A journey runs a **production build** of the web app in Chromium, against a **pr
   (`e2e/scripts/serve.mjs`). The first run takes minutes. Set `E2E_REUSE_BUILD=1` to reuse the last build; rebuild
   after any change to `src`.
 - **Browser.** Once: `pnpm --filter web exec playwright install chromium`.
+- **Port.** The build is served on port 4310. Set `E2E_PORT` when that port is taken; `apps/web/e2e/README.md` lists
+  the other settings.
 - **Projects.** Each journey runs at phone (390 px), tablet (834 px) and desktop (1440 px), in light and dark:
   `phone-light`, `phone-dark`, and so on. Tag a test `@phone-only` or `@desktop-only` when only one layout has the
   feature (tablets run the `@phone-only` ones).
@@ -77,6 +79,9 @@ A journey runs a **production build** of the web app in Chromium, against a **pr
   and other options are listed at the top of `e2e/support/test.ts`.
 - **Write one** by importing `test` and `expect` from `../support/test` (never from `@playwright/test`).
   `e2e/journeys/services.spec.ts` is the shortest example; `layanan.spec.ts` shows a full screen.
+- **What a screen reader reads.** Check a control's name with `getByRole(…, { name })`. To check that two pieces of
+  text are read as separate words, compare the element's `textContent`: Playwright's aria snapshot puts spaces
+  between elements by itself, so it passes on text a screen reader would join.
 
 Do not run every journey on your machine. There are over 5,000 of them across the projects, and a full run takes
 more than an hour. Run the spec you changed in one or two projects, with `E2E_WORKERS=2` or fewer. CI runs the rest.
