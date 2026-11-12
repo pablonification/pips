@@ -20,8 +20,8 @@ is not yours.
    });
    ```
    Add `note: text('note'),` after `name`. With no `.notNull()` the column is nullable, so existing rows stay valid.
-2. **Write the migration** from `apps/api`: `pnpm run db:migrations --name angkatan_note`. It needs no database and
-   no `.env`. It prints the tables it knows and ends with `[✓] Your SQL migration file ➜ drizzle/0031_angkatan_note.sql`.
+2. **Write the migration**: `pnpm --filter api db:migrations --name angkatan_note`. It needs no database and no
+   `.env`. It prints the tables it knows and ends with `[✓] Your SQL migration file ➜ drizzle/0031_angkatan_note.sql`.
    Without `--name` it picks a random one (`0031_flippant_sleepwalker.sql`); a name that says what changed is easier to
    read later, as `0030_pixel_form_prefill.sql` is.
    Three files change, and all three are committed: the new `drizzle/<number>_<name>.sql`, a new
