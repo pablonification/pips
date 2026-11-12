@@ -15,11 +15,11 @@ Each record is named `NNNN-a-sentence-that-states-the-decision.md` and follows t
 | --- | --- | --- |
 | [1](0001-the-web-app-and-the-api-live-in-one-repository.md) | The web app and the API live in one repository | Rules both apps need are copied and kept equal by tests |
 | [2](0002-the-web-app-is-react-with-vite-and-the-api-is-a-hono-server.md) | The web app is React with Vite and the API is a separate Hono server | The API's tools are a generation behind the web app's |
-| [3](0003-every-api-route-is-described-and-the-web-client-is-generated-from-it.md) | Every API route is described with zod, and the web client is generated from it | Three files per route, and nothing checks the client was regenerated |
-| [4](0004-controllers-take-their-storage-as-a-parameter-so-route-tests-need-no-database.md) | Controllers take their storage as a parameter | Half done; fake storage does not prove the SQL |
+| [3](0003-every-api-route-is-described-and-the-web-client-is-generated-from-it.md) | Every API route is described with zod, and the web client is generated from it | Three files per route; a handler can answer what its route doesn't describe |
+| [4](0004-controllers-take-their-storage-as-a-parameter-so-route-tests-need-no-database.md) | Controllers take their storage as a parameter | Half done; fake storage does not prove the SQL, so CI runs database tests too |
 | [5](0005-the-api-runs-its-typescript-directly-in-a-container.md) | The API runs its TypeScript directly, in a container | A type error does not stop the server from starting |
 | [6](0006-migrations-only-add-things-and-run-before-the-new-code-goes-live.md) | Migrations only add things, and run before the new code goes live | A person must remember to migrate |
-| [7](0007-the-session-is-a-signed-cookie-and-the-api-keeps-no-session-table.md) | The session is a signed cookie and there is no session table | A lost phone stays signed in until the token ends |
+| [7](0007-the-session-is-a-signed-cookie-and-the-api-keeps-no-session-table.md) | The session is a signed cookie and there is no session table | A lost phone stays signed in until its token ends (renewed with use, up to 180 days) |
 | [8](0008-roles-are-read-from-the-database-and-the-web-app-mirrors-them.md) | Roles are read from the database, and the web app mirrors them | A route that forgets its role check is open to every member |
 | [9](0009-curhat-messages-carry-an-id-made-on-the-device.md) | Curhat messages carry an id made on the device | The biggest client logic in the app; anonymity stops at the API |
 | [10](0010-the-api-runs-as-one-process-and-keeps-its-state-in-memory.md) | The API runs as one process with its state in memory | It must never run as two copies; a restart loses pushes and reminders |

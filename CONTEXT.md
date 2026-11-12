@@ -78,8 +78,8 @@ _Avoid_: "Cari NIM".
 **Info Lomba** — Competitions whose registration is still open. Code: `competitions`.
 
 **Curhat Yuk!** — An anonymous chat between a member and HMIF Welfare. A **room** is one conversation; a member may
-keep up to three; every message carries an id made on the device (`clientMessageId`, decision 9). Welfare uses the
-inbox under Kelola.
+keep up to three; every message carries an id made on the device (`clientMessageId`, decision 9). A notification
+says only "Pesan baru di Curhat Yuk!". Welfare uses the inbox under Kelola.
 _Avoid_: "chat", "Curhat" without "Yuk!", "hotline".
 
 **Form** — Forms HMIF sends to an angkatan, open between `opens_at` and `closes_at` (`forms` table).
