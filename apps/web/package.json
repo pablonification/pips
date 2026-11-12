@@ -17,6 +17,7 @@
     "test": "node --test tests/*.test.mjs && tsx --test tests/*.test.ts",
     "budgets": "node scripts/budgets.mjs",
     "e2e": "playwright test -c e2e --project=phone-light --project=phone-dark --project=tablet-light --project=tablet-dark --project=desktop-light --project=desktop-dark --project=visual-phone-light --project=visual-phone-dark --project=visual-desktop-light --project=visual-desktop-dark --project=qa-phone-light --project=qa-phone-dark --project=qa-tablet-light --project=qa-tablet-dark --project=qa-desktop-light --project=qa-desktop-dark --project=qa-reflow --project=qa-motion --project=qa-sw --project=qa-london-phone-light --pass-with-no-tests",
+    "e2e:real": "playwright test -c e2e/real/playwright.config.ts",
     "e2e:solo": "playwright test -c e2e --project=solo-phone-light --project=solo-phone-dark --project=solo-tablet-light --project=solo-tablet-dark --project=solo-desktop-light --project=solo-desktop-dark --workers=1",
     "e2e:update": "playwright test -c e2e --project=visual-phone-light --project=visual-phone-dark --project=visual-desktop-light --project=visual-desktop-dark --update-snapshots --pass-with-no-tests"
   },

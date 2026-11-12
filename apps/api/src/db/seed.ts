@@ -1,378 +1,210 @@
-import { parse } from 'csv-parse';
+/**
+ * Fills a migrated database with the made-up HMIF in `seed/sample-hmif.ts` and the form in `seed/pixel-form-seed.ts`,
+ * then exits. Safe to run again: a row that is already there is left as it is, except that the sample's own events
+ * and courses taken move to today's month and semester. Runs only when `APP_ENV` is `development`, so it never
+ * writes sample people into a database of real members.
+ *
+ *   pnpm --filter api db:seed
+ */
 import 'dotenv/config';
-import { inArray } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { createInsertSchema } from 'drizzle-zod';
-import fs from 'fs';
+import { and, eq, ne, or } from 'drizzle-orm';
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { PgTable } from 'drizzle-orm/pg-core';
 import postgres from 'postgres';
-import { z } from 'zod';
-import { rolesGroup } from './roles-group';
+import * as schema from './schema';
 import { runPixelFormSeed } from './seed/pixel-form-seed';
-import {
-  angkatan,
-  calendarGroup,
-  courses,
-  testimonies,
-  userRoles,
-  users,
-} from './schema';
+import { sampleHmif } from './seed/sample-hmif';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is required');
-}
+export type SeedCounts = Record<string, number>;
 
-const client = postgres(process.env.DATABASE_URL);
-const db = drizzle(client);
-
-export async function runUserSeed() {
-  const filePath = 'src/db/seed/database.csv';
-  const data: Array<typeof users.$inferInsert> = [];
-
-  const dataSchema = createInsertSchema(users, {
-    email: z
-      .string()
-      .email()
-      .refine((value) => value.endsWith('@std.stei.itb.ac.id')),
-    fullName: z.string(),
-    major: z.enum(['IF', 'STI']),
-    region: z.enum(['Ganesha', 'Jatinangor']),
-    gender: z.enum(['F', 'M']),
-    membershipStatus: z.enum([
-      'Anggota Biasa',
-      'Anggota Kehormatan',
-      'Anggota Muda',
-    ]),
-    angkatan: z.number().int(),
-  });
-
-  fs.createReadStream(filePath)
-    .pipe(parse({ delimiter: ',', from_line: 2 }))
-    .on('data', (row) => {
-      const user = dataSchema.parse({
-        nim: row[1],
-        email: row[6],
-        fullName: row[2],
-        major: row[3],
-        region: row[7],
-        angkatan: +row[0],
-        gender: row[4],
-        membershipStatus: row[5],
-      });
-      data.push(user);
-    })
-    .on('end', () => {
-      console.log('📖 Finished reading user CSV file');
-      console.log('💾 Started inserting users into database...');
-      db.insert(users)
-        .values(data)
-        .onConflictDoNothing()
-        .then(async () => {
-          console.log('✅ Inserted users into database!');
-        })
-        .catch((err) => {
-          console.log('❌ Something went wrong while inserting users!');
-          console.log(err);
-        });
-    })
-    .on('error', (err) => {
-      console.log('❌ Something went wrong while inserting users!');
-      console.log(err);
-    });
-}
-
-export async function runCourses() {
-  const filePath = 'src/db/seed/matakuliah.csv';
-  const data: Array<typeof courses.$inferInsert> = [];
-
-  const dataSchema = createInsertSchema(courses);
-
-  fs.createReadStream(filePath)
-    .pipe(parse({ delimiter: ',', from_line: 2 }))
-    .on('data', (row) => {
-      const course = dataSchema.parse({
-        curriculumYear: +row[0],
-        major: row[1],
-        semester: +row[2] || null,
-        semesterCode: row[3] || null,
-        code: row[4],
-        name: row[5],
-        credits: +row[6],
-        type: row[7],
-        dingdongUrl: row[8] || null,
-      });
-      data.push(course);
-    })
-    .on('end', () => {
-      console.log('📖 Finished reading matakuliah CSV file');
-      console.log('💾 Started inserting courses into database...');
-      db.insert(courses)
-        .values(data)
-        .onConflictDoNothing()
-        .then(async () => {
-          console.log('✅ Inserted courses into database!');
-        })
-        .catch((err) => {
-          console.log('❌ Something went wrong while inserting courses!');
-          console.log(err);
-        });
-    })
-    .on('error', (err) => {
-      console.log('❌ Something went wrong while inserting courses!');
-      console.log(err);
-    });
-}
-
-export async function runAngkatanSeed() {
-  const filePath = 'src/db/seed/angkatan.csv';
-  const data: Array<typeof angkatan.$inferInsert> = [];
-
-  const dataSchema = createInsertSchema(angkatan);
-
-  fs.createReadStream(filePath)
-    .pipe(parse({ delimiter: ',', from_line: 2 }))
-    .on('data', (row) => {
-      const angkatan = dataSchema.parse({
-        year: +row[0],
-        name: row[1],
-      });
-      data.push(angkatan);
-    })
-    .on('end', () => {
-      console.log('📖 Finished reading angkatan CSV file');
-      console.log('💾 Started inserting angkatan into database...');
-      db.insert(angkatan)
-        .values(data)
-        .onConflictDoNothing()
-        .then(async () => {
-          console.log('✅ Inserted angkatan into database!');
-        })
-        .catch((err) => {
-          console.log('❌ Something went wrong while inserting angkatan!');
-          console.log(err);
-        });
-    })
-    .on('error', (err) => {
-      console.log('❌ Something went wrong while inserting angkatan!');
-      console.log(err);
-    });
-}
-
-export async function runTestimoniSeed(file: string) {
-  const filePath = 'src/db/seed/' + file;
-  let major = '';
-
-  if (file === 'testimoni-if.csv') {
-    major = 'IF';
-  } else if (file === 'testimoni-sti.csv') {
-    major = 'STI';
-  }
-
-  const data: Array<typeof testimonies.$inferInsert> = [];
-  const coursesList = await db
-    .select({ id: courses.id, code: courses.code })
-    .from(courses);
-
-  // Map between course code and course id
-  const idCourseMap = new Map(
-    coursesList.map((course) => [course.code, course.id]),
-  );
-  const dataSchema = createInsertSchema(testimonies);
-
-  fs.createReadStream(filePath)
-    .pipe(parse({ delimiter: ',', from_line: 2 }))
-    .on('data', (row) => {
-      const currentCourseId = idCourseMap.get(row[1]);
-      if (!currentCourseId) {
-        console.log('Course not found', row[1]);
-        return;
-      }
-      const testimonies = dataSchema.parse({
-        userId: row[0] || null,
-        courseId: currentCourseId ?? null,
-        userName: row[2] || null,
-        // STI Testimonies
-        impressions: row[3] || null,
-        challenges: row[4] || null,
-        advice: row[5] || null,
-
-        // IF Testimonies
-        overview: row[6] || null,
-        assignments: row[7] || null,
-        lecturer_review: row[8] || null,
-
-        lecturer: row[9] || null,
-      });
-      data.push(testimonies);
-    })
-    .on('end', () => {
-      console.log(`📖 Finished reading ${major} testimonies CSV file`);
-      console.log(`💾 Started inserting ${major} testimonies into database...`);
-      db.insert(testimonies)
-        .values(data)
-        .onConflictDoNothing()
-        .then(async () => {
-          await client.end();
-          console.log(`✅ Inserted ${major} testimonies into database!`);
-        })
-        .catch((err) => {
-          console.log(
-            `❌ Something went wrong while inserting ${major} testimonies!`,
-          );
-          console.log(err);
-        });
-    })
-    .on('error', (err) => {
-      console.log(
-        `❌ Something went wrong while inserting ${major} testimonies!`,
-      );
-      console.log(err);
-    });
-}
-
-export async function runCalendarSeed() {
-  const filePath = 'src/db/seed/calendar.csv';
-  const data: Array<typeof calendarGroup.$inferInsert> = [];
-
-  const dataSchema = createInsertSchema(calendarGroup);
-
-  fs.createReadStream(filePath)
-    .pipe(parse({ delimiter: ',', from_line: 2 }))
-    .on('data', (row) => {
-      const calendarGroup = dataSchema.parse({
-        name: row[0],
-        category: row[1],
-        googleCalendarUrl: row[2],
-        code: row[3],
-      });
-      data.push(calendarGroup);
-    })
-    .on('end', () => {
-      console.log('📖 Finished reading calendar CSV file');
-      console.log('💾 Started inserting calendar into database...');
-      db.insert(calendarGroup)
-        .values(data)
-        .onConflictDoNothing()
-        .then(async () => {
-          console.log('✅ Inserted calendar into database!');
-        })
-        .catch((err) => {
-          console.log('❌ Something went wrong while inserting calendar!');
-          console.log(err);
-        });
-    });
-}
-
-function reverseObject<T extends Record<string, string | number>>(
-  obj: T,
-): Record<string, keyof T> {
-  const reversedObj: Record<string, keyof T> = {};
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const value = obj[key];
-      reversedObj[value as string] = key;
-    }
-  }
-  return reversedObj;
-}
-
-export async function runRolesGroupSeed() {
-  const data: Array<typeof userRoles.$inferInsert> = [];
-
-  const reversedRolesGroup = reverseObject(rolesGroup);
-
-  const filePath = 'src/db/seed/roles-group.csv';
-  const columns: Array<{
-    nim: string;
-    department: string;
-    division: string;
-  }> = [];
-
-  await new Promise((resolve) => {
-    fs.createReadStream(filePath)
-      .pipe(parse({ delimiter: ',', from_line: 2 }))
-      .on('data', (row) => {
-        columns.push({
-          department: row[0],
-          division: row[1],
-          nim: row[2],
-        });
-      })
-      .on('end', () => {
-        resolve(null);
-      });
-  });
-
-  if (columns.length === 0) {
-    console.log('No data to insert');
-    return;
-  }
-
-  const usersList = await db
-    .select({ id: users.id, nim: users.nim })
-    .from(users)
-    .where(
-      inArray(
-        users.nim,
-        columns.map((column) => column.nim),
-      ),
+/** Inserts the sample into `url` and returns how many rows of each kind it added (0 for a row already there). */
+export async function runSeed({
+  url = process.env.DATABASE_URL,
+  appEnv = process.env.APP_ENV,
+  now = new Date(),
+}: { url?: string; appEnv?: string; now?: Date } = {}): Promise<SeedCounts> {
+  if (appEnv !== 'development') {
+    throw new Error(
+      `The seed runs only with APP_ENV=development (it is ${appEnv ?? 'unset, which means production'}).`,
     );
-
-  const idUserMap = new Map(usersList.map((user) => [user.nim, user.id]));
-
-  for (const column of columns) {
-    const userId = idUserMap.get(column.nim);
-    if (!userId) {
-      console.log('User not found', column.nim);
-      continue;
-    }
-
-    if (
-      !data.some(
-        (item) =>
-          item.userId === userId &&
-          item.role === reversedRolesGroup[column.department],
-      )
-    ) {
-      data.push({
-        userId,
-        role: reversedRolesGroup[column.department],
-      });
-    }
-
-    if (
-      column.division &&
-      !data.some(
-        (item) =>
-          item.userId === userId &&
-          item.role === reversedRolesGroup[column.division],
-      )
-    ) {
-      data.push({
-        userId,
-        role: reversedRolesGroup[column.division],
-      });
-    }
   }
+  if (!url) throw new Error('DATABASE_URL is required');
 
-  usersList.forEach((user) => {
-    data.push({
-      userId: user.id,
-      role: 'de',
+  const client = postgres(url, { max: 1, onnotice: () => {} });
+  const db = drizzle(client, { schema });
+  try {
+    return await db.transaction(async (tx) => {
+      const sample = sampleHmif(now);
+      const counts: SeedCounts = {};
+      const add = async <T extends PgTable>(
+        label: string,
+        table: T,
+        rows: Array<T['$inferInsert']>,
+      ) => {
+        const added = await tx
+          .insert(table)
+          .values(rows)
+          .onConflictDoNothing()
+          .returning();
+        counts[label] = added.length;
+      };
+      // In this order: each table's rows point at rows added before it.
+      await add('angkatan', schema.angkatan, sample.angkatanRows);
+      await add('members', schema.users, sample.userRows);
+      await add('roles', schema.userRoles, sample.roleRows);
+      await add('categories', schema.categories, sample.categoryRows);
+      await add('courses', schema.courses, sample.courseRows);
+
+      // An angkatan, category or course may already exist under another id (the test login adds angkatan 2025), so
+      // later rows point at whichever row holds the year, name or code.
+      const angkatanId = idsBy(
+        sample.angkatanRows,
+        await tx.select().from(schema.angkatan),
+        (r) => r.year,
+      );
+      const categoryId = idsBy(
+        sample.categoryRows,
+        await tx.select().from(schema.categories),
+        (r) => r.name,
+      );
+      const courseId = idsBy(
+        sample.courseRows,
+        await tx.select().from(schema.courses),
+        (r) => r.code,
+      );
+
+      await add(
+        'courses taken',
+        schema.userCourses,
+        sample.userCourseRows.map((r) => ({
+          ...r,
+          courseId: courseId(r.courseId),
+        })),
+      );
+      await add('announcements', schema.infos, sample.infoRows);
+      await add(
+        'announcement angkatan',
+        schema.infoAngkatan,
+        sample.infoAngkatanRows.map((r) => ({
+          ...r,
+          angkatanId: angkatanId(r.angkatanId),
+        })),
+      );
+      await add(
+        'announcement categories',
+        schema.infoCategories,
+        sample.infoCategoryRows.map((r) => ({
+          ...r,
+          categoryId: categoryId(r.categoryId),
+        })),
+      );
+      await add('comments', schema.comments, sample.commentRows);
+      await add('reactions', schema.reactions, sample.reactionRows);
+      await add(
+        'calendar groups',
+        schema.calendarGroup,
+        sample.calendarGroupRows,
+      );
+      await add(
+        'calendar events',
+        schema.calendarEvent,
+        sample.eventRows.map((r) => ({
+          ...r,
+          courseId: r.courseId ? courseId(r.courseId) : r.courseId,
+        })),
+      );
+      await add('competitions', schema.competitions, sample.competitionRows);
+      await add(
+        'testimonials',
+        schema.testimonies,
+        sample.testimonyRows.map((r) => ({
+          ...r,
+          courseId: courseId(r.courseId),
+        })),
+      );
+      await add('Curhat rooms', schema.chatrooms, sample.chatroomRows);
+      await add(
+        'Curhat messages',
+        schema.chatroomMessages,
+        sample.chatroomMessageRows,
+      );
+      await add(
+        'Curhat reads',
+        schema.chatroomMessageReads,
+        sample.chatroomReadRows,
+      );
+      counts.forms = await runPixelFormSeed(
+        tx as unknown as PostgresJsDatabase<typeof schema>,
+      );
+
+      // Seeded on an earlier day: the sample's events and courses taken follow today, so Kalender and Mata kuliahku
+      // still show them. Only the sample's own rows move.
+      let moved = 0;
+      for (const { id, start, end } of sample.eventRows) {
+        if (!id) continue;
+        const { calendarEvent: e } = schema;
+        const rows = await tx
+          .update(e)
+          .set({ start, end })
+          .where(and(eq(e.id, id), or(ne(e.start, start), ne(e.end, end))))
+          .returning({ id: e.id });
+        moved += rows.length;
+      }
+      for (const row of sample.userCourseRows) {
+        const { userCourses: u } = schema;
+        const rows = await tx
+          .update(u)
+          .set({
+            semesterCodeTaken: row.semesterCodeTaken,
+            semesterYearTaken: row.semesterYearTaken,
+          })
+          .where(
+            and(
+              eq(u.userId, row.userId),
+              eq(u.courseId, courseId(row.courseId)),
+              or(
+                ne(u.semesterCodeTaken, row.semesterCodeTaken),
+                ne(u.semesterYearTaken, row.semesterYearTaken),
+              ),
+            ),
+          )
+          .returning({ courseId: u.courseId });
+        moved += rows.length;
+      }
+      counts['moved to today'] = moved;
+      return counts;
     });
-  });
-
-  await db.insert(userRoles).values(data).onConflictDoNothing();
-  console.log('✅ Inserted roles group into database!');
+  } finally {
+    await client.end();
+  }
 }
 
-async function runAllSeeds() {
-  try {
-    await runPixelFormSeed(db);
-  } catch (error) {
-    console.log(error);
-  }
+/** Maps a sample row's id to the id of the stored row with the same key. */
+function idsBy<R extends { id?: string }, K>(
+  sampleRows: R[],
+  stored: Array<R & { id: string }>,
+  key: (row: R) => K,
+) {
+  const storedId = new Map(stored.map((row) => [key(row), row.id]));
+  const byId = new Map(
+    sampleRows.map((row) => [row.id, storedId.get(key(row))]),
+  );
+  return (id: string) => {
+    const found = byId.get(id);
+    if (!found) throw new Error(`The sample row ${id} was not stored`);
+    return found;
+  };
 }
 
 if (require.main === module) {
-  void runAllSeeds();
+  runSeed()
+    .then((counts) => {
+      console.log('Seeded (rows added; 0 means they were already there):');
+      for (const [label, n] of Object.entries(counts))
+        console.log(`  ${label}: ${n}`);
+    })
+    .catch((error: unknown) => {
+      console.error(error instanceof Error ? error.message : error);
+      process.exitCode = 1;
+    });
 }

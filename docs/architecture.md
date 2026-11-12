@@ -32,8 +32,8 @@ description when it arrives (a bad one gets a 400). The answer is not checked on
 | `cron/` | One job, every minute, in production only: day-before reminders for calendar events. | `calendar-cron.ts` |
 | `db/` | The schema (every table), the connection, the migrate command, seed scripts. | `schema.ts`, `migrate.ts` |
 
-Next to `src`: `drizzle/` holds the migrations (one SQL file per change, numbered), `scripts/openapi.ts` writes the
-API's description to a file with no server, and `tests/` holds the API's tests ([testing](testing.md)).
+Next to `src`: `drizzle/` holds the migrations (one SQL file per change, numbered), `apps/api/scripts/openapi.ts`
+writes the API's description to a file with no server, and `tests/` holds the API's tests ([testing](testing.md)).
 
 **Which controller style to copy.** A controller either imports the database directly (`category.controller.ts`) or
 takes its storage as a parameter so a test can pass a fake (`programme-window.controller.ts`, with
@@ -94,6 +94,7 @@ route has an entry. `lib/services.ts` is the list Layanan, Beranda and search re
 | The generated client, the migrations and the schema agree | `.github/workflows/check.yml` | CI |
 | Commit messages are Conventional Commits | `scripts/commit-messages.mjs` | CI |
 | No real member's details in any tracked file | `scripts/repo-privacy.test.mjs` | CI |
+| The docs' links, paths and commands exist; `AGENTS.md` stays small | `scripts/docs-true.test.mjs` | CI |
 | No file, export or package that nothing uses | `knip.jsonc` (`pnpm knip`) | CI |
 
 Nothing stops an API controller from querying the database directly, and nothing checks that a controller has a

@@ -75,7 +75,6 @@
   "sampleTables": {
     "comment": "Tracked tables that have a name column beside a student-number or email column. Each holds only made-up rows; every number in them must also be a sample number above. A new member list must never be added.",
     "files": [
-      "apps/api/src/db/seed/database-example.csv",
       "apps/web/tests/fixtures/kelola-csv/responses-los-angeles.csv",
       "apps/web/tests/fixtures/kelola-csv/responses-wib.csv",
       "apps/web/tests/fixtures/kelola-csv/sparta.csv"

@@ -7,5 +7,5 @@
     "checkJs": true
   },
   "include": ["**/*.ts", "**/*.mjs"],
-  "exclude": [".build", ".results", ".report"]
+  "exclude": [".build", ".results", ".report", ".build-real", ".build-real-meta", ".results-real", ".report-real"]
 }
