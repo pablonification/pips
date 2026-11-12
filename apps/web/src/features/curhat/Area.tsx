@@ -3,7 +3,11 @@
  * room and closes when you leave. Welfare (`curhatadmin`) answers rooms in the inbox at /kelola/curhat, which opens
  * its own connection the same way (`useCurhatConnection`); they are sent there, room and all, with `replace`.
  */
-import { hashKey, useQueryClient } from '@tanstack/react-query';
+import {
+  hashKey,
+  useQueryClient,
+  type QueryFilters,
+} from '@tanstack/react-query';
 import { Navigate, Outlet, useParams } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import useSession from '~/hooks/auth/useSession';
@@ -81,11 +85,16 @@ export function useCurhatConnection(
   useEffect(() => {
     const c: CurhatClient = new CurhatClient(new DeferredSocket(openSocket), {
       onReply: (message) => receiveMessage(qc, c, message),
-      // Connected, at first or after a drop: fetch the rooms and counts again to catch what was missed. Only what is
-      // on screen is fetched; a rooms fetch still running started too early and is started again.
+      // Connected, at first or after a drop: fetch the rooms and counts on screen again to catch what was missed. A
+      // fetch still running started before the connection, and invalidating alone would wait for a first one rather
+      // than fetch again, so it is cancelled first.
       onConnect: () => {
-        void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
-        void qc.invalidateQueries({ queryKey: UNREAD_KEY });
+        const again = (filters: QueryFilters) =>
+          void qc
+            .cancelQueries(filters)
+            .then(() => qc.invalidateQueries(filters));
+        again({ queryKey: ROOMS_KEY, exact: true });
+        again({ queryKey: UNREAD_KEY });
       },
       onDelivered: (_entry, message) => {
         putMessage(qc, message);

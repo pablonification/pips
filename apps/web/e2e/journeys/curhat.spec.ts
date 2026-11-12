@@ -61,6 +61,24 @@ async function openR1(page: Page) {
 }
 
 /**
+ * Opens r1 and waits for its connection and the rooms read that follows it (a connection catches up on what was saved
+ * before it joined the room), so a journey that counts reads or changes the rooms starts after both.
+ */
+async function openR1Connected(page: Page, api: ApiMock) {
+  await openR1(page);
+  await expect
+    .poll(() =>
+      [...api.socket.sessions.values()].some(
+        (s) => s.connected && s.rooms.has('r1'),
+      ),
+    )
+    .toBe(true);
+  await expect
+    .poll(() => api.calls('GET /api/curhat/chatrooms').length)
+    .toBe(2);
+}
+
+/**
  * Counts the page's API requests in flight (the socket's long poll aside); `quiet()` waits until none has been for
  * half a second. Start it before the page opens. A journey that ends the session and then types needs it: on a slow
  * machine the room's opening reads (the unread counts again after the read mark, the shell's badge) can still be on
@@ -562,10 +580,7 @@ test.describe('delivery under a dropped connection', () => {
     api,
   }, testInfo) => {
     canRead(api);
-    await openR1(page);
-    await expect
-      .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
-      .toBe(true);
+    await openR1Connected(page, api);
     const fetched = api.calls('GET /api/curhat/chatrooms').length;
     // Review M1: the live region is there before the text, so the text is announced when it comes.
     const status = page.locator('.g-chat-bar [role="status"]');
@@ -626,7 +641,7 @@ test.describe('delivery under a dropped connection', () => {
   }) => {
     canRead(api);
     api.socket.saveWithoutAnswer();
-    await openR1(page);
+    await openR1Connected(page, api);
     const fetched = api.calls('GET /api/curhat/chatrooms').length;
     await composer(page).fill(MINE);
     await sendButton(page).click();
@@ -697,10 +712,7 @@ test.describe('delivery under a dropped connection', () => {
     api,
   }) => {
     canRead(api);
-    await openR1(page);
-    await expect
-      .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
-      .toBe(true);
+    await openR1Connected(page, api);
     const fetched = api.calls('GET /api/curhat/chatrooms').length;
     // The next rooms fetch takes the list as it is now, before the message, and answers only once released. That
     // list also has an older Welfare message this page hasn't seen, so we know when it has landed.
@@ -757,10 +769,7 @@ test.describe('delivery under a dropped connection', () => {
     db,
   }) => {
     canRead(api);
-    await openR1(page);
-    await expect
-      .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
-      .toBe(true);
+    await openR1Connected(page, api);
     delete db.chatrooms.r1;
     await composer(page).fill(MINE);
     await sendButton(page).click();
@@ -906,6 +915,71 @@ test.describe('Welfare’s replies', () => {
     await expect
       .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
       .toHaveLength(2);
+  });
+
+  // The server sends a connection nothing saved before it joined the room, and the room was read before that.
+  test('saved while the connection was still being made: shown in the open room once it connects', async ({
+    page,
+    api,
+    db,
+  }) => {
+    canRead(api);
+    api.socket.hold();
+    await openR1(page);
+    await expect(bubble(page, M4)).toBeVisible();
+    await expect.poll(() => api.socket.heldHandshakes).toBe(1);
+    const text = 'Siap, aku kirim draf jadwalnya malam ini ya.';
+    db.chatrooms.r1.messages = [
+      { ...welfare('m9', 'r1', text), fromOwner: false },
+      ...db.chatrooms.r1.messages!,
+    ];
+    expect(
+      api.socket.emit('reply', welfare('m9', 'r1', text), (s) =>
+        s.rooms.has('r1'),
+      ),
+    ).toBe(0);
+    api.socket.release();
+    await expect(bubble(page, text)).toContainText('Welfare · 13.35');
+    await expect(bubble(page, text)).toHaveCount(1);
+    await expectAtNewest(page, text);
+  });
+
+  test('saved while the list’s first read was on its way and the connection was being made: read again once it connects', async ({
+    page,
+    api,
+    db,
+  }) => {
+    api.socket.hold();
+    // The first rooms read takes the list as it is now and answers only once released; later reads answer as usual.
+    let reads = 0;
+    let answer: () => void = () => undefined;
+    const answered = new Promise<void>((r) => (answer = r));
+    api.on('GET /api/curhat/chatrooms', async ({ db }) => {
+      if (++reads > 1) return db.chatrooms;
+      const before = JSON.parse(
+        JSON.stringify(db.chatrooms),
+      ) as typeof db.chatrooms;
+      await answered;
+      return before;
+    });
+    await page.goto('/layanan/curhat');
+    await expect.poll(() => reads).toBe(1);
+    await expect.poll(() => api.socket.heldHandshakes).toBe(1);
+    await expect
+      .poll(() => api.calls('GET /api/curhat/chatrooms/unread').length)
+      .toBe(1);
+    const text = 'Siap, aku kirim draf jadwalnya malam ini ya.';
+    db.chatrooms.r1.messages = [
+      { ...welfare('m9', 'r1', text), fromOwner: false },
+      ...db.chatrooms.r1.messages!,
+    ];
+    api.socket.release();
+    // Connected: the counts are read again, so the page has heard the connection.
+    await expect
+      .poll(() => api.calls('GET /api/curhat/chatrooms/unread').length)
+      .toBe(2);
+    answer();
+    await expect(row(page, 'Teal Koala')).toContainText(`Welfare: ${text}`);
   });
 
   test('on the list: the room moves up with its preview and count', async ({
