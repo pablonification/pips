@@ -5,7 +5,7 @@ export const EARLY_ACCESS_NIMS = ['18225020', '13525006'];
 
 export type FormStatus = 'already_responded' | 'closed' | 'not_opened' | 'open';
 
-export interface FormWindow {
+interface FormWindow {
   opensAt: Date | string;
   closesAt: Date | string | null;
   isActive: boolean;

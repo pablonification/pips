@@ -189,7 +189,7 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
  * A page's title or parent that depends on the URL's params, registered by its feature at start (src/main.tsx).
  * Either answers null to fall back to `ROUTE_META`.
  */
-export interface RouteRules {
+interface RouteRules {
   title?: (params: Record<string, string>) => string | null;
   parent?: (params: Record<string, string>) => ShellPath | null;
 }
@@ -282,7 +282,7 @@ export function activeItem(
   return lastRoot;
 }
 
-export interface Crumb {
+interface Crumb {
   path: ShellPath;
   /** The URL with this page's params filled in; null when it can't be built (then it isn't a link). */
   href: string | null;

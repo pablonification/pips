@@ -16,7 +16,7 @@ export interface LiveSocketLike {
   removeAllListeners(): unknown;
 }
 
-export interface LiveHandlers {
+interface LiveHandlers {
   /** Connected or not. */
   onStatus: (connected: boolean) => void;
   /** Back after being disconnected: fetch again what may have been missed. */

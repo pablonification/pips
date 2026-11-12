@@ -83,7 +83,7 @@ function isCurhatPath(path: string) {
   return path === '/api/curhat' || path.startsWith('/api/curhat/');
 }
 
-export function isDevelopmentOrStaging(config: { APP_ENV?: string }) {
+function isDevelopmentOrStaging(config: { APP_ENV?: string }) {
   return config.APP_ENV === 'development' || config.APP_ENV === 'staging';
 }
 
@@ -100,7 +100,7 @@ export function openApiDocument(app: ReturnType<typeof createApp>) {
  * and no socket server (`index.ts` does), and touches no database until a request needs one, so tests and the
  * web client's generator (`scripts/openapi.ts`) can use it without a running server.
  */
-export interface AppOptions {
+interface AppOptions {
   /** Per-minute limits instead of the defaults (tests). */
   rateLimits?: Partial<typeof RATE_LIMITS>;
   /** Rejects when the database can't answer; `/health` reports it. */

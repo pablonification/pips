@@ -6,7 +6,7 @@
  */
 export const PRELOAD_RELOAD_KEY = 'pips-preload-reload';
 
-export interface RecoveryStore {
+interface RecoveryStore {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
 }

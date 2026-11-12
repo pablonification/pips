@@ -40,7 +40,7 @@ export const pixelSections: ((page: Page) => Promise<void>)[] = [
     await page.getByRole('radio', { name: '4', exact: true }).check();
   },
 ];
-export const PIXEL_SECTION_TITLES = [
+const PIXEL_SECTION_TITLES = [
   'Identitas',
   'Biasanya kamu suka kegiatan apa?',
   'Kegiatan santai bareng HMIF',

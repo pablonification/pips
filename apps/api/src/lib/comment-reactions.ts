@@ -3,7 +3,7 @@
  * Every comment asked for gets a summary, an empty one when it has no reactions: sending `reactions: []` breaks
  * that schema and the client reading the counts.
  */
-export interface CommentReactionSummary {
+interface CommentReactionSummary {
   totalReactions: number;
   reactionsCount: Array<{ reaction: string; count: number }>;
   userReaction?: string;

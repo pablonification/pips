@@ -11,7 +11,7 @@ import type { PushFacts } from './push-state';
  */
 
 /** `Notification`, a service worker container and `PushManager` all exist. */
-export function pushSupported() {
+function pushSupported() {
   return (
     typeof Notification !== 'undefined' &&
     typeof navigator !== 'undefined' &&
@@ -50,7 +50,7 @@ function readyRegistration(ms = 10_000) {
  * This device's existing push subscription, without ever asking for permission (no prompt at sign-out).
  * Null when there is none, or no service worker is registered.
  */
-export async function existingPushSubscription() {
+async function existingPushSubscription() {
   if (!pushSupported() || Notification.permission !== 'granted') return null;
   try {
     const registration = await currentRegistration();
@@ -86,13 +86,13 @@ function subscriptionBody(sub: globalThis.PushSubscription): PushSubscription {
 }
 
 /** What turning notifications on ended with. A failure to subscribe or register throws instead. */
-export type EnableOutcome = 'aktif' | 'diblokir' | 'belum';
+type EnableOutcome = 'aktif' | 'diblokir' | 'belum';
 
 /**
  * How long Nyalakan waits for the browser's push service. Chrome's first subscription on a device can take half a
  * minute, or not answer at all, so waiting without a limit would leave "Menyalakan…" up for good.
  */
-export const SUBSCRIBE_WAIT_MS = 15_000;
+const SUBSCRIBE_WAIT_MS = 15_000;
 
 /** The subscription the browser is still working on, so Coba lagi waits for the same one instead of starting another. */
 let subscribing: Promise<globalThis.PushSubscription> | null = null;

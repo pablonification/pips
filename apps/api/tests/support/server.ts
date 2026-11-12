@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import path from 'node:path';
 import { usePlaceholderEnv } from '../../scripts/placeholder-env';
 
-export interface RunningServer {
+interface RunningServer {
   base: string;
   child: ChildProcess;
   output: () => string;

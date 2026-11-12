@@ -30,7 +30,7 @@ export const PostUserUnsubscribeCategorySchema = createInsertSchema(
   },
 );
 
-export const PostListUserUnsubscribeCategorySchema = createInsertSchema(
+const PostListUserUnsubscribeCategorySchema = createInsertSchema(
   userUnsubscribeCategories,
   {
     userId: z.string().openapi({ example: '12345abcd' }),
@@ -54,7 +54,7 @@ export const DeleteUserUnsubscribeCategorySchema = createSelectSchema(
   },
 );
 
-export const DeleteListUserUnsubscribeCategorySchema = createSelectSchema(
+const DeleteListUserUnsubscribeCategorySchema = createSelectSchema(
   userUnsubscribeCategories,
   {
     userId: z.string().openapi({ example: '12345abcd' }),

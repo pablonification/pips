@@ -43,7 +43,7 @@ export const slug = (s: string) =>
     .replace(/[^a-z0-9]+/gi, '-')
     .replace(/-$/, '') || 'beranda';
 
-export interface ScreenFacts {
+interface ScreenFacts {
   lang: string | null;
   h1InDom: string[];
   mains: number;

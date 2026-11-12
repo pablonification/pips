@@ -3,7 +3,7 @@ import { deleteDraft, readDraft, writeDraft } from '~/lib/form/draft-store';
 import { DRAFT_HOURS, draftKey, type Answers } from '~/lib/form/rules';
 
 /** How long typing pauses before the draft is written. */
-export const DRAFT_DEBOUNCE_MS = 400;
+const DRAFT_DEBOUNCE_MS = 400;
 
 /**
  * A member's draft of a form on this device (key `hmif-form-<formId>-<userId>`, 14 days; see

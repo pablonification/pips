@@ -10,7 +10,7 @@ export function canPostInCategory(
   return rolesAllowed.some((role) => roles.includes(role));
 }
 
-export type CategoryRefusal =
+type CategoryRefusal =
   | { ok: true }
   | { ok: false; reason: 'unknown'; categoryIds: string[] }
   | { ok: false; reason: 'forbidden'; categoryIds: string[] };

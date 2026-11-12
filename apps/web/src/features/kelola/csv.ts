@@ -21,7 +21,7 @@ export interface CsvFile {
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /** "08-10-2026 13:31": a response's time in WIB (`DD-MM-YYYY HH:mm`). */
-export function csvTime(at: string | number | Date): string {
+function csvTime(at: string | number | Date): string {
   const w = wib(at);
   return `${pad(w.day)}-${pad(w.month + 1)}-${w.year} ${pad(w.hours)}:${pad(w.minutes)}`;
 }

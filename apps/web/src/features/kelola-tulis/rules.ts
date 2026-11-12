@@ -6,7 +6,7 @@
 import { ApiError } from '~/api/generated';
 import { kelolaTulis as t } from '~/copy/kelola-tulis';
 
-export type WriteFailure = 'tanpaAkses' | 'gagal';
+type WriteFailure = 'tanpaAkses' | 'gagal';
 
 export function writeFailure(error: unknown): WriteFailure {
   return error instanceof ApiError &&

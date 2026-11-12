@@ -79,7 +79,7 @@ function followUpOf(q: FormQuestion, section: FormSection) {
   );
 }
 
-export interface CheckWords {
+interface CheckWords {
   lainnya: string; // 'Lainnya: {isi}'
   dariLima: string; // '{n} dari 5'
   kosong: string; // '–', a follow-up left blank
@@ -152,7 +152,7 @@ export function ratingParts(
 }
 
 /** How a status shows on a card. */
-export type StatusShown = 'open' | 'soon' | 'done' | 'closed';
+type StatusShown = 'open' | 'soon' | 'done' | 'closed';
 
 export function statusShown(status: FormStatus): StatusShown {
   if (status === 'already_responded') return 'done';

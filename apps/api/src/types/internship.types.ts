@@ -7,7 +7,7 @@ import {
   internshipSubmissions,
 } from '~/db/schema';
 
-export const InternshipQuestionSchema = z
+const InternshipQuestionSchema = z
   .object({
     id: z.string(),
     label: z.string(),
@@ -17,7 +17,7 @@ export const InternshipQuestionSchema = z
   })
   .openapi('InternshipQuestion');
 
-export const InternshipKesibukanSchema = z
+const InternshipKesibukanSchema = z
   .object({
     jabatan: z.string(),
     organisasi: z.string(),
@@ -25,7 +25,7 @@ export const InternshipKesibukanSchema = z
   })
   .openapi('InternshipKesibukan');
 
-export const InternshipAnswerSchema = z
+const InternshipAnswerSchema = z
   .object({
     questionId: z.string(),
     answer: z.string(),
@@ -71,7 +71,7 @@ export const InternshipIdParamSchema = z.object({
   }),
 });
 
-export const InternshipSubmissionChoiceSchema = createSelectSchema(
+const InternshipSubmissionChoiceSchema = createSelectSchema(
   internshipSubmissionChoices,
   {
     answers: z.array(InternshipAnswerSchema),
@@ -96,7 +96,7 @@ export const InternshipSubmissionSchema = createSelectSchema(
   })
   .openapi('InternshipSubmission');
 
-export const UpsertInternshipSubmissionChoiceSchema = z.object({
+const UpsertInternshipSubmissionChoiceSchema = z.object({
   divisionId: z.string(),
   priorityOrder: z.number().int().min(1),
   answers: z.array(InternshipAnswerSchema),

@@ -3,7 +3,7 @@ import { cn } from '~/lib/utils';
 import { PixelReaction } from './PixelReaction';
 import type { PixelReactionKey } from './pixel-art';
 
-export interface ReactionButtonProps extends Omit<
+interface ReactionButtonProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'children'
 > {

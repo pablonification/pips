@@ -57,7 +57,7 @@ import { jamWib, useOnline } from './useOnline';
  * below the logo, and a light sheen sweeps once when the card appears, then follows the pointer or a finger as the
  * card tilts (member-tilt.ts). The logo sits above both, untouched. Reduced motion: no tilt, sweep or sheen.
  */
-export function MemberCard({ me }: { me: UserWithRoles }) {
+function MemberCard({ me }: { me: UserWithRoles }) {
   const angkatan = useQuery(angkatanQuery());
   return (
     <Plaque

@@ -5,7 +5,7 @@
  * browser is idle; or `maxWaitMs` after load, whatever happens. Keeping it out of the first page's requests keeps
  * Beranda's requests before content low.
  */
-export interface SettleSource {
+interface SettleSource {
   /** How many queries are fetching now. */
   isFetching: () => number;
   /** Calls `listener` whenever a query changes; returns the unsubscribe. */

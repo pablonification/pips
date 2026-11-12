@@ -123,7 +123,7 @@ interface DevCredentials {
 }
 
 /** The test login's failure: 401 for wrong credentials, anything else for an unavailable account. */
-export class DevLoginError extends Error {
+class DevLoginError extends Error {
   constructor(readonly status: number) {
     super(`test login failed (${status})`);
   }

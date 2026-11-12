@@ -36,7 +36,7 @@ import {
 import { useNow } from './useNow';
 import { rememberCard, wantComment, type FeedSearch } from './view';
 
-export function Byline({ info, now }: { info: Info; now: number }) {
+function Byline({ info, now }: { info: Info; now: number }) {
   const me = useSession();
   return (
     <div className="min-w-0 flex-1">

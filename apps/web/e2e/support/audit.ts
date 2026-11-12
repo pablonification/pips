@@ -17,11 +17,11 @@ export const AXE_TAGS = [
   'wcag22aa',
   'best-practice',
 ];
-export type GatesMode = 'record' | 'strict';
-export const gatesMode = (): GatesMode =>
+type GatesMode = 'record' | 'strict';
+const gatesMode = (): GatesMode =>
   process.env.E2E_GATES === 'record' ? 'record' : 'strict';
 
-export interface AxeSummary {
+interface AxeSummary {
   total: number;
   byImpact: Record<'critical' | 'serious' | 'moderate' | 'minor', number>;
   violations: {
@@ -32,7 +32,7 @@ export interface AxeSummary {
     targets: string[];
   }[];
 }
-export interface PageMetrics {
+interface PageMetrics {
   /** Document scroll width beyond the viewport, in CSS px. 0 is good. */
   overflowX: number;
   /** Visible text elements rendered under 12 px, with the smallest size found. */

@@ -49,7 +49,7 @@ export interface SocketLike {
 /** `connecting` until the first connection; `down` after it drops or fails, until it is back. */
 export type ConnectionStatus = 'connecting' | 'connected' | 'down';
 
-export interface CurhatClientEvents {
+interface CurhatClientEvents {
   /** A message from the room arrived (Welfare's reply, or yours from another tab). */
   onReply?: (message: ChatroomMessage) => void;
   /** The connection is back after being down: catch up on what was missed. */

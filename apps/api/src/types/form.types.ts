@@ -17,7 +17,7 @@ export const FormQuestionSchema = z
   })
   .openapi('FormQuestion');
 
-export const FormSectionSchema = z
+const FormSectionSchema = z
   .object({
     id: z.string(),
     title: z.string(),
@@ -25,7 +25,7 @@ export const FormSectionSchema = z
   })
   .openapi('FormSection');
 
-export const FormAnswerSchema = z
+const FormAnswerSchema = z
   .object({
     questionId: z.string(),
     answer: z.union([z.string(), z.array(z.string())]),
@@ -33,11 +33,11 @@ export const FormAnswerSchema = z
   .openapi('FormAnswer');
 
 /** In order of precedence: already_responded, closed (switched off or past closesAt), not_opened, open. */
-export const FormStatusSchema = z
+const FormStatusSchema = z
   .enum(['not_opened', 'open', 'already_responded', 'closed'])
   .openapi('FormStatus');
 
-export const FormListItemSchema = createSelectSchema(forms, {
+const FormListItemSchema = createSelectSchema(forms, {
   eligibleAngkatan: z.array(z.number()),
   sections: z.array(FormSectionSchema),
   opensAt: z.union([z.string(), z.date()]),
@@ -52,7 +52,7 @@ export const ListFormsSchema = z.object({
   forms: z.array(FormListItemSchema),
 });
 
-export const AdminFormListItemSchema = createSelectSchema(forms, {
+const AdminFormListItemSchema = createSelectSchema(forms, {
   eligibleAngkatan: z.array(z.number()),
   sections: z.array(FormSectionSchema),
   opensAt: z.union([z.string(), z.date()]),
@@ -96,7 +96,7 @@ export const SubmitFormResponseSchema = z.object({
   answers: z.array(FormAnswerSchema),
 });
 
-export const AdminFormResponseItemSchema = z
+const AdminFormResponseItemSchema = z
   .object({
     id: z.string(),
     userId: z.string(),
@@ -144,12 +144,12 @@ export const FormResponsesCountSchema = z.object({
   total: z.number(),
 });
 
-export const FormAnalyticsOptionCountSchema = z.object({
+const FormAnalyticsOptionCountSchema = z.object({
   value: z.string(),
   count: z.number(),
 });
 
-export const FormAnalyticsQuestionSchema = z.object({
+const FormAnalyticsQuestionSchema = z.object({
   questionId: z.string(),
   label: z.string(),
   type: z.enum(['radio', 'checkbox', 'rating']),

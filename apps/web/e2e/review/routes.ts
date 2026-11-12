@@ -16,7 +16,7 @@ export const FORWARDING = {
 /** Not swept: production builds drop it. */
 export const LEFT_OUT = ['/dev/shell'] as const;
 
-export interface SweepRoute {
+interface SweepRoute {
   /** The URL with fixture values. */
   url: string;
   /** Who it is checked as: both where the page differs, Raka for Kelola. */

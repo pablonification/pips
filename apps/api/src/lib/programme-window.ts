@@ -4,7 +4,7 @@
  * A window is open from `opensAt` (inclusive; null: already open) until `closesAt` (exclusive; null: until switched
  * off), while it is active.
  */
-export interface TimeWindow {
+interface TimeWindow {
   opensAt: Date | string | null;
   closesAt: Date | string | null;
   isActive?: boolean;
@@ -29,7 +29,7 @@ export function windowStatus(
 }
 
 /** Who a window is for: everyone when both lists are empty, otherwise a listed angkatan or a listed NIM. */
-export interface WindowAudience {
+interface WindowAudience {
   eligibleAngkatan: readonly number[];
   eligibleNims: readonly string[];
 }

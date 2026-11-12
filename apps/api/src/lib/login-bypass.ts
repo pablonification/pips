@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 
 /** A bypass key shorter than this leaves the route off: it signs anyone in as any member, so it must be unguessable. */
-export const MIN_LOGIN_BYPASS_KEY_LENGTH = 32;
+const MIN_LOGIN_BYPASS_KEY_LENGTH = 32;
 
 /**
  * Whether `GET /api/auth/login/bypass` exists: only on development or staging, and only with a strong key set.

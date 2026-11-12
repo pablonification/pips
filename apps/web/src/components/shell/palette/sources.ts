@@ -46,7 +46,7 @@ import {
 import { useTheme } from '~/lib/theme/useTheme';
 
 /** Opens a service: its page, or an external site in a new tab (PIPS! stays open). */
-export function openService(
+function openService(
   service: Service,
   navigate: ReturnType<typeof useNavigate>,
 ) {

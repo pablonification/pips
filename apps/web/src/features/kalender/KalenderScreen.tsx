@@ -76,7 +76,7 @@ const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0].map((d) => tanggal.hariPendek[d]);
 const monthTitle = (m: Month) => `${tanggal.bulan[m.month - 1]} ${m.year}`;
 const dayNumber = (k: DayKey) => Number(k.slice(8));
 
-export interface KalenderSearch {
+interface KalenderSearch {
   hari?: string;
   acara?: string;
   /** The add-event dialog is open (`tambah=acara`). */

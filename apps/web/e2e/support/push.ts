@@ -25,7 +25,7 @@ export const E2E_SUBSCRIPTION = {
   keys: { p256dh: 'e2e-p256dh-key', auth: 'e2e-auth-secret' },
 } as const;
 
-export interface PushDevice {
+interface PushDevice {
   permission: NotificationPermission;
   subscribed: boolean;
   /** How the next `Notification.requestPermission()` is answered. */

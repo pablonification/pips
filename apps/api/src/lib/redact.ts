@@ -10,7 +10,7 @@ const SECRET_PARAMS = new Set([
   'id_token',
 ]);
 
-export const REDACTED = 'redacted';
+const REDACTED = 'redacted';
 
 /**
  * A request's query string as the request log may keep it (`?a=1&b=2`, or '' with none): the value of every

@@ -12,7 +12,7 @@
 import type { BrowserContext, Page } from '@playwright/test';
 
 export const E2E_GOOGLE_TOKEN = 'e2e-google-access-token';
-export type GoogleMode = 'token' | 'closed' | 'blocked';
+type GoogleMode = 'token' | 'closed' | 'blocked';
 
 const SCRIPT = `(() => {
   const state = (window.__e2eGoogle = window.__e2eGoogle || { mode: 'token', requests: 0, clients: [] });

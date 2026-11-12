@@ -1,7 +1,7 @@
 import { useState, type ButtonHTMLAttributes, type Ref } from 'react';
 import { cn } from '~/lib/utils';
 
-export interface AvatarProps {
+interface AvatarProps {
   initials: string;
   /** The person's photo, when they have one: it covers the initials once it loads, and they stay if it fails. */
   picture?: string | null;
@@ -55,7 +55,7 @@ export function Avatar({
   );
 }
 
-export interface AvatarButtonProps
+interface AvatarButtonProps
   extends
     AvatarProps,
     Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'aria-label'> {

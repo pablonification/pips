@@ -27,10 +27,10 @@ export const ChatroomMessageSchema = createSelectSchema(chatroomMessages)
   })
   .openapi('ChatroomMessage');
 
-export const ChatroomLabelSchema =
+const ChatroomLabelSchema =
   createSelectSchema(chatroomLabels).openapi('ChatroomLabel');
 
-export const ChatroomLabelsManyToManySchema = createSelectSchema(
+const ChatroomLabelsManyToManySchema = createSelectSchema(
   chatroomLabelsManyToMany,
 )
   .extend({

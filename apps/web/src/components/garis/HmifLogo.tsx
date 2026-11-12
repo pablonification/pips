@@ -1,11 +1,11 @@
 import { cn } from '~/lib/utils';
 
 /** The official file's size: never stretched, so the height always follows from the width. */
-export const HMIF_LOGO_SRC = '/logo/hmif.png';
-export const HMIF_LOGO_RATIO = 533 / 800;
-export const HMIF_LOGO_MIN_WIDTH = 40;
+const HMIF_LOGO_SRC = '/logo/hmif.png';
+const HMIF_LOGO_RATIO = 533 / 800;
+const HMIF_LOGO_MIN_WIDTH = 40;
 
-export interface HmifLogoProps {
+interface HmifLogoProps {
   /** Width in px, at least 40. The sidebar uses 54, the member card 72. */
   width: number;
   /** Alternative text; leave empty when a nearby word already names HMIF. */

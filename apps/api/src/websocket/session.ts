@@ -19,7 +19,7 @@ export function sessionExpired(
   return s.expiresAt !== null && now >= s.expiresAt;
 }
 
-export function extractTokenFromCookie(
+function extractTokenFromCookie(
   cookieHeader: string | undefined,
 ): string | undefined {
   if (!cookieHeader) return undefined;

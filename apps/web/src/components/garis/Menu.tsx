@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { cn } from '~/lib/utils';
 import { rememberMenuOpener } from './menu-opener';
 
-export interface MenuProps {
+interface MenuProps {
   /** The button that opens it (rendered as is). */
   trigger: ReactNode;
   children: ReactNode;
@@ -47,7 +47,7 @@ export function Menu({
   );
 }
 
-export interface MenuItemProps {
+interface MenuItemProps {
   children: ReactNode;
   onSelect?: () => void;
   icon?: ReactNode;

@@ -13,7 +13,7 @@ export const CreateOrUpdateReactionSchema = createInsertSchema(reactions).omit({
 });
 
 /** The pixel reactions the app offers (apps/web/src/components/garis/pixel-art.ts). */
-export const REACTION_KINDS = [
+const REACTION_KINDS = [
   'grin',
   'heart-eyes',
   'fire',
@@ -43,7 +43,7 @@ export const ReactionQuerySchema = z.object({
   commentId: z.string().optional(),
 });
 
-export const ReactionCountSchema = z
+const ReactionCountSchema = z
   .object({
     reaction: z.string(),
     count: z.number(),

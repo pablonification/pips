@@ -1,4 +1,4 @@
-export interface HalftoneSquare {
+interface HalftoneSquare {
   x: number;
   y: number;
   size: number;

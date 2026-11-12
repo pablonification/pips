@@ -23,7 +23,7 @@ export const CalendarEvent = createSelectSchema(calendarEvent, {
   end: z.union([z.string(), z.date()]),
 }).openapi('CalendarEvent');
 
-export const CalendarCategory = z
+const CalendarCategory = z
   .enum(calendarGroup.category.enumValues)
   .openapi('CalendarCategory', { example: 'himpunan' });
 

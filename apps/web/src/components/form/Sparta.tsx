@@ -60,7 +60,7 @@ import '~/styles/garis/form.css';
 const ID = 'sparta';
 const N = SPARTA_STEPS.length;
 /** How long typing pauses before the draft is saved on the server. */
-export const SPARTA_SAVE_DEBOUNCE_MS = 800;
+const SPARTA_SAVE_DEBOUNCE_MS = 800;
 
 function Page({
   children,

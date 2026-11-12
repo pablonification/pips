@@ -104,7 +104,7 @@ const COLOUR_CLASS: Record<string, string> = {
   b: 'b',
 };
 
-export interface PixelRun {
+interface PixelRun {
   x: number;
   y: number;
   width: number;

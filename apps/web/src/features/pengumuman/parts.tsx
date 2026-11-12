@@ -410,8 +410,7 @@ export function ReactSummaryButton({
 
 export { myReaction };
 
-export const postUrl = (id: string) =>
-  `${window.location.origin}/pengumuman/${id}`;
+const postUrl = (id: string) => `${window.location.origin}/pengumuman/${id}`;
 export const postName = (info: Pick<Info, 'title' | 'creator'>) =>
   info.title || fill(t.post.dari, { nama: info.creator.fullName });
 

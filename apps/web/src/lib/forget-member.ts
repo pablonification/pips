@@ -2,7 +2,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { ME_QUERY_KEY } from '~/api/constants';
 
 /** localStorage keys that hold a member's data. `user` stays, as "null": the signed-out marker. */
-export const MEMBER_STORAGE_KEYS = ['userAcademic'] as const;
+const MEMBER_STORAGE_KEYS = ['userAcademic'] as const;
 
 /**
  * Nothing of the signed-in member stays on the device: at sign-out, on a 401 from the session check, and before

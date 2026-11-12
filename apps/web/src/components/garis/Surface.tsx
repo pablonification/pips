@@ -18,7 +18,7 @@ export function Plaque({ className, ...rest }: DivProps) {
   return <div className={cn('g-plaque', className)} {...rest} />;
 }
 
-export interface TileProps extends Omit<
+interface TileProps extends Omit<
   HTMLAttributes<HTMLSpanElement>,
   'aria-label'
 > {
@@ -60,7 +60,7 @@ export function Tile({
   );
 }
 
-export interface SegbarProps {
+interface SegbarProps {
   /** How many parts there are, and how many are done. */
   total: number;
   done: number;
@@ -121,7 +121,7 @@ export function Saved({
   );
 }
 
-export interface MediaProps {
+interface MediaProps {
   src?: string;
   alt: string;
   /** Width / height; the space is kept while the image loads. Default 16 / 10, as the feed's images. */

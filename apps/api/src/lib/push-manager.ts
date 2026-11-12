@@ -36,7 +36,7 @@ export const MAX_PUSH_PAYLOAD_BYTES = 3000;
 /** How many pushes are in flight at once, so a burst to 2,000 devices doesn't open 2,000 connections together. */
 export const PUSH_CONCURRENCY = 50;
 /** A push service that hasn't answered by then is given up on, so a stalled one can't hold a fan-out open. */
-export const PUSH_TIMEOUT_MS = 10_000;
+const PUSH_TIMEOUT_MS = 10_000;
 
 const utf8 = new TextEncoder();
 const byteLength = (text: string) => utf8.encode(text).length;
@@ -87,7 +87,7 @@ export function fitPushData(
   );
 }
 
-export interface SendOptions {
+interface SendOptions {
   urgency?: webpush.Urgency;
   /** For tests; the real sender otherwise. */
   send?: typeof webpush.sendNotification;
@@ -98,7 +98,7 @@ export interface SendOptions {
 }
 
 /** One fan-out's outcome in counts: never an endpoint, a member or the push's text. */
-export interface PushSummary {
+interface PushSummary {
   type: 'push';
   devices: number;
   sent: number;

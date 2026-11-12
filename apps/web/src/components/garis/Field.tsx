@@ -20,7 +20,7 @@ interface FieldContext {
 }
 const Ctx = createContext<FieldContext | null>(null);
 
-export interface FieldProps {
+interface FieldProps {
   label: ReactNode;
   /** A short constraint under the field, only when it prevents a mistake ("8 angka, misalnya 13525045"). */
   hint?: ReactNode;
@@ -119,7 +119,7 @@ export function Select({
   );
 }
 
-export interface SearchboxProps extends Omit<
+interface SearchboxProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'type'
 > {

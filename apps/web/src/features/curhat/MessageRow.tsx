@@ -17,7 +17,7 @@ import { curhat as t } from '~/copy/curhat';
 import { cn } from '~/lib/utils';
 
 /** How far a swipe must go to reply, and how far the bubble follows the finger. */
-export const SWIPE_REPLY_PX = 56;
+const SWIPE_REPLY_PX = 56;
 const SWIPE_MAX_PX = 72;
 /** A touch that moves less than this is a tap. */
 const TAP_SLOP_PX = 8;

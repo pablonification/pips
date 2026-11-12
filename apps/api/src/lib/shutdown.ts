@@ -7,7 +7,7 @@ export function isShuttingDown() {
   return shuttingDown;
 }
 
-export interface ShutdownSteps {
+interface ShutdownSteps {
   /** Stops scheduled jobs (the reminder cron). */
   stopJobs: () => void;
   /** Stops accepting connections and resolves once in-flight requests have finished. */

@@ -24,7 +24,7 @@ export interface PaletteItem {
   run: () => void;
 }
 
-export interface PaletteGroup {
+interface PaletteGroup {
   heading: string;
   items: PaletteItem[];
 }

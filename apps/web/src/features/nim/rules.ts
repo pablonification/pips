@@ -6,10 +6,10 @@ import { fill } from '~/copy/fill';
 import { nim as copy } from '~/copy/nim';
 
 /** The API refuses a search under 3 characters (trimmed). */
-export const NIM_MIN = 3;
+const NIM_MIN = 3;
 
 /** The most members the API returns for one search (apps/api/src/lib/nim-finder.ts `NIM_FINDER_LIMIT`). */
-export const NIM_MAX = 30;
+const NIM_MAX = 30;
 
 /** The query to search, trimmed; null while it is under 3 characters. */
 export function nimQuery(raw: string | undefined): string | null {

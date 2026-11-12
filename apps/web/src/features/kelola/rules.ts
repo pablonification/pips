@@ -236,7 +236,7 @@ export function hasFilters(f: SpartaFilters): boolean {
   return !!(f.q?.trim() || f.divisi || f.pilihan || f.status);
 }
 
-export interface StatRow {
+interface StatRow {
   key: string;
   label: string;
   count: number;

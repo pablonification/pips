@@ -9,7 +9,7 @@ import { common } from '~/copy/common';
 export type TagTone =
   'default' | 'accent' | 'success' | 'danger' | 'inverse' | 'outlined';
 
-export interface TagProps extends HTMLAttributes<HTMLSpanElement> {
+interface TagProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: TagTone;
   /** A 16 px icon before the word. A status always has one (icon + word + colour). */
   icon?: ReactNode;
