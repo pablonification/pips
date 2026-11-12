@@ -143,7 +143,6 @@ const INDIRECT = {
   '@types/node': 'tsconfig.json `types`',
   '@types/react': 'React types',
   '@types/react-dom': 'React DOM types',
-  '@types/pngjs': 'pngjs types for e2e/scripts/lib/image.mjs',
   geist: 'scripts/fonts subsets Geist from its files',
   '@fontsource-variable/archivo':
     'scripts/fonts subsets Archivo Expanded from its files',
