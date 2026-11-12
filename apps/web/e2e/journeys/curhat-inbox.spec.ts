@@ -150,7 +150,7 @@ test.describe('ways in', () => {
     await expect(page).toHaveTitle('Curhat Yuk! · PIPS!');
   });
 
-  test('/layanan/curhat, a room link and today’s /home/curhat lead to the inbox, replacing the entry', async ({
+  test('/layanan/curhat, a room link and the old /home/curhat lead to the inbox, replacing the entry', async ({
     page,
     api,
   }) => {

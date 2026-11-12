@@ -77,7 +77,7 @@ test.describe('signed out', () => {
     });
   });
 
-  test('today’s /timeline links still come back to the post', async ({
+  test('the old /timeline links still come back to the post', async ({
     page,
     api,
   }) => {
@@ -92,7 +92,7 @@ test.describe('signed out', () => {
   });
 
   // The other old path that comes from outside the app, the Curhat reply push (apps/api websocket/setup.ts).
-  test('a Curhat reply push to today’s /home/curhat comes back to Curhat after sign-in', async ({
+  test('a Curhat reply push to the old /home/curhat comes back to Curhat after sign-in', async ({
     page,
     api,
   }) => {

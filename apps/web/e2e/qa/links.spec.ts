@@ -74,7 +74,7 @@ test.describe('the installed app', () => {
     test.skip(testInfo.project.name !== 'qa-phone-light', 'once');
   });
 
-  test('the manifest: start, scope and shortcuts on today’s URLs, Indonesian, the theme’s colours', async ({
+  test('the manifest: start, scope and shortcuts on the app’s URLs, Indonesian, the theme’s colours', async ({
     page,
     request,
   }) => {

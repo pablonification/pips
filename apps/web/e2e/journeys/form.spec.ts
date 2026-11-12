@@ -572,7 +572,7 @@ test.describe('the draft on this device', () => {
     await expect(page.getByRole('radio', { name: 'IF K3' })).toBeChecked();
   });
 
-  test('a draft from today’s screen restores; one older than 14 days doesn’t', async ({
+  test('a draft from the old screen restores; one older than 14 days doesn’t', async ({
     page,
     db,
   }) => {
