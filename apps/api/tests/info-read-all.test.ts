@@ -1,4 +1,4 @@
-// Tandai semua dibaca (owner, 2026-11-06): `POST /info/read-all` marks the signed-in member's own feed read, for
+// Tandai semua dibaca: `POST /info/read-all` marks the signed-in member's own feed read, for
 // them only, and says how many posts it marked. The SQL itself runs in tests/db/info-read-all.test.ts.
 import { strict as assert } from 'node:assert';
 import { before, test } from 'node:test';

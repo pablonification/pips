@@ -112,7 +112,7 @@ const post = (forCategories: string[]) => ({
   forCategories,
 });
 
-// Regression (C9): the refusal came from createInfo throwing a plain Error, which the API answered as a 500.
+// The refusal must not come from createInfo throwing a plain Error, which the API would answer as a 500.
 test('posting in a category whose rolesAllowed excludes you is refused with 403, and nothing is created', async () => {
   const created: unknown[] = [];
   const res = await callRouter(

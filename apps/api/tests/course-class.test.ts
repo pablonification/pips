@@ -3,9 +3,8 @@ import { before, test } from 'node:test';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
 
 /*
- * Garis v5 dropped the class from Mata kuliahku: Tambah mata kuliah sends only `courseId`. `PUT /api/course/take/batch`
- * (and `POST /api/course/take`) used to require `class`, so those adds failed with 400. A missing class is now stored as
- * the default class; an older client that still sends one keeps it.
+ * Tambah mata kuliah sends only `courseId`, so `PUT /api/course/take/batch` and `POST /api/course/take` must not
+ * require `class`. A missing class is stored as the default class; a client that still sends one keeps it.
  */
 
 before(async () => {
