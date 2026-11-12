@@ -15,6 +15,7 @@ import {
   hasFilters,
   kelolaAccess,
   kelolaServices,
+  gateRedirect,
   liveTotal,
   orDash,
   pageCount,
@@ -73,6 +74,17 @@ test('kelolaAccess: Raka everywhere; peoplemanage only SPARTA; Nadia nowhere', (
     allowed: false,
     to: '/layanan',
   });
+});
+
+// The member saved on the device may lack a role just given: nobody is sent away before the session check has
+// answered in this visit.
+test('gateRedirect: sends away only after the session check answered', () => {
+  const denied = kelolaAccess(nadia, 'sparta');
+  assert.equal(gateRedirect(denied, false), null);
+  assert.equal(gateRedirect(denied, true), '/layanan');
+  assert.equal(gateRedirect(kelolaAccess(people, 'live'), true), '/kelola');
+  assert.equal(gateRedirect(kelolaAccess(raka, 'sparta'), false), null);
+  assert.equal(gateRedirect(kelolaAccess(raka, 'sparta'), true), null);
 });
 
 // Deviation since P0-B round 2 (services.ts): Tambah acara Akademik is akademik's only, since the server lets only

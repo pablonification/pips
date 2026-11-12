@@ -51,6 +51,17 @@ export function kelolaAccess(
   };
 }
 
+/**
+ * Where the gate sends a member who may not open the page, once the session check has answered in this visit
+ * (`checked`); null meanwhile, and when they may. The saved member may lack a role just given.
+ */
+export function gateRedirect(
+  access: ReturnType<typeof kelolaAccess>,
+  checked: boolean,
+): '/kelola' | '/layanan' | null {
+  return access.allowed || !checked ? null : access.to;
+}
+
 // ---------- The forms entry ----------
 
 /** One active form goes straight to its live page, two or more list, none is empty. */
