@@ -228,6 +228,17 @@ loginProtectedRouter.openapi(logoutRoute, async (c) => {
 loginProtectedRouter.openapi(selfRoute, async (c) => {
   const user = c.var.user;
   runInBackground('Last sign-in update', updateUserLastLogin(db, user.id));
+  // A session in use renews itself once past half its life, so a member who keeps using the app stays signed in.
+  const { exp } = c.var.jwtPayload as { exp?: number };
+  const secondsLeft = Number(exp) - Date.now() / 1000;
+  if (secondsLeft < env.TOKEN_EXPIRATION / 2) {
+    setCookie(
+      c,
+      SESSION_COOKIE,
+      await generateJWT(JWTPayloadSchema.parse(user)),
+      sessionCookieOptions(),
+    );
+  }
   const roles = await getUserRoles(db, user.id);
   return c.json({ ...user, roles }, 200);
 });
