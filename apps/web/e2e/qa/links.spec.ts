@@ -27,7 +27,7 @@ const onBeranda = async (page: Page) => {
 
 test.describe('redirect validation', () => {
   // Playwright reads the fixtures from an object pattern, so it stays, empty.
-  // eslint-disable-next-line no-empty-pattern
+  // eslint-disable-next-line no-empty-pattern -- Playwright reads which fixtures a test wants from this pattern: none
   test.beforeEach(({}, testInfo) => {
     test.skip(
       !/^qa-(phone|desktop)-light$/.test(testInfo.project.name),
@@ -69,7 +69,7 @@ test.describe('redirect validation', () => {
 
 test.describe('the installed app', () => {
   // Playwright reads the fixtures from an object pattern, so it stays, empty.
-  // eslint-disable-next-line no-empty-pattern
+  // eslint-disable-next-line no-empty-pattern -- Playwright reads which fixtures a test wants from this pattern: none
   test.beforeEach(({}, testInfo) => {
     // The check doesn't depend on layout or theme, so one project is enough.
     test.skip(testInfo.project.name !== 'qa-phone-light', 'once');
