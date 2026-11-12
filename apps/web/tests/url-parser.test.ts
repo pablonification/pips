@@ -43,10 +43,7 @@ const CASES: [string, string[]][] = [
     '"https://quoted.example.org/x" serta \'www.single.id\'',
     ['https://quoted.example.org/x', 'www.single.id'],
   ],
-  [
-    'Tidak ada tautan di sini. Hanya teks biasa, dengan titik: dan koma.',
-    [],
-  ],
+  ['Tidak ada tautan di sini. Hanya teks biasa, dengan titik: dan koma.', []],
   [
     'Nilai 3.5 atau versi 1.2.3 dan file.pdf, HMIF.ITB',
     ['file.pdf', 'HMIF.ITB'],
