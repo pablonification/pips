@@ -36,25 +36,21 @@ export const EnvSchema = z.object({
     .default('["http://localhost:5173"]')
     .transform((value) => JSON.parse(value))
     .pipe(z.array(z.string().url())),
-  VAPID_PUBLIC_KEY: z.string().default('not-specified'),
-  VAPID_PRIVATE_KEY: z.string().default('not-specified'),
+  VAPID_PUBLIC_KEY: z.string(),
+  VAPID_PRIVATE_KEY: z.string(),
   VAPID_MAILTO: z.string().email().optional(),
-  SMTP_HOST: z.string(),
-  SMTP_USER: z.string().email().optional(),
-  SMTP_PORT: z.coerce.number(),
-  SMTP_SECURE: z.coerce.boolean().default(true),
-  SMTP_PASS: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
   // Other OAuth client ids whose access tokens may sign in (comma-separated), if the web app uses another client.
   GOOGLE_ALLOWED_CLIENT_IDS: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_CALLBACK_URL: z.string().url(),
-  JWT_SECRET: z.string(),
-  TOKEN_EXPIRATION: z.string(),
-  R2_ENDPOINT: z.string().url().default('not-specified'),
+  JWT_SECRET: z.string().min(32),
+  // How long a session lasts, in seconds.
+  TOKEN_EXPIRATION: z.coerce.number().int().min(60),
+  R2_ENDPOINT: z.string().url(),
   R2_ACCESS_KEY_ID: z.string().default('not-specified'),
   R2_SECRET_ACCESS_KEY: z.string().default('not-specified'),
-  R2_PUBLIC_URL: z.string().url().default('not-specified'),
+  R2_PUBLIC_URL: z.string().url(),
   R2_BUCKET_NAME: z.string().default('hmifapp'),
   // Sign-in as any NIM with this key (`GET /api/auth/login/bypass`). No default: the route exists only on
   // development or staging, and only with a key of at least 32 characters (`lib/login-bypass.ts`).

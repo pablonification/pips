@@ -54,7 +54,7 @@ const generateJWT = async (payload: object) => {
   return await sign(
     {
       ...payload,
-      exp: now.valueOf() / 1000 + parseInt(env.TOKEN_EXPIRATION),
+      exp: now.valueOf() / 1000 + env.TOKEN_EXPIRATION,
     },
     env.JWT_SECRET,
     JWT_ALG,
@@ -283,7 +283,7 @@ if (isDevLoginEnabled(env) && devLoginEmail && devLoginPasswordHash) {
       secure,
       httpOnly: true,
       sameSite: 'Lax',
-      maxAge: parseInt(env.TOKEN_EXPIRATION),
+      maxAge: env.TOKEN_EXPIRATION,
     });
     await updateUserLastLogin(db, user.id);
     return c.json(payload, 200);
