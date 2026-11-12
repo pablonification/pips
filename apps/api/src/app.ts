@@ -152,6 +152,7 @@ export function createApp({
       type: 'request',
       duration: end - start,
       // A Curhat path names the room: with the member's id beside it, the log would say whose room it is.
+      // `as any`: the context's variable map doesn't type `user` in this middleware.
       userId: isCurhatPath(path) ? undefined : c.get('user' as any)?.id,
     });
   });

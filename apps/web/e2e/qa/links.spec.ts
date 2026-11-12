@@ -71,6 +71,7 @@ test.describe('the installed app', () => {
   // Playwright reads the fixtures from an object pattern, so it stays, empty.
   // eslint-disable-next-line no-empty-pattern
   test.beforeEach(({}, testInfo) => {
+    // The check doesn't depend on layout or theme, so one project is enough.
     test.skip(testInfo.project.name !== 'qa-phone-light', 'once');
   });
 
@@ -128,6 +129,7 @@ test.describe('the theme colour', () => {
   test('follows the theme; gold on Beranda on phones and tablets', async ({
     page,
   }, testInfo) => {
+    // Runs only on the qa-<layout>-<theme> projects, not on the journey projects.
     test.skip(!QA_LAYOUT.test(testInfo.project.name), 'a qa layout');
     const dark = testInfo.project.name.endsWith('-dark');
     const themeColour = () =>
@@ -145,6 +147,7 @@ test.describe('the theme colour', () => {
   test('no flash of the other theme: the first frame already has the chosen theme', async ({
     page,
   }, testInfo) => {
+    // Runs only on the qa-<layout>-<theme> projects, not on the journey projects.
     test.skip(!QA_LAYOUT.test(testInfo.project.name), 'a qa layout');
     const dark = testInfo.project.name.endsWith('-dark');
     // The member chose the opposite of the system's setting: the first frame must follow the choice. Before the
