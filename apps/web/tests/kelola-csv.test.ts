@@ -132,10 +132,7 @@ test("SPARTA CSV: byte for byte today's file, partial drafts and a missing divis
   const next = submissionsCsv(subs, divisions, byId, NOW);
   assert.equal(next.filename, old.filename);
   assert.equal(next.filename, 'internship-submissions-2026-10-08-06-35-12.csv');
-  // One cell differs from today's file: the missing division's "-" starts with `'`, as every cell starting with a
-  // formula character does.
-  assert.equal(old.bytes.split(',,-,,').length, 2);
-  assert.equal(bytesOf(next.content), old.bytes.replace(',,-,,', ",,'-,,"));
+  assert.equal(bytesOf(next.content), old.bytes);
   const lines = next.content.split('\n');
   assert.equal(
     lines[0],
@@ -167,7 +164,7 @@ test('escapeCsvValue quotes ", comma and line breaks; regression: \\r too', () =
 
 test('a cell a spreadsheet would read as a formula is written as text', () => {
   assert.equal(escapeCsvValue('=1+1'), "'=1+1");
-  assert.equal(escapeCsvValue('+62812'), "'+62812");
+  assert.equal(escapeCsvValue('+1+1'), "'+1+1");
   assert.equal(escapeCsvValue('-2+3'), "'-2+3");
   assert.equal(escapeCsvValue('@SUM(1)'), "'@SUM(1)");
   assert.equal(escapeCsvValue('\t=1+1'), "'\t=1+1");
@@ -180,6 +177,12 @@ test('a cell a spreadsheet would read as a formula is written as text', () => {
   // Only the first character counts.
   assert.equal(escapeCsvValue('a=b'), 'a=b');
   assert.equal(escapeCsvValue(' =1'), ' =1');
-  assert.equal(escapeCsvValue(-5), "'-5");
+  // A lone dash and a plain number can't run as a formula, so they stay as written.
+  assert.equal(escapeCsvValue('-'), '-');
+  assert.equal(escapeCsvValue(-5), '-5');
+  assert.equal(escapeCsvValue('-5,5'), '"-5,5"');
+  assert.equal(escapeCsvValue('+62812345678'), '+62812345678');
+  assert.equal(escapeCsvValue('-5+cmd'), "'-5+cmd");
+  assert.equal(escapeCsvValue('--1'), "'--1");
   assert.equal(rowsToCsv(['h'], [['@x']]), "h\n'@x");
 });
