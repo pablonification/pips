@@ -11,6 +11,7 @@ import {
   holdSubscribe,
   pushDevice,
   releaseSubscribe,
+  subscribesWaiting,
 } from '../support/push';
 import { strictAudit, strictGates } from '../support/strict';
 import { expect, test } from '../support/test';
@@ -351,6 +352,7 @@ test.describe('Raka', () => {
     await expect(
       confirm(page).getByRole('button', { name: 'Keluar…' }),
     ).toBeVisible();
+    await expect.poll(() => subscribesWaiting(page)).toBe(1);
     await page.clock.runFor(15_000);
     await expect(
       toastText(page, 'Gagal keluar. Periksa koneksimu, lalu coba lagi.'),
