@@ -1,4 +1,4 @@
-// Adding, changing and deleting calendar events (P3-B): who may, and the times and Google Calendar rules (C6).
+// Adding, changing and deleting calendar events: who may, and the times and Google Calendar rules.
 import { strict as assert } from 'node:assert';
 import { before, test } from 'node:test';
 import { GaxiosError } from 'gaxios';
@@ -209,7 +209,7 @@ test('POST /calendar/event: the role is checked by category on the server', asyn
   );
 });
 
-test('regression (C6): an event that ends before it starts is refused before Google is asked', async () => {
+test('an event that ends before it starts is refused before Google is asked', async () => {
   const { router, calls } = setup(['akademik']);
   const res = await callRouter(router, raka, 'POST', '/calendar/event', {
     ...kuis2,
@@ -256,7 +256,7 @@ test('PUT /calendar/event/{id}: a Himpunan event needs ring1, whatever else you 
   assert.deepEqual(calls, []);
 });
 
-test('regression (C6): a change that makes the event end before it starts is refused', async () => {
+test('a change that makes the event end before it starts is refused', async () => {
   // Only the end is sent: it is checked against the start already stored (06.00 UTC).
   const { router, calls } = setup(['akademik']);
   const res = await callRouter(router, raka, 'PUT', '/calendar/event/ev-1', {
@@ -293,7 +293,7 @@ test('DELETE /calendar/event/{id}: an unknown event is 404', async () => {
   assert.equal(res.status, 404);
 });
 
-test('regression (C6): when Google already removed the event (410 Gone), the row is deleted too', async () => {
+test('when Google already removed the event (410 Gone), the row is deleted too', async () => {
   const { router, calls, deleted } = setup(['akademik'], {
     googleDelete: async () => {
       throw googleError(410);
@@ -317,7 +317,7 @@ test('DELETE /calendar/event/{id}: Google answers 404 and the calendar is reacha
   assert.deepEqual(deleted, ['ev-1']);
 });
 
-test('regression (review m6): Google answers 404 and the calendar is not reachable, so the row stays and the delete fails', async () => {
+test('Google answers 404 and the calendar is not reachable, so the row stays and the delete fails', async () => {
   const { router, calls, deleted } = setup(['akademik'], {
     googleDelete: async () => {
       throw googleError(404);
@@ -341,26 +341,45 @@ test('DELETE /calendar/event/{id}: any other Google failure keeps the row, so th
   assert.deepEqual(deleted, []);
 });
 
-test("regression (review): Google's own error message never reaches the client, on any calendar write", async () => {
+test("Google's own error message never reaches the client, on any calendar write", async () => {
   const failing = async () => {
     throw googleError(403);
   };
   const cases = [
-    { method: 'POST', path: '/calendar/event', body: kuis2, google: { insert: failing } },
-    { method: 'PUT', path: '/calendar/event/ev-1', body: { title: 'Kuis 3' }, google: { update: failing } },
-    { method: 'DELETE', path: '/calendar/event/ev-1', body: undefined, google: { remove: failing } },
+    {
+      method: 'POST',
+      path: '/calendar/event',
+      body: kuis2,
+      google: { insert: failing },
+    },
+    {
+      method: 'PUT',
+      path: '/calendar/event/ev-1',
+      body: { title: 'Kuis 3' },
+      google: { update: failing },
+    },
+    {
+      method: 'DELETE',
+      path: '/calendar/event/ev-1',
+      body: undefined,
+      google: { remove: failing },
+    },
   ] as const;
   for (const { method, path, body, google } of cases) {
     const { router, deps } = setup(['akademik']);
     Object.assign(deps.google, google);
     const res = await callRouter(router, raka, method, path, body);
     assert.equal(res.status, 400, `${method} ${path}`);
-    assert.doesNotMatch(JSON.stringify(res.body), /Google says/, `${method} ${path}`);
+    assert.doesNotMatch(
+      JSON.stringify(res.body),
+      /Google says/,
+      `${method} ${path}`,
+    );
     assert.deepEqual(res.body, { error: GOOGLE_CALENDAR_FAILED });
   }
 });
 
-test("regression (review): an event Google can't find answers a fixed 404, not Google's message", async () => {
+test("an event Google can't find answers a fixed 404, not Google's message", async () => {
   const { router, deps } = setup(['akademik']);
   deps.google.get = async () => {
     throw new GaxiosError('Not Found', {}, {
@@ -372,7 +391,9 @@ test("regression (review): an event Google can't find answers a fixed 404, not G
       request: { responseURL: '' },
     } as never);
   };
-  const res = await callRouter(router, raka, 'PUT', '/calendar/event/ev-1', { title: 'Kuis 3' });
+  const res = await callRouter(router, raka, 'PUT', '/calendar/event/ev-1', {
+    title: 'Kuis 3',
+  });
   assert.equal(res.status, 404);
   assert.deepEqual(res.body, { error: 'Event not found' });
 });

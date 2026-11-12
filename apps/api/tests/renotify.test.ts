@@ -10,7 +10,7 @@ import type { InfoDeps } from '../src/controllers/info.controller';
 import { callRouter } from './support/router';
 import { testUser } from './support/session';
 
-// 12.30 WIB; the prototype says "Bisa lagi mulai 15.30".
+// 12.30 WIB, so the next reminder can start at 15.30.
 const sent = new Date('2026-10-08T05:30:00.000Z');
 const plus = (h: number, m = 0) =>
   new Date(sent.getTime() + (h * 60 + m) * 60_000);
@@ -27,7 +27,7 @@ test('Umumkan ulang unlocks once three hours have passed', () => {
   );
 });
 
-// Regression: `dayjs().diff(lastNotifiedAt, 'hour') > 3` counted whole hours, so it stayed locked until 4 h.
+// The window is measured in minutes, not whole hours (`diff(…, 'hour') > 3` would stay locked until 4 h).
 test('3 h 0 min and 3 h 59 min are open', () => {
   assert.equal(canRenotify(sent, plus(3, 0)), true);
   assert.equal(canRenotify(sent, plus(3, 59)), true);
@@ -97,8 +97,8 @@ test('POST /info/:id/renotify: the author while open; 400 while locked; others r
   assert.deepEqual(pushed, ['p1']);
 });
 
-// Regression (owner, 2026-11-03): opening a post by its link checked groups but not angkatan. The route now gives
-// the repository the member's angkatan; tests/db/info-audience.test.ts checks the query on a real database.
+// Opening a post by its link must check angkatan as well as groups. The route gives the repository the member's
+// angkatan; tests/db/info-audience.test.ts checks the query on a real database.
 test("GET /info/:id reads the post for the member's angkatan, and a post they can't see is 404", async () => {
   const seen: unknown[][] = [];
   const router = createInfoRouter({
@@ -113,8 +113,8 @@ test("GET /info/:id reads the post for the member's angkatan, and a post they ca
   assert.deepEqual(seen, [['p1', 'u-nadia', 2025]]);
 });
 
-// Regression: the re-send pushed to every member inside the request and wrote `lastNotifiedAt` only afterwards, so a
-// double click or a retry sent everyone the push twice.
+// The re-send must record `lastNotifiedAt` before it pushes to every member, or a double click or a retry sends
+// everyone the push twice.
 test('POST /info/:id/renotify twice at once: one push, the other refused', async () => {
   const author = testUser('u-author');
   const pushed: string[] = [];
@@ -145,7 +145,7 @@ test('POST /info/:id/renotify twice at once: one push, the other refused', async
   assert.deepEqual(pushed, ['p1']);
 });
 
-// Regression: a stalled push service held the request open until every send finished.
+// A stalled push service must not hold the request open until every send finishes.
 test('POST /info/:id/renotify answers before the fan-out finishes, and a failed fan-out is only logged', async () => {
   const author = testUser('u-author');
   const errors: unknown[][] = [];

@@ -1,38 +1,35 @@
-# HMIF App Backend
+# PIPS! API
 
-## How to run
+The server behind PIPS!: Hono with zod-described routes, PostgreSQL through Drizzle, socket.io for Curhat and Live
+Counting, and web push. How it is laid out is in [docs/architecture.md](../../docs/architecture.md); the first run,
+including a database and a first account, is in [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
-1. Install PNPM
+## Run it
 
-```bash
-npm install -g pnpm
-```
-
-2. Install dependencies
+From the repository root, with a local PostgreSQL and `apps/api/.env` made from `.env.example`:
 
 ```bash
-pnpm install
+pnpm --filter api db:migrate    # build the tables; prints "Migrations applied"
+pnpm --filter api dev           # restarts on every change; "Server is running on port 5000"
 ```
 
-3. Copy `.env.example` to `.env` and fill the required environment variables
-4. Run database migration
+With `APP_ENV=development` the API documents itself: open `http://localhost:5000/swagger` (the raw description is at
+`/doc`). In any other `APP_ENV` those two pages are off.
 
-```bash
-pnpm db:migrate
-```
+## Commands
 
-5. Run the app
+| Command | What it does |
+| --- | --- |
+| `pnpm --filter api check` | Type check and lint. |
+| `pnpm --filter api test` | Unit tests. No database or `.env` needed. |
+| `pnpm --filter api test:db` | Tests against a real database; needs `TEST_DATABASE_URL` ([testing](../../docs/testing.md)). |
+| `pnpm --filter api db:migrations` | Write a new migration into `drizzle/` after `src/db/schema.ts` changed. |
+| `pnpm --filter api db:migrate` | Apply the migrations to `DATABASE_URL`. |
+| `pnpm --filter api db:seed` | Add one form (it never exits by itself; press Ctrl+C). Not a way to get sample data. |
+| `pnpm --filter api openapi <file>` | Write the API's description to a file, with no server. The web app's client is built from it. |
 
-```bash
-pnpm dev
-```
+Migrations only add things, and never run one against a database that is not yours
+([decision 6](../../docs/adr/0006-migrations-only-add-things-and-run-before-the-new-code-goes-live.md)). In the
+production image the migrate command is `node --import tsx src/db/migrate.ts` ([DEPLOY.md](../../DEPLOY.md)).
 
-6. You can access the swagger api documentation at `http://localhost:5000/swagger`
-
-## Run database migrations
-
-```bash
-pnpm db:migrate
-```
-
-In the production image: `node --import tsx src/db/migrate.ts` (see `DEPLOY.md` at the repository root).
+After changing a route or its types, regenerate the web client: `pnpm --filter web api`.

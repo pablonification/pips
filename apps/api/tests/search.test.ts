@@ -12,7 +12,7 @@ test('words become prefixes that must all match, as before', () => {
   );
 });
 
-// Regression: these went into to_tsquery as typed and gave a 500.
+// These must not go into to_tsquery as typed: that gives a 500.
 test('tsquery syntax in the text is dropped, never passed on', () => {
   assert.equal(prefixTsQuery('C++'), 'C:*');
   assert.equal(

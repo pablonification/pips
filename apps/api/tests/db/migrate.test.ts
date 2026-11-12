@@ -1,8 +1,8 @@
 // Runs against a real, throwaway PostgreSQL, as curhat.test.ts: `TEST_DATABASE_URL=postgres://…/pips_test… pnpm --filter api test:db`.
 // It creates (and drops) its own databases beside TEST_DATABASE_URL's, so it needs a role that may create databases.
 //
-// Regression (2026-11-12): production's migration records had 24 rows but their id counter stood at 22 (0022 and
-// 0023 were recorded by hand), so `pnpm db:migrate` failed at its first insert and 0024–0028 could never apply.
+// A database whose migration records outnumber its id counter (for example 24 rows with the counter at 22, when two
+// migrations were recorded by hand) must still migrate: otherwise `pnpm db:migrate` fails at its first insert.
 import { strict as assert } from 'node:assert';
 import {
   cpSync,

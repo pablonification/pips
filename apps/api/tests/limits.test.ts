@@ -221,7 +221,7 @@ test('sign-in attempts past the limit get 429, per client address', async () => 
   assert.equal((await attempt('198.51.100.2')).status, 400);
 });
 
-test('regression (review): by default the address is the right-most forwarded one, which the nearest proxy appended', async () => {
+test('by default the address is the right-most forwarded one, which the nearest proxy appended', async () => {
   const app = createApp({ rateLimits: { signIn: 2 } });
   const attempt = async (headers: Record<string, string>) =>
     await app.request('/api/auth/login/accesstoken', {
@@ -293,7 +293,7 @@ test('CLIENT_IP_HEADER: the three values, the right-most forwarded address by de
   assert.equal(parse('x-real-ip'), 'x-forwarded-for');
 });
 
-test('regression (review): the limiter keeps at most maxKeys counters, however many addresses it meets', () => {
+test('the limiter keeps at most maxKeys counters, however many addresses it meets', () => {
   let t = 0;
   const limiter = createRateLimiter({
     limit: 2,
