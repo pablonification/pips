@@ -11,7 +11,8 @@
 	header Referrer-Policy "strict-origin-when-cross-origin"
 	header X-Frame-Options "DENY"
 	# Content-Security-Policy-Report-Only, written by the Dockerfile (scripts/csp.mjs). Enforce it only after a real
-	# Google sign-in, an upload and a post with a picture on staging leave no report in the browser's console.
+	# Google sign-in, an upload, a post with a picture and an open Curhat room on staging leave no report in the
+	# browser's console.
 	import /etc/caddy/csp.caddy
 	@app {
 		not path /assets/*

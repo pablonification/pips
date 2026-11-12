@@ -2,6 +2,7 @@
 // docker job runs the image and checks the same answers over HTTP.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import test from 'node:test';
 import { contentSecurityPolicy, caddyHeader } from '../scripts/csp.mjs';
@@ -136,6 +137,22 @@ test("the policy hashes the theme script of the app's own index.html", () => {
     hash,
     'https://accounts.google.com/gsi/client',
   ]);
+});
+
+test('the image build stops when the file store address is missing, so the policy can never leave it out', () => {
+  const script = new URL('../scripts/csp.mjs', import.meta.url).pathname;
+  const index = new URL('../index.html', import.meta.url).pathname;
+  const run = (env) =>
+    spawnSync(process.execPath, [script, index], {
+      env: { PATH: process.env.PATH, ...env },
+      encoding: 'utf8',
+    });
+  const missing = run({ VITE_API_URL: 'https://api.pips.test' });
+  assert.equal(missing.status, 1);
+  assert.match(missing.stderr, /VITE_MEDIA_URL/);
+  const given = run({ VITE_MEDIA_URL: 'https://media.pips.test' });
+  assert.equal(given.status, 0);
+  assert.match(given.stdout, /https:\/\/media\.pips\.test/);
 });
 
 test('vercel.json forwards nothing to sparta.hmif.dev', () => {

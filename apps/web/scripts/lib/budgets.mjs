@@ -6,7 +6,7 @@ import zlib from 'node:zlib';
 
 export const KIB = 1024;
 export const BUDGETS = {
-  /** First-party JS loaded before a route's first render, gzip: the owner's cap (SPEC asked for 150 KiB). */
+  /** First-party JS loaded before a route's first render, gzip: the cap (SPEC asked for 150 KiB). */
   routeInitialJsGzip: 205 * KIB,
   /** SPEC's target and stretch goal for the same, reported but not enforced. */
   routeInitialJsGzipTarget: 150 * KIB,

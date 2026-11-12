@@ -34,7 +34,8 @@ Keep today's environment. Changes:
 ## Web build arguments
 
 The same as today (`VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`, `VITE_VAPID_KEY`), plus `VITE_MEDIA_URL`, set to the
-API's `R2_PUBLIC_URL`: only files there become links in Data SPARTA Magang. Optional: `VITE_SENTRY_DSN` turns on
+API's `R2_PUBLIC_URL`: only files there become links in Data SPARTA Magang, and the image's content policy
+names it. The image build stops when it is missing. Optional: `VITE_SENTRY_DSN` turns on
 error monitoring (set it if the Vercel project has it).
 
 The web image's server (`apps/web/Caddyfile`): the app's own paths get `index.html`, a missing file answers 404,

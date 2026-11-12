@@ -86,14 +86,21 @@ export function contentSecurityPolicy({
 
 /**
  * The Caddyfile line. Report-only: browsers report what the policy would block and block nothing. Switch the name to
- * Content-Security-Policy only after a real Google sign-in, an upload and a post with a picture on staging show no
- * report in the browser's console.
+ * Content-Security-Policy only after a real Google sign-in, an upload, a post with a picture and an open Curhat
+ * room on staging show no report in the browser's console.
  */
 export function caddyHeader(policy) {
   return `header Content-Security-Policy-Report-Only "${policy}"`;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  // Every stored picture comes from the file store, so a policy without its address would block them all.
+  if (!origin(process.env.VITE_MEDIA_URL)) {
+    console.error(
+      "VITE_MEDIA_URL is required to build the web image: the file store address (the API's R2_PUBLIC_URL).",
+    );
+    process.exit(1);
+  }
   const html = readFileSync(process.argv[2] ?? 'dist/index.html', 'utf8');
   const policy = contentSecurityPolicy({
     html,
