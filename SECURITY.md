@@ -6,8 +6,7 @@ Use GitHub's private vulnerability reporting on this repository: open the **Secu
 vulnerability**, and describe what you found. Only the maintainers see it. Please do not open a public issue or pull
 request for a security problem, and do not test against other members' real accounts or data.
 
-Include what you did, what happened, and what you expected. A way to repeat it helps most. You will get an answer
-there; we fix real problems before we talk about them.
+Include what you did, what happened, and what you expected. A way to repeat it helps most.
 
 ## What is in scope
 
