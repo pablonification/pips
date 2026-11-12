@@ -143,16 +143,28 @@ test('beranda: the Live Counting mark blinks four times', () => {
 // Desktop Beranda's two columns from 1280 px, one column below.
 test('desktop: one 800 px column below 1280 px, Kelola last; two columns up to 1440 px from 1280 px', () => {
   const b = FILES.beranda;
-  assert.match(b, /\.g-home-desk \{[^}]*grid-template-columns: minmax\(0, 1fr\);[^}]*max-width: 800px;/);
+  assert.match(
+    b,
+    /\.g-home-desk \{[^}]*grid-template-columns: minmax\(0, 1fr\);[^}]*max-width: 800px;/,
+  );
   assert.match(b, /\.g-hd-side \{[^}]*display: contents;/);
   assert.match(b, /\.g-hd-kelola \{\s*order: 1;/);
   const wide = b.match(/@media \(min-width: 1280px\) \{([\s\S]*?)\n  \}/);
   assert.ok(wide, 'the 1280 px rules');
-  assert.match(wide[1], /grid-template-columns: minmax\(0, 1fr\) clamp\(344px, 30%, 400px\);/);
+  assert.match(
+    wide[1],
+    /grid-template-columns: minmax\(0, 1fr\) clamp\(344px, 30%, 400px\);/,
+  );
   assert.match(wide[1], /grid-template-rows: auto 1fr;/);
   assert.match(wide[1], /max-width: 1440px;/);
-  assert.match(wide[1], /\.g-hd-side \{\s*display: grid;\s*grid-area: 1 \/ 2 \/ 3;/);
-  assert.match(wide[1], /\.g-home-desk \.g-tiles \{\s*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\);/);
+  assert.match(
+    wide[1],
+    /\.g-hd-side \{\s*display: grid;\s*grid-area: 1 \/ 2 \/ 3;/,
+  );
+  assert.match(
+    wide[1],
+    /\.g-home-desk \.g-tiles \{\s*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\);/,
+  );
   assert.match(b, /\.g-home-desk \.g-ag-day \{\s*min-height: 88px;/);
   assert.match(b, /\.g-home-desk \.g-ag-day \.dn \{\s*font-size: 20px;/);
   // Deadlines on the strip: DayBars draws them as any Akademik bar, so no point mark is left to style.

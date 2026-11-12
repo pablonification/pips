@@ -43,7 +43,6 @@ import { initialsOf } from '~/lib/shell/names';
 import { readUnsent } from '~/lib/unsent-text';
 import { cn } from '~/lib/utils';
 import {
-  statusOf,
   useComments,
   useDeleteComment,
   postCommentKey,
@@ -73,6 +72,7 @@ import {
 } from './rules';
 import { useNow } from '~/hooks/useNow';
 import { focusSoon, type FeedSearch } from './view';
+import { statusOf } from '~/api/client';
 
 const COMMENT_FIELD = 'komentar';
 

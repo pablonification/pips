@@ -21,7 +21,7 @@ import { fill } from '~/copy/fill';
 import { pengumuman as t } from '~/copy/pengumuman';
 import useSession from '~/hooks/auth/useSession';
 import { hm } from '~/lib/dates';
-import { useDeleteInfo, useMarkRead, useRenotify, statusOf } from './data';
+import { useDeleteInfo, useMarkRead, useRenotify } from './data';
 import {
   audienceWords,
   canRenotify,
@@ -34,6 +34,7 @@ import {
 } from './rules';
 import { useNow } from '~/hooks/useNow';
 import { focusSoon } from './view';
+import { statusOf } from '~/api/client';
 
 export function PostMenu({
   info,

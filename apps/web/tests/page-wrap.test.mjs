@@ -8,10 +8,7 @@ import test from 'node:test';
 
 const read = (file) =>
   fs.readFileSync(path.resolve(import.meta.dirname, '..', file), 'utf8');
-const css = read('src/styles/garis/shell.css').replace(
-  /\/\*[\s\S]*?\*\//g,
-  '',
-);
+const css = read('src/styles/garis/shell.css').replace(/\/\*[\s\S]*?\*\//g, '');
 
 test('the page wrapper clips with clip, and with hidden where clip is unsupported', () => {
   const wrapper = read('src/routes/_app/_left-navbar.tsx');

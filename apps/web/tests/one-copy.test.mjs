@@ -35,3 +35,9 @@ test('useNow is defined once, in hooks/useNow.ts', () => {
     'hooks/useNow.ts',
   ]);
 });
+
+test('statusOf is defined once, in api/client.ts', () => {
+  assert.deepEqual(definedIn(/(function|const)\s+statusOf\b/), [
+    'api/client.ts',
+  ]);
+});
