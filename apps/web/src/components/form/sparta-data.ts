@@ -104,7 +104,7 @@ export function saveDraftOnLeave(requestBody: DraftInternshipSubmission) {
 }
 
 /**
- * A file answer: a presigned upload (`POST /media/upload`), as today's screen does; resolves to the file's URL. The
+ * A file answer: a presigned upload (`POST /media/upload`), resolves to the file's URL. The
  * type and size are checked first (`lib/upload-policy.ts`), and a refusal rejects with `UploadRefused`.
  */
 export const uploadFile = (file: File) => uploadMedia(file, 'file');

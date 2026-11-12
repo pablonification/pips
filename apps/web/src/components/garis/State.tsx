@@ -16,7 +16,7 @@ export interface EmptyStateProps {
   className?: string;
 }
 
-/** An empty list (garis/ui.js `emptyState`): orientation and at most one action, no decoration. */
+/** An empty list orientation and at most one action, no decoration. */
 export function EmptyState({
   title,
   text,
@@ -43,7 +43,7 @@ export interface ErrorStateProps {
   className?: string;
 }
 
-/** A failed load, next to where the content would be: what happened, then Coba lagi (SPEC "Patterns"). */
+/** A failed load, next to where the content would be: what happened, then Coba lagi. */
 export function ErrorState({
   title = common.errors.bagian,
   text,
@@ -81,7 +81,7 @@ export interface OfflineBannerProps {
   className?: string;
 }
 
-/** Offline, with the last update time, above data kept from before (SPEC story 135). */
+/** Offline, with the last update time, above data kept from before. */
 export function OfflineBanner({ updatedAt, className }: OfflineBannerProps) {
   return (
     <div className={cn('g-offline', className)} role="status">
@@ -115,7 +115,7 @@ export function Skeleton({
   );
 }
 
-/** A list row being loaded: a tile and three lines (the prototype's `.skel`). */
+/** A list row being loaded: a tile and three lines. */
 export function SkeletonRow({
   lines = ['34%', '92%', '68%'],
   tile = true,

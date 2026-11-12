@@ -1,5 +1,5 @@
 /**
- * Push notifications on this device (P1-C), for every screen that shows or changes them:
+ * Push notifications on this device, for every screen that shows or changes them:
  *
  * - `usePushState()`: `{ status, loading }`. `status` is one of `'aktif' | 'belum' | 'diblokir' | 'perlu-pasang' |
  *   'tidak-didukung'` (`~/lib/push-state`), or null while it's first read. Shared by every caller and read again

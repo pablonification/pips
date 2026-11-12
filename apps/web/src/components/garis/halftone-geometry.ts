@@ -5,7 +5,7 @@ export interface HalftoneSquare {
 }
 
 /**
- * Beranda's header pattern (garis/ui.js `halftone()`): squares on a `cell` px grid that grow from nothing to
+ * Beranda's header pattern: squares on a `cell` px grid that grow from nothing to
  * `cell - 1` px toward the right over `length` px. One row; the pattern repeats downward.
  */
 export function halftoneSquares(length: number, cell = 8): HalftoneSquare[] {

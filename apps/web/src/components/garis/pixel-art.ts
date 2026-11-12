@@ -1,5 +1,5 @@
 /**
- * The six reactions as 10 × 10 pixel art (garis/ui.js `PX`), and their names (garis/data.js `REACTIONS`).
+ * The six reactions as 10 × 10 pixel art, and their names.
  * Each letter is a colour class in components.css: # rim (ink, bronze in dark mode), o gold, w white, r red,
  * c cream, l blue, b bronze; . is empty.
  */
@@ -111,7 +111,7 @@ export interface PixelRun {
   colour: string;
 }
 
-/** Runs of equal pixels per row, as the prototype draws them (one rect per run). */
+/** Runs of equal pixels per row: one rect per run. */
 export function pixelRuns(key: PixelReactionKey): PixelRun[] {
   const runs: PixelRun[] = [];
   PIXEL_REACTIONS[key].forEach((row, y) => {

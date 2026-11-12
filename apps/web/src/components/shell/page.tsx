@@ -1,22 +1,21 @@
 /**
- * What a screen uses from the shell (P0-C). The shell draws the bars, the rail, the sidebar, back and the
+ * What a screen uses from the shell. The shell draws the bars, the rail, the sidebar, back and the
  * breadcrumbs; a screen gives it its title and actions through these, and lays itself out with `PageBody`.
  *
  * - `usePageTitle('Form Analisis Kondisi PIXEL')`: a title from the screen's data. It replaces the route's title
  *   (src/lib/shell/routes.ts) in the phone top bar, the breadcrumbs, the next page's back ("Kembali ke …") and
  *   the document title ("… · PIPS!").
  * - `<PageTitle>`: the page's `h1`, when the screen shows its own title: a tab's page, or a drill-down page with a
- *   heading of its own (P1-B's post detail: the post's title under a top bar that says "Pengumuman"). On a
+ *   heading of its own (a post's detail page: the post's title under a top bar that says "Pengumuman"). On a
  *   drill-down page the top bar then keeps showing the page's name, but as plain text hidden from screen readers,
- *   so the page has one `h1`, the screen's, and the shell moves focus to it after each navigation (the prototype's
- *   `hasTitle` in renderPhone).
+ *   so the page has one `h1`, the screen's, and the shell moves focus to it after each navigation.
  *   A split page on desktop (the post beside the feed) sets `crumbs: false` in src/lib/shell/routes.ts.
- * - `<DeskHead title actions>`: the desktop page head (the prototype's `deskHead`); hidden below 1024 px, where the
+ * - `<DeskHead title actions>`: the desktop page head; hidden below 1024 px, where the
  *   top bar has the title.
  * - `<TopBarActions>`: up to two actions in the phone and tablet top bar of a drill-down page (share, the post's
  *   menu, delete a room). Rendered nowhere on desktop: put them in `DeskHead` there.
- * - `<PageBody wide>`: the content column: the prototype's `p-body` on phones (one 720 px column on tablets), its
- *   `d-pad d-narrow` (reading and forms) or, `wide`, the dashboard width on desktop.
+ * - `<PageBody wide>`: the content column: one 720 px column on tablets, and on desktop a narrow column
+ *   (reading and forms) or, `wide`, the dashboard width.
  */
 import {
   createContext,
@@ -47,7 +46,7 @@ export function usePageTitle(title: string | null | undefined) {
 export const OwnTitle = createContext<((delta: 1 | -1) => void) | null>(null);
 
 type HeadingProps = HTMLAttributes<HTMLHeadingElement> & {
-  /** false: the screen's own type style instead of the page title's Archivo (a post's title, P1-B). */
+  /** false: the screen's own type style instead of the page title's Archivo (a post's title). */
   display?: boolean;
 };
 
@@ -89,7 +88,7 @@ export function DeskHead({
 }) {
   // Shown from 1024 px; below it the top bar has the title and the actions (TopBarActions). A head with actions stays
   // mounted, hidden by CSS, because an action may own an open dialog that must survive a tablet turning across
-  // 1024 px (P3-B). A title alone holds nothing, so phones and tablets don't carry it as hidden DOM (C1, SPEC).
+  // 1024 px. A title alone holds nothing, so phones and tablets don't carry it as hidden DOM.
   const desk = useMediaQuery(DESKTOP_QUERY);
   if (!desk && !actions) return null;
   return (

@@ -5,13 +5,13 @@ export interface IconProps extends Omit<
   SVGProps<SVGSVGElement>,
   'children' | 'ref'
 > {
-  /** 16, 20 or 24 px; other values round up to the next of the three (as the prototype's `ic()` does). */
+  /** 16, 20 or 24 px; other values round up to the next of the three. */
   size?: number;
   /** Only for an icon that carries meaning on its own; most icons sit next to a word and stay hidden. */
   title?: string;
 }
 
-/** The three icon sizes, and the stroke that renders 1.5 px at each (garis/ui.js `ic()`). */
+/** The three icon sizes, and the stroke that renders 1.5 px at each. */
 export function iconBox(size = 20) {
   const s = size <= 16 ? 16 : size <= 20 ? 20 : 24;
   return { s, stroke: +((1.5 * 24) / s).toFixed(2) };

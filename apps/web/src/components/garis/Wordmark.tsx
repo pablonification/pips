@@ -1,8 +1,8 @@
 import { cn } from '~/lib/utils';
 
 /**
- * The app's wordmark: PIPS! set wide (Archivo Expanded), the exclamation mark drawn as a bar and a square
- * (garis/ui.js `wordmark()`). Screen readers hear "PIPS!".
+ * The app's wordmark: PIPS! set wide (Archivo Expanded), the exclamation mark drawn as a bar and a square.
+ * Screen readers hear "PIPS!".
  */
 export function Wordmark({
   size = 20,

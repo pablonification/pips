@@ -5,8 +5,8 @@ import { reportError } from '~/instrument';
 import { Button } from './garis/Button';
 
 /*
- * Safety nets (SPEC "Session, persistence and resilience"): one boundary per route, and one for the whole app.
- * Garis buttons and type (C1 moved them off the old shadcn button). Plain links and a full reload on purpose,
+ * Safety nets: one boundary per route, and one for the whole app.
+ * Plain links and a full reload on purpose,
  * because the router itself may be what failed.
  */
 
@@ -64,7 +64,7 @@ export function RouteErrorFallback({ error, reset }: ErrorComponentProps) {
 }
 
 /**
- * An address no page answers (F2-005; it was the router's bare English "Not Found", with no way back). In the frame
+ * An address no page answers In the frame
  * of the app-wide fallback, with the document title every page has ("{Halaman} · PIPS!").
  */
 export function NotFoundPage() {

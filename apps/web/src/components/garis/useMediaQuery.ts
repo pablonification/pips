@@ -17,5 +17,5 @@ export function useMediaQuery(query: string): boolean {
   );
 }
 
-/** The desktop layout starts at 1024 px; below it, phones and tablets get sheets (garis.css). */
+/** The desktop layout starts at 1024 px; below it, phones and tablets get sheets. */
 export const DESKTOP_QUERY = '(min-width: 1024px)';

@@ -33,7 +33,7 @@ export function closePalette() {
 
 /**
  * Closes it after an item ran. When the item opened a page, the shell focuses that page's title. When it didn't (an
- * outside service in a new tab, the page you are already on), focus would be left on nothing (review m1): it goes
+ * outside service in a new tab, the page you are already on), focus would be left on nothing: it goes
  * back to what opened search, or to the page's title when search was opened from the keyboard.
  */
 export function closePaletteAfterRun() {

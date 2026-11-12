@@ -22,7 +22,7 @@ import {
 } from '~/lib/upload-policy';
 import { uploadFile } from './sparta-data';
 
-/** The error under a field, as the form's (`qBlock` `err`). */
+/** The error under a field, as under a form question. */
 export function FieldError({
   id,
   children,
@@ -45,7 +45,7 @@ const Optional = () => (
   </>
 );
 
-/** A labelled text or long-text field in the form's question style (`.qblock`). */
+/** A labelled text or long-text field in the form's question style. */
 export function TextField({
   id,
   label,
@@ -99,7 +99,7 @@ export function TextField({
 }
 
 /**
- * A file answer (today's `FileAnswerInput`): a paper button "Unggah file" over a hidden file input, "Mengunggah…"
+ * A file answer: a paper button "Unggah file" over a hidden file input, "Mengunggah…"
  * while it uploads, then a link to what was uploaded. The browser's own file control isn't shown: its words follow
  * the browser's language.
  */
