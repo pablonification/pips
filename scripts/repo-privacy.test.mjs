@@ -62,6 +62,8 @@ export function problemsIn(file, text, hashes = behaviourHashes) {
       const [local, domain] = email.split('@');
       if (IMAGE_SUFFIX.test(domain.split('.').pop())) continue;
       if (MADE_UP_LOCAL.test(local) || EXAMPLE_DOMAIN.test(domain)) continue;
+      // A Google Calendar's id has the shape of an address and is nobody's mailbox.
+      if (/^group\.calendar\.google\.com$/i.test(domain)) continue;
       if (
         /^github\.com$|^users\.noreply\.github\.com$/i.test(domain) &&
         /noreply/i.test(email)
@@ -247,6 +249,16 @@ test('a student address with an unknown number is refused, a sample one passes',
   );
   const [known] = lists.sampleNims.nims;
   assert.deepEqual(problemsIn('x.md', `${known}${at}std.stei.itb.ac.id`), []);
+});
+
+test('a calendar id passes', () => {
+  assert.deepEqual(
+    problemsIn(
+      'apps/x.ts',
+      `const id = 'akademik${at}group.calendar.google.com';`,
+    ),
+    [],
+  );
 });
 
 test('placeholders, example domains and file names pass', () => {

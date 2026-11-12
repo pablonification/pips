@@ -11,30 +11,22 @@ command below, run one at a time, and use at most 2 workers (`E2E_WORKERS=2`, th
 
 All from the repository root (or `pnpm run <script>` inside `apps/web`):
 
-| Command                                | What it does                                                                                                                                                                                                                                                   |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm --filter web e2e`                | The journeys (`e2e/journeys/`) at phone, tablet and desktop size, light and dark, plus the visual references (`e2e/visual/`).                                                                                                                                  |
-| `pnpm --filter web e2e:before`         | Recorded the **before set** of the app before the redesign to `ops/redesign/before-set/`: captures, `manifest.json` (with per-screen axe counts), `index.html` gallery. Refuses to overwrite an existing set.                                                  |
-| `pnpm --filter web e2e:compare-before` | Re-captures the same states in the redesigned app and compares them with the before set. Writes `ops/redesign/compare/<timestamp>/` (report, side-by-side images, `index.html`). Exits 1 if any state changed or is missing; removed states are listed.        |
-| `pnpm --filter web fidelity`           | Captures the screens mapped in `e2e/fidelity/screens.ts` at the locked prototype screens' sizes and pairs them with the 216 locked route screens and the 35 non-route ones in `e2e/fidelity/extras.ts`. Writes `ops/redesign/fidelity/<timestamp>/index.html`. |
-| `pnpm --filter web fidelity:compare`   | Compares two fidelity runs (`<baseline> <final>` folders) screen by screen, pixel by pixel at compare-before's threshold. Writes `ops/redesign/compare/runs-<timestamp>/`. Exits 1 if any screen changed or went missing.                                        |
-| `pnpm --filter web e2e:update`         | Records or updates the visual reference images (`toHaveScreenshot`).                                                                                                                                                                                           |
-| `pnpm --filter web test`               | The Node unit tests in `tests/` (including the harness's own image and naming logic).                                                                                                                                                                          |
+| Command                        | What it does                                                                                                                  |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm --filter web e2e`        | The journeys (`e2e/journeys/`) at phone, tablet and desktop size, light and dark, plus the visual references (`e2e/visual/`). |
+| `pnpm --filter web e2e:update` | Records or updates the visual reference images (`toHaveScreenshot`).                                                          |
+| `pnpm --filter web test`       | The Node unit tests in `tests/`.                                                                                              |
 
-Arguments after the script name go to Playwright, e.g. `pnpm --filter web e2e --grep Curhat` or
-`pnpm --filter web e2e:before --grep form-step`.
+Arguments after the script name go to Playwright, e.g. `pnpm --filter web e2e --grep Curhat`.
 
 **Environment variables**
 
-| Variable                 | Effect                                                                                                                            |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| `E2E_REUSE_BUILD=1`      | Reuse the last build in `e2e/.build` instead of building again (builds take minutes here). Rebuild after changing app code.       |
-| `E2E_WORKERS`            | Parallel browsers (default 2).                                                                                                    |
-| `E2E_PORT`               | The preview port (default 4310, inside this worktree's range 4310–4319).                                                          |
-| `E2E_GATES=record`       | Only record the quality gates instead of failing on them (the capture scripts set it; see below).                                 |
-| `E2E_COMPARE_THRESHOLD`  | Changed-pixel ratio above which a state counts as changed (default `0.0001`).                                                     |
-| `E2E_BEFORE_OVERWRITE=1` | Let `e2e:before` replace an existing before set. Only for a set recorded wrongly.                                                 |
-| `PIPS_OPS_DIR`           | Where `ops/` is. By default the scripts look for `ops/redesign/PLAN.md` above the app; without it (CI) records go to `e2e/.out/`. |
+| Variable            | Effect                                                                                                                      |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `E2E_REUSE_BUILD=1` | Reuse the last build in `e2e/.build` instead of building again (builds take minutes here). Rebuild after changing app code. |
+| `E2E_WORKERS`       | Parallel browsers (default 2).                                                                                              |
+| `E2E_PORT`          | The preview port (default 4310, inside this worktree's range 4310–4319).                                                    |
+| `E2E_GATES=record`  | Only record the quality gates instead of failing on them.                                                                   |
 
 Outside the workspace (CI), `E2E_REUSE_BUILD` is unset and the web server builds first. Playwright's own output
 goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
@@ -73,8 +65,7 @@ goes to `e2e/.results/` and its HTML report to `e2e/.report/`.
     P0-B removed stays gone).
   - `now`: another fixed time (ISO string), or `null` for the real clock.
   - `platform`: what `navigator.platform` reports (`'MacIntel'`, `'Linux x86_64'`), or `null` (default) for the
-    browser's own. The app names the search shortcut by platform (⌘K on Apple, Ctrl K elsewhere); the fidelity
-    captures run as `'Linux x86_64'`, where the locked screens were rendered.
+    browser's own. The app names the search shortcut by platform (⌘K on Apple, Ctrl K elsewhere).
 - **Fixtures:** `db` is this test's own copy of the persona's data (`fixtures/api.ts`); `api` is the mock layer.
 
 ## Fixtures
@@ -160,65 +151,8 @@ The app waits 10 s for an acknowledgement; move the clock with `page.clock.fastF
 `support/audit.ts` measures axe (WCAG 2.2 A/AA and best practice), document horizontal overflow, text under 12 px
 and `lang`. The gates are **strict** by default (since C1): a journey fails on any serious or critical axe
 violation, any overflow, any text under 12 px or `lang` other than `id`; the results are attached to each test as
-`gates-<name>.json`. `E2E_GATES=record` only attaches them; `e2e:before` and `e2e:compare-before` use it, since the
-before set records the app as it was. `support/strict.ts` adds the redesign's stricter checks (focus, inputs on
-touch, the lit navigation item, every window width).
-
-## The before set and comparisons
-
-- States live in `capture/states.ts`: each destination's main view, the empty, loading, error and offline states
-  the app had before the redesign, open overlays, the form steps and the admin tables, each reached in the
-  redesigned app by its path and steps. Each is captured at phone and desktop size in light and dark (the app
-  before the redesign had no dark theme; the dark before captures show that). A state the new app no longer has
-  carries a `removed` reason (the install tutorial): it is still captured at its path, and compare-before lists it
-  as removed.
-- A capture is taken once fonts and images have loaded, every image has been painted again after decoding, and two
-  screenshots in a row are identical. The repaint matters: Chromium sometimes keeps an image raster drawn before its
-  decode finished, and an SVG at a fractional position then lands half a pixel apart between runs.
-- A state's steps must wait for what they wait on to happen. To capture a page after a toast has gone, wait for the
-  toast to appear and then to leave: waiting only for "hidden" passes at once while the request is still running.
-- `e2e:compare-before` compares each pair with pixelmatch (colour tolerance 0.1, anti-aliasing ignored).
-  **Threshold:** a state counts as changed when more than **0.01 %** of its pixels differ (about 130 pixels on
-  either size), or when it is missing. An unchanged build is pixel-identical: on 2026-10-12 all 200 captures had
-  0 changed pixels, reusing the build and after a clean rebuild. A toast or a changed word is several hundred
-  pixels (the flaky toast above was 643, which the earlier 0.1 % would have let through); the margin only absorbs
-  a few anti-aliased pixels. Never raise it to get green: find what moves and fix it in the harness. New states
-  (in `states.ts` but not in the before set) are listed, not failed. Against the redesigned app every state is
-  expected to differ; F1 reports the before and after.
-- The before set is a record and is never updated. It was recorded on the owner's Mac on 2026-10-12; rendering
-  differs between machines, so compare on the same machine (or record a new set there with `E2E_BEFORE_OVERWRITE=1`).
-
-## Fidelity against the locked prototype
-
-- `fidelity/names.mjs` lists the locked screens as `ops/ui-revamp-review/tools/garis-check.mjs` names them:
-  `<layout>-<persona>-<route>-<theme>` for 25 anggota and 11 pengurus routes, phone (390 × 800 @2x), tablet
-  (834 × 1068) and desktop (1440 × 956), light and dark: 216 screens.
-- `fidelity/screens.ts` maps `<persona>-<route>` to the app: URL, mock overrides, steps to reach the state, and
-  what is visible when ready. **When you build a screen, add or update its entry**, e.g.:
-
-  ```ts
-  'anggota-ov-filter': {
-    path: '/pengumuman',
-    act: async (page) => page.getByRole('button', { name: 'Filter' }).click(),
-    ready: (page) => page.getByRole('dialog', { name: 'Filter' }),
-  },
-  ```
-
-  Use `layouts: ['phone']` when the entry only applies to some layouts.
-
-- **Screens that aren't routes** (the `i-*` interactions, the `page-*` sizes, `narrow320-beranda`,
-  `desk1024-beranda`, and the design-system page's `system-kit` and `system-cards`): `names.mjs` lists the 35 an app
-  task owns in `EXTRA_SCREENS`, each with its project (`fidelity-<layout>-<theme>`), the viewport it was taken at and
-  what it shows (`app` area, whole `page` including the prototype's 44 px bar, or one `element`). A `page` capture
-  has `protoBar: 44`: the app (which has no such bar) is captured in the window below it, and the report crops the
-  bar off the locked image before comparing (P0-C). Map one in
-  `fidelity/extras.ts` with the same fields as `screens.ts`, plus `persona` (null for signed out) and, for an element
-  capture, `target`. The 11 `PROTOTYPE_ONLY` screens (the prototype's own bar, forced layouts and notes page) are
-  never mapped.
-
-- The report pairs each screen with its locked image: a perceptual similarity (SSIM on luminance; "close" at
-  ≥ 0.95), the changed-pixel ratio, and a side-by-side image (prototype | app | difference). Unmapped screens
-  show as "not built yet". Filter by layout, theme, persona and status.
+`gates-<name>.json`. `E2E_GATES=record` only attaches them. `support/strict.ts` adds the redesign's stricter checks
+(focus, inputs on touch, the lit navigation item, every window width).
 
 ## Visual references
 

@@ -411,3 +411,125 @@ test('formQuestionsVisible: angkatan or admin, and never before opening', () => 
     false,
   );
 });
+
+// The shapes the web form sends (apps/web/src/lib/form/rules.ts `answersToSend`): text as a string, a radio its
+// option, a checkbox a list of its options in order, a rating '1'–'5', an "Other" follow-up as its own text answer.
+const choiceForm = () =>
+  pixelForm({
+    sections: [
+      {
+        id: 's1',
+        title: 'Data diri',
+        questions: [
+          { id: 'q1', label: 'Nama lengkap', type: 'text' },
+          { id: 'q2', label: 'Saran', type: 'textarea', optional: true },
+          {
+            id: 'q3',
+            label: 'Angkatan',
+            type: 'radio',
+            options: ['PIXEL', 'Others'],
+          },
+          {
+            id: 'q4',
+            label: 'Angkatan lain',
+            type: 'text',
+            dependsOn: { questionId: 'q3', value: 'Others' },
+          },
+          {
+            id: 'q5',
+            label: 'Minat',
+            type: 'checkbox',
+            options: ['Olahraga', 'Musik', 'Main game'],
+          },
+          {
+            id: 'q6',
+            label: 'Seberapa puas kamu?',
+            type: 'rating',
+            options: ['1', '2', '3', '4', '5'],
+            optional: true,
+          },
+        ],
+      },
+    ],
+  });
+
+const sent = {
+  q1: 'Nadia Putri',
+  q2: 'x'.repeat(10_000),
+  q3: 'Others',
+  q4: 'Angkatan 2025 jalur lain',
+  q5: ['Olahraga', 'Main game'],
+  q6: '4',
+};
+const asAnswers = (a: Record<string, string | string[]>) => ({
+  answers: Object.entries(a).map(([questionId, answer]) => ({
+    questionId,
+    answer,
+  })),
+});
+
+test('answers as the web form sends them are saved', async () => {
+  const { router, saved } = world(choiceForm());
+  const res = await callRouter(
+    router,
+    nadia,
+    'POST',
+    '/form/pixel/response',
+    asAnswers(sent),
+  );
+  assert.equal(res.status, 201);
+  assert.equal(saved.length, 1);
+});
+
+test('answers that do not fit the form are refused with 400 and nothing is saved', async () => {
+  for (const [why, answers] of [
+    [
+      'a question the form does not have',
+      { ...sent, q99: 'x'.repeat(200_000) },
+    ],
+    [
+      'a choice not among the options',
+      { ...sent, q3: 'INJECTED OPTION <b>x</b>' },
+    ],
+    ['a list where one choice goes', { ...sent, q3: ['PIXEL'] }],
+    [
+      'a checkbox option not in the list',
+      { ...sent, q5: ['Olahraga', 'Tidur'] },
+    ],
+    ['a checkbox option twice', { ...sent, q5: ['Musik', 'Musik'] }],
+    ['a checkbox answer as text', { ...sent, q5: 'Musik' }],
+    ['a rating outside 1–5', { ...sent, q6: '6' }],
+    [
+      'a text answer over 10,000 characters',
+      { ...sent, q2: 'x'.repeat(10_001) },
+    ],
+    ['a list for a text question', { ...sent, q1: ['Nadia', 'Putri'] }],
+  ] as const) {
+    const { router, saved, announced } = world(choiceForm());
+    const res = await callRouter(
+      router,
+      nadia,
+      'POST',
+      '/form/pixel/response',
+      asAnswers(answers as Record<string, string | string[]>),
+    );
+    assert.equal(res.status, 400, why);
+    assert.deepEqual(saved, [], why);
+    assert.deepEqual(announced, [], why);
+  }
+});
+
+test('the same question answered twice is refused with 400', async () => {
+  const { router, saved } = world(choiceForm());
+  const body = asAnswers(sent);
+  body.answers.push({ questionId: 'q3', answer: 'PIXEL' });
+  const res = await callRouter(
+    router,
+    nadia,
+    'POST',
+    '/form/pixel/response',
+    body,
+  );
+  assert.equal(res.status, 400);
+  assert.deepEqual(saved, []);
+});
