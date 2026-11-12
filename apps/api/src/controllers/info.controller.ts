@@ -80,7 +80,15 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
     if (unread) {
       await deps.deleteReadInfo(data);
     } else {
-      await deps.createReadInfo(data);
+      try {
+        await deps.createReadInfo(data);
+      } catch (error) {
+        // The read mark points at a post that doesn't exist (a foreign-key violation).
+        if ((error as { code?: string } | null)?.code === '23503') {
+          return c.json({ error: 'Info not found' }, 404);
+        }
+        throw error;
+      }
     }
     return c.json({}, 200);
   });
