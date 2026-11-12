@@ -22,7 +22,9 @@ const sampleTables = new Set(lists.sampleTables.files);
 const SKIPPED_FILES = new Set(['pnpm-lock.yaml']);
 const HOME_PATH_FILES = new Set(['AGENTS.md']);
 
-const NIM = /(?<![0-9A-Za-z])1[38][0-9]{6}(?![0-9A-Za-z])/g;
+// An ITB student number: three digits of faculty and programme, two of the entry year, three of sequence. The
+// year keeps ordinary numbers (13500000, a timestamp) from matching.
+const NIM = /(?<![0-9])1[0-9]{2}(?:1[5-9]|2[0-9])[0-9]{3}(?![0-9])/g;
 const EMAIL =
   /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
 const URL_PASSWORD = /\/\/[^\s/@]*:[^\s/@]*@/g;
@@ -140,12 +142,21 @@ const madeUpNim = (prefix, rest) => prefix + rest;
 const at = '@';
 
 test('a student number that is not on the sample list is refused', () => {
-  const unknown = madeUpNim('135', '77777');
+  const unknown = madeUpNim('135', '29777');
   assert.ok(!sampleNims.has(unknown));
   const found = problemsIn('apps/x.ts', `const nim = '${unknown}';`);
   assert.equal(found.length, 1);
   assert.equal(found[0].kind, 'student number');
   assert.equal(found[0].line, 1);
+});
+
+test('a student number of another programme, or glued to letters, is refused', () => {
+  for (const line of [
+    `const nim = '${madeUpNim('165', '29999')}';`,
+    `const nim = '${madeUpNim('196', '29999')}';`,
+    `id=nim${madeUpNim('135', '29999')}x`,
+  ])
+    assert.equal(problemsIn('apps/x.ts', line).length, 1, line.slice(0, 12));
 });
 
 test('a number on the sample list passes', () => {
@@ -165,10 +176,14 @@ test('numbers that are not student numbers pass', () => {
     problemsIn('apps/x.ts', 'const a = 1234567890; const b = 2135999999;'),
     [],
   );
+  assert.deepEqual(
+    problemsIn('apps/x.ts', 'const limit = 13500000; const ms = 18000000;'),
+    [],
+  );
 });
 
 test('the failure message shows at most six characters of the value', () => {
-  const unknown = madeUpNim('182', '99999');
+  const unknown = madeUpNim('182', '29999');
   const [found] = problemsIn('apps/x.ts', unknown);
   assert.equal(found.shown, `${unknown.slice(0, 6)}…`);
   assert.ok(!found.shown.includes(unknown));
@@ -176,12 +191,12 @@ test('the failure message shows at most six characters of the value', () => {
 
 test('the SPARTA and early-access numbers are allowed only in their own files', () => {
   assert.equal(behaviourHashes.size, 5);
-  const stand = madeUpNim('135', '98765');
+  const stand = madeUpNim('135', '29765');
   const hashes = new Set([sha256(stand)]);
   const [listed] = behaviourFiles;
   assert.deepEqual(problemsIn(listed, stand, hashes), []);
   assert.equal(problemsIn('apps/web/src/other.ts', stand, hashes).length, 1);
-  assert.equal(problemsIn(listed, madeUpNim('135', '98764'), hashes).length, 1);
+  assert.equal(problemsIn(listed, madeUpNim('135', '29764'), hashes).length, 1);
 });
 
 test('an email address that is not clearly made up is refused', () => {
@@ -193,7 +208,7 @@ test('an email address that is not clearly made up is refused', () => {
 });
 
 test('a student address with an unknown number is refused, a sample one passes', () => {
-  const unknown = madeUpNim('135', '99998');
+  const unknown = madeUpNim('135', '29998');
   assert.equal(
     problemsIn('x.md', `${unknown}${at}std.stei.itb.ac.id`).length,
     2,
