@@ -53,12 +53,6 @@ export function object<S extends Shape, Strict extends boolean = false>(
   };
 }
 
-/** A check that also lets `undefined` through (zod's `.optional()`). */
-export const optional =
-  <T>(check: Check<T>): Check<T | undefined> =>
-  (v) =>
-    v === undefined ? undefined : check(v);
-
 export const string: Check<string> = (v) =>
   typeof v === 'string' ? v : INVALID;
 /** A string of at least one character (zod's `.min(1)`). */

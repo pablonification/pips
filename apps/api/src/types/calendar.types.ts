@@ -18,55 +18,10 @@ export const addHours = (date: Date, hours: number) => {
   return newDate;
 };
 
-const EventDate = z.object({
-  dateTime: z
-    .string()
-    .nullable()
-    .optional()
-    .openapi({ example: new Date().toISOString() }),
-  timeZone: z
-    .string()
-    .nullable()
-    .optional()
-    .openapi({ example: 'Asia/Jakarta' }),
-});
-
 export const CalendarEvent = createSelectSchema(calendarEvent, {
   start: z.union([z.string(), z.date()]),
   end: z.union([z.string(), z.date()]),
 }).openapi('CalendarEvent');
-
-export const CalendarEventGcal = z
-  .object({
-    id: z
-      .string()
-      .nullable()
-      .optional()
-      .openapi({ example: 'hlp70594b43hcn866d291i8jm0' }),
-    created: z
-      .string()
-      .nullable()
-      .optional()
-      .openapi({ example: new Date().toISOString() }),
-    updated: z
-      .string()
-      .nullable()
-      .optional()
-      .openapi({ example: new Date().toISOString() }),
-    summary: z
-      .string()
-      .nullable()
-      .optional()
-      .openapi({ example: 'Event title' }),
-    description: z
-      .string()
-      .nullable()
-      .optional()
-      .openapi({ example: 'Event description' }),
-    start: EventDate.optional(),
-    end: EventDate.optional(),
-  })
-  .openapi('CalendarEventGcal');
 
 export const CalendarCategory = z
   .enum(calendarGroup.category.enumValues)

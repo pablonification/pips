@@ -1049,23 +1049,3 @@ export const LIVE = {
     ['Tidak tertarik', 12],
   ] as [string, number][],
 };
-
-/** Layanan: the real Home tiles' external links. */
-export const EXTERNAL_SERVICES = [
-  {
-    id: 'beasiswa',
-    name: 'Beasiswa',
-    url: 'https://s.hmif.dev/MadingBeasiswa',
-  },
-  { id: 'kas', name: 'Bayar Kas!', url: 'https://s.hmif.dev/BayarKasHMIF' },
-  {
-    id: 'surat',
-    name: 'Surat & Proposal',
-    url: 'https://s.hmif.dev/LayananAdministrasiHMIF2526',
-  },
-  {
-    id: 'lowongan',
-    name: 'LowonginAja!',
-    url: 'https://s.hmif.dev/LowonginAja!',
-  },
-];
