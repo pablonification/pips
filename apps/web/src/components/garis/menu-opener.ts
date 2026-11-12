@@ -1,5 +1,5 @@
 /**
- * Which menu button a just-chosen menu item belongs to. A dialog opened from a menu item (the prototype's post menu,
+ * Which menu button a just-chosen menu item belongs to. A dialog opened from a menu item (a post's menu,
  * then Hapus, then the confirmation) can't return focus to the item: the menu has closed and the item is gone. The
  * Overlay asks here and returns focus to the menu's button instead.
  */

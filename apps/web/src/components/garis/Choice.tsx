@@ -28,7 +28,7 @@ export interface SegProps<V extends string> {
 }
 
 /**
- * The segmented control (garis.css `.seg`): native radio buttons in a muted track, so arrow keys move the choice.
+ * The segmented control: native radio buttons in a muted track, so arrow keys move the choice.
  */
 export function Seg<V extends string>({
   label,
@@ -74,7 +74,7 @@ export interface SwitchProps extends Omit<
 }
 
 /**
- * The switch (garis.css `.switch`): a gold track and an ink knob when on. Name it with aria-label or
+ * The switch: a gold track and an ink knob when on. Name it with aria-label or
  * aria-labelledby (the row's title).
  */
 export function Switch({
@@ -110,7 +110,7 @@ export interface OptionProps extends Omit<
   ref?: Ref<HTMLInputElement>;
 }
 
-/** A checkbox row (garis.css `.opt`): the whole row is the target. */
+/** A checkbox row: the whole row is the target. */
 export function Checkbox({ children, className, ...rest }: OptionProps) {
   return (
     <label className={cn('g-opt', className)}>
@@ -123,7 +123,7 @@ export function Checkbox({ children, className, ...rest }: OptionProps) {
   );
 }
 
-/** A radio row (garis.css `.opt.radio`). Group them in Options with the same name. */
+/** A radio row. Group them in Options with the same name. */
 export function Radio({ children, className, ...rest }: OptionProps) {
   return (
     <label className={cn('g-opt radio', className)}>
@@ -134,7 +134,7 @@ export function Radio({ children, className, ...rest }: OptionProps) {
   );
 }
 
-/** A stack of Checkbox or Radio rows (garis.css `.opts`); a radio group is a fieldset with a legend. */
+/** A stack of Checkbox or Radio rows; a radio group is a fieldset with a legend. */
 export function Options({
   legend,
   className,
@@ -167,7 +167,7 @@ export interface RatingProps {
 }
 
 /**
- * A 1–5 rating question (garis.css `.rating`): native radios under keycaps, so arrow keys move the choice; the chosen
+ * A 1–5 rating question: native radios under keycaps, so arrow keys move the choice; the chosen
  * one turns gold. Hint and error are linked to the group.
  */
 export function Rating({

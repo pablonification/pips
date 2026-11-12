@@ -1,5 +1,5 @@
 /**
- * The Garis component library (P0-A): the only way new screens are built (SPEC "Component library").
+ * The Garis component library: the only way screens are built.
  * Styles: src/styles/garis/. Icons: src/components/icons/. Gallery: /dev/garis (development builds).
  */
 export { Avatar, AvatarButton } from './Avatar';

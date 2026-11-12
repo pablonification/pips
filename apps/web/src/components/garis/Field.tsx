@@ -32,8 +32,8 @@ export interface FieldProps {
 }
 
 /**
- * A labelled field (garis.css `.fld`): the label bound to the control, then the hint or the error, which the control
- * names with aria-describedby (SPEC "Accessibility").
+ * A labelled field: the label bound to the control, then the hint or the error, which the control
+ * names with aria-describedby.
  */
 export function Field({ label, hint, error, className, children }: FieldProps) {
   const id = useId();
@@ -128,7 +128,7 @@ export interface SearchboxProps extends Omit<
   ref?: Ref<HTMLInputElement>;
 }
 
-/** A search field with its icon (garis.css `.searchbox`). */
+/** A search field with its icon. */
 export function Searchbox({ label, className, ...rest }: SearchboxProps) {
   return (
     <div className={cn('g-searchbox', className)}>
