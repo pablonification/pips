@@ -21,5 +21,7 @@ export const RATE_LIMITS = {
   writes: 300,
   /** Link previews (each fetches a page elsewhere), per member. */
   previews: 120,
+  /** Curhat messages on the socket, per member (Welfare's replies too): each is saved and pushed. */
+  curhatMessages: 30,
 };
 export const RATE_WINDOW_MS = 60_000;
