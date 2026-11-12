@@ -25,7 +25,7 @@ RUN turbo run build --filter=web
 
 FROM caddy:2-alpine
 COPY --from=build /repo/apps/web/dist /srv
-RUN printf ':3000 {\n  root * /srv\n  try_files {path} /index.html\n  file_server\n}' > /etc/caddy/Caddyfile
+COPY apps/web/Caddyfile /etc/caddy/Caddyfile
 # Runs as an unprivileged user, with Caddy's own state in its home (the image's /config and /data belong to root).
 RUN addgroup -S web && adduser -S -G web -h /home/web web
 ENV XDG_CONFIG_HOME=/home/web/.config \
