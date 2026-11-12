@@ -1,5 +1,5 @@
 /**
- * The counts the navigation shows next to a destination: today only Pengumuman's unread posts (SPEC story 16),
+ * The counts the navigation shows next to a destination: today only Pengumuman's unread posts,
  * on the phone tab, the tablet rail and the desktop sidebar; hidden at 0. The feature registers its count at start
  * (src/main.tsx), so the badge shows on every page while the shell imports no feature code; the shell renders
  * whatever it returns (`aria-hidden` badge, the words for screen readers).
