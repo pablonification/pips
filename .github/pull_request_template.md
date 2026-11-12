@@ -27,7 +27,7 @@ Leave this section out otherwise.
 
 ## Checklist
 
-- [ ] Nothing personal in the diff: no real name, student number, email, photo, `.env` or key
+- [ ] Nothing personal in the diff: no real name, student number, email, photo, `.env` or key (made-up student numbers have a sequence of 900 or more)
 - [ ] Every new sentence on screen is in `apps/web/src/copy/`
 - [ ] If an API route changed, I ran `pnpm --filter web api` and committed `apps/web/src/api/generated/`
 - [ ] Docs this change makes wrong are fixed

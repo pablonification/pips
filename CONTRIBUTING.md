@@ -43,8 +43,8 @@ Stop it later with `pg_ctl -D ~/pips-pg stop`. Windows: use Docker, or WSL.
 cp apps/api/.env.example apps/api/.env
 ```
 
-Open `apps/api/.env` and fix the lines that say CHANGE: the database address, `JWT_SECRET`, the test-login password
-hash, and the two web-push keys. Each has its command in a comment. The `.env` file is private to your machine.
+Open `apps/api/.env` and fix the lines that say CHANGE: the database address, `JWT_SECRET` (at least 32 characters, or
+the API will not start), the test-login password hash, and the two web-push keys. Each has its command in a comment. The `.env` file is private to your machine.
 
 ```bash
 pnpm --filter api db:migrate      # prints "Migrations applied"
@@ -127,8 +127,11 @@ different kind of mistake. [docs/testing.md](docs/testing.md) says which to writ
 ## Nothing personal in the repository
 
 This repository is public and stays in Git history for good. Never commit a real member's name, student number,
-email address, photo or message, a `.env` file, a key, or a path from your own computer. Use made-up people. A test
-in `scripts/` fails on a real-looking student number or email address; CI runs it on every pull request.
+email address, photo or message, a `.env` file, a key, or a path from your own computer. Use made-up people. A made-up
+student number has a sequence of 900 or more (`13525901`, never `13525001`), and a made-up email uses that number at
+`std.stei.itb.ac.id` or is an `example.com` address. `scripts/repo-privacy.test.mjs` refuses any other student
+number, an email address that could be real, a path under someone's home folder, and a table of names beside numbers;
+run it with `node --test scripts/repo-privacy.test.mjs`. CI runs it on every pull request.
 If you committed something by mistake, tell the maintainers at once; do not just delete it in a later commit.
 
 ## Opening a pull request
