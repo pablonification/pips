@@ -58,6 +58,7 @@ const s = copy.sparta;
  * table from 1024 px and labelled rows below, and Export CSV of exactly the rows shown. Every page of submissions is
  * loaded and filtered on the device.
  */
+export function SpartaScreen({ filters }: { filters: SpartaFilters }) {
   const navigate = useNavigate();
   const online = useOnline();
   const departments = useQuery(spartaDepartmentsQuery());
