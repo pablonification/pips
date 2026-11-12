@@ -1,7 +1,7 @@
 import postgres from 'postgres';
 import { db } from '~/db/drizzle';
 import { COURSE_CATALOG_MANAGER_ROLES } from '~/lib/authorization';
-import { roleMiddleware } from '~/middlewares/role.middleware';
+import { forRoles } from '~/middlewares/role.middleware';
 import {
   batchCreateOrUpdateUserCourse,
   createCourse,
@@ -39,20 +39,6 @@ export function createCourseRouter(
   deps: CourseDeps = { getUserRoles: withDb(getUserRoles) },
 ) {
   const courseRouter = createAuthRouter();
-
-  // The shared course catalog is maintained by academic staff and admins only.
-  courseRouter.post(
-    createCourseRoute.getRoutingPath(),
-    roleMiddleware([...COURSE_CATALOG_MANAGER_ROLES], deps.getUserRoles),
-  );
-  courseRouter.put(
-    updateCourseRoute.getRoutingPath(),
-    roleMiddleware([...COURSE_CATALOG_MANAGER_ROLES], deps.getUserRoles),
-  );
-  courseRouter.delete(
-    deleteCourseRoute.getRoutingPath(),
-    roleMiddleware([...COURSE_CATALOG_MANAGER_ROLES], deps.getUserRoles),
-  );
 
   courseRouter.openapi(createUserCourseRoute, async (c) => {
     try {
@@ -110,34 +96,55 @@ export function createCourseRouter(
     return c.json(course, 200);
   });
 
-  courseRouter.openapi(createCourseRoute, async (c) => {
-    try {
+  courseRouter.openapi(
+    forRoles(
+      createCourseRoute,
+      COURSE_CATALOG_MANAGER_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
+      try {
+        const data = c.req.valid('json');
+        const newCourse = CourseSchema.parse(await createCourse(db, data));
+        return c.json(newCourse, 201);
+      } catch (err) {
+        if (err instanceof postgres.PostgresError)
+          return c.json({ error: 'Course has already been created' }, 400);
+        throw err;
+      }
+    },
+  );
+
+  courseRouter.openapi(
+    forRoles(
+      updateCourseRoute,
+      COURSE_CATALOG_MANAGER_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
       const data = c.req.valid('json');
-      const newCourse = CourseSchema.parse(await createCourse(db, data));
-      return c.json(newCourse, 201);
-    } catch (err) {
-      if (err instanceof postgres.PostgresError)
-        return c.json({ error: 'Course has already been created' }, 400);
-      throw err;
-    }
-  });
+      const { courseId } = c.req.valid('param');
+      const course = await updateCourse(db, data, courseId);
 
-  courseRouter.openapi(updateCourseRoute, async (c) => {
-    const data = c.req.valid('json');
-    const { courseId } = c.req.valid('param');
-    const course = await updateCourse(db, data, courseId);
+      if (!course) return c.json({ error: 'Course not found' }, 404);
+      return c.json(course, 200);
+    },
+  );
 
-    if (!course) return c.json({ error: 'Course not found' }, 404);
-    return c.json(course, 200);
-  });
+  courseRouter.openapi(
+    forRoles(
+      deleteCourseRoute,
+      COURSE_CATALOG_MANAGER_ROLES,
+      deps.getUserRoles,
+    ),
+    async (c) => {
+      const { courseId } = c.req.valid('param');
+      const course = await deleteCourse(db, courseId);
 
-  courseRouter.openapi(deleteCourseRoute, async (c) => {
-    const { courseId } = c.req.valid('param');
-    const course = await deleteCourse(db, courseId);
-
-    if (!course) return c.json({ error: 'Course not found' }, 404);
-    return c.json(course, 200);
-  });
+      if (!course) return c.json({ error: 'Course not found' }, 404);
+      return c.json(course, 200);
+    },
+  );
 
   courseRouter.openapi(createOrUpdateBatchUserCourseRoute, async (c) => {
     const userId = c.var.user.id;
