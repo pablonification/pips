@@ -38,3 +38,51 @@ test('everything but a 401 is retried, with backoff up to 30 s', () => {
     [1000, 2000, 4000, 8000, 16000, 30000, 30000, 30000],
   );
 });
+
+// A session that ended while the app was open: only the session check signs out, so a 401 from any other request
+// asks it again, once for a burst of them; its answer decides.
+test('a 401 from another request asks the session check again, once per burst', async () => {
+  const { createSignedOutRecheck } = await import('../src/lib/session-policy');
+  let now = 0;
+  let checks = 0;
+  let finish = () => {};
+  const onError = createSignedOutRecheck({
+    recheck: () => {
+      checks++;
+      return new Promise<void>((resolve) => (finish = resolve));
+    },
+    now: () => now,
+  });
+  onError(apiError(500));
+  onError(new Error('offline'));
+  assert.equal(checks, 0, 'only a 401');
+  onError(apiError(401));
+  onError(apiError(401));
+  onError(apiError(401));
+  assert.equal(checks, 1, 'one check while it is on its way');
+  finish();
+  await Promise.resolve();
+  await Promise.resolve();
+  now += 500;
+  onError(apiError(401));
+  assert.equal(checks, 1, 'a late 401 of the same burst asks nothing');
+  now += 5_000;
+  onError(apiError(401));
+  assert.equal(checks, 2, 'a later 401 asks again');
+});
+
+test('a session check that fails to answer throws nothing, and its burst still asks once', async () => {
+  const { createSignedOutRecheck } = await import('../src/lib/session-policy');
+  let checks = 0;
+  const onError = createSignedOutRecheck({
+    recheck: () => {
+      checks++;
+      return Promise.reject(new Error('offline'));
+    },
+    now: () => 0,
+  });
+  onError(apiError(401));
+  await new Promise((r) => setTimeout(r, 0));
+  onError(apiError(401));
+  assert.equal(checks, 1);
+});
