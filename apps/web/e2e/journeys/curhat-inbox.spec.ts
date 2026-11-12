@@ -1,10 +1,10 @@
 /**
- * Curhat Yuk!'s inbox for HMIF Welfare (P3-C) at /kelola/curhat: a proposal (OPEN-QUESTIONS D9) built from the member
+ * Curhat Yuk!'s inbox for HMIF Welfare at /kelola/curhat, built from the member
  * side's pieces. Raka with `curhatadmin` is the Welfare member (Nadia owns r1 and r2, so she never is); Nadia, and Raka
  * without the role, are sent away. On the API's protocol as the fake socket speaks it: a Welfare `curhat` handshake
  * joins every room and the Welfare group room; every message says `fromOwner`.
  *
- * The harness's Welfare view (fixtures/NOTES.md): every room, the member's messages `fromOwner`, the prototype's
+ * The harness's Welfare view (fixtures/NOTES.md): every room, the member's messages `fromOwner`, the sample
  * Welfare messages Raka's own; Teal Koala has m1 and m3 unread (2), Amber Heron none.
  */
 import type { Page, TestInfo } from '@playwright/test';
@@ -164,7 +164,7 @@ test.describe('ways in', () => {
     await page.goto('/layanan/curhat/r1');
     await expect(page).toHaveURL(/\/kelola\/curhat\/r1$/);
     await expect(log(page)).toBeVisible();
-    // The Welfare push's link (today's path, through P0-B's redirect).
+    // The Welfare push's link (an old path, followed through its redirect).
     await page.goto('/home/curhat');
     await expect(page).toHaveURL(/\/kelola\/curhat$/);
     // Today's Welfare screen is gone.
@@ -189,7 +189,7 @@ test.describe('ways in', () => {
     await expect(page).toHaveURL(/\/kelola\/curhat$/);
   });
 
-  // Review, deviation 5 (Dev 1's decision): Welfare saw "Curhat Yuk!" twice, both leading to the inbox.
+  // Welfare gets one "Curhat Yuk!" entry, not two that both lead to the inbox.
   test('global search lists Curhat Yuk! once for Welfare: the inbox row', async ({
     page,
   }) => {
@@ -567,7 +567,7 @@ test.describe('pins', () => {
 
     api.on('PUT /api/curhat/chatroom/:chatroomId/pin', reply.status(500));
     // The closed menu hands focus back to its button first (Radix does it in a timer, which the fake clock can hold
-    // back under load); opening the next menu before that, the late hand-back closed it (full run, round 2).
+    // back under load); opening the next menu before that, the late hand-back would close it.
     await expect(options(page, 'Amber Heron')).toBeFocused();
     await options(page, 'Teal Koala').click();
     await page.getByRole('menuitem', { name: 'Sematkan ruang' }).click();
@@ -780,7 +780,7 @@ test.describe('a room', () => {
     await expect(bubble(page, REPLY)).toHaveCount(0);
   });
 
-  test('regression (A11): saved, its acknowledgement lost, sent again: two emits with one id, saved once, one bubble', async ({
+  test('saved, its acknowledgement lost, sent again: two emits with one id, saved once, one bubble', async ({
     page,
     api,
     db,
@@ -810,9 +810,9 @@ test.describe('a room', () => {
     await expect(bubble(page, REPLY)).toHaveCount(1);
   });
 
-  // Review M1 (round 2): the drop-then-reconnect case, the most common way to lose an acknowledgement. The catch-up
+  // The drop-then-reconnect case, the most common way to lose an acknowledgement. The catch-up
   // fetch brings the server's copy, which settles the failed entry; sending "again" must not save a second copy.
-  test('regression (M1): saved, its acknowledgement lost, then a drop and a reconnect: one bubble, the composer cleared, nothing sent again', async ({
+  test('saved, its acknowledgement lost, then a drop and a reconnect: one bubble, the composer cleared, nothing sent again', async ({
     page,
     api,
     db,
@@ -924,7 +924,7 @@ test.describe('a room', () => {
 
 // ---------------------------------------------------------------- Live
 
-test.describe('the chat layout (owner’s changes, 2026-11-06)', () => {
+test.describe('the chat layout', () => {
   const head = (page: Page, t: TestInfo) =>
     isDesk(t) ? main(page).locator('.g-d-head') : page.locator('.g-top');
 

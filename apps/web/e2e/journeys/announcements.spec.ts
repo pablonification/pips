@@ -1,5 +1,5 @@
 /**
- * Pengumuman (P1-B): the feed, a post, reactions, comments, the menu, the filter and search, at phone, tablet and
+ * Pengumuman: the feed, a post, reactions, comments, the menu, the filter and search, at phone, tablet and
  * desktop size in light and dark, with strict gates. Every write's body is checked as the API received it.
  * The composer is in compose.spec.ts.
  */
@@ -70,7 +70,7 @@ test.describe('catching up (Nadia)', () => {
       // The row keeps focus; the list stays.
       await expectFocused(postInList(page, testInfo, 'p1'));
       // Its URL is now the page's ("true" while it was only the default selection), and it still looks selected
-      // (regression: the highlight followed only "true").
+      // (the highlight must not follow only "true").
       await expect(postInList(page, testInfo, 'p1')).toHaveAttribute(
         'aria-current',
         'page',
@@ -226,7 +226,7 @@ test.describe('catching up (Nadia)', () => {
     await strictGates(page, testInfo, 'reaction-error');
   });
 
-  test('a sent comment keeps the whole comment form in view (regression: it slid below the window)', async ({
+  test('a sent comment keeps the whole comment form in view', async ({
     page,
     api,
   }) => {
@@ -238,7 +238,7 @@ test.describe('catching up (Nadia)', () => {
     const send = page.getByRole('button', { name: 'Kirim komentar' });
     // The pixels of the form (the field and Kirim) hidden by its scrolling container, at most 1 for sub-pixel
     // rounding; and the shell's bars (top bar, tab bar) over none of it. The toast "Komentar terkirim." may sit over
-    // part of it for a moment, where the prototype puts every toast.
+    // part of it for a moment, where every toast appears.
     const expectFormInView = async () => {
       const hidden = await field.evaluate((el) => {
         const f = el.closest('form')!.getBoundingClientRect();
@@ -548,7 +548,7 @@ test.describe('filter and search', () => {
     await expect(akademik).toHaveAttribute('aria-checked', 'true');
     await akademik.click();
     await expect(akademik).toHaveAttribute('aria-checked', 'false');
-    // Regression (P1-B): the harness compared ids ("akademik"); the API takes names.
+    // The filter sends category names, as the API takes them, not ids ("akademik").
     await expect
       .poll(() =>
         api
@@ -687,7 +687,7 @@ test.describe('filter and search', () => {
     expect(api.calls('POST /api/info/p2/read')).toHaveLength(0);
   });
 
-  test('desktop: a post opened after the view changed stays open (regression: the feed’s first post replaced it) @desktop-only', async ({
+  test('desktop: a post opened after the view changed stays open @desktop-only', async ({
     page,
     db,
     api,
@@ -871,7 +871,7 @@ test.describe('the author (Raka, admin)', () => {
     await expect(detail(page).getByRole('heading', { name: P2 })).toBeVisible();
   });
 
-  test('a comment delete the server refuses says so as a post’s does, and keeps the comment (review minor 10)', async ({
+  test('a comment delete the server refuses says so as a post’s does, and keeps the comment', async ({
     page,
     api,
   }) => {
@@ -911,7 +911,7 @@ test.describe('deep links', () => {
       .toEqual([{ unread: false }]);
   });
 
-  test('a post that is gone shows its not-found state and the way back (regression: the old page went blank)', async ({
+  test('a post that is gone shows its not-found state and the way back', async ({
     page,
   }, testInfo) => {
     await page.goto('/pengumuman/hilang');
@@ -952,7 +952,7 @@ test.describe('deep links', () => {
       await page.goto('/timeline/p2');
       await expect(page).toHaveURL(/\/login\?redirect=%2Fpengumuman%2Fp2$/);
       expect(api.calls('GET /api/info/:infoId')).toHaveLength(0);
-      // Signing in (P1-C owns the sign-in screen): the session now exists, and the redirect is followed.
+      // Signing in: the session now exists, and the redirect is followed.
       db.signedIn = true;
       api.on('POST /api/info/:infoId/read', writes.markRead);
       await page.addInitScript(
@@ -1098,7 +1098,7 @@ test.describe('states', () => {
     await api.setOffline(false);
   });
 
-  test('offline with nothing kept: an error with Coba lagi, not endless loading (regression)', async ({
+  test('offline with nothing kept: an error with Coba lagi, not endless loading', async ({
     page,
     api,
   }, testInfo) => {

@@ -1,11 +1,10 @@
 /**
- * Curhat Yuk! for members (P2-C): the list, starting a room, a room, replying and sending with delivery states,
+ * Curhat Yuk! for members: the list, starting a room, a room, replying and sending with delivery states,
  * a dropped connection, Welfare's replies, deleting, the Enter key, the loading, error and offline states, and
- * Welfare being sent to its inbox (P3-C). On P0-D's socket protocol, which the fake socket.io server speaks: the handshake
+ * Welfare being sent to its inbox. On the API's socket protocol, which the fake socket.io server speaks: the handshake
  * `auth: { curhat: true }`, `curhat:join`, and `message` acknowledged `{ ok: true, message }` or `{ ok: false }`.
  *
- * It replaces T3's journey of today's screen (`/home/curhat`, one socket per room, "Messages", no acknowledgement):
- * members no longer see that screen. Welfare is sent to its inbox (P3-C), checked at the end.
+ * Welfare is sent to its inbox, checked at the end.
  */
 import type { Locator, Page, Request, TestInfo } from '@playwright/test';
 import type { CurhatSocketMessage } from '../../src/api/generated';
@@ -65,8 +64,7 @@ async function openR1(page: Page) {
  * Counts the page's API requests in flight (the socket's long poll aside); `quiet()` waits until none has been for
  * half a second. Start it before the page opens. A journey that ends the session and then types needs it: on a slow
  * machine the room's opening reads (the unread counts again after the read mark, the shell's badge) can still be on
- * their way, come back "not signed in", and hand over to sign-in before the journey has typed (regression: CI,
- * 2026-11-03; 1 run in 8 at 6x CPU slowdown).
+ * their way, come back "not signed in", and hand over to sign-in before the journey has typed.
  */
 function apiInFlight(page: Page) {
   let open = 0;
@@ -112,7 +110,7 @@ function saved(data: unknown, id = 'e2e-message-by-hand'): CurhatSocketMessage {
   };
 }
 
-/** A message's device id (P2-C round 2): a UUID the app makes. */
+/** A message's device id: a UUID the app makes. */
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 /** What the app emits for a message: exactly these fields, with a fresh device id. */
@@ -284,7 +282,7 @@ test.describe('starting a room', () => {
         error: 'You have reached the maximum chatrooms limit',
       }),
     );
-    // Review minor 4: a third room was started on another device; the list catches up after the 400.
+    // A third room was started on another device; the list catches up after the 400.
     db.chatrooms.r3 = {
       id: 'r3',
       title: 'coral otter',
@@ -304,7 +302,7 @@ test.describe('starting a room', () => {
 });
 
 test.describe('a room', () => {
-  test('the thread as the locked capture shows it, at the newest message, read on opening', async ({
+  test('the thread opens at the newest message, read on opening', async ({
     page,
     api,
   }, testInfo) => {
@@ -321,7 +319,7 @@ test.describe('a room', () => {
     await expect(bubble(page, M4)).toHaveText(
       `Membalas: ${M3}Welfare: ${M4}Welfare · 10.12`,
     );
-    // Your newest delivered message says so (OPEN-QUESTIONS D7); older ones only their time.
+    // Your newest delivered message says so; older ones only their time.
     // m3's own bubble (m4's quotes it too).
     await expect(bubble(page, M3).first()).toContainText('Terkirim · 12.30');
     await expect(bubble(page, M1)).not.toContainText('Terkirim');
@@ -353,7 +351,7 @@ test.describe('a room', () => {
     );
   });
 
-  test('regression: the composer stays at the bottom of the window while you read back', async ({
+  test('the composer stays at the bottom of the window while you read back', async ({
     page,
     api,
   }) => {
@@ -412,7 +410,7 @@ test.describe('a room', () => {
     expect(sent.ackId).toBeDefined();
     await expectAtNewest(page, MINE);
 
-    // Review minor 5: the bubble stays the same element from Mengirim to Terkirim, so it is announced as added once.
+    // The bubble stays the same element from Mengirim to Terkirim, so it is announced as added once.
     const sentBubble = await bubble(page, MINE).elementHandle();
     api.socket.ack(sent, { ok: true, message: saved(sent.data, 'm10') });
     await expect(bubble(page, MINE)).toContainText('Terkirim · 13.35');
@@ -422,7 +420,7 @@ test.describe('a room', () => {
     await expect(log(page).getByRole('button', { name: 'Balas' })).toHaveCount(
       5,
     );
-    // Regression: the delivered message grows (Terkirim, then Balas) and the room stays at its end.
+    // The delivered message grows (Terkirim, then Balas) and the room stays at its end.
     await expect(
       log(page).getByRole('button', { name: 'Balas' }).last(),
     ).toBeInViewport({ ratio: 1 });
@@ -498,7 +496,7 @@ test.describe('delivery under a dropped connection', () => {
     await expect(bubble(page, MINE)).toContainText('Mengirim');
     await page.clock.fastForward(1_500);
     await expect(log(page).getByText('Gagal', { exact: true })).toBeVisible();
-    // Review minor 5: announced once, by the log adding the Gagal line; no second live region repeats it.
+    // Announced once, by the log adding the Gagal line; no second live region repeats it.
     await expect(log(page)).toHaveAttribute('aria-relevant', 'additions');
     await expect(
       page
@@ -521,7 +519,7 @@ test.describe('delivery under a dropped connection', () => {
     expect(api.socket.emitted('message')).toHaveLength(2);
   });
 
-  test('regression: the reply chip never covers a failed message’s Kirim ulang', async ({
+  test('the reply chip never covers a failed message’s Kirim ulang', async ({
     page,
     api,
   }) => {
@@ -604,7 +602,7 @@ test.describe('delivery under a dropped connection', () => {
     expect(api.socket.emitted('message')).toHaveLength(1);
   });
 
-  test('regression (review M1): offline, the banner is in view at the newest message of a room', async ({
+  test('offline, the banner is in view at the newest message of a room', async ({
     page,
     api,
   }) => {
@@ -620,8 +618,8 @@ test.describe('delivery under a dropped connection', () => {
     await expect(page.getByText(/^Offline/)).toHaveCount(0);
   });
 
-  // Review M2, OPEN-QUESTIONS A11 (Dev 1's decision): saved by the server, the acknowledgement lost.
-  test('regression: saved, its acknowledgement lost: Gagal, then Kirim ulang shows it once and saves it once', async ({
+  // Saved by the server, the acknowledgement lost.
+  test('saved, its acknowledgement lost: Gagal, then Kirim ulang shows it once and saves it once', async ({
     page,
     api,
     db,
@@ -660,7 +658,7 @@ test.describe('delivery under a dropped connection', () => {
     await expect(bubble(page, MINE)).toHaveCount(1);
   });
 
-  test('regression: saved, then the connection drops before the answer: back, it shows once, delivered, with no resend', async ({
+  test('saved, then the connection drops before the answer: back, it shows once, delivered, with no resend', async ({
     page,
     api,
     db,
@@ -693,8 +691,8 @@ test.describe('delivery under a dropped connection', () => {
     ).toHaveLength(1);
   });
 
-  // Review minor 1: a rooms fetch that started before the save lands with the older list.
-  test('regression: a delivered message stays when a rooms fetch that started earlier lands without it', async ({
+  // A rooms fetch that started before the save lands with the older list.
+  test('a delivered message stays when a rooms fetch that started earlier lands without it', async ({
     page,
     api,
   }) => {
@@ -752,7 +750,7 @@ test.describe('delivery under a dropped connection', () => {
     await expectAtNewest(page, MINE);
   });
 
-  // Review minor 2: refusals Kirim ulang can't get past.
+  // Refusals Kirim ulang can't get past.
   test('refused as forbidden (the room was deleted elsewhere): the rooms are fetched again and it is not found', async ({
     page,
     api,
@@ -792,7 +790,7 @@ test.describe('delivery under a dropped connection', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  // Review minor 3: at session expiry the API ends the connection; socket.io doesn't reconnect by itself.
+  // At session expiry the API ends the connection; socket.io doesn't reconnect by itself.
   test('the server ends the connection: the session is checked; still signed in, it connects again and sends', async ({
     page,
     api,
@@ -833,7 +831,7 @@ test.describe('delivery under a dropped connection', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('regression: a message sent after Back and reopening the room is emitted and delivered', async ({
+  test('a message sent after Back and reopening the room is emitted and delivered', async ({
     page,
     api,
   }) => {
@@ -931,7 +929,7 @@ test.describe('Welfare’s replies', () => {
 });
 
 test.describe('deleting a room', () => {
-  test('regression: it asks first; Batal keeps the room', async ({
+  test('it asks first; Batal keeps the room', async ({
     page,
     api,
   }, testInfo) => {
@@ -1012,7 +1010,7 @@ test.describe('deleting a room', () => {
 });
 
 test.describe('Enter', () => {
-  test('regression: on a touch keyboard Enter starts a new line and doesn’t send @phone-only', async ({
+  test('on a touch keyboard Enter starts a new line and doesn’t send @phone-only', async ({
     page,
     api,
   }) => {
@@ -1115,7 +1113,7 @@ test.describe('signed out', () => {
     page,
     api,
   }) => {
-    // P1-C's sign-in, with the harness's fake Google script.
+    // Sign-in, with the harness's fake Google script.
     await fakeGoogle(page.context());
     canRead(api);
     await page.goto('/layanan/curhat/r1');
@@ -1131,7 +1129,7 @@ test.describe('signed out', () => {
   });
 });
 
-// P3-C replaces P2-C's "keeps today's screen until P3-C" journey: that screen is retired. Welfare answers in the
+// Welfare answers in the
 // inbox at /kelola/curhat (journeys/curhat-inbox.spec.ts), and the member area sends them there.
 test.describe('Welfare', () => {
   test.use({ persona: 'pengurus', roles: ['curhatadmin'] });
@@ -1164,7 +1162,7 @@ test.describe('Welfare', () => {
   });
 });
 
-test.describe('the chat layout (owner’s changes, 2026-11-06)', () => {
+test.describe('the chat layout', () => {
   const scroller = (page: Page) =>
     page.locator('[data-scroll-restoration-id="isi"]');
   /** The room's head: the top bar on phones and tablets, the page head on desktop. */
