@@ -1,11 +1,15 @@
 import { databaseError } from '~/lib/database-error';
 import postgres from 'postgres';
-import { findMissingRequiredQuestions } from '~/lib/form-answers';
+import {
+  findInvalidAnswer,
+  findMissingRequiredQuestions,
+} from '~/lib/form-answers';
 import {
   formQuestionsVisible,
   formStatus,
   sectionCount,
 } from '~/lib/form-status';
+import { MAX_FORM_TEXT_ANSWER } from '~/lib/limits';
 import { roleMiddleware } from '~/middlewares/role.middleware';
 import {
   buildAnalytics,
@@ -157,6 +161,13 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
     if (status === 'not_opened') {
       return c.json({ error: 'This form has not opened yet' }, 403);
     }
+
+    const invalid = findInvalidAnswer(
+      form.sections,
+      data.answers,
+      MAX_FORM_TEXT_ANSWER,
+    );
+    if (invalid) return c.json({ error: invalid }, 400);
 
     const missing = findMissingRequiredQuestions(form.sections, data.answers);
     if (missing.length > 0) {

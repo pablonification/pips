@@ -1,7 +1,7 @@
 import { sign } from 'hono/jwt';
 
 /** The JWT secret `usePlaceholderEnv()` sets; tokens signed with it pass the API's session check in tests. */
-export const PLACEHOLDER_JWT_SECRET = 'placeholder-secret';
+export const PLACEHOLDER_JWT_SECRET = 'placeholder-secret-of-at-least-32-chars';
 
 export interface TestUser {
   id: string;
