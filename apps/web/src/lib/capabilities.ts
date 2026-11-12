@@ -8,7 +8,7 @@ type Role = UserWithRoles['roles'][number];
  * the API's source and fails if a row here drifts from it.
  */
 export const CAPABILITY_ROLES = {
-  /** Add a competition to Info Lomba: `competitions.controller.ts`, roleMiddleware(['cnc']). */
+  /** Add a competition to Info Lomba: `competitions.controller.ts`, forRoles(…, ['cnc']). */
   createCompetition: ['cnc'],
   /** Add an Akademik event (a course is required): `calendar.controller.ts`. */
   createAkademikEvent: ['akademik'],
@@ -28,7 +28,7 @@ export const CAPABILITY_ROLES = {
   moderateContent: ['admin'],
   /** Change the shared course catalogue (API only today): `lib/authorization.ts`, COURSE_CATALOG_MANAGER_ROLES. */
   editCourseCatalog: ['akademik', 'admin'],
-  /** Change or delete a competition in Info Lomba: `competitions.controller.ts`, the same roleMiddleware(['cnc']). */
+  /** Change or delete a competition in Info Lomba: `competitions.controller.ts`, the same forRoles(…, ['cnc']). */
   manageCompetition: ['cnc'],
 } as const satisfies Record<string, readonly Role[]>;
 

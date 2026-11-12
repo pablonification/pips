@@ -37,7 +37,7 @@ role. Everything is under `apps/web/`.
    once. `owner` is the team that looks after it.
 3. **Add the capability** so the row shows only for the role. In `src/lib/capabilities.ts`, a row like the others:
    ```ts
-   /** Add a competition to Info Lomba: `competitions.controller.ts`, roleMiddleware(['cnc']). */
+   /** Add a competition to Info Lomba: `competitions.controller.ts`, forRoles(…, ['cnc']). */
    createCompetition: ['cnc'],
    ```
    with a comment naming the API controller that checks it, and set `capability: 'yourName'` in the service entry.
