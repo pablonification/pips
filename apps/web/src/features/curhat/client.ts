@@ -52,8 +52,11 @@ export type ConnectionStatus = 'connecting' | 'connected' | 'down';
 interface CurhatClientEvents {
   /** A message from the room arrived (Welfare's reply, or yours from another tab). */
   onReply?: (message: ChatroomMessage) => void;
-  /** The connection is back after being down: catch up on what was missed. */
-  onReconnect?: () => void;
+  /**
+   * Connected, the first time or back after being down: catch up on what was missed. The server sends a connection
+   * nothing saved before it joined its rooms, and the screen may have read them before the socket came up.
+   */
+  onConnect?: () => void;
   /** The server saved what you sent. */
   onDelivered?: (entry: OutboxEntry, message: ChatroomMessage) => void;
   /** What you sent failed. */
@@ -78,7 +81,6 @@ export interface CurhatClientState {
 export class CurhatClient {
   private state: CurhatClientState = { status: 'connecting', outbox: [] };
   private readonly listeners = new Set<() => void>();
-  private wasDown = false;
   private seq = 0;
   private closed = false;
   /** Server-ended connections in a row, each soon after connecting; `reconnect()` waits longer for each. */
@@ -102,14 +104,11 @@ export class CurhatClient {
   ) {
     socket.on('connect', () => {
       this.connectedAt = Date.now();
-      const back = this.wasDown;
-      this.wasDown = false;
       this.set({ status: 'connected' });
-      if (back) this.events.onReconnect?.();
+      this.events.onConnect?.();
     });
     const down = () => {
       if (this.closed) return;
-      this.wasDown = true;
       this.set({ status: 'down' });
     };
     socket.on('disconnect', ((reason?: string) => {

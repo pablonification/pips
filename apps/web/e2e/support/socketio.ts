@@ -7,6 +7,8 @@
  * - read what the app emitted: `api.socket.emitted('message')`;
  * - push an event to the app: `api.socket.emit('reply', payload, (s) => s.auth.chatroomId === 'r1')`;
  * - drop every connection: `api.socket.drop()`, after which new connections fail until `api.socket.restore()`;
+ * - keep new connections waiting at the handshake, as a slow phone does: `api.socket.hold()`, then
+ *   `api.socket.release()` (`api.socket.heldHandshakes` counts those waiting);
  * - change how an acknowledgement is answered: `api.socket.answer('message', () => ({ ok: false, error: 'server' }))`,
  *   or never answered (`() => undefined`), for the delivery states;
  * - answer one held-back acknowledgement later: `api.socket.ack(api.socket.emitted('message')[0], payload)`.
@@ -62,6 +64,9 @@ export class FakeSocketServer {
   private saved = 0;
   private down = false;
   private closed = false;
+  private held: { until: Promise<void>; release: () => void } | null = null;
+  /** Handshakes `hold()` keeps waiting. */
+  heldHandshakes = 0;
   private readonly answers = new Map<string, AckAnswer>();
 
   constructor(private readonly db?: Db) {
@@ -142,6 +147,19 @@ export class FakeSocketServer {
     this.down = false;
   }
 
+  /** New connections wait at the handshake until `release()`: the app has read its data, the socket isn't up yet. */
+  hold(): void {
+    if (this.held) return;
+    let release = () => {};
+    const until = new Promise<void>((r) => (release = r));
+    this.held = { until, release };
+  }
+
+  release(): void {
+    this.held?.release();
+    this.held = null;
+  }
+
   /**
    * The API ends every connection itself, as it does when a session expires (`socket.disconnect(true)`: the client
    * hears `io server disconnect` and doesn't reconnect by itself). The transport stays up.
@@ -157,6 +175,7 @@ export class FakeSocketServer {
 
   close(): void {
     this.closed = true;
+    this.release();
     for (const s of this.sessions.values()) this.flush(s, ['1']);
   }
 
@@ -167,6 +186,12 @@ export class FakeSocketServer {
       return route.abort('blockedbyclient');
     if (this.down || this.closed) return route.abort('connectionrefused');
     const sid = url.searchParams.get('sid');
+    if (!sid && this.held) {
+      this.heldHandshakes++;
+      await this.held.until;
+      this.heldHandshakes--;
+      if (this.down || this.closed) return route.abort('connectionrefused');
+    }
     if (!sid) return this.handshake(route);
     const session = this.sessions.get(sid);
     if (!session)
