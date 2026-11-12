@@ -1,4 +1,4 @@
-// P1-B: Pengumuman's styles (src/features/pengumuman/pengumuman.css) follow the design system's rules: colours only
+// Pengumuman's styles (src/features/pengumuman/pengumuman.css) follow the design system's rules: colours only
 // from tokens, the type scale and nothing under 12 px, no capitals or monospace added, layers inside the page only,
 // prose no wider than 65 characters, and the picker in two rows of three on the narrowest phones.
 import assert from 'node:assert/strict';
@@ -50,7 +50,7 @@ test('prose is at most 65 characters a line', () => {
   );
 });
 
-test('the picker is two rows of three below 340 px (the prototype’s `@container phone` rule)', () => {
+test('the picker is two rows of three below 340 px (the `@container phone` rule)', () => {
   assert.match(
     body,
     /@(?:media|container)[^{]*\(max-width:\s*340px\)\s*\{[\s\S]*?\.g-picker\s*\{[^}]*grid-template-columns:\s*repeat\(3,/,

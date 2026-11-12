@@ -1,4 +1,4 @@
-// Kredit (owner's change, 2026-11-06): the credits markdown read into groups, teams and people
+// Kredit: the credits markdown read into groups, teams and people
 // (src/features/profil/credits.ts), and every other shape left to the markdown renderer. Sample names, not real ones.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';

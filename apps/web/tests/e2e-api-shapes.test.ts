@@ -1,4 +1,4 @@
-// The e2e harness answers forms, SPARTA, Curhat's unread count and NIM Finder as the API does since P0-D.
+// The e2e harness answers forms, SPARTA, Curhat's unread count and NIM Finder as the API does.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { buildDb, type Db } from '../e2e/fixtures/api';
@@ -77,7 +77,7 @@ test('a form not open yet has no questions', () => {
   assert.equal(detail.sections, null);
 });
 
-// Regression (review M2): a form switched off before it opened is closed, and its questions stay hidden.
+// A form switched off before it opened is closed, and its questions stay hidden.
 test('a switched-off form keeps its questions hidden until it opens', () => {
   const db = buildDb('anggota');
   db.formDetails.pixel.opensAt = '2026-12-01T06:00:00.000Z';
@@ -102,7 +102,7 @@ test('PIXEL q1 and q2 ask for prefill', () => {
   );
 });
 
-// Regression: the harness answered 404 when a member had no SPARTA submission; the API answers 200 null.
+// The harness answers 200 null when a member has no SPARTA submission, as the API does.
 test('SPARTA: 200 null without a submission, 401 for a member it is not for, and the window', () => {
   const nadia = buildDb('anggota');
   nadia.internshipSubmissions = [];
@@ -190,7 +190,7 @@ test('NIM Finder: four fields, closest NIM first, 400 under three characters', (
   );
 });
 
-// Regression (review M3): the harness handed out each author's whole user record, as the API used to.
+// The harness must not hand out each author's whole user record.
 test('posts and comments carry only the author fields: id, name, photo', () => {
   const AUTHOR_KEYS = ['fullName', 'id', 'picture'];
   const db = buildDb('anggota');
@@ -217,7 +217,7 @@ test('posts and comments carry only the author fields: id, name, photo', () => {
   assert.deepEqual(Object.keys(posted.creator).sort(), AUTHOR_KEYS);
 });
 
-// P3-A: as the API since then (formQuestionsVisible), the questions go only to the form's angkatan or a form admin.
+// As the API (formQuestionsVisible), the questions go only to the form's angkatan or a form admin.
 test('form detail: questions for the angkatan and for an admin, not for other members', () => {
   const nadia = buildDb('anggota');
   const forNadia = call(get('/api/form/:formId'), nadia, {
@@ -239,7 +239,7 @@ test('form detail: questions for the angkatan and for an admin, not for other me
   assert.equal(outside.title, raka.formDetails.pixel.title);
 });
 
-// Harness bug (P3-A): the admin list answered 403 and the other admin endpoints checked no role at all; the API's
+// The admin list answers 401 and the other admin endpoints check the role; the API's
 // roleMiddleware answers 401 { error: 'Unauthorized' } for a missing role.
 test('admin endpoints answer 401 without the role, as roleMiddleware', () => {
   const nadia = buildDb('anggota');
@@ -272,7 +272,7 @@ test('admin endpoints answer 401 without the role, as roleMiddleware', () => {
   }
 });
 
-// Harness bug (P3-A): SPARTA's submissions came 50 a page; the API pages by 20 (SUBMISSIONS_PER_PAGE), oldest first.
+// SPARTA's submissions come 20 a page (SUBMISSIONS_PER_PAGE in the API), oldest first.
 test('SPARTA submissions page by 20, as the API', () => {
   const db = buildDb('pengurus');
   const base = db.internshipSubmissions[0];

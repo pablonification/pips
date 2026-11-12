@@ -50,7 +50,7 @@ test('dot segments are resolved, never escaping the site', () => {
 });
 
 test('what comes out is checked too: dot segments, encoded slashes and backslashes never make a link off the site', () => {
-  // Regression: the input checks passed these, then URL parsing resolved them to "//evil.com" (review M1).
+  // The input checks pass these, but URL parsing resolves them to "//evil.com".
   for (const value of [
     '/.//evil.com',
     '/a/..//evil.com',

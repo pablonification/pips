@@ -3,7 +3,7 @@ import { test } from 'node:test';
 
 /*
  * What the shell remembers in the tab (src/components/shell/shell-state.ts): titles screens gave themselves and the
- * pages behind back. Review M5: they stayed after sign-out, for whoever signed in next on the device, and back could
+ * pages behind back. They must not stay after sign-out for whoever signs in next on the device, and back must not
  * follow an entry from before a sign-in.
  */
 
@@ -39,7 +39,7 @@ test('forgetShell: no title, no back history, nothing in the tab, and nothing wr
   assert.equal(shell.titleFor('/layanan/curhat/r1'), undefined);
   assert.equal(shell.titleFor('/layanan/form/pixel'), undefined);
   assert.equal(shell.entryAt(3), undefined);
-  // No tab this visit until the member opens one: Profil then lights none (Dev 1's decision, P1-C round 2).
+  // No tab this visit until the member opens one: Profil then lights none.
   assert.equal(shell.lastRoot(), null);
   assert.equal(map.has('pips:shell'), false);
   await wait(300);
@@ -72,7 +72,7 @@ test('a write still waiting when the page goes is written then, not lost (a relo
   assert.equal(JSON.parse(map.get('pips:shell')!).lastRoot, 'kalender');
 });
 
-test('a change is written before the page goes away, not lost to a reload within 200 ms (P1-B, found by the shell journey)', async () => {
+test('a change is written before the page goes away, not lost to a reload within 200 ms', async () => {
   shell.forgetShell();
   shell.setLastRoot('layanan');
   assert.equal(map.has('pips:shell'), false, 'still waiting');

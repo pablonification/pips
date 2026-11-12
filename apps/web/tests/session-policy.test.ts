@@ -15,8 +15,8 @@ const apiError = (status: number) =>
     'error',
   );
 
-// Regression: the session check used `getMe().catch(() => null)`, so a dropped request, a 503 or being offline
-// signed members out. Only a 401 may.
+// The session check must not sign members out on a dropped request, a 503 or being offline (as
+// `getMe().catch(() => null)` would). Only a 401 may.
 test('only a 401 from the session check means signed out', () => {
   assert.equal(isSignedOutError(apiError(401)), true);
   for (const status of [400, 403, 404, 500, 502, 503, 504]) {

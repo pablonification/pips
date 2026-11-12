@@ -1,4 +1,4 @@
-// P0-C: the installed app's look. The manifest colours come from the tokens, the page is called PIPS!, and every
+// The installed app's look. The manifest colours come from the tokens, the page is called PIPS!, and every
 // icon is the official logo, whole, on HMIF's ink (scripts/icons/build-icons.py), never a redrawn mark.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -18,7 +18,7 @@ test('the manifest: the light app background as theme colour, ink behind the spl
   assert.match(read('src/styles/garis/tokens.css'), /--bg-app: #fcfbf8;/);
   assert.match(read('src/styles/garis/tokens.css'), /--ink: #1b1508;/);
   for (const [, src] of vite.matchAll(/src: '\/(android-chrome[^']+)'/g)) assert.ok(fs.existsSync(path.join(appDir, 'public', src)), src);
-  // Fonts are precached; no Google Fonts are cached at run time (P0-A self-hosts them).
+  // Fonts are precached; no Google Fonts are cached at run time (the fonts are self-hosted).
   assert.match(vite, /globPatterns: \[[^\]]*woff2/);
   assert.doesNotMatch(read('src/sw.ts'), /registerRoute\([^)]*fonts\.(googleapis|gstatic)/);
 });
@@ -73,7 +73,7 @@ test('every icon is square, ink at the edges, with the logo whole in the middle'
 });
 
 /*
- * Review m4: the checks above would pass a recoloured, redrawn or filtered logo of the same shape. This one scales
+ * The checks above would pass a recoloured, redrawn or filtered logo of the same shape. This one scales
  * the official public/logo/hmif.png as scripts/icons/build-icons.py does (Pillow's LANCZOS, premultiplied alpha, the
  * share of the side, centred on ink) and compares it with the icon pixel by pixel. Only rounding differs.
  */

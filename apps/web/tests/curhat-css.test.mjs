@@ -1,6 +1,6 @@
-// P2-C: Curhat's styles (src/features/curhat/curhat.css) follow the design system's rules: colours only from tokens,
+// Curhat's styles (src/features/curhat/curhat.css) follow the design system's rules: colours only from tokens,
 // the type scale and nothing under 12 px, no capitals or monospace added, layers inside the page only, and the
-// prototype's values for the bubbles, the room square and the composer.
+// values for the bubbles, the room square and the composer.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -43,7 +43,7 @@ test('layers stay inside the page (0–3)', () => {
   assert.deepEqual(raw, []);
 });
 
-test('the prototype’s values: gold bubbles framed in ink, the 40 px room square, the 44 px composer growing to 5 lines', () => {
+test('the values: gold bubbles framed in ink, the 40 px room square, the 44 px composer growing to 5 lines', () => {
   assert.match(rule('.g-bubble.me'), /background: var\(--gold\)/);
   assert.match(rule('.g-bubble.me'), /inset 0 0 0 1\.5px var\(--ink\)/);
   assert.match(rule('.g-bubble.them'), /background: var\(--bg-surface\)/);

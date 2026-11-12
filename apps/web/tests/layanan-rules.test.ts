@@ -4,7 +4,7 @@ import { openFormsCount, serviceBadge } from '../src/features/layanan/rules';
 import { totalUnread } from '../src/lib/curhat-unread';
 import { servicesByGroup } from '../src/lib/services';
 
-/* Layanan (P1-C brief, "Rules to unit-test"): group order, Kelola per role, expired entries, badge counts. */
+/* Layanan: group order, Kelola per role, expired entries, badge counts. */
 
 const now = new Date('2026-10-08T09:00:00+07:00');
 const nadia = { roles: [] as string[] };
@@ -27,7 +27,7 @@ test('groups in order; Kelola only with a capability, last', () => {
   );
 });
 
-test('rows in the prototype’s order, with the members’ names', () => {
+test('rows in their order, with the members’ names', () => {
   const rows = servicesByGroup(nadia, now).flatMap((g) =>
     g.services.map((s) => s.label),
   );

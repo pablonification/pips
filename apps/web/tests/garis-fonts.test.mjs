@@ -1,4 +1,4 @@
-// Self-hosted fonts (SPEC "Typography"): budgets, format, @font-face, and no third-party font request.
+// Self-hosted fonts: budgets, format, @font-face, and no third-party font request.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';

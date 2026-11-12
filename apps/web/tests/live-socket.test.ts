@@ -1,7 +1,7 @@
 // Live Counting's connection (src/features/kelola/live-socket.ts) with a fake socket and fake timers.
-// Regressions (web-robust 3 and 4): socket.io-client's dynamic import had no catch, so offline or right after a deploy
-// Live Counting stayed disconnected for good; and when the server ended the connection (it now does when it can't
-// read the session) nothing connected again.
+// socket.io-client's dynamic import must have a catch, so offline or right after a deploy Live Counting reconnects
+// later instead of staying disconnected for good; and when the server ends the connection (as it does when it
+// can't read the session) the client connects again.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import {

@@ -8,7 +8,7 @@ import {
   legacyRedirectHref,
 } from '../src/lib/legacy-redirects';
 
-// Every path in today's route tree (routeTree.gen.ts on `redesign` at 792f750, FileRoutesByFullPath), with
+// Every path in the old route tree (FileRoutesByFullPath), with
 // sample params, and where it must land. A redirect may never be dropped: shared links and push use them.
 const OLD_PATHS: Array<[old: string, now: string]> = [
   ['/home', '/'],

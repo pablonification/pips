@@ -1,8 +1,7 @@
-// F2-004: `cn` joins classes without tailwind-merge, so nothing may rely on a caller's utility replacing a
+// `cn` joins classes without tailwind-merge, so nothing may rely on a caller's utility replacing a
 // component's own. Every `cn(…, className)` in src (a component taking the caller's classes) may give only its own
 // Garis classes (`g-*`, the type utilities `t-*`, `disp`, `num`, `code`, `strong`) and plain state words, never a
-// Tailwind utility a caller could want to override (the old `Saved` had `text-fg-2`; it now takes the caller's
-// colour instead of its default).
+// Tailwind utility a caller could want to override (it takes the caller's colour instead of its default).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';

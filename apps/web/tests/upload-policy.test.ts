@@ -18,7 +18,7 @@ test("the app's list is the API's list, with the same size limit", () => {
   assert.equal(MAX_UPLOAD_BYTES, apiPolicy.MAX_UPLOAD_BYTES);
 });
 
-test('regression (review): no SVG anywhere, and jfif and jpe are JPEG', () => {
+test('no SVG anywhere, and jfif and jpe are JPEG', () => {
   assert.equal(UPLOAD_TYPES.svg, undefined);
   assert.doesNotMatch(acceptList('file'), /svg/);
   assert.equal(UPLOAD_TYPES.jfif, 'image/jpeg');

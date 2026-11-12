@@ -1,4 +1,4 @@
-// P2-C: Curhat's connection (src/features/curhat/client.ts) with a fake socket: Mengirim → Terkirim on { ok: true };
+// Curhat's connection (src/features/curhat/client.ts) with a fake socket: Mengirim → Terkirim on { ok: true };
 // Gagal on { ok: false }, on no acknowledgement in time, on a drop before the answer, and at once when down; Kirim
 // ulang; never emitting while down (so socket.io can't buffer a message and send it twice); the reconnect catch-up;
 // replies; joining a new room; and the deferred socket that loads socket.io-client on demand.
@@ -145,7 +145,7 @@ test('each message gets its own device id, a UUID by default', () => {
   );
 });
 
-// Review M2 (OPEN-QUESTIONS A11): the connection drops after the server saved the message, before its answer.
+// The connection drops after the server saved the message, before its answer.
 test('saved, its acknowledgement lost: Gagal, then settled once the rooms hold its device id; no second send', () => {
   const { socket, client, log } = setup();
   socket.connect();
@@ -163,7 +163,7 @@ test('saved, its acknowledgement lost: Gagal, then settled once the rooms hold i
   assert.deepEqual(log, ['failed local-1', 'reconnect']);
 });
 
-// Review minor 1: a rooms refetch that started before the save lands without the delivered message.
+// A rooms refetch that started before the save lands without the delivered message.
 test('a delivered message the rooms cache lost is given back to put again, then settles', () => {
   const { socket, client } = setup();
   socket.connect();
@@ -175,7 +175,7 @@ test('a delivered message the rooms cache lost is given back to put again, then 
   assert.deepEqual(client.snapshot.outbox, []);
 });
 
-// Review minor 2: refusals Kirim ulang can't get past are reported, so the screen can catch up.
+// Refusals Kirim ulang can't get past are reported, so the screen can catch up.
 test('unauthorized and forbidden are reported; invalid, server and no answer are not', () => {
   const { socket, client, log } = setup();
   socket.connect();
@@ -197,7 +197,7 @@ test('unauthorized and forbidden are reported; invalid, server and no answer are
   assert.ok(client.snapshot.outbox.every((e) => e.status === 'failed'));
 });
 
-// P3-C: Welfare's inbox toasts every failure except these two refusals, so a failed entry keeps the server's reason.
+// Welfare's inbox toasts every failure except these two refusals, so a failed entry keeps the server's reason.
 test('a failed entry keeps the reason the server refused it; no answer or a drop has none', () => {
   const { socket, client } = setup();
   socket.connect();
@@ -219,7 +219,7 @@ test('a failed entry keeps the reason the server refused it; no answer or a drop
   );
 });
 
-// Review minor 3: at session expiry the API ends the connection itself, and socket.io won't reconnect.
+// At session expiry the API ends the connection itself, and socket.io won't reconnect.
 test('the server ending the connection is reported; reconnect() connects again; a network drop is not', () => {
   const { socket, client, log } = setup();
   socket.connect();
@@ -240,9 +240,9 @@ test('the server ending the connection is reported; reconnect() connects again; 
   assert.equal(log.filter((l) => l === 'session ended').length, 1);
 });
 
-// Regression (web-robust 3): when the API can't read a session at the handshake it now ends the connection, and the
-// client reconnects. If it keeps doing so at once, each reconnect waits longer (1, 2, 4… up to 30 s) instead of
-// asking again and again; a connection that lasted starts the count again.
+// When the API can't read a session at the handshake it ends the connection, and the client reconnects. If it
+// keeps doing so at once, each reconnect waits longer (1, 2, 4… up to 30 s) instead of asking again and again; a
+// connection that lasted starts the count again.
 test('a server that keeps ending the connection at once is asked again after 1, 2, 4… s, up to 30 s', (t) => {
   t.mock.timers.enable({ apis: ['Date', 'setTimeout'], now: 0 });
   const { socket, client, log } = setup();

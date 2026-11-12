@@ -1,6 +1,6 @@
-// P2-C review minor 6: the wrapper around today's screens (routes/_app/_left-navbar.tsx) clips sideways with
+// The wrapper around the screens (routes/_app/_left-navbar.tsx) clips sideways with
 // `overflow-x: clip`, so it isn't a second scrolling box that sticky bars stick to, and falls back to `hidden` where
-// `clip` isn't supported (Safari before 16), so those browsers keep the sideways clipping they had.
+// `clip` isn't supported (Safari before 16), so those browsers keep the sideways clipping.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,9 +24,8 @@ test('the page wrapper clips with clip, and with hidden where clip is unsupporte
   );
 });
 
-// Found in P3-C round 2: the two rules were nested inside `.g-legacy .min-h-screen:not(.fixed)` (CSS nesting), so
-// they matched only a wrapper inside a legacy full-window screen, never the real one, and the text checks above
-// still passed. They must sit at the top level of the file.
+// The two rules must sit at the top level of the file. Nested inside another rule (CSS nesting), they would match
+// only a wrapper inside that rule's element, never the real one, and the text checks above would still pass.
 test('the page wrapper rules are not nested in another rule', () => {
   const depthAt = (index) => {
     let depth = 0;

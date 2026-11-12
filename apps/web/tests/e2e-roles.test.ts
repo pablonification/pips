@@ -1,4 +1,4 @@
-// The harness's `roles` option (P3-A): a list adds roles to the persona, `{ only }` replaces them, and everything
+// The harness's `roles` option: a list adds roles to the persona, `{ only }` replaces them, and everything
 // the db derives from roles follows.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';

@@ -135,7 +135,7 @@ test('over-budget routes and precache are reported', () => {
   );
 });
 
-test('fonts: exactly two files, Geist ≤ 50 KiB and Archivo Expanded ≤ 30 KiB (C1)', () => {
+test('fonts: exactly two files, Geist ≤ 50 KiB and Archivo Expanded ≤ 30 KiB', () => {
   const ok = [
     { file: 'fonts/archivo-expanded-700-latin.woff2', bytes: 30 * KIB },
     { file: 'fonts/geist-latin-400-600.woff2', bytes: 50 * KIB },
@@ -158,7 +158,7 @@ test('fonts: exactly two files, Geist ≤ 50 KiB and Archivo Expanded ≤ 30 KiB
   assert.match(problems([ok[1]]).join(), /0 archivo files/);
 });
 
-test('budgets are strict by default since C1; BUDGETS_STRICT=0 is warn mode', async () => {
+test('budgets are strict by default; BUDGETS_STRICT=0 is warn mode', async () => {
   const fs = await import('node:fs');
   const script = fs.readFileSync(
     new URL('../scripts/budgets.mjs', import.meta.url),

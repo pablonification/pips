@@ -1,5 +1,5 @@
-// C1: one check for every style file in src, so a new .css file can't slip past the design-system rules (C1 brief,
-// step 11). The per-file tests (garis-shell-css, pengumuman-css, …) keep their own rules on top.
+// One check for every style file in src, so a new .css file can't slip past the design-system rules. The per-file
+// tests (garis-shell-css, pengumuman-css, …) keep their own rules on top.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,7 +14,7 @@ const TOKENS = 'src/styles/garis/tokens.css';
 const FONTS = 'src/styles/garis/fonts.css';
 /**
  * Raw colours allowed by name. The dev-only gallery (never in production builds, verify-production-bundle.mjs)
- * ports four of the prototype's docs.css colours; C1 doesn't restyle it (listed for Dev 1).
+ * uses four raw colours of its own.
  */
 const RAW_COLOUR_ALLOWED = { 'src/dev/garis/gallery.css': 4 };
 

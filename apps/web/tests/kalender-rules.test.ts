@@ -1,4 +1,4 @@
-// P1-A: the calendar's day keys and Kalender's rules (brief rules 1–3, 8–12), in WIB whatever the device's zone.
+// The calendar's day keys and Kalender's rules, in WIB whatever the device's zone.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import type { CalendarEvent, Course, UserCourse } from '../src/api/generated';
@@ -87,7 +87,7 @@ const course = (
   ...extra,
 });
 
-// Nadia's week, as the prototype's data.js has it.
+// Nadia's week.
 const sharing = ev(
   'h1',
   'himpunan',
@@ -313,8 +313,8 @@ test('the reminder line: off, when it was due (never "sent"), or when it will be
     reminderLine(tubes, NOW, false),
     'Notifikasi belum menyala di perangkat ini',
   );
-  // Kuis 2 at 15.00 today: its reminder was due yesterday at 15.00. Regression (owner, 2026-11-03): it said
-  // "Sudah dikirim", though the server may never have sent one (an event added later, Akademik muted).
+  // Kuis 2 at 15.00 today: its reminder was due yesterday at 15.00. It must not say "Sudah dikirim", because the
+  // server may never have sent one (an event added later, Akademik muted).
   assert.equal(reminderLine(kuis2, NOW, true), 'Rab 7 Okt, 15.00');
   assert.doesNotMatch(reminderLine(kuis2, NOW, true), /dikirim/i);
   const praktikum = ev(
@@ -351,7 +351,7 @@ test('accessible names: strip days, month days and desktop cells', () => {
     stripDayName('2026-10-11', 3, 0),
     'Minggu, 11 Oktober, tidak ada acara',
   );
-  // P1-A round 2: a day whose month hasn't arrived (or failed) has no count, not a wrong "tidak ada acara".
+  // A day whose month hasn't arrived (or failed) has no count, not a wrong "tidak ada acara".
   assert.equal(stripDayName('2026-11-02', 5, null), 'Senin, 2 November');
   assert.equal(
     monthDayName('2026-10-08', '2026-10-08', 2),
@@ -419,7 +419,7 @@ test('desktop’s default event: today the first not ended; a chosen day its fir
   );
   assert.equal(deskDefaultEvent(EVENTS, '2026-10-09', NOW, 'first'), 'a3');
   assert.equal(deskDefaultEvent(EVENTS, '2026-10-09', NOW, 'auto'), null);
-  // P3-B: after adding an event outside your calendar, or deleting one, the column chooses nothing.
+  // After adding an event outside your calendar, or deleting one, the column chooses nothing.
   assert.equal(deskDefaultEvent(EVENTS, '2026-10-08', NOW, 'none'), null);
   assert.equal(deskDefaultEvent(EVENTS, '2026-10-09', NOW, 'none'), null);
   assert.equal(deskDefaultEvent(EVENTS, '2026-10-11', NOW, 'first'), null);

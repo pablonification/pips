@@ -1,4 +1,4 @@
-// P2-C review minor 7: Curhat's unread query was defined three times (Curhat, Layanan, Beranda) on one key. It is
+// Curhat's unread query was defined three times (Curhat, Layanan, Beranda) on one key. It is
 // defined once, in src/api/queries.ts (`curhatUnreadQuery`), and every screen uses that one.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -20,7 +20,6 @@ test('the unread request is made in one place: curhatUnreadQuery in src/api/quer
       fs.readFileSync(f, 'utf8').includes('unreadCountChatroomMessages('),
     )
     .map((f) => path.relative(src, f));
-  // Welfare's screen from before the redesign (layanan/curhat/-components, until P3-C) doesn't read the counts.
   assert.deepEqual(callers, ['api/queries.ts']);
   const defs = files(src)
     .filter((f) =>

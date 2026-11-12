@@ -13,9 +13,9 @@ import {
 import { forgetMember } from '../src/lib/forget-member';
 
 /*
- * The persisted query cache at sign-out (review B1): the record was deleted, then the next cache event (`me`
- * becoming null) took a fresh snapshot of the member's other queries, and the throttled write put it back a
- * second later. Runs the real persist subscription against an in-memory store with fake timers.
+ * The persisted query cache at sign-out: the record must stay deleted. The next cache event (`me` becoming null)
+ * takes a fresh snapshot of the member's other queries, and the throttled write must not put it back a second
+ * later. Runs the real persist subscription against an in-memory store with fake timers.
  */
 
 function memoryStore() {
@@ -147,9 +147,9 @@ test('signing out leaves nothing of the member, and nothing comes back later', a
   );
   assert.equal(storage.map.get('userAcademic'), undefined);
   assert.equal(storage.map.get('user'), 'null');
-  // Review M5: the shell's page titles and back history go too.
+  // The shell's page titles and back history go too.
   assert.equal(shellForgotten, 1);
-  // Review of P2-A, m6: form drafts (name, NIM, answers) go too.
+  // Form drafts (name, NIM, answers) go too.
   assert.equal(draftsRemoved, 1);
   // What was shared to PIPS! and not yet posted goes too: the next member's Buat would open with it.
   assert.equal(sharedRemoved, 1);
@@ -178,7 +178,7 @@ test('signed out, nothing is written, whatever else is still in memory', async (
 });
 
 test('a member whose last refresh failed keeps their data on the device, stored as plain data', async () => {
-  // Review m3: during an outage a query keeps its data but turns `error`; it was dropped from the device.
+  // During an outage a query keeps its data but turns `error`; it must stay on the device.
   const { store, queryClient, unsubscribe } = signedInDevice();
   const query = queryClient
     .getQueryCache()
@@ -202,8 +202,8 @@ test('a member whose last refresh failed keeps their data on the device, stored 
   unsubscribe();
 });
 
-// Regression (web-robust 7): where IndexedDB never answers (an old WebKit bug), restoring the persisted cache waited
-// for good and the app stayed on its skeleton. Past the time limit it carries on without the cache.
+// Where IndexedDB never answers (an old WebKit bug), restoring the persisted cache must not wait for good: past
+// the time limit it carries on without the cache.
 test('a store that never answers: restoring and removing give up after the time limit', async (t) => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const never = new Promise<never>(() => {});

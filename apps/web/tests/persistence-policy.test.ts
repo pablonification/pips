@@ -12,7 +12,7 @@ import {
 process.env.TZ = 'Asia/Jakarta';
 const NOW = new Date('2026-10-08T13:35:00+07:00');
 
-test('exactly the queries SPEC lists are kept on the device', () => {
+test('exactly the listed queries are kept on the device', () => {
   assert.equal(shouldPersistKey(['me']), true);
   assert.equal(shouldPersistKey(['userAcademic']), true);
   assert.equal(shouldPersistKey(['currentCourses']), true);
@@ -80,7 +80,7 @@ test('any data, also after a failed refresh; a signed-out session (null) is neve
   assert.equal(shouldPersistQuery(q('success', null)), false);
   assert.equal(shouldPersistQuery(q('pending', undefined)), false);
   assert.equal(shouldPersistQuery(q('error', undefined)), false);
-  // Review m3: during an outage the agenda and feed keep their data but turn `error`; they stay on the device.
+  // During an outage the agenda and feed keep their data but turn `error`; they stay on the device.
   assert.equal(shouldPersistQuery(q('error', { id: 'nadia' })), true);
   assert.equal(
     shouldPersistQuery(
@@ -194,7 +194,7 @@ test('kept at most 7 days', () => {
   assert.equal(PERSIST_MAX_AGE, 7 * 24 * 60 * 60 * 1000);
 });
 
-// P1-A round 2: Beranda's unread list is the feed's first page, unread only; kept so Beranda opens offline with it.
+// Beranda's unread list is the feed's first page, unread only; kept so Beranda opens offline with it.
 test('Beranda’s unread list is kept like the feed’s first page; search results are not', () => {
   assert.equal(shouldPersistKey(['infos', 'beranda-unread'], NOW), true);
   for (const key of [

@@ -15,7 +15,7 @@ import {
 } from '../src/lib/services';
 
 const all = SERVICES as readonly Service[];
-const NOW = new Date('2026-10-08T13:35:00+07:00'); // the prototype's "now"
+const NOW = new Date('2026-10-08T13:35:00+07:00'); // a fixed "now"
 const nadia = { roles: [] as string[] };
 const raka = { roles: ['welfarenakademik', 'akademik', 'de', 'admin'] };
 
@@ -23,7 +23,7 @@ test('ids are unique', () => {
   assert.equal(new Set(all.map((s) => s.id)).size, all.length);
 });
 
-test("members' names, exactly as they know them (FEATURES.md)", () => {
+test("members' names, exactly as they know them", () => {
   const labels = all.map((s) => s.label);
   for (const name of [
     'Ding Dong',
@@ -43,7 +43,7 @@ test("members' names, exactly as they know them (FEATURES.md)", () => {
   }
 });
 
-test("the prototype's Layanan for Nadia, group by group and in order (garis/data.js SERVICES)", () => {
+test('Layanan for Nadia, group by group and in order', () => {
   assert.deepEqual(
     servicesByGroup(nadia, NOW).map((g) => [
       g.group,
@@ -58,7 +58,7 @@ test("the prototype's Layanan for Nadia, group by group and in order (garis/data
   );
 });
 
-test("Raka's Kelola group holds his tools only (garis/screens-more.js kelolaItems)", () => {
+test("Raka's Kelola group holds his tools only", () => {
   const kelola = servicesByGroup(raka, NOW).find((g) => g.group === 'Kelola');
   assert.deepEqual(
     kelola?.services.map((s) => s.id),
@@ -79,7 +79,7 @@ test("Raka's Kelola group holds his tools only (garis/screens-more.js kelolaItem
   );
 });
 
-test('groups use SPEC names in SPEC order', () => {
+test('groups use the expected names in the expected order', () => {
   assert.deepEqual(SERVICE_GROUPS, [
     'Kuliah',
     'Teman dan himpunan',
@@ -92,7 +92,7 @@ test('groups use SPEC names in SPEC order', () => {
     assert.ok(s.capability, `${s.id} needs a capability`);
 });
 
-test('external services are HTTPS links to s.hmif.dev, as today (FEATURES.md §12)', () => {
+test('external services are HTTPS links to s.hmif.dev', () => {
   const external = all.filter((s) => s.kind === 'external');
   assert.deepEqual(external.map((s) => s.id).sort(), [
     'beasiswa',
@@ -128,7 +128,7 @@ test('every entry has a description, an owner, an icon key and lower-case synony
   }
 });
 
-test('Magang SPARTA is hidden from its deadline (23 Agustus 2026, 23.59 WIB), as the prototype hides it', () => {
+test('Magang SPARTA is hidden from its deadline (23 Agustus 2026, 23.59 WIB)', () => {
   const sparta = all.find((s) => s.id === 'sparta')!;
   assert.equal(
     isServiceActive(sparta, new Date('2026-08-23T23:58:59+07:00')),
@@ -163,7 +163,7 @@ test('a service can start later', () => {
   );
 });
 
-test("Beranda's tiles: seven services in today's Home order (garis/data.js TILES)", () => {
+test("Beranda's tiles: seven services in the Home order", () => {
   assert.deepEqual(BERANDA_TILES, [
     'dingdong',
     'nim',
@@ -200,7 +200,7 @@ test('search matches names, descriptions and synonyms, ignoring case', () => {
   );
 });
 
-// Regression (P0-D review minor 6): the registry hid SPARTA at 23.59.59, 59 seconds after the server closed it.
+// The registry must not hide SPARTA at 23.59.59, 59 seconds after the server closed it.
 test("SPARTA's registry deadline is the server's closing time", () => {
   const sparta = all.find((s) => s.id === 'sparta')!;
   const server = fs.readFileSync(
@@ -212,7 +212,7 @@ test("SPARTA's registry deadline is the server's closing time", () => {
   assert.equal(Date.parse(sparta.validUntil!), Date.parse(closesAt));
 });
 
-// P3-C review, deviation 5: Welfare saw "Curhat Yuk!" twice in global search, both leading to the inbox.
+// Welfare must not see "Curhat Yuk!" twice in global search, both leading to the inbox.
 test('Welfare finds Curhat Yuk! once in global search, as the inbox; Layanan and members keep the member row', () => {
   const welfare = { roles: ['curhatadmin'] };
   assert.deepEqual(

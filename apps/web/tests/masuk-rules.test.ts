@@ -9,7 +9,7 @@ import {
 } from '../src/features/masuk/first-run';
 import { popupProblem, signInProblem } from '../src/features/masuk/sign-in';
 
-/* Sign-in's error mapping and destination, and first run (P1-C brief, "Rules to unit-test"). */
+/* Sign-in's error mapping and destination, and first run. */
 
 test('sign-in errors: 401 is not a member, anything else can be retried', () => {
   assert.equal(signInProblem({ status: 401 }), 'bukan-anggota');
