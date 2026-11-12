@@ -45,3 +45,16 @@ test('statusOf is defined once, in api/client.ts', () => {
 test('the WIB offset is written once, in lib/dates.ts', () => {
   assert.deepEqual(definedIn(/\b7 \* (60 \* 60|3600)/), ['lib/dates.ts']);
 });
+
+test('the session query key is ME_QUERY_KEY, never written out', () => {
+  assert.deepEqual(definedIn(/\['me'\]/), []);
+});
+
+test('a constant has one name: no alias of a limit or a query key', () => {
+  assert.deepEqual(
+    definedIn(
+      /export const (MAX_TITLE|MAX_BODY|UNREAD_KEY)\s*=\s*(MAX_INFO_\w+|CURHAT_UNREAD_KEY)/,
+    ),
+    [],
+  );
+});

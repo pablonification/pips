@@ -19,10 +19,6 @@ import {
 import { fill } from '~/copy/fill';
 import { pengumuman as t } from '~/copy/pengumuman';
 import { canDeleteContent } from '~/lib/capabilities';
-import {
-  MAX_INFO_ANNOUNCEMENT_LENGTH,
-  MAX_INFO_TITLE_LENGTH,
-} from '~/lib/constants';
 import { hm } from '~/lib/dates';
 import { extractUrls } from '~/lib/url-parser';
 import type { AudienceKind, Draft } from './draft';
@@ -39,8 +35,6 @@ export { PAGE_SIZE };
 export const AUTO_PAGES = 5;
 /** Umumkan ulang opens again this many hours after the last notification (apps/api `RENOTIFY_DIFF_HOURS`). */
 export const RENOTIFY_HOURS = 3;
-export const MAX_TITLE = MAX_INFO_TITLE_LENGTH;
-export const MAX_BODY = MAX_INFO_ANNOUNCEMENT_LENGTH;
 
 /* ================= The feed's view (the URL's search params) ================= */
 

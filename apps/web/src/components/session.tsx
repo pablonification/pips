@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { createContext, useEffect } from 'react';
+import { ME_QUERY_KEY } from '~/api/constants';
 import { UserWithRoles } from '~/api/generated';
 import { common } from '~/copy/common';
 import { registerExistingPushOnce, unlinkPushAtLogout } from '~/lib/push';
@@ -43,7 +44,7 @@ export default function SessionProvider({
     fetchStatus,
     status,
   } = useQuery({
-    queryKey: ['me'],
+    queryKey: [ME_QUERY_KEY],
     queryFn: fetchSession,
     retry: sessionRetry,
     retryDelay: sessionRetryDelay,

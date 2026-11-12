@@ -7,7 +7,8 @@ import { buildDb, NOW } from '../e2e/fixtures/api';
 import type { Chatroom, ChatroomMessage } from '../src/api/generated';
 import { CHATROOMS_QUERY_KEY } from '../src/api/constants';
 import { shouldPersistKey } from '../src/api/persistence-policy';
-import { ROOMS_KEY, UNREAD_KEY } from '../src/features/curhat/keys';
+import { CURHAT_UNREAD_KEY as UNREAD_KEY } from '../src/api/constants';
+import { ROOMS_KEY } from '../src/features/curhat/keys';
 import {
   ACK_TIMEOUT_MS,
   ackOutcome,

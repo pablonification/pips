@@ -9,7 +9,8 @@ import { test } from 'node:test';
 import { buildDb, NOW } from '../e2e/fixtures/api';
 import type { Chatroom, ChatroomMessage } from '../src/api/generated';
 import { shouldPersistKey } from '../src/api/persistence-policy';
-import { ROOMS_KEY, UNREAD_KEY } from '../src/features/curhat/keys';
+import { CURHAT_UNREAD_KEY as UNREAD_KEY } from '../src/api/constants';
+import { ROOMS_KEY } from '../src/features/curhat/keys';
 import {
   buildThread,
   type OutboxEntry,

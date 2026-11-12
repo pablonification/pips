@@ -10,7 +10,8 @@ import { api } from '~/api/client';
 import type { Chatroom, ChatroomMessage, ListChatroom } from '~/api/generated';
 import { chatroomsQuery, curhatUnreadQuery } from '~/api/queries';
 import type { CurhatClient, CurhatClientState } from './client';
-import { ROOMS_KEY, UNREAD_KEY } from './keys';
+import { CURHAT_UNREAD_KEY } from '~/api/constants';
+import { ROOMS_KEY } from './keys';
 import {
   addUnread,
   clearUnread,
@@ -20,7 +21,7 @@ import {
   type UnreadRow,
 } from './rules';
 
-export { ROOMS_KEY, UNREAD_KEY };
+export { ROOMS_KEY };
 
 export const useRooms = () => useQuery(chatroomsQuery());
 
@@ -56,7 +57,7 @@ export function removeRoom(qc: QueryClient, chatroomId: string) {
     delete next[chatroomId];
     return next;
   });
-  qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
+  qc.setQueryData<UnreadRow[]>(CURHAT_UNREAD_KEY, (rows) =>
     rows ? clearUnread(rows, chatroomId) : rows,
   );
 }
@@ -69,13 +70,13 @@ export function addRoom(qc: QueryClient, room: Chatroom) {
 
 /** Mark a room read on the server, clearing its count at once; the counts are then fetched again. */
 export function markRoomRead(qc: QueryClient, chatroomId: string) {
-  qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
+  qc.setQueryData<UnreadRow[]>(CURHAT_UNREAD_KEY, (rows) =>
     rows ? clearUnread(rows, chatroomId) : rows,
   );
   return api.curhat
     .readChatroomMessages({ chatroomId })
     .catch(() => undefined)
-    .finally(() => void qc.invalidateQueries({ queryKey: UNREAD_KEY }));
+    .finally(() => void qc.invalidateQueries({ queryKey: CURHAT_UNREAD_KEY }));
 }
 
 /** A message arrived over the socket: into its room; counted unless that room is open, where it's read at once. */
@@ -92,7 +93,7 @@ export function receiveMessage(
   if (client.openRoom === message.chatroomId)
     void markRoomRead(qc, message.chatroomId);
   else
-    qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
+    qc.setQueryData<UnreadRow[]>(CURHAT_UNREAD_KEY, (rows) =>
       addUnread(rows, message.chatroomId),
     );
 }

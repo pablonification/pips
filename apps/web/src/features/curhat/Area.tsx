@@ -8,6 +8,7 @@ import { Navigate, Outlet, useParams } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import useSession from '~/hooks/auth/useSession';
 import type { ListChatroom } from '~/api/generated';
+import { CURHAT_UNREAD_KEY, ME_QUERY_KEY } from '~/api/constants';
 import { can } from '~/lib/capabilities';
 import { holdUpdateWhile } from '~/lib/update-gate';
 import { CurhatClient, DeferredSocket, type SocketLike } from './client';
@@ -16,12 +17,11 @@ import {
   putMessage,
   receiveMessage,
   ROOMS_KEY,
-  UNREAD_KEY,
 } from './data';
 import './curhat.css';
 
 /** The session check's key (see components/session.tsx). */
-const ME_KEY = ['me'];
+const ME_KEY = [ME_QUERY_KEY];
 
 export const isWelfare = (user: Parameters<typeof can>[0]) =>
   can(user, 'respondCurhat');
@@ -84,7 +84,7 @@ export function useCurhatConnection(
       // Back after a drop: fetch the rooms and counts again to catch what was missed.
       onReconnect: () => {
         void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
-        void qc.invalidateQueries({ queryKey: UNREAD_KEY });
+        void qc.invalidateQueries({ queryKey: CURHAT_UNREAD_KEY });
       },
       onDelivered: (_entry, message) => {
         putMessage(qc, message);
