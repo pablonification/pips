@@ -1,6 +1,6 @@
-/* The gallery page (/dev/garis), ported from the prototype's design-system page (garis/docs.css), scoped to .gal. */
+/* The gallery page (/dev/garis), scoped to .gal. */
 .gal {
-  /* The light theme's bronze, shown as a swatch in both themes (the prototype's palette card). */
+  /* The light theme's bronze, shown as a swatch in both themes (the palette card). */
   --gal-bronze: #7a5a0e;
   min-height: 100vh;
   background: var(--bg-page);
@@ -341,7 +341,6 @@
 .gal .voice .cg {
   color: var(--text-accent);
 }
-/* The Beranda service tile (garis.css .tile-btn): P1-A builds the real one. */
 .gal .gal-tile-btn {
   display: grid;
   justify-items: center;
@@ -364,7 +363,7 @@
     0 0 0 1px var(--border),
     0 1px 0 1px var(--border);
 }
-/* Sections beyond the prototype's page: every token, and the overlays and states to try. */
+/* Every token, and the overlays and states to try. */
 .gal .tok-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

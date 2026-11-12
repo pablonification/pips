@@ -1,9 +1,8 @@
 /*
-  Curhat Yuk! (P2-C): the room list and a room. Ported from the prototype's garis/garis.css (`.svc-row`, `.room-av`,
-  `.chat`, `.bubble*`, `.bubble-tools`, `.chat-day`, `.chat-bar`, `.reply-chip`, `.composer`) with the `g-` prefix,
-  values unchanged. The delivery states and the growing composer are new (OPEN-QUESTIONS D7), built from the bubble's
-  time line and the Balas line. Tokens only; loaded with the Curhat routes. tests/curhat-css.test.mjs checks it.
-*/
+  Curhat Yuk!: the room list and a room, with the delivery states and the growing composer built from the
+  bubble's time line and the Balas line. Tokens only; loaded with the Curhat routes. tests/curhat-css.test.mjs
+  checks it.
+  */
 @layer components {
   /* ============ The list ============ */
   .g-svc-row {
@@ -39,7 +38,7 @@
   }
 
   /* ============ A room ============ */
-  /* Owner's chat changes (2026-11-06): a short thread sits at the bottom, by the composer, as in a chat app. */
+  /* A short thread sits at the bottom, by the composer, as in a chat app. */
   .g-chat {
     flex: 1 0 auto;
     display: grid;
@@ -141,8 +140,8 @@
     font-variant-numeric: tabular-nums;
     white-space: normal;
   }
-  /* New (D7): the delivery state in the time line, icon then word ("Mengirim", "Terkirim · 13.35"); the 16 px icon
-     overhangs the 12 px line, so the bubble keeps the prototype's height. */
+  /* The delivery state in the time line, icon then word ("Mengirim", "Terkirim · 13.35"); the 16 px icon overhangs
+     the 12 px line, so the bubble's height doesn't change. */
   .g-bubble .tm .g-ic {
     flex: none;
   }
@@ -156,7 +155,7 @@
     font-size: 13px;
     opacity: 0.9;
   }
-  /* New (D7): a failed message's line: "Gagal" (icon, word, danger colour) and Kirim ulang. */
+  /* A failed message's line: "Gagal" (icon, word, danger colour) and Kirim ulang. */
   .g-bubble-fail {
     justify-self: end;
     display: flex;
@@ -183,7 +182,7 @@
     text-align: center;
     padding: 24px 0;
   }
-  /* F2-006: a control brought into view by Tab stops above the chat bar (its height from Composer.tsx). */
+  /* A control brought into view by Tab stops above the chat bar (its height from Composer.tsx). */
   [data-scroll-restoration-id='isi']:has(.g-chat-bar) {
     scroll-padding-bottom: calc(var(--g-chat-bar-h, 0px) + 8px);
   }
@@ -218,7 +217,7 @@
   .g-composer .g-field {
     flex: 1;
   }
-  /* New (story 98): a textarea that looks like the one-line field at rest (44 px) and grows to 5 lines. */
+  /* A textarea that looks like the one-line field at rest (44 px) and grows to 5 lines. */
   .g-composer textarea.g-field {
     display: block;
     min-height: 44px;
@@ -234,7 +233,7 @@
   .g-composer .g-btn.square {
     align-self: flex-end;
   }
-  /* The page's gaps (the prototype's `body(m, inner, 14)` for the list, 10 for a room). */
+  /* The page's gaps: 14 px for the list, 10 for a room. */
   .g-curhat-page {
     gap: 14px;
   }

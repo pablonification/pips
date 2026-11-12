@@ -1,12 +1,11 @@
 /**
- * The house terms (SPEC "Copy and language", glossary) and the words that must not stand in for them.
+ * The house terms and the words that must not stand in for them.
  * `tests/copy.test.ts` reads every module in `src/copy/` and fails on:
  *   - a banned word below;
  *   - a service name spelled differently from the registry (`src/lib/services.ts`), e.g. "Dingdong" or
  *     "Curhat Yuk" without its "!";
  *   - capitals the app adds itself: a capitalised word mid-sentence that isn't a name listed here, or an
  *     all-capitals word that isn't a listed acronym.
- * Add terms in their own commit (WORKER-RULES, "Shared files").
  */
 
 /** One term per concept. */
@@ -62,7 +61,6 @@ export const BANNED_TERMS: ReadonlyArray<
   ['Materi kuliah', 'Ding Dong'],
   ['Cari NIM', 'NIM Finder'],
   ['Testimoni matkul', 'Testi Matkul'],
-  // "Tandai semua dibaca" left this list on 2026-11-06: the owner added the feature (Pengumuman, beside Belum dibaca).
   ['Admin Dashboard', 'Kelola'],
   ['Dashboard Admin', 'Kelola'],
   ['Anda', 'kamu'],
@@ -106,7 +104,7 @@ export const PROPER_NOUNS = [
   'Magang',
   'Data',
   'Pasang',
-  // P1-C: browsers and devices named in the push and Pasang PIPS! copy, and iOS's own menu words.
+  // Browsers and devices named in the push and Pasang PIPS! copy, and iOS's own menu words.
   'Chrome',
   'Edge',
   'Firefox',
@@ -117,16 +115,16 @@ export const PROPER_NOUNS = [
   'Layar',
   'Utama',
   'Tambah',
-  // The student email format members sign in with (the prototype's sign-out confirmation).
+  // The student email format members sign in with.
   'NIM@std.stei.itb.ac.id',
-  // The day-before reminder, as the prototype writes it ("pengingat H-1").
+  // The day-before reminder ("pengingat H-1").
   'H-1',
-  // P2-B: Testi Matkul's "Review Dosen" section and its "Mata Kuliah Pilihan" list.
+  // Testi Matkul's "Review Dosen" section and its "Mata Kuliah Pilihan" list.
   'Dosen',
   'Pilihan',
-  // P1-B: the composer's audience choice, named in its errors ("atau ganti ke Semua").
+  // The composer's audience choice, named in its errors ("atau ganti ke Semua").
   'Semua',
-  // P3-B: event titles the prototype's add-event form quotes as examples ("Kuis 2", "Deadline Tugas Besar 1",
+  // Event titles the add-event form quotes as examples ("Kuis 2", "Deadline Tugas Besar 1",
   // "Rapat Anggota HMIF"), and Testi Matkul's author name for an unnamed one ("Anonim").
   'Kuis',
   'Deadline',
@@ -138,15 +136,14 @@ export const PROPER_NOUNS = [
 ] as const;
 
 /**
- * Other products' names that contain a banned word (P1-A: the event detail's "Google Calendar" button, as the
- * prototype's `evInfo` words it). The phrase as a whole is allowed; the banned word alone still isn't.
+ * Other products' names that contain a banned word (the event detail's "Google Calendar" button). The phrase as a
+ * whole is allowed; the banned word alone still isn't.
  */
 export const PRODUCT_NAMES = ['Google Calendar'] as const;
 
 /**
- * Whole phrases that write a house name another way on purpose: sign-in's greeting "Halo, Pips!" (garis v5
- * screens-masuk.js; today's app says "Hello, Pips!", and HMIF calls itself "Pips", FEATURES.md). "Pips" anywhere
- * else is still caught.
+ * Whole phrases that write a house name another way on purpose: sign-in's greeting "Halo, Pips!" (HMIF calls
+ * itself "Pips"). "Pips" anywhere else is still caught.
  */
 export const HOUSE_PHRASES = ['Halo, Pips!'] as const;
 
@@ -169,9 +166,9 @@ export const ACRONYMS = [
   'UI',
   'UX',
   'IT',
-  // P1-C: the LINE app, whose in-app browser can't install PIPS!.
+  // The LINE app, whose in-app browser can't install PIPS!.
   'LINE',
-  // P2-A: Magang SPARTA asks for your ID LINE, as today's screen does.
+  // Magang SPARTA asks for your ID LINE.
   'ID',
   // The upload limit, "maks. 25 MB" (lib/upload-policy.ts).
   'MB',

@@ -1,11 +1,9 @@
 /*
-  Ding Dong, Testi Matkul, NIM Finder and Info Lomba (P2-B), ported from the locked prototype's garis/garis.css
-  (".svc-row", ".lomba" and its parts, ".testi-card", ".byline") with the `g-` prefix, and Garis v5's
-  garis/v5-layanan.css (every testimonial at once; Info Lomba's posters and the poster viewer). Colours come only from
-  tokens.css.
+  Ding Dong, Testi Matkul, NIM Finder and Info Lomba: service rows, Info Lomba's cards, posters and poster viewer,
+  and testimonials (every testimonial of a course at once). Colours come only from tokens.css.
 */
 @layer components {
-  /* A service, course or member row: tile, text, then what ends the row (the same as P1-C's `.g-svc-row`). */
+  /* A service, course or member row: tile, text, then what ends the row (the same as `.g-svc-row`). */
   .g-svc-row {
     display: flex;
     align-items: center;
@@ -57,7 +55,7 @@
     margin-top: 10px;
   }
 
-  /* ============ Info Lomba (Garis v5): the 3:4 poster with the facts ============
+  /* ============ Info Lomba: the 3:4 poster with the facts ============
      Phones: a list, the poster beside the facts. Tablets and desktops: a grid of poster cards, actions aligned at the
      bottom of each row. The poster is a button that opens it large. */
   .g-lomba-grid {
@@ -231,7 +229,7 @@
     overflow-wrap: anywhere;
   }
 
-  /* ============ Testi Matkul's course page (Garis v5): every testimonial at once, read by scrolling ============
+  /* ============ Testi Matkul's course page: every testimonial at once, read by scrolling ============
      Phones stack the cards. Wider screens flow them into up to three columns of at least 300 px (two on tablets and
      1024 px desktops, three at 1440). Columns read top to bottom, the same order as the keyboard and screen readers,
      and a card never splits across columns. */

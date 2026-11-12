@@ -1,9 +1,6 @@
 /**
- * Sign-in (`/login`): Garis v5's Masuk screen (garis/screens-masuk.js, locked 2026-11-02). The greeting, the slides
- * and their screen-reader labels are the prototype's; the button, the loading text and the errors are
- * P1-C's, which the prototype took over unchanged. Errors say what happened, then the fix. The prototype's hint under
- * the greeting ("Pakai akun Google email mahasiswamu …") is gone (owner, 2026-11-04); a refused account's error still
- * names the student email.
+ * Sign-in (`/login`): the greeting, the four slides and their screen-reader labels, the button, the loading
+ * text and the errors. Errors say what happened, then the fix. A refused account's error names the student email.
  */
 export const masuk = {
   // The document title ("Masuk · PIPS!"); the page's own heading is the greeting.
@@ -17,7 +14,7 @@ export const masuk = {
   gagal: 'PIPS! belum bisa memproses masuk. Periksa koneksimu, lalu coba lagi.',
   popupDiblokir:
     'Jendela masuk Google diblokir browser. Izinkan pop-up untuk PIPS!, lalu coba lagi.',
-  // The four slides, each the feature's own name and one plain line (owner, 2026-11-02).
+  // The four slides, each the feature's own name and one plain line.
   slides: [
     {
       judul: 'Pengumuman',

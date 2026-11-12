@@ -1,5 +1,5 @@
 /*
-  Global base styles from the prototype (garis/garis.css): the page's colours, Geist for all text, smoothing, the
+  Global base styles: the page's colours, Geist for all text, smoothing, the
   focus ring and reduced motion.
 */
 @layer base {
@@ -23,7 +23,7 @@
   }
 }
 
-/* Reduced motion removes all motion, everywhere (SPEC story 127). */
+/* Reduced motion removes all motion, everywhere. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
