@@ -1192,8 +1192,9 @@ export const forms = pgTable('forms', {
 export type Form = InferSelectModel<typeof forms>;
 
 /**
- * Seasonal programmes and campaigns the app points members to while they're open. Open while is_active, from opens_at until closes_at (null: until switched
- * off); for everyone when both eligibility lists are empty, otherwise a listed angkatan or NIM.
+ * Seasonal programmes and campaigns the app points members to while they're open. Open while is_active, from
+ * opens_at until closes_at (null: until switched off); for everyone when both eligibility lists are empty,
+ * otherwise a listed angkatan or NIM.
  */
 export const programmeWindows = pgTable('programme_windows', {
   id: text('id').primaryKey().$defaultFn(createId),

@@ -107,7 +107,7 @@ export interface ReminderDeps {
  * reminder, once. The first run after start covers its own minute only; after that a run picks up any minute that a
  * failed, slow or skipped run left (up to `REMINDER_CATCH_UP_MS`). A run that fails before sending leaves its minutes
  * for the next one; a run that starts while another is still going does nothing. What was covered is kept in
- * memory, so minutes during a restart are missed.
+ * memory, so minutes during a restart are missed; remembering them would need a column.
  */
 export function createReminderRun(deps: ReminderDeps) {
   let coveredUntil: number | undefined;

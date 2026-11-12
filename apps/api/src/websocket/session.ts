@@ -33,8 +33,8 @@ export function extractTokenFromCookie(
 }
 
 /**
- * The session cookie rides along on the handshake (it is httpOnly, so clients can't send it themselves). No cookie,
- * a bad signature or an expired token: no session. A failed role lookup (database unreachable) is not "no
+ * The session cookie rides along on the handshake: clients connect with `withCredentials`, since the cookie is
+ * httpOnly and they can't send it themselves. No cookie, a bad signature or an expired token: no session. A failed role lookup (database unreachable) is not "no
  * session": it throws, so the connection is refused and retried.
  */
 export async function readSocketSession(

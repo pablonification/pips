@@ -77,7 +77,7 @@ export function batchUpsertUserCourseQuery(
     .onConflictDoUpdate({
       target: [userCourses.userId, userCourses.courseId],
       // A course taken in an earlier semester and added again moves to this semester, so it shows in this
-      // semester's courses and leaves the catalogue The row is one per member and course.
+      // semester's courses and leaves the catalogue. The row is one per member and course.
       set: {
         class: sql`excluded.class`,
         semesterCodeTaken: sql`excluded.semester_code_taken`,
