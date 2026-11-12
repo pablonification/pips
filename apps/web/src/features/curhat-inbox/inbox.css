@@ -1,5 +1,5 @@
 /*
-  Welfare's inbox (P3-C): a room's row ends with its options button (`menuBtn`) beside the row's link, so the link
+  Welfare's inbox: a room's row ends with its options button (`menuBtn`) beside the row's link, so the link
   gives up the space the button takes. Everything else is the member side's (features/curhat/curhat.css). Tokens only.
 */
 @layer components {

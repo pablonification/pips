@@ -1,10 +1,8 @@
 /*
-  Masuk (sign-in, `/login`): Garis v5's keyboard header and slides, ported from the locked prototype's
-  garis/v5-masuk.css (2026-11-02) with the `g-` prefix, values unchanged. The prototype's `.phone .mk` (phones and
-  tablets) is `.g-mk.phone` and its `.desktop .mk` is `.g-mk.desk`: LoginScreen renders one or the other from the
-  desktop query (1024 px), as the shell does. Its `@container phone` (the tablet width) is the `mk` container here,
-  which is the whole window. Every entrance and float runs once; base.css turns all motion off under
-  prefers-reduced-motion. Tokens only; part of the app's one stylesheet (vite.config.ts).
+  Masuk (sign-in, `/login`): the keyboard header and slides. `.g-mk.phone` is the phone and tablet layout and
+  `.g-mk.desk` the desktop one: LoginScreen renders one or the other from the desktop query (1024 px), as the
+  shell does. The `mk` container is the whole window. Every entrance and float runs once; base.css turns all
+  motion off under prefers-reduced-motion. Tokens only; part of the app's one stylesheet (vite.config.ts).
 */
 @layer components {
   .g-mk {
@@ -285,7 +283,7 @@
   .g-mk-go {
     gap: 10px;
   }
-  /* Google's own "G", whole, in one colour: the button's ink (owner, 2026-11-02). */
+  /* Google's own "G", whole, in one colour: the button's ink. */
   .g-mk-g {
     display: grid;
     place-items: center;
@@ -462,7 +460,7 @@
   .g-mk-brand {
     padding: 0;
   }
-  /* v5's brand (garis.css `.side-brand`): the wordmark and "HMIF ITB" fill exactly the logo's height (54 px wide,
+  /* The brand: the wordmark and "HMIF ITB" fill exactly the logo's height (54 px wide,
      36 px tall), PIPS!'s top on the logo's top and HMIF ITB's baseline on its bottom. */
   .g-mk-brand > div {
     display: grid;

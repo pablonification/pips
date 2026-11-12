@@ -1,13 +1,11 @@
 /*
-  Beranda (P1-A): the agenda card, the service tiles, the cards under the hairline headings, the follow-up rows, the
-  Kelola card and desktop's two columns. Ported from the prototype's garis/garis.css (`.home-body`, `.agenda`,
-  `.ag-*`, `.tiles`, `.tile-btn`, `.home-card`, `.att`, `.item.brief`, `.live`, `.d-grid`,
-  `.stack`, the `draw` keyframes, and the tablet and 340 px rules; Garis v5's desktop from `v5-beranda.css`) with the
-  `g-` prefix, values unchanged. Tokens only; part of the app's one stylesheet (vite.config.ts). tests/beranda-kalender-css.test.mjs checks it.
-*/
+  Beranda: the agenda card, the service tiles, the cards under the hairline headings, the follow-up rows, the
+  Kelola card and desktop's two columns. Tokens only; part of the app's one stylesheet (vite.config.ts).
+  tests/beranda-kalender-css.test.mjs checks it.
+  */
 @layer components {
   /* ============ Phones and tablets: the body under the gold header ============ */
-  /* The agenda slot's own bottom padding gives way to the body's 28 px gap (the prototype's one `.home-body`). */
+  /* The agenda slot's own bottom padding gives way to the body's 28 px gap. */
   .g-body.g-home-agenda {
     padding-bottom: 0;
   }
@@ -250,8 +248,7 @@
     height: 8px;
     background: currentColor;
     flex: none;
-    /* The prototype's `.live i` blinks four times (garis.css), Dev 1's decision over the brief's rule 8 (review m8).
-       Reduced motion stops it, as every animation (base.css). */
+    /* The live mark blinks four times. Reduced motion stops it, as every animation (base.css). */
     animation: g-blink 1s step-end 4;
   }
 
@@ -262,7 +259,7 @@
     }
   }
 
-  /* ============ Desktop (Garis v5, garis/v5-beranda.css): what phones and tablets show, sized to the window ============ */
+  /* ============ Desktop: what phones and tablets show, sized to the window ============ */
   /* One column below 1280 px, in the phone's order (agenda, tiles, follow-ups, announcements, Kelola), 800 px at
      most. The markup is in reading order for two columns (agenda, side column, announcements), so only Kelola
      moves: to the end. */

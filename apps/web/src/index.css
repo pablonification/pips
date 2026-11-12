@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /*
-  Only the Garis tokens exist (SPEC "Design tokens and theming"): Tailwind's own palette, font stacks, text sizes,
+  Only the Garis tokens exist: Tailwind's own palette, font stacks, text sizes,
   radii and shadows are reset here, before the Garis import defines its utilities in those same namespaces
   (styles/garis/tokens.css, `@theme inline reference`).
 */

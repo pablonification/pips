@@ -1,9 +1,7 @@
 /*
-  The app shell (P0-C), ported from the locked prototype's shell rules in garis/garis.css ("The app page",
-  "Tablet", "Desktop", "Beranda" and "Page-level overlays"), with the `g-` prefix. The prototype switches layouts
-  with a container query on its #phone frame; the real app is the whole window, so the same breakpoints are media
-  queries: the phone layout below 640 px, the tablet layout (88 px rail, one column up to 720 px) from 640 px,
-  the desktop layout (248 px sidebar) from 1024 px. Colours come only from tokens.css.
+  The app shell: the phone layout below 640 px, the tablet layout (88 px rail, one column up to 720 px) from
+  640 px, and the desktop layout (248 px sidebar) from 1024 px, all as media queries on the whole window.
+  Colours come only from tokens.css.
 */
 @layer components {
   /* ============ Phones and tablets ============ */
@@ -25,8 +23,8 @@
     overflow-y: auto;
     scrollbar-width: none;
     overscroll-behavior: contain;
-    /* Focus is never hidden (WCAG 2.4.11, SPEC "Accessibility"): a control brought into view stops below the
-       sticky top bar, which the shell measures (review M4). Sticky toolbars inside a page add their own. */
+    /* Focus is never hidden (WCAG 2.4.11): a control brought into view stops below the
+       sticky top bar, which the shell measures. Sticky toolbars inside a page add their own. */
     scroll-padding-top: calc(var(--g-top-h, 58px) + 8px);
   }
   .g-scroll::-webkit-scrollbar {
@@ -56,7 +54,7 @@
     padding: 10px 12px 8px 14px;
     min-height: 58px;
     /* A flex item of the scrolling column: with an explicit min-height it would shrink to 58 px under a long page
-       (the gold bar's 44 px controls then sat 7 px from the top instead of the prototype's 8; P1-A). */
+       (the gold bar's 44 px controls then sat 7 px from the top instead of 8). */
     flex-shrink: 0;
     background: color-mix(in srgb, var(--bg-app) 92%, transparent);
     -webkit-backdrop-filter: blur(10px);
@@ -83,7 +81,7 @@
   .g-top .g-avatar {
     margin-left: 4px;
   }
-  /* Your avatar as a link to Profil: the same look as the prototype's button.avatar. */
+  /* Your avatar as a link to Profil. */
   a.g-avatar {
     position: relative;
     text-decoration: none;
@@ -154,14 +152,14 @@
   .g-hero-ht .g-halftone {
     height: 100%;
   }
-  /* The slot P1-A's agenda card fills: raised over the header's lower edge. */
+  /* The slot Beranda's agenda card fills: raised over the header's lower edge. */
   .g-lap {
     position: relative;
     z-index: 1;
     margin-top: calc(-1 * var(--lap));
   }
 
-  /* The bottom tab bar (phones) and the rail (tablets): one element, as in the prototype. */
+  /* The bottom tab bar (phones) and the rail (tablets): one element. */
   .g-tabbar {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -230,8 +228,8 @@
     box-shadow: 0 0 0 2px var(--bg-chrome);
   }
 
-  /* Page templates for one tree: the prototype's phone `p-body` below 1024 px, its desktop `d-pad d-narrow`
-     (reading and forms, 760 px with its padding) or `d-grid` width (dashboards, 1,180 px) from 1024 px. */
+  /* Page templates for one tree: the phone body below 1024 px, then from 1024 px either the narrow width (reading
+     and forms, 760 px with its padding) or the grid width (dashboards, 1,180 px). */
   .g-body {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -278,7 +276,7 @@
     }
   }
 
-  /* ============ Tablet: the rail beside one content column; sheets as centred panels (P0-A) ============ */
+  /* ============ Tablet: the rail beside one content column; sheets as centred panels ============ */
   @media (min-width: 640px) {
     .g-shell {
       flex-direction: row;
@@ -299,9 +297,8 @@
     .g-tab {
       padding: 6px 0;
     }
-    /* The plain top bar joins the 720 px column. Beranda's gold bar and greeting don't: in the prototype the later
-       `.p-top.gold-bar` and `.hero` rules win over its column rule, so the locked tablet screens keep them 16 px and
-       18 px from the rail (review M1). Only the agenda slot and the body sit in the column. */
+    /* The plain top bar joins the 720 px column. Beranda's gold bar and greeting don't: they stay 16 px and 18 px
+       from the rail (the later `.p-top.gold-bar` and `.hero` rules win over the column rule). Only the agenda slot and the body sit in the column. */
     .g-top:not(.gold) {
       padding-inline: max(14px, calc((100% - 720px) / 2 + 14px));
     }
@@ -347,7 +344,7 @@
     line-height: 1;
     color: var(--text-3);
   }
-  /* Garis v5: the wordmark and "HMIF ITB" fill exactly the logo's height (54 px wide, so 36 px tall): PIPS!'s top on
+  /* The wordmark and "HMIF ITB" fill exactly the logo's height (54 px wide, so 36 px tall): PIPS!'s top on
      the logo's top, HMIF ITB's baseline on its bottom. Sign-in's brand is the same piece. */
   .g-side-brand > div {
     display: grid;
@@ -496,7 +493,7 @@
       gap: 16px;
       padding: 30px 36px 22px;
     }
-    /* Garis v5: a narrow page's head is as narrow as its body (760 px), so its action (Hapus ruang) sits by the
+    /* A narrow page's head is as narrow as its body (760 px), so its action (Hapus ruang) sits by the
        content, not at the window's edge. */
     .g-d-head:has(+ .g-body:not(.wide)) {
       max-width: 760px;
@@ -629,9 +626,9 @@
 }
 
 /* The wrapper around the app's screens (routes/_app/_left-navbar.tsx). It clips sideways without becoming a second
-   scrolling box (`hidden` would make overflow-y auto), so sticky bars inside a page stick to the shell's scroller
-   (P2-C). Browsers without `clip` (Safari before 16) keep the old `hidden` (review minor 6). Top level: nested in another
-   rule, it never matched (P3-C round 2). */
+   scrolling box (`hidden` would make overflow-y auto), so sticky bars inside a page stick to the shell's scroller.
+   Browsers without `clip` (Safari before 16) keep `hidden`. Must stay top level: nested in another rule, it
+   never matches. */
 .g-page-wrap {
   overflow-x: clip;
 }
