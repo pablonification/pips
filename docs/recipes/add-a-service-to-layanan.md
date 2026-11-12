@@ -42,14 +42,11 @@ role. Everything is under `apps/web/`.
    ```
    with a comment naming the API controller that checks it, and set `capability: 'yourName'` in the service entry.
    Until the row exists the type check fails: `Type '"viewContoh"' is not assignable to type '"createCompetition" | …'`.
-4. **Prove the web's role matches the API's.** `tests/capabilities.test.ts` reads the API's source for every
-   capability. Add an entry to its `SERVER` object, copied from `createCompetition`, that reads your controller:
+4. **Prove the web's role matches the API's.** `tests/capabilities.test.ts` reads the API's route table
+   (`apps/api/src/lib/route-access.ts`) for every capability. Add an entry to its `SERVER` object, copied from
+   `createCompetition`, naming the routes your capability uses:
    ```ts
-   createCompetition: () => {
-     const sets = middlewareRoles(api('controllers/competitions.controller.ts'));
-     assert.equal(sets.length, 1, 'competitions use one role set');
-     return sets[0].split(',');
-   },
+   createCompetition: () => routeRoles('POST /api/competitions'),
    ```
    Then the test `Raka (akademik, admin) gets exactly the tools his roles allow` in the same file lists what his roles
    grant, in alphabetical order: add your capability there if Raka's roles include yours.
@@ -74,7 +71,7 @@ role. Everything is under `apps/web/`.
 | The `SERVER` entry (step 4) | `tests/capabilities.test.ts`: `viewContoh mirrors the server's roles` fails with `SERVER[capability] is not a function`, and `every capability is checked against the server` fails too |
 | Raka's list (step 4) | `Raka (akademik, admin) gets exactly the tools his roles allow` shows the extra name in the diff |
 | A `destination` that is not a page | `tests/services.test.ts`: `internal destinations are routes in the route tree` names your id |
-| A role check in the API | The `SERVER` entry only finds a `roleMiddleware([...])` in your controller. A route with no check at all is open to every member, and nothing notices. |
+| A role check in the API | `routeRoles` fails with `POST /api/… is for named roles in the API` until the route's row lists roles; `apps/api/tests/route-access.test.ts` fails until the route's check matches its row. |
 
 **If you chose `Kelola`,** these also fail until you list your row in each: `kelolaServices` and `kelolaAccess` in
 `tests/kelola-rules.test.ts`; `groups in order; Kelola only with a capability, last` and `Kelola per role` in
