@@ -17,6 +17,7 @@ import {
   updateDivision,
   upsertSubmission,
 } from '~/repositories/internship.repo';
+import { getUserRoles } from '~/repositories/user-role.repo';
 import {
   createInternshipDepartmentRoute,
   createInternshipDivisionRoute,
@@ -37,10 +38,11 @@ import { createAuthRouter } from './router-factory';
 
 const SPARTA_ADMIN_ROLES = ['peoplemanage', 'admin'] as const;
 
-/** What a member's SPARTA routes need, passed in so the route tests run without a database. */
+/** What the SPARTA routes need, passed in so the route tests run without a database. */
 export interface InternshipDeps {
   getSubmissionByUserId: WithoutDb<typeof getSubmissionByUserId>;
   upsertSubmission: WithoutDb<typeof upsertSubmission>;
+  getUserRoles: WithoutDb<typeof getUserRoles>;
   /** The server's clock (tests move it). */
   now: () => Date;
 }
@@ -48,6 +50,7 @@ export interface InternshipDeps {
 const databaseDeps: InternshipDeps = {
   getSubmissionByUserId: withDb(getSubmissionByUserId),
   upsertSubmission: withDb(upsertSubmission),
+  getUserRoles: withDb(getUserRoles),
   now: () => new Date(),
 };
 
@@ -66,7 +69,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
 
   internshipRouter.post(
     createInternshipDepartmentRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES]),
+    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
   );
   internshipRouter.openapi(createInternshipDepartmentRoute, async (c) => {
     try {
@@ -83,7 +86,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
 
   internshipRouter.put(
     updateInternshipDepartmentRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES]),
+    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
   );
   internshipRouter.openapi(updateInternshipDepartmentRoute, async (c) => {
     const { id } = c.req.valid('param');
@@ -95,7 +98,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
 
   internshipRouter.delete(
     deleteInternshipDepartmentRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES]),
+    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
   );
   internshipRouter.openapi(deleteInternshipDepartmentRoute, async (c) => {
     const { id } = c.req.valid('param');
@@ -106,7 +109,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
 
   internshipRouter.post(
     createInternshipDivisionRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES]),
+    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
   );
   internshipRouter.openapi(createInternshipDivisionRoute, async (c) => {
     try {
@@ -123,7 +126,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
 
   internshipRouter.put(
     updateInternshipDivisionRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES]),
+    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
   );
   internshipRouter.openapi(updateInternshipDivisionRoute, async (c) => {
     const { id } = c.req.valid('param');
@@ -135,7 +138,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
 
   internshipRouter.delete(
     deleteInternshipDivisionRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES]),
+    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
   );
   internshipRouter.openapi(deleteInternshipDivisionRoute, async (c) => {
     const { id } = c.req.valid('param');
@@ -219,7 +222,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
 
   internshipRouter.get(
     listInternshipSubmissionsRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES]),
+    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
   );
   internshipRouter.openapi(listInternshipSubmissionsRoute, async (c) => {
     const query = c.req.valid('query');
@@ -229,7 +232,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
 
   internshipRouter.get(
     getInternshipSubmissionByIdRoute.getRoutingPath(),
-    roleMiddleware([...SPARTA_ADMIN_ROLES]),
+    roleMiddleware([...SPARTA_ADMIN_ROLES], deps.getUserRoles),
   );
   internshipRouter.openapi(getInternshipSubmissionByIdRoute, async (c) => {
     const { id } = c.req.valid('param');

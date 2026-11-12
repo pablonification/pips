@@ -94,7 +94,7 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
 
   formRouter.get(
     listAllFormsRoute.getRoutingPath(),
-    roleMiddleware([...FORM_ADMIN_ROLES]),
+    roleMiddleware([...FORM_ADMIN_ROLES], deps.getUserRoles),
   );
   formRouter.openapi(listAllFormsRoute, async (c) => {
     const activeForms = await deps.getActiveForms();
@@ -204,7 +204,7 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
 
   formRouter.get(
     listFormResponsesRoute.getRoutingPath(),
-    roleMiddleware([...FORM_ADMIN_ROLES]),
+    roleMiddleware([...FORM_ADMIN_ROLES], deps.getUserRoles),
   );
   formRouter.openapi(listFormResponsesRoute, async (c) => {
     const { formId } = c.req.valid('param');
@@ -218,7 +218,7 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
 
   formRouter.get(
     getFormResponsesCountRoute.getRoutingPath(),
-    roleMiddleware([...FORM_ADMIN_ROLES]),
+    roleMiddleware([...FORM_ADMIN_ROLES], deps.getUserRoles),
   );
   formRouter.openapi(getFormResponsesCountRoute, async (c) => {
     const { formId } = c.req.valid('param');
@@ -228,7 +228,7 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
 
   formRouter.get(
     getFormAnalyticsRoute.getRoutingPath(),
-    roleMiddleware([...FORM_ADMIN_ROLES]),
+    roleMiddleware([...FORM_ADMIN_ROLES], deps.getUserRoles),
   );
   formRouter.openapi(getFormAnalyticsRoute, async (c) => {
     const { formId } = c.req.valid('param');
