@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom/client';
 import { ErrorBoundary } from 'react-error-boundary';
 import { registerSW } from 'virtual:pwa-register';
 import { queryClient } from './api/client';
+import { refetchFailed } from './api/reconnect';
 import { RootErrorFallback } from './components/error-fallback';
 import { reloadOnPreloadError } from './lib/preload-recovery';
 import { runWhenSettled } from './lib/sw-register';
@@ -22,6 +23,9 @@ import { router } from './router';
 
 // A page's code that can't load (its file gone after a deploy) reloads the page once, onto the new build.
 reloadOnPreloadError();
+
+// Back online, pages that failed while offline load by themselves (src/api/reconnect.ts).
+window.addEventListener('online', () => void refetchFailed(queryClient));
 
 // A new version reloads the page, but never over text being typed or a send in flight: then it waits for the next
 // page (src/lib/update-gate.ts).
