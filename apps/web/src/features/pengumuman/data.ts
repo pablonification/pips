@@ -251,6 +251,9 @@ export function usePostComment(infoId: string) {
       api.comment.postComment({
         requestBody: { repliedInfoId: infoId, content },
       }),
+    // Offline, a send fails at once (the comment's error with Coba lagi) instead of waiting, paused, and going out
+    // later by itself.
+    networkMode: 'always',
     onSuccess: (created) => {
       qc.setQueryData<CommentWithReactions[]>(
         infoCommentsQuery(infoId).queryKey,
@@ -331,6 +334,8 @@ export function useCreateInfo() {
         .catch(() => undefined);
       return created;
     },
+    // As a comment's: offline fails at once, and nothing is published later without a tap.
+    networkMode: 'always',
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: [INFO_LIST_QUERY_KEY] });
     },
