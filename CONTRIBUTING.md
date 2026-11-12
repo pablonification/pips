@@ -23,6 +23,9 @@ With Docker:
 docker run -d --name pips-db -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=pips postgres:16
 ```
 
+If port 5432 is already taken on your machine, change the first number in `-p 5432:5432` (say to `5433`) and use that
+port in every database address below.
+
 Without Docker (install PostgreSQL 16 first, for example `brew install postgresql@16` or your Linux package
 manager; the commands `initdb`, `pg_ctl` and `createdb` come with it):
 
@@ -61,7 +64,7 @@ echo 'VITE_GOOGLE_CLIENT_ID=unused.apps.googleusercontent.com' > apps/web/.env.l
 pnpm --filter web dev             # http://localhost:5173
 ```
 
-Without that value the sign-in page crashes with "Missing required parameter client_id". Google's button then does
+Without that value the sign-in page fails to load ("Bagian ini gagal dimuat"). With it, Google's button does
 nothing, which is fine: use the test-login form on the same page. It appears because `apps/web/.env.development` sets
 `VITE_ENABLE_TEST_LOGIN=true`. Sign in with `DEV_LOGIN_EMAIL` and the password you hashed. You land on the first-run
 page, `/mulai`.
