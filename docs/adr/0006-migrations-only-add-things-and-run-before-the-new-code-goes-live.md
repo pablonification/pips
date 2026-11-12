@@ -15,8 +15,7 @@ app that is still running while the new one is being deployed.
 - Migrations are not run when the API starts. A person runs them.
 - `migrate.ts` first repairs the counter in Drizzle's own record of applied migrations. Two older migrations were
   recorded by hand, so the counter was behind the rows and every later migration failed. The repair is harmless on
-  any other database. `apps/api/tests/db/migrate.test.ts` covers it, but it is a database test, so CI does not
-  run it yet.
+  any other database. `apps/api/tests/db/migrate.test.ts` covers it, and CI runs it (the `api-db` job).
 
 ## What else was possible
 - Migrate automatically at start-up: nobody forgets, but a bad migration then takes the server down with it, and
@@ -27,7 +26,9 @@ app that is still running while the new one is being deployed.
 - A person must remember to migrate before deploying.
 - Three migrations in the middle of the sequence (`0022`–`0024`) have no snapshot in `apps/api/drizzle/meta/`, so
   the history is not uniform. Check a generated migration by reading it before you commit it.
-- Nothing in CI checks that `schema.ts` and the migration files agree.
+- Drizzle does not stop you committing a schema change with no migration, so CI checks it: after the database
+  tests, the `api-db` job asks `drizzle-kit generate` for a migration and fails if it would write a new file. When
+  that step fails, run `pnpm --filter api db:migrations` and commit the result.
 - Drizzle is held at an old version (0.33); newer versions change some behaviour.
 
 ## When to revisit

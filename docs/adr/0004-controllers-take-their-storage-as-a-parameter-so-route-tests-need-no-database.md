@@ -25,11 +25,12 @@ PostgreSQL. That makes tests slow and awkward on a student's laptop.
 - Queries written inside handlers: fewer files, but then nothing can be tested without a database.
 
 ## What it costs
-- It is only half done. About half the controllers still import the database directly
+- It is only half done. About half the controllers (10 of 21 when this was written) still import the database directly
   (`grep "db/drizzle" apps/api/src/controllers`) and can only be tested with one. A contributor meets both styles.
 - A test with pretend storage proves the handler's logic, not the SQL. A wrong query passes it.
-- The tests that do run SQL (`tests/db/`) are not run by CI yet.
+- The tests that do run SQL (`tests/db/`) need a PostgreSQL. CI starts one for them (the `api-db` job in
+  `.github/workflows/check.yml`); on a laptop you must start your own.
 
 ## When to revisit
 When a bug gets through that only a real query would have shown. Move a controller to the new style whenever you
-change it, and add the database tests to CI.
+change it, and add a database test for any query whose result decides who sees what.
