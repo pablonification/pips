@@ -20,7 +20,7 @@ import {
   refusedProblem,
   type UploadProblem,
 } from '~/lib/upload-policy';
-import { uploadFile } from './sparta-data';
+import { uploadFile } from './sparta-upload';
 
 /** The error under a field, as under a form question. */
 export function FieldError({
