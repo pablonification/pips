@@ -74,7 +74,7 @@ export async function getReactions(
     if (!r.infoId && !r.commentId) {
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- a reaction row always has the id of the kind asked for
     const id = isComment ? r.commentId! : r.infoId!;
     if (!result[id]) {
       result[id] = {

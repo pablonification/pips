@@ -32,6 +32,7 @@ test('a cold start offline as the installed app: the shell and the saved Beranda
   page,
   api,
 }, testInfo) => {
+  // Runs only on the qa-sw project, the one build that registers the service worker.
   test.skip(testInfo.project.name !== 'qa-sw', 'qa-sw');
   await page.goto('/');
   await expect(greeting(page)).toBeVisible();
@@ -70,6 +71,7 @@ test('a cold start offline as the installed app: the shell and the saved Beranda
 test('the share target opens Buat pengumuman with what was shared', async ({
   page,
 }, testInfo) => {
+  // Runs only on the qa-sw project, the one build that registers the service worker.
   test.skip(testInfo.project.name !== 'qa-sw', 'qa-sw');
   await page.goto('/');
   await expect(greeting(page)).toBeVisible();
@@ -111,6 +113,7 @@ test('another website cannot fill in Buat pengumuman through the share target', 
   page,
   baseURL,
 }, testInfo) => {
+  // Runs only on the qa-sw project, the one build that registers the service worker.
   test.skip(testInfo.project.name !== 'qa-sw', 'qa-sw');
   await page.goto('/');
   await expect(greeting(page)).toBeVisible();
@@ -150,6 +153,7 @@ test.describe('a new version while writing', () => {
   test('a new version arriving while Buat pengumuman holds text waits; the text stays, and the next page loads it', async ({
     page,
   }, testInfo) => {
+    // Runs only on the qa-sw project, the one build that registers the service worker.
     test.skip(testInfo.project.name !== 'qa-sw', 'qa-sw');
     await page.goto('/');
     await expect(greeting(page)).toBeVisible();
@@ -200,6 +204,7 @@ test.describe('a new version while writing', () => {
     page,
     api,
   }, testInfo) => {
+    // Runs only on the qa-sw project, the one build that registers the service worker.
     test.skip(testInfo.project.name !== 'qa-sw', 'qa-sw');
     api.on('POST /api/curhat/chatroom/:chatroomId/read', writes.readRoom);
     api.socket.answer('message', () => ({ ok: false, error: 'server' }));

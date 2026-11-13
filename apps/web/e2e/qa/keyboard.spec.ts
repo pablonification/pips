@@ -48,6 +48,7 @@ for (const [path, route] of Object.entries(ROUTES)) {
       page,
       api,
     }, testInfo) => {
+      // Runs only on the qa-<layout>-<theme> projects, not on the journey projects.
       test.skip(!QA_LAYOUT.test(testInfo.project.name), 'a qa layout');
       await openSettled(page, api, route.url);
       // Tab from the top of the page: focus the body for a moment, so the walk doesn't start after a field the page

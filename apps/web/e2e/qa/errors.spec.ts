@@ -157,6 +157,7 @@ for (const nf of NOT_FOUND)
       page,
       api,
     }, testInfo) => {
+      // The not-found pages look the same in dark, so the light projects are enough.
       test.skip(
         !QA_LAYOUT.test(testInfo.project.name) ||
           !/light$/.test(testInfo.project.name),

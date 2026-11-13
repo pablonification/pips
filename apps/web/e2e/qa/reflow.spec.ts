@@ -16,6 +16,7 @@ for (const [path, route] of Object.entries(ROUTES))
         page,
         api,
       }, testInfo) => {
+        // Runs only on the qa-reflow project, which sets the zoomed viewports itself.
         test.skip(testInfo.project.name !== 'qa-reflow', 'qa-reflow');
         await openSettled(page, api, route.url);
         const problems = await page.evaluate(() => {

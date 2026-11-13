@@ -37,7 +37,7 @@ export function httpHref(value: string | null | undefined): string | null {
   const raw = value.trim();
   // The URL parser drops tabs and line breaks and reads "\" as "/", so "java\tscript:" or "https:\\evil" would pass
   // a check made on the parsed address. Refuse them in the text itself.
-  // eslint-disable-next-line no-control-regex
+  // eslint-disable-next-line no-control-regex -- control characters are exactly what this refuses
   if (/[\s\u0000-\u001f\u007f\\]/.test(raw)) return null;
   if (!/^https?:\/\/[^/]/i.test(raw)) return null;
   let url: URL;
