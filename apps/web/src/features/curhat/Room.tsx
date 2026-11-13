@@ -163,15 +163,19 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
     };
   }, [client, roomId]);
 
-  // Opening it reads it: its count goes here, on the list, on Beranda and in Layanan.
-  const read = useRef(false);
+  // Opening it reads it: its count goes here, on the list, on Beranda and in Layanan. A message that a read of the
+  // rooms brings in while it is open is read too (one over the socket is read as it arrives). It is read again only
+  // for a newer message, so a mark that fails doesn't repeat.
+  const readUpTo = useRef<string | null | undefined>(undefined);
+  const newest = room.messages?.[0]?.id ?? null;
   const unreadHere = unread.byRoom[roomId] ?? 0;
   const unreadKnown = unread.query.isSuccess;
   useEffect(() => {
-    if (read.current || (unreadKnown && unreadHere === 0)) return;
-    read.current = true;
+    if (readUpTo.current === newest || (unreadKnown && unreadHere === 0))
+      return;
+    readUpTo.current = newest;
     void markRoomRead(qc, roomId);
-  }, [qc, roomId, unreadHere, unreadKnown]);
+  }, [qc, roomId, newest, unreadHere, unreadKnown]);
 
   // Opening a room shows its newest message; a new room from Mulai ruang baru focuses the composer.
   useLayoutEffect(() => {

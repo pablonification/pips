@@ -147,15 +147,19 @@ function Thread({ room }: { room: Chatroom }) {
     };
   }, [client, roomId]);
 
-  // Opening it reads it: its count goes here, on the inbox, in Layanan and Kelola.
-  const read = useRef(false);
+  // Opening it reads it: its count goes here, on the inbox, in Layanan and Kelola. A message that a read of the
+  // rooms brings in while it is open is read too (one over the socket is read as it arrives). It is read again only
+  // for a newer message, so a mark that fails doesn't repeat.
+  const readUpTo = useRef<string | null | undefined>(undefined);
+  const newest = room.messages?.[0]?.id ?? null;
   const unreadHere = unread.byRoom[roomId] ?? 0;
   const unreadKnown = unread.query.isSuccess;
   useEffect(() => {
-    if (read.current || (unreadKnown && unreadHere === 0)) return;
-    read.current = true;
+    if (readUpTo.current === newest || (unreadKnown && unreadHere === 0))
+      return;
+    readUpTo.current = newest;
     void markRoomRead(qc, roomId);
-  }, [qc, roomId, unreadHere, unreadKnown]);
+  }, [qc, roomId, newest, unreadHere, unreadKnown]);
 
   const stick = useFollowNewest(items);
   usePinnedHead();

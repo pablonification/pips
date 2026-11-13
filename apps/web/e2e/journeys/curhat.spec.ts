@@ -402,6 +402,19 @@ test.describe('a room', () => {
     expect(api.writes).toEqual([]);
   });
 
+  test('a read mark that fails isn’t sent again for the same messages', async ({
+    page,
+    api,
+  }) => {
+    api.on('POST /api/curhat/chatroom/:chatroomId/read', reply.status(500));
+    const inFlight = apiInFlight(page);
+    await openR1Connected(page, api);
+    await inFlight.quiet();
+    expect(
+      api.calls('POST /api/curhat/chatroom/:chatroomId/read'),
+    ).toHaveLength(1);
+  });
+
   test('replying and sending: the exact payload, Mengirim, then Terkirim on the acknowledgement', async ({
     page,
     api,
@@ -918,16 +931,21 @@ test.describe('Welfare’s replies', () => {
   });
 
   // The server sends a connection nothing saved before it joined the room, and the room was read before that.
-  test('saved while the connection was still being made: shown in the open room once it connects', async ({
+  test('saved while the connection was still being made: shown in the open room once it connects, and read there', async ({
     page,
     api,
     db,
   }) => {
     canRead(api);
     api.socket.hold();
-    await openR1(page);
+    await page.goto('/layanan/curhat');
+    await row(page, 'Teal Koala').click();
     await expect(bubble(page, M4)).toBeVisible();
     await expect.poll(() => api.socket.heldHandshakes).toBe(1);
+    // Opening the room has read it; what is saved next is new.
+    await expect
+      .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
+      .toHaveLength(1);
     const text = 'Siap, aku kirim draf jadwalnya malam ini ya.';
     db.chatrooms.r1.messages = [
       { ...welfare('m9', 'r1', text), fromOwner: false },
@@ -942,6 +960,15 @@ test.describe('Welfare’s replies', () => {
     await expect(bubble(page, text)).toContainText('Welfare · 13.35');
     await expect(bubble(page, text)).toHaveCount(1);
     await expectAtNewest(page, text);
+    // Shown in the open room, so read there, as a reply over the socket is.
+    await expect.poll(() => db.chatroomReads).toContain('m9');
+    await expect
+      .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
+      .toHaveLength(2);
+    await page.goBack();
+    await expect(row(page, 'Teal Koala')).toHaveAccessibleName(
+      `Teal Koala Welfare: ${text} 13.35`,
+    );
   });
 
   test('saved while the list’s first read was on its way and the connection was being made: read again once it connects', async ({
