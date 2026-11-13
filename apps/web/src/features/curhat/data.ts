@@ -4,7 +4,12 @@
  * "Balasan baru dari Welfare" and Layanan's count read. None of it is written to the device: CHATROOMS_QUERY_KEY isn't
  * on the persisted list (src/api/persistence-policy.ts; tests/curhat-rules.test.ts).
  */
-import { useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  type QueryClient,
+  type QueryFilters,
+} from '@tanstack/react-query';
 import { createContext, useContext, useSyncExternalStore } from 'react';
 import { api } from '~/api/client';
 import type { Chatroom, ChatroomMessage, ListChatroom } from '~/api/generated';
@@ -78,23 +83,32 @@ export function markRoomRead(qc: QueryClient, chatroomId: string) {
     .finally(() => void qc.invalidateQueries({ queryKey: UNREAD_KEY }));
 }
 
-/** A message arrived over the socket: into its room; counted unless that room is open, where it's read at once. */
+/**
+ * A message arrived over the socket: into its room; counted unless that room is open, where it's read at once. A
+ * read of the rooms or counts on its way may have been answered before the message was saved, and would put the
+ * older list back when it lands, so it is made again (it restarts, keeping what is on screen meanwhile).
+ */
 export function receiveMessage(
   qc: QueryClient,
   client: Pick<CurhatClient, 'openRoom'>,
   message: ChatroomMessage,
 ) {
+  const again = (filters: QueryFilters) => {
+    if (qc.isFetching(filters)) void qc.invalidateQueries(filters);
+  };
   if (!putMessage(qc, message)) {
     // A room this screen doesn't know yet: fetch the rooms again.
     void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
-  }
+  } else again({ queryKey: ROOMS_KEY, exact: true });
   if (message.isSender) return;
   if (client.openRoom === message.chatroomId)
     void markRoomRead(qc, message.chatroomId);
-  else
+  else {
     qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
       addUnread(rows, message.chatroomId),
     );
+    again({ queryKey: UNREAD_KEY });
+  }
 }
 
 export const useCreateRoom = () =>

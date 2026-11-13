@@ -886,12 +886,18 @@ test.describe('a room', () => {
   test('the member’s message arrives in the open room, on their side, and is read at once', async ({
     page,
     api,
+    db,
   }) => {
     await openR1(page, api);
     await expect
       .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
       .toHaveLength(1);
     const text = 'Boleh kak, makasih banyak.';
+    // Saved, then relayed, as the server does: a read of the rooms on its way is made again and must find it.
+    db.chatrooms.r1.messages = [
+      fromMember('m-live', 'r1', text),
+      ...db.chatrooms.r1.messages!,
+    ];
     expect(
       api.socket.emit('reply', fromMember('m-live', 'r1', text), (s) =>
         s.rooms.has('r1'),

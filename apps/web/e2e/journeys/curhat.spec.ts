@@ -10,6 +10,7 @@ import type { Locator, Page, Request, TestInfo } from '@playwright/test';
 import type { CurhatSocketMessage } from '../../src/api/generated';
 import { layoutOf } from '../support/app';
 import { fakeGoogle, googleRequests } from '../support/google';
+import { defaultHandlers } from '../support/handlers';
 import { NOW } from '../fixtures/api';
 import { reply, type ApiMock } from '../support/mock';
 import { strictGates, toastText } from '../support/pengumuman';
@@ -904,6 +905,7 @@ test.describe('Welfare’s replies', () => {
   test('in the open room: shown at the newest message, and read at once', async ({
     page,
     api,
+    db,
   }) => {
     canRead(api);
     await openR1(page);
@@ -918,6 +920,11 @@ test.describe('Welfare’s replies', () => {
         ),
       )
       .toBe(true);
+    // Saved, then relayed, as the server does: a read of the rooms on its way is made again and must find it.
+    db.chatrooms.r1.messages = [
+      { ...welfare('m9', 'r1', text), fromOwner: false },
+      ...db.chatrooms.r1.messages!,
+    ];
     expect(
       api.socket.emit('reply', welfare('m9', 'r1', text), (s) =>
         s.rooms.has('r1'),
@@ -1012,20 +1019,63 @@ test.describe('Welfare’s replies', () => {
   test('on the list: the room moves up with its preview and count', async ({
     page,
     api,
+    db,
   }) => {
     await page.goto('/layanan/curhat');
     await expect(row(page, 'Amber Heron')).toBeVisible();
     await expect
       .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
       .toBe(true);
-    api.socket.emit(
-      'reply',
-      welfare('m9', 'r2', 'Gimana kabarnya minggu ini?'),
-      (s) => s.rooms.has('r2'),
-    );
+    const message = welfare('m9', 'r2', 'Gimana kabarnya minggu ini?');
+    // Saved, then relayed, as the server does: a read on its way is made again and must find it.
+    db.chatrooms.r2.messages = [
+      { ...message, fromOwner: false },
+      ...db.chatrooms.r2.messages!,
+    ];
+    api.socket.emit('reply', message, (s) => s.rooms.has('r2'));
     await expect(roomLinks(page).first()).toHaveAccessibleName(
       'Amber Heron , 1 pesan baru Welfare: Gimana kabarnya minggu ini? 13.35',
     );
+  });
+
+  // The connection's catch-up read can be answered with the rooms and counts as they were just before a reply was
+  // saved, and land after the reply itself.
+  test('on the list: a reply that arrives while the catch-up read is on its way keeps its preview and count', async ({
+    page,
+    api,
+    db,
+  }) => {
+    let release: () => void = () => undefined;
+    const released = new Promise<void>((r) => (release = r));
+    const reads = { rooms: 0, counts: 0 };
+    const holdSecond = (route: keyof typeof reads, path: string) => {
+      const answer = defaultHandlers[path];
+      api.on(path, async (ctx) => {
+        const now = answer(ctx);
+        if (++reads[route] === 2) await released;
+        return now;
+      });
+    };
+    holdSecond('rooms', 'GET /api/curhat/chatrooms');
+    holdSecond('counts', 'GET /api/curhat/chatrooms/unread');
+    await page.goto('/layanan/curhat');
+    await expect(row(page, 'Amber Heron')).toBeVisible();
+    await expect.poll(() => [reads.rooms, reads.counts]).toEqual([2, 2]);
+    const text = 'Gimana kabarnya minggu ini?';
+    db.chatrooms.r2.messages = [
+      { ...welfare('m9', 'r2', text), fromOwner: false },
+      ...db.chatrooms.r2.messages!,
+    ];
+    expect(
+      api.socket.emit('reply', welfare('m9', 'r2', text), (s) =>
+        s.rooms.has('r2'),
+      ),
+    ).toBe(1);
+    const fresh = `Amber Heron , 1 pesan baru Welfare: ${text} 13.35`;
+    await expect(roomLinks(page).first()).toHaveAccessibleName(fresh);
+    release();
+    await expect.poll(() => [reads.rooms, reads.counts]).toEqual([3, 3]);
+    await expect(roomLinks(page).first()).toHaveAccessibleName(fresh);
   });
 });
 
