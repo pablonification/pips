@@ -21,8 +21,9 @@ merged in the right order.
 
 ## What it costs
 - With two apps and no shared package, Turborepo adds little over `pnpm -r`. It is one more tool to learn.
-- The copied rules are only as safe as the tests that compare them. The role test reads the API's source files as
-  text, so a rename in the API can break it for a reason that looks unrelated.
+- The copied rules are only as safe as the tests that compare them. The role test reads the API's route table, and its
+  source as text for the checks inside handlers, so a rename in the API can break it for a reason that looks
+  unrelated.
 - Both apps deploy from the same repository, so a broken commit blocks both even when only one app changed.
 
 ## When to revisit

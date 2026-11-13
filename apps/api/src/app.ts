@@ -13,6 +13,7 @@ import { performance } from 'perf_hooks';
 import { fileURLToPath } from 'url';
 import { env } from './configs/env.config';
 import { apiRouter } from './controllers/api.controller';
+import { defaultHook } from './controllers/router-factory';
 import { db } from './db/drizzle';
 import { MAX_BODY_BYTES, RATE_LIMITS, RATE_WINDOW_MS } from './lib/limits';
 import { isAllowedOrigin, SAFE_METHODS } from './lib/origin';
@@ -117,13 +118,7 @@ export function createApp({
   const limits = { ...RATE_LIMITS, ...rateLimits };
   const app = new OpenAPIHono<{
     Variables: RequestIdVariables;
-  }>({
-    defaultHook: (result, c) => {
-      if (!result.success) {
-        return c.json({ errors: result.error.flatten() }, 400);
-      }
-    },
-  });
+  }>({ defaultHook });
   app.use('*', requestId());
 
   app.onError((err, c) => {

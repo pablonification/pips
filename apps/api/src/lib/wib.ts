@@ -1,5 +1,5 @@
 /** WIB is UTC+7 all year (no daylight saving). */
-const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+export const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
 
 /** Today's month (1–12) and year in WIB, read at call time, whatever time zone the server runs in. */
 export function currentWibMonthYear(now: number = Date.now()) {

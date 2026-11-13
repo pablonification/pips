@@ -39,8 +39,10 @@ folders too (`apps/web` checks `tests/` and `e2e/` with their own tsconfig).
 - Plain `node:test` and `node:assert/strict`; no other framework. A web test imports straight from `../src/...`.
 - The API's route tests call `usePlaceholderEnv()` (`apps/api/scripts/placeholder-env.ts`) before importing the app,
   so no real setting is needed.
-- `apps/web/tests/capabilities.test.ts` reads the API's source as text to check the web app's role table against the
-  server's checks. If you add a capability, that test tells you where to mirror it.
+- `apps/api/tests/route-access.test.ts` checks that every API route has a row in `apps/api/src/lib/route-access.ts`,
+  and sends requests to prove each row: signed out, a member without the roles, a member with each one.
+- `apps/web/tests/capabilities.test.ts` reads that table (and the API's source, for checks inside handlers) to check
+  the web app's role table against the server's. If you add a capability, that test tells you where to mirror it.
 
 ## API database tests
 

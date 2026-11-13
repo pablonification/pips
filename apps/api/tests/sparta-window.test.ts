@@ -133,6 +133,7 @@ function world(now: Date) {
       writes.push({ submit, data });
       return { id: 'sub-1', ...data } as never;
     },
+    getUserRoles: async () => [],
     now: () => now,
   };
   return { router: createInternshipRouter(deps), writes };

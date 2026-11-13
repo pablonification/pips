@@ -1,7 +1,7 @@
 import { databaseError } from '~/lib/database-error';
 import postgres from 'postgres';
 import { competitionCategories } from '~/db/schema';
-import { roleMiddleware } from '~/middlewares/role.middleware';
+import { forRoles } from '~/middlewares/role.middleware';
 import {
   createCompetition,
   deleteCompetition,
@@ -43,7 +43,6 @@ export function createCompetitionsRouter(
   deps: CompetitionsDeps = databaseDeps,
 ) {
   const competitionsRouter = createAuthRouter();
-  const cncOnly = roleMiddleware(['cnc'], deps.getUserRoles);
 
   competitionsRouter.openapi(getCompetitionCategoriesRoute, async (c) => {
     c.header('Cache-Control', 'public, max-age=3600');
@@ -51,42 +50,50 @@ export function createCompetitionsRouter(
     return c.json([...competitionCategories], 200);
   });
 
-  competitionsRouter.post(createCompetitionRoute.getRoutingPath(), cncOnly);
-  competitionsRouter.openapi(createCompetitionRoute, async (c) => {
-    try {
-      const data = c.req.valid('json');
-      const competition = await deps.createCompetition(data, c.var.user.id);
-      return c.json(competition, 201);
-    } catch (err) {
-      if (err instanceof postgres.PostgresError) {
-        return c.json(databaseError(err), 400);
+  competitionsRouter.openapi(
+    forRoles(createCompetitionRoute, ['cnc'], deps.getUserRoles),
+    async (c) => {
+      try {
+        const data = c.req.valid('json');
+        const competition = await deps.createCompetition(data, c.var.user.id);
+        return c.json(competition, 201);
+      } catch (err) {
+        if (err instanceof postgres.PostgresError) {
+          return c.json(databaseError(err), 400);
+        }
+        throw err;
       }
-      throw err;
-    }
-  });
+    },
+  );
 
-  competitionsRouter.put(updateCompetitionRoute.getRoutingPath(), cncOnly);
-  competitionsRouter.openapi(updateCompetitionRoute, async (c) => {
-    try {
-      const { id } = c.req.valid('param');
-      const data = c.req.valid('json');
-      // Nothing to change: Drizzle's set({}) would throw and answer 500.
-      if (Object.keys(data).length === 0)
-        return c.json({ error: 'Nothing to update' }, 400);
+  competitionsRouter.openapi(
+    forRoles(updateCompetitionRoute, ['cnc'], deps.getUserRoles),
+    async (c) => {
+      try {
+        const { id } = c.req.valid('param');
+        const data = c.req.valid('json');
+        // Nothing to change: Drizzle's set({}) would throw and answer 500.
+        if (Object.keys(data).length === 0)
+          return c.json({ error: 'Nothing to update' }, 400);
 
-      const existingCompetition = await deps.getCompetitionById(id);
-      if (!existingCompetition)
-        return c.json({ error: 'Competition not found' }, 404);
+        const existingCompetition = await deps.getCompetitionById(id);
+        if (!existingCompetition)
+          return c.json({ error: 'Competition not found' }, 404);
 
-      const competition = await deps.updateCompetition(id, data, c.var.user.id);
-      return c.json(competition, 200);
-    } catch (err) {
-      if (err instanceof postgres.PostgresError) {
-        return c.json(databaseError(err), 400);
+        const competition = await deps.updateCompetition(
+          id,
+          data,
+          c.var.user.id,
+        );
+        return c.json(competition, 200);
+      } catch (err) {
+        if (err instanceof postgres.PostgresError) {
+          return c.json(databaseError(err), 400);
+        }
+        throw err;
       }
-      throw err;
-    }
-  });
+    },
+  );
 
   competitionsRouter.openapi(getCompetitionListRoute, async (c) => {
     const query = c.req.valid('query');
@@ -99,15 +106,17 @@ export function createCompetitionsRouter(
     );
   });
 
-  competitionsRouter.delete(deleteCompetitionRoute.getRoutingPath(), cncOnly);
-  competitionsRouter.openapi(deleteCompetitionRoute, async (c) => {
-    const { competitionId } = c.req.valid('param');
-    const competition = await deps.deleteCompetition(competitionId);
-    if (!competition) {
-      return c.json({ error: 'Competition not found' }, 404);
-    }
-    return c.json({ ...competition }, 200);
-  });
+  competitionsRouter.openapi(
+    forRoles(deleteCompetitionRoute, ['cnc'], deps.getUserRoles),
+    async (c) => {
+      const { competitionId } = c.req.valid('param');
+      const competition = await deps.deleteCompetition(competitionId);
+      if (!competition) {
+        return c.json({ error: 'Competition not found' }, 404);
+      }
+      return c.json({ ...competition }, 200);
+    },
+  );
 
   return competitionsRouter;
 }
