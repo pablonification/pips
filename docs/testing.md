@@ -39,8 +39,10 @@ folders too (`apps/web` checks `tests/` and `e2e/` with their own tsconfig).
 - Plain `node:test` and `node:assert/strict`; no other framework. A web test imports straight from `../src/...`.
 - The API's route tests call `usePlaceholderEnv()` (`apps/api/scripts/placeholder-env.ts`) before importing the app,
   so no real setting is needed.
-- `apps/web/tests/capabilities.test.ts` reads the API's source as text to check the web app's role table against the
-  server's checks. If you add a capability, that test tells you where to mirror it.
+- `apps/api/tests/route-access.test.ts` checks that every API route has a row in `apps/api/src/lib/route-access.ts`,
+  and sends requests to prove each row: signed out, a member without the roles, a member with each one.
+- `apps/web/tests/capabilities.test.ts` reads that table (and the API's source, for checks inside handlers) to check
+  the web app's role table against the server's. If you add a capability, that test tells you where to mirror it.
 
 ## API database tests
 
@@ -72,6 +74,8 @@ A journey runs a **production build** of the web app in Chromium, against a **pr
   (`e2e/scripts/serve.mjs`). The first run takes minutes. Set `E2E_REUSE_BUILD=1` to reuse the last build; rebuild
   after any change to `src`.
 - **Browser.** Once: `pnpm --filter web exec playwright install chromium`.
+- **Port.** The build is served on port 4310. Set `E2E_PORT` when that port is taken; `apps/web/e2e/README.md` lists
+  the other settings.
 - **Projects.** Each journey runs at phone (390 px), tablet (834 px) and desktop (1440 px), in light and dark:
   `phone-light`, `phone-dark`, and so on. Tag a test `@phone-only` or `@desktop-only` when only one layout has the
   feature (tablets run the `@phone-only` ones).
@@ -85,6 +89,9 @@ A journey runs a **production build** of the web app in Chromium, against a **pr
   and other options are listed at the top of `e2e/support/test.ts`.
 - **Write one** by importing `test` and `expect` from `../support/test` (never from `@playwright/test`).
   `e2e/journeys/services.spec.ts` is the shortest example; `layanan.spec.ts` shows a full screen.
+- **What a screen reader reads.** Check a control's name with `getByRole(…, { name })`. To check that two pieces of
+  text are read as separate words, compare the element's `textContent`: Playwright's aria snapshot puts spaces
+  between elements by itself, so it passes on text a screen reader would join.
 
 Do not run every journey on your machine. There are over 5,000 of them across the projects, and a full run takes
 more than an hour. Run the spec you changed in one or two projects, with `E2E_WORKERS=2` or fewer. CI runs the rest.

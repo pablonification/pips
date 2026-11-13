@@ -1,4 +1,4 @@
-/* eslint-disable import/first */
+/* eslint-disable import/first -- the dayjs plugins and `./instrument` must run before the app code below is imported */
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';

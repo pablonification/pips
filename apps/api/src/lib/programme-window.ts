@@ -67,7 +67,7 @@ const APP_ORIGIN = 'https://app.invalid';
  * app's origin once parsed.
  */
 export function isValidWindowRoute(route: string): boolean {
-  // eslint-disable-next-line no-control-regex
+  // eslint-disable-next-line no-control-regex -- control characters are exactly what this refuses
   if (/[\u0000-\u001f\u007f]/.test(route)) return false;
   if (route.startsWith('/')) {
     if (route.startsWith('//') || route.includes('\\')) return false;

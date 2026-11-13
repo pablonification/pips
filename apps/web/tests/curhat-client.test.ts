@@ -1,6 +1,7 @@
 // Curhat's connection (src/features/curhat/client.ts) with a fake socket: Mengirim → Terkirim on { ok: true };
 // Gagal on { ok: false }, on no acknowledgement in time, on a drop before the answer, and at once when down; Kirim
-// ulang; never emitting while down (so socket.io can't buffer a message and send it twice); the reconnect catch-up;
+// ulang; never emitting while down (so socket.io can't buffer a message and send it twice); the catch-up on every
+// connection, the first one too;
 // replies; joining a new room; and the deferred socket that loads socket.io-client on demand.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
@@ -73,7 +74,7 @@ function setup() {
     socket,
     {
       onReply: (m) => log.push(`reply ${m.id}`),
-      onReconnect: () => log.push('reconnect'),
+      onConnect: () => log.push('connect'),
       onDelivered: (e, m) => log.push(`delivered ${e.localId} ${m.id}`),
       onFailed: (e) => log.push(`failed ${e.localId}`),
       onRefused: (error) => log.push(`refused ${error}`),
@@ -85,17 +86,29 @@ function setup() {
   return { socket, client, log };
 }
 
-test('connecting, then connected; down after a drop; the catch-up when it is back', () => {
+// The server sends a connection nothing saved before it joined its rooms, and the screen may have read the rooms
+// before the socket came up (socket.io's code loads on demand, the handshake takes a while on a slow phone).
+test('connecting, then connected; down after a drop; the catch-up on the first connection and when it is back', () => {
   const { socket, client, log } = setup();
   assert.equal(client.snapshot.status, 'connecting');
+  assert.deepEqual(log, []);
   socket.connect();
   assert.equal(client.snapshot.status, 'connected');
-  assert.deepEqual(log, [], 'the first connection is no reconnect');
+  assert.deepEqual(log, ['connect'], 'the first connection catches up too');
   socket.drop();
   assert.equal(client.snapshot.status, 'down');
+  assert.deepEqual(log, ['connect']);
   socket.connect();
   assert.equal(client.snapshot.status, 'connected');
-  assert.deepEqual(log, ['reconnect']);
+  assert.deepEqual(log, ['connect', 'connect']);
+});
+
+test('a failed first connection catches up once it connects', () => {
+  const { socket, log } = setup();
+  socket.fire('connect_error', new Error('refused'));
+  assert.deepEqual(log, []);
+  socket.connect();
+  assert.deepEqual(log, ['connect']);
 });
 
 test('a failed first connection is down too', () => {
@@ -121,7 +134,7 @@ test('sending: the exact payload with a 10 s acknowledgement; Mengirim, then del
   assert.equal('userId' in (socket.emits[0].data as object), false);
   socket.emits[0].ack(null, { ok: true, message: saved() });
   assert.equal(client.snapshot.outbox[0].status, 'delivered');
-  assert.deepEqual(log, [`delivered ${e.localId} e2e-message-1`]);
+  assert.deepEqual(log, ['connect', `delivered ${e.localId} e2e-message-1`]);
   // It leaves once the rooms cache holds the server's copy.
   assert.deepEqual(client.settle(holding(saved())), []);
   assert.deepEqual(client.snapshot.outbox, []);
@@ -160,7 +173,7 @@ test('saved, its acknowledgement lost: Gagal, then settled once the rooms hold i
   );
   assert.deepEqual(client.snapshot.outbox, []);
   assert.equal(socket.emits.length, 1);
-  assert.deepEqual(log, ['failed local-1', 'reconnect']);
+  assert.deepEqual(log, ['connect', 'failed local-1', 'connect']);
 });
 
 // A rooms refetch that started before the save lands without the delivered message.
@@ -224,12 +237,12 @@ test('the server ending the connection is reported; reconnect() connects again; 
   const { socket, client, log } = setup();
   socket.connect();
   socket.drop();
-  assert.deepEqual(log, []);
+  assert.deepEqual(log, ['connect']);
   socket.connect();
   socket.connected = false;
   socket.fire('disconnect', 'io server disconnect');
   assert.equal(client.snapshot.status, 'down');
-  assert.deepEqual(log, ['reconnect', 'session ended']);
+  assert.deepEqual(log, ['connect', 'connect', 'session ended']);
   client.reconnect();
   assert.equal(client.snapshot.status, 'connected');
   // Connected already: nothing to do.
@@ -292,7 +305,7 @@ test('Gagal on { ok: false }', () => {
   client.send('r1', 'halo', null);
   socket.emits[0].ack(null, { ok: false, error: 'server' });
   assert.equal(client.snapshot.outbox[0].status, 'failed');
-  assert.deepEqual(log, ['failed local-1']);
+  assert.deepEqual(log, ['connect', 'failed local-1']);
 });
 
 test('Gagal when no acknowledgement comes in time (socket.io reports the timeout as an error)', () => {
@@ -347,7 +360,7 @@ test('replies reach the screen; joining a room asks the server', async () => {
   socket.connect();
   socket.fire('reply', saved({ id: 'm9', isSender: false }));
   socket.fire('reply', null);
-  assert.deepEqual(log, ['reply m9']);
+  assert.deepEqual(log, ['connect', 'reply m9']);
   const joined = client.join('e2e-room-3');
   assert.equal(socket.emits[0].event, 'curhat:join');
   assert.deepEqual(socket.emits[0].data, { chatroomId: 'e2e-room-3' });

@@ -422,8 +422,7 @@ function Steps({
         void writes.saveDraft(toRequest(latest.current, divisions));
       }
     },
-    // On leaving only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs on leaving only; the latest values are read from refs
     [],
   );
 

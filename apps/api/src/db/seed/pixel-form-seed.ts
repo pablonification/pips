@@ -303,7 +303,7 @@ export const pixelFormSections: FormSection[] = [
 
 /** Adds the PIXEL form unless it is there; returns how many forms it added. */
 export async function runPixelFormSeed(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- accepts a database built with any schema
   db: PostgresJsDatabase<any>,
 ): Promise<number> {
   const existing = await db

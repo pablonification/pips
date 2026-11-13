@@ -293,6 +293,7 @@ export async function getListInfos(
   }
 
   if (q.excludeCategory && q.excludeCategory.length > 0) {
+    // `any`: the query is built up in steps below, which changes its builder type.
     let getInfosToExclude: any = db
       .select({ infoId: infoCategories.infoId })
       .from(infos)
@@ -508,7 +509,7 @@ export async function notifyNewInfo(
               .map((c) =>
                 and(
                   eq(userCourses.courseId, c.courseId),
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- the filter above drops courses with no class
                   eq(userCourses.class, c.class!),
                 ),
               ),

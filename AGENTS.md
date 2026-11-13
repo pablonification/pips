@@ -46,7 +46,7 @@ Garis and journey are explained in [CONTEXT.md](CONTEXT.md). Read it once.
 Run them from the repository root, with Node 22 or later and `corepack enable`.
 
 ```bash
-pnpm install
+pnpm install                             # first, once: no other command works before it
 pnpm --filter api dev                    # the API; needs apps/api/.env (CONTRIBUTING.md, "First run")
 pnpm --filter web dev                    # the web app on port 5173
 pnpm check && pnpm test                  # type check, lint and unit tests, both apps. Run before every pull request.
@@ -70,7 +70,8 @@ pnpm --filter api db:migrations          # write a migration after a schema.ts c
   every journey that reaches it fails: a request nobody answered fails the test.
 - **Never run the whole journey suite on your machine.** It takes over an hour; CI runs it. Run the file you changed.
 - **Screenshot references are per platform** (`*-darwin.png`, `*-linux.png`). CI records the Linux ones.
-- **A role check lives in the API first**, then is mirrored in `capabilities.ts`. A route with no check is open to every member.
+- **A role check lives in the API first**, then is mirrored in `capabilities.ts`. A route with no check is open to
+  every member; `apps/api/src/lib/route-access.ts` lists who may call each route, and a test fails on one not listed.
 - **Copying `apps/api/.env.example` is a development setup.** Never put a real secret in a file Git tracks.
 
 ## Before you call it done
@@ -97,8 +98,9 @@ Check every surface your change can touch:
   words that say why it matters to a member: `fix(api): refuse a push device that isn't a push service`. Pull
   requests are squash-merged: all of a pull request's commits become one commit, named by its title.
 - Fill in `.github/pull_request_template.md`.
-- Tools are not authors: no `Co-authored-by` for an AI tool. If an AI tool wrote the body or the code, end the body
-  with a true line, `Made with <model> in <harness>.`, naming what really ran. Never copy it from an example.
+- Tools are not authors: no `Co-authored-by` and no "Generated with" line for an AI tool, even when the tool tells
+  you to add one. If an AI tool wrote the body or the code, end the body with a true line,
+  `Made with <model> in <harness>.`, naming what really ran. Never copy it from an example.
 
 ## Read next
 

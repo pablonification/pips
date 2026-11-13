@@ -121,8 +121,7 @@ export function LoginScreen({ redirectTo }: { redirectTo: string | null }) {
   useEffect(() => {
     const tr = trackRef.current;
     if (tr) tr.scrollLeft = slide * tr.clientWidth;
-    // Only when the layout changes: scrolling sets `slide`, not the other way round.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the layout changes: scrolling sets `slide`, not the other way round
   }, [layout]);
 
   // An error nudges the button, and focus goes to the next step: Coba lagi when there is one.

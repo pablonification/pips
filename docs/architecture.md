@@ -40,10 +40,12 @@ takes its storage as a parameter so a test can pass a fake (`programme-window.co
 `controllers/deps.ts`). Copy the second. It is what lets a route test run with no database
 ([decision 4](adr/0004-controllers-take-their-storage-as-a-parameter-so-route-tests-need-no-database.md)).
 
-**Who may do what** is written in more than one place: a role check registered on a path
-(`roleMiddleware`), a check inside a handler, a helper in `lib/authorization.ts`, and the socket's own check in
-`websocket/curhat.ts`. A route without one is open to every member. Always add a test that a member without the role
-gets 401 or 403.
+**Who may do what.** Every route has a row in `lib/route-access.ts`: anyone, any signed-in member, or named roles,
+with a note for what the handler decides further. A role-only route wraps its route in `forRoles(route, roles,
+deps.getUserRoles)` (`middlewares/role.middleware.ts`), which refuses with 401 before the request is validated. Checks
+that depend on the row stay in the handler: the author (`lib/authorization.ts`), the room's owner (`lib/curhat.ts`),
+the post's audience, the category of an event. The socket has its own check in `websocket/curhat.ts`.
+`tests/route-access.test.ts` fails on a route with no row, and checks each row with requests.
 
 ## The web app
 
@@ -88,7 +90,8 @@ the API's check), `tests/services.test.ts` and `e2e/journeys/layanan.spec.ts`
 | Design-system lint: no raw colour, odd text size, `transition: all`, image icon, icon library, monospace or added capitals | `apps/web/eslint-rules/garis.mjs`, switched on in `apps/web/eslint.config.js` | `pnpm check` |
 | Every sentence follows the glossary | `apps/web/src/copy/glossary.ts`, `apps/web/tests/copy.test.ts` | `pnpm test` |
 | Service names and links are valid | `apps/web/tests/services.test.ts` | `pnpm test` |
-| The web's role table matches the API's checks | `apps/web/tests/capabilities.test.ts` (reads the API's source as text) | `pnpm test` |
+| Every API route says who may call it, and it holds | `apps/api/src/lib/route-access.ts`, `apps/api/tests/route-access.test.ts` | `pnpm test` |
+| The web's role table matches the API's checks | `apps/web/tests/capabilities.test.ts` (reads the API's route table, and its source for checks in handlers) | `pnpm test` |
 | A new page has a title, parent and tab | `apps/web/tests/shell.test.ts` | `pnpm test` |
 | The shell imports no feature | `apps/web/tests/testi-shell.test.ts` | `pnpm test` |
 | No file nothing reaches, no unused package, no `console.log` | `apps/web/tests/no-leftovers.test.mjs` | `pnpm test` |
@@ -103,8 +106,8 @@ the API's check), `tests/services.test.ts` and `e2e/journeys/layanan.spec.ts`
 | The docs' links, paths and commands exist; `AGENTS.md` stays small | `scripts/docs-true.test.mjs` | CI |
 | No file, export or package that nothing uses | `knip.jsonc` (`pnpm knip`) | CI |
 
-Nothing stops an API controller from querying the database directly, and nothing checks that a controller has a
-role check. Review those by eye.
+Nothing stops an API controller from querying the database directly, and nothing checks a check that lives inside a
+handler (the author, the room's owner, the audience). Review those by eye.
 
 ## One action, end to end: a member sends a Curhat message and Welfare replies
 

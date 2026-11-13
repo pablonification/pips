@@ -20,7 +20,7 @@ Each record is named `NNNN-a-sentence-that-states-the-decision.md` and follows t
 | [5](0005-the-api-runs-its-typescript-directly-in-a-container.md) | The API runs its TypeScript directly, in a container | A type error does not stop the server from starting |
 | [6](0006-migrations-only-add-things-and-run-before-the-new-code-goes-live.md) | Migrations only add things, and run before the new code goes live | A person must remember to migrate |
 | [7](0007-the-session-is-a-signed-cookie-and-the-api-keeps-no-session-table.md) | The session is a signed cookie and there is no session table | A lost phone stays signed in until its token ends (renewed with use, up to 180 days) |
-| [8](0008-roles-are-read-from-the-database-and-the-web-app-mirrors-them.md) | Roles are read from the database, and the web app mirrors them | A route that forgets its role check is open to every member |
+| [8](0008-roles-are-read-from-the-database-and-the-web-app-mirrors-them.md) | Roles are read from the database, and the web app mirrors them | A check inside a handler is only a note in the route table, checked by its own test |
 | [9](0009-curhat-messages-carry-an-id-made-on-the-device.md) | Curhat messages carry an id made on the device | The biggest client logic in the app; anonymity stops at the API |
 | [10](0010-the-api-runs-as-one-process-and-keeps-its-state-in-memory.md) | The API runs as one process with its state in memory | It must never run as two copies; a restart loses pushes and reminders |
 | [11](0011-the-api-sends-web-push-itself.md) | The API sends web push itself | iPhone needs the app installed; nothing is queued |

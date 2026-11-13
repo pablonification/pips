@@ -1,4 +1,4 @@
-import { roleMiddleware } from '~/middlewares/role.middleware';
+import { forRoles } from '~/middlewares/role.middleware';
 import {
   createTestimoni,
   getTestimoniByCourseId,
@@ -35,15 +35,14 @@ const databaseDeps: TestimoniDeps = {
 export function createTestimoniRouter(deps: TestimoniDeps = databaseDeps) {
   const testimoniRoute = createAuthRouter();
 
-  testimoniRoute.post(
-    postTestimoniRoute.getRoutingPath(),
-    roleMiddleware(['akademik'], deps.getUserRoles),
+  testimoniRoute.openapi(
+    forRoles(postTestimoniRoute, ['akademik'], deps.getUserRoles),
+    async (c) => {
+      const data = c.req.valid('json');
+      const res = await deps.createTestimoni(data, c.var.user.id);
+      return c.json(withoutAuthor(res), 200);
+    },
   );
-  testimoniRoute.openapi(postTestimoniRoute, async (c) => {
-    const data = c.req.valid('json');
-    const res = await deps.createTestimoni(data, c.var.user.id);
-    return c.json(withoutAuthor(res), 200);
-  });
 
   testimoniRoute.openapi(getTestimoniByCourseIdRoute, async (c) => {
     const { courseId } = c.req.valid('param');
