@@ -21,8 +21,8 @@ is not yours.
    ```
    Add `note: text('note'),` after `name`. With no `.notNull()` the column is nullable, so existing rows stay valid.
 2. **Write the migration**: `pnpm --filter api db:migrations --name angkatan_note`. It needs no database and no
-   `.env`. It prints the tables it knows and ends with `[✓] Your SQL migration file ➜ drizzle/0031_angkatan_note.sql`.
-   Without `--name` it picks a random one (`0031_flippant_sleepwalker.sql`); a name that says what changed is easier to
+   `.env`. It prints the tables it knows and ends with `[✓] Your SQL migration file ➜ drizzle/0032_angkatan_note.sql`.
+   Without `--name` it picks a random one (`0032_flippant_sleepwalker.sql`); a name that says what changed is easier to
    read later, as `0030_pixel_form_prefill.sql` is.
    Three files change, and all three are committed: the new `drizzle/<number>_<name>.sql`, a new
    `drizzle/meta/<number>_snapshot.json` and a new entry in `drizzle/meta/_journal.json`. Read the SQL. For this
@@ -63,7 +63,7 @@ is not yours.
 
 | You skipped | What prints |
 | --- | --- |
-| Step 2 (changed `schema.ts`, no migration) | CI, "The migrations match the schema": `Only in .drizzle-check: 0031_….sql` and `schema.ts has changes no migration covers: run 'pnpm --filter api db:migrations' and commit the result.` |
+| Step 2 (changed `schema.ts`, no migration) | CI, "The migrations match the schema": `Only in .drizzle-check: 0032_….sql` and `schema.ts has changes no migration covers: run 'pnpm --filter api db:migrations' and commit the result.` |
 | A `.env` pointing somewhere real | Nothing stops `db:migrate`: it reads `DATABASE_URL` from the environment, then from `apps/api/.env`. Always pass the address yourself. |
 | Step 6 | `pnpm --filter web check`: `Property 'note' is missing in type …`; or, worse, a private column in an answer, which no check catches. |
 
