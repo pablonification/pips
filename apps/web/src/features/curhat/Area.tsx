@@ -81,7 +81,7 @@ export function useCurhatConnection(
 
   useEffect(() => {
     const c: CurhatClient = new CurhatClient(new DeferredSocket(openSocket), {
-      onReply: (message) => receiveMessage(qc, c, message),
+      onReply: (message) => receiveMessage(qc, message),
       // Connected, at first or after a drop: fetch the rooms and counts on screen again to catch what was missed. A
       // fetch still running started before the connection, so it is dropped.
       onConnect: () => {

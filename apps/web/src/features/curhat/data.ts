@@ -92,12 +92,8 @@ export function readAgain(qc: QueryClient, filters: QueryFilters) {
   void qc.cancelQueries(filters).then(() => qc.invalidateQueries(filters));
 }
 
-/** A message arrived over the socket: into its room; counted unless that room is open, where it's read at once. */
-export function receiveMessage(
-  qc: QueryClient,
-  client: Pick<CurhatClient, 'openRoom'>,
-  message: ChatroomMessage,
-) {
+/** A message arrived over the socket: into its room, and counted unless you sent it (the open room then reads it). */
+export function receiveMessage(qc: QueryClient, message: ChatroomMessage) {
   const known = putMessage(qc, message);
   // The server saved the message before sending it, so a read started now holds it and one started earlier may not:
   // a read on its way is dropped and made again. A room this screen doesn't know yet is read for, too.
@@ -106,12 +102,9 @@ export function receiveMessage(
   if (qc.isFetching({ queryKey: CURHAT_UNREAD_KEY }) > 0)
     readAgain(qc, { queryKey: CURHAT_UNREAD_KEY });
   if (message.isSender) return;
-  if (client.openRoom === message.chatroomId)
-    void markRoomRead(qc, message.chatroomId);
-  else
-    qc.setQueryData<UnreadRow[]>(CURHAT_UNREAD_KEY, (rows) =>
-      addUnread(rows, message.chatroomId),
-    );
+  qc.setQueryData<UnreadRow[]>(CURHAT_UNREAD_KEY, (rows) =>
+    addUnread(rows, message.chatroomId),
+  );
 }
 
 export const useCreateRoom = () =>

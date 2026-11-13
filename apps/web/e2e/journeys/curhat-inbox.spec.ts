@@ -348,6 +348,9 @@ test.describe('who gets in', () => {
     db,
   }) => {
     await openR1(page, api);
+    // The page's own session check waits for the device's cache to load, so on a slow machine it can come after the
+    // room and its connection. The role goes once it is answered; before, the check alone would send Raka on.
+    await expect.poll(() => api.calls('GET /api/me').length).toBeGreaterThan(0);
     db.me!.roles = db.me!.roles.filter((r) => r !== 'curhatadmin');
     api.socket.answer('message', () => ({ ok: false, error: 'forbidden' }));
     await composer(page).fill(REPLY);
@@ -1052,16 +1055,21 @@ test.describe('live', () => {
   });
 
   // The server sends a connection nothing saved before it joined the room, and the room was read before that.
-  test('a member’s message saved while the connection was still being made: shown in the open room once it connects', async ({
+  test('a member’s message saved while the connection was still being made: shown in the open room once it connects, and read there', async ({
     page,
     api,
     db,
   }) => {
     canRead(api);
     api.socket.hold();
-    await page.goto('/kelola/curhat/r1');
+    await openInbox(page);
+    await row(page, 'Teal Koala').click();
     await expect(bubble(page, M4)).toBeVisible();
     await expect.poll(() => api.socket.heldHandshakes).toBe(1);
+    // Opening the room has read it; what is saved next is new.
+    await expect
+      .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
+      .toHaveLength(1);
     const text = 'Kak, aku mau cerita lagi.';
     db.chatrooms.r1.messages = [
       fromMember('m-r1', 'r1', text),
@@ -1076,6 +1084,16 @@ test.describe('live', () => {
     await socketReady(api);
     await expect(bubble(page, text)).toHaveCount(1);
     await expect(bubble(page, text)).toBeVisible();
+    // Shown in the open room, so read there, as a message over the socket is.
+    await expect.poll(() => db.chatroomReads).toContain('m-r1');
+    await expect
+      .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
+      .toHaveLength(2);
+    await page.goBack();
+    await expect(row(page, 'Teal Koala')).toBeVisible();
+    await expect(row(page, 'Teal Koala')).not.toHaveAccessibleName(
+      /pesan baru/,
+    );
   });
 
   test('the connection drops: the banner; back: the rooms and counts are fetched again', async ({

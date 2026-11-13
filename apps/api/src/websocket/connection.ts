@@ -1,5 +1,9 @@
-import type { Socket } from 'socket.io';
-import { registerCurhatSocket, type CurhatSocketDeps } from './curhat';
+import type { Server, Socket } from 'socket.io';
+import {
+  joinCurhatRooms,
+  registerCurhatSocket,
+  type CurhatSocketDeps,
+} from './curhat';
 import { readSocketSession, type SocketSession } from './session';
 
 /** setTimeout's longest delay (about 24.8 days); a later expiry is reached in steps. */
@@ -40,31 +44,50 @@ interface ConnectionDeps {
  * Everything a new socket gets: its session from the handshake cookie, Curhat (`curhat.ts`) and Live Counting's
  * admin room. Kept apart from `setup.ts` so tests can run it on a real socket.io server with fake storage.
  */
-export function createConnectionHandler(deps: ConnectionDeps) {
-  return (socket: Socket) => {
-    const session: Promise<SocketSession | null> = readSocketSession(
-      socket.handshake.headers.cookie,
-      deps.jwtSecret,
-      deps.getUserRoles,
-    )
-      .then((s) => {
-        if (s) socket.data.userId = s.userId;
-        if (s?.expiresAt != null) disconnectAt(socket, s.expiresAt);
-        return s;
-      })
-      .catch((error) => {
-        // The session couldn't be read (a failed role lookup): refuse the connection rather than keep a socket that
-        // looks connected but is refused everything. Clients hear `io server disconnect`, check their session and
-        // connect again. Handlers waiting on the session get none, and their answers go nowhere.
-        deps.onError?.(error);
-        socket.disconnect(true);
-        return null;
-      });
+export function handleConnections(io: Server, deps: ConnectionDeps) {
+  const curhat = { ...deps.curhat, getUserRoles: deps.getUserRoles };
+  /** What the handshake read: the session (null when there is none), or `failed` when it couldn't be read. */
+  const handshakes = new WeakMap<Socket, SocketSession | null | 'failed'>();
 
-    registerCurhatSocket(socket, session, {
-      ...deps.curhat,
-      getUserRoles: deps.getUserRoles,
-    });
+  // The session is read and the Curhat rooms joined before socket.io confirms the connection. Clients read the rooms
+  // once they hear they are connected, so a message saved after that read is one this socket is already in the room
+  // for.
+  io.use((socket, next) => {
+    void (async () => {
+      try {
+        const s = await readSocketSession(
+          socket.handshake.headers.cookie,
+          deps.jwtSecret,
+          deps.getUserRoles,
+        );
+        if (s) {
+          socket.data.userId = s.userId;
+          await joinCurhatRooms(socket, s, curhat);
+        }
+        handshakes.set(socket, s);
+      } catch (error) {
+        deps.onError?.(error);
+        handshakes.set(socket, 'failed');
+      }
+      next();
+    })();
+  });
+
+  io.on('connection', (socket) => {
+    const read = handshakes.get(socket);
+    handshakes.delete(socket);
+    if (read === undefined || read === 'failed') {
+      // The session or the rooms couldn't be read (the database is unreachable): refuse the connection rather than
+      // keep a socket that looks connected but is refused everything or misses its rooms. Clients hear
+      // `io server disconnect`, check their session and connect again (a refusal in the middleware would stop them
+      // reconnecting). Disconnecting leaves every room it joined.
+      socket.disconnect(true);
+      return;
+    }
+    if (read?.expiresAt != null) disconnectAt(socket, read.expiresAt);
+    const session = Promise.resolve(read);
+
+    registerCurhatSocket(socket, session, curhat);
 
     const formAdminId = socket.handshake.auth.formAdminId as string | undefined;
     if (formAdminId) {
@@ -81,5 +104,5 @@ export function createConnectionHandler(deps: ConnectionDeps) {
         }
       });
     }
-  };
+  });
 }

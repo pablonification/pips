@@ -10,6 +10,7 @@ import type { Locator, Page, Request, TestInfo } from '@playwright/test';
 import type { CurhatSocketMessage } from '../../src/api/generated';
 import { layoutOf } from '../support/app';
 import { fakeGoogle, googleRequests } from '../support/google';
+import { defaultHandlers } from '../support/handlers';
 import { NOW } from '../fixtures/api';
 import { reply, type ApiMock } from '../support/mock';
 import { strictGates, toastText } from '../support/pengumuman';
@@ -400,6 +401,19 @@ test.describe('a room', () => {
     await row(page, 'Amber Heron').click();
     await expect(log(page, 'Amber Heron')).toBeVisible();
     expect(api.writes).toEqual([]);
+  });
+
+  test('a read mark that fails isn’t sent again for the same messages', async ({
+    page,
+    api,
+  }) => {
+    api.on('POST /api/curhat/chatroom/:chatroomId/read', reply.status(500));
+    const inFlight = apiInFlight(page);
+    await openR1Connected(page, api);
+    await inFlight.quiet();
+    expect(
+      api.calls('POST /api/curhat/chatroom/:chatroomId/read'),
+    ).toHaveLength(1);
   });
 
   test('replying and sending: the exact payload, Mengirim, then Terkirim on the acknowledgement', async ({
@@ -966,16 +980,21 @@ test.describe('Welfare’s replies', () => {
   });
 
   // The server sends a connection nothing saved before it joined the room, and the room was read before that.
-  test('saved while the connection was still being made: shown in the open room once it connects', async ({
+  test('saved while the connection was still being made: shown in the open room once it connects, and read there', async ({
     page,
     api,
     db,
   }) => {
     canRead(api);
     api.socket.hold();
-    await openR1(page);
+    await page.goto('/layanan/curhat');
+    await row(page, 'Teal Koala').click();
     await expect(bubble(page, M4)).toBeVisible();
     await expect.poll(() => api.socket.heldHandshakes).toBe(1);
+    // Opening the room has read it; what is saved next is new.
+    await expect
+      .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
+      .toHaveLength(1);
     const text = 'Siap, aku kirim draf jadwalnya malam ini ya.';
     db.chatrooms.r1.messages = [
       { ...welfare('m9', 'r1', text), fromOwner: false },
@@ -990,6 +1009,15 @@ test.describe('Welfare’s replies', () => {
     await expect(bubble(page, text)).toContainText('Welfare · 13.35');
     await expect(bubble(page, text)).toHaveCount(1);
     await expectAtNewest(page, text);
+    // Shown in the open room, so read there, as a reply over the socket is.
+    await expect.poll(() => db.chatroomReads).toContain('m9');
+    await expect
+      .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
+      .toHaveLength(2);
+    await page.goBack();
+    await expect(row(page, 'Teal Koala')).toHaveAccessibleName(
+      `Teal Koala Welfare: ${text} 13.35`,
+    );
   });
 
   test('saved while the list’s first read was on its way and the connection was being made: read again once it connects', async ({
@@ -1050,6 +1078,62 @@ test.describe('Welfare’s replies', () => {
     await expect(roomLinks(page).first()).toHaveAccessibleName(
       'Amber Heron , 1 pesan baru Welfare: Gimana kabarnya minggu ini? 13.35',
     );
+  });
+
+  // The connection's catch-up read can be answered with the rooms and counts as they were just before a reply was
+  // saved, and land after the reply itself.
+  test('on the list: a reply that arrives while the catch-up read is on its way keeps its preview and count', async ({
+    page,
+    api,
+    db,
+  }) => {
+    // The connection waits until the list's first reads have landed; the reads it then makes are held.
+    api.socket.hold();
+    let holding = false;
+    let release: () => void = () => undefined;
+    const released = new Promise<void>((r) => (release = r));
+    const held = { rooms: 0, counts: 0 };
+    const holdOnceConnected = (route: keyof typeof held, path: string) => {
+      const answer = defaultHandlers[path];
+      api.on(path, async (ctx) => {
+        const now = answer(ctx);
+        if (holding) {
+          held[route]++;
+          await released;
+        }
+        return now;
+      });
+    };
+    holdOnceConnected('rooms', 'GET /api/curhat/chatrooms');
+    holdOnceConnected('counts', 'GET /api/curhat/chatrooms/unread');
+    await page.goto('/layanan/curhat');
+    await expect(row(page, 'Teal Koala')).toHaveAccessibleName(/1 pesan baru/);
+    await expect.poll(() => api.socket.heldHandshakes).toBe(1);
+    holding = true;
+    api.socket.release();
+    await expect.poll(() => [held.rooms, held.counts]).toEqual([1, 1]);
+    const text = 'Gimana kabarnya minggu ini?';
+    db.chatrooms.r2.messages = [
+      { ...welfare('m9', 'r2', text), fromOwner: false },
+      ...db.chatrooms.r2.messages!,
+    ];
+    expect(
+      api.socket.emit('reply', welfare('m9', 'r2', text), (s) =>
+        s.rooms.has('r2'),
+      ),
+    ).toBe(1);
+    const fresh = `Amber Heron , 1 pesan baru Welfare: ${text} 13.35`;
+    await expect(roomLinks(page).first()).toHaveAccessibleName(fresh);
+    holding = false;
+    release();
+    // Read again: the held answers lack the reply, so only a read made after it shows it.
+    await expect
+      .poll(() => api.calls('GET /api/curhat/chatrooms/unread').length)
+      .toBe(3);
+    await expect
+      .poll(() => api.calls('GET /api/curhat/chatrooms').length)
+      .toBe(3);
+    await expect(roomLinks(page).first()).toHaveAccessibleName(fresh);
   });
 });
 

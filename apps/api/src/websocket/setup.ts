@@ -20,7 +20,7 @@ import {
   removeFailedPushSubscriptions,
 } from '~/repositories/push.repo';
 import { getUserRoles, getUsersByRole } from '~/repositories/user-role.repo';
-import { createConnectionHandler, formAdminRoom } from './connection';
+import { handleConnections, formAdminRoom } from './connection';
 
 export { formAdminRoom };
 
@@ -76,32 +76,28 @@ export default function setupWebsocket(httpServer: ServerType) {
   const io = new Server(httpServer, socketServerOptions(env.ALLOWED_ORIGINS));
   ioInstance = io;
 
-  io.on(
-    'connection',
-    createConnectionHandler({
-      jwtSecret: env.JWT_SECRET,
-      getUserRoles: async (userId) => await getUserRoles(db, userId),
-      onError: (error) => Sentry.captureException(error),
-      curhat: {
-        getChatroom: async (chatroomId) =>
-          await getChatroomOwner(db, chatroomId),
-        getOwnedChatroomIds: async (userId) =>
-          await getOwnedChatroomIds(db, userId),
-        getAllChatroomIds: async () => await getAllChatroomIds(db),
-        getMessage: async (messageId) =>
-          await getChatroomMessageById(db, messageId),
-        saveMessage: async (message) => await saveMessage(db, message),
-        notifyParticipants: async (msg) => {
-          await sendCurhatNotification(db, msg);
-        },
-        messageLimiter: createRateLimiter({
-          limit: RATE_LIMITS.curhatMessages,
-          windowMs: RATE_WINDOW_MS,
-        }),
-        onError: (error) => Sentry.captureException(error),
+  handleConnections(io, {
+    jwtSecret: env.JWT_SECRET,
+    getUserRoles: async (userId) => await getUserRoles(db, userId),
+    onError: (error) => Sentry.captureException(error),
+    curhat: {
+      getChatroom: async (chatroomId) => await getChatroomOwner(db, chatroomId),
+      getOwnedChatroomIds: async (userId) =>
+        await getOwnedChatroomIds(db, userId),
+      getAllChatroomIds: async () => await getAllChatroomIds(db),
+      getMessage: async (messageId) =>
+        await getChatroomMessageById(db, messageId),
+      saveMessage: async (message) => await saveMessage(db, message),
+      notifyParticipants: async (msg) => {
+        await sendCurhatNotification(db, msg);
       },
-    }),
-  );
+      messageLimiter: createRateLimiter({
+        limit: RATE_LIMITS.curhatMessages,
+        windowMs: RATE_WINDOW_MS,
+      }),
+      onError: (error) => Sentry.captureException(error),
+    },
+  });
 }
 
 /**

@@ -151,24 +151,19 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
   const field = useRef<HTMLTextAreaElement | null>(null);
   const focusField = () => requestAnimationFrame(() => field.current?.focus());
 
-  // The open room: Welfare's replies here are read at once instead of counted.
-  useEffect(() => {
-    if (!client) return;
-    client.openRoom = roomId;
-    return () => {
-      if (client.openRoom === roomId) client.openRoom = null;
-    };
-  }, [client, roomId]);
-
-  // Opening it reads it: its count goes here, on the list, on Beranda and in Layanan.
-  const read = useRef(false);
+  // Opening it reads it: its count goes here, on the list, on Beranda and in Layanan. A newer message counted while it
+  // is open, over the socket or by a read of the rooms, is read at once. It is read again only for a newer message,
+  // so a mark that fails doesn't repeat, nor does a count that was read before the last mark.
+  const readUpTo = useRef<string | null | undefined>(undefined);
+  const newest = room.messages?.[0]?.id ?? null;
   const unreadHere = unread.byRoom[roomId] ?? 0;
   const unreadKnown = unread.query.isSuccess;
   useEffect(() => {
-    if (read.current || (unreadKnown && unreadHere === 0)) return;
-    read.current = true;
+    if (readUpTo.current === newest || (unreadKnown && unreadHere === 0))
+      return;
+    readUpTo.current = newest;
     void markRoomRead(qc, roomId);
-  }, [qc, roomId, unreadHere, unreadKnown]);
+  }, [qc, roomId, newest, unreadHere, unreadKnown]);
 
   // Opening a room shows its newest message; a new room from Mulai ruang baru focuses the composer.
   useLayoutEffect(() => {

@@ -9,10 +9,8 @@ import { usePlaceholderEnv } from '../scripts/placeholder-env';
 import type { CurhatDeps } from '../src/controllers/curhat.controller';
 import { CURHAT_WELFARE_ROOM, curhatPushes } from '../src/lib/curhat';
 import { RATE_LIMITS, RATE_WINDOW_MS } from '../src/lib/limits';
-import {
-  createConnectionHandler,
-  formAdminRoom,
-} from '../src/websocket/connection';
+import { handleConnections, formAdminRoom } from '../src/websocket/connection';
+import { joinWelfareSockets } from '../src/websocket/curhat';
 import {
   CurhatMessageAckSchema,
   CurhatReplyEventSchema,
@@ -49,6 +47,10 @@ let failSaves: boolean;
 let failRoleLookups: boolean;
 /** Runs after Welfare's handshake has read the room list, before it returns: a room created in that window. */
 let whileListingRooms: (() => Promise<void> | void) | undefined;
+/** A member's owned rooms take this long to read, as on a slow database. */
+let ownedRoomsDelayMs: number;
+/** Reading a member's owned rooms throws, as when the database can't be reached. */
+let failRoomReads: boolean;
 /** The message limiter's clock: each test starts in a new window. */
 let clock = 0;
 let messageLimiter: ReturnType<
@@ -86,6 +88,8 @@ beforeEach(() => {
   failSaves = false;
   failRoleLookups = false;
   whileListingRooms = undefined;
+  ownedRoomsDelayMs = 0;
+  failRoomReads = false;
 });
 
 let http: HttpServer;
@@ -102,60 +106,61 @@ before(async () => {
   });
   http = createServer();
   io = new Server(http);
-  io.on(
-    'connection',
-    createConnectionHandler({
-      jwtSecret: PLACEHOLDER_JWT_SECRET,
-      getUserRoles: async (id) => {
-        if (failRoleLookups) throw new Error('database down');
-        return ROLES[id] ?? [];
+  handleConnections(io, {
+    jwtSecret: PLACEHOLDER_JWT_SECRET,
+    getUserRoles: async (id) => {
+      if (failRoleLookups) throw new Error('database down');
+      return ROLES[id] ?? [];
+    },
+    curhat: {
+      getChatroom: async (id) => rooms.find((r) => r.id === id),
+      getOwnedChatroomIds: async (userId) => {
+        if (ownedRoomsDelayMs)
+          await new Promise((r) => setTimeout(r, ownedRoomsDelayMs));
+        if (failRoomReads) throw new Error('database down');
+        return rooms.filter((r) => r.userId === userId).map((r) => r.id);
       },
-      curhat: {
-        getChatroom: async (id) => rooms.find((r) => r.id === id),
-        getOwnedChatroomIds: async (userId) =>
-          rooms.filter((r) => r.userId === userId).map((r) => r.id),
-        getAllChatroomIds: async () => {
-          const ids = rooms.map((r) => r.id);
-          await whileListingRooms?.();
-          return ids;
-        },
-        getMessage: async (id) => messages.find((m) => m.id === id),
-        // As the unique index on (chatroom_id, client_message_id) does: a repeat in the same room saves nothing.
-        saveMessage: async ({
-          userId,
+      getAllChatroomIds: async () => {
+        const ids = rooms.map((r) => r.id);
+        await whileListingRooms?.();
+        return ids;
+      },
+      getMessage: async (id) => messages.find((m) => m.id === id),
+      // As the unique index on (chatroom_id, client_message_id) does: a repeat in the same room saves nothing.
+      saveMessage: async ({
+        userId,
+        chatroomId,
+        content,
+        replyId,
+        clientMessageId,
+      }) => {
+        if (failSaves) throw new Error('database down');
+        const first = clientMessageId
+          ? messages.find(
+              (m) =>
+                m.chatroomId === chatroomId &&
+                m.clientMessageId === clientMessageId,
+            )
+          : undefined;
+        if (first) return { message: first, created: false };
+        const saved: ChatroomMessage = {
+          id: `s${messages.length + 1}`,
           chatroomId,
-          content,
+          userId,
           replyId,
+          content,
+          createdAt: new Date('2026-10-08T06:35:00Z'),
           clientMessageId,
-        }) => {
-          if (failSaves) throw new Error('database down');
-          const first = clientMessageId
-            ? messages.find(
-                (m) =>
-                  m.chatroomId === chatroomId &&
-                  m.clientMessageId === clientMessageId,
-              )
-            : undefined;
-          if (first) return { message: first, created: false };
-          const saved: ChatroomMessage = {
-            id: `s${messages.length + 1}`,
-            chatroomId,
-            userId,
-            replyId,
-            content,
-            createdAt: new Date('2026-10-08T06:35:00Z'),
-            clientMessageId,
-          };
-          messages.push(saved);
-          return { message: saved, created: true };
-        },
-        notifyParticipants: async (m) => {
-          notified.push(m);
-        },
-        messageLimiter,
+        };
+        messages.push(saved);
+        return { message: saved, created: true };
       },
-    }),
-  );
+      notifyParticipants: async (m) => {
+        notified.push(m);
+      },
+      messageLimiter,
+    },
+  });
   await new Promise<void>((resolve) => http.listen(PORT, '127.0.0.1', resolve));
 });
 
@@ -615,7 +620,7 @@ test('a room created while a Welfare handshake reads the room list still reaches
   whileListingRooms = () => {
     rooms.push({ id: 'r-new', userId: nadia.id });
     // What `welfareJoin` does for the create route.
-    io.in(CURHAT_WELFARE_ROOM).socketsJoin('r-new');
+    joinWelfareSockets(io, 'r-new');
   };
   const staff = await client(welfare, { curhat: true });
   await settled();
@@ -667,7 +672,7 @@ test('a room a member starts after Welfare connected reaches Welfare live, throu
       return made;
     },
     welfareJoin: (chatroomId) => {
-      io.in(CURHAT_WELFARE_ROOM).socketsJoin(chatroomId);
+      joinWelfareSockets(io, chatroomId);
     },
     getUserChatrooms: unused,
     getWelfareChatrooms: unused,
@@ -848,6 +853,101 @@ test('a message sent right after connecting, before the session is read, is not 
   clients.push(socket);
   const ack = await send(socket, { chatroomId: 'r1', message: 'cepat' });
   assert.equal(ack.ok, true);
+});
+
+/** A socket for `user` that `onConnect` runs for the moment it hears it is connected, before any other code. */
+async function connectThen(
+  user: ReturnType<typeof testUser>,
+  auth: Record<string, unknown>,
+  onConnect: () => void,
+) {
+  const socket = connect(URL, {
+    auth,
+    extraHeaders: { Cookie: await sessionCookie(user) },
+    transports: ['websocket'],
+    forceNew: true,
+    reconnection: false,
+  });
+  clients.push(socket);
+  const got = collect(socket, 'reply');
+  await new Promise<void>((resolve) =>
+    socket.once('connect', () => {
+      onConnect();
+      resolve();
+    }),
+  );
+  return { socket, got };
+}
+
+async function until(check: () => boolean, ms = 1000) {
+  const end = Date.now() + ms;
+  while (!check() && Date.now() < end)
+    await new Promise((r) => setTimeout(r, 10));
+}
+
+// The client reads the rooms once it hears it is connected. A message saved after that read must reach the socket
+// live, so the socket has to be in its rooms by then, however slow the database is.
+test('a message saved the moment a member hears it is connected reaches that member', async () => {
+  const staff = await client(welfare, { curhat: true });
+  await settled();
+  ownedRoomsDelayMs = 150;
+  let sent: Promise<unknown> | undefined;
+  const { socket, got } = await connectThen(nadia, { curhat: true }, () => {
+    sent = send(staff, { chatroomId: 'r1', message: 'Halo dari Welfare' });
+  });
+  assert.equal(((await sent) as { ok: boolean }).ok, true);
+  await until(() => got.length > 0);
+  assert.deepEqual(
+    got.map((m) => (m as { content: string }).content),
+    ['Halo dari Welfare'],
+  );
+  assert.deepEqual(await roomsOf(socket.id!), ['r1', 'r2']);
+});
+
+test('a message saved the moment Welfare hears it is connected reaches Welfare', async () => {
+  const member = await client(nadia, { curhat: true });
+  await settled();
+  whileListingRooms = () => new Promise((r) => setTimeout(r, 150));
+  let sent: Promise<unknown> | undefined;
+  const { got } = await connectThen(welfare, { curhat: true }, () => {
+    sent = send(member, { chatroomId: 'r1', message: 'Halo, Welfare' });
+  });
+  assert.equal(((await sent) as { ok: boolean }).ok, true);
+  await until(() => got.length > 0);
+  assert.deepEqual(
+    got.map((m) => (m as { content: string }).content),
+    ['Halo, Welfare'],
+  );
+});
+
+test("a room list that can't be read at the handshake refuses the connection, in no room; connecting again works", async () => {
+  failRoomReads = true;
+  const socket = connect(URL, {
+    auth: { curhat: true },
+    extraHeaders: { Cookie: await sessionCookie(nadia) },
+    transports: ['websocket'],
+    forceNew: true,
+    reconnection: false,
+  });
+  clients.push(socket);
+  let id = '';
+  socket.once('connect', () => {
+    id = socket.id!;
+  });
+  const reason = await new Promise<string>((resolve) => {
+    const timer = setTimeout(() => resolve('still connected'), 2000);
+    socket.once('disconnect', (r) => {
+      clearTimeout(timer);
+      resolve(r);
+    });
+  });
+  assert.equal(reason, 'io server disconnect');
+  assert.equal(io.of('/').adapter.sids.has(id), false);
+
+  failRoomReads = false;
+  socket.connect();
+  await new Promise<void>((resolve) => socket.once('connect', () => resolve()));
+  assert.deepEqual(await roomsOf(socket.id!), ['r1', 'r2']);
 });
 
 // A role lookup that throws at the handshake must not leave the session null while the socket stays connected: Curhat
