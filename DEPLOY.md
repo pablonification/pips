@@ -22,8 +22,10 @@ Only a person with the right access can do these:
   (JSON), and production has none today, so those changes already fail. Whoever holds the service account adds the
   file to the Backend in Dokploy as a file mount (Advanced → Mounts → File mount), for example at
   `/etc/pips/google-calendar.json`, readable by the container's unprivileged `node` user. Then set
-  `GOOGLE_CALENDAR_SECRET_PATH` to that absolute path, and `GOOGLE_CALENDAR_ID` to the calendar the service account
-  may edit. Without the file the rest of the app works; Kalender's changes keep failing as they do today.
+  `GOOGLE_CALENDAR_SECRET_PATH` to that absolute path. Which calendar an event goes to comes from the database
+  (`calendar_group`: one per major and angkatan, the electives and Himpunan), so the service account must be shared
+  with "Make changes to events" on each of them. Without the file the rest of the app works; Kalender's changes keep
+  failing as they do today.
 - **A person with a phone** for the checks after the switch, with today's app installed on it (to see the old app
   update itself), and a member account with `curhatadmin` on another device for Curhat.
 
@@ -54,9 +56,9 @@ Keep today's environment. These change:
 | `ALLOWED_ORIGINS` | keep (a JSON list that includes `https://app.hmif.dev`, as it is today) | writes and the Curhat socket from any other address are refused; a value that isn't JSON stops the API |
 | `CLIENT_IP_HEADER` | **add** `cf-connecting-ip` | the API sits behind Cloudflare, so without it every member behind one Cloudflare address shares a sign-in rate limit. Safe only while the API is reachable through Cloudflare alone |
 | `RENOTIFY_DIFF_HOURS` | **set to `3`, or remove it** (production's value is not 3) | the app tells a poster they can announce again after three hours; another value unlocks it at the wrong time |
-| `GOOGLE_CALENDAR_SECRET_PATH`, `GOOGLE_CALENDAR_ID` | point at the mounted key file (see "Before the day") | Kalender's changes |
+| `GOOGLE_CALENDAR_SECRET_PATH` | point at the mounted key file (see "Before the day") | Kalender's changes |
 | `GOOGLE_ALLOWED_CLIENT_IDS` | add only if the web's `VITE_GOOGLE_CLIENT_ID` differs from `GOOGLE_CLIENT_ID` (today they are the same) | Google sign-in accepts only tokens issued to the listed ids |
-| `NIXPACKS_NODE_VERSION`, `LOGIN_BYPASS_KEY`, `GOOGLE_CALENDAR_API_KEY` | can go | unused (the image brings Node 22; the bypass sign-in never exists in production) |
+| `NIXPACKS_NODE_VERSION`, `LOGIN_BYPASS_KEY`, `GOOGLE_CALENDAR_API_KEY`, `GOOGLE_CALENDAR_ID` | can go | unused (the image brings Node 22; the bypass sign-in never exists in production) |
 | `SMTP_*` | can go | nothing sends mail, and the API no longer reads them |
 | `APP_ENV` | leave unset | unset means production; `staging` or `development` allow the test sign-in routes |
 | `SENTRY_DSN`, `DB_STATEMENT_TIMEOUT_MS` | optional | error monitoring; a stuck database statement is cancelled after 15 s by default |
@@ -113,7 +115,9 @@ compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy
      owner has read everything in it; each Welfare member (`curhatadmin`) has read everything except a member's
      messages with no reply after them, so the rooms still waiting for an answer stay unread. Only adds rows;
    - 0030: the PIXEL form's name and NIM questions prefill (matched by the form's slug; every question keeps its
-     place).
+     place);
+   - 0031: the Google calendars of the 2024 and 2025 angkatan (IF and STI), and the STI elective calendar renamed to
+     the code the app looks for, so adding an event for those courses stops failing. Only adds missing rows.
 
    They only add things, and today's app keeps working on the migrated database: it ignores the new columns, the
    read marks and the prefill key.
