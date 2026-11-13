@@ -84,23 +84,26 @@ export function markRoomRead(qc: QueryClient, chatroomId: string) {
 }
 
 /**
- * A message arrived over the socket: into its room, and counted unless you sent it (the open room then reads it). A
- * read of the rooms or counts on its way may have been answered before the message was saved, and would put the
- * older list back when it lands, so it is made again (it restarts, keeping what is on screen meanwhile).
+ * Reads again from the server, dropping a read still on its way: that one started before whatever called for this,
+ * so its answer would be older than what the screen shows. Invalidating alone would wait for a first read instead.
  */
+export function readAgain(qc: QueryClient, filters: QueryFilters) {
+  void qc.cancelQueries(filters).then(() => qc.invalidateQueries(filters));
+}
+
+/** A message arrived over the socket: into its room, and counted unless you sent it (the open room then reads it). */
 export function receiveMessage(qc: QueryClient, message: ChatroomMessage) {
-  const again = (filters: QueryFilters) => {
-    if (qc.isFetching(filters)) void qc.invalidateQueries(filters);
-  };
-  if (!putMessage(qc, message)) {
-    // A room this screen doesn't know yet: fetch the rooms again.
-    void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
-  } else again({ queryKey: ROOMS_KEY, exact: true });
+  const known = putMessage(qc, message);
+  // The server saved the message before sending it, so a read started now holds it and one started earlier may not:
+  // a read on its way is dropped and made again. A room this screen doesn't know yet is read for, too.
+  const rooms = { queryKey: ROOMS_KEY, exact: true };
+  if (!known || qc.isFetching(rooms) > 0) readAgain(qc, rooms);
+  if (qc.isFetching({ queryKey: UNREAD_KEY }) > 0)
+    readAgain(qc, { queryKey: UNREAD_KEY });
   if (message.isSender) return;
   qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
     addUnread(rows, message.chatroomId),
   );
-  again({ queryKey: UNREAD_KEY });
 }
 
 export const useCreateRoom = () =>

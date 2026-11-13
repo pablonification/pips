@@ -12,6 +12,7 @@ import {
   eventCategoriesFor,
   type Capability,
 } from '../src/lib/capabilities';
+import { ROUTE_ACCESS } from '../../api/src/lib/route-access';
 
 const api = (file: string) =>
   fs.readFileSync(
@@ -22,38 +23,55 @@ const list = (source: string) =>
   [...source.matchAll(/'([a-z0-9]+)'/g)].map((m) => m[1]).sort();
 const constant = (source: string, name: string) =>
   list(new RegExp(`${name}\\s*=\\s*\\[([^\\]]*)\\]`).exec(source)![1]);
-const middlewareRoles = (source: string) => [
-  ...new Set(
-    [...source.matchAll(/roleMiddleware\(\[([^\]]*)\][,)]/g)].map((m) =>
-      list(m[1]).join(','),
-    ),
-  ),
-];
+/** The roles the API's route table (apps/api/src/lib/route-access.ts) gives `routes`; they must agree. */
+const routeRoles = (...routes: string[]) => {
+  const sets = routes.map((route) => {
+    const who = ROUTE_ACCESS[route]?.who;
+    assert.ok(Array.isArray(who), `${route} is for named roles in the API`);
+    return [...who].sort().join(',');
+  });
+  assert.equal(new Set(sets).size, 1, `${routes.join(', ')} use one role set`);
+  return sets[0].split(',');
+};
 
-// The map mirrors the server: each row is read back from the API's own source, so a change there fails here.
+// The map mirrors the server: each row is read from the API's route table (its tests check the table with requests)
+// or from its own source, so a change there fails here.
 const SERVER: Record<Capability, () => string[]> = {
-  createCompetition: () => {
-    const sets = middlewareRoles(api('controllers/competitions.controller.ts'));
-    assert.equal(sets.length, 1, 'competitions use one role set');
-    return sets[0].split(',');
-  },
-  manageCompetition: () => {
-    const sets = middlewareRoles(api('controllers/competitions.controller.ts'));
-    assert.equal(sets.length, 1, 'add, change and delete use one role set');
-    return sets[0].split(',');
-  },
-  createTestimonial: () =>
-    middlewareRoles(api('controllers/testimoni.controller.ts'))[0].split(','),
-  broadcastPush: () =>
-    middlewareRoles(api('controllers/push.controller.ts'))[0].split(','),
+  createCompetition: () => routeRoles('POST /api/competitions'),
+  manageCompetition: () =>
+    routeRoles(
+      'POST /api/competitions',
+      'PUT /api/competitions/{id}',
+      'DELETE /api/competitions/{competitionId}',
+    ),
+  createTestimonial: () => routeRoles('POST /api/testimoni'),
+  broadcastPush: () => routeRoles('POST /api/push/broadcast'),
   liveCounting: () =>
-    constant(api('controllers/form.controller.ts'), 'FORM_ADMIN_ROLES'),
+    routeRoles(
+      'GET /api/form/admin/list',
+      'GET /api/form/{formId}/responses',
+      'GET /api/form/{formId}/responses/count',
+      'GET /api/form/{formId}/analytics',
+    ),
   spartaData: () =>
-    constant(api('controllers/internship.controller.ts'), 'SPARTA_ADMIN_ROLES'),
+    routeRoles(
+      'GET /api/internship/submissions',
+      'GET /api/internship/submissions/{id}',
+      'POST /api/internship/departments',
+      'PUT /api/internship/departments/{id}',
+      'DELETE /api/internship/departments/{id}',
+      'POST /api/internship/divisions',
+      'PUT /api/internship/divisions/{id}',
+      'DELETE /api/internship/divisions/{id}',
+    ),
   moderateContent: () =>
     constant(api('lib/authorization.ts'), 'CONTENT_MODERATOR_ROLES'),
   editCourseCatalog: () =>
-    constant(api('lib/authorization.ts'), 'COURSE_CATALOG_MANAGER_ROLES'),
+    routeRoles(
+      'POST /api/course',
+      'PUT /api/course/{courseId}',
+      'DELETE /api/course/{courseId}',
+    ),
   createAkademikEvent: () => {
     const src = api('controllers/calendar.controller.ts');
     assert.match(
@@ -77,6 +95,9 @@ const SERVER: Record<Capability, () => string[]> = {
       /roles\.includes\(CURHAT_ADMIN_ROLE\)/,
     );
     assert.match(api('lib/curhat.ts'), /roles\.includes\(CURHAT_ADMIN_ROLE\)/);
+    assert.deepEqual(routeRoles('PUT /api/curhat/chatroom/{chatroomId}/pin'), [
+      role,
+    ]);
     return [role];
   },
 };

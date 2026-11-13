@@ -1,6 +1,4 @@
-import { wibMonthYear } from './wib';
-
-const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+import { WIB_OFFSET_MS, wibMonthYear } from './wib';
 
 /**
  * Events that start in `month` (1–12) of `year` in WIB, earliest first. The month is read in WIB, not the server's

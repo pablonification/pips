@@ -920,7 +920,7 @@ test.describe('Welfare’s replies', () => {
         ),
       )
       .toBe(true);
-    // Saved, then relayed, as the server does: a read of the rooms on its way is made again and must find it.
+    // As the server does: saved first, then sent.
     db.chatrooms.r1.messages = [
       { ...welfare('m9', 'r1', text), fromOwner: false },
       ...db.chatrooms.r1.messages!,
@@ -935,6 +935,48 @@ test.describe('Welfare’s replies', () => {
     await expect
       .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
       .toHaveLength(2);
+  });
+
+  // A rooms read that started before the reply was saved answers without it, after the reply is on screen.
+  test('regression: a reply that arrives while the rooms are being read stays on screen', async ({
+    page,
+    api,
+    db,
+  }) => {
+    canRead(api);
+    // The read that follows the connection takes the rooms as they are then, and answers only once released.
+    let reads = 0;
+    let answer: () => void = () => undefined;
+    const answered = new Promise<void>((r) => (answer = r));
+    api.on('GET /api/curhat/chatrooms', async ({ db }) => {
+      if (++reads !== 2) return db.chatrooms;
+      const before = JSON.parse(
+        JSON.stringify(db.chatrooms),
+      ) as typeof db.chatrooms;
+      await answered;
+      return before;
+    });
+    await openR1(page);
+    await expect.poll(() => reads).toBe(2);
+    const text = 'Siap, aku kirim draf jadwalnya malam ini ya.';
+    db.chatrooms.r1.messages = [
+      { ...welfare('m9', 'r1', text), fromOwner: false },
+      ...db.chatrooms.r1.messages!,
+    ];
+    expect(
+      api.socket.emit('reply', welfare('m9', 'r1', text), (s) =>
+        s.rooms.has('r1'),
+      ),
+    ).toBe(1);
+    await expect(bubble(page, text)).toBeVisible();
+    answer();
+    // A request made after the older answer was released comes back after it: by then the page has that answer.
+    await page.evaluate(() =>
+      fetch('/api/curhat/chatrooms/unread', { credentials: 'include' }).then(
+        (r) => r.text(),
+      ),
+    );
+    await expect(bubble(page, text)).toHaveCount(1);
   });
 
   // The server sends a connection nothing saved before it joined the room, and the room was read before that.
@@ -1026,13 +1068,13 @@ test.describe('Welfare’s replies', () => {
     await expect
       .poll(() => [...api.socket.sessions.values()].some((s) => s.connected))
       .toBe(true);
-    const message = welfare('m9', 'r2', 'Gimana kabarnya minggu ini?');
-    // Saved, then relayed, as the server does: a read on its way is made again and must find it.
+    // As the server does: saved first, then sent.
+    const reply = welfare('m9', 'r2', 'Gimana kabarnya minggu ini?');
     db.chatrooms.r2.messages = [
-      { ...message, fromOwner: false },
-      ...db.chatrooms.r2.messages!,
+      { ...reply, fromOwner: false },
+      ...(db.chatrooms.r2.messages ?? []),
     ];
-    api.socket.emit('reply', message, (s) => s.rooms.has('r2'));
+    api.socket.emit('reply', reply, (s) => s.rooms.has('r2'));
     await expect(roomLinks(page).first()).toHaveAccessibleName(
       'Amber Heron , 1 pesan baru Welfare: Gimana kabarnya minggu ini? 13.35',
     );

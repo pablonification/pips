@@ -893,7 +893,7 @@ test.describe('a room', () => {
       .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
       .toHaveLength(1);
     const text = 'Boleh kak, makasih banyak.';
-    // Saved, then relayed, as the server does: a read of the rooms on its way is made again and must find it.
+    // As the server does: saved first, then sent.
     db.chatrooms.r1.messages = [
       fromMember('m-live', 'r1', text),
       ...db.chatrooms.r1.messages!,
@@ -1004,10 +1004,16 @@ test.describe('live', () => {
   test('a member’s message reaches the list: the room moves up with its preview and count', async ({
     page,
     api,
+    db,
   }) => {
     await openInbox(page);
     await socketReady(api);
     const text = 'Kak, aku mau cerita lagi.';
+    // As the server does: saved first, then sent.
+    db.chatrooms.r2.messages = [
+      fromMember('m-r2', 'r2', text),
+      ...(db.chatrooms.r2.messages ?? []),
+    ];
     api.socket.emit('reply', fromMember('m-r2', 'r2', text), (s) =>
       s.rooms.has('r2'),
     );

@@ -298,7 +298,7 @@ if (isDevLoginEnabled(env) && devLoginEmail && devLoginPasswordHash) {
     const secure =
       new URL(c.req.url).protocol === 'https:' ||
       c.req.header('x-forwarded-proto') === 'https';
-    setCookie(c, 'hmif-app.access-cookie', await generateJWT(payload), {
+    setCookie(c, SESSION_COOKIE, await generateJWT(payload), {
       path: '/',
       secure,
       httpOnly: true,

@@ -23,6 +23,8 @@ function extractTokenFromCookie(
   cookieHeader: string | undefined,
 ): string | undefined {
   if (!cookieHeader) return undefined;
+  // SESSION_COOKIE's value, written out: lib/session-cookie.ts reads the settings when loaded, and the socket tests
+  // load this file before they set them.
   const prefix = 'hmif-app.access-cookie=';
   const raw = cookieHeader
     .split(';')

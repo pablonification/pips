@@ -135,6 +135,7 @@ for (const r of PAGES)
     test.describe(`${r.id} run ${run}`, () => {
       test.use({ persona: r.persona });
       test(`${r.id}, run ${run}`, async ({ page, api }, testInfo) => {
+        // Runs only on the qa-perf project, which applies the lab throttling.
         test.skip(testInfo.project.name !== 'qa-perf', 'qa-perf');
         // Opening a post marks it read.
         api.on('POST /api/info/:infoId/read', writes.markRead);

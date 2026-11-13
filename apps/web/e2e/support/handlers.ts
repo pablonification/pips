@@ -32,7 +32,7 @@ import { reply, type Handler } from './mock';
 
 const PAGE = 10;
 /** What a generated client method resolves to: `ok<R<InfoService['getListInfo']>>(...)` type-checks a response. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- matches any generated client method
 type R<F extends (...args: any[]) => unknown> = Awaited<ReturnType<F>>;
 const ok = <T>(value: T): T => value;
 const signedIn: (h: Handler) => Handler = (h) => (req) =>
