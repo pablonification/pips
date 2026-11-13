@@ -154,18 +154,9 @@ function Thread({ roomId, onGone }: { roomId: string; onGone: () => void }) {
   const field = useRef<HTMLTextAreaElement | null>(null);
   const focusField = () => requestAnimationFrame(() => field.current?.focus());
 
-  // The open room: Welfare's replies here are read at once instead of counted.
-  useEffect(() => {
-    if (!client) return;
-    client.openRoom = roomId;
-    return () => {
-      if (client.openRoom === roomId) client.openRoom = null;
-    };
-  }, [client, roomId]);
-
-  // Opening it reads it: its count goes here, on the list, on Beranda and in Layanan. A message that a read of the
-  // rooms brings in while it is open is read too (one over the socket is read as it arrives). It is read again only
-  // for a newer message, so a mark that fails doesn't repeat.
+  // Opening it reads it: its count goes here, on the list, on Beranda and in Layanan. A newer message counted while it
+  // is open, over the socket or by a read of the rooms, is read at once. It is read again only for a newer message,
+  // so a mark that fails doesn't repeat, nor does a count that was read before the last mark.
   const readUpTo = useRef<string | null | undefined>(undefined);
   const newest = room.messages?.[0]?.id ?? null;
   const unreadHere = unread.byRoom[roomId] ?? 0;

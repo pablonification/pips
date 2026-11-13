@@ -87,8 +87,6 @@ export class CurhatClient {
   private serverEnds = 0;
   private connectedAt = 0;
   private cancelReconnect: (() => void) | null = null;
-  /** The room on screen: its Welfare replies are read at once instead of counted. */
-  openRoom: string | null = null;
 
   constructor(
     private readonly socket: SocketLike,

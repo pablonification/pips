@@ -1045,22 +1045,31 @@ test.describe('Welfare’s replies', () => {
     api,
     db,
   }) => {
+    // The connection waits until the list's first reads have landed; the reads it then makes are held.
+    api.socket.hold();
+    let holding = false;
     let release: () => void = () => undefined;
     const released = new Promise<void>((r) => (release = r));
-    const reads = { rooms: 0, counts: 0 };
-    const holdSecond = (route: keyof typeof reads, path: string) => {
+    const held = { rooms: 0, counts: 0 };
+    const holdOnceConnected = (route: keyof typeof held, path: string) => {
       const answer = defaultHandlers[path];
       api.on(path, async (ctx) => {
         const now = answer(ctx);
-        if (++reads[route] === 2) await released;
+        if (holding) {
+          held[route]++;
+          await released;
+        }
         return now;
       });
     };
-    holdSecond('rooms', 'GET /api/curhat/chatrooms');
-    holdSecond('counts', 'GET /api/curhat/chatrooms/unread');
+    holdOnceConnected('rooms', 'GET /api/curhat/chatrooms');
+    holdOnceConnected('counts', 'GET /api/curhat/chatrooms/unread');
     await page.goto('/layanan/curhat');
-    await expect(row(page, 'Amber Heron')).toBeVisible();
-    await expect.poll(() => [reads.rooms, reads.counts]).toEqual([2, 2]);
+    await expect(row(page, 'Teal Koala')).toHaveAccessibleName(/1 pesan baru/);
+    await expect.poll(() => api.socket.heldHandshakes).toBe(1);
+    holding = true;
+    api.socket.release();
+    await expect.poll(() => [held.rooms, held.counts]).toEqual([1, 1]);
     const text = 'Gimana kabarnya minggu ini?';
     db.chatrooms.r2.messages = [
       { ...welfare('m9', 'r2', text), fromOwner: false },
@@ -1073,8 +1082,15 @@ test.describe('Welfare’s replies', () => {
     ).toBe(1);
     const fresh = `Amber Heron , 1 pesan baru Welfare: ${text} 13.35`;
     await expect(roomLinks(page).first()).toHaveAccessibleName(fresh);
+    holding = false;
     release();
-    await expect.poll(() => [reads.rooms, reads.counts]).toEqual([3, 3]);
+    // Read again: the held answers lack the reply, so only a read made after it shows it.
+    await expect
+      .poll(() => api.calls('GET /api/curhat/chatrooms/unread').length)
+      .toBe(3);
+    await expect
+      .poll(() => api.calls('GET /api/curhat/chatrooms').length)
+      .toBe(3);
     await expect(roomLinks(page).first()).toHaveAccessibleName(fresh);
   });
 });

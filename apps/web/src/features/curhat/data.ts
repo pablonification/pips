@@ -84,15 +84,11 @@ export function markRoomRead(qc: QueryClient, chatroomId: string) {
 }
 
 /**
- * A message arrived over the socket: into its room; counted unless that room is open, where it's read at once. A
+ * A message arrived over the socket: into its room, and counted unless you sent it (the open room then reads it). A
  * read of the rooms or counts on its way may have been answered before the message was saved, and would put the
  * older list back when it lands, so it is made again (it restarts, keeping what is on screen meanwhile).
  */
-export function receiveMessage(
-  qc: QueryClient,
-  client: Pick<CurhatClient, 'openRoom'>,
-  message: ChatroomMessage,
-) {
+export function receiveMessage(qc: QueryClient, message: ChatroomMessage) {
   const again = (filters: QueryFilters) => {
     if (qc.isFetching(filters)) void qc.invalidateQueries(filters);
   };
@@ -101,14 +97,10 @@ export function receiveMessage(
     void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
   } else again({ queryKey: ROOMS_KEY, exact: true });
   if (message.isSender) return;
-  if (client.openRoom === message.chatroomId)
-    void markRoomRead(qc, message.chatroomId);
-  else {
-    qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
-      addUnread(rows, message.chatroomId),
-    );
-    again({ queryKey: UNREAD_KEY });
-  }
+  qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
+    addUnread(rows, message.chatroomId),
+  );
+  again({ queryKey: UNREAD_KEY });
 }
 
 export const useCreateRoom = () =>
