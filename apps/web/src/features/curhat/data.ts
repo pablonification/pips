@@ -4,7 +4,12 @@
  * "Balasan baru dari Welfare" and Layanan's count read. None of it is written to the device: CHATROOMS_QUERY_KEY isn't
  * on the persisted list (src/api/persistence-policy.ts; tests/curhat-rules.test.ts).
  */
-import { useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  type QueryClient,
+  type QueryFilters,
+} from '@tanstack/react-query';
 import { createContext, useContext, useSyncExternalStore } from 'react';
 import { api } from '~/api/client';
 import type { Chatroom, ChatroomMessage, ListChatroom } from '~/api/generated';
@@ -79,16 +84,27 @@ export function markRoomRead(qc: QueryClient, chatroomId: string) {
     .finally(() => void qc.invalidateQueries({ queryKey: CURHAT_UNREAD_KEY }));
 }
 
+/**
+ * Reads again from the server, dropping a read still on its way: that one started before whatever called for this,
+ * so its answer would be older than what the screen shows. Invalidating alone would wait for a first read instead.
+ */
+export function readAgain(qc: QueryClient, filters: QueryFilters) {
+  void qc.cancelQueries(filters).then(() => qc.invalidateQueries(filters));
+}
+
 /** A message arrived over the socket: into its room; counted unless that room is open, where it's read at once. */
 export function receiveMessage(
   qc: QueryClient,
   client: Pick<CurhatClient, 'openRoom'>,
   message: ChatroomMessage,
 ) {
-  if (!putMessage(qc, message)) {
-    // A room this screen doesn't know yet: fetch the rooms again.
-    void qc.invalidateQueries({ queryKey: ROOMS_KEY, exact: true });
-  }
+  const known = putMessage(qc, message);
+  // The server saved the message before sending it, so a read started now holds it and one started earlier may not:
+  // a read on its way is dropped and made again. A room this screen doesn't know yet is read for, too.
+  const rooms = { queryKey: ROOMS_KEY, exact: true };
+  if (!known || qc.isFetching(rooms) > 0) readAgain(qc, rooms);
+  if (qc.isFetching({ queryKey: CURHAT_UNREAD_KEY }) > 0)
+    readAgain(qc, { queryKey: CURHAT_UNREAD_KEY });
   if (message.isSender) return;
   if (client.openRoom === message.chatroomId)
     void markRoomRead(qc, message.chatroomId);
