@@ -3,7 +3,7 @@ import { DeskHead, PageBody } from '~/components/shell/page';
 import { common } from '~/copy/common';
 import useSession from '~/hooks/auth/useSession';
 import { ServiceRow } from '../layanan/ServiceRow';
-import { kelolaServices } from './rules';
+import { kelolaServices } from './access';
 
 /**
  * Kelola: the registry's Kelola rows this member may use, in its order, with Layanan's own row (tile, name,

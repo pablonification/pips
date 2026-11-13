@@ -456,6 +456,8 @@ test.describe('signed out, with something shared to PIPS!', () => {
     api,
   }) => {
     await fakeGoogle(page.context());
+    // The device has notifications on, so opening the app signed out unlinks it.
+    api.on('PUT /api/push/logout', writes.logoutPush);
     // On a slow device Buat's screen can start before its route's enter hook, which then emptied what the screen had
     // just filled in. A slowed CPU makes that order likely.
     const cdp = await page.context().newCDPSession(page);
@@ -501,6 +503,7 @@ test.describe('a device with notifications on', () => {
     page,
     api,
   }) => {
+    api.on('PUT /api/push/logout', writes.logoutPush);
     api.on('GET /api/me', reply.status(401, { error: 'Unauthorized' }));
     await page.goto('/');
     await expect(page).toHaveURL(/\/login(\?|$)/);

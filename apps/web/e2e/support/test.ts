@@ -30,7 +30,7 @@ import {
 } from '../fixtures/api';
 import { ApiMock } from './mock';
 import { installPushStub, type PushMode } from './push';
-import { logoutPush, registerPush } from './writes';
+import { registerPush } from './writes';
 
 export interface HarnessOptions {
   persona: PersonaKey | null;
@@ -117,11 +117,11 @@ export const test = base.extend<HarnessOptions & { db: Db; api: ApiMock }>({
     async ({ context, db, baseURL, push, persona }, use, testInfo) => {
       const api = new ApiMock(db, baseURL!);
       await api.install(context);
-      // A device with notifications on tells the server about its subscription at every start, and unlinks it
-      // when the session has ended; a test's own handlers still come first.
+      // A device with notifications on tells the server about its subscription at every start; a test's own
+      // handlers still come first. Unlinking is not answered here: a journey that expects one registers
+      // `PUT /api/push/logout` itself, so an unlink nobody expected fails as an unanswered request.
       if ((push ?? (persona === 'pengurus' ? 'on' : 'off')) === 'on') {
         api.on('POST /api/push/register', registerPush);
-        api.on('PUT /api/push/logout', logoutPush);
       }
       await use(api);
       api.close();

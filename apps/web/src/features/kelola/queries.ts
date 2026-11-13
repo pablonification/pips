@@ -11,7 +11,7 @@ import {
   LATEST_COUNT,
   REKAP_PAGE_SIZE,
   type KelolaPage,
-} from './rules';
+} from './access';
 
 /*
  * Kelola's data. Admin data isn't kept on the device (only the list of persisted queries is), so a reload offline
