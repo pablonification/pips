@@ -70,7 +70,8 @@ pnpm --filter api db:migrations          # write a migration after a schema.ts c
   every journey that reaches it fails: a request nobody answered fails the test.
 - **Never run the whole journey suite on your machine.** It takes over an hour; CI runs it. Run the file you changed.
 - **Screenshot references are per platform** (`*-darwin.png`, `*-linux.png`). CI records the Linux ones.
-- **A role check lives in the API first**, then is mirrored in `capabilities.ts`. A route with no check is open to every member.
+- **A role check lives in the API first**, then is mirrored in `capabilities.ts`. A route with no check is open to
+  every member; `apps/api/src/lib/route-access.ts` lists who may call each route, and a test fails on one not listed.
 - **Copying `apps/api/.env.example` is a development setup.** Never put a real secret in a file Git tracks.
 
 ## Before you call it done

@@ -18,7 +18,7 @@ export interface PushData {
       icon?: string;
     }>;
     badge?: string;
-    data?: any;
+    data?: any; // whatever the service worker reads back from the notification
     body?: string;
     icon?: string;
     image?: string;
