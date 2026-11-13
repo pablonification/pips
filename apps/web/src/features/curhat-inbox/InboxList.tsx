@@ -24,7 +24,7 @@ import { curhat as c } from '~/copy/curhat';
 import { kelolaCurhat as t } from '~/copy/kelola-curhat';
 import { serviceById } from '~/lib/services';
 import { useCurhatUnread, useRooms } from '~/features/curhat/data';
-import { ConnectionBanner, useDelayed } from '~/features/curhat/List';
+import { ConnectionBanner } from '~/features/curhat/List';
 import {
   listTime,
   roomInitials,
@@ -33,6 +33,7 @@ import {
 } from '~/features/curhat/rules';
 import { PinMenu } from './PinMenu';
 import { inboxPreview, inboxView, type InboxFilter } from './rules';
+import { useDelayed } from '~/hooks/useDelayed';
 
 function InboxRow({ room, unread }: { room: Chatroom; unread: number }) {
   const name = roomName(room.title);

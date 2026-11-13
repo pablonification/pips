@@ -11,8 +11,9 @@ import { fill } from '~/copy/fill';
 import { kelolaCurhat as t } from '~/copy/kelola-curhat';
 import { useRoleLoss } from '~/features/kelola/KelolaGate';
 import { roomName } from '~/features/curhat/rules';
-import { setPinned, statusOf, usePinRoom } from './data';
+import { setPinned, usePinRoom } from './data';
 import { writeFailure } from './rules';
+import { statusOf } from '~/api/client';
 
 export function PinMenu({
   room,

@@ -50,7 +50,8 @@ import {
   semesterLabel,
   totalSks,
 } from './rules';
-import { jamWib, useOnline } from './useOnline';
+import { jamWib } from '~/lib/dates';
+import { useOnline } from '~/hooks/useOnline';
 
 /**
  * The member card: status, name, NIM, programme and angkatan, the logo. PIPS!'s halftone runs across the lower right,

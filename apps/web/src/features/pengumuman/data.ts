@@ -11,7 +11,7 @@ import {
   type InfiniteData,
   type QueryClient,
 } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import { api, statusOf } from '~/api/client';
 import {
   ANGKATAN_QUERY_KEY,
   CATEGORIES_QUERY_KEY,
@@ -19,7 +19,6 @@ import {
   INFO_QUERY_KEY,
 } from '~/api/constants';
 import {
-  ApiError,
   type CommentWithReactions,
   type Info,
   type ReactionAggregate,
@@ -40,9 +39,6 @@ import {
 } from './rules';
 import { UNREAD_KEY } from './unread';
 import { keepUnsent } from '~/lib/unsent-text';
-
-export const statusOf = (e: unknown) =>
-  e instanceof ApiError ? e.status : undefined;
 
 type Feed = InfiniteData<Info[], number>;
 

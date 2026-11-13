@@ -4,11 +4,8 @@
  */
 import { useMutation, type QueryClient } from '@tanstack/react-query';
 import { api } from '~/api/client';
-import { ApiError, type ListChatroom } from '~/api/generated';
+import { type ListChatroom } from '~/api/generated';
 import { ROOMS_KEY } from '~/features/curhat/data';
-
-export const statusOf = (e: unknown) =>
-  e instanceof ApiError ? e.status : undefined;
 
 /** `PUT /curhat/chatroom/{chatroomId}/pin`: pin or unpin a room for yourself (Welfare only; 401 for anyone else). */
 export const usePinRoom = () =>

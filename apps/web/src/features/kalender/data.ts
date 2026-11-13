@@ -9,13 +9,7 @@ import {
   useQueryClient,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import { useCallback, useMemo } from 'react';
 import { api } from '~/api/client';
 import { CALENDAR_EVENTS_QUERY_KEY } from '~/api/constants';
 import { ApiError, type CalendarEvent } from '~/api/generated';
@@ -123,45 +117,4 @@ export function useEvent(
   const missing =
     !event && q.error instanceof ApiError && q.error.status === 404;
   return { event, missing, loading: !event && q.isFetching };
-}
-
-const onlineSubscribe = (cb: () => void) => {
-  window.addEventListener('online', cb);
-  window.addEventListener('offline', cb);
-  return () => {
-    window.removeEventListener('online', cb);
-    window.removeEventListener('offline', cb);
-  };
-};
-
-/** Whether the browser is online. */
-export const useOnline = () =>
-  useSyncExternalStore(
-    onlineSubscribe,
-    () => navigator.onLine,
-    () => true,
-  );
-
-/** The time now, renewed every minute, so ended events fade and "hari ini" moves at midnight. */
-export function useNow(): number {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 60_000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
-}
-
-/** After `ms`, true while `active`: skeletons appear only for a load slower than 300 ms. */
-export function useDelayed(active: boolean, ms = 300): boolean {
-  const [late, setLate] = useState(false);
-  useEffect(() => {
-    if (!active) {
-      setLate(false);
-      return;
-    }
-    const id = setTimeout(() => setLate(true), ms);
-    return () => clearTimeout(id);
-  }, [active, ms]);
-  return active && late;
 }

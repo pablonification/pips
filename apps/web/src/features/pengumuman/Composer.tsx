@@ -27,6 +27,10 @@ import { IconTutup } from '~/components/icons/tutup';
 import { keepFocusOnNavigationTo } from '~/components/shell/focus';
 import { entryAt } from '~/components/shell/shell-state';
 import { common } from '~/copy/common';
+import {
+  MAX_INFO_ANNOUNCEMENT_LENGTH,
+  MAX_INFO_TITLE_LENGTH,
+} from '~/lib/constants';
 import { fill } from '~/copy/fill';
 import { pengumuman as t } from '~/copy/pengumuman';
 import useSession from '~/hooks/auth/useSession';
@@ -54,8 +58,6 @@ import {
   audienceKinds,
   composeBody,
   firstError,
-  MAX_BODY,
-  MAX_TITLE,
   notifyLine,
   uploadedUrls,
   uploadsBlock,
@@ -217,13 +219,13 @@ function ComposeForm({
             {t.tulis.judulField} <span className="opt">{t.tulis.opsional}</span>
           </label>
           <span className="g-counter" aria-hidden="true">
-            {draft.title.length}/{MAX_TITLE}
+            {draft.title.length}/{MAX_INFO_TITLE_LENGTH}
           </span>
         </div>
         <Input
           id={id('title')}
           name="title"
-          maxLength={MAX_TITLE}
+          maxLength={MAX_INFO_TITLE_LENGTH}
           value={draft.title}
           autoComplete="off"
           data-compose-title=""
@@ -237,7 +239,7 @@ function ComposeForm({
             {t.tulis.isi}
           </label>
           <span className="g-counter" aria-hidden="true">
-            {draft.body.length}/{MAX_BODY}
+            {draft.body.length}/{MAX_INFO_ANNOUNCEMENT_LENGTH}
           </span>
         </div>
         <Textarea
@@ -245,7 +247,7 @@ function ComposeForm({
           id={id('body')}
           name="body"
           rows={5}
-          maxLength={MAX_BODY}
+          maxLength={MAX_INFO_ANNOUNCEMENT_LENGTH}
           value={draft.body}
           aria-invalid={errors.body ? true : undefined}
           aria-describedby={errors.body ? id('body-err') : undefined}

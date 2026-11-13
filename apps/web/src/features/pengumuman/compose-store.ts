@@ -4,8 +4,8 @@
  */
 import { useSyncExternalStore } from 'react';
 import {
-  MAX_INFO_ANNOUNCEMENT_LENGTH as MAX_BODY,
-  MAX_INFO_TITLE_LENGTH as MAX_TITLE,
+  MAX_INFO_ANNOUNCEMENT_LENGTH,
+  MAX_INFO_TITLE_LENGTH,
 } from '~/lib/constants';
 import { getSharedData } from '~/lib/share-db';
 import { keepUnsent, readUnsent } from '~/lib/unsent-text';
@@ -73,8 +73,8 @@ function keptDraft(): KeptDraft | null {
     if (!Array.isArray(aud) || !aud.every((a) => typeof a === 'string'))
       return null;
     return {
-      title: title.slice(0, MAX_TITLE),
-      body: body.slice(0, MAX_BODY),
+      title: title.slice(0, MAX_INFO_TITLE_LENGTH),
+      body: body.slice(0, MAX_INFO_ANNOUNCEMENT_LENGTH),
       audType: audType as AudienceKind,
       aud,
     };
@@ -193,8 +193,8 @@ export function takeShared() {
       if (!shared || mine !== opening) return;
       const body = [shared.text, shared.url].filter(Boolean).join('\n');
       patchDraft({
-        title: (shared.title ?? '').slice(0, MAX_TITLE),
-        body: body.slice(0, MAX_BODY),
+        title: (shared.title ?? '').slice(0, MAX_INFO_TITLE_LENGTH),
+        body: body.slice(0, MAX_INFO_ANNOUNCEMENT_LENGTH),
       });
       if (shared.images?.length)
         addPhotos(

@@ -21,7 +21,7 @@ import { fill } from '~/copy/fill';
 import { pengumuman as t } from '~/copy/pengumuman';
 import useSession from '~/hooks/auth/useSession';
 import { hm } from '~/lib/dates';
-import { useDeleteInfo, useMarkRead, useRenotify, statusOf } from './data';
+import { useDeleteInfo, useMarkRead, useRenotify } from './data';
 import {
   audienceWords,
   canRenotify,
@@ -32,8 +32,9 @@ import {
   renotifyHint,
   type FeedView,
 } from './rules';
-import { useNow } from './useNow';
+import { useNow } from '~/hooks/useNow';
 import { focusSoon } from './view';
+import { statusOf } from '~/api/client';
 
 export function PostMenu({
   info,
@@ -46,7 +47,7 @@ export function PostMenu({
   size?: 'sm' | 'md';
 }) {
   const me = useSession();
-  const now = useNow();
+  const now = useNow(30_000);
   const model = menuModel(info, me);
   const mark = useMarkRead();
   const renotify = useRenotify();

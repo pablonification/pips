@@ -2,7 +2,7 @@
  * Calendar days in WIB, as `YYYY-MM-DD` keys whatever the device's time zone. A key names a day; `dayStart` is its first
  * instant (00.00 WIB). Shared by Beranda, Kalender and search; the words for a day are in `./dates`.
  */
-import { wib } from './dates';
+import { WIB_OFFSET_MS, wib } from './dates';
 
 /** A day in WIB: `2026-10-08`. */
 export type DayKey = string;
@@ -13,7 +13,6 @@ export interface Month {
   month: number;
 }
 
-const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const pad = (n: number) => String(n).padStart(2, '0');
 

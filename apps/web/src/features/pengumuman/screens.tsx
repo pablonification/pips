@@ -26,12 +26,12 @@ import { PageBody, PageTitle } from '~/components/shell/page';
 import { pengumuman as t } from '~/copy/pengumuman';
 import { useFeed, useInfo, useMarkRead } from './data';
 import { FeedPanel } from './FeedPanel';
-import { useDelayed } from './parts';
 import { PostDetail } from './PostDetail';
 import { ComposeDialog, ComposePage } from './Composer';
 import { canonicalView, hiddenByFilter, type FeedView } from './rules';
 import { focusSoon, takeWantComment, useFeedView } from './view';
 import './pengumuman.css';
+import { useDelayed } from '~/hooks/useDelayed';
 
 const POST_ROUTE = '/_app/_left-navbar/pengumuman/$id/' as const;
 

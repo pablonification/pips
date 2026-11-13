@@ -21,7 +21,6 @@ import { IconLanjut } from '~/components/icons/lanjut';
 import { DeskHead, PageBody } from '~/components/shell/page';
 import { fill } from '~/copy/fill';
 import { kelola as copy } from '~/copy/kelola';
-import { useOnline } from '~/features/profil/useOnline';
 import { clockWhen } from '~/lib/form/format';
 import { serviceById } from '~/lib/services';
 import { responsesCsv } from './csv';
@@ -35,6 +34,7 @@ import {
 } from './queries';
 import { formIsOpen, liveTotal, plaqueLine, questionBars } from './rules';
 import { useFormLive } from './useFormLive';
+import { useOnline } from '~/hooks/useOnline';
 
 /**
  * Live Counting: the plaque (live square and the form's title, the count, the last response's time), Pengisi terbaru
