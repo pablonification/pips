@@ -348,6 +348,9 @@ test.describe('who gets in', () => {
     db,
   }) => {
     await openR1(page, api);
+    // The page's own session check waits for the device's cache to load, so on a slow machine it can come after the
+    // room and its connection. The role goes once it is answered; before, the check alone would send Raka on.
+    await expect.poll(() => api.calls('GET /api/me').length).toBeGreaterThan(0);
     db.me!.roles = db.me!.roles.filter((r) => r !== 'curhatadmin');
     api.socket.answer('message', () => ({ ok: false, error: 'forbidden' }));
     await composer(page).fill(REPLY);
