@@ -3,7 +3,6 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useSyncExternalStore } from 'react';
 import { api } from '~/api/client';
 import { FORM_QUERY_KEY } from '~/api/constants';
 import { ApiError, type FormResponse } from '~/api/generated';
@@ -71,22 +70,4 @@ export function useSendForm(formId: string) {
     refresh: () =>
       queryClient.invalidateQueries({ queryKey: [FORM_QUERY_KEY] }),
   };
-}
-
-function subscribeOnline(onChange: () => void) {
-  window.addEventListener('online', onChange);
-  window.addEventListener('offline', onChange);
-  return () => {
-    window.removeEventListener('online', onChange);
-    window.removeEventListener('offline', onChange);
-  };
-}
-
-/** Whether the device says it is online. */
-export function useOnline(): boolean {
-  return useSyncExternalStore(
-    subscribeOnline,
-    () => navigator.onLine,
-    () => true,
-  );
 }

@@ -7,7 +7,7 @@
 import { fill } from '~/copy/fill';
 import { tanggal } from '~/copy/tanggal';
 
-const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+export const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const { hari, hariPendek, bulan, bulanPendek } = tanggal;
@@ -36,6 +36,18 @@ const pad = (n: number) => String(n).padStart(2, '0');
 export function hm(d: DateLike) {
   const w = wib(d);
   return `${pad(w.hours)}.${pad(w.minutes)}`;
+}
+
+/** "12.30", formatted by the browser in the Asia/Jakarta zone: the "diperbarui" time of an offline banner. */
+export function jamWib(ms: number) {
+  return new Intl.DateTimeFormat('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Jakarta',
+  })
+    .format(new Date(ms))
+    .replace(':', '.');
 }
 
 /** "Kamis, 8 Oktober" */

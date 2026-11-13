@@ -28,7 +28,8 @@ import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
 import { profil } from '~/copy/profil';
 import { semesterLabel, totalSks } from './rules';
-import { jamWib, useOnline } from './useOnline';
+import { jamWib } from '~/lib/dates';
+import { useOnline } from '~/hooks/useOnline';
 
 const copy = profil.matkul;
 

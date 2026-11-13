@@ -43,7 +43,6 @@ import { initialsOf } from '~/lib/shell/names';
 import { readUnsent } from '~/lib/unsent-text';
 import { cn } from '~/lib/utils';
 import {
-  statusOf,
   useComments,
   useDeleteComment,
   postCommentKey,
@@ -71,8 +70,9 @@ import {
   reactionLabel,
   displayText,
 } from './rules';
-import { useNow } from './useNow';
+import { useNow } from '~/hooks/useNow';
 import { focusSoon, type FeedSearch } from './view';
+import { statusOf } from '~/api/client';
 
 const COMMENT_FIELD = 'komentar';
 
@@ -267,7 +267,7 @@ function CommentItem({
   field: RefObject<HTMLInputElement | null>;
 }) {
   const me = useSession();
-  const now = useNow();
+  const now = useNow(30_000);
   const own = comment.creatorId === me.id;
   const mayDelete = own || can(me, 'moderateContent');
   const mine = myReaction(comment.reactions);

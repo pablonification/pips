@@ -60,6 +60,7 @@ from **copy**.
 | `components/garis/`, `components/icons/` | The design system's parts and icons ([design system](design-system.md)). | `index.ts` |
 | `components/shell/` | The frame around every page: tab bar, rail, sidebar, top bar, back, global search. It imports no feature code; features register with it at start. | `AppShell.tsx` |
 | `api/` | `generated/` is the API client (never edited). `client.ts` adds a time limit. `queries.ts`, `constants.ts` hold shared requests and their keys. `persistence-policy.ts` says what stays on the device. | `client.ts`, `persistence-policy.ts` |
+| `hooks/` | The few hooks more than one feature uses: `useOnline`, `useDelayed` (a skeleton only after 300 ms), `useNow`, `useUnsentText`, the session. Look here before writing one. | `useOnline.ts` |
 | `lib/` | Rules with no screen: the service registry, the capability map, session, push, uploads, dates, the route table, old-address redirects. | `services.ts`, `capabilities.ts`, `shell/routes.ts` |
 | `copy/` | Every sentence the app shows, one file per area, and `glossary.ts`. | `common.ts`, `glossary.ts` |
 | `styles/garis/` | The design system's CSS: tokens, type, components, shell. | `tokens.css` |

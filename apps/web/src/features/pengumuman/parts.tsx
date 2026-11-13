@@ -6,7 +6,6 @@ import {
   useEffect,
   useRef,
   useState,
-  useSyncExternalStore,
   type ReactNode,
   type RefObject,
 } from 'react';
@@ -70,35 +69,6 @@ export function useElementInView(el: Element | null, once = true) {
     return () => io.disconnect();
   }, [el, once]);
   return seen;
-}
-
-const onlineSubscribe = (cb: () => void) => {
-  window.addEventListener('online', cb);
-  window.addEventListener('offline', cb);
-  return () => {
-    window.removeEventListener('online', cb);
-    window.removeEventListener('offline', cb);
-  };
-};
-export const useOnline = () =>
-  useSyncExternalStore(
-    onlineSubscribe,
-    () => navigator.onLine,
-    () => true,
-  );
-
-/** After `ms`, true: skeletons appear only for a load slower than 300 ms. */
-export function useDelayed(active: boolean, ms = 300) {
-  const [late, setLate] = useState(false);
-  useEffect(() => {
-    if (!active) {
-      setLate(false);
-      return;
-    }
-    const id = setTimeout(() => setLate(true), ms);
-    return () => clearTimeout(id);
-  }, [active, ms]);
-  return active && late;
 }
 
 /** Escape and a press outside close an inline popover (the picker); focus goes back to its trigger. */

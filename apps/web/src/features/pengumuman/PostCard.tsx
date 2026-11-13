@@ -33,7 +33,7 @@ import {
   myReaction,
   nextReaction,
 } from './rules';
-import { useNow } from './useNow';
+import { useNow } from '~/hooks/useNow';
 import { rememberCard, wantComment, type FeedSearch } from './view';
 
 function Byline({ info, now }: { info: Info; now: number }) {
@@ -75,7 +75,7 @@ export function useReactTo(info: Info) {
 }
 
 export function PostCard({ info, search }: { info: Info; search: FeedSearch }) {
-  const now = useNow();
+  const now = useNow(30_000);
   const unread = !info.isRead;
   const tid = `post-${info.id}`;
   const [picking, setPicking] = useState(false);
@@ -201,7 +201,7 @@ export function PostRow({
   search: FeedSearch;
   onOpen: (id: string) => void;
 }) {
-  const now = useNow();
+  const now = useNow(30_000);
   const unread = !info.isRead;
   return (
     <li>

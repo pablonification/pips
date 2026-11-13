@@ -3,36 +3,14 @@
  * whether the browser is online, and one way to show a list's loading, error and offline states.
  */
 import type { UseQueryResult } from '@tanstack/react-query';
-import {
-  useEffect,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { ErrorState, OfflineBanner } from '~/components/garis';
 import { IconLanjut } from '~/components/icons/lanjut';
 import { IconLuar } from '~/components/icons/luar';
 import { common } from '~/copy/common';
 import { offlineUpdatedAt } from './updated';
 import { urlEcho } from './url-text';
-
-const subscribe = (l: () => void) => {
-  window.addEventListener('online', l);
-  window.addEventListener('offline', l);
-  return () => {
-    window.removeEventListener('online', l);
-    window.removeEventListener('offline', l);
-  };
-};
-
-/** Whether the browser says it's online. */
-export function useOnline() {
-  return useSyncExternalStore(
-    subscribe,
-    () => navigator.onLine,
-    () => true,
-  );
-}
+import { useOnline } from '~/hooks/useOnline';
 
 /**
  * A search box's text that also lives in the URL (`q`), so Back and reload keep it and a link can open the page

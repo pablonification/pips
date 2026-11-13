@@ -27,6 +27,10 @@ export const api = new ApiClient(
   timedHttpRequest(),
 );
 
+/** The HTTP status of a failed request, or undefined when the error wasn't an answer from the API (no network, timeout). */
+export const statusOf = (e: unknown) =>
+  e instanceof ApiError ? e.status : undefined;
+
 // A 401 from any request asks the session check again (src/lib/session-policy.ts).
 const signedOutRecheck = createSignedOutRecheck({
   recheck: () =>

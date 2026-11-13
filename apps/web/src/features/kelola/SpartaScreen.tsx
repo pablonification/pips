@@ -31,7 +31,6 @@ import {
 import { DeskHead, PageBody } from '~/components/shell/page';
 import { fill } from '~/copy/fill';
 import { kelola as copy } from '~/copy/kelola';
-import { useOnline } from '~/features/profil/useOnline';
 import { clockWhen } from '~/lib/form/format';
 import { serviceById } from '~/lib/services';
 import { submissionsCsv } from './csv';
@@ -50,6 +49,7 @@ import {
   type SpartaFilters,
   sameItems,
 } from './rules';
+import { useOnline } from '~/hooks/useOnline';
 
 const s = copy.sparta;
 

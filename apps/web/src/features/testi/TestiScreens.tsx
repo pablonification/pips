@@ -35,7 +35,6 @@ import {
   Loaded,
   NewTab,
   useDebounced,
-  useOnline,
   useUrlText,
 } from '~/features/layanan-svc/parts';
 import { catalogueQuery, courseQuery, testimoniQuery } from './queries';
@@ -59,6 +58,7 @@ import {
   type ListKey,
   type Major,
 } from './rules';
+import { useOnline } from '~/hooks/useOnline';
 
 const startRoute = getRouteApi('/_app/_left-navbar/layanan/testi/');
 const programmeRoute = getRouteApi('/_app/_left-navbar/layanan/testi/$type/');

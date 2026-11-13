@@ -1,4 +1,5 @@
 import { userSchema } from './member-schema';
+import { ME_QUERY_KEY } from '~/api/constants';
 import { api, queryClient } from '~/api/client';
 import { clearPersistedQueries } from '~/api/persister';
 import { User, UserWithRoles } from '~/api/generated';
@@ -50,19 +51,19 @@ export function forgetMemberOnDevice({
 export function invalidateSession(user?: User | null) {
   if (user === undefined) {
     localStorage.removeItem('user');
-    queryClient.invalidateQueries({ queryKey: ['me'] });
+    queryClient.invalidateQueries({ queryKey: [ME_QUERY_KEY] });
   } else if (user === null) {
     localStorage.setItem('user', 'null');
-    queryClient.setQueryData(['me'], null);
+    queryClient.setQueryData([ME_QUERY_KEY], null);
   } else {
     localStorage.setItem('user', JSON.stringify(user));
-    queryClient.setQueryData(['me'], user);
+    queryClient.setQueryData([ME_QUERY_KEY], user);
   }
 }
 
 export function loadUserCache() {
   const queryClientUser = queryClient.getQueryData<UserWithRoles | null>([
-    'me',
+    ME_QUERY_KEY,
   ]);
   if (queryClientUser !== undefined) {
     return queryClientUser;

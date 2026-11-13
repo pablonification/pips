@@ -15,7 +15,8 @@ import { api } from '~/api/client';
 import type { Chatroom, ChatroomMessage, ListChatroom } from '~/api/generated';
 import { chatroomsQuery, curhatUnreadQuery } from '~/api/queries';
 import type { CurhatClient, CurhatClientState } from './client';
-import { ROOMS_KEY, UNREAD_KEY } from './keys';
+import { CURHAT_UNREAD_KEY } from '~/api/constants';
+import { ROOMS_KEY } from './keys';
 import {
   addUnread,
   clearUnread,
@@ -25,7 +26,7 @@ import {
   type UnreadRow,
 } from './rules';
 
-export { ROOMS_KEY, UNREAD_KEY };
+export { ROOMS_KEY };
 
 export const useRooms = () => useQuery(chatroomsQuery());
 
@@ -61,7 +62,7 @@ export function removeRoom(qc: QueryClient, chatroomId: string) {
     delete next[chatroomId];
     return next;
   });
-  qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
+  qc.setQueryData<UnreadRow[]>(CURHAT_UNREAD_KEY, (rows) =>
     rows ? clearUnread(rows, chatroomId) : rows,
   );
 }
@@ -74,13 +75,13 @@ export function addRoom(qc: QueryClient, room: Chatroom) {
 
 /** Mark a room read on the server, clearing its count at once; the counts are then fetched again. */
 export function markRoomRead(qc: QueryClient, chatroomId: string) {
-  qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
+  qc.setQueryData<UnreadRow[]>(CURHAT_UNREAD_KEY, (rows) =>
     rows ? clearUnread(rows, chatroomId) : rows,
   );
   return api.curhat
     .readChatroomMessages({ chatroomId })
     .catch(() => undefined)
-    .finally(() => void qc.invalidateQueries({ queryKey: UNREAD_KEY }));
+    .finally(() => void qc.invalidateQueries({ queryKey: CURHAT_UNREAD_KEY }));
 }
 
 /**
@@ -102,13 +103,13 @@ export function receiveMessage(
   // a read on its way is dropped and made again. A room this screen doesn't know yet is read for, too.
   const rooms = { queryKey: ROOMS_KEY, exact: true };
   if (!known || qc.isFetching(rooms) > 0) readAgain(qc, rooms);
-  if (qc.isFetching({ queryKey: UNREAD_KEY }) > 0)
-    readAgain(qc, { queryKey: UNREAD_KEY });
+  if (qc.isFetching({ queryKey: CURHAT_UNREAD_KEY }) > 0)
+    readAgain(qc, { queryKey: CURHAT_UNREAD_KEY });
   if (message.isSender) return;
   if (client.openRoom === message.chatroomId)
     void markRoomRead(qc, message.chatroomId);
   else
-    qc.setQueryData<UnreadRow[]>(UNREAD_KEY, (rows) =>
+    qc.setQueryData<UnreadRow[]>(CURHAT_UNREAD_KEY, (rows) =>
       addUnread(rows, message.chatroomId),
     );
 }

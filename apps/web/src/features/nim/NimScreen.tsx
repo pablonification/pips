@@ -17,12 +17,9 @@ import { testi } from '~/copy/testi';
 import { DEBOUNCE_TIME } from '~/lib/constants';
 import { serviceById } from '~/lib/services';
 import { initialsOf } from '~/lib/shell/names';
-import {
-  useDebounced,
-  useOnline,
-  useUrlText,
-} from '~/features/layanan-svc/parts';
+import { useDebounced, useUrlText } from '~/features/layanan-svc/parts';
 import { nimQuery, nimStatus, rankMembers, type NimPhase } from './rules';
+import { useOnline } from '~/hooks/useOnline';
 
 const route = getRouteApi('/_app/_left-navbar/layanan/nim/');
 

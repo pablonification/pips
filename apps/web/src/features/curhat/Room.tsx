@@ -57,6 +57,7 @@ import {
   type GroupedItem,
   type ThreadMessage,
 } from './rules';
+import { useDelayed } from '~/hooks/useDelayed';
 
 const ROOM_ROUTE = '/_app/_left-navbar/layanan/curhat/$roomId' as const;
 
@@ -87,11 +88,7 @@ export function RoomScreen() {
 }
 
 export function RoomSkeleton() {
-  const [late, setLate] = useState(false);
-  useEffect(() => {
-    const id = setTimeout(() => setLate(true), 300);
-    return () => clearTimeout(id);
-  }, []);
+  const late = useDelayed(true);
   if (!late) return null;
   return (
     <PageBody>

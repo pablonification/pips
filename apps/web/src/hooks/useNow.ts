@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
-/** The current time, refreshed every 30 s: an open menu unlocks Umumkan ulang without a refetch. */
-export function useNow(everyMs = 30_000) {
+/** The time now, renewed every `everyMs`: ended events fade, "hari ini" moves at midnight, a menu unlocks on time. */
+export function useNow(everyMs: number): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), everyMs);
