@@ -883,12 +883,18 @@ test.describe('a room', () => {
   test('the member’s message arrives in the open room, on their side, and is read at once', async ({
     page,
     api,
+    db,
   }) => {
     await openR1(page, api);
     await expect
       .poll(() => api.calls('POST /api/curhat/chatroom/:chatroomId/read'))
       .toHaveLength(1);
     const text = 'Boleh kak, makasih banyak.';
+    // As the server does: saved first, then sent.
+    db.chatrooms.r1.messages = [
+      fromMember('m-live', 'r1', text),
+      ...db.chatrooms.r1.messages!,
+    ];
     expect(
       api.socket.emit('reply', fromMember('m-live', 'r1', text), (s) =>
         s.rooms.has('r1'),
@@ -995,10 +1001,16 @@ test.describe('live', () => {
   test('a member’s message reaches the list: the room moves up with its preview and count', async ({
     page,
     api,
+    db,
   }) => {
     await openInbox(page);
     await socketReady(api);
     const text = 'Kak, aku mau cerita lagi.';
+    // As the server does: saved first, then sent.
+    db.chatrooms.r2.messages = [
+      fromMember('m-r2', 'r2', text),
+      ...(db.chatrooms.r2.messages ?? []),
+    ];
     api.socket.emit('reply', fromMember('m-r2', 'r2', text), (s) =>
       s.rooms.has('r2'),
     );
