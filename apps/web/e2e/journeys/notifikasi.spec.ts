@@ -164,15 +164,31 @@ test.describe('the device card', () => {
     await expect(
       main(page).getByText('Notifikasi belum menyala di perangkat ini'),
     ).toBeVisible();
-    // The server doesn't know this device, so it isn't left subscribed.
-    expect((await pushDevice(page)).subscribed).toBe(false);
+    // The browser's subscription is kept: only the registration failed, and a new subscription can take the push
+    // service half a minute, or never come.
+    expect((await pushDevice(page)).subscribed).toBe(true);
+    // The server doesn't know this device, so it doesn't look on, even after a reload.
+    await page.reload();
+    // The app start tries the registration again by itself; the server still can't.
+    await expect
+      .poll(() => api.calls('POST /api/push/register').length)
+      .toBe(2);
+    await expect(
+      main(page).getByText('Notifikasi belum menyala di perangkat ini'),
+    ).toBeVisible();
     fail = false;
-    await error.getByRole('button', { name: 'Coba lagi' }).click();
+    await main(page)
+      .getByRole('button', { name: 'Nyalakan notifikasi' })
+      .click();
+    await prompt(page).getByRole('button', { name: 'Nyalakan' }).click();
     await expect(
       toastText(page, 'Notifikasi menyala di perangkat ini.'),
     ).toBeVisible();
-    expect(api.calls('POST /api/push/register')).toHaveLength(2);
-    expect((await pushDevice(page)).asks).toBe(1);
+    expect(api.calls('POST /api/push/register')).toHaveLength(3);
+    const device = await pushDevice(page);
+    expect(device.asks).toBe(1);
+    // Registered again with the same subscription, without going back to the push service.
+    expect(device.subscribes).toHaveLength(1);
     await expect(
       main(page).getByText('Notifikasi menyala di perangkat ini'),
     ).toBeVisible();

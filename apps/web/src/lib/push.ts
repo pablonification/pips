@@ -60,14 +60,40 @@ async function existingPushSubscription() {
   }
 }
 
-/** Everything `pushStatus()` needs, read without asking anything. */
+/**
+ * Set while the server is known not to have this device's subscription. The subscription itself is kept: getting a
+ * new one from the browser's push service can take half a minute or never answer, so it is never thrown away over a
+ * failed request to our own server.
+ */
+const UNLINKED_KEY = 'pips:push-unlinked';
+
+function markLinked(linked: boolean) {
+  try {
+    if (linked) localStorage.removeItem(UNLINKED_KEY);
+    else localStorage.setItem(UNLINKED_KEY, '1');
+  } catch {
+    // No storage (private window): the device may look on until the next successful registration.
+  }
+}
+
+function knownUnlinked() {
+  try {
+    return localStorage.getItem(UNLINKED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+/** Everything `pushStatus()` needs, read without asking anything. A device the server doesn't know isn't on. */
 export async function readPushFacts(): Promise<PushFacts> {
   const platform = currentPlatform();
   if (!pushSupported())
     return { platform, supported: false, permission: null, subscribed: false };
   const permission = Notification.permission;
   const subscribed =
-    permission === 'granted' && (await existingPushSubscription()) !== null;
+    permission === 'granted' &&
+    !knownUnlinked() &&
+    (await existingPushSubscription()) !== null;
   return { platform, supported: true, permission, subscribed };
 }
 
@@ -114,13 +140,16 @@ function subscribeOnce(registration: ServiceWorkerRegistration) {
   return subscribing;
 }
 
-/** Registers a subscription with the server; when the server can't, the subscription ends so it doesn't look on. */
+/**
+ * Registers a subscription with the server. When the server can't, the subscription stays and the device is marked
+ * as not linked, so it doesn't look on and Coba lagi only has to register it again.
+ */
 async function register(sub: globalThis.PushSubscription) {
   try {
     await api.push.registerPush({ requestBody: subscriptionBody(sub) });
+    markLinked(true);
   } catch (e) {
-    // The server doesn't know this device: don't leave it looking on. Coba lagi subscribes again, without asking.
-    await sub.unsubscribe().catch(() => false);
+    markLinked(false);
     throw e;
   }
 }
@@ -189,8 +218,7 @@ export async function registerExistingPush() {
   linkedThisStart = true;
   try {
     const sub = await existingPushSubscription();
-    if (sub)
-      await api.push.registerPush({ requestBody: subscriptionBody(sub) });
+    if (sub) await register(sub);
   } catch {
     // Best effort: Profil › Notifikasi still offers to turn it on.
   }
@@ -200,9 +228,9 @@ export async function registerExistingPush() {
  * Once per app start, when the server has confirmed the session: the device's existing subscription is registered
  * again (the route is safe to repeat), so a device that looks on is one the server knows. Asks nothing.
  */
-export function registerExistingPushOnce() {
-  if (linkedThisStart) return;
-  void registerExistingPush();
+export function registerExistingPushOnce(): Promise<void> {
+  if (linkedThisStart) return Promise.resolve();
+  return registerExistingPush();
 }
 
 /**
@@ -237,8 +265,7 @@ export async function relinkPush() {
       // Bounded like Nyalakan: a push service that never answers must not keep "Keluar…" up for good.
       sub = await subscribeWithin(await readyRegistration(5_000));
     }
-    if (sub)
-      await api.push.registerPush({ requestBody: subscriptionBody(sub) });
+    if (sub) await register(sub);
   } catch {
     // Best effort: Profil › Notifikasi still offers to turn it on.
   }

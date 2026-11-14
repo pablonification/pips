@@ -15,6 +15,7 @@ import {
   signInProblem,
   type SignInProblem,
 } from '~/features/masuk/sign-in';
+import { refreshPushState } from '~/components/push/push-store';
 import { readPushFacts, registerExistingPush } from '~/lib/push';
 import { pushStatus } from '~/lib/push-state';
 import { forgetMemberOnDevice, invalidateSession } from '~/lib/session';
@@ -47,7 +48,7 @@ export default function useLogin(redirectTo: string | null = null) {
     void forgetMemberOnDevice({ keepSharedContent: true });
     invalidateSession(user);
     // A device that already has notifications on is linked to the new session again, without asking anything.
-    void registerExistingPush();
+    void registerExistingPush().then(refreshPushState);
     const href = afterSignIn({
       redirect: redirectTo,
       flag: readFirstRunFlag(localStorage),
