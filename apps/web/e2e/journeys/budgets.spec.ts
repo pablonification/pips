@@ -187,7 +187,7 @@ test.describe('signed out', () => {
     });
     await page.goto('/login');
     await expect(
-      page.getByRole('button', { name: 'Masuk dengan Google' }),
+      page.getByRole('button', { name: 'Masuk dengan akun STEI' }),
     ).toBeVisible();
     await expect
       .poll(() => scripts)

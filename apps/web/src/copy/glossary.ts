@@ -157,6 +157,8 @@ export const ACRONYMS = [
   'PIXEL',
   'IF',
   'STI',
+  // The school whose student accounts sign in (Masuk dengan akun STEI).
+  'STEI',
   'WIB',
   'SKS',
   'UTS',

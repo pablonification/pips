@@ -63,7 +63,7 @@ export const STATES: CaptureState[] = [
     signedIn: false,
     path: '/login',
     // The Garis sign-in; the old one said "Log in with your std email to get you in".
-    ready: (p) => p.getByRole('button', { name: 'Masuk dengan Google' }),
+    ready: (p) => p.getByRole('button', { name: 'Masuk dengan akun STEI' }),
   },
   {
     id: 'install-prompt',

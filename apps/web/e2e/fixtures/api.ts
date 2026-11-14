@@ -25,7 +25,7 @@ import type {
   InternshipDepartment,
   InternshipSubmission,
   ListChatroom,
-  Markdown,
+  Credits,
   ReactionAggregate,
   Testimoni,
   User,
@@ -763,11 +763,12 @@ function internshipSubmissions(): InternshipSubmission[] {
   });
 }
 
-const credits: Markdown = {
+const credits: Credits = {
   id: 'credits',
   content: '# Credits\n\nPIPS! dibuat dan dirawat oleh HMIF ITB.',
   createdAt: wib(1, 1),
   updatedAt: wib(1, 1),
+  photos: {},
 };
 
 /** Everything one persona's API returns. Mutable: a test may change its own copy. */
@@ -814,7 +815,7 @@ export interface Db {
   internshipSubmissions: InternshipSubmission[];
   /** SPARTA's window (`SPARTA_WINDOW`, closed); a test may open it. */
   spartaWindow: { opensAt: string | null; closesAt: string | null };
-  credits: Markdown;
+  credits: Credits;
   /** The push subscriptions the API holds for this member (`POST /api/push/register`); none at first. */
   pushSubscriptions: Array<{
     endpoint: string;

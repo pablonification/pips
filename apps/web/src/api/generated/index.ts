@@ -26,6 +26,7 @@ export type { CommentWithReactions } from './models/CommentWithReactions';
 export type { Competition } from './models/Competition';
 export type { CompetitionCategories } from './models/CompetitionCategories';
 export type { Course } from './models/Course';
+export type { Credits } from './models/Credits';
 export type { CurhatJoinAck } from './models/CurhatJoinAck';
 export type { CurhatJoinPayload } from './models/CurhatJoinPayload';
 export type { CurhatMessageAck } from './models/CurhatMessageAck';

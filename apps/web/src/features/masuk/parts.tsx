@@ -164,7 +164,7 @@ export const SLIDE_HERO: { keys: KeyName[]; px: PixelReactionKey }[] = [
 
 /**
  * Google's "G", whole, in one colour: the button's ink (Google's branding allows a monochrome G). Hidden from screen
- * readers: the button already says "Masuk dengan Google".
+ * readers: the button already says "Masuk dengan akun STEI".
  */
 export function GoogleG() {
   return (

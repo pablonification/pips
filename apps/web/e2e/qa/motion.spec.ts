@@ -180,7 +180,9 @@ test.describe('reduced motion', () => {
       await expect
         .poll(async () => (await googleRequests(page)).clients.length)
         .toBe(1);
-      await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+      await page
+        .getByRole('button', { name: 'Masuk dengan akun STEI' })
+        .click();
       await expect(page.getByRole('main')).toHaveClass(/\bbusy\b/);
       await still(page, rows, 'the keys while signing in');
       await still(page, page.locator('.g-mk-load'), 'the loader');
@@ -266,7 +268,9 @@ test.describe('no preference', () => {
       await expect
         .poll(async () => (await googleRequests(page)).clients.length)
         .toBe(1);
-      await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+      await page
+        .getByRole('button', { name: 'Masuk dengan akun STEI' })
+        .click();
       await expect
         .poll(async () => (await running(page)).join())
         .toMatch(/g-mk-type.*g-mk-blink|g-mk-blink.*g-mk-type/);
