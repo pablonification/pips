@@ -1332,7 +1332,7 @@ test.describe('signed out', () => {
     await expect
       .poll(async () => (await googleRequests(page)).clients.length)
       .toBe(1);
-    await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+    await page.getByRole('button', { name: 'Masuk dengan akun STEI' }).click();
     await expect(page).toHaveURL(/\/layanan\/curhat\/r1$/);
     await expect(log(page)).toBeVisible();
   });

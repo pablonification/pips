@@ -51,7 +51,7 @@ test.describe('sign in', () => {
     await expect
       .poll(async () => (await googleRequests(page)).clients.length)
       .toBe(1);
-    const masuk = page.getByRole('button', { name: 'Masuk dengan Google' });
+    const masuk = page.getByRole('button', { name: 'Masuk dengan akun STEI' });
     await tabTo(page, masuk);
     await page.keyboard.press('Enter');
     // A first sign-in with courses not set goes to first run; Ke Beranda from there.

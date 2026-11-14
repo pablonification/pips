@@ -1,5 +1,5 @@
 import { createRoute } from '@hono/zod-openapi';
-import { MarkdownSchema } from '~/types/markdown.types';
+import { CreditsSchema } from '~/types/markdown.types';
 import { errorResponse } from '~/types/responses.type';
 
 export const creditsMarkdownRoute = createRoute({
@@ -12,7 +12,7 @@ export const creditsMarkdownRoute = createRoute({
       description: 'Credits markdown',
       content: {
         'application/json': {
-          schema: MarkdownSchema,
+          schema: CreditsSchema,
         },
       },
     },

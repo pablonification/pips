@@ -23,7 +23,7 @@ async function signIn(page: Page) {
   await expect
     .poll(async () => (await googleRequests(page)).clients.length)
     .toBe(1);
-  await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+  await page.getByRole('button', { name: 'Masuk dengan akun STEI' }).click();
 }
 
 test.describe('a new member', () => {
@@ -136,7 +136,7 @@ test.describe('a new member', () => {
     await expect
       .poll(async () => (await googleRequests(page)).clients.length)
       .toBe(1);
-    await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+    await page.getByRole('button', { name: 'Masuk dengan akun STEI' }).click();
     await expect(page).toHaveURL(/^http:\/\/[^/]+\/$/);
     await expect(greeting(page)).toBeVisible();
   });
@@ -147,7 +147,7 @@ test.describe('a new member', () => {
     await expect
       .poll(async () => (await googleRequests(page)).clients.length)
       .toBe(1);
-    await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+    await page.getByRole('button', { name: 'Masuk dengan akun STEI' }).click();
     await expect(page).toHaveURL(/\/profil\/notifikasi$/);
   });
 });

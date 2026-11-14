@@ -2,16 +2,16 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Markdown } from '../models/Markdown';
+import type { Credits } from '../models/Credits';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class MarkdownService {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
   /**
-   * @returns Markdown Credits markdown
+   * @returns Credits Credits markdown
    * @throws ApiError
    */
-  public getCredits(): CancelablePromise<Markdown> {
+  public getCredits(): CancelablePromise<Credits> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/api/markdown/credits',

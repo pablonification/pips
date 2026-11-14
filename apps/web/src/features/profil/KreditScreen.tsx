@@ -64,10 +64,13 @@ const overrides = {
   },
 };
 
-function Person({ p }: { p: CreditPerson }) {
+/** The credited members' photos by NIM (`photos` of `GET /api/markdown/credits`); initials for anyone without one. */
+type Photos = Record<string, string>;
+
+function Person({ p, photos }: { p: CreditPerson; photos: Photos }) {
   return (
     <li className="g-kredit-person">
-      <Avatar initials={initialsOf(p.name)} />
+      <Avatar initials={initialsOf(p.name)} picture={photos[p.nim]} />
       <span className="min-w-0">
         <span className="block t-sub">{p.name}</span>
         <span className="block t-cap text-fg-2 num">{personLine(p)}</span>
@@ -76,7 +79,15 @@ function Person({ p }: { p: CreditPerson }) {
   );
 }
 
-function Section({ s, role }: { s: CreditSection; role: boolean }) {
+function Section({
+  s,
+  role,
+  photos,
+}: {
+  s: CreditSection;
+  role: boolean;
+  photos: Photos;
+}) {
   return (
     <Card className={cn('g-kredit-card', role && 'role')}>
       <h3 className={role ? 't-label text-fg-2' : 't-heading'}>{s.title}</h3>
@@ -87,7 +98,7 @@ function Section({ s, role }: { s: CreditSection; role: boolean }) {
           ) : null}
           <RuledList>
             {part.people.map((p) => (
-              <Person key={`${p.nim}-${p.name}`} p={p} />
+              <Person key={`${p.nim}-${p.name}`} p={p} photos={photos} />
             ))}
           </RuledList>
         </div>
@@ -97,7 +108,13 @@ function Section({ s, role }: { s: CreditSection; role: boolean }) {
 }
 
 /** The credits as a designed page: a group's title, its roles as small cards, its teams as cards with Lead and Team. */
-function Credits({ groups }: { groups: CreditGroup[] }) {
+function Credits({
+  groups,
+  photos,
+}: {
+  groups: CreditGroup[];
+  photos: Photos;
+}) {
   return (
     <div className="g-kredit">
       {groups.map((g, i) => (
@@ -106,7 +123,7 @@ function Credits({ groups }: { groups: CreditGroup[] }) {
           {runs(g.sections).map((run, j) => (
             <div key={j} className={cn('g-kredit-grid', run.role && 'roles')}>
               {run.sections.map((s, k) => (
-                <Section key={k} s={s} role={run.role} />
+                <Section key={k} s={s} role={run.role} photos={photos} />
               ))}
             </div>
           ))}
@@ -117,8 +134,8 @@ function Credits({ groups }: { groups: CreditGroup[] }) {
 }
 
 /**
- * Profil › Kredit: `GET /api/markdown/credits`. Credits in the shape `parseCredits` knows show as cards; anything else
- * renders as markdown. Either way without the text's own "Credits" title: the page's title says it.
+ * Profil › Kredit: `GET /api/markdown/credits`. Credits in the shape `parseCredits` knows show as cards, each person
+ * with their photo when they have one; anything else renders as markdown. Either way without the text's own "Credits" title: the page's title says it.
  */
 export function KreditScreen() {
   const credits = useQuery(creditsQuery());
@@ -132,7 +149,7 @@ export function KreditScreen() {
       <DeskHead title={common.shell.kredit} />
       <PageBody wide={groups !== null} className="gap-3.5">
         {groups ? (
-          <Credits groups={groups} />
+          <Credits groups={groups} photos={credits.data?.photos ?? {}} />
         ) : credits.data ? (
           <div className="grid gap-3">
             <Markdown options={{ overrides, forceBlock: true }}>

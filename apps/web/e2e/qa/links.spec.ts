@@ -57,7 +57,9 @@ test.describe('redirect validation', () => {
         await expect
           .poll(async () => (await googleRequests(page)).clients.length)
           .toBe(1);
-        await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+        await page
+          .getByRole('button', { name: 'Masuk dengan akun STEI' })
+          .click();
         // A first sign-in with no courses set goes to first run, else Beranda: never the other site.
         await expect(page).toHaveURL(/^http:\/\/127\.0\.0\.1:\d+\/(mulai)?$/);
         await expect(page.locator('h1:visible')).toHaveCount(1);

@@ -6,7 +6,7 @@ export const masuk = {
   // The document title ("Masuk · PIPS!"); the page's own heading is the greeting.
   judul: 'Masuk',
   halo: 'Halo, Pips!',
-  google: 'Masuk dengan Google',
+  google: 'Masuk dengan akun STEI',
   memproses: 'Masuk…',
   // 401: either cause, since the API can't tell them apart.
   bukanAnggota:

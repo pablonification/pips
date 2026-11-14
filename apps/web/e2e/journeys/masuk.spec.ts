@@ -1,5 +1,5 @@
 /**
- * Masuk: the keyboard header, the four slides, Masuk dengan Google with
+ * Masuk: the keyboard header, the four slides, Masuk dengan akun STEI with
  * Google's one-colour G, the loader, every real error state, at phone, tablet and desktop in light and dark. The
  * sign-in flow itself (redirects, Coba lagi's token, Google's popup) is sign-in.spec.ts's. Motion with no preference is in qa/motion.spec.ts.
  */
@@ -27,7 +27,7 @@ const MSG = {
 };
 
 const google = (page: Page) =>
-  page.getByRole('button', { name: 'Masuk dengan Google' });
+  page.getByRole('button', { name: 'Masuk dengan akun STEI' });
 const carousel = (page: Page) =>
   page.getByRole('region', { name: 'Kenalan dengan PIPS!' });
 const track = (page: Page) =>
@@ -70,7 +70,7 @@ const pressKey = (key: Locator) =>
 
 test.use({ signedIn: false });
 
-test('the keyboard header, the greeting, the slides and Masuk dengan Google, in this layout', async ({
+test('the keyboard header, the greeting, the slides and Masuk dengan akun STEI, in this layout', async ({
   page,
 }, testInfo) => {
   await page.goto('/login');

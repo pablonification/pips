@@ -469,7 +469,7 @@ test.describe('signed out, with something shared to PIPS!', () => {
     await expect
       .poll(async () => (await googleRequests(page)).clients.length)
       .toBe(1);
-    await page.getByRole('button', { name: 'Masuk dengan Google' }).click();
+    await page.getByRole('button', { name: 'Masuk dengan akun STEI' }).click();
     await expect(page).toHaveURL(/\/pengumuman\/tulis$/);
     await expect(page.getByRole('textbox', { name: /^Judul/ })).toHaveValue(
       'Catatan Nadia',

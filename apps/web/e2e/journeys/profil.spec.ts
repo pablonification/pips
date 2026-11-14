@@ -3,6 +3,7 @@
  * Courses are in matkul.spec.ts and notifications in notifikasi.spec.ts.
  */
 import type { Page } from '@playwright/test';
+import { avatarUrl } from '../fixtures/api';
 import { greeting, layoutOf, navLink } from '../support/app';
 import { reply } from '../support/mock';
 import {
@@ -264,7 +265,7 @@ test.describe('Raka', () => {
     await confirm(page).getByRole('button', { name: 'Keluar' }).click();
     await expect(page).toHaveURL(/\/login$/);
     await expect(
-      page.getByRole('button', { name: 'Masuk dengan Google' }),
+      page.getByRole('button', { name: 'Masuk dengan akun STEI' }),
     ).toBeVisible();
     // V5: it ends on the Masuk screen, its keyboard header back on the first slide.
     await expect(
@@ -424,7 +425,7 @@ test.describe('Raka', () => {
     await confirm(page).getByRole('button', { name: 'Keluar' }).click();
     await expect(page).toHaveURL(/\/login$/);
     await expect(
-      page.getByRole('button', { name: 'Masuk dengan Google' }),
+      page.getByRole('button', { name: 'Masuk dengan akun STEI' }),
     ).toBeVisible();
     await expect(page.getByText(/Gagal keluar/)).toHaveCount(0);
     // The same clean-up as a sign-out: nothing of Raka stays, and the device isn't linked again.
@@ -656,6 +657,53 @@ test.describe('Kredit', () => {
     if (layoutOf(testInfo) === 'phone') expect(lead.y).toBeGreaterThan(owner.y);
     else expect(lead.y).toBe(owner.y);
     await strictGates(page, testInfo, 'kredit-cards', 'Profil');
+  });
+
+  test('two teams, one after the other, and each person’s photo when they have one', async ({
+    page,
+    db,
+  }, testInfo) => {
+    // Sample names: the first team, then the redesign's. One photo loads, one fails, one member has none.
+    db.credits = {
+      ...db.credits,
+      content: [
+        '# Credits',
+        '## Panitia Khusus (versi pertama)',
+        '### Project Owner',
+        "Nadia Putri - IF'21 - 13521901",
+        '### Frontend',
+        '#### Lead',
+        "Sinta Dewi - IF'21 - 13521903",
+        '#### Team',
+        "Bima Arya N - STI'21 - 18221904",
+        '## Redesign',
+        '### Lead & Implementer',
+        "Raka Pratama - STI'23 - 18223902",
+      ].join('\n'),
+      photos: {
+        '18223902': avatarUrl('18223902'),
+        '13521903': '/__e2e__/avatar/hilang.png',
+      },
+    };
+    await page.goto('/profil/kredit');
+    await expect(main(page).getByRole('heading', { level: 2 })).toHaveText([
+      'Panitia Khusus (versi pertama)',
+      'Redesign',
+    ]);
+    const person = (name: string) =>
+      main(page).getByRole('listitem').filter({ hasText: name });
+    const photo = person('Raka Pratama').locator('img');
+    await expect(photo).toBeVisible();
+    await expect
+      .poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth))
+      .toBeGreaterThan(0);
+    await expect(photo).toHaveAttribute('alt', '');
+    // A photo that fails to load leaves the initials; no photo at all shows them too.
+    await expect(person('Sinta Dewi').locator('img')).toHaveCount(0);
+    await expect(person('Sinta Dewi')).toContainText('SD');
+    await expect(person('Nadia Putri').locator('img')).toHaveCount(0);
+    await expect(person('Nadia Putri')).toContainText('NP');
+    await strictGates(page, testInfo, 'kredit-photos', 'Profil');
   });
 
   test('a failed load says so with Coba lagi, which recovers', async ({

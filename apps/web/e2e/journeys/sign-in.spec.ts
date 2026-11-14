@@ -1,5 +1,5 @@
 /**
- * Sign-in: Masuk dengan Google through a fake Google script (support/google.ts), shared links that survive
+ * Sign-in: Masuk dengan akun STEI through a fake Google script (support/google.ts), shared links that survive
  * sign-in, and every way it can fail, said in Indonesian on the page (never `alert()`).
  */
 import type { Page } from '@playwright/test';
@@ -17,7 +17,7 @@ import { expect, test } from '../support/test';
 import * as writes from '../support/writes';
 
 const masuk = (page: Page) =>
-  page.getByRole('button', { name: /^Masuk dengan Google$|^Masuk…$/ });
+  page.getByRole('button', { name: /^Masuk dengan akun STEI$|^Masuk…$/ });
 const alertText = (page: Page) => page.getByRole('alert');
 /** Google's script has run and the token client exists (the button does nothing useful before). */
 const googleReady = (page: Page) =>
