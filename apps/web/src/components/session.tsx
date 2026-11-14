@@ -5,6 +5,7 @@ import { ME_QUERY_KEY } from '~/api/constants';
 import { UserWithRoles } from '~/api/generated';
 import { common } from '~/copy/common';
 import { registerExistingPushOnce, unlinkPushAtLogout } from '~/lib/push';
+import { refreshPushState } from './push/push-store';
 import { loginSearch } from '~/lib/safe-redirect';
 import {
   fetchSession,
@@ -76,7 +77,8 @@ export default function SessionProvider({
 
   const confirmed = !!data && isFetchedAfterMount && status === 'success';
   useEffect(() => {
-    if (confirmed) registerExistingPushOnce();
+    // A device the server had lost shows as on again once this registers it.
+    if (confirmed) void registerExistingPushOnce().then(refreshPushState);
   }, [confirmed]);
 
   if (data === null) return null;
