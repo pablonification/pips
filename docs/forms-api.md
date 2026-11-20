@@ -152,10 +152,14 @@ angkatan 2025" (`contoh-daftar-acara`), owned by the seeded pengurus, open to 20
 changes, shared with the seeded Welfare member as Lihat jawaban; and a draft (`contoh-draf`). The seeded anggota is
 2025, so the form is in her list.
 
-## What the web side still owns
+## The web side
 
-- The capability for Kelola › Form (any role) in `apps/web/src/lib/capabilities.ts`, with its row in
-  `tests/capabilities.test.ts` read from `route-access.ts` (`POST /api/form`).
+- **The builder** is `apps/web/src/features/kelola-form/`: every request in `queries.ts`, the rules with no React in
+  `rules.ts` (held to the API's by `tests/kelola-form-rules.test.ts`), and the pages `/kelola/form`,
+  `/kelola/form/$formId` (`?tab=jawaban|setelan`, `&lihat=satu&no=` for one response) and
+  `/kelola/form/$formId/pratinjau`.
+- The capability for Kelola › Form (any role, `buildForms`) and admin's Semua form (`manageAllForms`) in
+  `apps/web/src/lib/capabilities.ts`, with their rows in `tests/capabilities.test.ts` read from `route-access.ts`.
 - The words: labels for fields and kinds, problem messages, "Lainnya", every sentence, in `apps/web/src/copy/`.
 - Drafts of answers stay on the device, as today's form does.
 
