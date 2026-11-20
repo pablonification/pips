@@ -216,10 +216,12 @@ export default defineConfig(({ mode }) => {
           },
         },
         // The service worker (src/sw.ts) caches only what this precaches plus same-origin images; see its header.
-        // Precache: the app shell and every route chunk, never public/prototypes/.
+        // Precache: the app shell and every route chunk, never public/prototypes/. Nor the form builder's own code
+        // (src/features/kelola-form/Builder.tsx and what only it loads, @dnd-kit with it): only pengurus open it, it
+        // works only online, and every member's device would otherwise download it (the 1.5 MiB budget).
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,woff2}', 'logo/hmif.png'],
-          globIgnores: ['prototypes/**', '**/*.map'],
+          globIgnores: ['prototypes/**', '**/*.map', 'assets/Builder-*.js'],
         },
       }),
       // The router plugin must come before the React plugin. Every page's component loads on demand; the two layouts
