@@ -50,10 +50,9 @@ import { serviceById } from '~/lib/services';
 import {
   spartaDepartmentsQuery,
   spartaSubmissionQuery,
-  saveDraftOnLeave,
   spartaWindowQuery,
-  useSpartaWrites,
 } from './sparta-data';
+import { saveDraftOnLeave, useSpartaWrites } from './sparta-send';
 import { DivisionQuestion, FieldError, TextField } from './SpartaFields';
 import '~/styles/garis/form.css';
 

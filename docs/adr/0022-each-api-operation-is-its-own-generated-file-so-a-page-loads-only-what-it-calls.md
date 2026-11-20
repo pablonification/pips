@@ -47,8 +47,9 @@ Two facts decide the shape of a fix:
   moving off it means rewriting this step.
 - The saving today is small, about 1.3 KiB per page: the whole client was about 2.7 KiB gzipped. What it buys is that a
   new route grows only the pages that call it, and the entry only when a loader prefetches it.
-- A feature module a loader imports still brings its other requests into the entry (today `components/form/data.ts`
-  and `sparta-data.ts` carry their sends). Keep a loader's queries in a file of their own when that matters.
+- A feature module a loader imports still brings its other requests into the entry, so a loader's queries live in a
+  file of their own and a feature's sends in another (`components/form/data.ts` and `send.ts`, `sparta-data.ts` and
+  `sparta-send.ts`).
 
 ## When to revisit
 

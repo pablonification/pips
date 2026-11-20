@@ -34,7 +34,8 @@ import {
   type Answers,
 } from '~/lib/form/rules';
 import { CheckList } from './CheckPage';
-import { formDetailQuery, myResponseQuery, useSendForm } from './data';
+import { formDetailQuery, myResponseQuery } from './data';
+import { useSendForm } from './send';
 import { QBlock } from './QBlock';
 import { useFormDraft } from './useFormDraft';
 import '~/styles/garis/form.css';
