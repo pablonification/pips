@@ -4,7 +4,7 @@
  * label, hint or keywords contain it, label matches first, then in the sources' order, at most 12, grouped in the
  * order the groups first appear.
  */
-import type { IconKey } from '~/components/icons/registry';
+import type { IconByKey } from '~/components/icons/by-key';
 
 export interface PaletteItem {
   /** Unique across all sources. */
@@ -12,7 +12,7 @@ export interface PaletteItem {
   /** The group heading: Tindakan, Layanan, Pengumuman, Kalender, Mata kuliah, Orang. */
   group: string;
   label: string;
-  icon: IconKey;
+  icon: IconByKey;
   /** The short line at the right ("Situs luar", a date, "Ding Dong"). */
   hint: string;
   /** More words it is found by, lower case. */

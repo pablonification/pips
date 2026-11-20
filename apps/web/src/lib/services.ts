@@ -203,6 +203,19 @@ export const SERVICES = [
   },
   // Kelola: only the user's own tools.
   {
+    // Any pengurus builds forms and sees the ones shared with them; admin sees every form.
+    id: 'form-builder',
+    label: 'Form',
+    description: 'Buat form dan lihat jawabannya',
+    group: 'Kelola',
+    kind: 'internal',
+    destination: '/kelola/form',
+    owner: 'pips',
+    capability: 'buildForms',
+    synonyms: ['form', 'formulir', 'buat', 'susun', 'survei'],
+    icon: 'form',
+  },
+  {
     id: 'live',
     label: 'Live Counting & Rekap Form',
     description: 'Pengisi form secara realtime, rekap, dan analitik',

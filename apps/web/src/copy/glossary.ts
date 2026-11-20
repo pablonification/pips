@@ -137,6 +137,17 @@ export const PROPER_NOUNS = [
   'Rapat',
   'Anggota',
   'Anonim',
+  // Kelola › Form: the builder's tab, options and views named in its sentences ("Buka Setelan", "tambah “Lainnya”",
+  // "Syarat “Tampilkan jika” dilepas", "ada di Satu per satu"), the keys it tells you to press, the apps a form
+  // asks about, and the file its answers download as.
+  'Setelan',
+  'Lainnya',
+  'Tampilkan',
+  'Satu',
+  'Spasi',
+  'Escape',
+  'Instagram',
+  'Excel',
 ] as const;
 
 /**

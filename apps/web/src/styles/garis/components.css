@@ -1059,7 +1059,7 @@
     gap: 2px;
     animation: g-pop var(--dur-overlay) ease-out;
   }
-  .g-menu [role='menuitem'] {
+  .g-menu :is([role='menuitem'], [role='menuitemradio']) {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -1075,13 +1075,14 @@
     color: var(--text);
     outline: none;
   }
-  .g-menu [role='menuitem']:hover,
-  .g-menu [role='menuitem'][data-highlighted] {
+  .g-menu :is([role='menuitem'], [role='menuitemradio']):hover,
+  .g-menu :is([role='menuitem'], [role='menuitemradio'])[data-highlighted] {
     background: var(--bg-muted);
   }
   /* The focus ring, for keyboard focus only: Radix also highlights the item under the pointer, which gets
      just the fill. (Menu items have tabindex -1, which the base styles leave without an outline.) */
-  .g-menu:not([data-input='pointer']) [role='menuitem']:focus-visible {
+  .g-menu:not([data-input='pointer'])
+    :is([role='menuitem'], [role='menuitemradio']):focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
@@ -1091,6 +1092,21 @@
   .g-menu [role='menuitem'][aria-disabled='true'] {
     color: var(--text-3);
     cursor: not-allowed;
+  }
+  /* A choice among several (a question's kind, a person's access): the chosen one is marked and ticked. */
+  .g-menu [role='menuitemradio'][aria-checked='true'] {
+    background: var(--bg-accent-subtle);
+    font-weight: 600;
+  }
+  .g-menu [role='menuitemradio'] .ck {
+    display: inline-grid;
+    margin-left: auto;
+    color: var(--text-accent);
+  }
+  .g-menu [role='separator'] {
+    height: 1px;
+    margin: 4px 0;
+    background: var(--border);
   }
   .g-menu .hint {
     display: block;

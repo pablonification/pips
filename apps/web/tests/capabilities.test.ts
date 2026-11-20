@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import {
+  ANY_ROLE,
   CAPABILITY_ROLES,
   can,
   canCreateEvent,
@@ -13,6 +14,7 @@ import {
   type Capability,
 } from '../src/lib/capabilities';
 import { ROUTE_ACCESS } from '../../api/src/lib/route-access';
+import { rolesEnums } from '../../api/src/db/roles-group';
 
 const api = (file: string) =>
   fs.readFileSync(
@@ -85,6 +87,25 @@ const SERVER: Record<Capability, () => string[]> = {
     assert.match(src, /roles\.includes\('ring1'\)/);
     return ['ring1'];
   },
+  buildForms: () =>
+    routeRoles(
+      'POST /api/form',
+      'GET /api/form/manage/list',
+      'GET /api/form/{formId}/manage',
+      'PATCH /api/form/{formId}',
+      'POST /api/form/{formId}/publish',
+      'GET /api/form/{formId}/answers/summary',
+    ),
+  manageAllForms: () => {
+    // Every form in the list, and editing any form: the handler reads the caller's roles for 'admin'.
+    const src = api('controllers/form-manage.controller.ts');
+    assert.match(
+      src,
+      /\.includes\('admin'\)[\s\S]{0,120}Every form is for admin only/,
+    );
+    assert.match(api('lib/form-rules.ts'), /asAdmin/);
+    return ['admin'];
+  },
   respondCurhat: () => {
     // The role is one constant, used by the Welfare list, pins and the room access rule.
     const role = /CURHAT_ADMIN_ROLE\s*=\s*'([a-z0-9]+)'/.exec(
@@ -104,8 +125,10 @@ const SERVER: Record<Capability, () => string[]> = {
 
 for (const capability of Object.keys(CAPABILITY_ROLES) as Capability[]) {
   test(`${capability} mirrors the server's roles`, () => {
+    const mine = CAPABILITY_ROLES[capability];
     assert.deepEqual(
-      [...CAPABILITY_ROLES[capability]].sort(),
+      // "Any role" is every role the API knows.
+      (mine === ANY_ROLE ? [...rolesEnums] : [...mine]).sort(),
       SERVER[capability]().sort(),
     );
   });
@@ -139,10 +162,12 @@ test('Raka (akademik, admin) gets exactly the tools his roles allow', () => {
     .filter((c) => can(raka, c))
     .sort();
   assert.deepEqual(granted, [
+    'buildForms',
     'createAkademikEvent',
     'createTestimonial',
     'editCourseCatalog',
     'liveCounting',
+    'manageAllForms',
     'moderateContent',
     'spartaData',
   ]);

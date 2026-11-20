@@ -13,6 +13,8 @@ import {
   type Service,
   visibleServices,
 } from '../src/lib/services';
+import { ICONS_BY_KEY } from '../src/components/icons/by-key';
+import { ICONS, type IconKey } from '../src/components/icons/registry';
 
 const all = SERVICES as readonly Service[];
 const NOW = new Date('2026-10-08T13:35:00+07:00'); // a fixed "now"
@@ -62,20 +64,20 @@ test("Raka's Kelola group holds his tools only", () => {
   const kelola = servicesByGroup(raka, NOW).find((g) => g.group === 'Kelola');
   assert.deepEqual(
     kelola?.services.map((s) => s.id),
-    ['live', 'sparta-data', 'acara'],
+    ['form-builder', 'live', 'sparta-data', 'acara'],
   );
   assert.deepEqual(
     visibleServices({ roles: ['peoplemanage'] }, NOW)
       .filter((s) => s.group === 'Kelola')
       .map((s) => s.id),
-    ['sparta-data'],
+    ['form-builder', 'sparta-data'],
   );
   assert.deepEqual(
     visibleServices({ roles: ['ring1'] }, NOW)
       .filter((s) => s.group === 'Kelola')
       .map((s) => s.id),
-    [],
-    'ring1 adds Himpunan events from Kalender; the Kelola row is for Akademik events',
+    ['form-builder'],
+    'ring1 adds Himpunan events from Kalender; the Kelola row is for Akademik events; any pengurus builds forms',
   );
 });
 
@@ -126,6 +128,12 @@ test('every entry has a description, an owner, an icon key and lower-case synony
     for (const w of s.synonyms)
       assert.equal(w, w.toLowerCase(), `${s.id}: ${w}`);
   }
+});
+
+test("the icons shown by key are the registry's own, and every service's is among them", () => {
+  for (const [key, icon] of Object.entries(ICONS_BY_KEY))
+    assert.equal(icon, ICONS[key as IconKey], key);
+  for (const s of all) assert.ok(s.icon in ICONS_BY_KEY, s.id);
 });
 
 test('Magang SPARTA is hidden from its deadline (23 Agustus 2026, 23.59 WIB)', () => {

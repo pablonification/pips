@@ -129,24 +129,32 @@ async function readDownload(download: Download) {
 // ---------------------------------------------------------------- The hub
 
 test.describe('Kelola hub', () => {
-  test("Raka's three rows, in order, each reaching its place", async ({
+  test("Raka's four rows, in order, each reaching its place", async ({
     page,
   }, testInfo) => {
     await page.goto('/kelola');
     const links = listLinks(page);
-    await expect(links).toHaveCount(3);
+    await expect(links).toHaveCount(4);
+    // Form first: any pengurus builds forms.
     await expect(links.nth(0)).toHaveAccessibleName(
-      /^Live Counting & Rekap Form Pengisi form secara realtime, rekap, dan analitik/,
+      /^Form Buat form dan lihat jawabannya/,
     );
     await expect(links.nth(1)).toHaveAccessibleName(
-      /^Data SPARTA Magang Pilihan divisi magang angkatan 2025 · ditutup 23 Agu 2026/,
+      /^Live Counting & Rekap Form Pengisi form secara realtime, rekap, dan analitik/,
     );
     await expect(links.nth(2)).toHaveAccessibleName(
+      /^Data SPARTA Magang Pilihan divisi magang angkatan 2025 · ditutup 23 Agu 2026/,
+    );
+    await expect(links.nth(3)).toHaveAccessibleName(
       /^Tambah acara Akademik Kuis, UTS, dan tenggat per mata kuliah/,
     );
     await strictGates(page, testInfo, 'kelola', lit(testInfo));
 
     await links.nth(0).click();
+    await expect(page).toHaveURL(/\/kelola\/form$/);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/kelola$/);
+    await links.nth(1).click();
     await expect(page).toHaveURL(/\/kelola\/live\/pixel$/);
     await page.goBack();
     await expect(page).toHaveURL(/\/kelola$/);
@@ -189,16 +197,19 @@ test.describe('Kelola hub', () => {
   test.describe('a peoplemanage-only member', () => {
     test.use({ roles: { only: ['peoplemanage'] } });
 
-    test('sees Data SPARTA Magang only, and is sent from Live Counting to Kelola', async ({
+    test('sees Form and Data SPARTA Magang only, and is sent from Live Counting to Kelola', async ({
       page,
       api,
     }) => {
       await page.goto('/kelola');
-      await expect(listLinks(page)).toHaveCount(1);
-      await expect(listLinks(page)).toHaveAccessibleName(/^Data SPARTA Magang/);
+      await expect(listLinks(page)).toHaveCount(2);
+      await expect(listLinks(page).nth(0)).toHaveAccessibleName(/^Form/);
+      await expect(listLinks(page).nth(1)).toHaveAccessibleName(
+        /^Data SPARTA Magang/,
+      );
       await page.goto('/kelola/live/pixel');
       await expect(page).toHaveURL(/\/kelola$/);
-      await expect(listLinks(page)).toHaveCount(1);
+      await expect(listLinks(page)).toHaveCount(2);
       expect(api.calls('GET /api/form/:formId/responses/count')).toEqual([]);
       expect(api.calls('GET /api/form/:formId/analytics')).toEqual([]);
       await page.goto('/kelola/sparta');
@@ -722,8 +733,8 @@ test.describe('Live Counting', () => {
         .some((c) => c.status === 401),
     ).toBe(true);
     await expect(page).not.toHaveURL(/\/login/);
-    // Still signed in, with the tools left (Tambah acara Akademik).
-    await expect(listLinks(page)).toHaveCount(1);
+    // Still signed in, with the tools left (Form and Tambah acara Akademik).
+    await expect(listLinks(page)).toHaveCount(2);
   });
 
   test.describe('Raka with admin only', () => {

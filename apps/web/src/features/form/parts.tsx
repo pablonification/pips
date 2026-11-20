@@ -123,9 +123,15 @@ export function FormState({
   );
 }
 
-export function ToList({ label = isi.keadaan.kembali }: { label?: string }) {
+export function ToList({
+  label = isi.keadaan.kembali,
+  variant = 'paper',
+}: {
+  label?: string;
+  variant?: 'paper' | 'ghost';
+}) {
   return (
-    <Button variant="paper" asChild>
+    <Button variant={variant} asChild>
       <Link to="/layanan/form">{label}</Link>
     </Button>
   );

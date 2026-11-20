@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import { IconButton, Tile } from '~/components/garis';
 import { IconFoto } from '~/components/icons/foto';
 import { IconHapus } from '~/components/icons/hapus';
@@ -6,6 +6,7 @@ import { IconPeringatan } from '~/components/icons/peringatan';
 import { IconUnggah } from '~/components/icons/unggah';
 import { fill } from '~/copy/fill';
 import { isi } from '~/copy/isi';
+import { PreviewMode, previewFile } from './preview';
 import { uploadAnswerFile } from './upload';
 import {
   fieldInfo,
@@ -184,6 +185,7 @@ function PhotoPicker({
 }) {
   const t = isi.tanya;
   const input = useRef<HTMLInputElement>(null);
+  const preview = useContext(PreviewMode);
   const [percent, setPercent] = useState<number | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const pick = async (file: File) => {
@@ -194,7 +196,11 @@ function PhotoPicker({
     }
     setPercent(0);
     try {
-      onChange(await uploadAnswerFile(file, 'image', setPercent));
+      onChange(
+        preview
+          ? previewFile(file)
+          : await uploadAnswerFile(file, 'image', setPercent),
+      );
     } catch {
       setProblem(t.fileGagal);
     } finally {

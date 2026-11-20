@@ -228,7 +228,7 @@ test.describe('ways in', () => {
   test.describe('a Welfare member with no other tool', () => {
     test.use({ roles: { only: ['curhatadmin'] } });
 
-    test('Kelola is in the sidebar, and the hub and Layanan’s Kelola group hold only the Curhat row', async ({
+    test('Kelola is in the sidebar, and the hub and Layanan’s Kelola group hold Form, which every pengurus has, and the Curhat row', async ({
       page,
     }, testInfo) => {
       if (isDesk(testInfo)) {
@@ -241,13 +241,14 @@ test.describe('ways in', () => {
       }
       await page.goto('/kelola');
       const links = main(page).getByRole('list').getByRole('link');
-      await expect(links).toHaveCount(1);
-      await expect(links).toHaveAccessibleName(/^Curhat Yuk!/);
+      await expect(links).toHaveCount(2);
+      await expect(links.nth(0)).toHaveAccessibleName(/^Form/);
+      await expect(links.nth(1)).toHaveAccessibleName(/^Curhat Yuk!/);
       await page.goto('/layanan');
       await expect(
         main(page).getByRole('heading', { name: 'Kelola' }),
       ).toBeVisible();
-      await expect(main(page).locator('a[href^="/kelola"]')).toHaveCount(1);
+      await expect(main(page).locator('a[href^="/kelola"]')).toHaveCount(2);
       await page.goto('/kelola/curhat');
       await expect(row(page, 'Teal Koala')).toBeVisible();
     });
@@ -338,8 +339,8 @@ test.describe('who gets in', () => {
     await expect(page).toHaveURL(/\/kelola$/);
     expect(api.calls('GET /api/me').length).toBeGreaterThan(checks);
     await expect(page).not.toHaveURL(/\/login/);
-    // Still signed in, with his other tools.
-    await expect(main(page).getByRole('list').getByRole('link')).toHaveCount(3);
+    // Still signed in, with his other tools (Form, which every pengurus has, among them).
+    await expect(main(page).getByRole('list').getByRole('link')).toHaveCount(4);
   });
 
   test('a role taken away while replying: refused as forbidden, no toast, the gate sends Raka on', async ({

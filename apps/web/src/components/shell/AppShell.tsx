@@ -240,14 +240,15 @@ function usePageHeight(
       const crumbs = scroller.querySelector<HTMLElement>('.g-crumbs');
       root.style.setProperty(
         '--g-crumbs-h',
-        `${crumbs ? crumbs.offsetHeight : 0}px`,
+        `${crumbs ? crumbs.getBoundingClientRect().height : 0}px`,
       );
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(scroller);
+    // The border box: a page with a gold cover changes the crumbs' padding, not their content.
     for (const el of scroller.querySelectorAll('.g-top, .g-crumbs'))
-      ro.observe(el);
+      ro.observe(el, { box: 'border-box' });
     return () => ro.disconnect();
   }, [root, pathname, desk]);
 }

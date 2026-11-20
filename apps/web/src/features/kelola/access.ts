@@ -7,7 +7,7 @@ import { visibleServices, type Service } from '~/lib/services';
 
 type WithRoles = { roles?: readonly string[] | null } | null | undefined;
 
-export type KelolaPage = 'hub' | 'live' | 'sparta' | 'curhat';
+export type KelolaPage = 'hub' | 'form' | 'live' | 'sparta' | 'curhat';
 
 /** The Kelola rows this member has, in the registry's order (the hub and Layanan's Kelola group). */
 export function kelolaServices(user: WithRoles, now = new Date()): Service[] {
@@ -27,11 +27,13 @@ export function kelolaAccess(
   const allowed =
     page === 'hub'
       ? hasKelola
-      : page === 'live'
-        ? can(user, 'liveCounting')
-        : page === 'curhat'
-          ? can(user, 'respondCurhat')
-          : can(user, 'spartaData');
+      : page === 'form'
+        ? can(user, 'buildForms')
+        : page === 'live'
+          ? can(user, 'liveCounting')
+          : page === 'curhat'
+            ? can(user, 'respondCurhat')
+            : can(user, 'spartaData');
   if (allowed) return { allowed: true };
   return {
     allowed: false,

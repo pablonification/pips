@@ -41,8 +41,10 @@ sees only what their angkatan and roles allow, decided by the server.
   answers the form, "not for you" with only the title and audience, or a draft only to those who manage it.
 - **Answers for the maker** come from three routes: a summary, the responses one by one, and an export, Excel by
   default and CSV on request, written with `write-excel-file` on the server.
-- **Libraries in the web app for the hard parts, all headless**: `react-hook-form` with `zod` for the member's form,
-  Data diri and the builder's state; `@dnd-kit` for reordering by pointer and keyboard with announcements; Radix
+- **Libraries in the web app for the hard parts, all headless**: `react-hook-form` with `zod` for the member's form
+  and Data diri, and `react-hook-form` for the builder's state (its few checks, such as the short name's, are plain
+  functions mirrored from the API's, so zod stays out of the builder's code); `@dnd-kit` for reordering by pointer and
+  keyboard with announcements; Radix
   (already there) for menus, dialogs and switches. They bring behaviour, not looks: every pixel is still Garis, so
   decision 14 holds (it forbids component libraries that bring a look). The builder and the form are their own routes
   under the size cap (decision 12).

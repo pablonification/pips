@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { Navigate } from '@tanstack/react-router';
-import { ErrorState } from '~/components/garis';
+import { Link, Navigate } from '@tanstack/react-router';
+import { Button, ErrorState } from '~/components/garis';
 import { IconGrup } from '~/components/icons/grup';
+import { IconKelola } from '~/components/icons/kelola';
 import { IconKredit } from '~/components/icons/kredit';
 import { IconTautan } from '~/components/icons/tautan';
 import { useCover } from '~/components/shell/cover';
@@ -38,6 +39,7 @@ export function FormLinkScreen({ name }: { name: string }) {
         title={link.data.title}
         draft={link.data.state === 'draft'}
         years={link.data.eligibleAngkatan}
+        manage={link.data.canManage ? link.data.formId : null}
       />
     );
   if (link.data === null)
@@ -90,14 +92,30 @@ function Covered({
   title,
   draft,
   years,
+  manage,
 }: {
   title: string;
   draft: boolean;
   years: number[];
+  /** The form's id, when the API says you may manage it: then "Kelola form ini" leads to its builder. */
+  manage: string | null;
 }) {
   const k = isi.keadaan;
   usePageTitle(title);
   useCover();
+  const actions = (
+    <>
+      {manage ? (
+        <Button variant="paper" asChild>
+          <Link to="/kelola/form/$formId" params={{ formId: manage }}>
+            <IconKelola size={16} />
+            {k.kelolaFormIni}
+          </Link>
+        </Button>
+      ) : null}
+      <ToList label={k.formUntukmu} variant={manage ? 'ghost' : 'paper'} />
+    </>
+  );
   return (
     <div className="g-fx">
       <Cover title={title} />
@@ -110,7 +128,7 @@ function Covered({
               angkatan: audienceText(years),
             })}
           >
-            <ToList label={k.formUntukmu} />
+            {actions}
           </FormState>
         ) : (
           <FormState
@@ -118,7 +136,7 @@ function Covered({
             title={k.draf}
             text={k.drafIsi}
           >
-            <ToList label={k.formUntukmu} />
+            {actions}
           </FormState>
         )}
       </Body>

@@ -6,7 +6,7 @@
 import * as D from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
 import { useMemo, useState } from 'react';
-import { ICONS } from '~/components/icons/registry';
+import { ICONS_BY_KEY } from '~/components/icons/by-key';
 import { IconCari } from '~/components/icons/cari';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
@@ -87,7 +87,7 @@ export default function Palette() {
                   className="g-pal-g"
                 >
                   {g.items.map((item) => {
-                    const Icon = ICONS[item.icon];
+                    const Icon = ICONS_BY_KEY[item.icon];
                     return (
                       <Command.Item
                         key={item.id}

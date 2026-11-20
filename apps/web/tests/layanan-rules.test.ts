@@ -20,6 +20,7 @@ test('groups in order; Kelola only with a capability, last', () => {
   assert.deepEqual(
     groups.at(-1)?.services.map((s) => s.label),
     [
+      'Form',
       'Live Counting & Rekap Form',
       'Data SPARTA Magang',
       'Tambah acara Akademik',
@@ -50,10 +51,12 @@ test('Kelola per role', () => {
     servicesByGroup({ roles }, now)
       .find((g) => g.group === 'Kelola')
       ?.services.map((s) => s.id) ?? [];
-  assert.deepEqual(kelola(['admin']), ['live', 'sparta-data']);
-  assert.deepEqual(kelola(['peoplemanage']), ['sparta-data']);
-  assert.deepEqual(kelola(['akademik']), ['acara']);
-  assert.deepEqual(kelola(['cnc']), []);
+  assert.deepEqual(kelola(['admin']), ['form-builder', 'live', 'sparta-data']);
+  assert.deepEqual(kelola(['peoplemanage']), ['form-builder', 'sparta-data']);
+  assert.deepEqual(kelola(['akademik']), ['form-builder', 'acara']);
+  // Any role builds forms.
+  assert.deepEqual(kelola(['cnc']), ['form-builder']);
+  assert.deepEqual(kelola([]), []);
 });
 
 test('an entry past validUntil is hidden, and shown before it', () => {

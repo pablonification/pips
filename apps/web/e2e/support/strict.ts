@@ -106,6 +106,9 @@ export async function expectVisibleFocus(page: Page, max = 30) {
       const info = await page.evaluate(() => {
         const el = document.activeElement as HTMLElement | null;
         if (!el || el === document.body) return null;
+        // Radix's invisible edge guards around an open (or just closing) menu or dialog: on focus Radix sends focus
+        // back into it, so no one ever sees one as a stop. A slow runner can read one before that move.
+        if (el.hasAttribute('data-radix-focus-guard')) return null;
         // What can show focus, as drawn: an outline or a border only when it is there (an outline's offset or a
         // border's colour changes nothing on screen while its style is none or its width 0).
         const look = (s: CSSStyleDeclaration) => {

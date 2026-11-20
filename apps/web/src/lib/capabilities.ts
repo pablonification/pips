@@ -3,6 +3,12 @@ import type { UserWithRoles } from '~/api/generated';
 type Role = UserWithRoles['roles'][number];
 
 /**
+ * Every role the API knows: a pengurus is a member who holds at least one (`apps/api/src/db/roles-group.ts`, the
+ * route table's PENGURUS). A member's roles come only from that list, so holding any role is being a pengurus.
+ */
+export const ANY_ROLE = 'any role';
+
+/**
  * What each role may do, mirroring the server's checks. Every pengurus action
  * renders through `can()`; members never see an action they can't complete. `tests/capabilities.test.ts` reads
  * the API's source and fails if a row here drifts from it.
@@ -30,7 +36,11 @@ export const CAPABILITY_ROLES = {
   editCourseCatalog: ['akademik', 'admin'],
   /** Change or delete a competition in Info Lomba: `competitions.controller.ts`, the same forRoles(…, ['cnc']). */
   manageCompetition: ['cnc'],
-} as const satisfies Record<string, readonly Role[]>;
+  /** Kelola › Form, the builder: any pengurus (`route-access.ts`, POST /api/form). The form's own access decides the rest. */
+  buildForms: ANY_ROLE,
+  /** "Semua form" in Kelola › Form, and editing any form: `form-manage.controller.ts`, admin. */
+  manageAllForms: ['admin'],
+} as const satisfies Record<string, readonly Role[] | typeof ANY_ROLE>;
 
 export type Capability = keyof typeof CAPABILITY_ROLES;
 
@@ -39,9 +49,9 @@ type WithRoles = { roles?: readonly string[] | null } | null | undefined;
 /** Whether `user` holds a role that the server accepts for `capability`. */
 export function can(user: WithRoles, capability: Capability): boolean {
   const roles = user?.roles ?? [];
-  return (CAPABILITY_ROLES[capability] as readonly string[]).some((role) =>
-    roles.includes(role),
-  );
+  const need = CAPABILITY_ROLES[capability];
+  if (need === ANY_ROLE) return roles.length > 0;
+  return (need as readonly string[]).some((role) => roles.includes(role));
 }
 
 /** Either kind of calendar event (the Kalender's "Tambah acara"). */

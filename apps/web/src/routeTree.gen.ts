@@ -35,6 +35,7 @@ import { Route as AppLeftNavbarProfilIndexRouteImport } from './routes/_app/_lef
 import { Route as AppLeftNavbarProfilSettingsItemRouteImport } from './routes/_app/_left-navbar/profil/_settings-item'
 import { Route as AppLeftNavbarKelolaCurhatIndexRouteImport } from './routes/_app/_left-navbar/kelola/curhat/index'
 import { Route as AppLeftNavbarKelolaCurhatRoomIdRouteImport } from './routes/_app/_left-navbar/kelola/curhat/$roomId'
+import { Route as AppLeftNavbarKelolaFormIndexRouteImport } from './routes/_app/_left-navbar/kelola/form/index'
 import { Route as AppLeftNavbarKelolaLiveIndexRouteImport } from './routes/_app/_left-navbar/kelola/live/index'
 import { Route as AppLeftNavbarKelolaSpartaIndexRouteImport } from './routes/_app/_left-navbar/kelola/sparta/index'
 import { Route as AppLeftNavbarKelolaSpartaSubmissionIdRouteImport } from './routes/_app/_left-navbar/kelola/sparta/$submissionId'
@@ -49,6 +50,8 @@ import { Route as AppLeftNavbarLayananSpartaIndexRouteImport } from './routes/_a
 import { Route as AppLeftNavbarLayananTestiIndexRouteImport } from './routes/_app/_left-navbar/layanan/testi/index'
 import { Route as AppLeftNavbarPengumumanIdIndexRouteImport } from './routes/_app/_left-navbar/pengumuman/$id/index'
 import { Route as AppLeftNavbarPengumumanTulisIndexRouteImport } from './routes/_app/_left-navbar/pengumuman/tulis/index'
+import { Route as AppLeftNavbarKelolaFormFormIdIndexRouteImport } from './routes/_app/_left-navbar/kelola/form/$formId/index'
+import { Route as AppLeftNavbarKelolaFormFormIdPratinjauRouteImport } from './routes/_app/_left-navbar/kelola/form/$formId/pratinjau'
 import { Route as AppLeftNavbarKelolaLiveFormIdIndexRouteImport } from './routes/_app/_left-navbar/kelola/live/$formId/index'
 import { Route as AppLeftNavbarKelolaLiveFormIdRekapRouteImport } from './routes/_app/_left-navbar/kelola/live/$formId/rekap'
 import { Route as AppLeftNavbarLayananTestiTypeIndexRouteImport } from './routes/_app/_left-navbar/layanan/testi/$type/index'
@@ -202,6 +205,12 @@ const AppLeftNavbarKelolaCurhatRoomIdRoute =
     path: '/$roomId',
     getParentRoute: () => AppLeftNavbarKelolaCurhatRouteRoute,
   } as any)
+const AppLeftNavbarKelolaFormIndexRoute =
+  AppLeftNavbarKelolaFormIndexRouteImport.update({
+    id: '/kelola/form/',
+    path: '/kelola/form/',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
 const AppLeftNavbarKelolaLiveIndexRoute =
   AppLeftNavbarKelolaLiveIndexRouteImport.update({
     id: '/kelola/live/',
@@ -285,6 +294,18 @@ const AppLeftNavbarPengumumanTulisIndexRoute =
     id: '/tulis/',
     path: '/tulis/',
     getParentRoute: () => AppLeftNavbarPengumumanRouteRoute,
+  } as any)
+const AppLeftNavbarKelolaFormFormIdIndexRoute =
+  AppLeftNavbarKelolaFormFormIdIndexRouteImport.update({
+    id: '/kelola/form/$formId/',
+    path: '/kelola/form/$formId/',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarKelolaFormFormIdPratinjauRoute =
+  AppLeftNavbarKelolaFormFormIdPratinjauRouteImport.update({
+    id: '/kelola/form/$formId/pratinjau',
+    path: '/kelola/form/$formId/pratinjau',
+    getParentRoute: () => AppLeftNavbarRoute,
   } as any)
 const AppLeftNavbarKelolaLiveFormIdIndexRoute =
   AppLeftNavbarKelolaLiveFormIdIndexRouteImport.update({
@@ -380,6 +401,7 @@ export interface FileRoutesByFullPath {
   '/layanan/curhat/$roomId': typeof AppLeftNavbarLayananCurhatRoomIdRoute
   '/layanan/form/$formId': typeof AppLeftNavbarLayananFormFormIdRoute
   '/kelola/curhat/': typeof AppLeftNavbarKelolaCurhatIndexRoute
+  '/kelola/form/': typeof AppLeftNavbarKelolaFormIndexRoute
   '/kelola/live/': typeof AppLeftNavbarKelolaLiveIndexRoute
   '/kelola/sparta/': typeof AppLeftNavbarKelolaSpartaIndexRoute
   '/layanan/curhat/': typeof AppLeftNavbarLayananCurhatIndexRoute
@@ -391,7 +413,9 @@ export interface FileRoutesByFullPath {
   '/layanan/testi/': typeof AppLeftNavbarLayananTestiIndexRoute
   '/pengumuman/$id/': typeof AppLeftNavbarPengumumanIdIndexRoute
   '/pengumuman/tulis/': typeof AppLeftNavbarPengumumanTulisIndexRoute
+  '/kelola/form/$formId/pratinjau': typeof AppLeftNavbarKelolaFormFormIdPratinjauRoute
   '/kelola/live/$formId/rekap': typeof AppLeftNavbarKelolaLiveFormIdRekapRoute
+  '/kelola/form/$formId/': typeof AppLeftNavbarKelolaFormFormIdIndexRoute
   '/kelola/live/$formId/': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   '/layanan/testi/$type/': typeof AppLeftNavbarLayananTestiTypeIndexRoute
   '/profil/aplikasi/': typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
@@ -424,6 +448,7 @@ export interface FileRoutesByTo {
   '/layanan/curhat/$roomId': typeof AppLeftNavbarLayananCurhatRoomIdRoute
   '/layanan/form/$formId': typeof AppLeftNavbarLayananFormFormIdRoute
   '/kelola/curhat': typeof AppLeftNavbarKelolaCurhatIndexRoute
+  '/kelola/form': typeof AppLeftNavbarKelolaFormIndexRoute
   '/kelola/live': typeof AppLeftNavbarKelolaLiveIndexRoute
   '/kelola/sparta': typeof AppLeftNavbarKelolaSpartaIndexRoute
   '/layanan/curhat': typeof AppLeftNavbarLayananCurhatIndexRoute
@@ -435,7 +460,9 @@ export interface FileRoutesByTo {
   '/layanan/testi': typeof AppLeftNavbarLayananTestiIndexRoute
   '/pengumuman/$id': typeof AppLeftNavbarPengumumanIdIndexRoute
   '/pengumuman/tulis': typeof AppLeftNavbarPengumumanTulisIndexRoute
+  '/kelola/form/$formId/pratinjau': typeof AppLeftNavbarKelolaFormFormIdPratinjauRoute
   '/kelola/live/$formId/rekap': typeof AppLeftNavbarKelolaLiveFormIdRekapRoute
+  '/kelola/form/$formId': typeof AppLeftNavbarKelolaFormFormIdIndexRoute
   '/kelola/live/$formId': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   '/layanan/testi/$type': typeof AppLeftNavbarLayananTestiTypeIndexRoute
   '/profil/aplikasi': typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
@@ -478,6 +505,7 @@ export interface FileRoutesById {
   '/_app/_left-navbar/layanan/curhat/$roomId': typeof AppLeftNavbarLayananCurhatRoomIdRoute
   '/_app/_left-navbar/layanan/form/$formId': typeof AppLeftNavbarLayananFormFormIdRoute
   '/_app/_left-navbar/kelola/curhat/': typeof AppLeftNavbarKelolaCurhatIndexRoute
+  '/_app/_left-navbar/kelola/form/': typeof AppLeftNavbarKelolaFormIndexRoute
   '/_app/_left-navbar/kelola/live/': typeof AppLeftNavbarKelolaLiveIndexRoute
   '/_app/_left-navbar/kelola/sparta/': typeof AppLeftNavbarKelolaSpartaIndexRoute
   '/_app/_left-navbar/layanan/curhat/': typeof AppLeftNavbarLayananCurhatIndexRoute
@@ -489,7 +517,9 @@ export interface FileRoutesById {
   '/_app/_left-navbar/layanan/testi/': typeof AppLeftNavbarLayananTestiIndexRoute
   '/_app/_left-navbar/pengumuman/$id/': typeof AppLeftNavbarPengumumanIdIndexRoute
   '/_app/_left-navbar/pengumuman/tulis/': typeof AppLeftNavbarPengumumanTulisIndexRoute
+  '/_app/_left-navbar/kelola/form/$formId/pratinjau': typeof AppLeftNavbarKelolaFormFormIdPratinjauRoute
   '/_app/_left-navbar/kelola/live/$formId/rekap': typeof AppLeftNavbarKelolaLiveFormIdRekapRoute
+  '/_app/_left-navbar/kelola/form/$formId/': typeof AppLeftNavbarKelolaFormFormIdIndexRoute
   '/_app/_left-navbar/kelola/live/$formId/': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   '/_app/_left-navbar/layanan/testi/$type/': typeof AppLeftNavbarLayananTestiTypeIndexRoute
   '/_app/_left-navbar/profil/_settings-item/aplikasi/': typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
@@ -530,6 +560,7 @@ export interface FileRouteTypes {
     | '/layanan/curhat/$roomId'
     | '/layanan/form/$formId'
     | '/kelola/curhat/'
+    | '/kelola/form/'
     | '/kelola/live/'
     | '/kelola/sparta/'
     | '/layanan/curhat/'
@@ -541,7 +572,9 @@ export interface FileRouteTypes {
     | '/layanan/testi/'
     | '/pengumuman/$id/'
     | '/pengumuman/tulis/'
+    | '/kelola/form/$formId/pratinjau'
     | '/kelola/live/$formId/rekap'
+    | '/kelola/form/$formId/'
     | '/kelola/live/$formId/'
     | '/layanan/testi/$type/'
     | '/profil/aplikasi/'
@@ -574,6 +607,7 @@ export interface FileRouteTypes {
     | '/layanan/curhat/$roomId'
     | '/layanan/form/$formId'
     | '/kelola/curhat'
+    | '/kelola/form'
     | '/kelola/live'
     | '/kelola/sparta'
     | '/layanan/curhat'
@@ -585,7 +619,9 @@ export interface FileRouteTypes {
     | '/layanan/testi'
     | '/pengumuman/$id'
     | '/pengumuman/tulis'
+    | '/kelola/form/$formId/pratinjau'
     | '/kelola/live/$formId/rekap'
+    | '/kelola/form/$formId'
     | '/kelola/live/$formId'
     | '/layanan/testi/$type'
     | '/profil/aplikasi'
@@ -627,6 +663,7 @@ export interface FileRouteTypes {
     | '/_app/_left-navbar/layanan/curhat/$roomId'
     | '/_app/_left-navbar/layanan/form/$formId'
     | '/_app/_left-navbar/kelola/curhat/'
+    | '/_app/_left-navbar/kelola/form/'
     | '/_app/_left-navbar/kelola/live/'
     | '/_app/_left-navbar/kelola/sparta/'
     | '/_app/_left-navbar/layanan/curhat/'
@@ -638,7 +675,9 @@ export interface FileRouteTypes {
     | '/_app/_left-navbar/layanan/testi/'
     | '/_app/_left-navbar/pengumuman/$id/'
     | '/_app/_left-navbar/pengumuman/tulis/'
+    | '/_app/_left-navbar/kelola/form/$formId/pratinjau'
     | '/_app/_left-navbar/kelola/live/$formId/rekap'
+    | '/_app/_left-navbar/kelola/form/$formId/'
     | '/_app/_left-navbar/kelola/live/$formId/'
     | '/_app/_left-navbar/layanan/testi/$type/'
     | '/_app/_left-navbar/profil/_settings-item/aplikasi/'
@@ -841,6 +880,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeftNavbarKelolaCurhatRoomIdRouteImport
       parentRoute: typeof AppLeftNavbarKelolaCurhatRouteRoute
     }
+    '/_app/_left-navbar/kelola/form/': {
+      id: '/_app/_left-navbar/kelola/form/'
+      path: '/kelola/form'
+      fullPath: '/kelola/form/'
+      preLoaderRoute: typeof AppLeftNavbarKelolaFormIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
     '/_app/_left-navbar/kelola/live/': {
       id: '/_app/_left-navbar/kelola/live/'
       path: '/kelola/live'
@@ -938,6 +984,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/pengumuman/tulis/'
       preLoaderRoute: typeof AppLeftNavbarPengumumanTulisIndexRouteImport
       parentRoute: typeof AppLeftNavbarPengumumanRouteRoute
+    }
+    '/_app/_left-navbar/kelola/form/$formId/': {
+      id: '/_app/_left-navbar/kelola/form/$formId/'
+      path: '/kelola/form/$formId'
+      fullPath: '/kelola/form/$formId/'
+      preLoaderRoute: typeof AppLeftNavbarKelolaFormFormIdIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/kelola/form/$formId/pratinjau': {
+      id: '/_app/_left-navbar/kelola/form/$formId/pratinjau'
+      path: '/kelola/form/$formId/pratinjau'
+      fullPath: '/kelola/form/$formId/pratinjau'
+      preLoaderRoute: typeof AppLeftNavbarKelolaFormFormIdPratinjauRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
     }
     '/_app/_left-navbar/kelola/live/$formId/': {
       id: '/_app/_left-navbar/kelola/live/$formId/'
@@ -1150,6 +1210,7 @@ interface AppLeftNavbarRouteChildren {
   AppLeftNavbarLayananIndexRoute: typeof AppLeftNavbarLayananIndexRoute
   AppLeftNavbarKelolaSpartaSubmissionIdRoute: typeof AppLeftNavbarKelolaSpartaSubmissionIdRoute
   AppLeftNavbarLayananFormFormIdRoute: typeof AppLeftNavbarLayananFormFormIdRoute
+  AppLeftNavbarKelolaFormIndexRoute: typeof AppLeftNavbarKelolaFormIndexRoute
   AppLeftNavbarKelolaLiveIndexRoute: typeof AppLeftNavbarKelolaLiveIndexRoute
   AppLeftNavbarKelolaSpartaIndexRoute: typeof AppLeftNavbarKelolaSpartaIndexRoute
   AppLeftNavbarLayananDingdongIndexRoute: typeof AppLeftNavbarLayananDingdongIndexRoute
@@ -1157,7 +1218,9 @@ interface AppLeftNavbarRouteChildren {
   AppLeftNavbarLayananLombaIndexRoute: typeof AppLeftNavbarLayananLombaIndexRoute
   AppLeftNavbarLayananNimIndexRoute: typeof AppLeftNavbarLayananNimIndexRoute
   AppLeftNavbarLayananSpartaIndexRoute: typeof AppLeftNavbarLayananSpartaIndexRoute
+  AppLeftNavbarKelolaFormFormIdPratinjauRoute: typeof AppLeftNavbarKelolaFormFormIdPratinjauRoute
   AppLeftNavbarKelolaLiveFormIdRekapRoute: typeof AppLeftNavbarKelolaLiveFormIdRekapRoute
+  AppLeftNavbarKelolaFormFormIdIndexRoute: typeof AppLeftNavbarKelolaFormFormIdIndexRoute
   AppLeftNavbarKelolaLiveFormIdIndexRoute: typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute: typeof AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute
 }
@@ -1181,6 +1244,7 @@ const AppLeftNavbarRouteChildren: AppLeftNavbarRouteChildren = {
   AppLeftNavbarKelolaSpartaSubmissionIdRoute:
     AppLeftNavbarKelolaSpartaSubmissionIdRoute,
   AppLeftNavbarLayananFormFormIdRoute: AppLeftNavbarLayananFormFormIdRoute,
+  AppLeftNavbarKelolaFormIndexRoute: AppLeftNavbarKelolaFormIndexRoute,
   AppLeftNavbarKelolaLiveIndexRoute: AppLeftNavbarKelolaLiveIndexRoute,
   AppLeftNavbarKelolaSpartaIndexRoute: AppLeftNavbarKelolaSpartaIndexRoute,
   AppLeftNavbarLayananDingdongIndexRoute:
@@ -1189,8 +1253,12 @@ const AppLeftNavbarRouteChildren: AppLeftNavbarRouteChildren = {
   AppLeftNavbarLayananLombaIndexRoute: AppLeftNavbarLayananLombaIndexRoute,
   AppLeftNavbarLayananNimIndexRoute: AppLeftNavbarLayananNimIndexRoute,
   AppLeftNavbarLayananSpartaIndexRoute: AppLeftNavbarLayananSpartaIndexRoute,
+  AppLeftNavbarKelolaFormFormIdPratinjauRoute:
+    AppLeftNavbarKelolaFormFormIdPratinjauRoute,
   AppLeftNavbarKelolaLiveFormIdRekapRoute:
     AppLeftNavbarKelolaLiveFormIdRekapRoute,
+  AppLeftNavbarKelolaFormFormIdIndexRoute:
+    AppLeftNavbarKelolaFormFormIdIndexRoute,
   AppLeftNavbarKelolaLiveFormIdIndexRoute:
     AppLeftNavbarKelolaLiveFormIdIndexRoute,
   AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute:

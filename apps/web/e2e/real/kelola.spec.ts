@@ -37,14 +37,16 @@ test.describe('the pengurus', () => {
     problems,
   }) => {
     await page.goto('/kelola');
-    await expect(tools(page)).toHaveCount(3);
-    await expect(tools(page).nth(0)).toHaveAccessibleName(
+    await expect(tools(page)).toHaveCount(4);
+    // Form first: any pengurus builds forms.
+    await expect(tools(page).nth(0)).toHaveAccessibleName(/^Form/);
+    await expect(tools(page).nth(1)).toHaveAccessibleName(
       /^Live Counting & Rekap Form/,
     );
-    await expect(tools(page).nth(1)).toHaveAccessibleName(
+    await expect(tools(page).nth(2)).toHaveAccessibleName(
       /^Data SPARTA Magang/,
     );
-    await expect(tools(page).nth(2)).toHaveAccessibleName(
+    await expect(tools(page).nth(3)).toHaveAccessibleName(
       /^Tambah acara Akademik/,
     );
     // No Curhat inbox: that is Welfare's.
@@ -52,7 +54,7 @@ test.describe('the pengurus', () => {
       main(page).getByRole('link', { name: /^Curhat Yuk!/ }),
     ).toHaveCount(0);
 
-    await tools(page).nth(0).click();
+    await tools(page).nth(1).click();
     await expect(page).toHaveURL(/\/kelola\/live\/[^/]+$/);
     await expect(
       main(page).getByText('Form Analisis Kondisi PIXEL').first(),

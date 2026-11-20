@@ -14,6 +14,7 @@ export { IconButton } from './IconButton';
 export { FactsList, Item, RowButton, RuledList, SectionHead } from './List';
 export { Due, Kbd, SksMark, UnreadBar } from './Marks';
 export { Menu, MenuItem } from './Menu';
+export { MenuRadioGroup, MenuRadioItem, MenuSeparator } from './MenuChoice';
 export { ConfirmDialog, Dialog, Modal, Sheet } from './Overlay';
 export { PixelReaction } from './PixelReaction';
 export {

@@ -33,6 +33,9 @@ interface OverlayProps {
   closeLabel?: string;
 }
 
+const fromToast = (target: EventTarget | null) =>
+  target instanceof Element && !!target.closest('.g-toast, .g-toast-region');
+
 function Head({ title, closeLabel }: { title: ReactNode; closeLabel: string }) {
   return (
     <div className="g-ov-head">
@@ -76,6 +79,20 @@ function Shell({
             className,
           )}
           role={role}
+          // A field that answers Escape itself (`data-own-escape`, an editor inside the dialog) keeps the dialog open.
+          onEscapeKeyDown={(e) => {
+            if (
+              document.activeElement instanceof Element &&
+              document.activeElement.closest('[data-own-escape]')
+            )
+              e.preventDefault();
+          }}
+          // A toast's Urungkan belongs to what the dialog just did: pressing it never closes the dialog (Radix asks
+          // this for a pointer-down and for focus moving out). It decides on the click, when the toast has already
+          // left the page, so the toast is matched, not its region.
+          onInteractOutside={(e) => {
+            if (fromToast(e.target)) e.preventDefault();
+          }}
           onOpenAutoFocus={(e) => {
             const active =
               document.activeElement instanceof HTMLElement &&

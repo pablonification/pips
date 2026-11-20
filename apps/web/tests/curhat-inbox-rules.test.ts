@@ -104,12 +104,12 @@ test('the inbox, its Kelola row and the pin are curhatadmin’s only', () => {
   // The row comes after the Kelola rows already there.
   assert.deepEqual(
     kelolaServices(welfare).map((s) => s.id),
-    ['live', 'sparta-data', 'acara', 'curhat-inbox'],
+    ['form-builder', 'live', 'sparta-data', 'acara', 'curhat-inbox'],
   );
-  // Welfare with no other tool: Kelola holds the Curhat row only, and the hub lets them in.
+  // Welfare with no other tool: Kelola holds Form (any pengurus) and the Curhat row, and the hub lets them in.
   assert.deepEqual(
     kelolaServices(onlyWelfare).map((s) => s.id),
-    ['curhat-inbox'],
+    ['form-builder', 'curhat-inbox'],
   );
   assert.deepEqual(kelolaAccess(onlyWelfare, 'hub'), { allowed: true });
   assert.ok(
