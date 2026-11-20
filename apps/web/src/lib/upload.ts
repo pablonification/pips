@@ -1,4 +1,4 @@
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { presignBody } from './upload-name';
 import {
   refusedProblem,
@@ -85,7 +85,7 @@ export async function uploadMedia(
   if (problem) throw new UploadRefused(problem);
   let presigned;
   try {
-    presigned = await api.media.createPresignedUrl({
+    presigned = await api.createPresignedUrl({
       requestBody: {
         ...presignBody(file),
         fileType: uploadExtension(file, kind)!,

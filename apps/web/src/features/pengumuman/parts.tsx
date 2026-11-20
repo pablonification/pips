@@ -9,7 +9,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import type { Info, ReactionAggregate } from '~/api/generated';
 import {
   Dialog,
@@ -131,7 +131,7 @@ export function Linkified({ text }: { text: string }) {
 function useOpenGraph(url: string, enabled: boolean) {
   return useQuery({
     queryKey: ['openGraph', url],
-    queryFn: () => api.openGraph.openGraphScrape({ url: absoluteUrl(url) }),
+    queryFn: () => api.openGraphScrape({ url: absoluteUrl(url) }),
     enabled,
     // A preview is good for a day.
     staleTime: 1000 * 60 * 60 * 24,

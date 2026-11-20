@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { relinkPush, unlinkPushAtLogout } from '~/lib/push';
 import { forgetMemberOnDevice, markChosenSignOut } from '~/lib/session';
 import { isSignedOutError } from '~/lib/session-policy';
@@ -11,7 +11,7 @@ export default function useLogout() {
       // when the server can't unlink the device, its subscription ends here.
       const unlinked = await unlinkPushAtLogout();
       try {
-        await api.auth.logout();
+        await api.logout();
       } catch (error) {
         // A 401: the session had already ended (expired, or signed out elsewhere), so you are signed out; finish
         // here as after a sign-out, instead of a "Gagal keluar" whose Coba lagi would fail the same way.

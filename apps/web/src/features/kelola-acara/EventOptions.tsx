@@ -21,7 +21,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import type { CalendarEvent } from '~/api/generated';
 import {
   ConfirmDialog,
@@ -139,7 +139,7 @@ function Dialogs({ target, onClose }: { target: Target; onClose: () => void }) {
   const saved = useRef(false);
 
   const remove = useMutation({
-    mutationFn: () => api.calendar.deleteCalendarEvent({ eventId: event.id }),
+    mutationFn: () => api.deleteCalendarEvent({ eventId: event.id }),
   });
 
   // A role taken away while a dialog is open (a refused write asks for `me` again): the dialog goes with the options.

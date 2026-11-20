@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useId, useRef } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { CATEGORIES_QUERY_KEY, UNSUBSCRIBED_QUERY_KEY } from '~/api/constants';
 import {
   ErrorState,
@@ -27,12 +27,12 @@ export function NotifikasiScreen() {
   const qc = useQueryClient();
   const categories = useQuery({
     queryKey: [CATEGORIES_QUERY_KEY],
-    queryFn: () => api.category.getListCategory(),
+    queryFn: () => api.getListCategory(),
     select: (d) => d.categories,
   });
   const muted = useQuery({
     queryKey: [UNSUBSCRIBED_QUERY_KEY],
-    queryFn: () => api.unsubscribe.getListUserUnsubscribeCategory(),
+    queryFn: () => api.getListUserUnsubscribeCategory(),
   });
 
   /** Mutes or unmutes one category in the cached list, leaving the others as they are now. */
@@ -55,10 +55,10 @@ export function NotifikasiScreen() {
   const toggle = useMutation({
     mutationFn: ({ row, on }: { row: CategoryRow; on: boolean }) =>
       on
-        ? api.unsubscribe.deleteUserUnsubscribeCategory({
+        ? api.deleteUserUnsubscribeCategory({
             requestBody: { categoryId: row.id },
           })
-        : api.unsubscribe.postUserUnsubscribeCategory({
+        : api.postUserUnsubscribeCategory({
             requestBody: { categoryId: row.id },
           }),
     onMutate: async ({ row, on }) => {

@@ -1,4 +1,4 @@
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import type { Competition } from '~/api/generated';
 import { nextOffset } from './rules';
 
@@ -9,7 +9,7 @@ import { nextOffset } from './rules';
 export const competitionsQuery = {
   queryKey: ['competitions', 'deadline'] as const,
   queryFn: ({ pageParam }: { pageParam: number }) =>
-    api.competitions
+    api
       .getCompetitionList({ sort: 'deadline', offset: pageParam })
       .then((r) => r.competitions),
   initialPageParam: 0,

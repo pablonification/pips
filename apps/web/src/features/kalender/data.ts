@@ -10,7 +10,7 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { CALENDAR_EVENTS_QUERY_KEY } from '~/api/constants';
 import { ApiError, type CalendarEvent } from '~/api/generated';
 import { calendarEventsQuery, currentCoursesQuery } from '~/api/queries';
@@ -109,7 +109,7 @@ export function useEvent(
   }, [id, loaded, qc]);
   const q = useQuery({
     queryKey: [CALENDAR_EVENTS_QUERY_KEY, 'event', id],
-    queryFn: () => api.calendar.getCalendarEventById({ eventId: id! }),
+    queryFn: () => api.getCalendarEventById({ eventId: id! }),
     enabled: !!id && !cached && loadedReady,
     retry: (n, e) => !(e instanceof ApiError && e.status < 500) && n < 2,
   });

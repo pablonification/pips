@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useRef } from 'react';
 import { flushSync } from 'react-dom';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import {
   CALENDAR_EVENTS_QUERY_KEY,
   CURRENT_COURSES_QUERY_KEY,
@@ -86,7 +86,7 @@ export function MatkulScreen() {
     focusAfterRemove(next?.courseId);
     void qc.cancelQueries({ queryKey: [CURRENT_COURSES_QUERY_KEY] });
     writing.current += 1;
-    const deleted = api.course
+    const deleted = api
       .deleteUserCourse({ requestBody: { courseIds: [row.courseId] } })
       .then(
         () => true,
@@ -116,7 +116,7 @@ export function MatkulScreen() {
       .then((ok) => {
         // The removal failed: the row is back already, and there is nothing to undo on the server.
         if (!ok) return;
-        return api.course
+        return api
           .createOrUpdateBatchUserCourse({
             requestBody: [{ courseId: row.courseId, class: row.class }],
           })

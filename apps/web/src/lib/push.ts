@@ -1,4 +1,4 @@
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { PushSubscription } from '~/api/generated';
 import { push as copy } from '~/copy/push';
 import { currentPlatform } from './platform';
@@ -146,7 +146,7 @@ function subscribeOnce(registration: ServiceWorkerRegistration) {
  */
 async function register(sub: globalThis.PushSubscription) {
   try {
-    await api.push.registerPush({ requestBody: subscriptionBody(sub) });
+    await api.registerPush({ requestBody: subscriptionBody(sub) });
     markLinked(true);
   } catch (e) {
     markLinked(false);
@@ -245,7 +245,7 @@ export async function unlinkPushAtLogout(): Promise<boolean> {
   const subscription = await existingPushSubscription();
   if (!subscription) return false;
   try {
-    await api.push.logoutPush({
+    await api.logoutPush({
       requestBody: { endpoint: subscription.endpoint },
     });
   } catch {

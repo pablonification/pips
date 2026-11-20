@@ -2,26 +2,8 @@
  * Default, read-only answers for every GET the app makes, computed from the test's fixture data (`db`).
  * Writes have no defaults: a test that writes registers its own handler (see mock.ts).
  */
-import type {
-  AuthService,
-  CalendarService,
-  CategoryService,
-  CommentService,
-  CompetitionsService,
-  CourseService,
-  CurhatService,
-  FormService,
-  Info,
-  InfoService,
-  InternshipService,
-  MarkdownService,
-  OauthService,
-  OpenGraphService,
-  TestimoniService,
-  UnsubscribeService,
-  UserFinderService,
-  UserProfileService,
-} from '../../src/api/generated';
+import type { Info } from '../../src/api/generated';
+import type * as api from '../../src/api/generated/operations';
 import {
   NOW,
   formSectionsVisibleFor,
@@ -32,7 +14,7 @@ import {
 import { reply, type Handler } from './mock';
 
 const PAGE = 10;
-/** What a generated client method resolves to: `ok<R<InfoService['getListInfo']>>(...)` type-checks a response. */
+/** What a generated client method resolves to: `ok<R<typeof api.getListInfo>>(...)` type-checks a response. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- matches any generated client method
 type R<F extends (...args: any[]) => unknown> = Awaited<ReturnType<F>>;
 const ok = <T>(value: T): T => value;
@@ -87,18 +69,18 @@ function listInfos(infos: Info[], q: URLSearchParams): Info[] {
 
 export const defaultHandlers: Record<string, Handler> = {
   // Session and profile
-  'GET /api/me': signedIn(({ db }) => ok<R<AuthService['getMe']>>(db.me!)),
+  'GET /api/me': signedIn(({ db }) => ok<R<typeof api.getMe>>(db.me!)),
   'GET /api/user/academic': signedIn(({ db }) =>
-    ok<R<UserProfileService['getUserAcademic']>>(db.academic),
+    ok<R<typeof api.getUserAcademic>>(db.academic),
   ),
   'GET /api/auth/groups': signedIn(({ db }) =>
-    ok<R<AuthService['getUserGroups']>>(db.groups),
+    ok<R<typeof api.getUserGroups>>(db.groups),
   ),
   'GET /api/markdown/credits': signedIn(({ db }) =>
-    ok<R<MarkdownService['getCredits']>>(db.credits),
+    ok<R<typeof api.getCredits>>(db.credits),
   ),
   'GET /api/unsubscribe/categories': signedIn(({ db }) =>
-    ok<R<UnsubscribeService['getListUserUnsubscribeCategory']>>({
+    ok<R<typeof api.getListUserUnsubscribeCategory>>({
       userId: db.me!.id,
       categoryId: db.mutedCategoryIds,
     }),
@@ -106,29 +88,29 @@ export const defaultHandlers: Record<string, Handler> = {
 
   // Announcements ("info")
   'GET /api/category': signedIn(({ db }) =>
-    ok<R<CategoryService['getListCategory']>>({ categories: db.categories }),
+    ok<R<typeof api.getListCategory>>({ categories: db.categories }),
   ),
   'GET /api/category/info': signedIn(({ db }) =>
-    ok<R<CategoryService['getInfoListCategory']>>({
+    ok<R<typeof api.getInfoListCategory>>({
       categories: db.postableCategories,
     }),
   ),
   'GET /api/angkatan': signedIn(({ db }) =>
-    ok<R<CategoryService['getListAngkatan']>>(db.angkatan),
+    ok<R<typeof api.getListAngkatan>>(db.angkatan),
   ),
   'GET /api/info': signedIn(({ db, query }) =>
-    ok<R<InfoService['getListInfo']>>({ infos: listInfos(db.infos, query) }),
+    ok<R<typeof api.getListInfo>>({ infos: listInfos(db.infos, query) }),
   ),
   'GET /api/info/:infoId': signedIn(
     ({ db, params }) =>
-      ok<R<InfoService['getInfoById']> | undefined>(
+      ok<R<typeof api.getInfoById> | undefined>(
         db.infos.find((i) => i.id === params.infoId),
       ) ?? notFound('info'),
   ),
   'GET /api/comments': signedIn(({ db, query }) => {
     const list = [...(db.comments[query.get('infoId') ?? ''] ?? [])];
     if (query.get('sort') !== 'oldest') list.reverse();
-    return ok<R<CommentService['getCommentsList']>>({ comment: list });
+    return ok<R<typeof api.getCommentsList>>({ comment: list });
   }),
   'GET /api/open-graph': signedIn(({ query }) => {
     const url = query.get('url') ?? '';
@@ -140,7 +122,7 @@ export const defaultHandlers: Record<string, Handler> = {
     const title = Object.entries(titles).find(([host]) =>
       url.includes(host),
     )?.[1];
-    return ok<R<OpenGraphService['openGraphScrape']>>(
+    return ok<R<typeof api.openGraphScrape>>(
       title
         ? {
             success: true,
@@ -157,7 +139,7 @@ export const defaultHandlers: Record<string, Handler> = {
   'GET /api/calendar/me': signedIn(({ db, query }) => {
     const month = Number(query.get('month'));
     const year = Number(query.get('year'));
-    return ok<R<CalendarService['getPersonalCalendar']>>(
+    return ok<R<typeof api.getPersonalCalendar>>(
       db.events.filter((e) => {
         // The API compares in the server's zone (WIB); the fixtures' times are WIB.
         const d = new Date(Date.parse(e.start) + 7 * 36e5);
@@ -167,7 +149,7 @@ export const defaultHandlers: Record<string, Handler> = {
   }),
   'GET /api/calendar/event/:eventId': signedIn(
     ({ db, params }) =>
-      ok<R<CalendarService['getCalendarEventById']> | undefined>(
+      ok<R<typeof api.getCalendarEventById> | undefined>(
         db.events.find((e) => e.id === params.eventId),
       ) ?? notFound('event'),
   ),
@@ -175,7 +157,7 @@ export const defaultHandlers: Record<string, Handler> = {
   // Courses
   'GET /api/course': signedIn(({ db, query }) => {
     const search = query.get('search')?.trim();
-    return ok<R<CourseService['getlistCourses']>>({
+    return ok<R<typeof api.getlistCourses>>({
       courses: db.courses.filter(
         (c) =>
           (!query.get('major') || c.major === query.get('major')) &&
@@ -190,12 +172,12 @@ export const defaultHandlers: Record<string, Handler> = {
   }),
   'GET /api/course/:courseId': signedIn(
     ({ db, params }) =>
-      ok<R<CourseService['getCourseById']> | undefined>(
+      ok<R<typeof api.getCourseById> | undefined>(
         db.courses.find((c) => c.id === params.courseId),
       ) ?? notFound('course'),
   ),
   'GET /api/course/take/current': signedIn(({ db }) =>
-    ok<R<CourseService['getCurrentUserCourse']>>(db.myCourses),
+    ok<R<typeof api.getCurrentUserCourse>>(db.myCourses),
   ),
 
   // Services
@@ -220,7 +202,7 @@ export const defaultHandlers: Record<string, Handler> = {
           : nim.includes(search)
             ? 2
             : 3;
-    return ok<R<UserFinderService['getUser']>>(
+    return ok<R<typeof api.getUser>>(
       db.members
         .filter((m) => includes(m.fullName, search) || m.nim.includes(search))
         .sort(
@@ -237,12 +219,12 @@ export const defaultHandlers: Record<string, Handler> = {
     );
   }),
   'GET /api/testimoni/course/:courseId': signedIn(({ db, params }) =>
-    ok<R<TestimoniService['getTestimoniByCourseId']>>(
+    ok<R<typeof api.getTestimoniByCourseId>>(
       db.testimonials.filter((t) => t.courseId === params.courseId),
     ),
   ),
   'GET /api/competitions/categories': signedIn(() =>
-    ok<R<CompetitionsService['getCompetitionCategories']>>([
+    ok<R<typeof api.getCompetitionCategories>>([
       'Competitive Programming',
       'Capture The Flag',
       'Data Science / Data Analytics',
@@ -268,19 +250,19 @@ export const defaultHandlers: Record<string, Handler> = {
         : Date.parse(b.createdAt) - Date.parse(a.createdAt),
     );
     const offset = Number(query.get('offset') ?? 0);
-    return ok<R<CompetitionsService['getCompetitionList']>>({
+    return ok<R<typeof api.getCompetitionList>>({
       competitions: list.slice(offset, offset + PAGE),
     });
   }),
 
   // Curhat Yuk!
   'GET /api/curhat/chatrooms': signedIn(({ db }) =>
-    ok<R<CurhatService['getUserChatrooms']>>(db.chatrooms),
+    ok<R<typeof api.getUserChatrooms>>(db.chatrooms),
   ),
   // As the API counts them: only your rooms, only messages you didn't send, without a read mark; rooms with none
   // are left out.
   'GET /api/curhat/chatrooms/unread': signedIn(({ db }) =>
-    ok<R<CurhatService['unreadCountChatroomMessages']>>(
+    ok<R<typeof api.unreadCountChatroomMessages>>(
       Object.values(db.chatrooms)
         .map((r) => ({
           chatroomId: r.id,
@@ -294,10 +276,10 @@ export const defaultHandlers: Record<string, Handler> = {
 
   // Forms
   'GET /api/form': signedIn(({ db }) =>
-    ok<R<FormService['listForms']>>({ forms: db.forms }),
+    ok<R<typeof api.listForms>>({ forms: db.forms }),
   ),
   'GET /api/form/admin/list': withRole(FORM_ADMIN, ({ db }) =>
-    ok<R<FormService['listAllForms']>>({ forms: db.adminForms }),
+    ok<R<typeof api.listAllForms>>({ forms: db.adminForms }),
   ),
   // As the API answers: the member's status, and no questions until the form opens, even if switched off (kept once it closes).
   'GET /api/form/:formId': signedIn(({ db, params }) => {
@@ -314,7 +296,7 @@ export const defaultHandlers: Record<string, Handler> = {
     const forMe =
       form.eligibleAngkatan.includes(db.me!.angkatan) ||
       db.me!.roles.includes('admin');
-    return ok<R<FormService['getForm']>>({
+    return ok<R<typeof api.getForm>>({
       ...form,
       sections:
         forMe && formSectionsVisibleFor(form, nim) ? form.sections : null,
@@ -325,7 +307,7 @@ export const defaultHandlers: Record<string, Handler> = {
     (
       { db, params }, // The API answers 200 with null when you haven't responded; its OpenAPI type omits the null (NOTES.md).
     ) =>
-      ok<R<FormService['getMyFormResponse']> | null>(
+      ok<R<typeof api.getMyFormResponse> | null>(
         db.myResponses[params.formId] ?? null,
       ),
   ),
@@ -341,7 +323,7 @@ export const defaultHandlers: Record<string, Handler> = {
         : all;
       const page = Number(query.get('page') ?? 1);
       const limit = Number(query.get('limit') ?? 20);
-      return ok<R<FormService['listFormResponses']>>({
+      return ok<R<typeof api.listFormResponses>>({
         responses: list.slice((page - 1) * limit, page * limit),
         total: list.length,
         page,
@@ -352,21 +334,21 @@ export const defaultHandlers: Record<string, Handler> = {
   'GET /api/form/:formId/responses/count': withRole(
     FORM_ADMIN,
     ({ db, params }) =>
-      ok<R<FormService['getFormResponsesCount']>>({
+      ok<R<typeof api.getFormResponsesCount>>({
         total: db.adminResponses[params.formId]?.length ?? 0,
       }),
   ),
   'GET /api/form/:formId/analytics': withRole(
     FORM_ADMIN,
     ({ db, params }) =>
-      ok<R<FormService['getFormAnalytics']> | undefined>(
+      ok<R<typeof api.getFormAnalytics> | undefined>(
         db.formAnalytics[params.formId],
       ) ?? notFound('form'),
   ),
 
   // SPARTA Magang (closed; kept for the admin table)
   'GET /api/internship/departments': signedIn(({ db }) =>
-    ok<R<InternshipService['getInternshipDepartments']>>({
+    ok<R<typeof api.getInternshipDepartments>>({
       departments: db.internshipDepartments,
     }),
   ),
@@ -376,12 +358,12 @@ export const defaultHandlers: Record<string, Handler> = {
       ? reply.status(401, {
           error: 'You are not eligible to access SPARTA internship form',
         })
-      : ok<R<InternshipService['getMyInternshipSubmission']> | null>(
+      : ok<R<typeof api.getMyInternshipSubmission> | null>(
           db.internshipSubmissions.find((s) => s.userId === db.me!.id) ?? null,
         ),
   ),
   'GET /api/internship/window': signedIn(({ db }) =>
-    ok<R<InternshipService['getInternshipWindow']>>(spartaWindowFor(db)),
+    ok<R<typeof api.getInternshipWindow>>(spartaWindowFor(db)),
   ),
   'GET /api/internship/submissions': withRole(SPARTA_ADMIN, ({ db, query }) => {
     const locked = query.get('locked');
@@ -389,14 +371,14 @@ export const defaultHandlers: Record<string, Handler> = {
       (s) => locked == null || String(s.isLocked) === locked,
     );
     const offset = Number(query.get('offset') ?? 0);
-    return ok<R<InternshipService['listInternshipSubmissions']>>({
+    return ok<R<typeof api.listInternshipSubmissions>>({
       submissions: list.slice(offset, offset + SUBMISSIONS_PER_PAGE),
     });
   }),
   'GET /api/internship/submissions/:id': withRole(
     SPARTA_ADMIN,
     ({ db, params }) =>
-      ok<R<InternshipService['getInternshipSubmissionById']> | undefined>(
+      ok<R<typeof api.getInternshipSubmissionById> | undefined>(
         db.internshipSubmissions.find((s) => s.id === params.id),
       ) ?? notFound('submission'),
   ),
@@ -405,11 +387,11 @@ export const defaultHandlers: Record<string, Handler> = {
   // revoking are writes: a test registers them.
   'GET /api/oauth/requests/:requestId': signedIn(
     ({ db, params }) =>
-      ok<R<OauthService['getOAuthRequest']> | undefined>(
+      ok<R<typeof api.getOAuthRequest> | undefined>(
         db.oauthRequests[params.requestId],
       ) ?? reply.status(404, { error: 'Request not found' }),
   ),
   'GET /api/oauth/apps': signedIn(({ db }) =>
-    ok<R<OauthService['listConnectedApps']>>({ apps: db.connectedApps }),
+    ok<R<typeof api.listConnectedApps>>({ apps: db.connectedApps }),
   ),
 };

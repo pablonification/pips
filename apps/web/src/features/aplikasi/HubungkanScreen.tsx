@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useId, useState } from 'react';
 import { ApiError, type OAuthScope } from '~/api/generated';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import {
   Button,
   Card,
@@ -68,11 +68,11 @@ export function HubungkanScreen({ requestId }: { requestId?: string }) {
       scopes: OAuthScope[];
     }) =>
       approve
-        ? api.oauth.approveOAuthRequest({
+        ? api.approveOAuthRequest({
             requestId: requestId ?? '',
             requestBody: { scopes },
           })
-        : api.oauth.denyOAuthRequest({ requestId: requestId ?? '' }),
+        : api.denyOAuthRequest({ requestId: requestId ?? '' }),
     onSuccess: ({ redirectTo }) => {
       setLeaving(true);
       leaveFor.go(redirectTo);

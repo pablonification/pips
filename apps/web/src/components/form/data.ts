@@ -3,7 +3,7 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { FORM_QUERY_KEY } from '~/api/constants';
 import { ApiError, type FormResponse } from '~/api/generated';
 import type { AnswerValue } from '~/lib/form/rules';
@@ -12,7 +12,7 @@ import type { AnswerValue } from '~/lib/form/rules';
 export const formDetailQuery = (formId: string) =>
   queryOptions({
     queryKey: [FORM_QUERY_KEY, formId],
-    queryFn: () => api.form.getForm({ formId }),
+    queryFn: () => api.getForm({ formId }),
   });
 
 /** The member's response, or null (the API answers 200 null when there is none). */
@@ -20,7 +20,7 @@ export const myResponseQuery = (formId: string) =>
   queryOptions({
     queryKey: [FORM_QUERY_KEY, formId, 'my-response'],
     queryFn: async () =>
-      ((await api.form.getMyFormResponse({ formId })) ??
+      ((await api.getMyFormResponse({ formId })) ??
         null) as FormResponse | null,
   });
 
@@ -50,7 +50,7 @@ export function useSendForm(formId: string) {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (answers: { questionId: string; answer: AnswerValue }[]) =>
-      api.form.submitFormResponse({ formId, requestBody: { answers } }),
+      api.submitFormResponse({ formId, requestBody: { answers } }),
     // Offline, a send fails at once (and the screen offers Coba lagi) instead of waiting, paused, for the network.
     networkMode: 'always',
   });

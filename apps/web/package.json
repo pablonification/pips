@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "api": "pnpm --dir ../api run --silent openapi ../web/node_modules/.cache/pips/openapi.json && openapi --input node_modules/.cache/pips/openapi.json --output src/api/generated --indent 2 --useUnionTypes --useOptions --name ApiClient",
-    "api-staging": "openapi --input https://api.app-staging.hmif.dev/doc --output src/api/generated --indent 2 --useUnionTypes --useOptions --name ApiClient",
+    "api": "pnpm --dir ../api run --silent openapi ../web/node_modules/.cache/pips/openapi.json && openapi --input node_modules/.cache/pips/openapi.json --output src/api/generated --indent 2 --useUnionTypes --useOptions --name ApiClient && node scripts/api-operations.mjs",
+    "api-staging": "openapi --input https://api.app-staging.hmif.dev/doc --output src/api/generated --indent 2 --useUnionTypes --useOptions --name ApiClient && node scripts/api-operations.mjs",
     "dev": "vite",
     "routes": "node scripts/write-route-tree.mjs",
     "build": "tsc && vite build && node delete-sourcemap.js",

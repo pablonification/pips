@@ -2,7 +2,8 @@ import { useGoogleLogin, useGoogleOAuth } from '@react-oauth/google';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
-import { api, queryClient } from '~/api/client';
+import { queryClient } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { User } from '~/api/generated';
 import { currentCoursesQuery } from '~/api/queries';
 import {
@@ -58,7 +59,7 @@ export default function useLogin(redirectTo: string | null = null) {
   };
 
   const loginCallbackMutation = useMutation({
-    mutationFn: api.auth.loginAccessToken.bind(api.auth),
+    mutationFn: api.loginAccessToken,
     onMutate() {
       setProblem(null);
     },
