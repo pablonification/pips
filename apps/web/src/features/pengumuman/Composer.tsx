@@ -207,7 +207,7 @@ function ComposeForm({
       aria-label={desk ? undefined : t.tulis.judul}
     >
       <div className="g-byline">
-        <Avatar initials={initialsOf(me.fullName)} />
+        <Avatar initials={initialsOf(me.fullName)} picture={me.picture} />
         <p className="t-label">
           <b>{me.fullName}</b>
         </p>

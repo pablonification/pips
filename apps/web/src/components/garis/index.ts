@@ -2,7 +2,7 @@
  * The Garis component library: the only way screens are built.
  * Styles: src/styles/garis/. Icons: src/components/icons/. Gallery: /dev/garis (development builds).
  */
-export { Avatar, AvatarButton } from './Avatar';
+export { Avatar, AvatarButton, AvatarPhoto } from './Avatar';
 export { Button, LinkButton } from './Button';
 export { Chip, Chips } from './Chip';
 export { Checkbox, Options, Radio, Rating, Seg, Switch } from './Choice';

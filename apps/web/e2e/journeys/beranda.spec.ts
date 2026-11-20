@@ -499,15 +499,38 @@ test.describe('Nadia', () => {
     page,
   }, testInfo) => {
     // Every request the page makes (document, scripts, styles, fonts, images, API), until the content is there.
+    // The page itself says when its first agenda row appears (a MutationObserver, within the same frame), so a
+    // request made after the content, such as a member's photo, is never counted because a poll came late.
     const seen: { type: string; url: string }[] = [];
     let counting = true;
     page.on('request', (r) => {
       if (counting && !r.url().startsWith('data:'))
         seen.push({ type: r.resourceType(), url: r.url() });
     });
+    await page.exposeFunction('__e2eAgendaShown', () => {
+      counting = false;
+    });
+    await page.addInitScript(() => {
+      const shown = () =>
+        [...document.querySelectorAll('.g-agenda-item')].some((row) =>
+          row.textContent?.includes('Kuis 2'),
+        );
+      const observer = new MutationObserver(() => {
+        if (!shown()) return;
+        observer.disconnect();
+        void (
+          window as unknown as { __e2eAgendaShown: () => Promise<void> }
+        ).__e2eAgendaShown();
+      });
+      observer.observe(document, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    });
     await page.goto('/');
     await expect(agendaRows(page).first()).toHaveText('Kuis 2');
-    counting = false;
+    expect(counting, 'the page reported its first agenda row').toBe(false);
     const byType: Record<string, number> = {};
     for (const r of seen) byType[r.type] = (byType[r.type] ?? 0) + 1;
     await testInfo.attach('requests-before-content.json', {
@@ -519,9 +542,12 @@ test.describe('Nadia', () => {
       contentType: 'application/json',
     });
     // The budget is measured on a 390 × 844 phone; tablets meet it too. Desktop's sidebar also shows the
-    // official logo in its first paint: one image more.
+    // official logo, which may be asked for before the rows: at most one image more. No person's photo is.
     const desktop = layoutOf(testInfo) === 'desktop';
-    expect(byType.image ?? 0).toBe(desktop ? 1 : 0);
+    expect(byType.image ?? 0, JSON.stringify(seen)).toBeLessThanOrEqual(
+      desktop ? 1 : 0,
+    );
+    expect(seen.filter((r) => r.url.includes('/avatar/'))).toEqual([]);
     expect(seen.length, JSON.stringify(byType)).toBeLessThanOrEqual(
       desktop ? 16 : 15,
     );

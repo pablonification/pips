@@ -226,6 +226,40 @@ test.describe('catching up (Nadia)', () => {
     await strictGates(page, testInfo, 'reaction-error');
   });
 
+  test('authors, commenters and you show your Google photos', async ({
+    page,
+    api,
+    db,
+  }, testInfo) => {
+    api.on('POST /api/info/:infoId/read', writes.markRead);
+    const post = db.infos.find((i) => i.id === 'p1')!;
+    const comment = db.comments.p1![0]!;
+    await page.goto('/pengumuman');
+    if (!isDesk(testInfo)) {
+      // The card's author.
+      await expect(
+        page
+          .locator('article.g-post', { has: postInList(page, testInfo, 'p1') })
+          .locator('.g-post-head img.g-avatar-photo'),
+      ).toHaveAttribute('src', post.creator.picture!);
+    }
+    await page.goto('/pengumuman/p1');
+    const pane = detail(page);
+    await expect(pane.locator('.g-byline img.g-avatar-photo')).toHaveAttribute(
+      'src',
+      post.creator.picture!,
+    );
+    await expect(
+      pane
+        .locator(`[data-comment="${comment.id}"]`)
+        .locator('img.g-avatar-photo'),
+    ).toHaveAttribute('src', comment.creator.picture!);
+    // Your own avatar beside Tulis komentar.
+    await expect(
+      page.locator('form.g-composer img.g-avatar-photo'),
+    ).toHaveAttribute('src', db.me!.picture!);
+  });
+
   test('a sent comment keeps the whole comment form in view', async ({
     page,
     api,

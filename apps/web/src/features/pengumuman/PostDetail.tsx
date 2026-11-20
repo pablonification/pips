@@ -122,7 +122,11 @@ export function PostDetail({
         </TopBarActions>
       )}
       <div className="g-byline">
-        <Avatar initials={initialsOf(name)} size="lg" />
+        <Avatar
+          initials={initialsOf(name)}
+          picture={info.creator.picture}
+          size="lg"
+        />
         <div className="min-w-0 flex-1">
           <p className="t-label">
             <b>{name}</b>
@@ -285,7 +289,11 @@ function CommentItem({
   useDismiss(picking, close, [picker, trigger]);
   return (
     <div className="g-comment" data-comment={comment.id}>
-      <Avatar initials={initialsOf(name)} size="sm" />
+      <Avatar
+        initials={initialsOf(name)}
+        picture={comment.creator.picture}
+        size="sm"
+      />
       <div className="body">
         <p className="t-label">
           <b>{name}</b>{' '}
@@ -436,7 +444,11 @@ function CommentForm({
   };
   return (
     <form className="g-composer" onSubmit={submit}>
-      <Avatar initials={initialsOf(me.fullName)} size="sm" />
+      <Avatar
+        initials={initialsOf(me.fullName)}
+        picture={me.picture}
+        size="sm"
+      />
       <Input
         ref={field}
         name={COMMENT_FIELD}

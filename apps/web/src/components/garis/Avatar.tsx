@@ -1,4 +1,5 @@
 import { useState, type ButtonHTMLAttributes, type Ref } from 'react';
+import { useDataSettled } from '~/lib/data-settled';
 import { cn } from '~/lib/utils';
 
 interface AvatarProps {
@@ -25,6 +26,29 @@ const classes = (
   );
 
 /**
+ * A person's photo over their initials: the initials show until the page has settled and the photo loads, and stay
+ * if it fails. Put it inside any `.g-avatar` (a span, a button, or the shell's link to Profil).
+ */
+export function AvatarPhoto({ picture }: { picture?: string | null }) {
+  const [failed, setFailed] = useState<string | null>(null);
+  // Decorative: it waits until the page's own data has arrived (useDataSettled).
+  const settled = useDataSettled();
+  const photo = settled && picture && picture !== failed ? picture : null;
+  if (!photo) return null;
+  return (
+    <img
+      className="g-avatar-photo"
+      src={photo}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      onError={() => setFailed(photo)}
+    />
+  );
+}
+
+/**
  * A person's initials, or their photo when there is one and it loads. Decorative: the name is
  * always written next to it.
  */
@@ -35,22 +59,10 @@ export function Avatar({
   size = 'md',
   className,
 }: AvatarProps) {
-  const [failed, setFailed] = useState<string | null>(null);
-  const photo = picture && picture !== failed ? picture : null;
   return (
     <span className={classes(shape, size, className)} aria-hidden="true">
       {initials}
-      {photo ? (
-        <img
-          className="g-avatar-photo"
-          src={photo}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          onError={() => setFailed(photo)}
-        />
-      ) : null}
+      <AvatarPhoto picture={picture} />
     </span>
   );
 }
@@ -67,6 +79,7 @@ interface AvatarButtonProps
 /** Your avatar as a button (it opens Profil); 44 px hit area on touch. */
 export function AvatarButton({
   initials,
+  picture,
   shape = 'square',
   size = 'md',
   className,
@@ -82,6 +95,7 @@ export function AvatarButton({
       {...rest}
     >
       <span aria-hidden="true">{initials}</span>
+      <AvatarPhoto picture={picture} />
     </button>
   );
 }
