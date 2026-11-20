@@ -239,6 +239,13 @@
       "when": 1795148670095,
       "tag": "0033_calendar_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1795160759556,
+      "tag": "0034_oauth_mcp",
+      "breakpoints": true
     }
   ]
 }

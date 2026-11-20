@@ -30,6 +30,7 @@ import { IconLonceng } from '~/components/icons/lonceng';
 import { IconMatkul } from '~/components/icons/matkul';
 import { IconPasang } from '~/components/icons/pasang';
 import { IconSistem } from '~/components/icons/sistem';
+import { IconTautan } from '~/components/icons/tautan';
 import { IconTerang } from '~/components/icons/terang';
 import { pushStatusWords, usePushState } from '~/components/push';
 import { DeskHead, PageBody } from '~/components/shell/page';
@@ -99,7 +100,11 @@ function SettingRow({
   icon: ReactNode;
   title: string;
   sub?: ReactNode;
-  to?: '/profil/matkul' | '/profil/notifikasi' | '/profil/kredit';
+  to?:
+    | '/profil/matkul'
+    | '/profil/notifikasi'
+    | '/profil/aplikasi'
+    | '/profil/kredit';
   onClick?: () => void;
 }) {
   const inner = (
@@ -274,6 +279,11 @@ export function ProfilScreen() {
               title={copy.baris.notifikasi}
               sub={<PushRowState />}
               to="/profil/notifikasi"
+            />
+            <SettingRow
+              icon={<IconTautan size={20} />}
+              title={common.shell.aplikasiTerhubung}
+              to="/profil/aplikasi"
             />
             <li>
               <Item center className="flex-wrap">

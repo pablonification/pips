@@ -16,6 +16,7 @@ import type {
   ChatroomMessage,
   CommentWithReactions,
   Competition,
+  ConnectedApp,
   Course,
   FormDetail,
   FormListItem,
@@ -26,6 +27,7 @@ import type {
   InternshipSubmission,
   ListChatroom,
   Credits,
+  OAuthRequest,
   ReactionAggregate,
   Testimoni,
   User,
@@ -774,6 +776,34 @@ const credits: Credits = {
   photos: {},
 };
 
+/** An app waiting on the consent page (`/hubungkan?permintaan=req-claude`), as `GET /api/oauth/requests/{id}` answers. */
+export const OAUTH_REQUEST_ID = 'req-claude';
+const oauthRequests: Record<string, OAuthRequest> = {
+  [OAUTH_REQUEST_ID]: {
+    clientName: 'Claude',
+    redirectHost: 'claude.ai',
+    scopes: ['pips.read', 'pips.write'],
+  },
+};
+
+/** Two apps connected through MCP: one that may change things, used an hour before the fixed clock, and one that may only read. */
+const connectedApps: ConnectedApp[] = [
+  {
+    clientId: 'pips_client_claude',
+    name: 'Claude',
+    connectedAt: wib(10, 2, 20, 15),
+    lastUsedAt: wib(10, 8, 12, 35),
+    scopes: ['pips.read', 'pips.write'],
+  },
+  {
+    clientId: 'pips_client_catatan',
+    name: 'Catatan Kuliah',
+    connectedAt: wib(10, 1, 9, 0),
+    lastUsedAt: wib(10, 1, 9, 5),
+    scopes: ['pips.read'],
+  },
+];
+
 /** Everything one persona's API returns. Mutable: a test may change its own copy. */
 export interface Db {
   persona: PersonaKey | null;
@@ -819,6 +849,10 @@ export interface Db {
   /** SPARTA's window (`SPARTA_WINDOW`, closed); a test may open it. */
   spartaWindow: { opensAt: string | null; closesAt: string | null };
   credits: Credits;
+  /** Apps waiting on the consent page, by request id; answered ones are removed. */
+  oauthRequests: Record<string, OAuthRequest>;
+  /** Profil › Aplikasi terhubung. */
+  connectedApps: ConnectedApp[];
   /** The push subscriptions the API holds for this member (`POST /api/push/register`); none at first. */
   pushSubscriptions: Array<{
     endpoint: string;
@@ -958,6 +992,8 @@ export function buildDb(
     internshipSubmissions: internshipSubmissions(),
     spartaWindow: { ...SPARTA_WINDOW },
     credits,
+    oauthRequests: persona ? { ...oauthRequests } : {},
+    connectedApps: persona ? [...connectedApps] : [],
     pushSubscriptions: [],
   };
   return structuredClone(db);

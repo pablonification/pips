@@ -36,6 +36,19 @@ export const EnvSchema = z.object({
     .default('["http://localhost:5173"]')
     .transform((value) => JSON.parse(value))
     .pipe(z.array(z.string().url())),
+  // The API's public address (no trailing slash), as apps connecting through MCP reach it: the OAuth issuer, and
+  // `<it>/mcp` the resource their tokens are for. Unset: http://localhost:<PORT>, for development.
+  API_PUBLIC_URL: z
+    .string()
+    .url()
+    .optional()
+    .transform((v) => v?.replace(/\/+$/, '')),
+  // The web app's address, where an app's sign-in sends the member to approve it. Unset: the first ALLOWED_ORIGINS.
+  WEB_APP_URL: z
+    .string()
+    .url()
+    .optional()
+    .transform((v) => v?.replace(/\/+$/, '')),
   VAPID_PUBLIC_KEY: z.string(),
   VAPID_PRIVATE_KEY: z.string(),
   VAPID_MAILTO: z.string().email().optional(),

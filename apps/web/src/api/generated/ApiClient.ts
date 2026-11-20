@@ -17,6 +17,7 @@ import { InfoService } from './services/InfoService';
 import { InternshipService } from './services/InternshipService';
 import { MarkdownService } from './services/MarkdownService';
 import { MediaService } from './services/MediaService';
+import { OauthService } from './services/OauthService';
 import { OpenGraphService } from './services/OpenGraphService';
 import { ProgrammeWindowService } from './services/ProgrammeWindowService';
 import { PushService } from './services/PushService';
@@ -39,6 +40,7 @@ export class ApiClient {
   public readonly internship: InternshipService;
   public readonly markdown: MarkdownService;
   public readonly media: MediaService;
+  public readonly oauth: OauthService;
   public readonly openGraph: OpenGraphService;
   public readonly programmeWindow: ProgrammeWindowService;
   public readonly push: PushService;
@@ -72,6 +74,7 @@ export class ApiClient {
     this.internship = new InternshipService(this.request);
     this.markdown = new MarkdownService(this.request);
     this.media = new MediaService(this.request);
+    this.oauth = new OauthService(this.request);
     this.openGraph = new OpenGraphService(this.request);
     this.programmeWindow = new ProgrammeWindowService(this.request);
     this.push = new PushService(this.request);

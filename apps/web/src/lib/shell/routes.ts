@@ -179,8 +179,18 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: common.shell.kredit,
     parent: '/profil',
   },
+  '/profil/aplikasi': {
+    title: common.shell.aplikasiTerhubung,
+    parent: '/profil',
+  },
   // First run after a sign-in, a focused flow (no tab bar) that ends on Beranda.
   '/mulai': { title: mulai.judul, parent: '/', focused: true },
+  // An app connecting through MCP asks the member here: a focused flow that leaves for the app.
+  '/hubungkan': {
+    title: common.shell.hubungkanAplikasi,
+    parent: '/',
+    focused: true,
+  },
   // The shell's test page (src/dev/shell, development and staging only): a drill-down page below Layanan.
   '/dev/shell': { title: 'Uji shell', parent: '/layanan' },
 };

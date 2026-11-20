@@ -15,6 +15,7 @@ import type {
   InfoService,
   InternshipService,
   MarkdownService,
+  OauthService,
   OpenGraphService,
   TestimoniService,
   UnsubscribeService,
@@ -398,5 +399,17 @@ export const defaultHandlers: Record<string, Handler> = {
       ok<R<InternshipService['getInternshipSubmissionById']> | undefined>(
         db.internshipSubmissions.find((s) => s.id === params.id),
       ) ?? notFound('submission'),
+  ),
+
+  // Apps connected through MCP: the consent page's request, and Profil › Aplikasi terhubung. Approving, denying and
+  // revoking are writes: a test registers them.
+  'GET /api/oauth/requests/:requestId': signedIn(
+    ({ db, params }) =>
+      ok<R<OauthService['getOAuthRequest']> | undefined>(
+        db.oauthRequests[params.requestId],
+      ) ?? reply.status(404, { error: 'Request not found' }),
+  ),
+  'GET /api/oauth/apps': signedIn(({ db }) =>
+    ok<R<OauthService['listConnectedApps']>>({ apps: db.connectedApps }),
   ),
 };

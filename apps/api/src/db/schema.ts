@@ -1261,3 +1261,95 @@ export const formResponsesRelation = relations(formResponses, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+/**
+ * Apps a member connects through MCP (docs/adr/0021-*): OAuth 2.1 public clients that registered themselves
+ * (RFC 7591). The id is not a secret; a public client has none.
+ */
+export const oauthClients = pgTable('oauth_clients', {
+  id: text('id').primaryKey(),
+  // As the client named itself, cleaned (lib/oauth.ts): shown on the consent page as plain text only.
+  name: text('name').notNull(),
+  redirectUris: json('redirect_uris').$type<string[]>().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * One sign-in of an app: the request the consent page shows, then the code it turns into. Single use. Only hashes of
+ * the request id and the code are kept, never the values.
+ */
+export const oauthAuthorizations = pgTable(
+  'oauth_authorizations',
+  {
+    id: text('id').primaryKey().$defaultFn(createId),
+    requestHash: text('request_hash').notNull().unique(),
+    clientId: text('client_id')
+      .notNull()
+      .references(() => oauthClients.id, { onDelete: 'cascade' }),
+    redirectUri: text('redirect_uri').notNull(),
+    scope: text('scope').notNull(),
+    // The client's own value, returned to it unchanged.
+    state: text('state'),
+    codeChallenge: text('code_challenge').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    userId: text('user_id').references(() => users.id, {
+      onDelete: 'cascade',
+    }),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    deniedAt: timestamp('denied_at', { withTimezone: true }),
+    codeHash: text('code_hash').unique(),
+    codeExpiresAt: timestamp('code_expires_at', { withTimezone: true }),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    // The tokens the code was exchanged for, so a second use of the code revokes them.
+    tokenFamily: text('token_family'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    expiresAtIdx: index().on(t.expiresAt),
+  }),
+);
+
+/**
+ * An app's access to a member. Each refresh writes a new row in the same family and retires the old one; a retired
+ * refresh token used again revokes the family. Only hashes are kept.
+ */
+export const oauthTokens = pgTable(
+  'oauth_tokens',
+  {
+    id: text('id').primaryKey().$defaultFn(createId),
+    family: text('family').notNull(),
+    clientId: text('client_id')
+      .notNull()
+      .references(() => oauthClients.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    scope: text('scope').notNull(),
+    accessHash: text('access_hash').notNull().unique(),
+    accessExpiresAt: timestamp('access_expires_at', {
+      withTimezone: true,
+    }).notNull(),
+    refreshHash: text('refresh_hash').notNull().unique(),
+    refreshExpiresAt: timestamp('refresh_expires_at', {
+      withTimezone: true,
+    }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    rotatedAt: timestamp('rotated_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  },
+  (t) => ({
+    userClientIdx: index().on(t.userId, t.clientId),
+    familyIdx: index().on(t.family),
+  }),
+);
+
+export type OAuthClient = InferSelectModel<typeof oauthClients>;
+export type OAuthAuthorization = InferSelectModel<typeof oauthAuthorizations>;
+export type OAuthToken = InferSelectModel<typeof oauthTokens>;

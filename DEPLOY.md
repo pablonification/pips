@@ -65,6 +65,8 @@ Keep today's environment. These change:
 | `NIXPACKS_NODE_VERSION`, `LOGIN_BYPASS_KEY`, `GOOGLE_CALENDAR_API_KEY`, `GOOGLE_CALENDAR_ID` | can go | unused (the image brings Node 22; the bypass sign-in never exists in production) |
 | `SMTP_*` | can go | nothing sends mail, and the API no longer reads them |
 | `APP_ENV` | leave unset | unset means production; `staging` or `development` allow the test sign-in routes |
+| `API_PUBLIC_URL` | **add** `https://app-api.hmif.dev` | AI apps connecting through MCP: the OAuth issuer, and `<it>/mcp` the address their tokens are for. Unset, it says `http://localhost:5000` and no app can sign in |
+| `WEB_APP_URL` | add `https://app.hmif.dev`, or leave it unset when `ALLOWED_ORIGINS` lists that address first | where an app's sign-in sends the member to approve it (`/hubungkan`) |
 | `SENTRY_DSN`, `DB_STATEMENT_TIMEOUT_MS` | optional | error monitoring; a stuck database statement is cancelled after 15 s by default |
 
 The full list is `apps/api/.env.example`.
@@ -124,7 +126,9 @@ compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy
      the code the app looks for, so adding an event for those courses stops failing. Only adds missing rows;
    - 0032: angkatan 2025 named PIXEL (renamed, or added if missing; nothing changes if another year holds the name);
    - 0033: Kalender's copy of PRISMA's Google calendar: three new columns on `calendar_event` (`synced`, `all_day`,
-     `location`), one on `calendar_group` (`synced`), all with defaults, and the row for PRISMA - DE HMIF ITB.
+     `location`), one on `calendar_group` (`synced`), all with defaults, and the row for PRISMA - DE HMIF ITB;
+   - 0034: apps connected through MCP: three new empty tables (`oauth_clients`, `oauth_authorizations`,
+     `oauth_tokens`).
 
    They only add things, and today's app keeps working on the migrated database: it ignores the new columns, the
    read marks and the prefill key.
@@ -159,6 +163,25 @@ compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy
    the browser's console,
    enforce the policy: in `apps/web/scripts/csp.mjs` change `Content-Security-Policy-Report-Only` to
    `Content-Security-Policy`, and redeploy the web (only the Dokploy image sends it).
+
+## Apps connected through MCP
+
+Members can let an AI app act as them through MCP (decision 21 in `docs/adr/`). It needs:
+
+- **Migration 0034** (`oauth_clients`, `oauth_authorizations`, `oauth_tokens`: three new empty tables), applied as
+  in "The switch", step 3, before the API that serves `/mcp` starts. Today's app ignores them.
+- **`API_PUBLIC_URL`** set as in "API settings" (and `WEB_APP_URL` unless `ALLOWED_ORIGINS` lists the web app first).
+- Nothing at Cloudflare or Vercel: `/mcp`, `/oauth/*` and `/.well-known/*` are on the API's own address.
+
+A member connects an app by adding `https://app-api.hmif.dev/mcp` as a connector or MCP server (claude.ai: Settings →
+Connectors → Add custom connector; Claude Code: `claude mcp add --transport http pips https://app-api.hmif.dev/mcp`).
+The app opens PIPS! to approve it on `/hubungkan`, signed in as usual, where the member may allow reading only. Profil
+› Aplikasi terhubung lists it, says whether it may only read or also change things, and has a button to revoke it. Check after deploying:
+
+```bash
+curl -s https://app-api.hmif.dev/.well-known/oauth-protected-resource/mcp   # "resource": "https://app-api.hmif.dev/mcp"
+curl -si -X POST https://app-api.hmif.dev/mcp | grep -i www-authenticate     # Bearer resource_metadata="…"
+```
 
 ## Going back
 

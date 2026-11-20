@@ -174,4 +174,6 @@ export const ACRONYMS = [
   'ID',
   // The upload limit, "maks. 25 MB" (lib/upload-policy.ts).
   'MB',
+  // Apps connect to PIPS! through MCP (Profil › Aplikasi terhubung).
+  'MCP',
 ] as const;

@@ -37,6 +37,11 @@ export const common = {
     tambahMataKuliah: 'Tambah mata kuliah',
     notifikasi: 'Notifikasi',
     kredit: 'Kredit',
+    aplikasiTerhubung: 'Aplikasi terhubung',
+    // An app connecting through MCP asks the member to approve it.
+    hubungkanAplikasi: 'Hubungkan aplikasi',
+    // An app connected through MCP that gave itself no name.
+    aplikasiTanpaNama: 'Aplikasi tanpa nama',
     ruang: 'Ruang',
     // Kelola's Live Counting pages ("Kelola › Live Counting"); the page's own heading is
     // the service's full name.
