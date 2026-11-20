@@ -41,6 +41,7 @@ const REMOVED_PACKAGES = [
   'bungkus',
   'recharts',
   'vaul',
+  // react-hook-form came back for the form builder (the owner's choice of libraries, decision 22).
   '@hookform/resolvers',
   'class-variance-authority',
   'tw-animate-css',

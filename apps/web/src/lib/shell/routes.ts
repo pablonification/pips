@@ -140,6 +140,19 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: common.shell.rekapForm,
     parent: '/kelola/live/$formId',
   },
+  // Kelola › Form: the builder and its preview are focused flows (no tab bar or rail); a form's title comes from
+  // its data (usePageTitle).
+  '/kelola/form': { title: svc('form-builder'), parent: '/kelola' },
+  '/kelola/form/$formId': {
+    title: svc('form-builder'),
+    parent: '/kelola/form',
+    focused: true,
+  },
+  '/kelola/form/$formId/pratinjau': {
+    title: common.shell.pratinjau,
+    parent: '/kelola/form/$formId',
+    focused: true,
+  },
   '/kelola/sparta': {
     title: svc('sparta-data'),
     parent: '/kelola',

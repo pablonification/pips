@@ -67,6 +67,12 @@ export const ROUTES = {
     as: BOTH,
   },
   '/kelola': { url: '/kelola', as: [RAKA] },
+  '/kelola/form': { url: '/kelola/form', as: [RAKA] },
+  '/kelola/form/$formId': { url: '/kelola/form/wisuda', as: [RAKA] },
+  '/kelola/form/$formId/pratinjau': {
+    url: '/kelola/form/makrab/pratinjau',
+    as: [RAKA],
+  },
   '/kelola/live': { url: '/kelola/live', as: [RAKA] },
   '/kelola/live/$formId': { url: '/kelola/live/pixel', as: [RAKA] },
   '/kelola/live/$formId/rekap': { url: '/kelola/live/pixel/rekap', as: [RAKA] },

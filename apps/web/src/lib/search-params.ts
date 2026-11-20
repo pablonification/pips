@@ -108,3 +108,19 @@ export const inboxSearchSchema = querySearchSchema.extend({
 export const consentSearchSchema = object({
   permintaan: querySearchSchema.shape.q,
 });
+
+/** Kelola › Form: admin's "Semua form" instead of their own (`lihat=semua`). */
+export const kelolaFormSearchSchema = object({
+  lihat: literal('semua'),
+});
+
+/**
+ * A form in the builder: the tab (`tab`; when absent Pertanyaan, or Jawaban for someone who may only look), and on Jawaban the responses one by one
+ * (`lihat=satu`) at a response's place (`no`, from 1).
+ */
+export const builderSearchSchema = object({
+  tab: literal('pertanyaan', 'jawaban', 'setelan'),
+  lihat: literal('satu'),
+  no: (v): number | typeof INVALID =>
+    typeof v === 'number' && Number.isInteger(v) && v >= 1 ? v : INVALID,
+});

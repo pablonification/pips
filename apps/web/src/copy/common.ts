@@ -50,6 +50,7 @@ export const common = {
     // Rekap Form's page title (its screen uses kelola.rekap.judul): here, so the route table that every page loads
     // doesn't bring all of Kelola's words with it.
     rekapForm: 'Rekap Form',
+    pratinjau: 'Pratinjau',
     judulDokumen: '{judul} · PIPS!',
   },
   // Global search.

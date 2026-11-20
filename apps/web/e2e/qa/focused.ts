@@ -8,6 +8,8 @@ export const FOCUSED_ROUTES: readonly string[] = [
   '/layanan/form/$formId',
   '/layanan/sparta',
   '/kelola/curhat/$roomId',
+  '/kelola/form/$formId',
+  '/kelola/form/$formId/pratinjau',
   '/mulai',
   '/hubungkan',
 ];

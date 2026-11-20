@@ -93,12 +93,15 @@ test('document titles: the live page is "Live Counting & Rekap Form" in the brow
       assert.equal(documentTitleOf(p, { id: 'x' }), titleOf(p, { id: 'x' }), p);
 });
 
-test('focused flows are the form, the composer, a Curhat room and Magang SPARTA, first run, and connecting an app', () => {
+test('focused flows are the form, the composer, a Curhat room and Magang SPARTA, first run, connecting an app, and the form builder', () => {
   assert.deepEqual(PATHS.filter((p) => ROUTE_META[p].focused).sort(), [
     // An app connecting through MCP asks the member, then the browser leaves for the app.
     '/hubungkan',
     // A room in Welfare's inbox, as the member's.
     '/kelola/curhat/$roomId',
+    // The form builder and its preview, as filling a form.
+    '/kelola/form/$formId',
+    '/kelola/form/$formId/pratinjau',
     '/layanan/curhat/$roomId',
     '/layanan/form/$formId',
     '/layanan/sparta',

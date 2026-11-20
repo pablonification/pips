@@ -126,6 +126,8 @@ export default defineConfig([
             'me|them|tm|quote',
             // Kelola's parts (src/styles/garis/kelola.css).
             'nim|name|v|trk|flip|top',
+            // Kelola › Form's parts (src/styles/garis/form-builder.css).
+            'fb-[a-z-]+|t|c3|ck|ok|no|wait|mk|fix|num|cur|go|st|you|dl|sep|err|facts|lit|ro|sec|new|dragging|plain|bad',
           ],
         },
       ],
