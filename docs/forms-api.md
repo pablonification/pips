@@ -144,6 +144,13 @@ Every route above has an answer in the journeys' pretend API, from the forms pro
   pengurus without admin (Welcoming Party is then Lihat jawaban).
 - `apps/web/tests/e2e-forms.test.ts` holds these answers to the API's.
 
+## The real API's sample
+
+`pnpm --filter api db:seed` (and so `e2e:real`) adds a form made in the builder beside the PIXEL form: "Daftar acara
+angkatan 2025" (`contoh-daftar-acara`), owned by the seeded pengurus, open to 2025, requesting Nama and NIM, allowing
+changes, shared with the seeded Welfare member as Lihat jawaban; and a draft (`contoh-draf`). The seeded anggota is
+2025, so the form is in her list.
+
 ## What the web side still owns
 
 - The capability for Kelola › Form (any role) in `apps/web/src/lib/capabilities.ts`, with its row in
