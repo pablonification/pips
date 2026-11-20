@@ -29,6 +29,7 @@ import { IconLanjut } from '~/components/icons/lanjut';
 import { IconLonceng } from '~/components/icons/lonceng';
 import { IconMatkul } from '~/components/icons/matkul';
 import { IconPasang } from '~/components/icons/pasang';
+import { IconProfil } from '~/components/icons/profil';
 import { IconSistem } from '~/components/icons/sistem';
 import { IconTautan } from '~/components/icons/tautan';
 import { IconTerang } from '~/components/icons/terang';
@@ -36,7 +37,10 @@ import { pushStatusWords, usePushState } from '~/components/push';
 import { DeskHead, PageBody } from '~/components/shell/page';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
+import { isi } from '~/copy/isi';
 import { profil as copy } from '~/copy/profil';
+import { myDetailsQuery } from '~/features/form/queries';
+import { filledCount, SAVED } from '~/features/form/rules';
 import useLogout from '~/hooks/auth/useLogout';
 import useSession from '~/hooks/auth/useSession';
 import { useTheme } from '~/lib/theme/useTheme';
@@ -101,6 +105,7 @@ function SettingRow({
   title: string;
   sub?: ReactNode;
   to?:
+    | '/profil/data-diri'
     | '/profil/matkul'
     | '/profil/notifikasi'
     | '/profil/aplikasi'
@@ -210,6 +215,7 @@ export function ProfilScreen() {
   const academic = useQuery(userAcademicQuery());
   const groups = useQuery({ ...groupsQuery(), enabled: me.roles.length > 0 });
   const courses = useQuery(currentCoursesQuery());
+  const details = useQuery(myDetailsQuery());
   const online = useOnline();
   const { preference, setPreference } = useTheme();
   const qc = useQueryClient();
@@ -250,6 +256,15 @@ export function ProfilScreen() {
     <SkeletonBar width="45%" />
   );
 
+  const detailsSub = details.data ? (
+    fill(isi.dataDiri.terisi, {
+      jumlah: filledCount(details.data.saved),
+      semua: SAVED.length,
+    })
+  ) : details.isError ? null : (
+    <SkeletonBar width="35%" />
+  );
+
   return (
     <>
       <DeskHead title={common.nav.profil} />
@@ -268,6 +283,12 @@ export function ProfilScreen() {
         </div>
         <div className="grid gap-5 lg:max-w-130 lg:gap-3">
           <RuledList>
+            <SettingRow
+              icon={<IconProfil size={20} />}
+              title={common.shell.dataDiri}
+              sub={detailsSub}
+              to="/profil/data-diri"
+            />
             <SettingRow
               icon={<IconMatkul size={20} />}
               title={copy.baris.mataKuliahku}

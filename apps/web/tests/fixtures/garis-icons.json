@@ -53,7 +53,9 @@
     "kunci": "<path d=\"M5 10.5h14v10H5z\"/><path d=\"M8 10.5v-3a4 4 0 0 1 8 0v3\"/><path d=\"M12 14v3\"/>",
     "tenggat": "<path d=\"M7 3.5h10M7 20.5h10\"/><path d=\"M8 3.5v3l4 5.5 4-5.5v-3M8 20.5v-3l4-5.5 4 5.5v3\"/>",
     "peringatan": "<path d=\"M12 3.5 21.5 20h-19z\"/><path d=\"M12 10v4.5\"/><path class=\"f\" d=\"M11 16.5h2v2h-2z\"/>",
-    "sampul": "<path d=\"M5 3.5h14v17H5z\"/><path d=\"M8 7.5h8M8 11h8\"/><path class=\"f\" d=\"M8 14.5h3v3H8z\"/>"
+    "sampul": "<path d=\"M5 3.5h14v17H5z\"/><path d=\"M8 7.5h8M8 11h8\"/><path class=\"f\" d=\"M8 14.5h3v3H8z\"/>",
+    "unggah": "<path d=\"M5.5 3.5h9l4 4v13h-13z\"/><path d=\"M12 17.5V11M9.25 13.5 12 10.75l2.75 2.75\"/>",
+    "pensil": "<path d=\"M4.5 19.5v-4.25L15.25 4.5l4.25 4.25L8.75 19.5z\"/><path d=\"M12.5 7.25l4.25 4.25\"/>"
   },
   "IC_FILL": {
     "folder": "<path class=\"gf\" d=\"M3.5 11h17v8h-17z\"/>",
@@ -122,6 +124,8 @@
     "kunci": "Privasi",
     "tenggat": "Tenggat",
     "peringatan": "Peringatan",
-    "sampul": "Poster"
+    "sampul": "Poster",
+    "unggah": "Unggah file",
+    "pensil": "Edit"
   }
 }

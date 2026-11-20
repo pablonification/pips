@@ -858,8 +858,9 @@ export interface Db {
    */
   formStore: StoredForm[];
   /**
-   * Whether `GET /api/form` lists the builder's forms for the member, beside PIXEL. Off by default, so screens that
-   * show the form list (Beranda, Layanan › Form) look as their references do; a test of the new forms turns it on.
+   * Whether `GET /api/form` lists the builder's forms for the member, beside PIXEL, as the real API does. Off by
+   * default, so Beranda and Layanan look as their locked references do; the new form's journeys
+   * (journeys/form-isi.spec.ts) turn it on.
    */
   listStoredForms: boolean;
   /** The member's saved details (Profil › Data diri). */

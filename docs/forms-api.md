@@ -133,8 +133,9 @@ Every route above has an answer in the journeys' pretend API, from the forms pro
 
 - Nadia (anggota, 2025) hasn't given Kondisi kesehatan, which Makrab requests (the agreement step's missing detail).
   Raka (pengurus, admin) has every detail. `db.memberDetails` holds the persona's.
-- **`GET /api/form` lists only PIXEL** unless a test sets `db.listStoredForms = true`, so screens that show the form
-  list keep their references until the member's list is rebuilt. Every other route reads `db.formStore` always.
+- **`GET /api/form` lists only PIXEL** unless a test sets `db.listStoredForms = true` (the member's journeys in
+  `journeys/form-isi.spec.ts` do), so Beranda and Layanan keep their references. Every other route reads
+  `db.formStore` always.
 - The read routes are defaults. Writes are opt-in, as everywhere: `api.on('POST /api/form/:formId/response',
   writes.submitForm)`, `writes.changeFormResponse`, `writes.updateMyDetails`, `writes.createForm`, `writes.updateForm`,
   `writes.publishForm`, `writes.deleteForm`, `writes.renameFormSlug`, `writes.setFormAccess`,
@@ -157,3 +158,7 @@ changes, shared with the seeded Welfare member as Lihat jawaban; and a draft (`c
   `tests/capabilities.test.ts` read from `route-access.ts` (`POST /api/form`).
 - The words: labels for fields and kinds, problem messages, "Lainnya", every sentence, in `apps/web/src/copy/`.
 - Drafts of answers stay on the device, as today's form does.
+
+The member's screens are in `apps/web/src/features/form/`: what they read is `queries.ts`, what they write `send.ts`,
+uploads `upload.ts`. A form with no owner
+(the PIXEL form) still opens the screen it had (`components/form/FormFill.tsx`); every other form is filled on one page.

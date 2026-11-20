@@ -1,0 +1,1268 @@
+/*
+  A form made in the builder, for the member, and Profil › Data diri: the gold cover, the answer written on a line,
+  keycap options, the tick beside the question in focus, the pips, the slip of what goes along, the sent plaque.
+  Tokens only; part of the app's one stylesheet (vite.config.ts). Phones below 640 px, tablets one 720 px column,
+  desktop from 1024 px with the side column. Motion is off under prefers-reduced-motion (the app's base rule) and
+  the falling squares are not drawn.
+*/
+@layer components {
+  .g-fx {
+    --f-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --f-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* ============ The line field: an answer is written on a line, not in a box ============ */
+  .g-lf {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 9px 0 8px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 16px;
+    line-height: 1.5;
+    box-shadow: inset 0 -1.5px 0 var(--border-strong);
+    transition:
+      box-shadow 140ms ease-out,
+      background-color 140ms ease-out;
+  }
+  textarea.g-lf {
+    resize: none;
+    field-sizing: content;
+    min-height: 44px;
+    max-height: 240px;
+  }
+  .g-lf::placeholder {
+    color: var(--text-3);
+  }
+  .g-lf:hover {
+    box-shadow: inset 0 -1.5px 0 var(--text);
+  }
+  .g-lf:focus-visible {
+    outline: none;
+    background: var(--bg-hover);
+    box-shadow:
+      inset 0 -2.5px 0 var(--focus),
+      -10px 0 0 var(--bg-hover),
+      10px 0 0 var(--bg-hover);
+  }
+  .g-lf[aria-invalid='true'] {
+    box-shadow: inset 0 -2px 0 var(--text-danger);
+  }
+  .g-lf.num {
+    font-variant-numeric: tabular-nums;
+  }
+  .g-lf-sel {
+    position: relative;
+    display: block;
+    max-width: 380px;
+  }
+  .g-lf-sel select.g-lf {
+    appearance: none;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+  .g-lf-sel > svg {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    translate: 0 -50%;
+    pointer-events: none;
+    color: var(--text-2);
+  }
+  select.g-lf option {
+    background: var(--bg-raised);
+    color: var(--text);
+  }
+
+  /* ============ The phone and tablet bar on a form: Back, the pips, Draf tersimpan ============ */
+  .g-top.cover {
+    gap: 10px;
+    padding: 8px 12px 8px 10px;
+  }
+  .g-top.cover .g-icon-btn {
+    color: var(--text-on-hero);
+  }
+  .g-top.cover .g-icon-btn:hover {
+    background: var(--hero-tone);
+  }
+  .f-bar-saved {
+    min-width: 0;
+    overflow: hidden;
+    margin-left: auto;
+    color: var(--text-on-hero);
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .f-bar-saved .g-saved,
+  .f-bar-saved .g-saved svg {
+    color: inherit;
+    font-size: 13px;
+  }
+
+  /* The pips: one square per question, grouped by section; the wide last one is the agreement step. */
+  .f-pips {
+    --pip-on: var(--text);
+    --pip-line: var(--border-strong);
+    --pip-now: var(--gold);
+    --pip-now-rim: var(--border-key);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 20px;
+    min-width: 0;
+    overflow: hidden;
+    padding: 3px;
+    margin: -3px;
+  }
+  .g-top.cover .f-pips {
+    --pip-on: var(--text-on-hero);
+    --pip-line: color-mix(in srgb, var(--text-on-hero) 55%, var(--bg-hero));
+    --pip-now: var(--bg-surface);
+    --pip-now-rim: var(--text-on-hero);
+  }
+  .f-pips .grp {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .f-pips i {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+    box-shadow: inset 0 0 0 1px var(--pip-line);
+    transition:
+      background-color 200ms ease-out,
+      box-shadow 200ms ease-out,
+      scale 240ms var(--f-pop);
+  }
+  .f-pips i.done {
+    background: var(--pip-on);
+    box-shadow: none;
+  }
+  .f-pips i.now {
+    background: var(--pip-now);
+    box-shadow: inset 0 0 0 1.5px var(--pip-now-rim);
+    scale: 1.3;
+  }
+  .f-pips i.bad {
+    background: var(--text-danger);
+    box-shadow: none;
+  }
+  .f-pips i.end {
+    width: 14px;
+  }
+
+  /* ============ The cover: gold with the halftone on every form, never the logo ============ */
+  .f-cover {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    gap: 8px;
+    padding: 2px 18px 22px;
+    background: var(--bg-hero);
+    color: var(--text-on-hero);
+  }
+  .f-cover > :not(.g-halftone) {
+    position: relative;
+  }
+  .f-cover > .g-halftone {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 216px;
+    color: var(--hero-tone);
+  }
+  .f-cover .f-title {
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .f-cover .desc {
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 58ch;
+    color: color-mix(in srgb, var(--text-on-hero) 86%, var(--bg-hero));
+  }
+  .f-cover .metas {
+    display: grid;
+    gap: 5px;
+    margin-top: 2px;
+  }
+  .f-cover .metas p {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .f-cover .metas svg {
+    margin-top: 1px;
+    flex: none;
+  }
+  .g-body.f-body {
+    padding-top: 14px;
+    gap: 0;
+  }
+  .f-desk {
+    display: contents;
+  }
+  .f-aside {
+    display: none;
+  }
+
+  /* On desktop the breadcrumbs sit on the cover's gold band. */
+  .g-crumbs.on-hero {
+    position: relative;
+    z-index: 1;
+    padding-bottom: 16px;
+    color: color-mix(in srgb, var(--text-on-hero) 72%, var(--bg-hero));
+  }
+  .g-crumbs.on-hero a {
+    color: var(--text-on-hero);
+  }
+  .g-crumbs.on-hero a:hover {
+    background: var(--hero-tone);
+  }
+  .g-crumbs.on-hero [aria-current] {
+    color: color-mix(in srgb, var(--text-on-hero) 86%, var(--bg-hero));
+  }
+
+  /* ============ Questions ============ */
+  .f-qs {
+    position: relative;
+    counter-reset: fq;
+  }
+  .f-sec + .f-sec {
+    margin-top: 18px;
+  }
+  .f-sec > .g-sec-line {
+    margin: 0;
+    padding: 10px 0 0;
+  }
+  .f-sec-d {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-2);
+    margin-top: 2px;
+  }
+  .fq-wrap {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition:
+      grid-template-rows 320ms var(--f-ease),
+      opacity 220ms ease-out;
+  }
+  .fq-wrap.is-off {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  .fq-clip {
+    min-height: 0;
+  }
+  .fq-wrap.is-off .fq-clip {
+    overflow: clip;
+    overflow-clip-margin: 8px;
+  }
+  .fq {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 10px 12px;
+    padding: 22px 0 10px;
+    counter-increment: fq;
+  }
+  .fq-wrap.is-off .fq {
+    counter-increment: none;
+  }
+  .fq > * {
+    grid-column: 1 / -1;
+  }
+  .fq > .fq-n {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .fq > .fq-t {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+  }
+  .fq-n {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    background: var(--bg-surface);
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 1px 0 1px var(--border);
+    transition:
+      background-color 180ms ease-out,
+      color 180ms ease-out,
+      box-shadow 180ms ease-out;
+  }
+  .fq-n::before {
+    content: counter(fq);
+  }
+  .fq-n svg {
+    display: none;
+  }
+  .fq.is-active .fq-n {
+    background: var(--gold);
+    color: var(--ink);
+    box-shadow:
+      0 0 0 1.5px var(--border-key),
+      inset 0 1px 0 var(--key-highlight);
+  }
+  .fq.is-done:not(.is-active):not(.is-bad) .fq-n {
+    background: var(--bg-muted);
+    color: var(--text);
+    box-shadow: none;
+  }
+  .fq.is-done:not(.is-active):not(.is-bad) .fq-n::before {
+    content: none;
+  }
+  .fq.is-done:not(.is-active):not(.is-bad) .fq-n svg {
+    display: block;
+    animation: f-tick 240ms var(--f-pop);
+  }
+  .fq.is-bad .fq-n {
+    background: var(--bg-surface);
+    color: var(--text-danger);
+    box-shadow: 0 0 0 1.5px var(--text-danger);
+  }
+  .fq-t {
+    font-size: 17px;
+    line-height: 1.35;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    text-wrap: pretty;
+  }
+  .fq-t label {
+    cursor: text;
+  }
+  .fq-opt {
+    margin-left: 6px;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .fq-h {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-3);
+    margin-top: -4px;
+  }
+  .fq-err {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 220ms var(--f-ease);
+  }
+  .fq-err > p {
+    min-height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: 500;
+    color: var(--text-danger);
+    opacity: 0;
+    transition:
+      opacity 200ms ease-out,
+      visibility 0s 220ms;
+  }
+  .fq-err > p > svg {
+    margin: 3px 0;
+    flex: none;
+  }
+  .is-bad > .fq-err {
+    grid-template-rows: 1fr;
+  }
+  .is-bad > .fq-err > p {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 200ms ease-out 60ms;
+  }
+  /* The tick beside the number of the question in focus. It moves only when the member acts on a question. */
+  .f-mark {
+    position: absolute;
+    left: -12px;
+    top: 0;
+    width: 3px;
+    height: 28px;
+    translate: 0 var(--y, 0px);
+    border-radius: 1px;
+    background: var(--mark);
+    pointer-events: none;
+    transition:
+      translate 320ms var(--f-ease),
+      opacity 160ms ease-out;
+  }
+  .f-mark.is-idle {
+    opacity: 0;
+  }
+  .f-mark.no-anim {
+    transition: none;
+  }
+
+  /* Keycap options: a row with no box; the key carries a mark on touch layouts and its letter on desktop. */
+  .fo-list {
+    display: grid;
+    gap: 2px;
+    margin-inline: -6px;
+  }
+  .fo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 7px 12px 7px 6px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1.35;
+    transition: background-color 140ms ease-out;
+  }
+  .fo:hover {
+    background: var(--bg-hover);
+  }
+  .fo input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+  }
+  .fo-l {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .fo-key {
+    width: 30px;
+    height: 30px;
+    flex: none;
+    margin-bottom: 2px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    background: var(--bg-surface);
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 600;
+    box-shadow: 0 0 0 1px var(--border);
+    transition:
+      translate 120ms var(--f-ease),
+      background-color 120ms ease-out,
+      box-shadow 120ms ease-out,
+      color 120ms ease-out;
+  }
+  .is-active .fo-key,
+  .raised .fo-key {
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 2px 0 0 var(--border);
+  }
+  .fo-key i {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px var(--border-strong);
+    transition:
+      width 140ms ease-out,
+      height 140ms ease-out,
+      border-radius 140ms ease-out,
+      background-color 140ms ease-out,
+      box-shadow 140ms ease-out;
+  }
+  .fo.multi .fo-key i {
+    border-radius: 3px;
+  }
+  .fo-key b {
+    display: none;
+    font-weight: 600;
+  }
+  .fo-key svg {
+    display: none;
+  }
+  .fo:active .fo-key {
+    translate: 0 2px;
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .fo:has(input:checked) {
+    background: var(--bg-accent-subtle);
+  }
+  .fo:has(input:checked) .fo-key {
+    background: var(--gold);
+    color: var(--ink);
+    translate: 0 2px;
+    box-shadow:
+      0 0 0 1.5px var(--border-key),
+      inset 0 1px 0 var(--plaque-highlight);
+    animation: f-press 260ms var(--f-ease);
+  }
+  .fo:has(input:checked) .fo-key i {
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+    background: var(--ink);
+    box-shadow: none;
+  }
+  .fo.multi:has(input:checked) .fo-key i {
+    display: none;
+  }
+  .fo.multi:has(input:checked) .fo-key svg {
+    display: block;
+  }
+  .fo:has(input:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+  }
+  .fo-ck {
+    flex: none;
+    display: grid;
+    color: var(--text-accent);
+    opacity: 0;
+    scale: 0.4;
+    transition:
+      opacity 140ms ease-out,
+      scale 220ms var(--f-pop);
+  }
+  .fo:has(input:checked) .fo-ck {
+    opacity: 1;
+    scale: 1;
+  }
+  .fo-more {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 260ms var(--f-ease);
+  }
+  .fo-more > div {
+    min-height: 0;
+    overflow: clip;
+    overflow-clip-margin: 4px;
+    visibility: hidden;
+    padding: 0 12px 0 48px;
+    transition: visibility 0s 260ms;
+  }
+  .fo:has(input:checked) + .fo-more {
+    grid-template-rows: 1fr;
+  }
+  .fo:has(input:checked) + .fo-more > div {
+    visibility: visible;
+    padding-bottom: 8px;
+    transition: none;
+  }
+
+  /* Linear scale: number keycaps, the ends named underneath. */
+  .f-scale {
+    display: grid;
+    grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr));
+    gap: 8px;
+    max-width: 440px;
+    padding-bottom: 2px;
+  }
+  .f-scale label {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 48px;
+    border-radius: 10px;
+    background: var(--bg-surface);
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 2px 0 var(--border);
+    transition:
+      translate 120ms var(--f-ease),
+      background-color 120ms ease-out,
+      box-shadow 120ms ease-out;
+  }
+  .f-scale label:hover {
+    background: var(--bg-hover);
+  }
+  .f-scale input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .f-scale label:has(input:checked),
+  .f-pick label:has(input:checked) {
+    background: var(--gold);
+    color: var(--ink);
+    translate: 0 2px;
+    box-shadow:
+      0 0 0 1.5px var(--border-key),
+      inset 0 1px 0 var(--plaque-highlight);
+    animation: f-press 260ms var(--f-ease);
+  }
+  .f-scale label:has(input:focus-visible),
+  .f-pick label:has(input:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .f-scale-ends {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 440px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-3);
+  }
+
+  /* A date: the Kalender's own month, opened in place under its line. */
+  .fd-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 380px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .fd-btn .c3 {
+    color: var(--text-3);
+  }
+  .fd-cal {
+    display: grid;
+    grid-template-rows: 0fr;
+    max-width: 380px;
+    transition: grid-template-rows 280ms var(--f-ease);
+  }
+  .fd-cal > div {
+    min-height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    transition: visibility 0s 280ms;
+  }
+  .fd-cal.open {
+    grid-template-rows: 1fr;
+  }
+  .fd-cal.open > div {
+    visibility: visible;
+    transition: none;
+  }
+  .fd-cal .g-cal-head {
+    padding: 4px 0 6px;
+  }
+  .fd-cal .g-mday {
+    height: 44px;
+    padding: 0;
+    align-content: center;
+  }
+
+  /* A file: one row to pick, one row once picked. */
+  .f-file {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 64px;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--bg-surface);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+    transition: background-color 100ms ease-out;
+  }
+  .f-file:hover {
+    background: var(--bg-hover);
+  }
+  .f-file.has {
+    cursor: default;
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .f-file .grow {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .f-file-in {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* "Oke": leaves a question that cannot move on by itself. It sits in the gap below, so nothing shifts. */
+  .fq-ok {
+    position: absolute;
+    right: 0;
+    bottom: -18px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    visibility: hidden;
+    translate: 0 -4px;
+    transition:
+      opacity 160ms ease-out,
+      translate 200ms var(--f-ease),
+      visibility 0s 160ms;
+  }
+  .fq.is-active > .fq-ok {
+    opacity: 1;
+    visibility: visible;
+    translate: 0 0;
+    transition:
+      opacity 160ms ease-out 80ms,
+      translate 200ms var(--f-ease) 80ms;
+  }
+  .f-end {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 36px;
+  }
+  .f-end .grow {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-danger);
+  }
+
+  /* ============ The agreement step: the slip ============ */
+  .f-step {
+    display: grid;
+    gap: 18px;
+  }
+  .f-step.in {
+    animation: f-rise 340ms var(--f-ease);
+  }
+  .f-step.in .slip-row,
+  .f-step.in .slip-tear,
+  .f-step.in .slip-agree {
+    animation: f-row 280ms var(--f-ease) both;
+    animation-delay: calc(var(--i, 0) * 45ms + 120ms);
+  }
+  .f-out {
+    animation: f-leave 180ms ease-in both;
+  }
+  .slip {
+    border-radius: 14px;
+    background: var(--bg-raised);
+    box-shadow: var(--shadow-raised);
+    padding: 4px 18px 6px;
+  }
+  .slip-row {
+    display: grid;
+    grid-template-columns: 128px minmax(0, 1fr);
+    align-items: baseline;
+    gap: 6px 12px;
+    padding: 12px 0;
+  }
+  .slip-row + .slip-row {
+    border-top: 1px solid var(--border);
+  }
+  .slip-row dt {
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text-2);
+  }
+  .slip-row dd {
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 6px 12px;
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+  }
+  .slip-row dd .none {
+    font-weight: 400;
+    color: var(--text-3);
+  }
+  .slip-row .g-link {
+    min-height: 20px;
+  }
+  .slip-row .fill {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 8px;
+    font-weight: 400;
+  }
+  .slip-tear {
+    height: 4px;
+    margin: 6px -18px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--border-strong) 0 4px,
+      transparent 4px 10px
+    );
+  }
+  .slip-agree {
+    margin: 4px -6px 0;
+  }
+  .slip-agree .fo {
+    align-items: flex-start;
+    font-size: 15px;
+  }
+  .slip-agree .fo-l {
+    padding-top: 5px;
+  }
+  .slip-agree .fq-err {
+    padding-left: 48px;
+  }
+  .f-pick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 2px;
+  }
+  .f-pick label {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: 10px;
+    background: var(--bg-surface);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 2px 0 var(--border);
+    transition:
+      translate 120ms var(--f-ease),
+      background-color 120ms ease-out,
+      box-shadow 120ms ease-out;
+  }
+  .f-pick input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .pf-part {
+    display: grid;
+    gap: 2px;
+  }
+  .f-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ============ Sent: the gold plaque, a pixel face, and squares that fall once ============ */
+  .f-sent {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    padding: 22px 20px 20px;
+  }
+  .f-sent.in {
+    animation: f-plaque 420ms var(--f-pop);
+  }
+  .f-sent .g-px {
+    margin-bottom: 10px;
+  }
+  .f-sent.in .g-px {
+    animation: f-face 620ms var(--f-pop) 160ms both;
+  }
+  .f-sent .sub {
+    color: color-mix(in srgb, var(--ink) 82%, transparent);
+    font-size: 14px;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+  }
+  .f-conf {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .f-conf i {
+    position: absolute;
+    top: -10px;
+    left: var(--x);
+    width: var(--s);
+    height: var(--s);
+    background: var(--c);
+    animation: f-fall var(--d) cubic-bezier(0.3, 0.2, 0.6, 1) var(--w) both;
+  }
+  .f-state {
+    display: grid;
+    justify-items: start;
+    gap: 10px;
+    padding: 8px 0;
+  }
+  .f-state .g-tile {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+  }
+  .f-state .lk-name {
+    font-weight: 600;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+  .sent-list {
+    margin: 0;
+  }
+  .sent-list > div {
+    display: grid;
+    gap: 2px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+  }
+  .sent-list > div:first-child {
+    border-top: 0;
+  }
+  .sent-list dt {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-2);
+  }
+  .sent-list dd {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.45;
+    font-weight: 600;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+  .sent-list dd.none {
+    font-weight: 400;
+    color: var(--text-3);
+  }
+  .f-sent-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ============ The member's list of forms ============ */
+  .fl-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+  }
+  .fl-row .grow {
+    flex: 1;
+    min-width: 0;
+  }
+  .fl-row .meta {
+    display: block;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+
+  /* ============ Profil › Data diri: the same rows as the slip, grouped, edited in place ============ */
+  .dd-page {
+    gap: 22px;
+  }
+  .dd-list {
+    margin: 0;
+  }
+  .dd-acts {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 2px;
+  }
+  .dd-acts .grow {
+    flex: 1;
+  }
+  .dd-page .g-disclosure .t-cap {
+    padding-top: 10px;
+  }
+  .dd-col {
+    display: grid;
+    gap: 22px;
+    align-content: start;
+  }
+
+  /* ============ Tablets: one 720 px column; the number moves into a gutter ============ */
+  @media (min-width: 640px) {
+    .f-cover {
+      padding-inline: max(18px, calc((100% - 720px) / 2 + 18px));
+      padding-bottom: 26px;
+    }
+    .fq > * {
+      grid-column: 2;
+    }
+    .fq > .fq-n {
+      grid-column: 1;
+    }
+  }
+
+  /* ============ Phones and tablets ============ */
+  @media (max-width: 1023.98px) {
+    .fq-ok .g-kbd,
+    .f-end .g-kbd {
+      display: none;
+    }
+    .f-nav .g-btn.gold {
+      flex: 1;
+    }
+  }
+  @media (max-width: 639.98px) {
+    .slip-row {
+      grid-template-columns: 112px minmax(0, 1fr);
+    }
+    .slip-row.open {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* ============ Desktop: a gold band from the sidebar to the edge, the side column ============ */
+  @media (min-width: 1024px) {
+    .f-cover {
+      margin-top: calc(-1 * var(--g-crumbs-h, 0px));
+      padding: var(--g-crumbs-h, 0px) 36px 28px;
+      gap: 10px;
+    }
+    .f-cover > .g-halftone {
+      width: 360px;
+    }
+    .f-cover .f-title {
+      margin-top: 10px;
+      font-size: 32px;
+      line-height: 1.1;
+      letter-spacing: -0.015em;
+    }
+    .f-cover .f-title,
+    .f-cover .desc {
+      max-width: 640px;
+    }
+    .g-body.f-body {
+      display: grid;
+      grid-template-columns: minmax(0, 640px) 280px;
+      gap: 56px;
+      max-width: none;
+      padding: 26px 36px 96px;
+      align-items: start;
+    }
+    .f-desk {
+      display: block;
+      min-width: 0;
+    }
+    .f-aside {
+      position: sticky;
+      top: 28px;
+      display: grid;
+      gap: 14px;
+    }
+    .f-toc {
+      display: grid;
+      gap: 2px;
+      margin: 0 -10px;
+    }
+    .f-toc button {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      min-height: 40px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 8px;
+      background: none;
+      color: var(--text-2);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: background-color 100ms ease-out;
+    }
+    .f-toc button:hover {
+      background: var(--bg-hover);
+      color: var(--text);
+    }
+    .f-toc button.now {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .f-aside .g-saved {
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .f-keys {
+      display: grid;
+      gap: 8px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .f-keys span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .f-keys .g-kbd,
+    .fq-ok .g-kbd {
+      margin: 0;
+    }
+    .fq {
+      gap: 10px 14px;
+    }
+    .fq > * {
+      grid-column: 2;
+    }
+    .fq > .fq-n {
+      grid-column: 1;
+    }
+    .f-mark {
+      left: -16px;
+    }
+    .fq .fo-key b {
+      display: block;
+    }
+    .fq .fo-key i {
+      display: none;
+    }
+    .fq .fo.multi:has(input:checked) .fo-key svg {
+      display: none;
+    }
+    .fo {
+      min-height: 44px;
+      font-size: 15px;
+    }
+    .g-body.dd-desk {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 440px));
+      gap: 28px 64px;
+      align-items: start;
+      max-width: none;
+    }
+    .dd-desk .dd-note {
+      grid-column: 1 / -1;
+      max-width: 640px;
+    }
+    .dd-list .slip-row {
+      grid-template-columns: 156px minmax(0, 1fr);
+    }
+  }
+
+  @keyframes f-press {
+    0% {
+      translate: 0 0;
+    }
+    45% {
+      translate: 0 3px;
+    }
+    100% {
+      translate: 0 2px;
+    }
+  }
+  @keyframes f-tick {
+    from {
+      scale: 0.3;
+      opacity: 0;
+    }
+  }
+  @keyframes f-rise {
+    from {
+      opacity: 0;
+      translate: 0 24px;
+    }
+  }
+  @keyframes f-row {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+    }
+  }
+  @keyframes f-leave {
+    to {
+      opacity: 0;
+      translate: 0 -14px;
+    }
+  }
+  @keyframes f-plaque {
+    from {
+      opacity: 0;
+      scale: 0.94;
+    }
+  }
+  @keyframes f-face {
+    0% {
+      scale: 0;
+      rotate: -20deg;
+    }
+    60% {
+      scale: 1.15;
+      rotate: 6deg;
+    }
+    100% {
+      scale: 1;
+      rotate: 0deg;
+    }
+  }
+  @keyframes f-fall {
+    0% {
+      translate: 0 0;
+      rotate: 0deg;
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      translate: var(--dx) 240px;
+      rotate: 180deg;
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .f-conf {
+      display: none;
+    }
+  }
+}

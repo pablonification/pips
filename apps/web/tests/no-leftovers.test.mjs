@@ -27,7 +27,11 @@ function files(dir) {
     .filter((f) => f && fs.existsSync(path.join(appDir, f)));
 }
 
-/** Packages that were removed. None may come back through an import. */
+/**
+ * Packages that were removed. None may come back through an import. (react-hook-form came back for the forms a
+ * pengurus builds and members fill, decision 22; its resolvers package stays out: the zod resolver is in
+ * src/features/form/schema.ts.)
+ */
 const REMOVED_PACKAGES = [
   'lucide-react',
   'framer-motion',
@@ -38,7 +42,6 @@ const REMOVED_PACKAGES = [
   'recharts',
   'vaul',
   '@hookform/resolvers',
-  'react-hook-form',
   'class-variance-authority',
   'tw-animate-css',
   '@tailwindcss/typography',

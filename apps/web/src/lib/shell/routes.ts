@@ -99,6 +99,8 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     parent: '/layanan/form',
     focused: true,
   },
+  // A form's link: the form itself opens at its own page; this one shows the states a link can land on.
+  '/f/$name': { title: svc('form'), parent: '/layanan/form' },
   '/layanan/sparta': {
     title: svc('sparta'),
     parent: '/layanan',
@@ -176,6 +178,10 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   },
   '/profil/kredit': {
     title: common.shell.kredit,
+    parent: '/profil',
+  },
+  '/profil/data-diri': {
+    title: common.shell.dataDiri,
     parent: '/profil',
   },
   '/profil/aplikasi': {

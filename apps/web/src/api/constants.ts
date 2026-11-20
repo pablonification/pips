@@ -19,3 +19,7 @@ export const FORM_QUERY_KEY = 'form';
 export const CREDITS_QUERY_KEY = 'credits';
 /** Beranda's unread list, under the feed's key; kept on the device like the feed's first page. */
 export const UNREAD_INFOS_KEY_PART = 'beranda-unread';
+/** A member's account facts and saved details (Profil › Data diri, a form's agreement step). Never kept on the device. */
+export const MY_DETAILS_QUERY_KEY = 'my-details';
+/** Where a form's link (`/f/<name>`) leads. */
+export const FORM_LINK_QUERY_KEY = 'form-link';
