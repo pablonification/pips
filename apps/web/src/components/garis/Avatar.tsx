@@ -1,4 +1,5 @@
 import { useState, type ButtonHTMLAttributes, type Ref } from 'react';
+import { useDataSettled } from '~/lib/data-settled';
 import { cn } from '~/lib/utils';
 
 interface AvatarProps {
@@ -25,12 +26,14 @@ const classes = (
   );
 
 /**
- * A person's photo over their initials: the initials show while it loads and stay if it fails. Put it inside any
- * `.g-avatar` (a span, a button, or the shell's link to Profil).
+ * A person's photo over their initials: the initials show until the page has settled and the photo loads, and stay
+ * if it fails. Put it inside any `.g-avatar` (a span, a button, or the shell's link to Profil).
  */
 export function AvatarPhoto({ picture }: { picture?: string | null }) {
   const [failed, setFailed] = useState<string | null>(null);
-  const photo = picture && picture !== failed ? picture : null;
+  // Decorative: it waits until the page's own data has arrived (useDataSettled).
+  const settled = useDataSettled();
+  const photo = settled && picture && picture !== failed ? picture : null;
   if (!photo) return null;
   return (
     <img
