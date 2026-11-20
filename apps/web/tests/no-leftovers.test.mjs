@@ -29,7 +29,7 @@ function files(dir) {
 
 /**
  * Packages that were removed. None may come back through an import. (react-hook-form came back for the forms a
- * pengurus builds and members fill, decision 22; its resolvers package stays out: the zod resolver is in
+ * pengurus builds and members fill, decision 23; its resolvers package stays out: the zod resolver is in
  * src/features/form/schema.ts.)
  */
 const REMOVED_PACKAGES = [
@@ -41,7 +41,6 @@ const REMOVED_PACKAGES = [
   'bungkus',
   'recharts',
   'vaul',
-  // react-hook-form came back for the form builder (the owner's choice of libraries, decision 22).
   '@hookform/resolvers',
   'class-variance-authority',
   'tw-animate-css',

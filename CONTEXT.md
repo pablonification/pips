@@ -91,7 +91,7 @@ them in Kelola › Form: a form is a **draft** until published, has an owner, an
 **Lihat jawaban** (sees it and its answers) or **Edit** (also changes it); admin edits every form. Its **link** is
 `app.hmif.dev/f/<short name>` (`forms.slug`). A form may **request** profile fields, which the member sees and agrees
 to at the end (the **agreement step**) instead of typing them; the **Jawaban** tab shows the answers summed up, one by
-one, and as an Excel file. Decision 22, `docs/forms-api.md`.
+one, and as an Excel file. Decision 23, `docs/forms-api.md`.
 **Live Counting & Rekap Form** is the admin's live view of who has filled a form made before the builder (the PIXEL
 form), and its summary.
 
