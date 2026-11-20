@@ -1,5 +1,5 @@
 {
-  "id": "0e378f44-c1c4-4679-84ca-d5d560a27e84",
+  "id": "28e2c3f1-3fc1-4eee-a0b1-48c83e56eae3",
   "prevId": "62d638bf-b69d-427a-8450-51b0150c39ee",
   "version": "7",
   "dialect": "postgresql",
@@ -1340,7 +1340,8 @@
           "name": "published_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "now()"
         },
         "requested_fields": {
           "name": "requested_fields",

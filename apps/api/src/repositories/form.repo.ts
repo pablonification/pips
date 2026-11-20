@@ -45,14 +45,6 @@ export async function getActiveForms(db: Database) {
   });
 }
 
-/** Every published form, switched off or not (admin's Live Counting list). */
-export async function getPublishedForms(db: Database) {
-  return await db.query.forms.findMany({
-    where: isNotNull(forms.publishedAt),
-    orderBy: [asc(forms.order), desc(forms.publishedAt)],
-  });
-}
-
 export async function getFormById(db: Database, formId: string) {
   return await db.query.forms.findFirst({
     where: eq(forms.id, formId),

@@ -226,6 +226,7 @@ export function createFormManageRouter(deps: FormManageDeps = databaseDeps) {
       eligibleAngkatan: [],
       opensAt: null,
       isActive: false,
+      publishedAt: null,
     });
     return c.json(await view(form, formAccess('owner', false)), 201);
   });

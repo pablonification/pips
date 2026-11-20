@@ -27,7 +27,7 @@ ALTER TABLE "forms" ALTER COLUMN "opens_at" DROP NOT NULL;--> statement-breakpoi
 ALTER TABLE "form_responses" ADD COLUMN "profile" json DEFAULT '{}'::json NOT NULL;--> statement-breakpoint
 ALTER TABLE "form_responses" ADD COLUMN "updated_at" timestamp with time zone;--> statement-breakpoint
 ALTER TABLE "forms" ADD COLUMN "owner_id" text;--> statement-breakpoint
-ALTER TABLE "forms" ADD COLUMN "published_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "forms" ADD COLUMN "published_at" timestamp with time zone DEFAULT now();--> statement-breakpoint
 ALTER TABLE "forms" ADD COLUMN "requested_fields" json DEFAULT '[]'::json NOT NULL;--> statement-breakpoint
 ALTER TABLE "forms" ADD COLUMN "allow_edit" boolean DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE "forms" ADD COLUMN "thanks" text;--> statement-breakpoint
@@ -58,5 +58,5 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
--- Every form made before the builder was published when it was made; only a form with no publishing time is a draft.
-UPDATE "forms" SET "published_at" = "created_at" WHERE "published_at" IS NULL;
+-- Every form so far was made before the builder (none has an owner yet): it was published when it was made.
+UPDATE "forms" SET "published_at" = "created_at" WHERE "owner_id" IS NULL;

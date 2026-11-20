@@ -1184,8 +1184,8 @@ export const forms = pgTable('forms', {
   ownerId: text('owner_id').references(() => users.id, {
     onDelete: 'set null',
   }),
-  // Null while a draft.
-  publishedAt: timestamp('published_at', { withTimezone: true }),
+  // Null while a draft. Only the builder makes drafts; a form added any other way (a seed, by hand) is published.
+  publishedAt: timestamp('published_at', { withTimezone: true }).defaultNow(),
   // What goes along from the member's profile, as they agree at the end of the form.
   requestedFields: json('requested_fields')
     .$type<ProfileField[]>()
