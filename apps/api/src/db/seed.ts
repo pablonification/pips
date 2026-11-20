@@ -1,6 +1,6 @@
 /**
- * Fills a migrated database with the made-up HMIF in `seed/sample-hmif.ts` and the form in `seed/pixel-form-seed.ts`,
- * then exits. Safe to run again: a row that is already there is left as it is, except that the sample's own events
+ * Fills a migrated database with the made-up HMIF in `seed/sample-hmif.ts` (with a form made in the builder) and the
+ * PIXEL form in `seed/pixel-form-seed.ts`, then exits. Safe to run again: a row that is already there is left as it is, except that the sample's own events
  * and courses taken move to today's month and semester. Runs only when `APP_ENV` is `development`, so it never
  * writes sample people into a database of real members.
  *
@@ -135,6 +135,12 @@ export async function runSeed({
       );
       counts.forms = await runPixelFormSeed(
         tx as unknown as PostgresJsDatabase<typeof schema>,
+      );
+      await add('builder forms', schema.forms, sample.builderFormRows);
+      await add(
+        'form shares',
+        schema.formCollaborators,
+        sample.formCollaboratorRows,
       );
 
       // Seeded on an earlier day: the sample's events and courses taken follow today, so Kalender and Mata kuliahku
