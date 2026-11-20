@@ -1,11 +1,13 @@
 /*
- * What Kelola › Form's route loaders need: the query keys and options for the list and one form, and whether the
- * cached member may load them. Kept apart from queries.ts so the loaders, which every page's code carries, stay small.
+ * What Kelola › Form's route loaders start: the query keys and options for the list and one form, once the cached
+ * member may load them. The loaders reach this file through `load.ts`, so it stays out of the entry every page loads.
  */
-import { queryOptions, type QueryClient } from '@tanstack/react-query';
+import { queryOptions } from '@tanstack/react-query';
+import { queryClient } from '~/api/client';
 import * as api from '~/api/generated/operations';
 import { FORM_QUERY_KEY, ME_QUERY_KEY } from '~/api/constants';
 import type { UserWithRoles } from '~/api/generated';
+import { prefetch } from '~/api/queries';
 import { kelolaAccess } from '../kelola/access';
 
 export const MANAGE = [FORM_QUERY_KEY, 'manage'] as const;
@@ -34,11 +36,21 @@ export const manageFormQuery = (formId: string) =>
     queryFn: () => api.getManagedForm({ formId }),
   });
 
-/** For loaders: whether the cached member may open Kelola › Form, so nothing is asked before the gate. */
-export function mayLoadForms(client: QueryClient): boolean {
-  const me = client.getQueryData<UserWithRoles | null>([ME_QUERY_KEY]);
+/** Whether the cached member may open Kelola › Form, so nothing is asked before the gate. */
+function mayLoad(): boolean {
+  const me = queryClient.getQueryData<UserWithRoles | null>([ME_QUERY_KEY]);
   return !!me && kelolaAccess(me, 'form').allowed;
 }
 
 /** The builder's own code, fetched while the form's data loads (the route's loader starts both). */
 export const loadBuilder = () => import('./Builder');
+
+/** The loaders: Kelola › Form's list; one form, with the builder's code or the member's form for Pratinjau. */
+export function startList() {
+  if (mayLoad()) prefetch(managedFormsQuery('mine'));
+}
+export function startForm(formId: string, code: () => Promise<unknown>) {
+  if (!mayLoad()) return;
+  prefetch(manageFormQuery(formId));
+  void code();
+}

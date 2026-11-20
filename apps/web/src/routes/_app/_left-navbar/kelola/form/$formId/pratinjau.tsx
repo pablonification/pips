@@ -1,17 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { queryClient } from '~/api/client';
-import { prefetch } from '~/api/queries';
 import { KelolaGate } from '~/features/kelola/KelolaGate';
 import { PreviewScreen } from '~/features/kelola-form/PreviewScreen';
-import { manageFormQuery, mayLoadForms } from '~/features/kelola-form/data';
+import { loadFormIsi } from '~/features/form/load';
+import { loadFormsData } from '~/features/kelola-form/load';
 
 // The member's form as its maker sees it before sending it out: nothing is sent.
 export const Route = createFileRoute(
   '/_app/_left-navbar/kelola/form/$formId/pratinjau',
 )({
-  loader: ({ params: { formId } }) => {
-    if (mayLoadForms(queryClient)) prefetch(manageFormQuery(formId));
-  },
+  loader: ({ params: { formId } }) =>
+    void loadFormsData().then((d) => d.startForm(formId, loadFormIsi)),
   component: PreviewRoute,
 });
 
