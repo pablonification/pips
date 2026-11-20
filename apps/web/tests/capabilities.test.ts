@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import {
+  ANY_ROLE,
   CAPABILITY_ROLES,
   can,
   canCreateEvent,
@@ -13,6 +14,7 @@ import {
   type Capability,
 } from '../src/lib/capabilities';
 import { ROUTE_ACCESS } from '../../api/src/lib/route-access';
+import { rolesEnums } from '../../api/src/db/roles-group';
 
 const api = (file: string) =>
   fs.readFileSync(
@@ -123,8 +125,10 @@ const SERVER: Record<Capability, () => string[]> = {
 
 for (const capability of Object.keys(CAPABILITY_ROLES) as Capability[]) {
   test(`${capability} mirrors the server's roles`, () => {
+    const mine = CAPABILITY_ROLES[capability];
     assert.deepEqual(
-      [...CAPABILITY_ROLES[capability]].sort(),
+      // "Any role" is every role the API knows.
+      (mine === ANY_ROLE ? [...rolesEnums] : [...mine]).sort(),
       SERVER[capability]().sort(),
     );
   });

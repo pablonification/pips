@@ -3,48 +3,10 @@ import type { UserWithRoles } from '~/api/generated';
 type Role = UserWithRoles['roles'][number];
 
 /**
- * Every role: a pengurus is a member who holds at least one (`apps/api/src/db/roles-group.ts`). A record, so a role
- * added to the API and missing here fails the type check.
+ * Every role the API knows: a pengurus is a member who holds at least one (`apps/api/src/db/roles-group.ts`, the
+ * route table's PENGURUS). A member's roles come only from that list, so holding any role is being a pengurus.
  */
-const EVERY_ROLE: Record<Role, true> = {
-  ring1: true,
-  ring12: true,
-  sekjen: true,
-  capitalcatalyst: true,
-  people: true,
-  peopledev: true,
-  peoplemanage: true,
-  internal: true,
-  clubnhobies: true,
-  household: true,
-  kinship: true,
-  welfarenakademik: true,
-  akademik: true,
-  welfare: true,
-  externalnrelations: true,
-  alumnirelations: true,
-  comserv: true,
-  extracampus: true,
-  intracampus: true,
-  tie: true,
-  cardev: true,
-  cnc: true,
-  techdev: true,
-  cnb: true,
-  medcon: true,
-  visdes: true,
-  iit: true,
-  iitfinance: true,
-  iithr: true,
-  iitmarketing: true,
-  iitoperational: true,
-  iittech: true,
-  de: true,
-  dpp: true,
-  curhatadmin: true,
-  admin: true,
-};
-const PENGURUS_ROLES = Object.keys(EVERY_ROLE) as Role[];
+export const ANY_ROLE = 'any role';
 
 /**
  * What each role may do, mirroring the server's checks. Every pengurus action
@@ -75,10 +37,10 @@ export const CAPABILITY_ROLES = {
   /** Change or delete a competition in Info Lomba: `competitions.controller.ts`, the same forRoles(…, ['cnc']). */
   manageCompetition: ['cnc'],
   /** Kelola › Form, the builder: any pengurus (`route-access.ts`, POST /api/form). The form's own access decides the rest. */
-  buildForms: PENGURUS_ROLES,
+  buildForms: ANY_ROLE,
   /** "Semua form" in Kelola › Form, and editing any form: `form-manage.controller.ts`, admin. */
   manageAllForms: ['admin'],
-} as const satisfies Record<string, readonly Role[]>;
+} as const satisfies Record<string, readonly Role[] | typeof ANY_ROLE>;
 
 export type Capability = keyof typeof CAPABILITY_ROLES;
 
@@ -87,9 +49,9 @@ type WithRoles = { roles?: readonly string[] | null } | null | undefined;
 /** Whether `user` holds a role that the server accepts for `capability`. */
 export function can(user: WithRoles, capability: Capability): boolean {
   const roles = user?.roles ?? [];
-  return (CAPABILITY_ROLES[capability] as readonly string[]).some((role) =>
-    roles.includes(role),
-  );
+  const need = CAPABILITY_ROLES[capability];
+  if (need === ANY_ROLE) return roles.length > 0;
+  return (need as readonly string[]).some((role) => roles.includes(role));
 }
 
 /** Either kind of calendar event (the Kalender's "Tambah acara"). */
