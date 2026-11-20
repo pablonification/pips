@@ -11,6 +11,7 @@ import {
 import {
   OTHER_ANSWER,
   fileName,
+  storedFileCheck,
   type FormSection,
 } from '../src/lib/form-model';
 import {
@@ -45,7 +46,7 @@ import {
 } from '../src/lib/member-details';
 
 const STORE = 'https://media.example.com';
-const stored = (url: string) => url.startsWith(`${STORE}/`);
+const stored = storedFileCheck((url) => url.startsWith(`${STORE}/`));
 
 /** The prototype's Daftar Makrab, cut down: every kind of question, a condition and "Lainnya". */
 const makrab: FormSection[] = [
@@ -688,7 +689,7 @@ test('the export: one row per response, oldest first, requested fields then ques
   assert.deepEqual(unticked.header.slice(2, 4), ['Nama', 'NIM']);
 
   const csv = toCsv(t);
-  assert.equal(csv.startsWith('﻿Waktu kirim,Diubah,Nama,NIM'), true);
+  assert.equal(csv.startsWith('\uFEFFWaktu kirim,Diubah,Nama,NIM'), true);
   assert.match(csv, /2026-10-06 09\.00/);
   // A cell a spreadsheet would run as a formula is written as text.
   assert.match(csv, /"'=HYPERLINK\(""x""\)"/);

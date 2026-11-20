@@ -6,11 +6,11 @@ import {
   CHOICE_TYPES,
   OTHER_ANSWER,
   choicesOf,
-  fileExtension,
   FILE_ANSWER_TYPES,
   scaleValues,
   type FormQuestion,
   type QuestionType,
+  type StoredFileCheck,
 } from './form-model';
 
 interface Question {
@@ -81,8 +81,8 @@ export function keepVisibleAnswers<A extends Answer>(
 interface CheckOptions {
   /** The longest text answer or "Lainnya" line. */
   maxText: number;
-  /** Whether an address is a file in the app's own storage (`lib/media-url.ts`). Without it, no file answer fits. */
-  isStoredFile?: (url: string) => boolean;
+  /** Whether an address is a file in the app's own storage, of one of these types. Without it, no file answer fits. */
+  isStoredFile?: StoredFileCheck;
 }
 
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -111,10 +111,7 @@ function fitsOne(
     case 'time':
       return TIME.test(value);
     case 'file':
-      return (
-        !!o.isStoredFile?.(value) &&
-        FILE_ANSWER_TYPES.includes(fileExtension(value))
-      );
+      return !!o.isStoredFile?.(value, FILE_ANSWER_TYPES);
     default:
       return choicesOf(q as FormQuestion).includes(value);
   }

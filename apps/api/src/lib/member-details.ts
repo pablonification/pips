@@ -7,11 +7,11 @@ import {
   FORM_LIMITS,
   PHOTO_TYPES,
   SAVED_FIELDS,
-  fileExtension,
   type EmergencyRelation,
   type ProfileField,
   type SavedDetails,
   type SavedField,
+  type StoredFileCheck,
 } from './form-model';
 
 /** What a member's account says, as forms send it. Program studi and kampus in words. */
@@ -128,10 +128,7 @@ export type DetailProblem = 'empty' | 'too_long' | 'phone' | 'date' | 'file';
  */
 export function detailsProblems(
   change: DetailsChange,
-  {
-    today,
-    isStoredFile,
-  }: { today: string; isStoredFile: (url: string) => boolean },
+  { today, isStoredFile }: { today: string; isStoredFile: StoredFileCheck },
 ): Partial<Record<SavedField, DetailProblem>> {
   const out: Partial<Record<SavedField, DetailProblem>> = {};
   for (const field of SAVED_FIELDS) {
@@ -153,7 +150,7 @@ export function detailsProblems(
       out[field] = 'date';
     else if (
       (field === 'studentCardPhoto' || field === 'photo') &&
-      !(isStoredFile(text) && PHOTO_TYPES.includes(fileExtension(text)))
+      !isStoredFile(text, PHOTO_TYPES)
     )
       out[field] = 'file';
   }

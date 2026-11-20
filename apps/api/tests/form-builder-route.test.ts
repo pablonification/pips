@@ -13,6 +13,7 @@ import {
   type SavedDetails,
 } from '../src/lib/form-model';
 import type { CollaboratorRole } from '../src/lib/form-model';
+import { storedFileCheck } from '../src/lib/form-model';
 import { EMPTY_DETAILS } from '../src/lib/member-details';
 import postgres from 'postgres';
 import { callRouter } from './support/router';
@@ -301,7 +302,7 @@ const memberDeps: FormDeps = {
     });
   },
   getUserRoles: getRoles,
-  isStoredFile: (url) => url.startsWith(`${STORE}/`),
+  isStoredFile: storedFileCheck((url) => url.startsWith(`${STORE}/`)),
   announceResponse: (_id, event) => store.announced.push(event),
 };
 
@@ -1043,4 +1044,24 @@ test('Data diri: shown with the account facts, changed in place, refused when it
       .status,
     400,
   );
+});
+
+test('Live Counting & Rekap Form serve only forms made before the builder: a new form shows only what it requested', async () => {
+  const pixel = form({ ownerId: null, slug: 'pixel', requestedFields: [] });
+  store.forms.set(pixel.id, pixel);
+  const list = await asMember(people.raka, 'GET', '/form/admin/list');
+  assert.deepEqual(
+    list.body.forms.map((f: { id: string }) => f.id),
+    [pixel.id],
+  );
+  for (const path of ['responses', 'responses/count', 'analytics']) {
+    const res = await asMember(
+      people.raka,
+      'GET',
+      `/form/${makrab.id}/${path}`,
+    );
+    assert.equal(res.status, 404, path);
+    const ok = await asMember(people.raka, 'GET', `/form/${pixel.id}/${path}`);
+    assert.equal(ok.status, 200, path);
+  }
 });

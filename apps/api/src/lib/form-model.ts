@@ -239,6 +239,19 @@ export function fileName(url: string): string {
   return dash < 0 ? last : last.slice(dash + 1);
 }
 
+/** Whether a file's address may stand in an answer or a saved detail: in the app's storage, and one of `types`. */
+export type StoredFileCheck = (
+  url: string,
+  types: readonly string[],
+) => boolean;
+
+/** The check from a test of "in the app's storage" (`lib/media-url.ts` in the API). */
+export function storedFileCheck(
+  inStore: (url: string) => boolean,
+): StoredFileCheck {
+  return (url, types) => inStore(url) && types.includes(fileExtension(url));
+}
+
 /** Every question of a form, in order. */
 export function questionsOf(sections: readonly FormSection[]): FormQuestion[] {
   return sections.flatMap((s) => s.questions);

@@ -213,7 +213,7 @@ export function toCsv(table: { header: string[]; rows: ExportCell[][] }) {
     return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   return (
-    '﻿' +
+    '\uFEFF' +
     [table.header.map(cell), ...table.rows.map((r) => r.map(cell))]
       .map((r) => r.join(','))
       .join('\r\n') +

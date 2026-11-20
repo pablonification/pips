@@ -66,8 +66,9 @@ sees only what their angkatan and roles allow, decided by the server.
 - A form whose owner is removed from `users` keeps no owner; only admin, and the people it is shared with, can manage it then.
 - Deleting answers on a confirmed breaking edit cannot be undone; the builder offers the export first.
 - Old links break on a rename, by the owner's choice.
-- Two ways to read answers exist for a while: Live Counting & Rekap Form for the PIXEL form, the Jawaban tab for the
-  rest.
+- Two ways to read answers exist for a while: Live Counting & Rekap Form for forms with no owner (the PIXEL form), the
+  Jawaban tab for the rest. A builder form whose owner is removed from `users` has no owner too, and would then show in
+  Live Counting, with names and NIMs, to admin.
 
 ## When to revisit
 

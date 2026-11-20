@@ -86,7 +86,7 @@ export const listAllFormsRoute = createRoute({
   responses: {
     200: {
       description:
-        'List of all active forms, regardless of eligibility (admin only)',
+        'Every active form made before the builder, regardless of eligibility (admin only): Live Counting & Rekap Form',
       content: { 'application/json': { schema: AdminListFormsSchema } },
     },
     401: errorResponse,
@@ -198,11 +198,13 @@ export const listFormResponsesRoute = createRoute({
   request: { params: FormIdParamSchema, query: ListFormResponsesQuerySchema },
   responses: {
     200: {
-      description: 'Paginated list of responses (admin only)',
+      description:
+        'Paginated list of responses (admin only), for a form made before the builder',
       content: { 'application/json': { schema: ListFormResponsesSchema } },
     },
     401: errorResponse,
     400: validationErrorResponse,
+    404: errorResponse,
   },
 });
 
@@ -214,12 +216,14 @@ export const getFormResponsesCountRoute = createRoute({
   request: { params: FormIdParamSchema },
   responses: {
     200: {
-      description: 'Total number of responses (admin only)',
+      description:
+        'Total number of responses (admin only), for a form made before the builder',
       content: {
         'application/json': { schema: FormResponsesCountSchema },
       },
     },
     401: errorResponse,
+    404: errorResponse,
   },
 });
 

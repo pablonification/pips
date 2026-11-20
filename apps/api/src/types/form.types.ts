@@ -69,14 +69,15 @@ const FormStatusSchema = z
   .enum(['not_opened', 'open', 'already_responded', 'closed'])
   .openapi('FormStatus');
 
-const FormPersonSchema = z
-  .object({
-    id: z.string(),
-    fullName: z.string(),
-    nim: z.string(),
-    picture: z.string().nullable(),
-  })
-  .openapi('FormPerson');
+const personShape = {
+  id: z.string(),
+  fullName: z.string(),
+  nim: z.string(),
+  picture: z.string().nullable(),
+};
+const FormPersonSchema = z.object(personShape).openapi('FormPerson');
+// Written out where it may be null: the client generator drops `nullable` on a named schema.
+const NullablePersonSchema = z.object(personShape).nullable();
 
 /** A published form as members see it in lists. */
 const FormBase = {
@@ -144,7 +145,7 @@ export const FormResponseSchema = z
     profile: ProfileValuesSchema,
     submittedAt: Time,
     /** When it was last changed; null if never. */
-    updatedAt: Time.nullable(),
+    updatedAt: z.date().nullable(),
   })
   .openapi('FormResponse');
 
@@ -154,7 +155,7 @@ const EmergencyContactSchema = z
     relation: z.enum(EMERGENCY_RELATIONS),
     phone: z.string().max(30),
   })
-  .openapi('EmergencyContact');
+  .nullable();
 
 const SavedText = z.string().max(FORM_LIMITS.detail).nullable();
 
@@ -166,7 +167,7 @@ export const SavedDetailsSchema = z
     instagram: SavedText,
     address: SavedText,
     hometown: SavedText,
-    emergencyContact: EmergencyContactSchema.nullable(),
+    emergencyContact: EmergencyContactSchema,
     health: SavedText,
     /** `YYYY-MM-DD`. */
     birthDate: SavedText,
@@ -319,11 +320,11 @@ const ManageFormListItemSchema = z
     title: z.string(),
     status: ManageStatusSchema,
     eligibleAngkatan: z.array(z.number()),
-    opensAt: Time.nullable(),
-    closesAt: Time.nullable(),
+    opensAt: z.date().nullable(),
+    closesAt: z.date().nullable(),
     questionCount: z.number().int(),
     responseCount: z.number().int(),
-    owner: FormPersonSchema.nullable(),
+    owner: NullablePersonSchema,
     access: FormAccessSchema,
     updatedAt: Time,
   })
@@ -359,14 +360,14 @@ export const ManageFormSchema = z
     requestedFields: z.array(ProfileFieldSchema),
     eligibleAngkatan: z.array(z.number()),
     /** Null on a draft that opens when published. */
-    opensAt: Time.nullable(),
-    closesAt: Time.nullable(),
+    opensAt: z.date().nullable(),
+    closesAt: z.date().nullable(),
     isActive: z.boolean(),
     allowEdit: z.boolean(),
     thanks: z.string().nullable(),
     status: ManageStatusSchema,
-    publishedAt: Time.nullable(),
-    owner: FormPersonSchema.nullable(),
+    publishedAt: z.date().nullable(),
+    owner: NullablePersonSchema,
     access: FormAccessSchema,
     responseCount: z.number().int(),
     /** Members in the chosen angkatan ("87 dari 132 anggota"). */
@@ -467,7 +468,7 @@ export const SlugProblemSchema = z
 
 export const FormAccessListSchema = z
   .object({
-    owner: FormPersonSchema.nullable(),
+    owner: NullablePersonSchema,
     people: z.array(
       z.object({ person: FormPersonSchema, role: z.enum(COLLABORATOR_ROLES) }),
     ),
@@ -540,7 +541,7 @@ export const FormAnswersSchema = z
         /** Its place in the order they were sent, from 1. */
         number: z.number().int(),
         submittedAt: Time,
-        updatedAt: Time.nullable(),
+        updatedAt: z.date().nullable(),
         /** Only the profile fields the form requested, as the member agreed to send them. */
         profile: ProfileValuesSchema,
         answers: z.array(FormAnswerSchema),

@@ -7,7 +7,11 @@ import {
   findMissingRequiredQuestions,
   keepVisibleAnswers,
 } from '~/lib/form-answers';
-import type { FormAnswer } from '~/lib/form-model';
+import {
+  storedFileCheck,
+  type FormAnswer,
+  type StoredFileCheck,
+} from '~/lib/form-model';
 import {
   formQuestionsVisible,
   formStatus,
@@ -83,8 +87,8 @@ export interface FormDeps {
   saveMemberDetails: WithoutDb<typeof saveMemberDetails>;
   /** A member's roles, read only when needed (a form admin, a draft's manager). */
   getUserRoles: WithoutDb<typeof getUserRoles>;
-  /** Whether an address is a file in the app's own storage. */
-  isStoredFile: (url: string) => boolean;
+  /** Whether an address is a file in the app's own storage, of one of the types given. */
+  isStoredFile: StoredFileCheck;
   /** Tells Live Counting and the Jawaban tab (the form's watchers' room) about a new response. */
   announceResponse: (formId: string, event: object) => void;
 }
@@ -104,7 +108,9 @@ const databaseDeps: FormDeps = {
   getMemberDetails: withDb(getMemberDetails),
   saveMemberDetails: withDb(saveMemberDetails),
   getUserRoles: withDb(getUserRoles),
-  isStoredFile: (url) => isFileStoreUrl(url, env.R2_PUBLIC_URL),
+  isStoredFile: storedFileCheck((url) =>
+    isFileStoreUrl(url, env.R2_PUBLIC_URL),
+  ),
   announceResponse: (formId, event) => {
     getIo().to(formAdminRoom(formId)).emit('form:new-response', event);
   },
@@ -130,6 +136,13 @@ export function formBase(form: Form) {
 }
 
 type Member = AccountFacts & { id: string };
+
+/**
+ * Live Counting & Rekap Form list who sent each response by name and NIM, so they serve only forms made before the
+ * builder (no owner). A form made in the builder shows only what it requested, on its Jawaban tab.
+ */
+const isLiveCounted = (form: Form | undefined): form is Form =>
+  !!form && !form.ownerId;
 
 /** A form members may reach: it exists and is not a draft. */
 const isPublished = (form: Form | undefined): form is Form =>
@@ -275,7 +288,10 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
     forRoles(listAllFormsRoute, FORM_ADMIN_ROLES, deps.getUserRoles),
     async (c) => {
       const activeForms = await deps.getActiveForms();
-      return c.json({ forms: activeForms.map(formBase) }, 200);
+      return c.json(
+        { forms: activeForms.filter(isLiveCounted).map(formBase) },
+        200,
+      );
     },
   );
 
@@ -463,6 +479,8 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
     async (c) => {
       const { formId } = c.req.valid('param');
       const query = c.req.valid('query');
+      if (!isLiveCounted(await deps.getFormById(formId)))
+        return c.json({ error: 'Form not found' }, 404);
       const { responses, total } = await deps.getFormResponsesList(
         formId,
         query,
@@ -478,6 +496,8 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
     forRoles(getFormResponsesCountRoute, FORM_ADMIN_ROLES, deps.getUserRoles),
     async (c) => {
       const { formId } = c.req.valid('param');
+      if (!isLiveCounted(await deps.getFormById(formId)))
+        return c.json({ error: 'Form not found' }, 404);
       const total = await deps.getFormResponsesCount(formId);
       return c.json({ total }, 200);
     },
@@ -488,7 +508,7 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
     async (c) => {
       const { formId } = c.req.valid('param');
       const form = await deps.getFormById(formId);
-      if (!form) return c.json({ error: 'Form not found' }, 404);
+      if (!isLiveCounted(form)) return c.json({ error: 'Form not found' }, 404);
 
       const responses = await deps.getFormResponsesForAnalytics(formId);
       const analytics = buildAnalytics(form.sections, responses);

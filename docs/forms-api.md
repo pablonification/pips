@@ -109,8 +109,10 @@ is admin, or a pengurus who owns the form or has it shared with them, and hears 
 submittedAt }`, plus `nim` and `fullName` only when the form requests them (the PIXEL form's Live Counting gets them
 as before).
 
-**Kept as they were** (admin only; the Live Counting & Rekap Form screens use them for the PIXEL form):
-`GET /api/form/admin/list`, `/api/form/{formId}/responses`, `/responses/count`, `/analytics`.
+**Live Counting & Rekap Form** (admin only) keep their routes, `GET /api/form/admin/list`,
+`/api/form/{formId}/responses`, `/responses/count` and `/analytics`, for forms made before the builder (no owner: the
+PIXEL form) and no others: they list who sent each response by name and NIM, which a builder form shows only when it
+requests them. A builder form is 404 there and is not in the admin list.
 
 ## The pretend API
 
