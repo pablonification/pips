@@ -511,3 +511,10 @@ export function fileFits(
   const ext = dot < 0 ? '' : file.name.slice(dot + 1).toLowerCase();
   return types.includes(ext) && file.size <= FILE_MAX_BYTES;
 }
+
+/** A choice made right after an arrow key moved through a question's options stays put; any other choice moves on. */
+export const ARROW_HOLD_MS = 400;
+/** When no arrow key has been pressed: never, so a choice in the page's first moments moves on too. */
+export const NO_ARROW_YET = Number.NEGATIVE_INFINITY;
+export const choiceMovesOn = (now: number, lastArrowAt: number) =>
+  now - lastArrowAt >= ARROW_HOLD_MS;

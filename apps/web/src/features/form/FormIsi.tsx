@@ -66,6 +66,8 @@ import {
   type DraftValue,
   type FieldInfo,
   type SavedField,
+  choiceMovesOn,
+  NO_ARROW_YET,
 } from './rules';
 import {
   answersResolver,
@@ -340,7 +342,7 @@ function Filler({
   const requested = requestedInOrder(form.requestedFields);
   const qs = useRef<HTMLDivElement>(null);
   const mark = useRef<HTMLSpanElement>(null);
-  const arrowAt = useRef(0);
+  const arrowAt = useRef(NO_ARROW_YET);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [leaving, setLeaving] = useState(false);
   const [freshStep, setFreshStep] = useState(false);
@@ -419,7 +421,7 @@ function Filler({
       );
   };
   const chosen = (key: string, type: string) => {
-    if (performance.now() - arrowAt.current < 400) return;
+    if (!choiceMovesOn(performance.now(), arrowAt.current)) return;
     if (!MOVES_ON.includes(type as (typeof MOVES_ON)[number])) return;
     later(() => next(key), type === 'date' ? 320 : 300);
   };

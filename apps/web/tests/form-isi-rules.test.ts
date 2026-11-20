@@ -519,3 +519,13 @@ test('a radio group with nothing chosen (react-hook-form gives null) counts as u
   assert.ok(missingRequired(SECTIONS, v).includes('k5'));
   assert.deepEqual(asAnswers(v), []);
 });
+
+test('a choice moves on unless an arrow key moved through the options just before; with no arrow yet, it always does', async () => {
+  const { ARROW_HOLD_MS, NO_ARROW_YET, choiceMovesOn } =
+    await import('../src/features/form/rules');
+  // The page's first moments (performance.now() near 0): no arrow has been pressed, so the choice moves on.
+  assert.equal(choiceMovesOn(0, NO_ARROW_YET), true);
+  assert.equal(choiceMovesOn(120, NO_ARROW_YET), true);
+  assert.equal(choiceMovesOn(1000, 900), false);
+  assert.equal(choiceMovesOn(900 + ARROW_HOLD_MS, 900), true);
+});

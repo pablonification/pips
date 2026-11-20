@@ -626,7 +626,7 @@ test('every HMIF logo is the official file, whole, unstretched and at least 40 p
   });
   expect(report.n).toBeGreaterThanOrEqual(6);
   expect(report.bad).toEqual([]);
-  expect(await page.locator('#icons .icon-cell svg.g-ic').count()).toBe(54);
+  expect(await page.locator('#icons .icon-cell svg.g-ic').count()).toBe(56);
   expect(
     await page.locator('main img:not([src="/logo/hmif.png"])').count(),
   ).toBe(0);
