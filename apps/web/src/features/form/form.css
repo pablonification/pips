@@ -42,8 +42,10 @@
   .g-lf:hover {
     box-shadow: inset 0 -1.5px 0 var(--text);
   }
+  /* The line and band as drawn, and the app's 2 px ring, so the keyboard's place reads as on every other field. */
   .g-lf:focus-visible {
-    outline: none;
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
     background: var(--bg-hover);
     box-shadow:
       inset 0 -2.5px 0 var(--focus),
@@ -703,6 +705,10 @@
   }
   .f-file:hover {
     background: var(--bg-hover);
+  }
+  .f-file:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
   }
   .f-file.has {
     cursor: default;
