@@ -461,13 +461,11 @@ test('the profile fields: ticked fields are saved; the nudge asks from the profi
   await main(page)
     .getByRole('checkbox', { name: /^Kontak darurat/ })
     .check();
+  // The bar can still say Tersimpan for a moment before the tick registers, so wait for the save itself.
+  await expect
+    .poll(() => lastPatch(api).requestedFields)
+    .toEqual(['fullName', 'nim', 'whatsapp', 'emergencyContact']);
   await saved(page);
-  expect(lastPatch(api).requestedFields).toEqual([
-    'fullName',
-    'nim',
-    'whatsapp',
-    'emergencyContact',
-  ]);
   await strictGates(page, testInfo, 'build-fields', null);
   // "Nomor WhatsApp" is already requested: the nudge offers to remove the question.
   await restRow(page, 'Nomor WhatsApp').click();
@@ -479,10 +477,16 @@ test('the profile fields: ticked fields are saved; the nudge asks from the profi
     .getByRole('button', { name: 'Hapus pertanyaan' })
     .first()
     .click();
+  await expect
+    .poll(() => {
+      const b = lastPatch(api);
+      return (
+        !!b.sections &&
+        !questionsIn(b).some((q) => q.label === 'Nomor WhatsApp')
+      );
+    })
+    .toBe(true);
   await saved(page);
-  expect(questionsIn(lastPatch(api)).map((q) => q.label)).not.toContain(
-    'Nomor WhatsApp',
-  );
   // A question about something not requested offers "Minta dari profil".
   await main(page).getByRole('button', { name: 'Tambah pertanyaan' }).click();
   await main(page)
@@ -493,8 +497,8 @@ test('the profile fields: ticked fields are saved; the nudge asks from the profi
   await expect(
     toastText(page, 'ID LINE sekarang diminta dari profil.'),
   ).toBeVisible();
+  await expect.poll(() => lastPatch(api).requestedFields).toContain('line');
   await saved(page);
-  expect(lastPatch(api).requestedFields).toContain('line');
 });
 
 test('Terbitkan: what stops it, Setelan to fix it, then the link to copy', async ({
@@ -1011,10 +1015,21 @@ test("Pratinjau: the member's own form with its cover and rules, the agreement s
     // The bar sits above the breadcrumbs, which sit on the gold band.
     const crumbs = page.getByRole('navigation', { name: 'Jejak halaman' });
     await expect(crumbs.getByText('Pratinjau')).toBeVisible();
+    await expect
+      .poll(async () => Math.abs((await bar.boundingBox())!.y))
+      .toBeLessThanOrEqual(1);
     const [b, c] = [await bar.boundingBox(), await crumbs.boundingBox()];
     expect(b!.y + b!.height).toBeLessThanOrEqual(c!.y + 1);
+    const cover = await page.locator('.f-cover').boundingBox();
+    expect(Math.abs(cover!.y - c!.y)).toBeLessThanOrEqual(1);
   }
-  await expect(main(page).getByText('Bawa kamera sendiri?')).toHaveCount(0);
+  // A question behind "Tampilkan jika" stays folded and out of reach until its answer is chosen.
+  const camera = () =>
+    main(page)
+      .locator('.fq-wrap')
+      .filter({ has: page.getByText('Bawa kamera sendiri?') });
+  await expect(camera()).toHaveClass(/is-off/);
+  await expect(camera()).toHaveAttribute('inert');
   await strictGates(page, testInfo, 'preview', null);
 
   // Typed answers stay off the device: after a reload the form starts empty.
@@ -1031,18 +1046,19 @@ test("Pratinjau: the member's own form with its cover and rules, the agreement s
   await expect(
     main(page).getByText('Pertanyaan ini wajib diisi').first(),
   ).toBeVisible();
-  await main(page)
-    .getByRole('radio', { name: /Dokumentasi/ })
-    .check();
-  await expect(main(page).getByText('Bawa kamera sendiri?')).toBeVisible();
-  await main(page).getByRole('radio', { name: /^Ya/ }).check();
-  await main(page)
-    .getByRole('checkbox', { name: /hari-H/ })
-    .check();
+  await main(page).getByText('Dokumentasi', { exact: true }).click();
+  await expect(camera()).not.toHaveClass(/is-off/);
+  // Chosen as a member chooses: by the option's words (its keycap covers the input).
+  await camera().getByText('Ya', { exact: true }).click();
+  await main(page).getByText('Sabtu 24 Oktober, hari-H').click();
   await main(page)
     .getByRole('textbox', { name: /Nomor WhatsApp/ })
     .fill('0812-5550-0987');
-  await main(page).getByRole('radio', { name: /^3/ }).check();
+  await main(page)
+    .locator('.fq-wrap')
+    .filter({ has: page.getByText('Seberapa padat kuliahmu minggu itu?') })
+    .getByText('3', { exact: true })
+    .click();
   await main(page).getByRole('button', { name: 'Lanjut' }).click();
 
   await expect(
