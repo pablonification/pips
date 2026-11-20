@@ -109,7 +109,8 @@ export function useBuilder(form: ManageForm, editable: boolean) {
         if (body.confirmBreaking) r.agreed = false;
         r.server = kept;
         keepForm(client, kept);
-        setState('saved');
+        // An edit made while this one was on its way is not saved yet.
+        setState(changes() ? 'saving' : 'saved');
       } catch (e) {
         if (e instanceof ApiError && e.status === 409 && e.body?.breaking) {
           r.refusing = true;

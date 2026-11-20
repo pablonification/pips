@@ -271,8 +271,10 @@ test('a question at rest opens in place; every kind has its own editor', async (
     'Konsumsi',
   );
   await saved(page);
+  await expect
+    .poll(() => questionsIn(lastPatch(api)).find((q) => q.id === 'p1')?.type)
+    .toBe('radio');
   const q1 = questionsIn(lastPatch(api)).find((q) => q.id === 'p1')!;
-  expect(q1.type).toBe('radio');
   expect(q1.options).toEqual(['Acara', 'Dekorasi', 'Dokumentasi', 'Konsumsi']);
 });
 
@@ -1027,4 +1029,44 @@ test('a form that is gone: Form tidak ditemukan, with the way back to the list',
   await expect(main(page).getByText('Form tidak ditemukan')).toBeVisible();
   await main(page).getByRole('link', { name: 'Ke daftar form' }).click();
   await expect(page).toHaveURL(/\/kelola\/form$/);
+});
+
+test('a save that lands while a newer edit waits never says Tersimpan', async ({
+  page,
+  api,
+}) => {
+  const holds: (() => void)[] = [];
+  let n = 0;
+  api.on('PATCH /api/form/:formId', async (req) => {
+    n++;
+    await new Promise<void>((r) => holds.push(r));
+    return writes.updateForm(req);
+  });
+  await openBuilder(page, 'wisuda');
+  const title = main(page).getByRole('textbox', { name: 'Judul form' });
+  const state = page.locator('.fb-state').locator('visible=true');
+  await title.fill('Daftar panitia Wisuda');
+  await expect.poll(() => n).toBe(1);
+  await title.fill('Daftar panitia Wisuda Oktober 2026');
+  await page.evaluate(() => {
+    const el = [...document.querySelectorAll('.fb-state')].find((e) =>
+      e.checkVisibility(),
+    )!;
+    const seen: string[] = [];
+    (window as unknown as { seen: string[] }).seen = seen;
+    new MutationObserver(() => seen.push(el.textContent ?? '')).observe(el, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+    });
+  });
+  holds.shift()!();
+  await expect.poll(() => n).toBe(2);
+  expect(
+    await page.evaluate(() => (window as unknown as { seen: string[] }).seen),
+  ).not.toContain('Tersimpan');
+  await expect(state).toHaveText('Menyimpan…');
+  holds.shift()!();
+  await expect(state).toHaveText('Tersimpan');
+  expect(lastPatch(api).title).toBe('Daftar panitia Wisuda Oktober 2026');
 });
