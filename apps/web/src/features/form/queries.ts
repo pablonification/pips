@@ -8,7 +8,7 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import {
   FORM_LINK_QUERY_KEY,
   FORM_QUERY_KEY,
@@ -28,7 +28,7 @@ export { formListQuery } from '~/api/queries';
 export const formQuery = (formId: string) =>
   queryOptions({
     queryKey: [FORM_QUERY_KEY, formId],
-    queryFn: () => api.form.getForm({ formId }),
+    queryFn: () => api.getForm({ formId }),
   });
 
 /** Your response, or null (the API answers 200 null when there is none). */
@@ -36,7 +36,7 @@ export const myResponseQuery = (formId: string) =>
   queryOptions({
     queryKey: [FORM_QUERY_KEY, formId, 'my-response'],
     queryFn: async () =>
-      ((await api.form.getMyFormResponse({ formId })) ??
+      ((await api.getMyFormResponse({ formId })) ??
         null) as FormResponse | null,
   });
 
@@ -46,7 +46,7 @@ export const formLinkQuery = (name: string) =>
     queryKey: [FORM_LINK_QUERY_KEY, name],
     queryFn: async () => {
       try {
-        return await api.form.openFormLink({ name });
+        return await api.openFormLink({ name });
       } catch (e) {
         if (e instanceof ApiError && e.status === 404) return null;
         throw e;
@@ -58,7 +58,7 @@ export const formLinkQuery = (name: string) =>
 export const myDetailsQuery = () =>
   queryOptions({
     queryKey: [MY_DETAILS_QUERY_KEY],
-    queryFn: () => api.form.getMyDetails(),
+    queryFn: () => api.getMyDetails(),
   });
 
 /** How a send ended, for the screen to act on. */
@@ -105,8 +105,8 @@ export function useSendForm(formId: string) {
   const mutation = useMutation({
     mutationFn: ({ change, body }: { change: boolean; body: SendBody }) =>
       change
-        ? api.form.changeFormResponse({ formId, requestBody: body })
-        : api.form.submitFormResponse({ formId, requestBody: body }),
+        ? api.changeFormResponse({ formId, requestBody: body })
+        : api.submitFormResponse({ formId, requestBody: body }),
     // Offline, a send fails at once (and the screen offers Coba lagi) instead of waiting, paused, for the network.
     networkMode: 'always',
   });
@@ -135,7 +135,7 @@ export function useSaveDetails() {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (change: DetailsChange) =>
-      api.form.updateMyDetails({ requestBody: change }),
+      api.updateMyDetails({ requestBody: change }),
     networkMode: 'always',
     onSuccess: (details: MyDetails) =>
       queryClient.setQueryData(myDetailsQuery().queryKey, details),
