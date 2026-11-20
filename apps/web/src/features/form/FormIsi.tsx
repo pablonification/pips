@@ -125,7 +125,7 @@ export function FormPage({ formId }: { formId: string }) {
           <EmptyState
             title={formCopy.tidakAda.judul}
             text={formCopy.tidakAda.isi}
-            action={<ToList label={isi.keadaan.formUntukmu} />}
+            action={<ToList label={formCopy.keDaftar} />}
           />
         ) : (
           <ErrorState
@@ -582,14 +582,20 @@ function Filler({
     setLeaving(true);
     later(go, 170);
   };
-  const backToQuestions = () => {
-    setStep('q');
-    requestAnimationFrame(() => {
-      const sc = scroller();
-      if (sc) sc.scrollTop = questionsScroll.current;
-      document.querySelector<HTMLElement>('[data-f-continue]')?.focus();
-    });
-  };
+  const backToQuestions = () => setStep('q');
+  // Back from the agreement step (its Kembali or the bar's Back): the questions where the member left them, with
+  // Lanjut in focus. Not after sending, when the page shows what was sent instead.
+  const was = useRef(step);
+  useEffect(() => {
+    const from = was.current;
+    was.current = step;
+    if (step !== 'q' || from !== 'agree') return;
+    const sc = scroller();
+    if (sc) sc.scrollTop = questionsScroll.current;
+    document
+      .querySelector<HTMLElement>('[data-f-continue]')
+      ?.focus({ preventScroll: true });
+  }, [step]);
 
   const send = async () => {
     if (sender.pending) return;

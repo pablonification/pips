@@ -46,16 +46,27 @@ const rename = <V>(
   return out;
 };
 
-export const toFill = (v: FieldValues, keys: FieldKeys): FillValues => ({
-  a: rename(v.a ?? {}, keys.id),
-  o: rename(v.o ?? {}, keys.id),
-});
+/** An answer as `rules.ts` reads it: a radio group with nothing chosen is null and an empty checkbox false here. */
+const answerOf = (v: unknown): AnswerValue =>
+  typeof v === 'string'
+    ? v
+    : Array.isArray(v)
+      ? v.filter((x): x is string => typeof x === 'string')
+      : '';
+
+export const toFill = (v: FieldValues, keys: FieldKeys): FillValues => {
+  const a: Record<string, AnswerValue> = {};
+  for (const [k, x] of Object.entries(rename(v.a ?? {}, keys.id)))
+    a[k] = answerOf(x);
+  const o: Record<string, string> = {};
+  for (const [k, x] of Object.entries(rename(v.o ?? {}, keys.id)))
+    o[k] = typeof x === 'string' ? x : '';
+  return { a, o };
+};
 export const toFields = (v: FillValues, keys: FieldKeys): FieldValues => ({
   a: rename(v.a, keys.key),
   o: rename(v.o, keys.key),
 });
-
-const answer = z.union([z.string(), z.array(z.string())]);
 
 /**
  * Every required question that shows must be answered: a question hidden by its condition is skipped, as the
@@ -63,16 +74,22 @@ const answer = z.union([z.string(), z.array(z.string())]);
  */
 export function answersSchema(sections: readonly FormSection[]) {
   const keys = fieldKeys(sections);
-  return z
-    .object({ a: z.record(answer), o: z.record(z.string()) })
-    .superRefine((v, ctx) => {
-      for (const id of missingRequired(sections, toFill(v, keys)))
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['a', keys.key(id)],
-          message: isi.tanya.wajib,
-        });
-    });
+  return (
+    z
+      // The raw field values: a radio group with nothing chosen is null; `toFill` reads them.
+      .object({ a: z.record(z.unknown()), o: z.record(z.unknown()) })
+      .superRefine((v, ctx) => {
+        for (const id of missingRequired(
+          sections,
+          toFill(v as FieldValues, keys),
+        ))
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['a', keys.key(id)],
+            message: isi.tanya.wajib,
+          });
+      })
+  );
 }
 
 /** The schema as react-hook-form's resolver: an issue becomes that field's error. */

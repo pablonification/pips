@@ -75,6 +75,11 @@ async function answerMakrab(page: Page) {
   ).toBeVisible();
 }
 
+// The member's list has the builder's forms, as the real API gives them.
+test.beforeEach(({ db }) => {
+  db.listStoredForms = true;
+});
+
 test.describe('Layanan › Form', () => {
   test('lists the forms for your angkatan: open first, then not open, sent and closed', async ({
     page,
@@ -82,15 +87,35 @@ test.describe('Layanan › Form', () => {
     await page.goto('/layanan/form');
     const rows = main(page).getByRole('listitem');
     await expect(rows).toHaveCount(5);
-    await expect(rows.nth(0)).toContainText('Daftar Makrab HMIF 2026');
-    await expect(rows.nth(0)).toContainText('Tutup Min, 18 Okt · 23.59');
-    await expect(rows.nth(0)).toContainText('Isi sekarang');
-    await expect(rows.nth(2)).toContainText('Pilih jadwal belajar bareng UTS');
-    await expect(rows.nth(2)).toContainText('Belum dibuka');
-    await expect(rows.nth(3)).toContainText('Form Analisis Kondisi PIXEL');
+    // The open ones in the server's order (PIXEL first), then not open, sent and closed.
+    await expect(rows.nth(0)).toContainText('Form Analisis Kondisi PIXEL');
+    await expect(rows.nth(0)).toContainText('Tanpa batas waktu');
+    await expect(rows.nth(1)).toContainText('Daftar Makrab HMIF 2026');
+    await expect(rows.nth(1)).toContainText('Tutup Min, 18 Okt · 23.59');
+    await expect(rows.nth(1)).toContainText('Isi sekarang');
+    await expect(rows.nth(2)).toContainText('Evaluasi tengah periode HMIF');
+    await expect(rows.nth(3)).toContainText('Pilih jadwal belajar bareng UTS');
+    await expect(rows.nth(3)).toContainText('Dibuka Sen, 12 Okt · 10.00');
+    await expect(rows.nth(3)).toContainText('Belum dibuka');
     await expect(rows.nth(4)).toContainText('Feedback Welcoming Party 2025');
     await expect(rows.nth(4)).toContainText('Ditutup Min, 4 Okt');
     await strictGates(page, testInfo, 'form-list', 'Layanan');
+  });
+
+  test('Beranda asks for the open ones under Perlu ditindaklanjuti, and a row opens its form', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const row = main(page)
+      .locator('li')
+      .filter({ hasText: 'Daftar Makrab HMIF 2026' })
+      .getByRole('link');
+    await expect(row).toBeVisible();
+    await expect(
+      main(page).getByText('Evaluasi tengah periode HMIF'),
+    ).toBeVisible();
+    await row.click();
+    await expect(page).toHaveURL(/\/layanan\/form\/makrab$/);
   });
 });
 
@@ -110,7 +135,12 @@ test.describe('Filling a form', () => {
       main(page).getByText('Tutup Min, 18 Okt · 23.59'),
     ).toBeVisible();
     // The conditional question isn't there until its answer is chosen.
-    await expect(question(page, 'Kira-kira sampai jam berapa?')).toBeHidden();
+    const wrap = (label: string) =>
+      main(page)
+        .locator('.fq-wrap')
+        .filter({ has: page.getByText(label) });
+    await expect(wrap('Kira-kira sampai jam berapa?')).toHaveClass(/is-off/);
+    await expect(wrap('Kira-kira sampai jam berapa?')).toHaveAttribute('inert');
     await strictGates(page, testInfo, 'isi-start', null);
 
     await answerMakrab(page);
@@ -250,7 +280,7 @@ test.describe('Filling a form', () => {
       question(page, 'Nama panggilan untuk name tag').getByRole('textbox'),
     ).toHaveValue('Nad');
     await page.goto('/layanan/form');
-    await expect(main(page).getByRole('listitem').first()).toContainText(
+    await expect(main(page).getByRole('listitem').nth(1)).toContainText(
       'Lanjutkan',
     );
   });
@@ -387,8 +417,10 @@ test.describe('Filling a form', () => {
 
   test('the phone bar is gold, with the pips and Back to the questions on the agreement step @phone-only', async ({
     page,
+    api,
   }, testInfo) => {
     test.skip(layoutOf(testInfo) === 'desktop');
+    api.on('POST /api/media/upload', writes.presign);
     await openForm(page, 'makrab', 'Daftar Makrab HMIF 2026');
     const bar = page.locator('header.g-top');
     await expect(bar).toHaveClass(/gold/);

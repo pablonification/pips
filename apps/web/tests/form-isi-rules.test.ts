@@ -506,3 +506,16 @@ test('a file answer is a JPG, PNG or PDF of 5 MB at most; a photo a JPG or PNG',
     !fileFits({ name: 'bukti.jpg', size: 5 * 1024 * 1024 + 1 }, ['jpg']),
   );
 });
+
+test('a radio group with nothing chosen (react-hook-form gives null) counts as unanswered, and nothing breaks', () => {
+  const keys = fieldKeys(SECTIONS);
+  const fields = toFields(empty(), keys);
+  (fields.a as Record<string, unknown>)[keys.key('k1')] = null;
+  (fields.a as Record<string, unknown>)[keys.key('k5')] = false;
+  const v = toFill(fields, keys);
+  const q = SECTIONS[0].questions[0];
+  assert.equal(isAnswered(q, v), false);
+  assert.ok(missingRequired(SECTIONS, v).includes('k1'));
+  assert.ok(missingRequired(SECTIONS, v).includes('k5'));
+  assert.deepEqual(asAnswers(v), []);
+});

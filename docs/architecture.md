@@ -74,8 +74,9 @@ from **copy**.
 | `sw.ts` | The service worker: stores the app's files so it opens offline, shows push notifications, opens the right page when one is tapped. | `sw.ts` |
 
 **Which folder to copy.** `features/beranda/` and `features/kalender/` have the whole pattern. Some features differ:
-the Form and SPARTA screens are in `components/form/` (with their rules in `lib/form/`), and `routes/_app/_left-navbar/`
-is only "inside the shell" despite its name. Do not copy those layouts.
+the PIXEL form's screen (a form made before the builder) and SPARTA are in `components/form/` (with their rules in
+`lib/form/`), and `routes/_app/_left-navbar/` is only "inside the shell" despite its name. Do not copy those layouts.
+A form made in the builder, its link (`/f/<name>`) and Profil › Data diri are `features/form/`.
 
 **Names.** The API keeps the database's English words; the web code keeps the members' Indonesian ones. An
 announcement is `info` in the API and `pengumuman` in the web app; a competition is `competitions` and `lomba`;

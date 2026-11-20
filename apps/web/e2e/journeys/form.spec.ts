@@ -110,7 +110,7 @@ const sentAnswers = (
   );
 
 test.describe('the list', () => {
-  test('the PIXEL form as a card: Isi sekarang, its title, description and 5 bagian; Layanan stays lit', async ({
+  test('the PIXEL form as a row: its title, Tanpa batas waktu and Isi sekarang; Layanan stays lit', async ({
     page,
   }, testInfo) => {
     await page.goto('/layanan/form');
@@ -119,19 +119,7 @@ test.describe('the list', () => {
     });
     await expect(card).toBeVisible();
     await expect(card).toContainText('Isi sekarang');
-    await expect(card).toContainText('Bantu HMIF kenalan lebih dekat');
-    await expect(card).toContainText('5 bagian');
-    // The status tag spans the card's width, (the grid stretches it).
-    const widths = await card.evaluate((el) => {
-      const cs = getComputedStyle(el);
-      const inner =
-        el.clientWidth -
-        parseFloat(cs.paddingLeft) -
-        parseFloat(cs.paddingRight);
-      const tag = el.querySelector('.g-tag')!.getBoundingClientRect().width;
-      return { inner: Math.round(inner), tag: Math.round(tag) };
-    });
-    expect(widths.tag).toBe(widths.inner);
+    await expect(card).toContainText('Tanpa batas waktu');
     await expect(page).toHaveTitle('Form · PIPS!');
     if (layoutOf(testInfo) !== 'desktop')
       await expect(
@@ -173,11 +161,10 @@ test.describe('the list', () => {
     const cards = main(page).getByRole('list').getByRole('link');
     await expect(cards).toHaveCount(3);
     await expect(cards.nth(0)).toContainText('Belum dibuka');
-    await expect(cards.nth(0)).toContainText('Dibuka Sab 17 Okt, 13.00');
+    await expect(cards.nth(0)).toContainText('Dibuka Sab, 17 Okt · 13.00');
     await expect(cards.nth(1)).toContainText('Sudah diisi');
-    await expect(cards.nth(1)).toContainText('5 bagian');
     await expect(cards.nth(2)).toContainText('Ditutup');
-    await expect(cards.nth(2)).toContainText('Ditutup Kam 1 Okt, 23.59');
+    await expect(cards.nth(2)).toContainText('Ditutup Kam, 1 Okt');
     await gates(page, testInfo, 'form-list-statuses');
   });
 

@@ -1,26 +1,8 @@
 /*
-  Form: the list, filling, the check page and the thank-you. The option rows, rating keycaps, Segbar, Saved and the
+  The PIXEL form (made before the builder): filling, the check page and the thank-you. The option rows, rating keycaps, Segbar, Saved and the
   plaque come from components.css. Colours only from tokens. Magang SPARTA is built from these same pieces.
 */
 @layer components {
-  .g-form-list {
-    display: grid;
-    gap: 10px;
-  }
-  .g-fcard {
-    display: grid;
-    gap: 8px;
-    padding: 16px;
-    background: var(--bg-surface);
-    border-radius: 12px;
-    box-shadow: 0 0 0 1px var(--border);
-    color: inherit;
-    text-decoration: none;
-    text-align: left;
-  }
-  a.g-fcard:hover {
-    background: var(--bg-hover);
-  }
   .g-clamp2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
