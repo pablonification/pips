@@ -5,6 +5,7 @@
  * (apps/api/src/lib/form-rules.ts); tests/kelola-form-rules.test.ts holds the mirrors to it.
  */
 import type {
+  FormDetail,
   FormQuestion,
   FormSection,
   ManageForm,
@@ -550,3 +551,29 @@ export function answerWords(
 /** A file answer's name: the last part of its address. */
 export const fileName = (url: string) =>
   decodeURIComponent(url.split('?')[0]!.split('/').pop() ?? url);
+
+/**
+ * The form as a member opens it, for Pratinjau: open now with every question, whatever its state, its schedule or its
+ * audience, so the maker can fill it before it is published.
+ */
+export function previewDetail(f: ManageForm): FormDetail {
+  return {
+    id: f.id,
+    slug: f.slug,
+    title: f.title.trim() || copy.daftar.tanpaJudul,
+    description: f.description,
+    eligibleAngkatan: f.eligibleAngkatan,
+    opensAt: f.opensAt ?? f.createdAt,
+    closesAt: f.closesAt,
+    isActive: true,
+    order: 0,
+    createdAt: f.createdAt,
+    requestedFields: f.requestedFields,
+    allowEdit: f.allowEdit,
+    sections: f.sections,
+    status: 'open',
+    thanks: f.thanks,
+    owner: f.owner ? { fullName: f.owner.fullName } : null,
+    canChange: false,
+  };
+}

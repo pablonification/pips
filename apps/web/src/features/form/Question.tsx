@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useContext, useRef, useState, type ReactNode } from 'react';
 import { Controller, type UseFormReturn } from 'react-hook-form';
 import type { FormQuestion } from '~/api/generated';
 import { Button, IconButton, Kbd, Tile } from '~/components/garis';
@@ -21,6 +21,7 @@ import {
   type Month,
 } from '~/lib/days';
 import { cn } from '~/lib/utils';
+import { PreviewMode, previewFile } from './preview';
 import { uploadAnswerFile } from './upload';
 import {
   ANSWER_FILE_TYPES,
@@ -487,6 +488,7 @@ function FileAnswer({
 }) {
   const t = isi.tanya;
   const input = useRef<HTMLInputElement>(null);
+  const preview = useContext(PreviewMode);
   const [percent, setPercent] = useState<number | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
 
@@ -498,7 +500,11 @@ function FileAnswer({
     }
     setPercent(0);
     try {
-      onChange(await uploadAnswerFile(file, 'file', setPercent));
+      onChange(
+        preview
+          ? previewFile(file)
+          : await uploadAnswerFile(file, 'file', setPercent),
+      );
     } catch {
       setProblem(t.fileGagal);
     } finally {

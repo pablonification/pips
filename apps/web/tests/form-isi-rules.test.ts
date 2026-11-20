@@ -15,6 +15,7 @@ import {
   phoneOk as apiPhoneOk,
 } from '../../api/src/lib/member-details';
 import type { FormSection, MyDetails } from '../src/api/generated';
+import { previewFile } from '../src/features/form/preview';
 import {
   answersToSend,
   answerText,
@@ -301,6 +302,12 @@ test('a file name reads as the API reads it', () => {
     'https://media.pips.test/plain.pdf',
   ])
     assert.equal(fileName(url), apiFileName(url));
+});
+
+test('a file picked in Pratinjau reads as its name, though it never left the device', () => {
+  const picked = new File(['x'], 'foto diri-1.png', { type: 'image/png' });
+  assert.equal(fileName(previewFile(picked)), 'foto diri-1.png');
+  assert.equal(apiFileName(previewFile(picked)), 'foto diri-1.png');
 });
 
 test('typing a time and a birth date puts the separators in', () => {

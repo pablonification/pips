@@ -995,32 +995,117 @@ test.describe('Setelan', () => {
   });
 });
 
-test("Pratinjau: the member's form with its cover, the rule that shows a question, and nothing sent", async ({
+test("Pratinjau: the member's own form with its cover and rules, the agreement step with the maker's details, and nothing sent or kept", async ({
   page,
   api,
 }, testInfo) => {
   await openBuilder(page, 'wisuda');
   await action(page, 'Pratinjau').click();
   await expect(page).toHaveURL(/\/pratinjau$/);
-  await expect(
-    page.getByText('Pratinjau. Jawaban tidak dikirim.'),
-  ).toBeVisible();
+  const bar = page.locator('.fb-pv-bar');
+  await expect(bar).toHaveText(/Pratinjau\. Jawaban tidak dikirim\./);
   await expect(
     main(page).getByRole('heading', { name: 'Daftar panitia Wisuda Oktober' }),
   ).toBeVisible();
+  if (desk(testInfo)) {
+    // The bar sits above the breadcrumbs, which sit on the gold band.
+    const crumbs = page.getByRole('navigation', { name: 'Jejak halaman' });
+    await expect(crumbs.getByText('Pratinjau')).toBeVisible();
+    const [b, c] = [await bar.boundingBox(), await crumbs.boundingBox()];
+    expect(b!.y + b!.height).toBeLessThanOrEqual(c!.y + 1);
+  }
   await expect(main(page).getByText('Bawa kamera sendiri?')).toHaveCount(0);
   await strictGates(page, testInfo, 'preview', null);
-  await main(page).getByRole('radio', { name: 'Dokumentasi' }).check();
-  await expect(main(page).getByText('Bawa kamera sendiri?')).toBeVisible();
-  await main(page)
-    .getByRole('button', { name: /^Lanjut/ })
-    .click();
+
+  // Typed answers stay off the device: after a reload the form starts empty.
+  const whatsapp = main(page).getByRole('textbox', { name: /Nomor WhatsApp/ });
+  await whatsapp.fill('0812-5550-0987');
+  await page.waitForTimeout(800);
+  await expect(page.getByText('Draf tersimpan')).toHaveCount(0);
+  await page.reload();
+  await expect(
+    main(page).getByRole('textbox', { name: /Nomor WhatsApp/ }),
+  ).toHaveValue('');
+
+  await main(page).getByRole('button', { name: 'Lanjut' }).click();
   await expect(
     main(page).getByText('Pertanyaan ini wajib diisi').first(),
   ).toBeVisible();
+  await main(page)
+    .getByRole('radio', { name: /Dokumentasi/ })
+    .check();
+  await expect(main(page).getByText('Bawa kamera sendiri?')).toBeVisible();
+  await main(page).getByRole('radio', { name: /^Ya/ }).check();
+  await main(page)
+    .getByRole('checkbox', { name: /hari-H/ })
+    .check();
+  await main(page)
+    .getByRole('textbox', { name: /Nomor WhatsApp/ })
+    .fill('0812-5550-0987');
+  await main(page).getByRole('radio', { name: /^3/ }).check();
+  await main(page).getByRole('button', { name: 'Lanjut' }).click();
+
+  await expect(
+    main(page).getByRole('heading', {
+      name: 'Ikut terkirim bersama jawabanmu',
+    }),
+  ).toBeVisible();
+  await expect(main(page).getByText('0812-5550-0987')).toBeVisible();
+  await strictGates(page, testInfo, 'preview-agree', null);
+  const kirim = main(page).getByRole('button', { name: 'Kirim jawaban' });
+  await kirim.click();
+  await expect(
+    main(page).getByText('Centang persetujuan ini untuk mengirim'),
+  ).toBeVisible();
+  await main(page)
+    .getByText('Aku setuju data di atas dikirim bersama jawabanku.')
+    .click();
+  await kirim.click();
+  await expect(
+    toastText(page, 'Pratinjau saja. Jawaban tidak dikirim.'),
+  ).toBeVisible();
+  await expect(
+    main(page).getByRole('heading', {
+      name: 'Ikut terkirim bersama jawabanmu',
+    }),
+  ).toBeVisible();
+
   await page.getByRole('button', { name: 'Tutup pratinjau' }).click();
   await expect(page).toHaveURL(/\/kelola\/form\/wisuda$/);
   expect(api.calls('POST /api/form/:formId/response')).toHaveLength(0);
+  expect(api.calls('PUT /api/form/:formId/response')).toHaveLength(0);
+  expect(api.calls('GET /api/form/:formId/my-response')).toHaveLength(0);
+});
+
+test('a form’s link, for whoever may manage it: "Kelola form ini" on another angkatan’s form and on a draft', async ({
+  page,
+}, testInfo) => {
+  // Makrab is Raka's, for angkatan 2025; Raka is 2024.
+  await page.goto('/f/makrab-2026');
+  await expect(
+    main(page).getByRole('heading', {
+      name: 'Form ini bukan untuk angkatanmu',
+    }),
+  ).toBeVisible();
+  const manage = main(page).getByRole('link', { name: 'Kelola form ini' });
+  await expect(manage).toBeVisible();
+  await expect(
+    main(page).getByRole('link', { name: 'Lihat form untukmu' }),
+  ).toBeVisible();
+  await strictGates(page, testInfo, 'link-manage', null);
+  await manage.click();
+  await expect(page).toHaveURL(/\/kelola\/form\/makrab$/);
+  await expect(
+    main(page).getByRole('textbox', { name: /Judul form/ }),
+  ).toHaveValue('Daftar Makrab HMIF 2026');
+
+  // Wisuda is Raka's draft: its link is found only by those who manage it.
+  await page.goto('/f/daftar-panitia-wisuda-oktober');
+  await expect(
+    main(page).getByRole('heading', { name: 'Form ini belum diterbitkan' }),
+  ).toBeVisible();
+  await main(page).getByRole('link', { name: 'Kelola form ini' }).click();
+  await expect(page).toHaveURL(/\/kelola\/form\/wisuda$/);
 });
 
 test('a form that is gone: Form tidak ditemukan, with the way back to the list', async ({

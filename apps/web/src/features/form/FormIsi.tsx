@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type ReactNode,
 } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import {
@@ -40,6 +41,7 @@ import { isi } from '~/copy/isi';
 import useSession from '~/hooks/auth/useSession';
 import { cn } from '~/lib/utils';
 import { DetailEditor } from './DetailEditor';
+import { PreviewMode } from './preview';
 import { Question } from './Question';
 import { myDetailsQuery, myResponseQuery } from './queries';
 import { useSendForm, type SendBody } from './send';
@@ -106,18 +108,24 @@ type Step = 'q' | 'agree';
 export function FormIsi({
   form,
   refetch,
+  preview,
 }: {
   form: FormDetail;
   refetch: () => Promise<unknown>;
+  /**
+   * Pratinjau: the bar above the cover. The form is filled and checked as a member would, but your response isn't
+   * read, no draft is kept, no file is uploaded, and Kirim only says that nothing was sent.
+   */
+  preview?: ReactNode;
 }) {
   const me = useSession();
-  const mine = useQuery(myResponseQuery(form.id));
-  const draft = useFormDraft(form.id, me.id);
+  const mine = useQuery({ ...myResponseQuery(form.id), enabled: !preview });
+  const draft = useFormDraft(form.id, me.id, !preview);
   const [changing, setChanging] = useState(false);
   const [fresh, setFresh] = useState(false);
   const [step, setStep] = useState<Step>('q');
   const sentTitle = useRef(false);
-  usePageTitle(form.title);
+  usePageTitle(preview ? null : form.title);
 
   const back = useMemo(
     () =>
@@ -137,8 +145,8 @@ export function FormIsi({
       ?.focus({ preventScroll: true });
   });
 
-  const response = mine.data ?? null;
-  const ready = !mine.isPending && draft.restored !== undefined;
+  const response = preview ? null : (mine.data ?? null);
+  const ready = (!!preview || !mine.isPending) && draft.restored !== undefined;
   const closed = form.status === 'closed';
   const notOpen = form.status === 'not_opened' || !form.sections;
 
@@ -192,6 +200,7 @@ export function FormIsi({
             : { draft: draft.restored ? valuesOfDraft(draft.restored) : null },
         )}
         draft={draft}
+        preview={!!preview}
         changing={changing && !!response}
         step={step}
         setStep={setStep}
@@ -211,14 +220,17 @@ export function FormIsi({
   if (response && !changing) cover = { desc: false, closes: false };
 
   return (
-    <div className="g-fx">
-      <Cover
-        title={form.title}
-        description={cover.desc ? form.description : null}
-        closesAt={cover.closes ? form.closesAt : null}
-      />
-      {filling ? main : <Body>{main}</Body>}
-    </div>
+    <PreviewMode.Provider value={!!preview}>
+      <div className="g-fx">
+        {preview}
+        <Cover
+          title={form.title}
+          description={cover.desc ? form.description : null}
+          closesAt={cover.closes ? form.closesAt : null}
+        />
+        {filling ? main : <Body>{main}</Body>}
+      </div>
+    </PreviewMode.Provider>
   );
 }
 
@@ -259,6 +271,8 @@ interface FillerProps {
   sections: FormSection[];
   start: ReturnType<typeof startingValues>;
   draft: ReturnType<typeof useFormDraft>;
+  /** Pratinjau: every check runs, then Kirim says nothing was sent. */
+  preview: boolean;
   /** Ubah jawaban: the answers replace the ones sent. */
   changing: boolean;
   step: Step;
@@ -312,6 +326,7 @@ function Filler({
   sections,
   start,
   draft,
+  preview,
   changing,
   step,
   setStep,
@@ -591,6 +606,10 @@ function Filler({
       body.agreed = true;
       if (Object.keys(change).length)
         body.details = change as SendBody['details'];
+    }
+    if (preview) {
+      toast.success(isi.akhir.pratinjau);
+      return;
     }
     if (failedToast.current !== null) toast.dismiss(failedToast.current);
     failedToast.current = null;

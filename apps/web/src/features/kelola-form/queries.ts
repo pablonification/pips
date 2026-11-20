@@ -5,7 +5,6 @@
  */
 import { queryOptions, type QueryClient } from '@tanstack/react-query';
 import * as api from '~/api/generated/operations';
-import { FORM_QUERY_KEY } from '~/api/constants';
 import type { ManageForm, UpdateForm } from '~/api/generated';
 import { MANAGE, manageKeys } from './data';
 
@@ -57,13 +56,6 @@ export const answerAtQuery = (formId: string, page: number) =>
   queryOptions({
     queryKey: manageKeys.answers(formId, page),
     queryFn: () => api.listFormAnswers({ formId, page, limit: 1 }),
-  });
-
-/** The caller's own profile for the preview's agreement step (Data diri, and the account facts). */
-export const myDetailsQuery = () =>
-  queryOptions({
-    queryKey: [FORM_QUERY_KEY, 'my-details'],
-    queryFn: () => api.getMyDetails(),
   });
 
 const EXPORT_LIMIT_MS = 30_000;

@@ -45,6 +45,8 @@ export const isi = {
     lanjut: 'Lanjut',
     kirim: 'Kirim jawaban',
     mengirim: 'Mengirim…',
+    /** Kirim in Pratinjau, once every check passes. */
+    pratinjau: 'Pratinjau saja. Jawaban tidak dikirim.',
   },
   samping: {
     label: 'Kemajuan form',
@@ -100,6 +102,8 @@ export const isi = {
     drafIsi: 'Tautannya baru bisa dibuka anggota setelah form diterbitkan.',
     kembali: 'Kembali',
     formUntukmu: 'Lihat form untukmu',
+    /** On a link's page, for whoever may manage the form: the way to it in Kelola › Form. */
+    kelolaFormIni: 'Kelola form ini',
     tidakAda: 'Form tidak ditemukan',
     tidakAdaDi: 'Tidak ada form di',
     tidakAdaSaran:

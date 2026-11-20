@@ -8,13 +8,14 @@ const DRAFT_DEBOUNCE_MS = 400;
 /**
  * A member's draft of a form on this device (key `hmif-form-<formId>-<userId>`, 14 days; see
  * `lib/form/draft-store.ts`). Writes are debounced, and a write still waiting is made when the screen or the page goes
- * away. `clear()` is for after a successful send only.
+ * away. `clear()` is for after a successful send only. With `kept` false (a form's Pratinjau) the device is never
+ * read or written: there is no draft.
  */
-export function useFormDraft(formId: string, userId: string) {
+export function useFormDraft(formId: string, userId: string, kept = true) {
   const key = draftKey(formId, userId);
   /** Undefined while the device is read; null when there is no draft. */
   const [restored, setRestored] = useState<Answers | null | undefined>(
-    undefined,
+    kept ? undefined : null,
   );
   const [saved, setSaved] = useState(false);
   const pending = useRef<Answers | null>(null);
@@ -22,6 +23,7 @@ export function useFormDraft(formId: string, userId: string) {
   const cleared = useRef(false);
 
   useEffect(() => {
+    if (!kept) return;
     let live = true;
     setRestored(undefined);
     void readDraft(key, DRAFT_HOURS).then((found) => {
@@ -32,18 +34,18 @@ export function useFormDraft(formId: string, userId: string) {
     return () => {
       live = false;
     };
-  }, [key]);
+  }, [key, kept]);
 
   const flush = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
     const next = pending.current;
     pending.current = null;
-    if (!next || cleared.current) return;
+    if (!next || cleared.current || !kept) return;
     void writeDraft(key, next).then((ok) => {
       if (ok && !cleared.current) setSaved(true);
     });
-  }, [key]);
+  }, [key, kept]);
 
   const save = useCallback(
     (answers: Answers) => {
@@ -61,8 +63,8 @@ export function useFormDraft(formId: string, userId: string) {
     pending.current = null;
     cleared.current = true;
     setSaved(false);
-    return deleteDraft(key);
-  }, [key]);
+    return kept ? deleteDraft(key) : Promise.resolve();
+  }, [key, kept]);
 
   useEffect(() => {
     window.addEventListener('pagehide', flush);

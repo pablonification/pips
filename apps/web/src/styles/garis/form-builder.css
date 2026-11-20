@@ -1477,122 +1477,31 @@
       padding-inline: max(16px, calc((100% - 720px) / 2 + 16px));
     }
   }
+  /* On desktop the bar sits above the breadcrumbs, which the shell draws before the page: the crumbs make room for
+     it, and it rises into that room (sticky keeps it there while the form scrolls). The cover then starts under the
+     crumbs instead of rising behind them. */
   @media (min-width: 1024px) {
     .fb-pv-bar {
       position: sticky;
       top: 0;
       z-index: 5;
+      box-sizing: border-box;
+      height: var(--fb-pv-h);
+      margin-top: calc(-1 * (var(--fb-pv-h) + var(--g-crumbs-h, 0px)));
       padding-inline: 36px;
+    }
+    .g-main:has(.fb-pv-bar) {
+      --fb-pv-h: 48px;
+    }
+    .g-main:has(.fb-pv-bar) > .g-crumbs {
+      margin-top: var(--fb-pv-h);
+    }
+    .fb-pv-bar + .f-cover {
+      margin-top: 0;
     }
   }
   .fb-pv-bar .g-ic {
     flex: none;
-  }
-  .fb-cover {
-    position: relative;
-    overflow: hidden;
-    display: grid;
-    gap: 8px;
-    padding: 22px 18px 24px;
-    background: var(--gold);
-    color: var(--ink);
-  }
-  .fb-cover > :not(.g-halftone) {
-    position: relative;
-  }
-  .fb-cover .sub {
-    font-size: 15px;
-    line-height: 1.5;
-  }
-  .fb-cover .facts {
-    font-size: 13px;
-    font-weight: 500;
-  }
-  .fb-pq {
-    display: grid;
-    grid-template-columns: 28px minmax(0, 1fr);
-    gap: 10px 12px;
-    padding: 22px 0 10px;
-  }
-  .fb-pq > * {
-    grid-column: 2;
-  }
-  .fb-pq > .fb-n {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .fb-pq-t {
-    font-size: 17px;
-    line-height: 1.35;
-    font-weight: 600;
-    letter-spacing: -0.005em;
-  }
-  .fb-pq-t .opt {
-    margin-left: 6px;
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--text-3);
-  }
-  .fb-pq-h {
-    font-size: 13px;
-    line-height: 1.4;
-    color: var(--text-3);
-    margin-top: -4px;
-  }
-  .fb-pq .err {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-danger);
-  }
-  .fb-pq.bad .fb-n {
-    color: var(--text-danger);
-    box-shadow: 0 0 0 1.5px var(--text-danger);
-  }
-  .fb-scale-keys {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .fb-scale-keys label {
-    position: relative;
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    background: var(--bg-surface);
-    box-shadow:
-      0 0 0 1px var(--border),
-      0 2px 0 0 var(--border);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    cursor: pointer;
-  }
-  .fb-scale-keys input {
-    position: absolute;
-    opacity: 0;
-    width: 1px;
-    height: 1px;
-  }
-  .fb-scale-keys label:has(input:checked) {
-    background: var(--gold);
-    color: var(--ink);
-    translate: 0 2px;
-    box-shadow: 0 0 0 1.5px var(--border-key);
-  }
-  .fb-scale-keys label:has(input:focus-visible) {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-  }
-  .fb-scale-ends {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    font-size: 13px;
-    color: var(--text-3);
   }
   .fb-slip {
     display: grid;
@@ -1602,39 +1511,6 @@
     background: var(--bg-raised);
     box-shadow: var(--shadow-raised);
   }
-  .fb-end {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding: 18px 0;
-  }
-  .fb-pv {
-    display: grid;
-    gap: 8px;
-    padding: 8px 18px 96px;
-  }
-  @media (min-width: 640px) {
-    .fb-cover {
-      padding-inline: max(18px, calc((100% - 720px) / 2 + 18px));
-      padding-bottom: 26px;
-    }
-    .fb-pv {
-      max-width: 720px;
-      width: 100%;
-      margin-inline: auto;
-    }
-  }
-  @media (min-width: 1024px) {
-    .fb-cover {
-      padding: 28px 36px 30px;
-    }
-    .fb-pv {
-      max-width: 760px;
-      margin-inline: 0;
-      padding-inline: 36px;
-    }
-  }
-
   /* Touch layouts: every field the member types in is 16 px, so the browser never zooms into it. */
   @media (max-width: 1023.98px), (pointer: coarse) {
     .fb-desc,

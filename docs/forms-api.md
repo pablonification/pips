@@ -154,11 +154,12 @@ changes, shared with the seeded Welfare member as Lihat jawaban; and a draft (`c
 
 ## The web side
 
-- **The builder** is `apps/web/src/features/kelola-form/`: every request in `queries.ts` (what route loaders need in
-  `data.ts`), the rules with no React in
+- **The builder** is `apps/web/src/features/kelola-form/`: every request in `queries.ts` (what route loaders start in
+  `data.ts`, which they import through `load.ts` so it stays out of the entry), the rules with no React in
   `rules.ts` (held to the API's by `tests/kelola-form-rules.test.ts`), and the pages `/kelola/form`,
   `/kelola/form/$formId` (`?tab=jawaban|setelan`, `&lihat=satu&no=` for one response) and
-  `/kelola/form/$formId/pratinjau`.
+  `/kelola/form/$formId/pratinjau`, which shows the member's own form (`FormIsi` with `preview`): nothing is read
+  from or kept on the device, no file is uploaded, and Kirim sends nothing.
 - The capability for Kelola › Form (any role, `buildForms`) and admin's Semua form (`manageAllForms`) in
   `apps/web/src/lib/capabilities.ts`, with their rows in `tests/capabilities.test.ts` read from `route-access.ts`.
 - The words: labels for fields and kinds, problem messages, "Lainnya", every sentence, in `apps/web/src/copy/`.

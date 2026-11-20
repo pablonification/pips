@@ -8,7 +8,11 @@ import {
   definitionProblem,
 } from '../../api/src/lib/form-rules';
 import { QUESTION_TYPES } from '../../api/src/lib/form-model';
-import type { FormSection, ManageFormListItem } from '../src/api/generated';
+import type {
+  FormSection,
+  ManageForm,
+  ManageFormListItem,
+} from '../src/api/generated';
 import {
   angkatanChoices,
   answerWords,
@@ -24,6 +28,7 @@ import {
   newQuestion,
   nudgeFor,
   percentOf,
+  previewDetail,
   publishChecks,
   repeatedOptions,
   rowCaption,
@@ -404,4 +409,46 @@ test('answers as words: dates, times, scales, "Lainnya", lists; bars as whole pe
   );
   assert.equal(percentOf(29, 87), 33);
   assert.equal(percentOf(0, 0), 0);
+});
+
+test('Pratinjau opens the form as a member would, open now with every question, whatever its state', () => {
+  const draft = {
+    id: 'wisuda',
+    slug: 'daftar-panitia',
+    slugCustom: false,
+    title: '  ',
+    description: 'Bantu arak-arakan.',
+    sections,
+    requestedFields: ['fullName', 'nim', 'whatsapp'],
+    eligibleAngkatan: [],
+    opensAt: null,
+    closesAt: '2026-10-18T23:59:00+07:00',
+    isActive: false,
+    allowEdit: true,
+    thanks: 'Terima kasih!',
+    status: 'draft',
+    publishedAt: null,
+    owner: {
+      id: 'u1',
+      fullName: 'Raka Pratama',
+      nim: '13524987',
+      picture: null,
+    },
+    access: 'owner',
+    responseCount: 0,
+    audience: 0,
+    createdAt: '2026-10-07T21:00:00+07:00',
+    updatedAt: '2026-10-08T10:00:00+07:00',
+  } as unknown as ManageForm;
+  const d = previewDetail(draft);
+  assert.equal(d.status, 'open');
+  assert.equal(d.sections, sections);
+  assert.equal(d.title, 'Form tanpa judul');
+  assert.equal(d.opensAt, draft.createdAt);
+  assert.equal(d.closesAt, draft.closesAt);
+  assert.deepEqual(d.requestedFields, draft.requestedFields);
+  // Only the maker's name, as a member sees it; and no Ubah jawaban.
+  assert.deepEqual(d.owner, { fullName: 'Raka Pratama' });
+  assert.equal(d.canChange, false);
+  assert.equal(previewDetail({ ...draft, owner: null }).owner, null);
 });
