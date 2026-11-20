@@ -12,6 +12,7 @@ import type {
   Info,
   InternshipSubmission,
   ReactionAggregate,
+  UpdateForm,
   Testimoni,
 } from '../../src/api/generated';
 import {
@@ -22,11 +23,44 @@ import {
   isSpartaEligible,
   spartaWindowFor,
   type Db,
+  type StoredForm,
 } from '../fixtures/api';
 import {
   MAX_UPLOAD_BYTES,
   uploadContentType,
 } from '../../../api/src/lib/upload-policy';
+import { NEW_FORM_FIELDS } from '../../../api/src/lib/form-model';
+import {
+  definitionProblem,
+  dropLostAnswers,
+  findBreakingChanges,
+  numberedSlug,
+  publishProblems,
+  slugFromTitle,
+  slugProblem,
+  tidySlug,
+} from '../../../api/src/lib/form-rules';
+import {
+  detailsProblems,
+  tidyChange,
+  type DetailsChange,
+} from '../../../api/src/lib/member-details';
+import {
+  checkSubmission,
+  findForm,
+  isPengurus,
+  isStoredFile,
+  loadForManage,
+  manageView,
+  myDetails,
+  myResponse,
+  notFound as formNotFound,
+  pengurusIds,
+  personOf,
+  TODAY,
+  accessList,
+  viewOnly,
+} from './forms';
 import { reply, type Handler } from './mock';
 
 function setReaction(
@@ -108,8 +142,47 @@ export const comment: Handler = ({ db, body }) => {
   return created;
 };
 
-/** POST /api/form/:formId/response — send the form once; 403 when it's closed or not open yet, as the API does. */
+/**
+ * POST /api/form/:formId/response — send a form once; 403 when it's closed, not open yet or not for your angkatan,
+ * 409 the second time, as the API does. A form made in the builder is checked as the API checks it: answers that fit,
+ * required ones, and the agreement with every requested field (a detail filled in at the agreement step is saved to
+ * `db.memberDetails` first).
+ */
 export const submitForm: Handler = ({ db, params, body }) => {
+  const stored = findForm(db, params.formId);
+  if (stored && !db.formDetails[params.formId]) {
+    if (stored.publishedAt === null) return formNotFound();
+    if (!stored.eligibleAngkatan.includes(db.me!.angkatan))
+      return reply.status(403, { error: 'You are not eligible for this form' });
+    const window = {
+      opensAt: stored.opensAt!,
+      closesAt: stored.closesAt,
+      isActive: stored.isActive,
+    };
+    const status = formStatusFor(window, { responded: false, nim: db.me!.nim });
+    if (status === 'closed')
+      return reply.status(403, { error: 'This form is closed' });
+    if (status === 'not_opened')
+      return reply.status(403, { error: 'This form has not opened yet' });
+    const checked = checkSubmission(db, stored, body as never);
+    if ('error' in checked) return checked.error;
+    if (myResponse(db, stored))
+      return reply.status(409, {
+        error: 'Already submitted a response for this form',
+      });
+    if (checked.change)
+      db.memberDetails = { ...db.memberDetails, ...checked.change };
+    const response = {
+      id: `response-${stored.id}`,
+      userId: db.me!.id,
+      answers: checked.answers,
+      profile: checked.profile,
+      submittedAt: NOW,
+      updatedAt: null,
+    };
+    stored.responses.push(response);
+    return reply.json({ ...response, formId: stored.id }, 201);
+  }
   const form = db.formDetails[params.formId];
   if (form) {
     const status = formStatusFor(form, { responded: false, nim: db.me!.nim });
@@ -126,12 +199,240 @@ export const submitForm: Handler = ({ db, params, body }) => {
     formId: params.formId,
     userId: db.me!.id,
     answers,
+    profile: {},
     submittedAt: NOW,
+    updatedAt: null,
   };
   db.forms = db.forms.map((f) =>
     f.id === params.formId ? { ...f, status: 'already_responded' } : f,
   );
   return db.myResponses[params.formId];
+};
+
+/** PUT /api/form/:formId/response — Ubah jawaban: only with an answer to change, while open, when the maker allows it. */
+export const changeFormResponse: Handler = ({ db, params, body }) => {
+  const form = findForm(db, params.formId);
+  if (!form || form.publishedAt === null) return formNotFound();
+  const mine = myResponse(db, form);
+  if (!mine) return reply.status(404, { error: 'No response to change' });
+  if (!form.allowEdit)
+    return reply.status(403, { error: 'This form does not allow changes' });
+  const window = {
+    opensAt: form.opensAt!,
+    closesAt: form.closesAt,
+    isActive: form.isActive,
+  };
+  if (
+    !form.eligibleAngkatan.includes(db.me!.angkatan) ||
+    formStatusFor(window, { responded: false, nim: db.me!.nim }) !== 'open'
+  )
+    return reply.status(403, { error: 'This form is closed' });
+  const checked = checkSubmission(db, form, body as never);
+  if ('error' in checked) return checked.error;
+  if (checked.change)
+    db.memberDetails = { ...db.memberDetails, ...checked.change };
+  Object.assign(mine, {
+    answers: checked.answers,
+    profile: checked.profile,
+    updatedAt: NOW,
+  });
+  return { ...mine, formId: form.id };
+};
+
+/** PATCH /api/user/details — Data diri: a value sets a detail, null removes it; 400 with `problems` as the API says them. */
+export const updateMyDetails: Handler = ({ db, body }) => {
+  const change = tidyChange(body as DetailsChange);
+  const problems = detailsProblems(change, { today: TODAY, isStoredFile });
+  if (Object.keys(problems).length)
+    return reply.status(400, {
+      error: 'A saved detail does not fit',
+      problems,
+    });
+  db.memberDetails = { ...db.memberDetails, ...change };
+  return myDetails(db);
+};
+
+// The form builder, as `apps/api/src/controllers/form-manage.controller.ts`: pengurus only (401 "Unauthorized"
+// otherwise), 404 for a form they may not see, 403 for Lihat jawaban trying to change it.
+
+let newForms = 0;
+const asPengurus = (db: Db) => isPengurus(db);
+const freeSlugFor = (db: Db, title: string, formId: string | null) => {
+  const base = slugFromTitle(title);
+  for (let n = 1; ; n++) {
+    const slug = numberedSlug(base, n);
+    if (!db.formStore.some((f) => f.slug === slug && f.id !== formId))
+      return slug;
+  }
+};
+function editable(db: Db, formId: string) {
+  if (!asPengurus(db)) return { error: unauthorized() };
+  const found = loadForManage(db, formId);
+  if (!found) return { error: formNotFound() };
+  if (!found.access.canEdit) return { error: viewOnly() };
+  return { form: found.form };
+}
+
+/** POST /api/form — Buat form: a draft you own, one question ready, Nama and NIM ticked; 201. */
+export const createForm: Handler = ({ db, body }) => {
+  if (!asPengurus(db)) return unauthorized();
+  const title = ((body as { title?: string } | undefined)?.title ?? '').trim();
+  const n = ++newForms;
+  const form: StoredForm = {
+    id: `form-new-${n}`,
+    slug: freeSlugFor(db, title, null),
+    slugCustom: false,
+    title,
+    description: null,
+    sections: [
+      {
+        id: `s-new-${n}`,
+        title: '',
+        questions: [
+          { id: `q-new-${n}`, label: '', type: 'radio', options: ['Opsi 1'] },
+        ],
+      },
+    ],
+    requestedFields: [...NEW_FORM_FIELDS],
+    eligibleAngkatan: [],
+    opensAt: null,
+    closesAt: null,
+    isActive: false,
+    allowEdit: false,
+    thanks: null,
+    publishedAt: null,
+    ownerId: db.me!.id,
+    shared: [],
+    responses: [],
+    order: 0,
+    createdAt: NOW,
+    updatedAt: NOW,
+  };
+  db.formStore.unshift(form);
+  return reply.json(manageView(db, form), 201);
+};
+
+/**
+ * PATCH /api/form/:formId — saves the builder's changes. 400 for a definition that doesn't fit; 409 with `breaking`
+ * when the edit takes away answers, until `confirmBreaking`; then those answers go.
+ */
+export const updateForm: Handler = ({ db, params, body }) => {
+  const found = editable(db, params.formId);
+  if ('error' in found) return found.error;
+  const form = found.form;
+  const { confirmBreaking, opensAt, closesAt, ...rest } = body as UpdateForm;
+  if (rest.sections) {
+    const problem = definitionProblem(rest.sections);
+    if (problem) return reply.status(400, { error: problem });
+  }
+  const published = form.publishedAt !== null;
+  if (published && rest.eligibleAngkatan?.length === 0)
+    return reply.status(400, { error: 'A published form needs an angkatan' });
+  if (published && opensAt === null)
+    return reply.status(400, { error: 'A published form has an opening time' });
+  const nextOpens = opensAt === undefined ? form.opensAt : opensAt;
+  const nextCloses = closesAt === undefined ? form.closesAt : closesAt;
+  if (
+    nextOpens &&
+    nextCloses &&
+    Date.parse(nextCloses) <= Date.parse(nextOpens)
+  )
+    return reply.status(400, { error: 'Closes before it opens' });
+  const breaking = rest.sections
+    ? findBreakingChanges(form.sections, rest.sections)
+    : [];
+  if (breaking.length && form.responses.length && !confirmBreaking)
+    return reply.status(409, {
+      error: 'This edit takes answers away',
+      breaking,
+      responseCount: form.responses.length,
+    });
+  if (breaking.length)
+    for (const r of form.responses)
+      r.answers = dropLostAnswers(r.answers, breaking);
+  Object.assign(form, rest, {
+    ...(rest.title !== undefined ? { title: rest.title.trim() } : {}),
+    opensAt: nextOpens,
+    closesAt: nextCloses,
+    updatedAt: NOW,
+  });
+  if (!published && !form.slugCustom && rest.title !== undefined)
+    form.slug = freeSlugFor(db, form.title, form.id);
+  return manageView(db, form);
+};
+
+/** POST /api/form/:formId/publish — 400 with `problems`, 409 when already published; opens now unless set. */
+export const publishForm: Handler = ({ db, params }) => {
+  const found = editable(db, params.formId);
+  if ('error' in found) return found.error;
+  const form = found.form;
+  if (form.publishedAt !== null)
+    return reply.status(409, { error: 'Already published' });
+  const problems = publishProblems(form, Date.parse(NOW));
+  if (problems.length)
+    return reply.status(400, { error: 'Not ready to publish', problems });
+  Object.assign(form, {
+    publishedAt: NOW,
+    isActive: true,
+    opensAt: form.opensAt ?? NOW,
+    slug: form.slugCustom ? form.slug : freeSlugFor(db, form.title, form.id),
+    updatedAt: NOW,
+  });
+  return manageView(db, form);
+};
+
+/** DELETE /api/form/:formId — the form and its answers; 204. */
+export const deleteForm: Handler = ({ db, params }) => {
+  const found = editable(db, params.formId);
+  if ('error' in found) return found.error;
+  db.formStore = db.formStore.filter((f) => f !== found.form);
+  return reply.text('', 204);
+};
+
+/** PUT /api/form/:formId/slug — 400 with `problem` for a name the link can't have, 409 when another form holds it. */
+export const renameFormSlug: Handler = ({ db, params, body }) => {
+  const found = editable(db, params.formId);
+  if ('error' in found) return found.error;
+  const slug = tidySlug((body as { slug: string }).slug);
+  const problem = slugProblem(slug);
+  if (problem) return reply.status(400, { error: 'Not a short name', problem });
+  if (db.formStore.some((f) => f.slug === slug && f !== found.form))
+    return reply.status(409, {
+      error: 'Another form holds it',
+      problem: 'taken',
+    });
+  Object.assign(found.form, { slug, slugCustom: true, updatedAt: NOW });
+  return manageView(db, found.form);
+};
+
+/** PUT /api/form/:formId/access/:userId — share with a pengurus or change their role; never the owner (400). */
+export const setFormAccess: Handler = ({ db, params, body }) => {
+  const found = editable(db, params.formId);
+  if ('error' in found) return found.error;
+  const { userId } = params;
+  if (userId === found.form.ownerId)
+    return reply.status(400, { error: "The owner's access never changes" });
+  if (!personOf(db, userId))
+    return reply.status(404, { error: 'No such member' });
+  if (!pengurusIds().includes(userId))
+    return reply.status(400, { error: 'Only pengurus can be added' });
+  const role = (body as { role: 'view' | 'edit' }).role;
+  const row = found.form.shared.find((s) => s.userId === userId);
+  if (row) row.role = role;
+  else found.form.shared.push({ userId, role });
+  return accessList(db, found.form);
+};
+
+/** DELETE /api/form/:formId/access/:userId — Hapus akses; never the owner (400). */
+export const removeFormAccess: Handler = ({ db, params }) => {
+  const found = editable(db, params.formId);
+  if ('error' in found) return found.error;
+  if (params.userId === found.form.ownerId)
+    return reply.status(400, { error: 'The owner can never be removed' });
+  found.form.shared = found.form.shared.filter(
+    (s) => s.userId !== params.userId,
+  );
+  return accessList(db, found.form);
 };
 
 // Curhat Yuk! (as `apps/api/src/controllers/curhat.controller.ts`; `db.chatrooms` holds only your rooms).

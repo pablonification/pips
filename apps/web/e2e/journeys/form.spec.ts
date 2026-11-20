@@ -937,7 +937,9 @@ test('already sent: the thank-you instead of the questions', async ({
     formId: 'pixel',
     userId: db.me!.id,
     answers: [],
+    profile: {},
     submittedAt: NOW,
+    updatedAt: null,
   };
   await page.goto('/layanan/form/pixel');
   await expect(plaque(page)).toBeVisible();
@@ -956,7 +958,9 @@ test('sent from another device: the draft left on this one goes', async ({
     formId: 'pixel',
     userId: db.me!.id,
     answers: [],
+    profile: {},
     submittedAt: NOW,
+    updatedAt: null,
   };
   await page.goto('/layanan/form/pixel');
   await expect(plaque(page)).toBeVisible();

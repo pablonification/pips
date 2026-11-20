@@ -6,6 +6,7 @@ import type { FormQuestion } from './FormQuestion';
 export type FormSection = {
   id: string;
   title: string;
+  description?: string;
   questions: Array<FormQuestion>;
 };
 

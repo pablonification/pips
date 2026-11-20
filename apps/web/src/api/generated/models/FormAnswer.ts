@@ -5,5 +5,6 @@
 export type FormAnswer = {
   questionId: string;
   answer: (string | Array<string>);
+  other?: string;
 };
 

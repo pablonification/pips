@@ -61,6 +61,8 @@ const form = (
   isActive: true,
   order: 0,
   createdAt: wib('2026-09-01T00:00'),
+  requestedFields: [],
+  allowEdit: false,
   status,
   sectionCount,
 });
@@ -220,6 +222,8 @@ const admin = (
   isActive: true,
   order: 0,
   createdAt: wib('2026-09-01T00:00'),
+  requestedFields: [],
+  allowEdit: false,
   ...extra,
 });
 

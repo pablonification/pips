@@ -29,6 +29,7 @@ import type {
   Credits,
   OAuthRequest,
   ReactionAggregate,
+  SavedDetails,
   Testimoni,
   User,
   UserCourse,
@@ -63,8 +64,10 @@ import {
   type ProtoPost,
   type ReactionKey,
 } from './prototype';
+import { sampleDetails, sampleForms, type StoredForm } from './forms';
 
 export { NOW, PERSONAS, type PersonaKey };
+export { MEDIA_STORE, type StoredForm } from './forms';
 
 /** Same-origin URLs that the mock layer answers with generated images (support/media.ts). */
 export const avatarUrl = (nim: string) => `/__e2e__/avatar/${nim}.svg`;
@@ -444,8 +447,13 @@ export const pixelForm: FormDetail = {
   isActive: true,
   order: 1,
   createdAt: wib(9, 1),
-  // Per member; GET /api/form/:formId works it out with formStatusFor().
+  requestedFields: [],
+  allowEdit: false,
+  thanks: null,
+  owner: null,
+  // Per member; GET /api/form/:formId works it out with formStatusFor() (and canChange).
   status: 'open',
+  canChange: false,
 };
 
 /** The NIMs the API lets fill a form before it opens (apps/api/src/lib/form-status.ts). */
@@ -523,6 +531,9 @@ function formSummary(form: FormDetail): AdminFormListItem {
   const summary: Partial<FormDetail> = { ...form };
   delete summary.sections;
   delete summary.status;
+  delete summary.thanks;
+  delete summary.owner;
+  delete summary.canChange;
   return summary as AdminFormListItem;
 }
 
@@ -841,6 +852,18 @@ export interface Db {
   adminForms: AdminFormListItem[];
   adminResponses: Record<string, AdminFormResponseItem[]>;
   formAnalytics: Record<string, typeof formAnalytics>;
+  /**
+   * Forms as the API stores them, with owner, sharing and answers (fixtures/forms.ts): the builder's routes and the
+   * member's routes for these forms read them. PIXEL is here too, for the builder; its member side stays above.
+   */
+  formStore: StoredForm[];
+  /**
+   * Whether `GET /api/form` lists the builder's forms for the member, beside PIXEL. Off by default, so screens that
+   * show the form list (Beranda, Layanan › Form) look as their references do; a test of the new forms turns it on.
+   */
+  listStoredForms: boolean;
+  /** The member's saved details (Profil › Data diri). */
+  memberDetails: SavedDetails;
   competitions: Competition[];
   testimonials: Testimoni[];
   members: User[];
@@ -967,6 +990,11 @@ export function buildDb(
     adminForms: isAdmin ? [formSummary(pixelForm)] : [],
     adminResponses: { [pixelForm.id]: adminResponses() },
     formAnalytics: { [pixelForm.id]: formAnalytics },
+    formStore: sampleForms().map((f) =>
+      f.id === pixelForm.id ? { ...f, sections: pixelForm.sections ?? [] } : f,
+    ),
+    listStoredForms: false,
+    memberDetails: sampleDetails(persona),
     competitions: toCompetitions(),
     testimonials: toTestimonials(),
     members: MEMBERS.map(([name, nim, major]) => {
