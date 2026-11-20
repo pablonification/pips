@@ -8,7 +8,9 @@ PIPS! is two programs in one repository. Words such as angkatan, Garis and journ
   connection, and sends push notifications.
 
 They talk in three ways: ordinary requests under `/api/...`; one live connection (socket.io) for Curhat and Live
-Counting; and web push, where the API asks the phone maker's push service to wake the app. There is no shared
+Counting; and web push, where the API asks the phone maker's push service to wake the app. AI apps reach the API a
+fourth way, at `/mcp`, signed in with OAuth; their tools call the same `/api` routes as the member
+([decision 21](adr/0021-ai-apps-connect-through-mcp-with-oauth-and-act-through-the-apis-own-routes.md)). There is no shared
 package. When both apps need the same rule (which files may be uploaded, which role may do what), each has a copy and
 a web test keeps them equal ([decision 1](adr/0001-the-web-app-and-the-api-live-in-one-repository.md)).
 
@@ -29,6 +31,7 @@ description when it arrives (a bad one gets a 400). The answer is not checked on
 | `lib/` | Rules with no database and no HTTP: who may delete, when a form is open, how long a push may be, the rate limiter. Most have a unit test. | `authorization.ts`, `curhat.ts` |
 | `middlewares/` | Two checks before a handler: "has one of these roles", and "may fill the SPARTA form". | `role.middleware.ts` |
 | `websocket/` | The live connection: reading the session from the cookie, Curhat messages, the Live Counting room. | `connection.ts`, `curhat.ts` |
+| `mcp/` | The tools an AI app gets at `/mcp`. Each calls one `/api` route in the process as the member; the route decides. No Curhat tool. The endpoint is `controllers/mcp.controller.ts`, its OAuth sign-in `controllers/oauth.controller.ts`. | `tools.ts` |
 | `cron/` | Two jobs, in production only: day-before reminders for calendar events (every minute), and the copy of PRISMA's Google calendar (every ten minutes, decision 20). | `calendar-cron.ts`, `calendar-sync.ts` |
 | `db/` | The schema (every table), the connection, the migrate command, seed scripts. | `schema.ts`, `migrate.ts` |
 

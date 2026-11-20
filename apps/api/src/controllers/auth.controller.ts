@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { randomBytes } from 'node:crypto';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
-import { sign } from 'hono/jwt';
 import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
 import { angkatan, users } from '~/db/schema';
@@ -13,13 +12,13 @@ import {
   googleUserFromAccessToken,
   InvalidGoogleTokenError,
 } from '~/lib/google-token';
-import { JWT_ALG } from '~/lib/jwt';
 import {
   bypassTokenMatches,
   bypassTokenMatches as sameSecret,
   isLoginBypassEnabled,
 } from '~/lib/login-bypass';
 import { SESSION_COOKIE, sessionCookieOptions } from '~/lib/session-cookie';
+import { signSessionToken } from '~/lib/session-token';
 import {
   findUserByEmail,
   findUserById,
@@ -54,17 +53,8 @@ export const loginProtectedRouter = createAuthRouter();
 const MAX_SESSION_AGE_SECONDS = 180 * 24 * 3600;
 
 /** `since`: when the member signed in, in seconds; a renewal passes the first token's value on. */
-const generateJWT = async (payload: object, since = Date.now() / 1000) => {
-  return await sign(
-    {
-      ...payload,
-      since,
-      exp: Date.now() / 1000 + env.TOKEN_EXPIRATION,
-    },
-    env.JWT_SECRET,
-    JWT_ALG,
-  );
-};
+const generateJWT = async (payload: object, since?: number) =>
+  await signSessionToken(payload, { since });
 
 loginRouter.openapi(loginRoute, async (c) => {
   const authorizationUrl = new URL(

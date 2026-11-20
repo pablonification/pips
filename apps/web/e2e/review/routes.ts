@@ -38,6 +38,7 @@ export const ROUTES = {
   },
   '/': { url: '/', as: BOTH },
   '/mulai': { url: '/mulai', as: [NADIA] },
+  '/hubungkan': { url: '/hubungkan?permintaan=req-claude', as: [NADIA] },
   '/pengumuman': { url: '/pengumuman', as: BOTH },
   '/pengumuman/$id': { url: '/pengumuman/p1', as: BOTH },
   '/pengumuman/tulis': { url: '/pengumuman/tulis', as: BOTH },
@@ -80,4 +81,5 @@ export const ROUTES = {
   '/profil/matkul/tambah': { url: '/profil/matkul/tambah', as: [NADIA] },
   '/profil/notifikasi': { url: '/profil/notifikasi', as: BOTH },
   '/profil/kredit': { url: '/profil/kredit', as: [NADIA] },
+  '/profil/aplikasi': { url: '/profil/aplikasi', as: [NADIA] },
 } satisfies Record<string, SweepRoute>;

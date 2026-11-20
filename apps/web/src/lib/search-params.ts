@@ -100,3 +100,11 @@ export const spartaDataSearchSchema = object({
 export const inboxSearchSchema = querySearchSchema.extend({
   unread: boolean,
 });
+
+/**
+ * The consent page for an app connecting through MCP: the sign-in request's id (`permintaan`). A value the router
+ * read as a number is kept as its text, as `q` above.
+ */
+export const consentSearchSchema = object({
+  permintaan: querySearchSchema.shape.q,
+});

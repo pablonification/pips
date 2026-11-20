@@ -29,5 +29,7 @@ export const RATE_LIMITS = {
   nimSearches: 60,
   /** Curhat messages on the socket, per member (Welfare's replies too): each is saved and pushed. */
   curhatMessages: 30,
+  /** MCP requests (each tool call is one), per member. */
+  mcp: 120,
 };
 export const RATE_WINDOW_MS = 60_000;

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppLeftNavbarRouteImport } from './routes/_app/_left-navbar'
+import { Route as AppHubungkanRouteImport } from './routes/_app/hubungkan'
 import { Route as AppKalenderRouteImport } from './routes/_app/kalender'
 import { Route as AppMulaiRouteImport } from './routes/_app/mulai'
 import { Route as DevGarisRouteImport } from './routes/dev/garis'
@@ -50,6 +51,7 @@ import { Route as AppLeftNavbarPengumumanTulisIndexRouteImport } from './routes/
 import { Route as AppLeftNavbarKelolaLiveFormIdIndexRouteImport } from './routes/_app/_left-navbar/kelola/live/$formId/index'
 import { Route as AppLeftNavbarKelolaLiveFormIdRekapRouteImport } from './routes/_app/_left-navbar/kelola/live/$formId/rekap'
 import { Route as AppLeftNavbarLayananTestiTypeIndexRouteImport } from './routes/_app/_left-navbar/layanan/testi/$type/index'
+import { Route as AppLeftNavbarProfilSettingsItemAplikasiIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/aplikasi/index'
 import { Route as AppLeftNavbarProfilSettingsItemKreditIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/kredit/index'
 import { Route as AppLeftNavbarProfilSettingsItemMatkulIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/matkul/index'
 import { Route as AppLeftNavbarProfilSettingsItemNotifikasiIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/notifikasi/index'
@@ -63,6 +65,11 @@ const AppRoute = AppRouteImport.update({
 } as any)
 const AppLeftNavbarRoute = AppLeftNavbarRouteImport.update({
   id: '/_left-navbar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHubungkanRoute = AppHubungkanRouteImport.update({
+  id: '/hubungkan',
+  path: '/hubungkan',
   getParentRoute: () => AppRoute,
 } as any)
 const AppKalenderRoute = AppKalenderRouteImport.update({
@@ -290,6 +297,12 @@ const AppLeftNavbarLayananTestiTypeIndexRoute =
     path: '/$type/',
     getParentRoute: () => AppLeftNavbarLayananTestiRoute,
   } as any)
+const AppLeftNavbarProfilSettingsItemAplikasiIndexRoute =
+  AppLeftNavbarProfilSettingsItemAplikasiIndexRouteImport.update({
+    id: '/aplikasi/',
+    path: '/aplikasi/',
+    getParentRoute: () => AppLeftNavbarProfilSettingsItemRoute,
+  } as any)
 const AppLeftNavbarProfilSettingsItemKreditIndexRoute =
   AppLeftNavbarProfilSettingsItemKreditIndexRouteImport.update({
     id: '/kredit/',
@@ -329,6 +342,7 @@ const AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppLeftNavbarIndexRoute
+  '/hubungkan': typeof AppHubungkanRoute
   '/kalender': typeof AppKalenderRouteWithChildren
   '/mulai': typeof AppMulaiRoute
   '/dev/garis': typeof DevGarisRoute
@@ -366,6 +380,7 @@ export interface FileRoutesByFullPath {
   '/kelola/live/$formId/rekap': typeof AppLeftNavbarKelolaLiveFormIdRekapRoute
   '/kelola/live/$formId/': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   '/layanan/testi/$type/': typeof AppLeftNavbarLayananTestiTypeIndexRoute
+  '/profil/aplikasi/': typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
   '/profil/kredit/': typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
   '/profil/matkul/': typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
   '/profil/notifikasi/': typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
@@ -375,6 +390,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppLeftNavbarIndexRoute
+  '/hubungkan': typeof AppHubungkanRoute
   '/mulai': typeof AppMulaiRoute
   '/dev/garis': typeof DevGarisRoute
   '/login': typeof LoginIndexRoute
@@ -406,6 +422,7 @@ export interface FileRoutesByTo {
   '/kelola/live/$formId/rekap': typeof AppLeftNavbarKelolaLiveFormIdRekapRoute
   '/kelola/live/$formId': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   '/layanan/testi/$type': typeof AppLeftNavbarLayananTestiTypeIndexRoute
+  '/profil/aplikasi': typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
   '/profil/kredit': typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
   '/profil/matkul': typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
   '/profil/notifikasi': typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
@@ -417,6 +434,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_app/_left-navbar': typeof AppLeftNavbarRouteWithChildren
+  '/_app/hubungkan': typeof AppHubungkanRoute
   '/_app/kalender': typeof AppKalenderRouteWithChildren
   '/_app/mulai': typeof AppMulaiRoute
   '/dev/garis': typeof DevGarisRoute
@@ -456,6 +474,7 @@ export interface FileRoutesById {
   '/_app/_left-navbar/kelola/live/$formId/rekap': typeof AppLeftNavbarKelolaLiveFormIdRekapRoute
   '/_app/_left-navbar/kelola/live/$formId/': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   '/_app/_left-navbar/layanan/testi/$type/': typeof AppLeftNavbarLayananTestiTypeIndexRoute
+  '/_app/_left-navbar/profil/_settings-item/aplikasi/': typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
   '/_app/_left-navbar/profil/_settings-item/kredit/': typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
   '/_app/_left-navbar/profil/_settings-item/matkul/': typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
   '/_app/_left-navbar/profil/_settings-item/notifikasi/': typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
@@ -467,6 +486,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/hubungkan'
     | '/kalender'
     | '/mulai'
     | '/dev/garis'
@@ -504,6 +524,7 @@ export interface FileRouteTypes {
     | '/kelola/live/$formId/rekap'
     | '/kelola/live/$formId/'
     | '/layanan/testi/$type/'
+    | '/profil/aplikasi/'
     | '/profil/kredit/'
     | '/profil/matkul/'
     | '/profil/notifikasi/'
@@ -513,6 +534,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/hubungkan'
     | '/mulai'
     | '/dev/garis'
     | '/login'
@@ -544,6 +566,7 @@ export interface FileRouteTypes {
     | '/kelola/live/$formId/rekap'
     | '/kelola/live/$formId'
     | '/layanan/testi/$type'
+    | '/profil/aplikasi'
     | '/profil/kredit'
     | '/profil/matkul'
     | '/profil/notifikasi'
@@ -554,6 +577,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_app/_left-navbar'
+    | '/_app/hubungkan'
     | '/_app/kalender'
     | '/_app/mulai'
     | '/dev/garis'
@@ -593,6 +617,7 @@ export interface FileRouteTypes {
     | '/_app/_left-navbar/kelola/live/$formId/rekap'
     | '/_app/_left-navbar/kelola/live/$formId/'
     | '/_app/_left-navbar/layanan/testi/$type/'
+    | '/_app/_left-navbar/profil/_settings-item/aplikasi/'
     | '/_app/_left-navbar/profil/_settings-item/kredit/'
     | '/_app/_left-navbar/profil/_settings-item/matkul/'
     | '/_app/_left-navbar/profil/_settings-item/notifikasi/'
@@ -621,6 +646,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppLeftNavbarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/hubungkan': {
+      id: '/_app/hubungkan'
+      path: '/hubungkan'
+      fullPath: '/hubungkan'
+      preLoaderRoute: typeof AppHubungkanRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/kalender': {
@@ -896,6 +928,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeftNavbarLayananTestiTypeIndexRouteImport
       parentRoute: typeof AppLeftNavbarLayananTestiRoute
     }
+    '/_app/_left-navbar/profil/_settings-item/aplikasi/': {
+      id: '/_app/_left-navbar/profil/_settings-item/aplikasi/'
+      path: '/aplikasi'
+      fullPath: '/profil/aplikasi/'
+      preLoaderRoute: typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRouteImport
+      parentRoute: typeof AppLeftNavbarProfilSettingsItemRoute
+    }
     '/_app/_left-navbar/profil/_settings-item/kredit/': {
       id: '/_app/_left-navbar/profil/_settings-item/kredit/'
       path: '/kredit'
@@ -961,6 +1000,7 @@ const AppLeftNavbarPengumumanRouteRouteWithChildren =
   )
 
 interface AppLeftNavbarProfilSettingsItemRouteChildren {
+  AppLeftNavbarProfilSettingsItemAplikasiIndexRoute: typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
   AppLeftNavbarProfilSettingsItemKreditIndexRoute: typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
   AppLeftNavbarProfilSettingsItemMatkulIndexRoute: typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
   AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute: typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
@@ -969,6 +1009,8 @@ interface AppLeftNavbarProfilSettingsItemRouteChildren {
 
 const AppLeftNavbarProfilSettingsItemRouteChildren: AppLeftNavbarProfilSettingsItemRouteChildren =
   {
+    AppLeftNavbarProfilSettingsItemAplikasiIndexRoute:
+      AppLeftNavbarProfilSettingsItemAplikasiIndexRoute,
     AppLeftNavbarProfilSettingsItemKreditIndexRoute:
       AppLeftNavbarProfilSettingsItemKreditIndexRoute,
     AppLeftNavbarProfilSettingsItemMatkulIndexRoute:
@@ -1129,6 +1171,7 @@ const AppKalenderRouteWithChildren = AppKalenderRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppLeftNavbarRoute: typeof AppLeftNavbarRouteWithChildren
+  AppHubungkanRoute: typeof AppHubungkanRoute
   AppKalenderRoute: typeof AppKalenderRouteWithChildren
   AppMulaiRoute: typeof AppMulaiRoute
   AppDevShellRoute: typeof AppDevShellRoute
@@ -1136,6 +1179,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppLeftNavbarRoute: AppLeftNavbarRouteWithChildren,
+  AppHubungkanRoute: AppHubungkanRoute,
   AppKalenderRoute: AppKalenderRouteWithChildren,
   AppMulaiRoute: AppMulaiRoute,
   AppDevShellRoute: AppDevShellRoute,

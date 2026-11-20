@@ -95,6 +95,11 @@ closing date. **Data SPARTA Magang** is the admin's table of the submissions. Co
 **Beasiswa, LowonginAja!, Bayar Kas!, Surat & Proposal** — Links to outside pages, opened in a new tab: registry
 entries with `kind: 'external'`.
 
+**Aplikasi terhubung** (connected app) — An AI app (Claude, ChatGPT, Claude Code) a member let act as them through
+MCP, after approving it on the consent page `/hubungkan`, either to read only (Hanya baca) or to read and change
+things (Baca dan ubah). Profil lists them at `/profil/aplikasi` with which of the two each may do, and each can be
+revoked. Code: `oauth_clients`, `oauth_tokens`, `/api/oauth/apps`.
+
 **Kelola** — The area for pengurus, shown only to roles that may do something in it (Live Counting, Data SPARTA
 Magang, adding events, competitions and testimonials, the Curhat inbox). Paths under `/kelola`.
 _Avoid_: "Admin Dashboard".
@@ -122,6 +127,10 @@ shown only through `can(user, capability)`. A test keeps it in step with the API
 **copy modules** — The files in `apps/web/src/copy/`, one per area, that hold every sentence the app shows. Their
 **glossary** (`copy/glossary.ts`) lists the house terms and the words that must not be used.
 _Avoid_: writing a sentence inside a component.
+
+**MCP** — Model Context Protocol: how an AI app calls a service's tools. PIPS!'s endpoint is `/mcp` on the API,
+signed in with OAuth (scopes `pips.read` and `pips.write`). Every tool calls an `/api` route as the member, so the
+same checks apply; Curhat Yuk! is never a tool (`apps/api/src/mcp/tools.ts`, decision 21).
 
 **programme window** — A period in which something is open to chosen people: a row of `programme_windows` with a
 label, a route, an open and close time and the eligible angkatan or NIMs, served by `GET /programme-windows`. Forms

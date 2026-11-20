@@ -13,6 +13,13 @@ import { performance } from 'perf_hooks';
 import { fileURLToPath } from 'url';
 import { env } from './configs/env.config';
 import { apiRouter } from './controllers/api.controller';
+import { createMcpRouter } from './controllers/mcp.controller';
+import {
+  createOAuthConsentRouter,
+  createOAuthRouter,
+  databaseOAuthDeps,
+  type OAuthDeps,
+} from './controllers/oauth.controller';
 import { defaultHook } from './controllers/router-factory';
 import { db } from './db/drizzle';
 import { MAX_BODY_BYTES, RATE_LIMITS, RATE_WINDOW_MS } from './lib/limits';
@@ -68,6 +75,7 @@ const OPENAPI_CONFIG = {
     { name: 'internship', description: 'Internship API' },
     { name: 'form', description: 'Form API' },
     { name: 'programme-window', description: 'Programme windows API' },
+    { name: 'oauth', description: 'Apps connected through MCP' },
   ],
 };
 
@@ -106,6 +114,8 @@ interface AppOptions {
   rateLimits?: Partial<typeof RATE_LIMITS>;
   /** Rejects when the database can't answer; `/health` reports it. */
   checkDatabase?: () => Promise<unknown>;
+  /** Storage for OAuth and MCP (tests pass a fake). */
+  oauth?: OAuthDeps;
 }
 
 /** Health checks give up on the database after this long, so a stuck pool reads as down, not as a hung check. */
@@ -114,6 +124,7 @@ const HEALTH_DB_TIMEOUT_MS = 2000;
 export function createApp({
   rateLimits,
   checkDatabase = async () => await db.execute(sql`select 1`),
+  oauth = databaseOAuthDeps,
 }: AppOptions = {}) {
   const limits = { ...RATE_LIMITS, ...rateLimits };
   const app = new OpenAPIHono<{
@@ -220,6 +231,46 @@ export function createApp({
     '/api/user/nim',
     rateLimit(nimSearches, async (c) => await sessionUserId(c, env.JWT_SECRET)),
   );
+  // MCP apps (docs/adr/0021-*): OAuth sign-in and the MCP endpoint, outside `/api`. They carry a bearer token, never
+  // the session cookie, so any origin may call them; the authorization page itself is only ever navigated to.
+  const mcpLimiter = createRateLimiter({ limit: limits.mcp, ...window });
+  const bearerCors = cors({
+    origin: '*',
+    allowHeaders: [
+      'Authorization',
+      'Content-Type',
+      'Mcp-Protocol-Version',
+      'Mcp-Session-Id',
+      'Last-Event-ID',
+    ],
+    exposeHeaders: ['WWW-Authenticate', 'Mcp-Session-Id', 'Retry-After'],
+  });
+  app.use('/.well-known/*', bearerCors);
+  app.use('/oauth/register', bearerCors);
+  app.use('/oauth/token', bearerCors);
+  app.use('/mcp', bearerCors);
+  app.use(
+    '/oauth/*',
+    rateLimit(signIn, (c) => clientAddress(c, env.CLIENT_IP_HEADER)),
+  );
+  for (const path of ['/oauth/*', '/mcp']) {
+    app.use(
+      path,
+      bodyLimit({
+        maxSize: MAX_BODY_BYTES,
+        onError: (c) => c.json({ error: 'Request body too large' }, 413),
+      }),
+    );
+  }
+  app.route('/', createOAuthRouter(oauth));
+  app.route(
+    '/',
+    createMcpRouter({
+      dispatch: async (request) => await app.fetch(request),
+      deps: oauth,
+      limiter: mcpLimiter,
+    }),
+  );
   app.get('/', (c) => c.json({ message: 'Server runs successfully' }));
   // For load balancers and monitoring: 200 while the API can reach its database, 503 when it can't or is shutting down.
   app.get('/health', async (c) => {
@@ -245,6 +296,7 @@ export function createApp({
     }
   });
   app.route('/api', apiRouter);
+  app.route('/api', createOAuthConsentRouter(oauth));
   // The chat socket's payloads (websocket/curhat.ts) aren't routes; listing them puts their types in the web client.
   for (const [name, schema] of Object.entries({
     CurhatMessagePayload: CurhatMessagePayloadSchema,

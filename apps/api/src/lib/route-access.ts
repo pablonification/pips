@@ -29,6 +29,34 @@ export const ROUTE_ACCESS: Record<string, RouteAccess> = {
   'GET /doc': { who: 'anyone', note: 'development and staging only' },
   'GET /swagger': { who: 'anyone', note: 'development and staging only' },
 
+  // Apps connected through MCP (docs/adr/0021-*): OAuth sign-in, and the MCP endpoint
+  'GET /.well-known/oauth-protected-resource': { who: 'anyone' },
+  'GET /.well-known/oauth-protected-resource/mcp': { who: 'anyone' },
+  'GET /.well-known/oauth-authorization-server': { who: 'anyone' },
+  'POST /oauth/register': { who: 'anyone', note: 'public clients only' },
+  'GET /oauth/authorize': {
+    who: 'anyone',
+    note: 'sends the browser to the consent page; nothing is granted until a member approves',
+  },
+  'POST /oauth/token': {
+    who: 'anyone',
+    note: 'with a code and its PKCE verifier, or a refresh token',
+  },
+  'POST /mcp': {
+    who: 'member',
+    note: "an access token, not the cookie; each tool calls a route here as the member, and that route's check decides",
+  },
+  'GET /mcp': { who: 'member', note: 'an access token; answers 405' },
+  'DELETE /mcp': { who: 'member', note: 'an access token; answers 405' },
+  'GET /api/oauth/requests/{requestId}': { who: 'member' },
+  'POST /api/oauth/requests/{requestId}/approve': {
+    who: 'member',
+    note: 'grants the app, as the member who approves, what it asked for or less (never more)',
+  },
+  'POST /api/oauth/requests/{requestId}/deny': { who: 'member' },
+  'GET /api/oauth/apps': { who: 'member', note: 'their own' },
+  'DELETE /api/oauth/apps/{clientId}': { who: 'member', note: 'their own' },
+
   // Signing in and out
   'GET /api/login': { who: 'anyone' },
   'POST /api/auth/login/accesstoken': { who: 'anyone' },
