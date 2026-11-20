@@ -5,8 +5,8 @@
 import type { Info, NimFinderResult } from '~/api/generated';
 import { cari as t } from '~/copy/cari';
 import { fill } from '~/copy/fill';
-import { dShort, dayDiff, hm } from '~/lib/dates';
-import { byStart, type CalEvent } from '~/features/kalender/rules';
+import { dShort, dayDiff } from '~/lib/dates';
+import { byStart, startLabel, type CalEvent } from '~/features/kalender/rules';
 
 /** Pengumuman and Orang ask the API from this many characters (NIM Finder's own minimum). */
 const REMOTE_MIN = 3;
@@ -57,7 +57,7 @@ export function upcomingEvents(
 
 /** An event's hint: "Sel 13 Okt 13.00". */
 export const eventHint = (e: CalEvent) =>
-  fill(t.waktuAcara, { hari: dShort(e.start), jam: hm(e.start) });
+  fill(t.waktuAcara, { hari: dShort(e.start), jam: startLabel(e) });
 
 /** A post's row: its title, or the first 64 characters of its text with "…". */
 export const postLabel = (i: Pick<Info, 'title' | 'content'>) =>

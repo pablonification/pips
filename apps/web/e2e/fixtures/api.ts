@@ -274,6 +274,9 @@ function toEvent(e: (typeof EVENTS)[number]): CalendarEvent {
     end: e.e,
     googleCalendarUrl: `https://calendar.google.com/calendar/event?eid=e2e-${e.id}`,
     googleCalendarId: `e2e-${e.id}`,
+    synced: false,
+    allDay: false,
+    location: null,
   };
 }
 

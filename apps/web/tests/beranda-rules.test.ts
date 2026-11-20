@@ -41,6 +41,9 @@ const ev = (
   end: wib(end),
   googleCalendarUrl: '',
   googleCalendarId: '',
+  synced: false,
+  allDay: false,
+  location: null,
 });
 
 const form = (

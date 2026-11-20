@@ -47,6 +47,9 @@ const event = (
   end: new Date(`${end}:00+07:00`).toISOString(),
   googleCalendarUrl: `https://calendar.google.com/calendar/event?eid=${id}`,
   googleCalendarId: id,
+  synced: false,
+  allDay: false,
+  location: null,
 });
 
 test('to start: Tindakan, then Pintasan; key hints only on desktop, Tutup on phones', async ({

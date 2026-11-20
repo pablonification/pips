@@ -30,6 +30,10 @@ const ms = (iso: string) => Date.parse(iso);
 /** A deadline is a point in time: it starts and ends at once. */
 export const isPoint = (e: CalEvent) => ms(e.start) === ms(e.end);
 
+/** The time a row shows: "15.00", or "Seharian" for an all-day event. */
+export const startLabel = (e: CalEvent) =>
+  e.allDay ? t.detail.seharian : hm(e.start);
+
 /** Ended: its end is before now. A deadline ends at its time. */
 export const isEnded = (e: CalEvent, now: number) => ms(e.end) < now;
 
@@ -76,8 +80,17 @@ export function evLabel(e: CalEvent, course: Course | undefined): string {
   return course ? `${e.title} · ${course.code}` : e.title;
 }
 
-/** "15.00–16.40 WIB", or "Paling lambat 23.59 WIB" for a deadline. */
+/**
+ * "15.00–16.40 WIB", "Paling lambat 23.59 WIB" for a deadline, and "Seharian" or "Seharian, sampai Rab 3 Des" for an
+ * all-day event (it ends at midnight after its last day).
+ */
 export function timeLine(e: CalEvent): string {
+  if (e.allDay) {
+    const last = ms(e.end) - 1;
+    return dayDiff(last, e.start) >= 1
+      ? fill(t.detail.seharianSampai, { tanggal: dShort(last) })
+      : t.detail.seharian;
+  }
   const when = isPoint(e)
     ? fill(t.detail.palingLambat, { jam: hm(e.start) })
     : `${hm(e.start)}–${hm(e.end)}`;

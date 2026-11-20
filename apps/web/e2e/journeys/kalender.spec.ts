@@ -52,6 +52,9 @@ const event = (
   end: new Date(`${end}:00+07:00`).toISOString(),
   googleCalendarUrl: `https://calendar.google.com/calendar/event?eid=${id}`,
   googleCalendarId: id,
+  synced: false,
+  allDay: false,
+  location: null,
 });
 
 const asked = (api: { calls: (s: string) => { query: string }[] }) =>
