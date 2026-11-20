@@ -43,6 +43,7 @@
     "unique-names-generator": "^4.7.1",
     "web-push": "^3.6.7",
     "winston": "^3.14.2",
+    "write-excel-file": "4.1.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {

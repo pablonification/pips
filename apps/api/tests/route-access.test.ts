@@ -90,6 +90,9 @@ before(async () => {
     (await import('../src/controllers/form.controller')).createFormRouter(
       fakeDeps(),
     ),
+    (
+      await import('../src/controllers/form-manage.controller')
+    ).createFormManageRouter(fakeDeps()),
     (await import('../src/controllers/info.controller')).createInfoRouter(
       fakeDeps(),
     ),

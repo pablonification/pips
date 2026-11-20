@@ -6,7 +6,8 @@ export const EARLY_ACCESS_NIMS = ['18225020', '13525006'];
 export type FormStatus = 'already_responded' | 'closed' | 'not_opened' | 'open';
 
 interface FormWindow {
-  opensAt: Date | string;
+  /** Null only on a draft, which members never reach. */
+  opensAt: Date | string | null;
   closesAt: Date | string | null;
   isActive: boolean;
 }
@@ -42,6 +43,7 @@ export function formSectionsVisible(
   now: Date | number = Date.now(),
 ): boolean {
   return (
+    form.opensAt === null ||
     new Date(now).getTime() >= new Date(form.opensAt).getTime() ||
     EARLY_ACCESS_NIMS.includes(nim)
   );
@@ -61,6 +63,13 @@ export function formQuestionsVisible(
   const forThisMember =
     form.eligibleAngkatan.includes(member.angkatan) || member.isFormAdmin;
   return forThisMember && formSectionsVisible(form, member.nim, now);
+}
+
+/** Today's date in WIB, `YYYY-MM-DD`. */
+export function wibToday(now: Date | number = Date.now()) {
+  return new Date(new Date(now).getTime() + 7 * 3600_000)
+    .toISOString()
+    .slice(0, 10);
 }
 
 /** Number of sections, for the list ("5 bagian"). */

@@ -1,6 +1,13 @@
-import type { rolesEnums } from '../db/roles-group';
+import { rolesEnums } from '../db/roles-group';
 
 type Role = (typeof rolesEnums)[number];
+
+/** Pengurus: a member holding any role. */
+const PENGURUS = rolesEnums;
+const FORM_VIEWERS =
+  "the form's owner, those it is shared with (Lihat jawaban or Edit), or admin; 404 for anyone else";
+const FORM_EDITORS =
+  "the form's owner, those it is shared with as Edit, or admin (403 for Lihat jawaban)";
 
 /**
  * Who may call a route.
@@ -238,7 +245,52 @@ export const ROUTE_ACCESS: Record<string, RouteAccess> = {
     who: 'member',
     note: "the form's angkatan, while it is open (403)",
   },
+  'PUT /api/form/{formId}/response': {
+    who: 'member',
+    note: 'their own response, while the form is open and allows changes (403)',
+  },
+  'GET /api/form-link/{name}': {
+    who: 'member',
+    note: "another angkatan's form shows only its title; a draft only to those who manage it",
+  },
+  'GET /api/user/details': { who: 'member', note: 'their own' },
+  'PATCH /api/user/details': { who: 'member', note: 'their own' },
   'GET /api/form/admin/list': { who: ['admin'] },
+  // The builder (Kelola › Form): any pengurus; the handler decides by the form's owner, who it is shared with
+  // (view or edit), and admin (edits every form).
+  'GET /api/form/manage/list': {
+    who: PENGURUS,
+    note: 'forms they made or that are shared with them; every form only for admin (403)',
+  },
+  'POST /api/form': { who: PENGURUS, note: 'a draft they own' },
+  'GET /api/form/{formId}/manage': { who: PENGURUS, note: FORM_VIEWERS },
+  'GET /api/form/{formId}/access': { who: PENGURUS, note: FORM_VIEWERS },
+  'GET /api/form/{formId}/answers/summary': {
+    who: PENGURUS,
+    note: FORM_VIEWERS,
+  },
+  'GET /api/form/{formId}/answers': { who: PENGURUS, note: FORM_VIEWERS },
+  'GET /api/form/{formId}/answers/export': {
+    who: PENGURUS,
+    note: FORM_VIEWERS,
+  },
+  'PATCH /api/form/{formId}': { who: PENGURUS, note: FORM_EDITORS },
+  'POST /api/form/{formId}/publish': { who: PENGURUS, note: FORM_EDITORS },
+  'DELETE /api/form/{formId}': { who: PENGURUS, note: FORM_EDITORS },
+  'GET /api/form/{formId}/slug-check': { who: PENGURUS, note: FORM_EDITORS },
+  'PUT /api/form/{formId}/slug': { who: PENGURUS, note: FORM_EDITORS },
+  'GET /api/form/{formId}/access/search': {
+    who: PENGURUS,
+    note: FORM_EDITORS,
+  },
+  'PUT /api/form/{formId}/access/{userId}': {
+    who: PENGURUS,
+    note: `${FORM_EDITORS}; only pengurus can be added, never the owner`,
+  },
+  'DELETE /api/form/{formId}/access/{userId}': {
+    who: PENGURUS,
+    note: `${FORM_EDITORS}; never the owner`,
+  },
   'GET /api/form/{formId}/responses': { who: ['admin'] },
   'GET /api/form/{formId}/responses/count': { who: ['admin'] },
   'GET /api/form/{formId}/analytics': { who: ['admin'] },

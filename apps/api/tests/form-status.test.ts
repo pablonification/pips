@@ -10,6 +10,7 @@ import {
   sectionCount,
 } from '../src/lib/form-status';
 import type { FormDeps } from '../src/controllers/form.controller';
+import { EMPTY_DETAILS } from '../src/lib/member-details';
 import { callRouter } from './support/router';
 import { testUser } from './support/session';
 
@@ -170,6 +171,13 @@ function pixelForm(over: Partial<Form> = {}): Form {
     isActive: true,
     order: 0,
     createdAt: new Date('2026-09-01T00:00:00Z'),
+    ownerId: null,
+    publishedAt: new Date('2026-09-01T00:00:00Z'),
+    requestedFields: [],
+    allowEdit: false,
+    thanks: null,
+    slugCustom: false,
+    updatedAt: new Date('2026-09-01T00:00:00Z'),
     ...over,
   };
 }
@@ -193,6 +201,15 @@ function world(
   const deps: FormDeps = {
     getActiveForms: async () => (form.isActive ? [form] : []),
     getFormById: async (id) => (id === form.id ? form : undefined),
+    getFormBySlug: async (slug) => (slug === form.slug ? form : undefined),
+    getFormRelation: async () => null,
+    getOwnerName: async () => null,
+    updateFormResponse: async () => {
+      throw new Error('not in these tests');
+    },
+    getMemberDetails: async () => EMPTY_DETAILS,
+    saveMemberDetails: async () => undefined,
+    isStoredFile: () => false,
     getResponseByUserId: async () =>
       responded
         ? {
@@ -200,7 +217,9 @@ function world(
             formId: form.id,
             userId: nadia.id,
             answers: [],
+            profile: {},
             submittedAt: NOW,
+            updatedAt: null,
           }
         : undefined,
     createFormResponse: async (formId, userId, data) => {
@@ -209,7 +228,9 @@ function world(
         formId,
         userId,
         answers: data.answers,
+        profile: data.profile ?? {},
         submittedAt: NOW,
+        updatedAt: null,
       };
       saved.push(r);
       return r;

@@ -71,6 +71,17 @@ const answer = (res: ApiAnswer, pick: (body: any) => unknown = (b) => b) =>
 
 const id = (v: string) => encodeURIComponent(v);
 
+/** A form's answers as the routes take them (`types/form.types.ts`). */
+const formAnswers = z
+  .array(
+    z.object({
+      questionId: z.string(),
+      answer: z.union([z.string(), z.array(z.string())]),
+      other: z.string().optional(),
+    }),
+  )
+  .min(1);
+
 interface ToolSpec<S extends ZodRawShape> {
   name: string;
   title: string;
@@ -587,7 +598,7 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
     name: 'list_my_forms',
     title: 'My forms',
     description:
-      'Forms HMIF sent to your angkatan, with whether each is open, not open yet, closed, or already answered.',
+      'Forms sent to your angkatan, with whether each is open, not open yet, closed, or already answered, and which profile fields each sends along with an answer.',
     write: false,
     input: {},
     run: async (_a, api) =>
@@ -599,6 +610,8 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
           status: f.status,
           opensAt: f.opensAt,
           closesAt: f.closesAt,
+          requestedFields: f.requestedFields,
+          allowEdit: f.allowEdit,
         })),
       ),
   }),
@@ -606,7 +619,7 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
     name: 'get_form',
     title: 'Read a form',
     description:
-      'A form with its sections and questions (only for its angkatan), and your answers if you sent them. Questions with dependsOn appear only when that answer was given.',
+      'A form with its sections and questions (only for its angkatan), the profile fields it sends along (requestedFields), and your answers if you sent them. Kinds: text, textarea, radio, checkbox, dropdown, rating (scale, 1 to 5 unless `scale` says), date (YYYY-MM-DD), time (HH:MM), file. A question with dependsOn is shown, and required, only when that answer was given. canChange says you may still change what you sent.',
     write: false,
     input: { formId: z.string().min(1) },
     run: async (a, api) => {
@@ -624,25 +637,44 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
     name: 'submit_form',
     title: 'Send a form',
     description:
-      "Sends your answers to a form, once, while it is open and only for its angkatan. Each answer names its question's id; a checkbox answer is a list.",
+      "Sends your answers to a form, once, while it is open and only for its angkatan. Each answer names its question's id; a checkbox answer is a list; for \"Lainnya\" send `__other` as the choice and the words in `other`. A file question can't be answered here. When the form requests profile fields (get_form's requestedFields), set agreed to true only after the member said yes to sending exactly those; a saved detail they never gave must first be filled in the app (Profil › Data diri).",
     write: true,
     input: {
       formId: z.string().min(1),
-      answers: z
-        .array(
-          z.object({
-            questionId: z.string(),
-            answer: z.union([z.string(), z.array(z.string())]),
-          }),
-        )
-        .min(1),
+      answers: formAnswers,
+      agreed: z
+        .boolean()
+        .optional()
+        .describe(
+          'The member agreed to send the requested profile fields with their answers',
+        ),
     },
     run: async (a, api) =>
       answer(
         await api('POST', `/form/${id(a.formId)}/response`, {
-          body: { answers: a.answers },
+          body: { answers: a.answers, agreed: a.agreed },
         }),
-        (r) => ({ id: r.id, submittedAt: r.submittedAt }),
+        (r) => ({ id: r.id, submittedAt: r.submittedAt, sent: r.profile }),
+      ),
+  }),
+  tool({
+    name: 'change_form_answers',
+    title: 'Change what you sent to a form',
+    description:
+      'Replaces your answers to a form you already sent, while it is open and its maker allows changes (get_form says canChange). Same rules as submit_form; send every answer again, not only the changed ones.',
+    write: true,
+    idempotent: true,
+    input: {
+      formId: z.string().min(1),
+      answers: formAnswers,
+      agreed: z.boolean().optional(),
+    },
+    run: async (a, api) =>
+      answer(
+        await api('PUT', `/form/${id(a.formId)}/response`, {
+          body: { answers: a.answers, agreed: a.agreed },
+        }),
+        (r) => ({ id: r.id, updatedAt: r.updatedAt }),
       ),
   }),
 
@@ -868,6 +900,39 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
         ...(analytics.body as object),
       });
     },
+  }),
+  tool({
+    name: 'list_managed_forms',
+    title: 'Forms you manage (Kelola › Form)',
+    description:
+      'The forms you made and those shared with you, with their state, how many answered, and what you may do (access.canEdit). For pengurus; scope all lists every form and needs the admin role.',
+    write: false,
+    input: { scope: z.enum(['mine', 'all']).optional() },
+    run: async (a, api) =>
+      answer(
+        await api('GET', '/form/manage/list', { query: { scope: a.scope } }),
+        (b) =>
+          (b.forms as any[]).map((f) => ({
+            id: f.id,
+            title: f.title,
+            status: f.status,
+            link: f.slug,
+            responseCount: f.responseCount,
+            owner: f.owner?.fullName,
+            role: f.access.role,
+            canEdit: f.access.canEdit,
+          })),
+      ),
+  }),
+  tool({
+    name: 'get_form_summary',
+    title: "A form's answers, summed up",
+    description:
+      "The Jawaban tab of a form you manage: how many answered out of its angkatan, and per question the counts, the mean of a scale, the text answers (newest 100) or the files. For the form's owner, the people it is shared with, and admin.",
+    write: false,
+    input: { formId: z.string().min(1) },
+    run: async (a, api) =>
+      answer(await api('GET', `/form/${id(a.formId)}/answers/summary`)),
   }),
   tool({
     name: 'list_sparta_divisions',

@@ -3,6 +3,7 @@ import { type InferSelectModel, relations, sql } from 'drizzle-orm';
 import {
   type AnyPgColumn,
   boolean,
+  date,
   index,
   integer,
   json,
@@ -14,6 +15,14 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import type webpush from 'web-push';
+import type {
+  CollaboratorRole,
+  EmergencyRelation,
+  FormAnswer,
+  FormQuestion,
+  FormSection,
+  ProfileField,
+} from '../lib/form-model';
 import { rolesEnums } from './roles-group';
 
 export const createId = init({
@@ -1148,33 +1157,8 @@ export const internshipSubmissionChoicesRelation = relations(
   }),
 );
 
-export interface FormQuestion {
-  id: string;
-  label: string;
-  type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating';
-  options?: string[];
-  // When set, this question is only shown/required if the question
-  // `dependsOn.questionId` was answered with `dependsOn.value`. Otherwise
-  // it's considered N/A and excluded from "required" validation.
-  dependsOn?: { questionId: string; value: string };
-  // When true, this question is always shown but never required (e.g. an
-  // optional free-text suggestion box).
-  optional?: boolean;
-  // The app starts this answer with the member's own name or NIM (they can
-  // change it). Questions are JSON in `forms.sections`, so no migration.
-  prefill?: 'fullName' | 'nim';
-}
-
-export interface FormSection {
-  id: string;
-  title: string;
-  questions: FormQuestion[];
-}
-
-export interface FormAnswer {
-  questionId: string;
-  answer: string | string[];
-}
+// The JSON inside `forms.sections` and `form_responses.answers` is described in lib/form-model.ts, shared with tests.
+export type { FormAnswer, FormQuestion, FormSection };
 
 export const forms = pgTable('forms', {
   id: text('id').primaryKey().$defaultFn(createId),
@@ -1186,12 +1170,34 @@ export const forms = pgTable('forms', {
     .notNull()
     .default([]),
   sections: json('sections').$type<FormSection[]>().notNull().default([]),
-  opensAt: timestamp('opens_at', { withTimezone: true }).notNull(),
+  // Null only on a draft whose maker chose no opening time: publishing sets it to that moment.
+  opensAt: timestamp('opens_at', { withTimezone: true }),
   // When answers stop being accepted; null keeps the form open until it's switched off (isActive).
   closesAt: timestamp('closes_at', { withTimezone: true }),
+  // False on a draft too, so an app from before drafts (it lists every active form) never shows one.
   isActive: boolean('is_active').notNull().default(true),
   order: integer('order').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  // The pengurus who made it; null for forms made before the builder, which only admin manages.
+  ownerId: text('owner_id').references(() => users.id, {
+    onDelete: 'set null',
+  }),
+  // Null while a draft.
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  // What goes along from the member's profile, as they agree at the end of the form.
+  requestedFields: json('requested_fields')
+    .$type<ProfileField[]>()
+    .notNull()
+    .default([]),
+  // A member may change what they sent until the form closes.
+  allowEdit: boolean('allow_edit').notNull().default(false),
+  // The sent screen's words; null shows the app's own.
+  thanks: text('thanks'),
+  // True once someone chose the short name; until then a draft's name follows its title.
+  slugCustom: boolean('slug_custom').notNull().default(false),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
@@ -1225,9 +1231,73 @@ export const programmeWindows = pgTable('programme_windows', {
 
 export type ProgrammeWindow = InferSelectModel<typeof programmeWindows>;
 
-export const formsRelation = relations(forms, ({ many }) => ({
+export const formsRelation = relations(forms, ({ many, one }) => ({
   responses: many(formResponses),
+  collaborators: many(formCollaborators),
+  owner: one(users, { fields: [forms.ownerId], references: [users.id] }),
 }));
+
+/** Pengurus a form is shared with (Bagikan): `view` sees it and its answers, `edit` also changes and shares it. */
+export const formCollaborators = pgTable(
+  'form_collaborators',
+  {
+    formId: text('form_id')
+      .references(() => forms.id, { onDelete: 'cascade' })
+      .notNull(),
+    userId: text('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    role: text('role', { enum: ['view', 'edit'] })
+      .$type<CollaboratorRole>()
+      .notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.formId, t.userId] }),
+    userIdx: index().on(t.userId),
+  }),
+);
+
+export const formCollaboratorsRelation = relations(
+  formCollaborators,
+  ({ one }) => ({
+    form: one(forms, {
+      fields: [formCollaborators.formId],
+      references: [forms.id],
+    }),
+    user: one(users, {
+      fields: [formCollaborators.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+/**
+ * A member's saved details (Profil › Data diri): given once, requested by forms, sent only after the member agrees.
+ * One row per member; a null column is a detail never given. Account facts stay in `users`.
+ */
+export const memberDetails = pgTable('member_details', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  whatsapp: text('whatsapp'),
+  line: text('line'),
+  instagram: text('instagram'),
+  address: text('address'),
+  hometown: text('hometown'),
+  emergencyName: text('emergency_name'),
+  emergencyRelation: text('emergency_relation').$type<EmergencyRelation>(),
+  emergencyPhone: text('emergency_phone'),
+  health: text('health'),
+  birthDate: date('birth_date', { mode: 'string' }),
+  studentCardPhoto: text('student_card_photo'),
+  photo: text('photo'),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
 export const formResponses = pgTable(
   'form_responses',
@@ -1240,9 +1310,16 @@ export const formResponses = pgTable(
       .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
     answers: json('answers').$type<FormAnswer[]>().notNull(),
+    // The requested profile fields as they were sent, by field: what the member saw and agreed to.
+    profile: json('profile')
+      .$type<Partial<Record<ProfileField, string>>>()
+      .notNull()
+      .default({}),
     submittedAt: timestamp('submitted_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
+    // When the member last changed it ("Ubah jawaban"); null if never.
+    updatedAt: timestamp('updated_at', { withTimezone: true }),
   },
   (t) => ({
     uniqueUserForm: unique().on(t.formId, t.userId),

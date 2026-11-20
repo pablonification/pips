@@ -36,6 +36,11 @@ export function formAdminRoom(formId: string) {
 interface ConnectionDeps {
   jwtSecret: string;
   getUserRoles: (userId: string) => Promise<string[]>;
+  /**
+   * Whether a pengurus may watch a form's new responses: they own it or it is shared with them. Admin may watch every
+   * form without asking. Absent, only admin may.
+   */
+  mayWatchForm?: (userId: string, formId: string) => Promise<boolean>;
   curhat: Omit<CurhatSocketDeps, 'getUserRoles'>;
   onError?: (error: unknown) => void;
 }
@@ -90,16 +95,16 @@ export function handleConnections(io: Server, deps: ConnectionDeps) {
     registerCurhatSocket(socket, session, curhat);
 
     const formAdminId = socket.handshake.auth.formAdminId as string | undefined;
-    if (formAdminId) {
-      // Live counting rooms expose NIM + name of everyone who has submitted
-      // a form response — unlike chat rooms, membership here must be
-      // verified against the 'admin' role before joining, not just trusted
-      // based on client-supplied ids. The auth cookie is httpOnly, so the FE
-      // can't read the JWT to send it explicitly — it rides along on the
-      // handshake request instead (client connects with withCredentials).
+    if (typeof formAdminId === 'string' && formAdminId) {
+      // A form's room hears who sent each response (Live Counting), so joining is checked on the server, never
+      // trusted from the id the client sends: admin, or a pengurus who owns the form or has it shared with them.
       void session.then(async (s) => {
-        const isAdmin = s?.roles.includes('admin') ?? false;
-        if (isAdmin) {
+        if (!s) return;
+        const allowed =
+          s.roles.includes('admin') ||
+          (s.roles.length > 0 &&
+            !!(await deps.mayWatchForm?.(s.userId, formAdminId)));
+        if (allowed) {
           await socket.join(formAdminRoom(formAdminId));
         }
       });

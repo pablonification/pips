@@ -82,6 +82,8 @@ before(async () => {
     await import('../src/controllers/form.controller');
   const { createInfoRouter } =
     await import('../src/controllers/info.controller');
+  const { createFormManageRouter } =
+    await import('../src/controllers/form-manage.controller');
   const { createMcpRouter } = await import('../src/controllers/mcp.controller');
 
   const group = {
@@ -124,6 +126,16 @@ before(async () => {
     }),
   } as any);
 
+  // The builder's side of the same form: akademik made it.
+  const manage = createFormManageRouter({
+    getUserRoles,
+    getFormById: async () => ({ ...form, ownerId: akademik.id }),
+    getFormRelation: async (_f: unknown, userId: string) =>
+      userId === akademik.id ? 'owner' : null,
+    getResponsesForSummary: async () => [],
+    countAudience: async () => 132,
+  } as any);
+
   // Posts as the database answers them: only the member's angkatan sees a post aimed at it.
   const posts = [
     { id: 'post-all', title: 'Untuk semua', angkatan: null },
@@ -158,7 +170,8 @@ before(async () => {
     });
     await next();
   });
-  for (const router of [calendar, forms, info]) api.route('/api', router);
+  for (const router of [calendar, forms, manage, info])
+    api.route('/api', router);
 
   mcpApp = new OpenAPIHono();
   mcpApp.route(
@@ -282,6 +295,25 @@ test('Rekap Form: refused to a plain anggota by the route, allowed to admin', as
   assert.equal(ok.isError, undefined, textOf(ok));
   assert.equal(JSON.parse(textOf(ok)).total, 1);
   await asAdmin.close();
+});
+
+test("a form's summary: refused to anggota and to a pengurus it isn't shared with, given to its maker", async () => {
+  const plain = await connect(await grant(anggota));
+  const refused = await plain.callTool({
+    name: 'get_form_summary',
+    arguments: { formId: 'form-1' },
+  });
+  assert.match(textOf(refused), /^401 /);
+  await plain.close();
+
+  const maker = await connect(await grant(akademik));
+  const ok = await maker.callTool({
+    name: 'get_form_summary',
+    arguments: { formId: 'form-1' },
+  });
+  assert.equal(ok.isError, undefined, textOf(ok));
+  assert.deepEqual(JSON.parse(textOf(ok)), { total: 0, audience: 132 });
+  await maker.close();
 });
 
 test("tools see Pengumuman as the member's own angkatan does", async () => {
