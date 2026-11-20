@@ -1,6 +1,7 @@
 /**
- * Every request the member's side of a form makes, in one place: the list, a form and your response, sending and
- * Ubah jawaban, a form's link, Data diri, and uploading a file. Screens use only these.
+ * Every request the member's side of a form makes: the list, a form and your response, sending and Ubah jawaban, a
+ * form's link and Data diri (uploading a file is `upload.ts`, kept out of the route loaders' way). Screens use only
+ * these two.
  */
 import {
   queryOptions,
@@ -20,7 +21,6 @@ import {
   type FormResponse,
   type MyDetails,
 } from '~/api/generated';
-import { uploadMedia } from '~/lib/upload';
 
 export { formListQuery } from '~/api/queries';
 
@@ -150,10 +150,3 @@ export function detailProblems(error: unknown): Record<string, string> | null {
     ?.problems;
   return p && Object.keys(p).length ? p : null;
 }
-
-/** Uploads a file answer or a photo into the app's storage; resolves to its address. */
-export const uploadAnswerFile = (
-  file: File,
-  kind: 'file' | 'image',
-  onProgress?: (percent: number) => void,
-) => uploadMedia(file, kind, onProgress);

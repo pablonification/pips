@@ -58,7 +58,7 @@ export function DataDiriScreen() {
   else inner = <Loading />;
   return (
     <>
-      <DeskHead title={t.judul} />
+      <DeskHead title={common.shell.dataDiri} />
       {details.data ? inner : <PageBody>{inner}</PageBody>}
     </>
   );

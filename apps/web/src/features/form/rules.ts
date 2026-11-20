@@ -41,15 +41,6 @@ export const MOVES_ON: readonly FormQuestion['type'][] = [
 export const questionsOf = (sections: readonly FormSection[]) =>
   sections.flatMap((s) => s.questions);
 
-/** Whether a question shows: no condition, or its source shows and was answered with the value. */
-export function isShown(
-  q: FormQuestion,
-  sections: readonly FormSection[],
-  a: FillValues['a'],
-): boolean {
-  return shownIds(sections, a).has(q.id);
-}
-
 /** The ids of every question shown with these answers, in order (a condition on a hidden question hides it too). */
 export function shownIds(
   sections: readonly FormSection[],

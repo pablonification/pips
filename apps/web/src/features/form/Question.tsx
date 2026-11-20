@@ -21,7 +21,7 @@ import {
   type Month,
 } from '~/lib/days';
 import { cn } from '~/lib/utils';
-import { uploadAnswerFile } from './queries';
+import { uploadAnswerFile } from './upload';
 import {
   ANSWER_FILE_TYPES,
   dateAnswerText,

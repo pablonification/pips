@@ -285,7 +285,7 @@ export function ProfilScreen() {
           <RuledList>
             <SettingRow
               icon={<IconProfil size={20} />}
-              title={isi.dataDiri.judul}
+              title={common.shell.dataDiri}
               sub={detailsSub}
               to="/profil/data-diri"
             />

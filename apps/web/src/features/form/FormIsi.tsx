@@ -10,7 +10,6 @@ import {
 } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import {
-  ApiError,
   type FormDetail,
   type FormResponse,
   type FormSection,
@@ -18,7 +17,6 @@ import {
 } from '~/api/generated';
 import {
   Button,
-  EmptyState,
   ErrorState,
   LinkButton,
   Saved,
@@ -26,7 +24,6 @@ import {
   Tag,
   toast,
 } from '~/components/garis';
-import { FormFill } from '~/components/form/FormFill';
 import { useFormDraft } from '~/components/form/useFormDraft';
 import { IconCentang } from '~/components/icons/centang';
 import { IconJam } from '~/components/icons/jam';
@@ -36,17 +33,15 @@ import { IconLanjut } from '~/components/icons/lanjut';
 import { IconPeringatan } from '~/components/icons/peringatan';
 import { IconTambah } from '~/components/icons/tambah';
 import { useCover } from '~/components/shell/cover';
-import { PageBody, TopBarActions, usePageTitle } from '~/components/shell/page';
+import { TopBarActions, usePageTitle } from '~/components/shell/page';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
-import { form as formCopy } from '~/copy/form';
 import { isi } from '~/copy/isi';
 import useSession from '~/hooks/auth/useSession';
 import { cn } from '~/lib/utils';
 import { DetailEditor } from './DetailEditor';
 import { Question } from './Question';
 import {
-  formQuery,
   myDetailsQuery,
   myResponseQuery,
   useSendForm,
@@ -107,46 +102,10 @@ const paraKey = () =>
     ? isi.tanya.cmdEnter
     : isi.tanya.ctrlEnter;
 
-/**
- * Layanan › Form › a form. A form made before the builder (no owner: the PIXEL form) keeps the screen it has always
- * had; every other form is filled on one page under its gold cover (FormIsi).
- */
-export function FormPage({ formId }: { formId: string }) {
-  const detail = useQuery(formQuery(formId));
-  const form = detail.data;
-  if (form && form.owner === null) return <FormFill formId={formId} />;
-  if (form) return <FormIsi form={form} refetch={detail.refetch} />;
-  if (detail.isError) {
-    const notFound =
-      detail.error instanceof ApiError && detail.error.status === 404;
-    return (
-      <PageBody>
-        {notFound ? (
-          <EmptyState
-            title={formCopy.tidakAda.judul}
-            text={formCopy.tidakAda.isi}
-            action={<ToList label={formCopy.keDaftar} />}
-          />
-        ) : (
-          <ErrorState
-            title={isi.keadaan.gagal}
-            onRetry={() => void detail.refetch()}
-            retrying={detail.isFetching}
-          />
-        )}
-      </PageBody>
-    );
-  }
-  return (
-    <PageBody>
-      <Loading />
-    </PageBody>
-  );
-}
-
 type Step = 'q' | 'agree';
 
-function FormIsi({
+/** A form made in the builder, filled on one page under its gold cover; its states, and what was sent. */
+export function FormIsi({
   form,
   refetch,
 }: {

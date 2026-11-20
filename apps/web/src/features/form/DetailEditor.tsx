@@ -6,7 +6,7 @@ import { IconPeringatan } from '~/components/icons/peringatan';
 import { IconUnggah } from '~/components/icons/unggah';
 import { fill } from '~/copy/fill';
 import { isi } from '~/copy/isi';
-import { uploadAnswerFile } from './queries';
+import { uploadAnswerFile } from './upload';
 import {
   fieldInfo,
   fileFits,

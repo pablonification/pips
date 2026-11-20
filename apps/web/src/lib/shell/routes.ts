@@ -1,6 +1,5 @@
 import type { FileRouteTypes } from '~/routeTree.gen';
 import { common } from '~/copy/common';
-import { isi } from '~/copy/isi';
 import { mulai } from '~/copy/mulai';
 import { serviceById } from '~/lib/services';
 
@@ -182,7 +181,7 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     parent: '/profil',
   },
   '/profil/data-diri': {
-    title: isi.dataDiri.judul,
+    title: common.shell.dataDiri,
     parent: '/profil',
   },
   '/profil/aplikasi': {

@@ -115,7 +115,6 @@ export const isi = {
     sebentarLagi: 'sebentar lagi',
   },
   dataDiri: {
-    judul: 'Data diri',
     terisi: '{jumlah} dari {semua} terisi',
     catatanJudul: 'Diisi sekali, dipakai di banyak form.',
     catatan:

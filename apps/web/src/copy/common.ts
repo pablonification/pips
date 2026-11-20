@@ -33,6 +33,7 @@ export const common = {
     halo: 'Halo, {nama}',
     // Page titles; service names come from the registry.
     buatPengumuman: 'Buat pengumuman',
+    dataDiri: 'Data diri',
     mataKuliahku: 'Mata kuliahku',
     tambahMataKuliah: 'Tambah mata kuliah',
     notifikasi: 'Notifikasi',
