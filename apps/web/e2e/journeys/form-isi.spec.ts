@@ -240,6 +240,21 @@ test.describe('Filling a form', () => {
     ).toBeVisible();
   });
 
+  test('the gold band starts at the top of the page, with the breadcrumbs on it @desktop-only', async ({
+    page,
+  }) => {
+    await openForm(page, 'makrab', 'Daftar Makrab HMIF 2026');
+    const crumbs = page.getByRole('navigation', { name: 'Jejak halaman' });
+    await expect(crumbs).toBeVisible();
+    // The crumbs grow on the band; the band must follow them up to the page's top, with no strip above it.
+    const top = (await crumbs.boundingBox())!.y;
+    await expect
+      .poll(async () =>
+        Math.abs((await page.locator('.f-cover').boundingBox())!.y - top),
+      )
+      .toBeLessThanOrEqual(1);
+  });
+
   test('a choice moves on to the next question; Oke and Enter do for the rest @desktop-only', async ({
     page,
   }) => {
