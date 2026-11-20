@@ -99,7 +99,8 @@
     font-weight: 500;
     white-space: nowrap;
   }
-  .f-bar-saved .g-saved {
+  .f-bar-saved .g-saved,
+  .f-bar-saved .g-saved svg {
     color: inherit;
     font-size: 13px;
   }
@@ -1069,6 +1070,7 @@
       width: 360px;
     }
     .f-cover .f-title {
+      margin-top: 10px;
       font-size: 32px;
       line-height: 1.1;
       letter-spacing: -0.015em;

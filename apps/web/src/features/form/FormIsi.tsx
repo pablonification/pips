@@ -804,7 +804,9 @@ function Filler({
     <>
       <TopBarActions>
         <Pips p={pips} />
-        <span className="f-bar-saved">{saved}</span>
+        <span className="f-bar-saved">
+          {draft.saved ? <Saved className="" /> : null}
+        </span>
       </TopBarActions>
       <Body
         aside={
