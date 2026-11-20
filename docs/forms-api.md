@@ -154,7 +154,8 @@ changes, shared with the seeded Welfare member as Lihat jawaban; and a draft (`c
 
 ## The web side
 
-- **The builder** is `apps/web/src/features/kelola-form/`: every request in `queries.ts`, the rules with no React in
+- **The builder** is `apps/web/src/features/kelola-form/`: every request in `queries.ts` (what route loaders need in
+  `data.ts`), the rules with no React in
   `rules.ts` (held to the API's by `tests/kelola-form-rules.test.ts`), and the pages `/kelola/form`,
   `/kelola/form/$formId` (`?tab=jawaban|setelan`, `&lihat=satu&no=` for one response) and
   `/kelola/form/$formId/pratinjau`.
