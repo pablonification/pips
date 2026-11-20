@@ -13,7 +13,8 @@ until a screen broke.
 - The API's description (an OpenAPI document) is built from those files without a server or a database:
   `apps/api/scripts/openapi.ts`.
 - The web app's client in `apps/web/src/api/generated/` is generated from that document with
-  `pnpm --filter web api`. Nobody edits it by hand.
+  `pnpm --filter web api`. Nobody edits it by hand. Each operation is a file of its own, so a page loads only the
+  requests it makes ([decision 22](0022-each-api-operation-is-its-own-generated-file-so-a-page-loads-only-what-it-calls.md)).
 - Requests are checked against the description when they arrive (a bad request gets a 400). Answers are not checked
   when they leave: TypeScript compares a handler's answer with its route while the code is built, and nothing looks
   at it while the server runs.

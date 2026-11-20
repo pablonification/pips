@@ -62,6 +62,7 @@ pnpm --filter api db:migrations          # write a migration after a schema.ts c
 ## Ways to hurt yourself
 
 - **Changed a route? Regenerate the client** (`pnpm --filter web api`) and commit `apps/web/src/api/generated/`. CI fails if you forget.
+  Call a route as `api.<operationId>(…)` with `import * as api from '~/api/generated/operations'`.
 - **Migrations only add things.** Never drop or rename a column or table in one. Never run one against a database that is not yours.
 - **Run the API as exactly one process.** Curhat rooms and reminders live in its memory (`docs/adr/0010-*`).
 - **Journeys run on a fixed clock against a pretend API** (`apps/web/e2e/support/mock.ts`). Timers, sockets and real
