@@ -3,7 +3,7 @@
  * cached member may load them. Kept apart from queries.ts so the loaders, which every page's code carries, stay small.
  */
 import { queryOptions, type QueryClient } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { FORM_QUERY_KEY, ME_QUERY_KEY } from '~/api/constants';
 import type { UserWithRoles } from '~/api/generated';
 import { kelolaAccess } from '../kelola/access';
@@ -24,14 +24,14 @@ export const manageKeys = {
 export const managedFormsQuery = (scope: 'mine' | 'all') =>
   queryOptions({
     queryKey: manageKeys.list(scope),
-    queryFn: async () => (await api.form.listManagedForms({ scope })).forms,
+    queryFn: async () => (await api.listManagedForms({ scope })).forms,
   });
 
 /** One form as the builder sees it, with what the caller may do (`access`). */
 export const manageFormQuery = (formId: string) =>
   queryOptions({
     queryKey: manageKeys.form(formId),
-    queryFn: () => api.form.getManagedForm({ formId }),
+    queryFn: () => api.getManagedForm({ formId }),
   });
 
 /** For loaders: whether the cached member may open Kelola › Form, so nothing is asked before the gate. */
