@@ -117,7 +117,8 @@ compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy
    - 0030: the PIXEL form's name and NIM questions prefill (matched by the form's slug; every question keeps its
      place);
    - 0031: the Google calendars of the 2024 and 2025 angkatan (IF and STI), and the STI elective calendar renamed to
-     the code the app looks for, so adding an event for those courses stops failing. Only adds missing rows.
+     the code the app looks for, so adding an event for those courses stops failing. Only adds missing rows;
+   - 0032: angkatan 2025 named PIXEL (renamed, or added if missing; nothing changes if another year holds the name).
 
    They only add things, and today's app keeps working on the migrated database: it ignores the new columns, the
    read marks and the prefill key.
