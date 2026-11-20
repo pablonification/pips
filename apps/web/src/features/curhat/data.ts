@@ -11,7 +11,7 @@ import {
   type QueryFilters,
 } from '@tanstack/react-query';
 import { createContext, useContext, useSyncExternalStore } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import type { Chatroom, ChatroomMessage, ListChatroom } from '~/api/generated';
 import { chatroomsQuery, curhatUnreadQuery } from '~/api/queries';
 import type { CurhatClient, CurhatClientState } from './client';
@@ -78,7 +78,7 @@ export function markRoomRead(qc: QueryClient, chatroomId: string) {
   qc.setQueryData<UnreadRow[]>(CURHAT_UNREAD_KEY, (rows) =>
     rows ? clearUnread(rows, chatroomId) : rows,
   );
-  return api.curhat
+  return api
     .readChatroomMessages({ chatroomId })
     .catch(() => undefined)
     .finally(() => void qc.invalidateQueries({ queryKey: CURHAT_UNREAD_KEY }));
@@ -108,12 +108,11 @@ export function receiveMessage(qc: QueryClient, message: ChatroomMessage) {
 }
 
 export const useCreateRoom = () =>
-  useMutation({ mutationFn: () => api.curhat.createChatroom() });
+  useMutation({ mutationFn: () => api.createChatroom() });
 
 export const useDeleteRoom = () =>
   useMutation({
-    mutationFn: (chatroomId: string) =>
-      api.curhat.deleteChatroom({ chatroomId }),
+    mutationFn: (chatroomId: string) => api.deleteChatroom({ chatroomId }),
   });
 
 /** The area's connection, from the members' Curhat layout or Welfare's inbox (curhat-inbox/Area.tsx); null elsewhere. */

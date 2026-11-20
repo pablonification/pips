@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { COURSE_CATALOGUE_QUERY_KEY } from '~/api/constants';
 
 /**
@@ -9,7 +9,7 @@ import { COURSE_CATALOGUE_QUERY_KEY } from '~/api/constants';
 export const catalogueQuery = () =>
   queryOptions({
     queryKey: [COURSE_CATALOGUE_QUERY_KEY, 'semua'],
-    queryFn: () => api.course.getlistCourses({}).then((r) => r.courses),
+    queryFn: () => api.getlistCourses({}).then((r) => r.courses),
     staleTime: Infinity,
   });
 
@@ -17,7 +17,7 @@ export const catalogueQuery = () =>
 export const courseQuery = (courseId: string) =>
   queryOptions({
     queryKey: [COURSE_CATALOGUE_QUERY_KEY, 'detail', courseId],
-    queryFn: () => api.course.getCourseById({ courseId }),
+    queryFn: () => api.getCourseById({ courseId }),
     staleTime: Infinity,
   });
 
@@ -25,5 +25,5 @@ export const courseQuery = (courseId: string) =>
 export const testimoniQuery = (courseId: string) =>
   queryOptions({
     queryKey: ['testimoni', courseId],
-    queryFn: () => api.testimoni.getTestimoniByCourseId({ courseId }),
+    queryFn: () => api.getTestimoniByCourseId({ courseId }),
   });

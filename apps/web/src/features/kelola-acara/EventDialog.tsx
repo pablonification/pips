@@ -13,7 +13,7 @@ import {
   useState,
   type FormEvent,
 } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import type { CalendarEvent, Course } from '~/api/generated';
 import { currentCoursesQuery } from '~/api/queries';
 import {
@@ -116,11 +116,11 @@ export default function EventDialog({
   const save = useMutation({
     mutationFn: (d: EventDraft) =>
       mode.kind === 'edit'
-        ? api.calendar.updateCalendarEvent({
+        ? api.updateCalendarEvent({
             eventId: mode.event.id,
             requestBody: updateBody(d, mode.event),
           })
-        : api.calendar.postCalendarEvent({ requestBody: createBody(d) }),
+        : api.postCalendarEvent({ requestBody: createBody(d) }),
   });
 
   const patch = (p: Partial<EventDraft>) => setDraft((d) => ({ ...d, ...p }));

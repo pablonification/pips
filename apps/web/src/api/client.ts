@@ -11,21 +11,9 @@ import {
   ME_QUERY_KEY,
   USER_ACADEMIC_QUERY_KEY,
 } from './constants';
-import { ApiClient, ApiError } from './generated';
+import { ApiError } from './generated';
 import { PERSIST_MAX_AGE } from './persistence-policy';
-import { RequestTimeoutError, timedHttpRequest } from './timed-request';
-
-export const api = new ApiClient(
-  {
-    BASE: import.meta.env?.VITE_API_URL ?? '',
-    WITH_CREDENTIALS: true,
-    CREDENTIALS: 'include',
-    // An id is one path part: the generated default (`encodeURI`) leaves `/` and `?` in it.
-    ENCODE_PATH: encodeURIComponent,
-  },
-  // Every request has a time limit, so a stalled network ends in the screen's error and Coba lagi.
-  timedHttpRequest(),
-);
+import { RequestTimeoutError } from './timed-request';
 
 /** The HTTP status of a failed request, or undefined when the error wasn't an answer from the API (no network, timeout). */
 export const statusOf = (e: unknown) =>

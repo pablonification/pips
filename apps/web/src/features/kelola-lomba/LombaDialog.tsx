@@ -5,7 +5,7 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import type { Competition } from '~/api/generated';
 import {
   Button,
@@ -38,7 +38,7 @@ import {
 
 export const categoriesQuery = {
   queryKey: ['competition-categories'],
-  queryFn: () => api.competitions.getCompetitionCategories(),
+  queryFn: () => api.getCompetitionCategories(),
 };
 
 export interface LombaDialogProps {
@@ -71,11 +71,11 @@ export default function LombaDialog({
   const save = useMutation({
     mutationFn: (d: LombaDraft) =>
       competition
-        ? api.competitions.updateCompetition({
+        ? api.updateCompetition({
             id: competition.id,
             requestBody: changedFields(competition, d),
           })
-        : api.competitions.createCompetition({ requestBody: lombaBody(d) }),
+        : api.createCompetition({ requestBody: lombaBody(d) }),
   });
 
   const patch = (p: Partial<LombaDraft>) => setDraft((d) => ({ ...d, ...p }));

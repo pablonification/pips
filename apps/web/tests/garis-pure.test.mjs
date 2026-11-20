@@ -1,6 +1,7 @@
-// vite.config.ts tells the bundler that the Garis components and icons (src/components/garis, icons) do
-// nothing when imported, so a page importing one through the library's index doesn't carry every other one before its
-// first render. This keeps that true: no bare import (`import './x.css'`) and no top-level statement that runs
+// vite.config.ts tells the bundler that the Garis components and icons (src/components/garis, icons) and the generated
+// API operations (src/api/generated/operations) do nothing when imported, so a page importing one through an index
+// doesn't carry every other one before its first render. The operations import `http`, which does run code, so
+// without it the bundler would put every operation in the entry, where the operations' index is imported. This keeps that true: no bare import (`import './x.css'`) and no top-level statement that runs
 // something (a call, an assignment, a listener); only imports, exports, declarations and types.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -8,8 +9,13 @@ import path from 'node:path';
 import test from 'node:test';
 import ts from 'typescript';
 
-const root = path.resolve(import.meta.dirname, '../src/components');
-const files = ['garis', 'icons', 'push'].flatMap((dir) =>
+const root = path.resolve(import.meta.dirname, '../src');
+const files = [
+  'components/garis',
+  'components/icons',
+  'components/push',
+  'api/generated/operations',
+].flatMap((dir) =>
   fs
     .readdirSync(path.join(root, dir))
     .filter((f) => /\.tsx?$/.test(f))
@@ -55,8 +61,8 @@ function runs(node) {
   return found;
 }
 
-test('the Garis components and icons have no import-time effects', () => {
-  assert.ok(files.length > 40, 'found the component files');
+test('the Garis components, icons and API operations have no import-time effects', () => {
+  assert.ok(files.length > 120, 'found the component and operation files');
   const problems = [];
   for (const file of files) {
     const src = ts.createSourceFile(

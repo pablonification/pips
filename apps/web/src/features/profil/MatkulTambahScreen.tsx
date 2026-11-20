@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { COURSE_CATALOGUE_QUERY_KEY } from '~/api/constants';
 import { currentCoursesQuery, userAcademicQuery } from '~/api/queries';
 import {
@@ -30,7 +30,7 @@ const copy = profil.tambah;
 /** The active catalogue, fetched once per visit: search filters it on the device, at once. */
 export const catalogueQuery = () => ({
   queryKey: [COURSE_CATALOGUE_QUERY_KEY, 'semua'],
-  queryFn: () => api.course.getlistCourses({}).then((r) => r.courses),
+  queryFn: () => api.getlistCourses({}).then((r) => r.courses),
   staleTime: Infinity,
 });
 
@@ -102,7 +102,7 @@ export function MatkulTambahScreen({
     }
     setPending(true);
     try {
-      await api.course.createOrUpdateBatchUserCourse({
+      await api.createOrUpdateBatchUserCourse({
         requestBody: picksBody(picks),
       });
     } catch {

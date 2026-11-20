@@ -11,7 +11,8 @@ import {
   type InfiniteData,
   type QueryClient,
 } from '@tanstack/react-query';
-import { api, statusOf } from '~/api/client';
+import { statusOf } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import {
   ANGKATAN_QUERY_KEY,
   CATEGORIES_QUERY_KEY,
@@ -47,7 +48,7 @@ export function useFeed(view: FeedView) {
   return useInfiniteQuery({
     queryKey: feedKey(INFO_LIST_QUERY_KEY, view),
     queryFn: ({ pageParam }) =>
-      api.info.getListInfo(feedRequest(view, pageParam)).then(({ infos }) => {
+      api.getListInfo(feedRequest(view, pageParam)).then(({ infos }) => {
         // Opening a post from the list shows it at once.
         for (const info of infos)
           qc.setQueryData(infoDetailQuery(info.id).queryKey, info);
@@ -73,7 +74,7 @@ export const useComments = (id: string, enabled = true) =>
 export const useCategories = () =>
   useQuery({
     queryKey: [CATEGORIES_QUERY_KEY],
-    queryFn: () => api.category.getListCategory(),
+    queryFn: () => api.getListCategory(),
     select: (d) => d.categories,
   });
 
@@ -81,14 +82,14 @@ export const useCategories = () =>
 export const usePostableCategories = () =>
   useQuery({
     queryKey: [CATEGORIES_QUERY_KEY, 'info'],
-    queryFn: () => api.category.getInfoListCategory(),
+    queryFn: () => api.getInfoListCategory(),
     select: (d) => d.categories,
   });
 
 export const useAngkatan = () =>
   useQuery({
     queryKey: [ANGKATAN_QUERY_KEY],
-    queryFn: () => api.category.getListAngkatan(),
+    queryFn: () => api.getListAngkatan(),
     staleTime: Infinity,
   });
 
@@ -96,7 +97,7 @@ export const useAngkatan = () =>
 export const useGroups = () =>
   useQuery({
     queryKey: ['user-groups'],
-    queryFn: () => api.auth.getUserGroups(),
+    queryFn: () => api.getUserGroups(),
   });
 
 /** Change one post wherever it is cached: every feed page and its detail. */
@@ -146,7 +147,7 @@ export function useMarkRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, read }: { id: string; read: boolean }) =>
-      api.info.readInfo({ infoId: id, requestBody: { unread: !read } }),
+      api.readInfo({ infoId: id, requestBody: { unread: !read } }),
     onMutate: async ({ id, read }) => {
       const snap = snapshot(qc, id);
       snap.push([UNREAD_KEY, qc.getQueryData(UNREAD_KEY)]);
@@ -167,7 +168,7 @@ export function useMarkRead() {
 export function useMarkAllRead() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => api.info.readAllInfo(),
+    mutationFn: () => api.readAllInfo(),
     onSuccess: async () => {
       const read = (i: Info) => (i.isRead ? i : { ...i, isRead: true });
       qc.setQueryData<string[]>(UNREAD_KEY, []);
@@ -201,15 +202,15 @@ export function useReact() {
       next: PixelReactionKey | null;
     }) => {
       if (next)
-        return api.reaction.createOrUpdateReaction({
+        return api.createOrUpdateReaction({
           requestBody:
             target.kind === 'info'
               ? { infoId: target.infoId, reaction: next }
               : { commentId: target.commentId, reaction: next },
         });
       return target.kind === 'info'
-        ? api.reaction.deleteInfoReaction({ infoId: target.infoId })
-        : api.reaction.deleteCommentReaction({ commentId: target.commentId });
+        ? api.deleteInfoReaction({ infoId: target.infoId })
+        : api.deleteCommentReaction({ commentId: target.commentId });
     },
     onMutate: async ({ target, next }) => {
       const snap = snapshot(qc, target.infoId);
@@ -243,7 +244,7 @@ export function usePostComment(infoId: string) {
   return useMutation({
     mutationKey: postCommentKey(infoId),
     mutationFn: (content: string) =>
-      api.comment.postComment({
+      api.postComment({
         requestBody: { repliedInfoId: infoId, content },
       }),
     // Offline, a send fails at once (the comment's error with Coba lagi) instead of waiting, paused, and going out
@@ -278,7 +279,7 @@ export function useDeleteComment(infoId: string) {
   };
   return useMutation({
     mutationFn: (commentId: string) =>
-      api.comment.deleteComment({ commentId }).catch((e: unknown) => {
+      api.deleteComment({ commentId }).catch((e: unknown) => {
         // Already gone: take it out all the same.
         if (statusOf(e) === 404) return null;
         throw e;
@@ -291,7 +292,7 @@ export function useDeleteInfo() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) =>
-      api.info.deleteInfo({ infoId: id }).catch((e: unknown) => {
+      api.deleteInfo({ infoId: id }).catch((e: unknown) => {
         if (statusOf(e) === 404) return null;
         throw e;
       }),
@@ -305,7 +306,7 @@ export function useDeleteInfo() {
 export function useRenotify() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.info.renotifyInfo({ infoId: id }),
+    mutationFn: (id: string) => api.renotifyInfo({ infoId: id }),
     onSuccess: (_r, id) =>
       patchInfo(qc, id, (i) => ({
         ...i,
@@ -322,11 +323,11 @@ export function useCreateInfo() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (
-      body: Parameters<typeof api.info.createInfo>[0]['requestBody'],
+      body: Parameters<typeof api.createInfo>[0]['requestBody'],
     ) => {
-      const created = await api.info.createInfo({ requestBody: body });
+      const created = await api.createInfo({ requestBody: body });
       // The API doesn't mark a new post read for its author.
-      await api.info
+      await api
         .readInfo({ infoId: created.id, requestBody: { unread: false } })
         .catch(() => undefined);
       return created;

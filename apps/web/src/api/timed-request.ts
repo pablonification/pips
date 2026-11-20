@@ -20,8 +20,8 @@ export class RequestTimeoutError extends Error {
 
 /**
  * The generated client's request (`generated/core/request.ts`, which regeneration rewrites) with a time limit: past
- * it the fetch is aborted and the request fails with `RequestTimeoutError`. Passed to `ApiClient` as its
- * `HttpRequest`, so the generated files stay as generated.
+ * it the fetch is aborted and the request fails with `RequestTimeoutError`. The app's `http` (src/api/http.ts), which
+ * every generated operation calls, is one, so the generated files stay as generated.
  */
 export function timedHttpRequest(ms: number = REQUEST_TIMEOUT_MS) {
   return class TimedHttpRequest extends BaseHttpRequest {

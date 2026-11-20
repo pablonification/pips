@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
-import { afterEach, test } from 'node:test';
-import { ApiClient, ApiError } from '../src/api/generated';
+import { afterEach, mock, test } from 'node:test';
+import { ApiError, OpenAPI } from '../src/api/generated';
 import {
   REQUEST_TIMEOUT_MS,
   RequestTimeoutError,
@@ -33,8 +33,12 @@ function hangingFetch() {
   return seen;
 }
 
-const client = (ms?: number) =>
-  new ApiClient({ BASE: 'https://api.test' }, timedHttpRequest(ms));
+/** `POST /api/logout` through a timed request with a limit of `ms`. */
+const logout = (ms?: number) =>
+  new (timedHttpRequest(ms))({ ...OpenAPI, BASE: 'https://api.test' }).request({
+    method: 'POST',
+    url: '/api/logout',
+  });
 
 test('the limit is between 20 and 30 seconds', () => {
   assert.ok(REQUEST_TIMEOUT_MS >= 20_000 && REQUEST_TIMEOUT_MS <= 30_000);
@@ -43,7 +47,7 @@ test('the limit is between 20 and 30 seconds', () => {
 test('a request with no answer fails with RequestTimeoutError and aborts its fetch', async () => {
   const seen = hangingFetch();
   const started = Date.now();
-  await assert.rejects(client(50).auth.logout(), (e: unknown) => {
+  await assert.rejects(logout(50), (e: unknown) => {
     assert.ok(e instanceof RequestTimeoutError);
     assert.ok(!(e instanceof ApiError));
     return true;
@@ -60,10 +64,10 @@ test('an answer in time resolves as before, and an HTTP error is still an ApiErr
       status,
       headers: { 'Content-Type': 'application/json' },
     })) as typeof fetch;
-  assert.deepEqual(await client(1_000).auth.logout(), { ok: true });
+  assert.deepEqual(await logout(1_000), { ok: true });
   status = 401;
   await assert.rejects(
-    client(1_000).auth.logout(),
+    logout(1_000),
     (e: unknown) => e instanceof ApiError && e.status === 401,
   );
 });
@@ -84,14 +88,14 @@ test('a slow body counts against the limit too', async () => {
       ),
     )) as typeof fetch;
   await assert.rejects(
-    client(50).auth.logout(),
+    logout(50),
     (e: unknown) => e instanceof RequestTimeoutError,
   );
 });
 
 test('cancelling still cancels, and clears the time limit', async () => {
   const seen = hangingFetch();
-  const p = client(50).auth.logout();
+  const p = logout(50);
   await new Promise((r) => setTimeout(r, 5));
   p.cancel();
   await assert.rejects(p, (e: unknown) => (e as Error).name === 'CancelError');
@@ -102,7 +106,7 @@ test('cancelling still cancels, and clears the time limit', async () => {
 
 test("the app's client sends an id as one part of the path", async () => {
   // An id from the address bar is any text; `/` or `?` in it must not reach another route.
-  const { api } = await import('../src/api/client');
+  const api = await import('../src/api/generated/operations');
   const urls: string[] = [];
   globalThis.fetch = (async (url: string) => {
     urls.push(String(url));
@@ -111,6 +115,30 @@ test("the app's client sends an id as one part of the path", async () => {
       headers: { 'Content-Type': 'application/json' },
     });
   }) as typeof fetch;
-  await api.info.getInfoById({ infoId: '../me?' });
+  await api.getInfoById({ infoId: '../me?' });
   assert.deepEqual(urls, ['/api/info/..%2Fme%3F']);
+});
+
+test("the app's operations send credentials and have the time limit", async () => {
+  const api = await import('../src/api/generated/operations');
+  const seen = hangingFetch();
+  let init: RequestInit | undefined;
+  const hanging = globalThis.fetch;
+  globalThis.fetch = ((url: string, i?: RequestInit) => {
+    init = i;
+    return hanging(url, i);
+  }) as typeof fetch;
+  mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    const p = api.logout();
+    // The request starts after a few awaits (headers, body); let them run before the clock moves.
+    for (let i = 0; i < 20 && !seen.calls; i++) await Promise.resolve();
+    assert.equal(seen.calls, 1);
+    assert.equal(init?.credentials, 'include');
+    mock.timers.tick(REQUEST_TIMEOUT_MS);
+    await assert.rejects(p, (e: unknown) => e instanceof RequestTimeoutError);
+    assert.equal(seen.aborted, true);
+  } finally {
+    mock.timers.reset();
+  }
 });

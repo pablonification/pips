@@ -1,6 +1,7 @@
 import { userSchema } from './member-schema';
 import { ME_QUERY_KEY } from '~/api/constants';
-import { api, queryClient } from '~/api/client';
+import { queryClient } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { clearPersistedQueries } from '~/api/persister';
 import { User, UserWithRoles } from '~/api/generated';
 import { forgetShell } from '~/components/shell/shell-state';
@@ -87,7 +88,7 @@ export function saveUserCache(user: User | null) {
  */
 export async function fetchSession(): Promise<UserWithRoles | null> {
   try {
-    return await api.auth.getMe();
+    return await api.getMe();
   } catch (error) {
     if (isSignedOutError(error)) return null;
     throw error;

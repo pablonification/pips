@@ -3,7 +3,7 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import {
   ApiError,
   type DraftInternshipSubmission,
@@ -16,14 +16,13 @@ const KEY = 'internship';
 export const spartaWindowQuery = () =>
   queryOptions({
     queryKey: [KEY, 'window'],
-    queryFn: () => api.internship.getInternshipWindow(),
+    queryFn: () => api.getInternshipWindow(),
   });
 
 export const spartaDepartmentsQuery = () =>
   queryOptions({
     queryKey: [KEY, 'departments'],
-    queryFn: async () =>
-      (await api.internship.getInternshipDepartments()).departments,
+    queryFn: async () => (await api.getInternshipDepartments()).departments,
   });
 
 /** The member's draft or sent choices, or null (the API answers 200 null when there is none). */
@@ -31,7 +30,7 @@ export const spartaSubmissionQuery = () =>
   queryOptions({
     queryKey: [KEY, 'my-submission'],
     queryFn: async () =>
-      ((await api.internship.getMyInternshipSubmission()) ??
+      ((await api.getMyInternshipSubmission()) ??
         null) as InternshipSubmission | null,
   });
 
@@ -56,12 +55,12 @@ export function useSpartaWrites() {
   const queryClient = useQueryClient();
   const draft = useMutation({
     mutationFn: (requestBody: DraftInternshipSubmission) =>
-      api.internship.upsertMyInternshipSubmission({ requestBody }),
+      api.upsertMyInternshipSubmission({ requestBody }),
     networkMode: 'always',
   });
   const send = useMutation({
     mutationFn: (requestBody: DraftInternshipSubmission) =>
-      api.internship.submitMyInternshipSubmission({ requestBody }),
+      api.submitMyInternshipSubmission({ requestBody }),
     networkMode: 'always',
   });
   const run =

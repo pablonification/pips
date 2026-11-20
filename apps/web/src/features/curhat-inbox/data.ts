@@ -3,7 +3,7 @@
  * sends every room and counts every room). The one write of its own is the pin.
  */
 import { useMutation, type QueryClient } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { type ListChatroom } from '~/api/generated';
 import { ROOMS_KEY } from '~/features/curhat/data';
 
@@ -16,7 +16,7 @@ export const usePinRoom = () =>
     }: {
       chatroomId: string;
       isPinned: boolean;
-    }) => api.curhat.pinChatroom({ chatroomId, requestBody: { isPinned } }),
+    }) => api.pinChatroom({ chatroomId, requestBody: { isPinned } }),
   });
 
 /** The pin as the server now has it, in the rooms cache (no refetch: the list reorders at once). */

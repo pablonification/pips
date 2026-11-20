@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { ANGKATAN_QUERY_KEY } from '~/api/constants';
 
 /* Profil's own reads; the shared ones (courses, academic profile, credits) are in ~/api/queries. */
@@ -8,7 +8,7 @@ import { ANGKATAN_QUERY_KEY } from '~/api/constants';
 export const groupsQuery = () =>
   queryOptions({
     queryKey: ['auth-groups'],
-    queryFn: () => api.auth.getUserGroups(),
+    queryFn: () => api.getUserGroups(),
     staleTime: Infinity,
   });
 
@@ -16,6 +16,6 @@ export const groupsQuery = () =>
 export const angkatanQuery = () =>
   queryOptions({
     queryKey: [ANGKATAN_QUERY_KEY],
-    queryFn: () => api.category.getListAngkatan(),
+    queryFn: () => api.getListAngkatan(),
     staleTime: Infinity,
   });

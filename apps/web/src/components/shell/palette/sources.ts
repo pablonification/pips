@@ -15,7 +15,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { INFO_LIST_QUERY_KEY } from '~/api/constants';
 import { openPushPrompt, usePushState } from '~/components/push';
 import { cari } from '~/copy/cari';
@@ -148,7 +148,7 @@ function usePostItems(query: string): {
   const q = query.trim();
   const found = useQuery({
     queryKey: [INFO_LIST_QUERY_KEY, 'search', q],
-    queryFn: () => api.info.getListInfo({ search: q }).then((r) => r.infos),
+    queryFn: () => api.getListInfo({ search: q }).then((r) => r.infos),
     enabled: asksApi(q),
     retry: false,
   });
@@ -235,7 +235,7 @@ function usePeopleItems(query: string): {
   const q = query.trim();
   const found = useQuery({
     queryKey: ['nim-finder', 'search', q],
-    queryFn: () => api.userFinder.getUser({ search: q }),
+    queryFn: () => api.getUser({ search: q }),
     enabled: asksApi(q),
     retry: false,
   });

@@ -6,7 +6,7 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useRef, useState, type ReactNode } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import type { Competition } from '~/api/generated';
 import {
   Button,
@@ -96,8 +96,7 @@ function Options({ c }: { c: Competition }) {
   const [open, setOpen] = useState<'ubah' | 'hapus' | null>(null);
   const after = useAfterSave();
   const remove = useMutation({
-    mutationFn: () =>
-      api.competitions.deleteCompetition({ competitionId: c.id }),
+    mutationFn: () => api.deleteCompetition({ competitionId: c.id }),
   });
 
   return (

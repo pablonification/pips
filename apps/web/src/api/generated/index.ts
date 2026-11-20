@@ -2,7 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export { ApiClient } from './ApiClient';
 
 export { ApiError } from './core/ApiError';
 export { BaseHttpRequest } from './core/BaseHttpRequest';
@@ -78,24 +77,3 @@ export type { UserGroups } from './models/UserGroups';
 export type { UserWithRoles } from './models/UserWithRoles';
 export type { ValidationError } from './models/ValidationError';
 
-export { AuthService } from './services/AuthService';
-export { CalendarService } from './services/CalendarService';
-export { CategoryService } from './services/CategoryService';
-export { CommentService } from './services/CommentService';
-export { CompetitionsService } from './services/CompetitionsService';
-export { CourseService } from './services/CourseService';
-export { CurhatService } from './services/CurhatService';
-export { FormService } from './services/FormService';
-export { InfoService } from './services/InfoService';
-export { InternshipService } from './services/InternshipService';
-export { MarkdownService } from './services/MarkdownService';
-export { MediaService } from './services/MediaService';
-export { OauthService } from './services/OauthService';
-export { OpenGraphService } from './services/OpenGraphService';
-export { ProgrammeWindowService } from './services/ProgrammeWindowService';
-export { PushService } from './services/PushService';
-export { ReactionService } from './services/ReactionService';
-export { TestimoniService } from './services/TestimoniService';
-export { UnsubscribeService } from './services/UnsubscribeService';
-export { UserFinderService } from './services/UserFinderService';
-export { UserProfileService } from './services/UserProfileService';

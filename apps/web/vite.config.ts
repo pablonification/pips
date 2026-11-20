@@ -264,6 +264,12 @@ export default defineConfig(({ mode }) => {
               test: /[\\/]src[\\/]components[\\/](garis|icons|push)[\\/][^\\/]+\.tsx?$/,
               sideEffects: false,
             },
+            // Each API operation is a file of its own (docs/adr/0022-*). It imports `http`, which runs code, so without
+            // this every operation would be evaluated, and loaded, where the entry imports the operations' index.
+            {
+              test: /[\\/]src[\\/]api[\\/]generated[\\/]operations[\\/][^\\/]+\.ts$/,
+              sideEffects: false,
+            },
           ],
         },
         output: {

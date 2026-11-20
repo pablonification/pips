@@ -60,8 +60,9 @@ folder is for.
    ```
    Run it: `pnpm --filter api exec tsx --test tests/contoh-route.test.ts tests/route-access.test.ts`.
 7. **Regenerate the web client** from the repository root: `pnpm --filter web api`. It prints `openapi: 72 paths written…`
-   and adds files under `apps/web/src/api/generated/` (a `ContohService.ts`, the models, and lines in `ApiClient.ts`
-   and `index.ts`). Commit them. You call it as `api.contoh.listContoh()`, as `queries.ts` calls `api.course.getCurrentUserCourse()`.
+   and adds files under `apps/web/src/api/generated/` (`operations/listContoh.ts`, a line in `operations/index.ts`, and
+   the models). Commit them. You call it as `api.listContoh()` after `import * as api from '~/api/generated/operations'`,
+   as `queries.ts` calls `api.getCurrentUserCourse()`.
 8. **Mirror the role in the web app** if the web app shows or hides something by it: a row in
    `apps/web/src/lib/capabilities.ts` and a check in `apps/web/tests/capabilities.test.ts` that reads your row
    (steps 3 and 4 of [add a service to Layanan](add-a-service-to-layanan.md)).

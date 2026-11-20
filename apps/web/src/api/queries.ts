@@ -1,5 +1,6 @@
 import { queryOptions, type QueryKey } from '@tanstack/react-query';
-import { api, queryClient } from './client';
+import { queryClient } from './client';
+import * as api from './generated/operations';
 import {
   CALENDAR_EVENTS_QUERY_KEY,
   CHATROOMS_QUERY_KEY,
@@ -41,45 +42,45 @@ export const calendarEventsQuery = ({
 }) =>
   queryOptions({
     queryKey: [CALENDAR_EVENTS_QUERY_KEY, { month, year }],
-    queryFn: () => api.calendar.getPersonalCalendar({ month, year }),
+    queryFn: () => api.getPersonalCalendar({ month, year }),
   });
 
 /** This semester's courses (Mata kuliahku, Ding Dong). */
 export const currentCoursesQuery = () =>
   queryOptions({
     queryKey: [CURRENT_COURSES_QUERY_KEY],
-    queryFn: () => api.course.getCurrentUserCourse(),
+    queryFn: () => api.getCurrentUserCourse(),
   });
 
 export const userAcademicQuery = () =>
   queryOptions({
     queryKey: [USER_ACADEMIC_QUERY_KEY],
-    queryFn: () => api.userProfile.getUserAcademic(),
+    queryFn: () => api.getUserAcademic(),
   });
 
 export const formListQuery = () =>
   queryOptions({
     queryKey: [FORM_QUERY_KEY, 'list'],
-    queryFn: () => api.form.listForms(),
+    queryFn: () => api.listForms(),
   });
 
 /** One definition for Curhat's list, Layanan's count and Beranda's row. */
 export const curhatUnreadQuery = () =>
   queryOptions({
     queryKey: CURHAT_UNREAD_KEY,
-    queryFn: () => api.curhat.unreadCountChatroomMessages(),
+    queryFn: () => api.unreadCountChatroomMessages(),
   });
 
 export const chatroomsQuery = () =>
   queryOptions({
     queryKey: [CHATROOMS_QUERY_KEY],
-    queryFn: () => api.curhat.getUserChatrooms(),
+    queryFn: () => api.getUserChatrooms(),
   });
 
 export const creditsQuery = () =>
   queryOptions({
     queryKey: [CREDITS_QUERY_KEY],
-    queryFn: () => api.markdown.getCredits(),
+    queryFn: () => api.getCredits(),
   });
 
 /**
@@ -92,22 +93,20 @@ export const unreadInfosQuery = () =>
   queryOptions({
     queryKey: [INFO_LIST_QUERY_KEY, UNREAD_INFOS_KEY_PART],
     queryFn: () =>
-      api.info
-        .getListInfo({ unread: 'true', sort: 'newest' })
-        .then((r) => r.infos),
+      api.getListInfo({ unread: 'true', sort: 'newest' }).then((r) => r.infos),
   });
 
 export const infoDetailQuery = (infoId: string) =>
   queryOptions({
     queryKey: [INFO_QUERY_KEY, 'detail', infoId],
-    queryFn: () => api.info.getInfoById({ infoId }),
+    queryFn: () => api.getInfoById({ infoId }),
   });
 
 export const infoCommentsQuery = (infoId: string) =>
   queryOptions({
     queryKey: [INFO_QUERY_KEY, 'comments', infoId],
     queryFn: () =>
-      api.comment
+      api
         .getCommentsList({ infoId, sort: 'oldest' })
         .then((res) => res.comment),
   });

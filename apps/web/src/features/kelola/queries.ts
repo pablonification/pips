@@ -1,5 +1,5 @@
 import { queryOptions, type QueryClient } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { FORM_QUERY_KEY, ME_QUERY_KEY } from '~/api/constants';
 import type {
   AdminFormResponseItem,
@@ -22,7 +22,7 @@ import {
 export const adminFormsQuery = () =>
   queryOptions({
     queryKey: [FORM_QUERY_KEY, 'admin', 'list'],
-    queryFn: async () => (await api.form.listAllForms()).forms,
+    queryFn: async () => (await api.listAllForms()).forms,
   });
 
 /**
@@ -34,8 +34,7 @@ export const formResponsesCountKey = (formId: string) =>
 export const formResponsesCountQuery = (formId: string) =>
   queryOptions({
     queryKey: formResponsesCountKey(formId),
-    queryFn: async () =>
-      (await api.form.getFormResponsesCount({ formId })).total,
+    queryFn: async () => (await api.getFormResponsesCount({ formId })).total,
   });
 
 /** The newest five responses (newest first), with each one's major. */
@@ -44,7 +43,7 @@ export const latestResponsesQuery = (formId: string) =>
     queryKey: [FORM_QUERY_KEY, 'admin', formId, 'responses', 'latest'],
     queryFn: async () =>
       (
-        await api.form.listFormResponses({
+        await api.listFormResponses({
           formId,
           page: 1,
           limit: LATEST_COUNT,
@@ -61,7 +60,7 @@ export const responsesPageQuery = (
   queryOptions({
     queryKey: [FORM_QUERY_KEY, 'admin', formId, 'responses', { page, search }],
     queryFn: () =>
-      api.form.listFormResponses({
+      api.listFormResponses({
         formId,
         page,
         limit: REKAP_PAGE_SIZE,
@@ -72,7 +71,7 @@ export const responsesPageQuery = (
 export const formAnalyticsQuery = (formId: string) =>
   queryOptions({
     queryKey: [FORM_QUERY_KEY, 'admin', formId, 'analytics'],
-    queryFn: () => api.form.getFormAnalytics({ formId }),
+    queryFn: () => api.getFormAnalytics({ formId }),
     // The bars refresh when the page loads or refocuses, not on live events.
     refetchOnWindowFocus: 'always',
   });
@@ -86,7 +85,7 @@ export async function fetchAllResponses(
 ): Promise<AdminFormResponseItem[]> {
   const all: AdminFormResponseItem[] = [];
   for (let page = 1; ; page++) {
-    const { responses } = await api.form.listFormResponses({
+    const { responses } = await api.listFormResponses({
       formId,
       page,
       limit: EXPORT_PAGE_SIZE,
@@ -109,7 +108,7 @@ export const spartaSubmissionsQuery = () =>
     queryFn: async () => {
       const all: InternshipSubmission[] = [];
       for (let offset = 0; ; offset += SUBMISSIONS_PER_PAGE) {
-        const { submissions } = await api.internship.listInternshipSubmissions({
+        const { submissions } = await api.listInternshipSubmissions({
           offset,
         });
         all.push(...submissions);
@@ -121,7 +120,7 @@ export const spartaSubmissionsQuery = () =>
 export const spartaSubmissionByIdQuery = (id: string) =>
   queryOptions({
     queryKey: ['internship', 'admin', 'submission', id],
-    queryFn: () => api.internship.getInternshipSubmissionById({ id }),
+    queryFn: () => api.getInternshipSubmissionById({ id }),
   });
 
 /** For loaders: whether the cached member may open a Kelola page, so no admin request goes out before the guard. */

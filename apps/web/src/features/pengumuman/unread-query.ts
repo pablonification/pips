@@ -1,6 +1,6 @@
 /** The unread count's query, for the feed's chip and the shell's badge (see ./unread.ts). */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import { unreadInfosQuery } from '~/api/queries';
 import { pageUnreadIds, UNREAD_KEY } from './unread';
 
@@ -14,7 +14,7 @@ export const useUnreadIds = (enabled = true) => {
         offset === 0
           ? // The first page is Beranda's unread list: one request when both want it, always fresh for the count.
             client.fetchQuery({ ...unreadInfosQuery(), staleTime: 0 })
-          : api.info
+          : api
               .getListInfo({ unread: 'true', offset, sort: 'newest' })
               .then((r) => r.infos),
       ),

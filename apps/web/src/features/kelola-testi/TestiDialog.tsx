@@ -4,7 +4,7 @@
  */
 import { useMutation } from '@tanstack/react-query';
 import { useId, useRef, useState, type FormEvent } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import type { Course, Testimoni } from '~/api/generated';
 import { Button, Input, Modal, Textarea } from '~/components/garis';
 import { IconPeringatan } from '~/components/icons/peringatan';
@@ -40,7 +40,7 @@ export default function TestiDialog({
   const fields = testiSections(course.major);
   const save = useMutation({
     mutationFn: (d: TestiDraft) =>
-      api.testimoni.createTestimoni({
+      api.createTestimoni({
         requestBody: testiBody(course.id, course.major, d),
       }),
   });

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import type { NimFinderResult } from '~/api/generated';
 import {
   Avatar,
@@ -69,7 +69,7 @@ export function NimScreen() {
   const q = nimQuery(settledTyped);
   const results = useQuery({
     queryKey: ['nim', q],
-    queryFn: () => api.userFinder.getUser({ search: q! }),
+    queryFn: () => api.getUser({ search: q! }),
     enabled: !!q,
     select: (rows) => rankMembers(rows, q ?? ''),
   });

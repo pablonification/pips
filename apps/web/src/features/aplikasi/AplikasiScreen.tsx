@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { api } from '~/api/client';
+import * as api from '~/api/generated/operations';
 import type { ConnectedApp } from '~/api/generated';
 import {
   Button,
@@ -37,7 +37,7 @@ export function AplikasiScreen() {
   const showSkeleton = useDelayed(apps.isPending);
   const revoke = useMutation({
     mutationFn: (app: ConnectedApp) =>
-      api.oauth.revokeConnectedApp({ clientId: app.clientId }),
+      api.revokeConnectedApp({ clientId: app.clientId }),
     onSuccess: (_r, app) => {
       setOpen(false);
       toast.success(fill(copy.diputus, { nama: appName(app.name) }));
