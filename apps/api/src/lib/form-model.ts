@@ -126,27 +126,6 @@ export const SAVED_FIELDS = PROFILE_FIELDS.filter(
   (f) => !ACCOUNT_FIELDS.includes(f),
 ) as SavedField[];
 
-/** The groups of Data diri and the builder's ticks, as the prototype draws them. */
-export const PROFILE_FIELD_GROUPS: Record<
-  'account' | 'contact' | 'address' | 'emergency' | 'documents',
-  readonly ProfileField[]
-> = {
-  account: ACCOUNT_FIELDS,
-  contact: ['whatsapp', 'line', 'instagram'],
-  address: ['address', 'hometown'],
-  emergency: ['emergencyContact', 'health'],
-  documents: ['birthDate', 'studentCardPhoto', 'photo'],
-};
-
-/** Shown to the maker with a lock and "sensitif". */
-export const SENSITIVE_FIELDS: readonly ProfileField[] = [
-  'address',
-  'emergencyContact',
-  'health',
-  'birthDate',
-  'studentCardPhoto',
-];
-
 /** A new form requests these until its maker unticks them. */
 export const NEW_FORM_FIELDS: readonly ProfileField[] = ['fullName', 'nim'];
 

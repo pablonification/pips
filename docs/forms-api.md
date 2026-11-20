@@ -33,9 +33,11 @@ the words (anggota, pengurus, angkatan) are in [CONTEXT.md](../CONTEXT.md). The 
   (Nama), `nim`, `major` (Program studi), `angkatan`, `campus` (Kampus), `email` (Email mahasiswa); saved by the member
   in Data diri, `whatsapp`, `line`, `instagram`, `address` (Alamat selama kuliah), `hometown` (Kota asal),
   `emergencyContact` (Kontak darurat: name, relation, phone), `health` (Kondisi kesehatan), `birthDate`,
-  `studentCardPhoto` (Foto KTM), `photo` (Foto diri). Groups, sensitive ones and labels are in `form-model.ts`
-  (`PROFILE_FIELD_GROUPS`, `SENSITIVE_FIELDS`, `PROFILE_FIELD_LABELS`); the screen's words still come from
-  `apps/web/src/copy/`.
+  `studentCardPhoto` (Foto KTM), `photo` (Foto diri). The prototype's groups: Dari akun (the first six), Kontak
+  (WhatsApp, LINE, Instagram), Alamat (address, hometown), Darurat dan kesehatan (emergency contact, health),
+  Identitas dan dokumen (birth date, Foto KTM, Foto diri); the sensitive ones (a lock and "sensitif" in the builder)
+  are address, emergency contact, health, birth date and Foto KTM. The export's column names are
+  `PROFILE_FIELD_LABELS` in `form-model.ts`; the screen's words come from `apps/web/src/copy/`.
 - **A response** is one per member per form. It keeps the answers and, by field, the requested profile fields' values
   as they were sent (`profile`): what the member saw and agreed to. That is all the builder's side ever sees about who
   sent it.

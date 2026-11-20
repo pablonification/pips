@@ -294,6 +294,24 @@ test('a new form, its title naming its link, publishing, renaming, and a breakin
     makrab.responses.some((r) => r.answers.some((a) => a.questionId === 'k8')),
     false,
   );
+  // Hapus form: Lihat jawaban can't; the owner can, and its link then finds nothing.
+  const asViewer = buildDb('pengurus', { only: ['akademik'] });
+  assert.equal(
+    await statusOf(writes.deleteForm, asViewer, {
+      params: { formId: 'welpar' },
+    }),
+    403,
+  );
+  assert.equal(
+    await statusOf(writes.deleteForm, db, { params: { formId: 'makrab' } }),
+    204,
+  );
+  assert.equal(
+    await statusOf(get('/api/form-link/:name'), db, {
+      params: { name: 'makrab-2026' },
+    }),
+    404,
+  );
 });
 
 test("Nadia's forms: the link's states, the agreement step with a missing detail, Ubah jawaban", async () => {

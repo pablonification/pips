@@ -4,7 +4,6 @@
  */
 import {
   CHOICE_TYPES,
-  DEFAULT_SCALE,
   FORM_LIMITS,
   OTHER_ANSWER,
   OTHER_TYPES,
@@ -187,9 +186,6 @@ export function dropLostAnswers(
   const gone = new Set(lost.map((b) => b.questionId));
   return answers.filter((a) => !gone.has(a.questionId));
 }
-
-/** The scale a rating uses. */
-export const scaleOf = (q: FormQuestion) => q.scale ?? DEFAULT_SCALE;
 
 // The short name: app.hmif.dev/f/<slug>.
 
