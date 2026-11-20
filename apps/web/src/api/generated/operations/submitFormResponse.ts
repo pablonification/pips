@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { DetailsChange } from '../models/DetailsChange';
 import type { FormAnswer } from '../models/FormAnswer';
 import type { FormResponse } from '../models/FormResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -20,6 +21,8 @@ export function submitFormResponse({
   formId: string,
   requestBody?: {
     answers: Array<FormAnswer>;
+    details?: DetailsChange;
+    agreed?: boolean;
   },
 }): CancelablePromise<FormResponse> {
   return http.request({
@@ -31,7 +34,7 @@ export function submitFormResponse({
     body: requestBody,
     mediaType: 'application/json',
     errors: {
-      400: `Bad request`,
+      400: `Bad request: validation, an answer that does not fit (error), a saved detail that does not (problems), requested fields still missing (missing), or no agreement`,
       401: `Error`,
       403: `Not for your angkatan, not open yet, or closed (switched off or past closesAt)`,
       404: `Error`,

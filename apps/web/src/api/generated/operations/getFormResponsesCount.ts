@@ -5,7 +5,7 @@
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { http } from '../../http';
 /**
- * @returns any Total number of responses (admin only)
+ * @returns any Total number of responses (admin only), for a form made before the builder
  * @throws ApiError
  */
 export function getFormResponsesCount({
@@ -26,6 +26,7 @@ export function getFormResponsesCount({
     },
     errors: {
       401: `Error`,
+      404: `Error`,
     },
   });
 }
