@@ -562,7 +562,7 @@ test.describe('Bagikan', () => {
     const d = dialog(page, 'Bagikan “Daftar Makrab HMIF 2026”');
     await expect(d.getByText('app.hmif.dev/f/makrab-2026')).toBeVisible();
     await expect(
-      d.getByText('Hanya angkatan 2025 yang bisa mengisi.'),
+      d.getByText('Hanya angkatan 2025 · PIXEL yang bisa mengisi.'),
     ).toBeVisible();
     await strictGates(page, testInfo, 'share', null);
     await d.getByRole('button', { name: 'Ubah nama tautan' }).click();

@@ -39,6 +39,7 @@ import { fill } from '~/copy/fill';
 import { kelolaForm as copy } from '~/copy/kelola-form';
 import useSession from '~/hooks/auth/useSession';
 import { initialsOf } from '~/lib/shell/names';
+import { angkatanQuery } from '../profil/queries';
 import { CopyButton, LinkBox } from './parts';
 import {
   checkSlug,
@@ -104,6 +105,7 @@ export function LinkPart({
   startEditing: boolean;
 }) {
   const [editing, setEditing] = useState(startEditing && form.access.canEdit);
+  const angkatan = useQuery(angkatanQuery());
   const editBtn = useRef<HTMLButtonElement>(null);
   const canShare = typeof navigator !== 'undefined' && 'share' in navigator;
   const notes = [
@@ -111,7 +113,7 @@ export function LinkPart({
       ? copy.tautan.setelahTerbit
       : form.eligibleAngkatan.length
         ? fill(copy.tautan.hanya, {
-            angkatan: audienceLabel(form.eligibleAngkatan, undefined, true),
+            angkatan: audienceLabel(form.eligibleAngkatan, angkatan.data, true),
           })
         : '',
   ].filter(Boolean);
