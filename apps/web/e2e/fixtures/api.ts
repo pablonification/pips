@@ -858,8 +858,8 @@ export interface Db {
    */
   formStore: StoredForm[];
   /**
-   * Whether `GET /api/form` lists the builder's forms for the member, beside PIXEL. Off by default, so screens that
-   * show the form list (Beranda, Layanan › Form) look as their references do; a test of the new forms turns it on.
+   * Whether `GET /api/form` lists the builder's forms for the member, beside PIXEL. On by default, as the real API
+   * does; a test about the PIXEL form alone turns it off.
    */
   listStoredForms: boolean;
   /** The member's saved details (Profil › Data diri). */
@@ -993,7 +993,7 @@ export function buildDb(
     formStore: sampleForms().map((f) =>
       f.id === pixelForm.id ? { ...f, sections: pixelForm.sections ?? [] } : f,
     ),
-    listStoredForms: false,
+    listStoredForms: true,
     memberDetails: sampleDetails(persona),
     competitions: toCompetitions(),
     testimonials: toTestimonials(),

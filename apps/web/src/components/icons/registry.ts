@@ -57,6 +57,8 @@ import { IconKunci } from './kunci';
 import { IconTenggat } from './tenggat';
 import { IconPeringatan } from './peringatan';
 import { IconSampul } from './sampul';
+import { IconUnggah } from './unggah';
+import { IconPensil } from './pensil';
 
 export const ICON_KEYS = [
   'beranda',
@@ -113,6 +115,8 @@ export const ICON_KEYS = [
   'tenggat',
   'peringatan',
   'sampul',
+  'unggah',
+  'pensil',
 ] as const;
 export type IconKey = (typeof ICON_KEYS)[number];
 export const GLYPH_KEYS = [
@@ -185,6 +189,8 @@ export const ICONS: Record<IconKey, ComponentType<IconProps>> = {
   tenggat: IconTenggat,
   peringatan: IconPeringatan,
   sampul: IconSampul,
+  unggah: IconUnggah,
+  pensil: IconPensil,
 };
 
 export const GLYPHS: Record<
@@ -260,4 +266,6 @@ export const ICON_LABELS: Record<IconKey, string> = {
   tenggat: 'Tenggat',
   peringatan: 'Peringatan',
   sampul: 'Poster',
+  unggah: 'Unggah file',
+  pensil: 'Edit',
 };

@@ -66,6 +66,7 @@ import {
 import { currentTheme, subscribe as onThemeChange } from '~/lib/theme/theme';
 import { THEME_COLORS } from '~/lib/theme/theme-core.mjs';
 import { cn } from '~/lib/utils';
+import { useCovered } from './cover';
 import { badgeText, useNavBadges, type NavBadges } from './nav-badges';
 import { focusAfterNavigation } from './focus';
 import { OwnTitle, TopBarSlot } from './page';
@@ -148,8 +149,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (route.meta.root) setLastRoot(route.meta.root);
   }, [route.meta.root]);
 
-  // On phones and tablets the browser's bar turns gold on Beranda, joining the header.
-  const goldBar = route.path === '/' && !desk;
+  // On phones and tablets the browser's bar turns gold on Beranda and on a page with a gold cover, joining the header.
+  const covered = useCovered(route.pathname);
+  const goldBar = (route.path === '/' || !!covered) && !desk;
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');
     if (!meta) return;
@@ -324,6 +326,7 @@ function Frame({
   const [root, setRoot] = useState<HTMLElement | null>(null);
   usePageHeight(root, route.pathname, desk);
   const trail = desk && route.path ? deskCrumbs(route.path, route.params) : [];
+  const covered = useCovered(route.pathname);
   // How many titles of its own the screen shows (`PageTitle`): then the top bar's title isn't the page's heading.
   const [ownTitles, setOwnTitles] = useState(0);
   const registerTitle = useCallback(
@@ -351,7 +354,9 @@ function Frame({
           />
         )}
         <main id="isi" tabIndex={-1} className="g-main">
-          {trail.length ? <Crumbs route={route} trail={trail} /> : null}
+          {trail.length ? (
+            <Crumbs route={route} trail={trail} onHero={!!covered} />
+          ) : null}
           <OwnTitle.Provider value={registerTitle}>
             <TopBarSlot.Provider value={desk ? null : slot}>
               <Page>{children}</Page>
@@ -392,9 +397,29 @@ function TopBar({
 }) {
   const beranda = route.path === '/';
   const root = route.path ? isRootPage(route.path) : false;
+  const covered = useCovered(route.pathname);
 
   let bar: ReactNode;
-  if (beranda) {
+  if (covered) {
+    // A form's bar: Back, then what the page puts in it (its progress, Draf tersimpan). The cover has the title.
+    bar = (
+      <>
+        {covered.back ? (
+          <IconButton label={covered.back.label} onClick={covered.back.run}>
+            <IconKembali />
+          </IconButton>
+        ) : (
+          <BackButton route={route} lastRoot={lastRoot} />
+        )}
+        {ownTitle ? null : (
+          <h1 className="sr-only" data-page-title="" tabIndex={-1}>
+            {route.title}
+          </h1>
+        )}
+        <div className="g-top-actions" ref={onSlot} />
+      </>
+    );
+  } else if (beranda) {
     bar = (
       <>
         <button type="button" className="g-search-pill" {...searchProps}>
@@ -431,7 +456,17 @@ function TopBar({
       </>
     );
   }
-  return <header className={cn('g-top', beranda && 'gold')}>{bar}</header>;
+  return (
+    <header
+      className={cn(
+        'g-top',
+        (beranda || covered) && 'gold',
+        covered && 'cover',
+      )}
+    >
+      {bar}
+    </header>
+  );
 }
 
 /** Back: to the previous page when history has one from this app, otherwise up to the page above. */
@@ -616,12 +651,18 @@ function Sidebar({
 function Crumbs({
   route,
   trail,
+  onHero,
 }: {
   route: ShellRoute;
   trail: ReturnType<typeof deskCrumbs>;
+  /** On a page with a gold cover: the crumbs sit on its gold band. */
+  onHero: boolean;
 }) {
   return (
-    <nav className="g-crumbs" aria-label={common.shell.jejakHalaman}>
+    <nav
+      className={cn('g-crumbs', onHero && 'on-hero')}
+      aria-label={common.shell.jejakHalaman}
+    >
       {trail.map((c, i) => {
         const last = i === trail.length - 1;
         const title = last

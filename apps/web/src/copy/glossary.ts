@@ -87,6 +87,10 @@ export const PROPER_NOUNS = [
   'Akademik',
   'Welfare',
   'Ganesha',
+  // A form's Data diri: Nomor WhatsApp, a hometown's example, and the key that moves on.
+  'WhatsApp',
+  'Semarang',
+  'Enter',
   'Jatinangor',
   'Google',
   'Drive',
@@ -176,4 +180,9 @@ export const ACRONYMS = [
   'MB',
   // Apps connect to PIPS! through MCP (Profil › Aplikasi terhubung).
   'MCP',
+  // The files a form takes: JPG, PNG or PDF; and the student card, Foto KTM.
+  'JPG',
+  'PNG',
+  'PDF',
+  'KTM',
 ] as const;

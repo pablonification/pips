@@ -21,6 +21,7 @@ import { Route as AppLeftNavbarPengumumanRouteRouteImport } from './routes/_app/
 import { Route as AppLeftNavbarProfilRouteImport } from './routes/_app/_left-navbar/profil'
 import { Route as AppDevShellRouteImport } from './routes/_app/dev/shell'
 import { Route as AppKalenderIndexRouteImport } from './routes/_app/kalender/index'
+import { Route as AppLeftNavbarFNameRouteImport } from './routes/_app/_left-navbar/f/$name'
 import { Route as AppLeftNavbarKelolaIndexRouteImport } from './routes/_app/_left-navbar/kelola/index'
 import { Route as AppLeftNavbarKelolaAcaraRouteImport } from './routes/_app/_left-navbar/kelola/acara'
 import { Route as AppLeftNavbarKelolaCurhatRouteRouteImport } from './routes/_app/_left-navbar/kelola/curhat/route'
@@ -52,6 +53,7 @@ import { Route as AppLeftNavbarKelolaLiveFormIdIndexRouteImport } from './routes
 import { Route as AppLeftNavbarKelolaLiveFormIdRekapRouteImport } from './routes/_app/_left-navbar/kelola/live/$formId/rekap'
 import { Route as AppLeftNavbarLayananTestiTypeIndexRouteImport } from './routes/_app/_left-navbar/layanan/testi/$type/index'
 import { Route as AppLeftNavbarProfilSettingsItemAplikasiIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/aplikasi/index'
+import { Route as AppLeftNavbarProfilSettingsItemDataDiriIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/data-diri/index'
 import { Route as AppLeftNavbarProfilSettingsItemKreditIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/kredit/index'
 import { Route as AppLeftNavbarProfilSettingsItemMatkulIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/matkul/index'
 import { Route as AppLeftNavbarProfilSettingsItemNotifikasiIndexRouteImport } from './routes/_app/_left-navbar/profil/_settings-item/notifikasi/index'
@@ -117,6 +119,11 @@ const AppKalenderIndexRoute = AppKalenderIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppKalenderRoute,
+} as any)
+const AppLeftNavbarFNameRoute = AppLeftNavbarFNameRouteImport.update({
+  id: '/f/$name',
+  path: '/f/$name',
+  getParentRoute: () => AppLeftNavbarRoute,
 } as any)
 const AppLeftNavbarKelolaIndexRoute =
   AppLeftNavbarKelolaIndexRouteImport.update({
@@ -303,6 +310,12 @@ const AppLeftNavbarProfilSettingsItemAplikasiIndexRoute =
     path: '/aplikasi/',
     getParentRoute: () => AppLeftNavbarProfilSettingsItemRoute,
   } as any)
+const AppLeftNavbarProfilSettingsItemDataDiriIndexRoute =
+  AppLeftNavbarProfilSettingsItemDataDiriIndexRouteImport.update({
+    id: '/data-diri/',
+    path: '/data-diri/',
+    getParentRoute: () => AppLeftNavbarProfilSettingsItemRoute,
+  } as any)
 const AppLeftNavbarProfilSettingsItemKreditIndexRoute =
   AppLeftNavbarProfilSettingsItemKreditIndexRouteImport.update({
     id: '/kredit/',
@@ -353,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/kalender/': typeof AppKalenderIndexRoute
   '/kelola/curhat': typeof AppLeftNavbarKelolaCurhatRouteRouteWithChildren
   '/layanan/curhat': typeof AppLeftNavbarLayananCurhatRouteRouteWithChildren
+  '/f/$name': typeof AppLeftNavbarFNameRoute
   '/kelola/acara': typeof AppLeftNavbarKelolaAcaraRoute
   '/kelola/lomba': typeof AppLeftNavbarKelolaLombaRoute
   '/kelola/testi': typeof AppLeftNavbarKelolaTestiRoute
@@ -381,6 +395,7 @@ export interface FileRoutesByFullPath {
   '/kelola/live/$formId/': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   '/layanan/testi/$type/': typeof AppLeftNavbarLayananTestiTypeIndexRoute
   '/profil/aplikasi/': typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
+  '/profil/data-diri/': typeof AppLeftNavbarProfilSettingsItemDataDiriIndexRoute
   '/profil/kredit/': typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
   '/profil/matkul/': typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
   '/profil/notifikasi/': typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
@@ -396,6 +411,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginIndexRoute
   '/dev/shell': typeof AppDevShellRoute
   '/kalender': typeof AppKalenderIndexRoute
+  '/f/$name': typeof AppLeftNavbarFNameRoute
   '/kelola/acara': typeof AppLeftNavbarKelolaAcaraRoute
   '/kelola/lomba': typeof AppLeftNavbarKelolaLombaRoute
   '/kelola/testi': typeof AppLeftNavbarKelolaTestiRoute
@@ -423,6 +439,7 @@ export interface FileRoutesByTo {
   '/kelola/live/$formId': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   '/layanan/testi/$type': typeof AppLeftNavbarLayananTestiTypeIndexRoute
   '/profil/aplikasi': typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
+  '/profil/data-diri': typeof AppLeftNavbarProfilSettingsItemDataDiriIndexRoute
   '/profil/kredit': typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
   '/profil/matkul': typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
   '/profil/notifikasi': typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
@@ -446,6 +463,7 @@ export interface FileRoutesById {
   '/_app/kalender/': typeof AppKalenderIndexRoute
   '/_app/_left-navbar/kelola/curhat': typeof AppLeftNavbarKelolaCurhatRouteRouteWithChildren
   '/_app/_left-navbar/layanan/curhat': typeof AppLeftNavbarLayananCurhatRouteRouteWithChildren
+  '/_app/_left-navbar/f/$name': typeof AppLeftNavbarFNameRoute
   '/_app/_left-navbar/kelola/acara': typeof AppLeftNavbarKelolaAcaraRoute
   '/_app/_left-navbar/kelola/lomba': typeof AppLeftNavbarKelolaLombaRoute
   '/_app/_left-navbar/kelola/testi': typeof AppLeftNavbarKelolaTestiRoute
@@ -475,6 +493,7 @@ export interface FileRoutesById {
   '/_app/_left-navbar/kelola/live/$formId/': typeof AppLeftNavbarKelolaLiveFormIdIndexRoute
   '/_app/_left-navbar/layanan/testi/$type/': typeof AppLeftNavbarLayananTestiTypeIndexRoute
   '/_app/_left-navbar/profil/_settings-item/aplikasi/': typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
+  '/_app/_left-navbar/profil/_settings-item/data-diri/': typeof AppLeftNavbarProfilSettingsItemDataDiriIndexRoute
   '/_app/_left-navbar/profil/_settings-item/kredit/': typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
   '/_app/_left-navbar/profil/_settings-item/matkul/': typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
   '/_app/_left-navbar/profil/_settings-item/notifikasi/': typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
@@ -497,6 +516,7 @@ export interface FileRouteTypes {
     | '/kalender/'
     | '/kelola/curhat'
     | '/layanan/curhat'
+    | '/f/$name'
     | '/kelola/acara'
     | '/kelola/lomba'
     | '/kelola/testi'
@@ -525,6 +545,7 @@ export interface FileRouteTypes {
     | '/kelola/live/$formId/'
     | '/layanan/testi/$type/'
     | '/profil/aplikasi/'
+    | '/profil/data-diri/'
     | '/profil/kredit/'
     | '/profil/matkul/'
     | '/profil/notifikasi/'
@@ -540,6 +561,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dev/shell'
     | '/kalender'
+    | '/f/$name'
     | '/kelola/acara'
     | '/kelola/lomba'
     | '/kelola/testi'
@@ -567,6 +589,7 @@ export interface FileRouteTypes {
     | '/kelola/live/$formId'
     | '/layanan/testi/$type'
     | '/profil/aplikasi'
+    | '/profil/data-diri'
     | '/profil/kredit'
     | '/profil/matkul'
     | '/profil/notifikasi'
@@ -589,6 +612,7 @@ export interface FileRouteTypes {
     | '/_app/kalender/'
     | '/_app/_left-navbar/kelola/curhat'
     | '/_app/_left-navbar/layanan/curhat'
+    | '/_app/_left-navbar/f/$name'
     | '/_app/_left-navbar/kelola/acara'
     | '/_app/_left-navbar/kelola/lomba'
     | '/_app/_left-navbar/kelola/testi'
@@ -618,6 +642,7 @@ export interface FileRouteTypes {
     | '/_app/_left-navbar/kelola/live/$formId/'
     | '/_app/_left-navbar/layanan/testi/$type/'
     | '/_app/_left-navbar/profil/_settings-item/aplikasi/'
+    | '/_app/_left-navbar/profil/_settings-item/data-diri/'
     | '/_app/_left-navbar/profil/_settings-item/kredit/'
     | '/_app/_left-navbar/profil/_settings-item/matkul/'
     | '/_app/_left-navbar/profil/_settings-item/notifikasi/'
@@ -717,6 +742,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/kalender/'
       preLoaderRoute: typeof AppKalenderIndexRouteImport
       parentRoute: typeof AppKalenderRoute
+    }
+    '/_app/_left-navbar/f/$name': {
+      id: '/_app/_left-navbar/f/$name'
+      path: '/f/$name'
+      fullPath: '/f/$name'
+      preLoaderRoute: typeof AppLeftNavbarFNameRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
     }
     '/_app/_left-navbar/kelola/': {
       id: '/_app/_left-navbar/kelola/'
@@ -935,6 +967,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRouteImport
       parentRoute: typeof AppLeftNavbarProfilSettingsItemRoute
     }
+    '/_app/_left-navbar/profil/_settings-item/data-diri/': {
+      id: '/_app/_left-navbar/profil/_settings-item/data-diri/'
+      path: '/data-diri'
+      fullPath: '/profil/data-diri/'
+      preLoaderRoute: typeof AppLeftNavbarProfilSettingsItemDataDiriIndexRouteImport
+      parentRoute: typeof AppLeftNavbarProfilSettingsItemRoute
+    }
     '/_app/_left-navbar/profil/_settings-item/kredit/': {
       id: '/_app/_left-navbar/profil/_settings-item/kredit/'
       path: '/kredit'
@@ -1001,6 +1040,7 @@ const AppLeftNavbarPengumumanRouteRouteWithChildren =
 
 interface AppLeftNavbarProfilSettingsItemRouteChildren {
   AppLeftNavbarProfilSettingsItemAplikasiIndexRoute: typeof AppLeftNavbarProfilSettingsItemAplikasiIndexRoute
+  AppLeftNavbarProfilSettingsItemDataDiriIndexRoute: typeof AppLeftNavbarProfilSettingsItemDataDiriIndexRoute
   AppLeftNavbarProfilSettingsItemKreditIndexRoute: typeof AppLeftNavbarProfilSettingsItemKreditIndexRoute
   AppLeftNavbarProfilSettingsItemMatkulIndexRoute: typeof AppLeftNavbarProfilSettingsItemMatkulIndexRoute
   AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute: typeof AppLeftNavbarProfilSettingsItemNotifikasiIndexRoute
@@ -1011,6 +1051,8 @@ const AppLeftNavbarProfilSettingsItemRouteChildren: AppLeftNavbarProfilSettingsI
   {
     AppLeftNavbarProfilSettingsItemAplikasiIndexRoute:
       AppLeftNavbarProfilSettingsItemAplikasiIndexRoute,
+    AppLeftNavbarProfilSettingsItemDataDiriIndexRoute:
+      AppLeftNavbarProfilSettingsItemDataDiriIndexRoute,
     AppLeftNavbarProfilSettingsItemKreditIndexRoute:
       AppLeftNavbarProfilSettingsItemKreditIndexRoute,
     AppLeftNavbarProfilSettingsItemMatkulIndexRoute:
@@ -1099,6 +1141,7 @@ interface AppLeftNavbarRouteChildren {
   AppLeftNavbarIndexRoute: typeof AppLeftNavbarIndexRoute
   AppLeftNavbarKelolaCurhatRouteRoute: typeof AppLeftNavbarKelolaCurhatRouteRouteWithChildren
   AppLeftNavbarLayananCurhatRouteRoute: typeof AppLeftNavbarLayananCurhatRouteRouteWithChildren
+  AppLeftNavbarFNameRoute: typeof AppLeftNavbarFNameRoute
   AppLeftNavbarKelolaAcaraRoute: typeof AppLeftNavbarKelolaAcaraRoute
   AppLeftNavbarKelolaLombaRoute: typeof AppLeftNavbarKelolaLombaRoute
   AppLeftNavbarKelolaTestiRoute: typeof AppLeftNavbarKelolaTestiRoute
@@ -1128,6 +1171,7 @@ const AppLeftNavbarRouteChildren: AppLeftNavbarRouteChildren = {
     AppLeftNavbarKelolaCurhatRouteRouteWithChildren,
   AppLeftNavbarLayananCurhatRouteRoute:
     AppLeftNavbarLayananCurhatRouteRouteWithChildren,
+  AppLeftNavbarFNameRoute: AppLeftNavbarFNameRoute,
   AppLeftNavbarKelolaAcaraRoute: AppLeftNavbarKelolaAcaraRoute,
   AppLeftNavbarKelolaLombaRoute: AppLeftNavbarKelolaLombaRoute,
   AppLeftNavbarKelolaTestiRoute: AppLeftNavbarKelolaTestiRoute,

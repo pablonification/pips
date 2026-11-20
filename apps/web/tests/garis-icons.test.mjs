@@ -12,8 +12,8 @@ const { IC, IC_FILL, ICON_LABELS } = JSON.parse(fs.readFileSync(path.join(appDir
 const pascal = (k) => k.replace(/(^|-)([a-z0-9])/g, (_, __, c) => c.toUpperCase());
 const attrs = (svg) => [...svg.matchAll(/<(\w+)([^>]*)\/>/g)].map((m) => `${m[1]} ${m[2].replace(/class=/g, 'className=').trim()}`);
 
-test('54 icons and 11 two-tone service glyphs', () => {
-  assert.equal(Object.keys(IC).length, 54);
+test('56 icons and 11 two-tone service glyphs', () => {
+  assert.equal(Object.keys(IC).length, 56);
   assert.equal(Object.keys(IC_FILL).length, 11);
 });
 
