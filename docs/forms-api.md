@@ -159,5 +159,6 @@ changes, shared with the seeded Welfare member as Lihat jawaban; and a draft (`c
 - The words: labels for fields and kinds, problem messages, "Lainnya", every sentence, in `apps/web/src/copy/`.
 - Drafts of answers stay on the device, as today's form does.
 
-The member's screens are in `apps/web/src/features/form/` (every request in its `queries.ts`). A form with no owner
+The member's screens are in `apps/web/src/features/form/`: what they read is `queries.ts`, what they write `send.ts`,
+uploads `upload.ts`. A form with no owner
 (the PIXEL form) still opens the screen it had (`components/form/FormFill.tsx`); every other form is filled on one page.
