@@ -3,10 +3,7 @@ import { queryClient } from '~/api/client';
 import { prefetch } from '~/api/queries';
 import { KelolaGate } from '~/features/kelola/KelolaGate';
 import { FormsScreen } from '~/features/kelola-form/FormsScreen';
-import {
-  managedFormsQuery,
-  mayLoadForms,
-} from '~/features/kelola-form/queries';
+import { managedFormsQuery, mayLoadForms } from '~/features/kelola-form/data';
 import { kelolaFormSearchSchema } from '~/lib/search-params';
 
 // Kelola › Form: any pengurus. `lihat=semua` is admin's Semua form; the screen falls back to theirs for anyone else.

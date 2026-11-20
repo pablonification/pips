@@ -81,7 +81,12 @@ function buildMetaOutsideDist(): Plugin {
   };
 }
 
+/** Words and icons only the form's pages use: Kelola › Form (src/features/kelola-form), and the member's form. */
+const BUILDER_ONLY =
+  /[\\/]src[\\/](copy[\\/]kelola-form\.ts|components[\\/]icons[\\/](pegang|salin|mata|cabang|teks|paragraf|radio|kotak|dropdown|skala|unggah|bagian|atas|pensil)\.tsx)$/;
+
 // https://vitejs.dev/config/
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
   const appName = env.VITE_APP_NAME || 'PIPS!';
@@ -283,8 +288,12 @@ export default defineConfig(({ mode }) => {
               // halftone, which would be one more request on its own.
               {
                 name: 'ui',
-                // The form's words (copy/isi.ts) go only with the form's pages and Profil, as `shared` below.
-                test: /[\\/]src[\\/](components[\\/](icons|push)[\\/]|copy[\\/](?!isi\.ts$)|features[\\/]kalender[\\/]|components[\\/]garis[\\/](Halftone|halftone-geometry)\.tsx?$)/,
+                // The form's words (copy/isi.ts) and Kelola › Form's words and icons go only with the pages that use
+                // them, as `shared` below, so they stay out of what every page loads.
+                test: (id: string) =>
+                  /[\\/]src[\\/](components[\\/](icons|push)[\\/]|copy[\\/](?!isi\.ts$)|features[\\/]kalender[\\/]|components[\\/]garis[\\/](Halftone|halftone-geometry)\.tsx?$)/.test(
+                    id,
+                  ) && !BUILDER_ONLY.test(id),
                 minShareCount: 2,
                 priority: 3,
               },

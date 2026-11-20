@@ -5,35 +5,11 @@
  */
 import { queryOptions, type QueryClient } from '@tanstack/react-query';
 import { api } from '~/api/client';
-import { FORM_QUERY_KEY, ME_QUERY_KEY } from '~/api/constants';
-import type { ManageForm, UpdateForm, UserWithRoles } from '~/api/generated';
-import { kelolaAccess } from '../kelola/access';
+import { FORM_QUERY_KEY } from '~/api/constants';
+import type { ManageForm, UpdateForm } from '~/api/generated';
+import { MANAGE, manageKeys } from './data';
 
-const MANAGE = [FORM_QUERY_KEY, 'manage'] as const;
-
-export const manageKeys = {
-  all: MANAGE,
-  list: (scope: 'mine' | 'all') => [...MANAGE, 'list', scope] as const,
-  form: (id: string) => [...MANAGE, id] as const,
-  access: (id: string) => [...MANAGE, id, 'access'] as const,
-  summary: (id: string) => [...MANAGE, id, 'summary'] as const,
-  answers: (id: string, page: number) =>
-    [...MANAGE, id, 'answers', page] as const,
-};
-
-/** Buatanku and Dibagikan ke aku (`mine`), or every form (`all`, admin). Newest change first. */
-export const managedFormsQuery = (scope: 'mine' | 'all') =>
-  queryOptions({
-    queryKey: manageKeys.list(scope),
-    queryFn: async () => (await api.form.listManagedForms({ scope })).forms,
-  });
-
-/** One form as the builder sees it, with what the caller may do (`access`). */
-export const manageFormQuery = (formId: string) =>
-  queryOptions({
-    queryKey: manageKeys.form(formId),
-    queryFn: () => api.form.getManagedForm({ formId }),
-  });
+export { manageFormQuery, managedFormsQuery, manageKeys } from './data';
 
 export const createForm = () => api.form.createForm({ requestBody: {} });
 
@@ -124,10 +100,4 @@ export async function downloadAnswers(
 export function keepForm(client: QueryClient, form: ManageForm) {
   client.setQueryData(manageKeys.form(form.id), form);
   void client.invalidateQueries({ queryKey: [...MANAGE, 'list'] });
-}
-
-/** For loaders: whether the cached member may open Kelola › Form, so nothing is asked before the gate. */
-export function mayLoadForms(client: QueryClient): boolean {
-  const me = client.getQueryData<UserWithRoles | null>([ME_QUERY_KEY]);
-  return !!me && kelolaAccess(me, 'form').allowed;
 }
