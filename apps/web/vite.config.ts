@@ -283,7 +283,8 @@ export default defineConfig(({ mode }) => {
               // halftone, which would be one more request on its own.
               {
                 name: 'ui',
-                test: /[\\/]src[\\/](components[\\/](icons|push)[\\/]|copy[\\/]|features[\\/]kalender[\\/]|components[\\/]garis[\\/](Halftone|halftone-geometry)\.tsx?$)/,
+                // The form's words (copy/isi.ts) go only with the form's pages and Profil, as `shared` below.
+                test: /[\\/]src[\\/](components[\\/](icons|push)[\\/]|copy[\\/](?!isi\.ts$)|features[\\/]kalender[\\/]|components[\\/]garis[\\/](Halftone|halftone-geometry)\.tsx?$)/,
                 minShareCount: 2,
                 priority: 3,
               },
