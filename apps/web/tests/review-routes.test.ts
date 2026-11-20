@@ -35,3 +35,12 @@ test('every URL fills its params with a value and is a path', () => {
     assert.ok(r.as.length > 0, p);
   }
 });
+
+// The QA sweep can't import the route table, so it keeps its own list of focused flows (no tab bar): the same ones.
+test('the QA sweep’s focused flows are the route table’s', async () => {
+  const { FOCUSED_ROUTES } = await import('../e2e/qa/focused');
+  const focused = Object.entries(ROUTE_META)
+    .filter(([, meta]) => meta.focused)
+    .map(([path]) => path);
+  assert.deepEqual([...FOCUSED_ROUTES].sort(), focused.sort());
+});

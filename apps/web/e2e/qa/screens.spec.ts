@@ -17,6 +17,7 @@
  * - the page's accessibility tree, saved as evidence with `QA_EVIDENCE=<folder>`.
  */
 import { ROUTES } from '../review/routes';
+import { FOCUSED_ROUTES } from './focused';
 import { layoutOf } from '../support/app';
 import { expect, test } from '../support/test';
 import { badAlt, isMonospace } from './lib';
@@ -31,15 +32,8 @@ import {
 
 /** Pages without the shell: sign-in and first run have no navigation and no skip link. */
 const NO_SHELL = new Set(['/login', '/mulai']);
-/** Focused flows (src/lib/shell/routes.ts `focused`): no tab bar or rail on phones and tablets. */
-const FOCUSED = new Set([
-  '/pengumuman/tulis',
-  '/layanan/curhat/$roomId',
-  '/layanan/form/$formId',
-  '/layanan/sparta',
-  '/kelola/curhat/$roomId',
-  '/mulai',
-]);
+/** Focused flows: no tab bar or rail on phones and tablets. */
+const FOCUSED = new Set(FOCUSED_ROUTES);
 
 for (const [path, route] of Object.entries(ROUTES))
   for (const who of route.as)
