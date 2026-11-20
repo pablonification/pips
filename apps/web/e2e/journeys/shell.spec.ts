@@ -6,6 +6,7 @@
  */
 import AxeBuilder from '@axe-core/playwright';
 import type { Locator, Page, TestInfo } from '@playwright/test';
+import { avatarUrl, withoutPicture } from '../fixtures/api';
 import { greeting, layoutOf } from '../support/app';
 import { AXE_TAGS } from '../support/audit';
 import { expect, test } from '../support/test';
@@ -276,6 +277,75 @@ test.describe('back', () => {
   });
 });
 
+test.describe('your avatar', () => {
+  /** Your avatar in this layout's chrome: the top bar's link to Profil, or the sidebar's foot on desktop. */
+  const myAvatar = (page: Page, t: TestInfo) =>
+    layoutOf(t) === 'desktop'
+      ? page
+          .getByRole('link', { name: 'Nadia Putri Profil' })
+          .locator('.g-avatar')
+      : page.getByRole('link', { name: 'Profil, Nadia Putri' });
+
+  test('shows your Google photo over your initials', async ({
+    page,
+    db,
+  }, t) => {
+    await page.goto('/kalender');
+    const avatar = myAvatar(page, t);
+    await expect(avatar).toContainText('NP');
+    const photo = avatar.locator('img.g-avatar-photo');
+    await expect(photo).toHaveAttribute('src', avatarUrl(db.me!.nim));
+    await expect(photo).toHaveAttribute('referrerpolicy', 'no-referrer');
+    await expect
+      .poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth))
+      .toBeGreaterThan(0);
+    // The photo fills the avatar exactly.
+    const [a, p] = await Promise.all([
+      avatar.boundingBox(),
+      photo.boundingBox(),
+    ]);
+    expect(p).toEqual(a);
+  });
+
+  test('a member without a photo keeps the initials', async ({
+    page,
+    db,
+  }, t) => {
+    db.me = withoutPicture(db.me!);
+    await page.goto('/kalender');
+    const avatar = myAvatar(page, t);
+    await expect(avatar).toContainText('NP');
+    await expect(avatar.locator('img')).toHaveCount(0);
+  });
+
+  test('a photo that fails to load leaves the initials', async ({
+    page,
+    db,
+  }, t) => {
+    db.me = { ...db.me!, picture: '/__e2e__/avatar/gone' };
+    await page.goto('/kalender');
+    const avatar = myAvatar(page, t);
+    await expect(avatar).toContainText('NP');
+    await expect(avatar.locator('img')).toHaveCount(0);
+  });
+
+  test('the touch layouts keep the avatar link’s 44 px hit area with a photo @phone-only', async ({
+    page,
+  }) => {
+    await page.goto('/kalender');
+    const avatar = page.getByRole('link', { name: 'Profil, Nadia Putri' });
+    await expect(avatar.locator('img.g-avatar-photo')).toBeVisible();
+    const box = (await avatar.boundingBox())!;
+    // A tap 4 px outside the drawn avatar still lands on the link.
+    const hit = await page.evaluate(
+      ({ x, y }) =>
+        document.elementFromPoint(x, y)?.closest('a')?.getAttribute('href'),
+      { x: box.x + box.width / 2, y: box.y + box.height + 4 },
+    );
+    expect(hit).toBe('/profil');
+  });
+});
+
 test.describe('focused flows', () => {
   for (const [path, title] of [
     ['/pengumuman/tulis', 'Buat pengumuman'],
@@ -364,7 +434,12 @@ test.describe('Beranda’s gold header', () => {
     await expect(ht.locator('[aria-hidden="true"]')).toHaveCount(1);
     const htBox = (await ht.boundingBox())!;
     expect(Math.round(htBox.x + htBox.width)).toBe(page.viewportSize()!.width);
-    await expect(page.locator('.g-top img, .g-hero img')).toHaveCount(0);
+    // The only picture in the header is your own photo on your avatar.
+    await expect(
+      page.locator('.g-top img:not(.g-avatar-photo), .g-hero img'),
+    ).toHaveCount(0);
+    await expect(page.locator('.g-top img')).toHaveCount(1);
+    await expect(avatar.locator('img.g-avatar-photo')).toHaveCount(1);
     // It stays at the top while the page scrolls.
     await page
       .locator('[data-scroll-restoration-id="isi"]')

@@ -26,6 +26,7 @@ import {
 } from 'react';
 import {
   Avatar,
+  AvatarPhoto,
   HmifLogo,
   IconButton,
   Kbd,
@@ -270,10 +271,22 @@ const searchProps = {
 
 function useMe() {
   const user = useSession();
-  return { name: user.fullName, initials: initialsOf(user.fullName) };
+  return {
+    name: user.fullName,
+    initials: initialsOf(user.fullName),
+    picture: user.picture,
+  };
 }
 
-function AvatarLink({ name, initials }: { name: string; initials: string }) {
+function AvatarLink({
+  name,
+  initials,
+  picture,
+}: {
+  name: string;
+  initials: string;
+  picture: string | null;
+}) {
   return (
     <Link
       to="/profil"
@@ -282,6 +295,7 @@ function AvatarLink({ name, initials }: { name: string; initials: string }) {
       activeOptions={{ exact: true }}
     >
       <span aria-hidden="true">{initials}</span>
+      <AvatarPhoto picture={picture} />
     </Link>
   );
 }
@@ -371,7 +385,7 @@ function TopBar({
 }: {
   route: ShellRoute;
   lastRoot: Destination | null;
-  me: { name: string; initials: string };
+  me: { name: string; initials: string; picture: string | null };
   /** The screen shows its own title (`PageTitle`): this one is plain text, hidden from screen readers. */
   ownTitle: boolean;
   onSlot: (el: HTMLElement | null) => void;
@@ -588,7 +602,7 @@ function Sidebar({
         aria-current={active === 'profil' ? 'page' : undefined}
         activeOptions={{ exact: true }}
       >
-        <Avatar initials={me.initials} shape="square" />
+        <Avatar initials={me.initials} picture={me.picture} shape="square" />
         <span>
           <b>{me.name}</b>
           <span className="s">{common.nav.profil}</span>

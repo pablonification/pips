@@ -348,10 +348,10 @@
     height: 40px;
     font-size: 13px;
   }
-  /* A photo over the initials: they show while it loads and stay if it fails. */
+  /* A photo over the initials: they show while it loads and stay if it fails. Nothing clips the avatar, so the
+     44 px hit area of a touch layout's avatar link or button still reaches past its edge. */
   .g-avatar:has(> .g-avatar-photo) {
     position: relative;
-    overflow: hidden;
   }
   .g-avatar-photo {
     position: absolute;
@@ -360,6 +360,15 @@
     height: 100%;
     object-fit: cover;
     border-radius: inherit;
+  }
+  /* Your own (square) avatar keeps its ink frame over the photo, as the keycap it is. */
+  .g-avatar:not(.round):has(> .g-avatar-photo)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+    pointer-events: none;
   }
 
   /* ============ Lists and surfaces ============ */

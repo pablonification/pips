@@ -109,7 +109,10 @@ export function PostCard({ info, search }: { info: Info; search: FeedSearch }) {
         aria-labelledby={tid}
       >
         <div className="g-post-head">
-          <Avatar initials={initialsOf(info.creator.fullName)} />
+          <Avatar
+            initials={initialsOf(info.creator.fullName)}
+            picture={info.creator.picture}
+          />
           <Byline info={info} now={now} />
           <div className="z">
             <PostMenu info={info} />
