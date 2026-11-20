@@ -31,6 +31,7 @@ import {
   isEnded,
   isHimpunan,
   isPoint,
+  startLabel,
   reminderLine,
   testiParams,
   timeLine,
@@ -78,8 +79,8 @@ function AgendaRow({
       <RowButton current={current} onClick={() => onOpen(e)} data-event={e.id}>
         <span className="g-agenda-item">
           <span className="time">
-            <span className="block t-label strong num">{hm(e.start)}</span>
-            {point ? null : (
+            <span className="block t-label strong num">{startLabel(e)}</span>
+            {point || e.allDay ? null : (
               <span className="block t-cap text-fg-3 num">{hm(e.end)}</span>
             )}
           </span>
@@ -251,6 +252,9 @@ export function EventInfo({
           <div>
             <p className="t-label num">{timeLine(e)}</p>
             <p className="t-cap text-fg-3">{dateLine(e)}</p>
+            {e.location ? (
+              <p className="g-ev-place t-cap text-fg-2">{e.location}</p>
+            ) : null}
           </div>
         </li>
         {e.description ? (

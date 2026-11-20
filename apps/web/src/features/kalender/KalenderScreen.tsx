@@ -60,6 +60,7 @@ import {
   monthChangeDay,
   monthDayName,
   moveFocus,
+  startLabel,
   type CalEvent,
   type DeskPick,
 } from './rules';
@@ -438,7 +439,7 @@ function DeskMonth(p: GridProps) {
                 className={cn('g-dchip', isHimpunan(e) && 'himpunan')}
                 aria-hidden="true"
               >
-                <span className="tm">{course(e)?.code ?? hm(e.start)}</span>
+                <span className="tm">{course(e)?.code ?? startLabel(e)}</span>
                 <span className="ttl">{e.title}</span>
               </span>
             ))}

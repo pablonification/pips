@@ -46,6 +46,10 @@ export const CreateCalendarEventBodySchema = createInsertSchema(calendarEvent, {
   academicYear: true,
   academicSemesterCode: true,
   calendarGroupId: true,
+  // Only the Google Calendar copy sets these (cron/calendar-sync.ts).
+  synced: true,
+  allDay: true,
+  location: true,
 });
 
 export const GetCalendarEventParamsSchema = z.object({
@@ -78,6 +82,9 @@ export const UpdateCalendarEventBodySchema = createInsertSchema(calendarEvent, {
     academicSemesterCode: true,
     courseId: true,
     category: true,
+    synced: true,
+    allDay: true,
+    location: true,
   });
 
 export const CalendarGroupSchema = createSelectSchema(calendarGroup);

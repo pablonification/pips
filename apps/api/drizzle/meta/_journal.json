@@ -232,6 +232,13 @@
       "when": 1795146762752,
       "tag": "0032_angkatan_pixel",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1795148670095,
+      "tag": "0033_calendar_sync",
+      "breakpoints": true
     }
   ]
 }

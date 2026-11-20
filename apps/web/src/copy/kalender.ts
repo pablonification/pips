@@ -37,6 +37,9 @@ export const kalender = {
     himpunan: 'Himpunan',
     sudahLewat: 'Sudah lewat',
     palingLambat: 'Paling lambat {jam}',
+    // An all-day event from PRISMA's Google calendar; one over several days names its last day.
+    seharian: 'Seharian',
+    seharianSampai: 'Seharian, sampai {tanggal}',
     wib: '{waktu} WIB',
     pengingat: 'Pengingat H-1',
     notifikasiMati: 'Notifikasi belum menyala di perangkat ini',

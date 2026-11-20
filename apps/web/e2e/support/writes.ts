@@ -599,6 +599,9 @@ export const createEvent: Handler = ({ db, body }) => {
     end: b.end,
     googleCalendarUrl: `https://calendar.google.com/calendar/event?eid=${id}`,
     googleCalendarId: id,
+    synced: false,
+    allDay: false,
+    location: null,
   };
   if (!course || db.myCourses.some((m) => m.courseId === course.id))
     db.events.push(event);

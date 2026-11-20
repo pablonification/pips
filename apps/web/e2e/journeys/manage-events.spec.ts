@@ -327,6 +327,61 @@ test.describe('who sees what', () => {
     });
   });
 
+  test.describe('ring1 on an event from PRISMA’s Google calendar', () => {
+    test.use({ persona: 'pengurus', roles: ['ring1'] });
+
+    test('no options (it is changed in Google Calendar); all day, its place, its lines and its link', async ({
+      page,
+      db,
+    }, testInfo) => {
+      db.events.push({
+        id: 'de-nobar',
+        calendarGroupId: 'himpunan-prisma-de',
+        courseId: null,
+        title: '[Kinship] Pips Nobar',
+        description: 'Nobar bareng warga.\nCP: Kak Sinta (LINE: contoh.cp)',
+        category: 'himpunan',
+        academicYear: null,
+        academicSemesterCode: null,
+        start: '2026-10-07T17:00:00.000Z',
+        end: '2026-10-08T17:00:00.000Z',
+        googleCalendarUrl: 'https://www.google.com/calendar/event?eid=de-nobar',
+        googleCalendarId: 'de-nobar',
+        synced: true,
+        allDay: true,
+        location: 'Labtek V, Ruang 7602',
+      });
+      await page.goto('/kalender?hari=2026-10-08&acara=de-nobar');
+      const pane = detail(page, testInfo);
+      await expect(
+        pane.getByRole('heading', { name: '[Kinship] Pips Nobar' }),
+      ).toBeVisible();
+      await expect(
+        pane.locator('p.t-label').getByText('Seharian', { exact: true }),
+      ).toBeVisible();
+      await expect(pane.getByText('Labtek V, Ruang 7602')).toBeVisible();
+      // The description keeps its lines.
+      await expect(pane.locator('.g-ev-desc')).toHaveCSS(
+        'white-space',
+        'pre-line',
+      );
+      await expect(
+        pane.getByRole('link', { name: /Google Calendar/ }),
+      ).toHaveAttribute(
+        'href',
+        'https://www.google.com/calendar/event?eid=de-nobar',
+      );
+      await expect(
+        page.getByRole('button', { name: /^Opsi acara / }),
+      ).toHaveCount(0);
+      // In the day's list it reads "Seharian" where a time would be.
+      await expect(
+        page.locator('[data-event="de-nobar"]').first(),
+      ).toContainText('Seharian');
+      await strictGates(page, testInfo, 'kalender-prisma-event', null);
+    });
+  });
+
   test.describe('Raka', () => {
     test.use({ persona: 'pengurus' });
 

@@ -91,7 +91,8 @@ export function EventManageHost({ children }: { children: ReactNode }) {
 export function EventOptions({ event }: { event: CalendarEvent }) {
   const user = useSession();
   const host = useContext(EventManageContext);
-  if (!canManageEvent(user, event.category)) return null;
+  // A copy of PRISMA's Google calendar is changed there; the API refuses it here (409).
+  if (event.synced || !canManageEvent(user, event.category)) return null;
   const button = <OptionsButton event={event} />;
   return host ? button : <EventManageHost>{button}</EventManageHost>;
 }
@@ -128,7 +129,7 @@ function OptionsButton({ event }: { event: CalendarEvent }) {
 function Dialogs({ target, onClose }: { target: Target; onClose: () => void }) {
   const { event } = target;
   const user = useSession();
-  const allowed = canManageEvent(user, event.category);
+  const allowed = !event.synced && canManageEvent(user, event.category);
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { pathname } = useLocation();

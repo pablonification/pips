@@ -15,6 +15,7 @@ import type { Server } from 'node:http';
 import { createApp } from './app';
 import { env } from './configs/env.config';
 import { calendarCron } from './cron/calendar-cron';
+import { calendarSyncCron } from './cron/calendar-sync';
 import { setupCron } from './cron/setup';
 import { closeDatabase } from './db/drizzle';
 import setupWebsocket, { getIo } from './websocket/setup';
@@ -42,6 +43,7 @@ setupWebsocket(httpServer);
 const shutdown = createShutdown({
   stopJobs: () => {
     calendarCron.stop();
+    calendarSyncCron.stop();
   },
   closeServer: async () => {
     const server = httpServer as Server;

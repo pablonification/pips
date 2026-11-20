@@ -174,6 +174,9 @@ test('changing an event: filled in WIB; only title, description, start and end a
     end: '2026-10-08T04:00:00.000Z',
     googleCalendarUrl: 'https://calendar.google.com/x',
     googleCalendarId: 'x',
+    synced: false,
+    allDay: false,
+    location: null,
   };
   const d = draftOf(e);
   assert.deepEqual(d, {
@@ -293,6 +296,9 @@ test('an event that ends on a later day keeps its days when edited', () => {
     end: '2026-10-15T10:00:00.000Z',
     googleCalendarUrl: 'https://calendar.google.com/h',
     googleCalendarId: 'h',
+    synced: false,
+    allDay: false,
+    location: null,
   };
   const d = draftOf(e);
   assert.deepEqual(validateEvent(d), {});

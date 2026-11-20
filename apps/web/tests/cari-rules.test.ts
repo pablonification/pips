@@ -31,6 +31,9 @@ const ev = (id: string, start: string): CalendarEvent => ({
   end: wib(start),
   googleCalendarUrl: '',
   googleCalendarId: '',
+  synced: false,
+  allDay: false,
+  location: null,
 });
 
 test('Kalender lists upcoming events within 21 days, by start', () => {

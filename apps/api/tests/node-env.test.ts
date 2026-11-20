@@ -14,13 +14,16 @@ test('with NODE_ENV unset, statements and their values are not logged', async ()
   assert.equal(logger instanceof DefaultLogger, false);
 });
 
-test('with NODE_ENV unset, the reminder job runs', async () => {
+test('with NODE_ENV unset, the reminder job and the Kalender copy run', async () => {
   const { setupCron } = await import('../src/cron/setup');
   const { calendarCron } = await import('../src/cron/calendar-cron');
+  const { calendarSyncCron } = await import('../src/cron/calendar-sync');
   try {
     setupCron();
     assert.equal(calendarCron.running, true);
+    assert.equal(calendarSyncCron.running, true);
   } finally {
     calendarCron.stop();
+    calendarSyncCron.stop();
   }
 });

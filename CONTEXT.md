@@ -54,7 +54,8 @@ sends the notification again. Code: `info`, `/pengumuman`.
 _Avoid_: "Timeline", "Announcement", "post" in the interface.
 
 **Kalender** — Calendar events, in two categories, `akademik` (per course) and `himpunan`. Code: `calendar_event`,
-`calendar_group`, `/kalender`.
+`calendar_group`, `/kalender`. **PRISMA**'s general Google calendar (PRISMA - DE HMIF ITB) is copied in as Himpunan
+events every ten minutes; a copied event is **synced** and is changed only in Google Calendar (decision 20).
 
 **Layanan** — The list of services, built from the service registry. Path `/layanan`.
 _Avoid_: "Services", "Menu".

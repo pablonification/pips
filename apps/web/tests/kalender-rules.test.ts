@@ -35,6 +35,7 @@ import {
   stripDays,
   stripMonths,
   testiParams,
+  startLabel,
   timeLine,
   whenDay,
 } from '../src/features/kalender/rules';
@@ -66,6 +67,9 @@ const ev = (
   end: wib(end),
   googleCalendarUrl: `https://calendar.google.com/calendar/event?eid=${id}`,
   googleCalendarId: id,
+  synced: false,
+  allDay: false,
+  location: null,
 });
 
 const course = (
@@ -251,6 +255,25 @@ test('deadlines are point events; ended events end before now (rules 2, 3)', () 
   assert.equal(isEnded(kuis2, NOW), false);
   assert.equal(timeLine(tubes), 'Paling lambat 23.59 WIB');
   assert.equal(timeLine(kuis2), '15.00–16.40 WIB');
+});
+
+test('an all-day event from PRISMA reads "Seharian", or names its last day; rows show "Seharian"', () => {
+  const day = {
+    ...ev(
+      'de-1',
+      'himpunan',
+      'Dies Natalis',
+      '2026-12-01T00:00',
+      '2026-12-02T00:00',
+    ),
+    allDay: true,
+    synced: true,
+  };
+  assert.equal(timeLine(day), 'Seharian');
+  assert.equal(startLabel(day), 'Seharian');
+  const three = { ...day, end: wib('2026-12-04T00:00') };
+  assert.equal(timeLine(three), 'Seharian, sampai Kam 3 Des');
+  assert.equal(startLabel(kuis2), '15.00');
 });
 
 test('course lines, labels and Testi Matkul’s page', () => {

@@ -302,6 +302,12 @@
   }
   .g-ev-desc {
     padding-top: 5px;
+    /* Descriptions keep their lines (PRISMA writes CP and links on their own lines); long links wrap. */
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+  .g-ev-place {
+    overflow-wrap: anywhere;
   }
   .g-day-error {
     padding-block: 16px;

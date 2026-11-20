@@ -148,6 +148,7 @@ export const updateCalendarEventRoute = createRoute({
     },
     403: errorResponse,
     404: errorResponse,
+    409: errorResponse,
   },
 });
 
@@ -173,6 +174,7 @@ export const deleteCalendarEventRoute = createRoute({
     },
     403: errorResponse,
     404: errorResponse,
+    409: errorResponse,
   },
 });
 
