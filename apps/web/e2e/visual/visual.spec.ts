@@ -123,6 +123,12 @@ for (const state of VISUAL_STATES) {
       await expect(state.ready(page)).toBeVisible();
       // The same picture on every run and machine (CI records the Linux references): the web fonts and every image
       // on the page are in before the screenshot, not a fallback face or an empty logo.
+      // People's photos come once the page's data has settled (src/lib/data-settled.ts): wait for that first.
+      await page.waitForFunction(
+        () =>
+          !document.querySelector('.g-avatar') ||
+          document.documentElement.hasAttribute('data-settled'),
+      );
       await page.evaluate(async () => {
         await document.fonts.ready;
         await Promise.all(
