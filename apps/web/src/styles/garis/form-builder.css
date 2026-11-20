@@ -1499,6 +1499,10 @@
     .fb-pv-bar + .f-cover {
       margin-top: 0;
     }
+    /* The form's side column sticks below the bar, not under it. */
+    .g-main:has(.fb-pv-bar) .f-aside {
+      top: calc(var(--fb-pv-h) + 28px);
+    }
   }
   .fb-pv-bar .g-ic {
     flex: none;
