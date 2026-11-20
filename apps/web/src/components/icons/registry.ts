@@ -57,7 +57,19 @@ import { IconKunci } from './kunci';
 import { IconTenggat } from './tenggat';
 import { IconPeringatan } from './peringatan';
 import { IconSampul } from './sampul';
+import { IconPegang } from './pegang';
+import { IconSalin } from './salin';
+import { IconMata } from './mata';
+import { IconCabang } from './cabang';
+import { IconTeks } from './teks';
+import { IconParagraf } from './paragraf';
+import { IconRadio } from './radio';
+import { IconKotak } from './kotak';
+import { IconDropdown } from './dropdown';
+import { IconSkala } from './skala';
 import { IconUnggah } from './unggah';
+import { IconBagian } from './bagian';
+import { IconAtas } from './atas';
 import { IconPensil } from './pensil';
 
 export const ICON_KEYS = [
@@ -115,7 +127,19 @@ export const ICON_KEYS = [
   'tenggat',
   'peringatan',
   'sampul',
+  'pegang',
+  'salin',
+  'mata',
+  'cabang',
+  'teks',
+  'paragraf',
+  'radio',
+  'kotak',
+  'dropdown',
+  'skala',
   'unggah',
+  'bagian',
+  'atas',
   'pensil',
 ] as const;
 export type IconKey = (typeof ICON_KEYS)[number];
@@ -189,7 +213,19 @@ export const ICONS: Record<IconKey, ComponentType<IconProps>> = {
   tenggat: IconTenggat,
   peringatan: IconPeringatan,
   sampul: IconSampul,
+  pegang: IconPegang,
+  salin: IconSalin,
+  mata: IconMata,
+  cabang: IconCabang,
+  teks: IconTeks,
+  paragraf: IconParagraf,
+  radio: IconRadio,
+  kotak: IconKotak,
+  dropdown: IconDropdown,
+  skala: IconSkala,
   unggah: IconUnggah,
+  bagian: IconBagian,
+  atas: IconAtas,
   pensil: IconPensil,
 };
 
@@ -210,7 +246,7 @@ export const GLYPHS: Record<
   layanan: GlyphLayanan,
 };
 
-/** What each icon means, in words. */
+/** What each icon means, as the prototype's design-system page names it. */
 export const ICON_LABELS: Record<IconKey, string> = {
   beranda: 'Beranda',
   pengumuman: 'Pengumuman',
@@ -266,6 +302,18 @@ export const ICON_LABELS: Record<IconKey, string> = {
   tenggat: 'Tenggat',
   peringatan: 'Peringatan',
   sampul: 'Poster',
+  pegang: 'Pindahkan',
+  salin: 'Duplikat',
+  mata: 'Pratinjau',
+  cabang: 'Tampilkan jika',
+  teks: 'Jawaban singkat',
+  paragraf: 'Paragraf',
+  radio: 'Pilihan ganda',
+  kotak: 'Kotak centang',
+  dropdown: 'Dropdown',
+  skala: 'Skala linier',
   unggah: 'Unggah file',
+  bagian: 'Bagian',
+  atas: 'Ke atas',
   pensil: 'Edit',
 };
