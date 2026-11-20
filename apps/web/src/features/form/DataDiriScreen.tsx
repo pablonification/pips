@@ -19,7 +19,8 @@ import { fill } from '~/copy/fill';
 import { isi } from '~/copy/isi';
 import { cn } from '~/lib/utils';
 import { DetailEditor } from './DetailEditor';
-import { detailProblems, myDetailsQuery, useSaveDetails } from './queries';
+import { myDetailsQuery } from './queries';
+import { detailProblems, useSaveDetails } from './send';
 import {
   detailToSend,
   draftFromSaved,

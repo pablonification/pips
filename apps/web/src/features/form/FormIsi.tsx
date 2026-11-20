@@ -41,12 +41,8 @@ import useSession from '~/hooks/auth/useSession';
 import { cn } from '~/lib/utils';
 import { DetailEditor } from './DetailEditor';
 import { Question } from './Question';
-import {
-  myDetailsQuery,
-  myResponseQuery,
-  useSendForm,
-  type SendBody,
-} from './queries';
+import { myDetailsQuery, myResponseQuery } from './queries';
+import { useSendForm, type SendBody } from './send';
 import {
   answersToSend,
   detailToSend,
