@@ -47,9 +47,10 @@ Two facts decide the shape of a fix:
   moving off it means rewriting this step.
 - The saving today is small, about 1.3 KiB per page: the whole client was about 2.7 KiB gzipped. What it buys is that a
   new route grows only the pages that call it, and the entry only when a loader prefetches it.
-- A feature module a loader imports still brings its other requests into the entry, so a loader's queries live in a
-  file of their own and a feature's sends in another (`components/form/data.ts` and `send.ts`, `sparta-data.ts` and
-  `sparta-send.ts`).
+- A feature module a loader imports still brings its other requests into the entry, so a loader's queries can live in
+  a file of their own and a feature's sends in another (`components/form/data.ts` and `send.ts`). `sparta-data.ts`
+  keeps its writes on purpose: they keep React Query's `useMutation` in the entry, which sign-in needs; without them
+  it lands in the shared `ui` chunk and sign-in would load all of it.
 
 ## When to revisit
 
