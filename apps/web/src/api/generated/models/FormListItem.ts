@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { FormStatus } from './FormStatus';
+import type { ProfileField } from './ProfileField';
 export type FormListItem = {
   id: string;
   slug: string;
@@ -14,6 +15,8 @@ export type FormListItem = {
   isActive: boolean;
   order: number;
   createdAt: string;
+  requestedFields: Array<ProfileField>;
+  allowEdit: boolean;
   status: FormStatus;
   sectionCount: number;
 };

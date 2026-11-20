@@ -6,11 +6,40 @@ import type { Info } from '../../src/api/generated';
 import type * as api from '../../src/api/generated/operations';
 import {
   NOW,
+  type Db,
   formSectionsVisibleFor,
   formStatusFor,
   isSpartaEligible,
   spartaWindowFor,
 } from '../fixtures/api';
+import { tidySlug, slugProblem } from '../../../api/src/lib/form-rules';
+import {
+  exportTable,
+  summarize,
+  toCsv,
+} from '../../../api/src/lib/form-summary';
+import { toXlsx } from '../../../api/src/lib/form-xlsx';
+import {
+  accessList,
+  accessOf,
+  audienceOf,
+  findForm,
+  isAdmin,
+  isPengurus,
+  loadForManage,
+  manageListItem,
+  manageView,
+  memberDetail,
+  memberListItem,
+  myDetails,
+  myResponse,
+  notFound as formNotFound,
+  pengurusIds,
+  personOf,
+  relationOf,
+  unauthorized,
+  viewOnly,
+} from './forms';
 import { reply, type Handler } from './mock';
 
 const PAGE = 10;
@@ -37,6 +66,15 @@ const FORM_ADMIN = ['admin'];
 const SPARTA_ADMIN = ['peoplemanage', 'admin'];
 /** `internship.repo.ts` SUBMISSIONS_PER_PAGE. */
 const SUBMISSIONS_PER_PAGE = 20;
+/** The builder's routes are for pengurus (any role), as `forRoles(…, PENGURUS)` answers: 401 "Unauthorized". */
+const pengurus: (h: Handler) => Handler = (h) =>
+  signedIn((req) => (isPengurus(req.db) ? h(req) : unauthorized()));
+/** Your response to a builder's form, as `GET /form/{id}/my-response` answers it. */
+function storedResponse(db: Db, formId: string) {
+  const form = findForm(db, formId);
+  const r = form && form.publishedAt !== null && myResponse(db, form);
+  return r ? { ...r, formId } : null;
+}
 const notFound = (what: string) =>
   reply.status(404, { message: `${what} not found` });
 const includes = (hay: string | null | undefined, needle: string) =>
@@ -276,7 +314,16 @@ export const defaultHandlers: Record<string, Handler> = {
 
   // Forms
   'GET /api/form': signedIn(({ db }) =>
-    ok<R<typeof api.listForms>>({ forms: db.forms }),
+    ok<R<typeof api.listForms>>({
+      forms: [
+        ...db.forms,
+        ...(db.listStoredForms
+          ? db.formStore
+              .filter((f) => !db.forms.some((x) => x.id === f.id))
+              .flatMap((f) => memberListItem(db, f) ?? [])
+          : []),
+      ],
+    }),
   ),
   'GET /api/form/admin/list': withRole(FORM_ADMIN, ({ db }) =>
     ok<R<typeof api.listAllForms>>({ forms: db.adminForms }),
@@ -286,7 +333,12 @@ export const defaultHandlers: Record<string, Handler> = {
     const form = Object.values(db.formDetails).find(
       (f) => f.id === params.formId || f.slug === params.formId,
     );
-    if (!form) return notFound('form');
+    if (!form) {
+      // A form made in the builder (fixtures/forms.ts): a draft is never found.
+      const stored = findForm(db, params.formId);
+      const detail = stored && memberDetail(db, stored);
+      return detail ? ok<R<typeof api.getForm>>(detail) : notFound('form');
+    }
     const nim = db.me!.nim;
     const status = formStatusFor(form, {
       responded: !!db.myResponses[form.id],
@@ -308,7 +360,7 @@ export const defaultHandlers: Record<string, Handler> = {
       { db, params }, // The API answers 200 with null when you haven't responded; its OpenAPI type omits the null (NOTES.md).
     ) =>
       ok<R<typeof api.getMyFormResponse> | null>(
-        db.myResponses[params.formId] ?? null,
+        db.myResponses[params.formId] ?? storedResponse(db, params.formId),
       ),
   ),
   'GET /api/form/:formId/responses': withRole(
@@ -344,6 +396,152 @@ export const defaultHandlers: Record<string, Handler> = {
       ok<R<typeof api.getFormAnalytics> | undefined>(
         db.formAnalytics[params.formId],
       ) ?? notFound('form'),
+  ),
+
+  // Forms made in the builder (fixtures/forms.ts, support/forms.ts), as form.controller.ts and
+  // form-manage.controller.ts answer them. Writes are in writes.ts.
+  'GET /api/form-link/:name': signedIn(({ db, params }) => {
+    const form = db.formStore.find((f) => f.slug === params.name.toLowerCase());
+    if (!form) return formNotFound();
+    const canManage = isPengurus(db) && accessOf(db, form).canView;
+    const base = {
+      formId: form.id,
+      title: form.title,
+      eligibleAngkatan: form.eligibleAngkatan,
+      canManage,
+    };
+    if (form.publishedAt === null)
+      return canManage
+        ? ok<R<typeof api.openFormLink>>({ state: 'draft', ...base })
+        : formNotFound();
+    return ok<R<typeof api.openFormLink>>({
+      state: form.eligibleAngkatan.includes(db.me!.angkatan)
+        ? 'form'
+        : 'not_for_you',
+      ...base,
+    });
+  }),
+  'GET /api/user/details': signedIn(({ db }) =>
+    ok<R<typeof api.getMyDetails>>(myDetails(db)),
+  ),
+  'GET /api/form/manage/list': pengurus(({ db, query }) => {
+    const all = query.get('scope') === 'all';
+    if (all && !isAdmin(db))
+      return reply.status(403, { error: 'Every form is for admin only' });
+    return ok<R<typeof api.listManagedForms>>({
+      forms: db.formStore
+        .filter((f) => all || relationOf(db, f) !== null)
+        .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
+        .map((f) => manageListItem(db, f)),
+    });
+  }),
+  'GET /api/form/:formId/manage': pengurus(({ db, params }) => {
+    const found = loadForManage(db, params.formId);
+    return found
+      ? ok<R<typeof api.getManagedForm>>(manageView(db, found.form))
+      : formNotFound();
+  }),
+  'GET /api/form/:formId/access': pengurus(({ db, params }) => {
+    const found = loadForManage(db, params.formId);
+    return found
+      ? ok<R<typeof api.getFormAccess>>(accessList(db, found.form))
+      : formNotFound();
+  }),
+  // As NIM Finder orders them, with whether each holds a role; at most 20; under 3 characters is a 400.
+  'GET /api/form/:formId/access/search': pengurus(({ db, params, query }) => {
+    const found = loadForManage(db, params.formId);
+    if (!found) return formNotFound();
+    if (!found.access.canEdit) return viewOnly();
+    const search = query.get('search')?.trim() ?? '';
+    if (search.length < 3)
+      return reply.status(400, {
+        errors: {
+          formErrors: [],
+          fieldErrors: {
+            search: ['String must contain at least 3 character(s)'],
+          },
+        },
+      });
+    const leaders = pengurusIds();
+    return ok<R<typeof api.searchFormAccess>>({
+      people: db.members
+        .filter((m) => includes(m.fullName, search) || m.nim.includes(search))
+        .sort((a, b) => a.fullName.localeCompare(b.fullName))
+        .slice(0, 20)
+        .map((m) => ({
+          person: personOf(db, m.id)!,
+          isPengurus: leaders.includes(m.id) || m.id === db.me!.id,
+          role:
+            m.id === found.form.ownerId
+              ? ('owner' as const)
+              : (found.form.shared.find((x) => x.userId === m.id)?.role ??
+                null),
+        })),
+    });
+  }),
+  'GET /api/form/:formId/slug-check': pengurus(({ db, params, query }) => {
+    const found = loadForManage(db, params.formId);
+    if (!found) return formNotFound();
+    if (!found.access.canEdit) return viewOnly();
+    const slug = tidySlug(query.get('slug') ?? '');
+    const problem =
+      slugProblem(slug) ??
+      (db.formStore.some((f) => f.slug === slug && f.id !== params.formId)
+        ? ('taken' as const)
+        : null);
+    return ok<R<typeof api.checkFormSlug>>({
+      slug,
+      available: problem === null,
+      problem,
+    });
+  }),
+  'GET /api/form/:formId/answers/summary': pengurus(({ db, params }) => {
+    const found = loadForManage(db, params.formId);
+    if (!found) return formNotFound();
+    return ok<R<typeof api.getFormSummary>>({
+      ...summarize(found.form.sections, found.form.responses),
+      audience: audienceOf(found.form.eligibleAngkatan),
+    });
+  }),
+  'GET /api/form/:formId/answers': pengurus(({ db, params, query }) => {
+    const found = loadForManage(db, params.formId);
+    if (!found) return formNotFound();
+    const page = Number(query.get('page') ?? 1);
+    const limit = Number(query.get('limit') ?? 1);
+    const all = [...found.form.responses].sort(
+      (a, b) => Date.parse(a.submittedAt) - Date.parse(b.submittedAt),
+    );
+    return ok<R<typeof api.listFormAnswers>>({
+      responses: all
+        .map(({ userId: _who, ...r }, i) => ({ ...r, number: i + 1 }))
+        .slice((page - 1) * limit, page * limit),
+      total: all.length,
+      page,
+      limit,
+    });
+  }),
+  // The real file: the API's own table, CSV and Excel writers (apps/api/src/lib/form-summary.ts, form-xlsx.ts).
+  'GET /api/form/:formId/answers/export': pengurus(
+    async ({ db, params, query }) => {
+      const found = loadForManage(db, params.formId);
+      if (!found) return formNotFound();
+      const format = query.get('format') === 'csv' ? 'csv' : 'xlsx';
+      const table = exportTable(found.form, found.form.responses);
+      const headers = {
+        'content-disposition': `attachment; filename="${found.form.slug}-jawaban.${format}"`,
+      };
+      return format === 'csv'
+        ? reply.file(
+            Buffer.from(toCsv(table)),
+            'text/csv; charset=utf-8',
+            headers,
+          )
+        : reply.file(
+            await toXlsx(table),
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers,
+          );
+    },
   ),
 
   // SPARTA Magang (closed; kept for the admin table)

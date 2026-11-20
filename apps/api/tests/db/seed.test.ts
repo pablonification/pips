@@ -32,6 +32,8 @@ let testUrl: string;
 
 /** Removes every seeded row this file can tell apart, so other files see the database as they left it. */
 async function removeSeed() {
+  // Before the members: a form outlives its owner (no owner), so it would stay behind.
+  await client`delete from forms where id like 'seed-%'`;
   await client`delete from users where id like 'seed-%'`;
   await client`delete from calendar_group where id like 'seed-%'`;
   await client`delete from competitions where id like 'seed-%'`;

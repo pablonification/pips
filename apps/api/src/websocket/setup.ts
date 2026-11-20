@@ -20,6 +20,7 @@ import {
   removeFailedPushSubscriptions,
 } from '~/repositories/push.repo';
 import { getUserRoles, getUsersByRole } from '~/repositories/user-role.repo';
+import { getFormById, getFormRelation } from '~/repositories/form.repo';
 import { handleConnections, formAdminRoom } from './connection';
 
 export { formAdminRoom };
@@ -79,6 +80,10 @@ export default function setupWebsocket(httpServer: ServerType) {
   handleConnections(io, {
     jwtSecret: env.JWT_SECRET,
     getUserRoles: async (userId) => await getUserRoles(db, userId),
+    mayWatchForm: async (userId, formId) => {
+      const form = await getFormById(db, formId);
+      return !!form && (await getFormRelation(db, form, userId)) !== null;
+    },
     onError: (error) => Sentry.captureException(error),
     curhat: {
       getChatroom: async (chatroomId) => await getChatroomOwner(db, chatroomId),

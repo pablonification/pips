@@ -16,6 +16,8 @@ import type {
   comments,
   competitions,
   courses,
+  formCollaborators,
+  forms,
   infoAngkatan,
   infoCategories,
   infos,
@@ -388,7 +390,69 @@ export function sampleHmif(now: Date) {
       })),
     );
 
+  // A form made in the builder by the pengurus, open to 2025 and shared with Welfare to see the answers, and a draft.
+  const builderFormRows: Array<Row<typeof forms>> = [
+    {
+      id: 'seed-form-acara',
+      slug: 'contoh-daftar-acara',
+      slugCustom: true,
+      title: 'Daftar acara angkatan 2025',
+      description: 'Contoh form dari Kelola › Form.',
+      ownerId: M.pengurus.id,
+      eligibleAngkatan: [2025],
+      sections: [
+        {
+          id: 'seed-s1',
+          title: '',
+          questions: [
+            {
+              id: 'seed-q1',
+              label: 'Bisa ikut?',
+              type: 'radio',
+              options: ['Bisa', 'Belum pasti'],
+            },
+            {
+              id: 'seed-q2',
+              label: 'Ada yang perlu panitia tahu?',
+              type: 'textarea',
+              optional: true,
+            },
+          ],
+        },
+      ],
+      requestedFields: ['fullName', 'nim'],
+      allowEdit: true,
+      opensAt: wib(now, -1, 9),
+      publishedAt: wib(now, -2, 20),
+      isActive: true,
+    },
+    {
+      id: 'seed-form-draf',
+      slug: 'contoh-draf',
+      title: 'Draf form',
+      ownerId: M.pengurus.id,
+      sections: [
+        {
+          id: 'seed-s1',
+          title: '',
+          questions: [
+            { id: 'seed-q1', label: '', type: 'radio', options: ['Opsi 1'] },
+          ],
+        },
+      ],
+      requestedFields: ['fullName', 'nim'],
+      opensAt: null,
+      publishedAt: null,
+      isActive: false,
+    },
+  ];
+  const formCollaboratorRows: Array<Row<typeof formCollaborators>> = [
+    { formId: 'seed-form-acara', userId: M.welfare.id, role: 'view' },
+  ];
+
   return {
+    builderFormRows,
+    formCollaboratorRows,
     angkatanRows,
     userRows,
     roleRows,

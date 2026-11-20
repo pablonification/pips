@@ -112,6 +112,9 @@ before(async () => {
       if (failRoleLookups) throw new Error('database down');
       return ROLES[id] ?? [];
     },
+    // Welfare's member made the "makrab" form in the builder; Nadia was shared it once, but holds no role.
+    mayWatchForm: async (userId, formId) =>
+      formId === 'makrab' && [welfare.id, nadia.id].includes(userId),
     curhat: {
       getChatroom: async (id) => rooms.find((r) => r.id === id),
       getOwnedChatroomIds: async (userId) => {
@@ -1024,6 +1027,21 @@ test("Live Counting's formAdminId room still joins admins only", async () => {
   assert.deepEqual(await roomsOf(adminSocket.id!), [formAdminRoom('pixel')]);
   assert.deepEqual(await roomsOf(memberSocket.id!), []);
   assert.deepEqual(await roomsOf(anon.id!), []);
+});
+
+test("a builder form's room joins admin and the pengurus who manage it; a member with no role never", async () => {
+  const maker = await client(welfare, { formAdminId: 'makrab' });
+  const notTheirs = await client(welfare, { formAdminId: 'pixel' });
+  const noRole = await client(nadia, { formAdminId: 'makrab' });
+  const adminSocket = await client(admin, { formAdminId: 'makrab' });
+  await settled();
+  assert.ok((await roomsOf(maker.id!)).includes(formAdminRoom('makrab')));
+  assert.equal(
+    (await roomsOf(notTheirs.id!)).includes(formAdminRoom('pixel')),
+    false,
+  );
+  assert.deepEqual(await roomsOf(noRole.id!), []);
+  assert.deepEqual(await roomsOf(adminSocket.id!), [formAdminRoom('makrab')]);
 });
 
 // What Live Counting relies on: a new response is announced to the form's admin room only.

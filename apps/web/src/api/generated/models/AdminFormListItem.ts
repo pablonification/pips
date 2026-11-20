@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { ProfileField } from './ProfileField';
 export type AdminFormListItem = {
   id: string;
   slug: string;
@@ -13,5 +14,7 @@ export type AdminFormListItem = {
   isActive: boolean;
   order: number;
   createdAt: string;
+  requestedFields: Array<ProfileField>;
+  allowEdit: boolean;
 };
 

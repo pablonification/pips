@@ -6,7 +6,7 @@ import type { AdminFormResponseItem } from '../models/AdminFormResponseItem';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { http } from '../../http';
 /**
- * @returns any Paginated list of responses (admin only)
+ * @returns any Paginated list of responses (admin only), for a form made before the builder
  * @throws ApiError
  */
 export function listFormResponses({
@@ -45,6 +45,7 @@ export function listFormResponses({
     errors: {
       400: `Bad request: validation error`,
       401: `Error`,
+      404: `Error`,
     },
   });
 }

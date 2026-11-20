@@ -35,6 +35,15 @@ type MockReply =
       delayMs: number;
       contentType: string;
     }
+  | {
+      [BRAND]: true;
+      kind: 'file';
+      status: number;
+      body: Buffer;
+      delayMs: number;
+      contentType: string;
+      headers: Record<string, string>;
+    }
   | { [BRAND]: true; kind: 'abort'; error: string; delayMs: number }
   | { [BRAND]: true; kind: 'hang' };
 
@@ -62,6 +71,20 @@ export const reply = {
     body,
     delayMs: 0,
     contentType,
+  }),
+  /** A file to download, such as a form's Excel export, with its headers (Content-Disposition). */
+  file: (
+    body: Buffer,
+    contentType: string,
+    headers: Record<string, string> = {},
+  ): MockReply => ({
+    [BRAND]: true,
+    kind: 'file',
+    status: 200,
+    body,
+    delayMs: 0,
+    contentType,
+    headers,
   }),
   /** Fail at the network level, like a dropped connection (`failed`) or no network (`internetdisconnected`). */
   abort: (
@@ -428,6 +451,13 @@ export class ApiMock {
     if (r.delayMs) await new Promise((res) => setTimeout(res, r.delayMs));
     if (r.kind === 'abort') return route.abort(r.error);
     record.status = r.status;
+    if (r.kind === 'file')
+      return route.fulfill({
+        status: r.status,
+        contentType: r.contentType,
+        body: r.body,
+        headers: r.headers,
+      });
     if (r.kind === 'text')
       return route.fulfill({
         status: r.status,

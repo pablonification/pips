@@ -17,6 +17,7 @@ import { userProfileRoute } from './user-profile.controller';
 import { userUnsubscribeRouter } from './user-unsubscribe.controller';
 import { curhatRouter } from './curhat.controller';
 import { internshipRouter } from './internship.controller';
+import { formManageRouter } from './form-manage.controller';
 import { formRouter } from './form.controller';
 import { programmeWindowRouter } from './programme-window.controller';
 
@@ -44,6 +45,7 @@ protectedApiRouter.route('/', markdownRouter);
 protectedApiRouter.route('/', curhatRouter);
 protectedApiRouter.route('/', internshipRouter);
 protectedApiRouter.route('/', formRouter);
+protectedApiRouter.route('/', formManageRouter);
 protectedApiRouter.route('/', programmeWindowRouter);
 
 export const apiRouter = new OpenAPIHono();

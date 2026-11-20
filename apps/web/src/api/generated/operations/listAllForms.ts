@@ -6,7 +6,7 @@ import type { AdminFormListItem } from '../models/AdminFormListItem';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { http } from '../../http';
 /**
- * @returns any List of all active forms, regardless of eligibility (admin only)
+ * @returns any Every active form made before the builder, regardless of eligibility (admin only): Live Counting & Rekap Form
  * @throws ApiError
  */
 export function listAllForms(): CancelablePromise<{
