@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { ManageForm, UpdateForm } from '~/api/generated';
 import {
   Button,
@@ -52,6 +52,11 @@ export function SettingsTab({ form, save, before }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [thanks, setThanks] = useState(form.thanks ?? copy.setelan.terimaKasih);
+  // A tick or a switch shows at once; it goes back if the server refuses it.
+  const [years, setYears] = useState(form.eligibleAngkatan);
+  const [allowEdit, setAllowEdit] = useState(form.allowEdit);
+  useEffect(() => setYears(form.eligibleAngkatan), [form.eligibleAngkatan]);
+  useEffect(() => setAllowEdit(form.allowEdit), [form.allowEdit]);
 
   return (
     <div className="fb-wrap one">
@@ -74,14 +79,16 @@ export function SettingsTab({ form, save, before }: Props) {
               <label key={y} className="fb-tick">
                 <input
                   type="checkbox"
-                  checked={form.eligibleAngkatan.includes(y)}
-                  onChange={(e) =>
-                    void save({
-                      eligibleAngkatan: e.target.checked
-                        ? [...form.eligibleAngkatan, y].sort()
-                        : form.eligibleAngkatan.filter((x) => x !== y),
-                    })
-                  }
+                  checked={years.includes(y)}
+                  onChange={(e) => {
+                    const next = e.target.checked
+                      ? [...years, y].sort()
+                      : years.filter((x) => x !== y);
+                    setYears(next);
+                    void save({ eligibleAngkatan: next }).then((ok) => {
+                      if (!ok) setYears(form.eligibleAngkatan);
+                    });
+                  }}
                 />
                 <span className="fb-key" aria-hidden="true">
                   <i />
@@ -125,9 +132,14 @@ export function SettingsTab({ form, save, before }: Props) {
               {copy.setelan.bolehUbah}
             </span>
             <Switch
-              checked={form.allowEdit}
+              checked={allowEdit}
               aria-labelledby="fb-set-e"
-              onCheckedChange={(v) => void save({ allowEdit: v })}
+              onCheckedChange={(v) => {
+                setAllowEdit(v);
+                void save({ allowEdit: v }).then((ok) => {
+                  if (!ok) setAllowEdit(!v);
+                });
+              }}
             />
           </div>
         </section>

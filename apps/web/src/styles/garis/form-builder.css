@@ -1213,6 +1213,10 @@
     max-height: 360px;
     overflow-y: auto;
   }
+  .fb-texts:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
   .fb-texts li {
     padding: 8px 0;
     border-bottom: 1px solid var(--border);
@@ -1623,6 +1627,17 @@
       max-width: 760px;
       margin-inline: 0;
       padding-inline: 36px;
+    }
+  }
+
+  /* Touch layouts: every field the member types in is 16 px, so the browser never zooms into it. */
+  @media (max-width: 1023.98px), (pointer: coarse) {
+    .fb-desc,
+    .fb-hint-field,
+    .fb-opt .fb-lf,
+    .fb-rule select.fb-lf,
+    .fb-lk-field .fb-lf {
+      font-size: 16px;
     }
   }
 

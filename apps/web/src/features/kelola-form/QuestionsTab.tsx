@@ -112,12 +112,18 @@ export function QuestionsTab({
   useEffect(() => {
     if (focusTitle) titleRef.current?.focus();
   }, [focusTitle]);
-  // After a render that opened, added or moved a question: focus what the action left you on.
+  // After a render that opened, added or moved a question: focus what the action left you on. The list's values can
+  // arrive a render after its rows, so a target not drawn yet is tried again on the next few renders.
+  const focusTries = useRef(0);
   useEffect(() => {
-    const sel = focusAfter.current;
-    if (!sel) return;
-    focusAfter.current = null;
-    document.querySelector<HTMLElement>(sel)?.focus({ preventScroll: false });
+    const target = focusAfter.current;
+    if (!target) return;
+    const el = document.querySelector<HTMLElement>(target);
+    if (el || ++focusTries.current > 5) {
+      focusAfter.current = null;
+      focusTries.current = 0;
+      el?.focus({ preventScroll: false });
+    }
   });
 
   const sensors = useSensors(

@@ -16,6 +16,7 @@ import {
 import { IconMata } from '~/components/icons/mata';
 import { IconPensil } from '~/components/icons/pensil';
 import { IconTambah } from '~/components/icons/tambah';
+import { keepFocusOnNavigationTo } from '~/components/shell/focus';
 import { DeskHead, PageBody, TopBarActions } from '~/components/shell/page';
 import { fill } from '~/copy/fill';
 import { kelolaForm as copy } from '~/copy/kelola-form';
@@ -46,6 +47,8 @@ export function FormsScreen({ all }: { all: boolean }) {
     mutationFn: createForm,
     onSuccess: (form) => {
       keepForm(client, form);
+      // The new form's title takes focus, not the page heading the shell would focus.
+      keepFocusOnNavigationTo(`/kelola/form/${form.id}`);
       void navigate({
         to: '/kelola/form/$formId',
         params: { formId: form.id },

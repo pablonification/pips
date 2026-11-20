@@ -265,14 +265,25 @@ function Summary({ summary }: { summary: FormSummary }) {
             </ul>
           ) : null}
           {q.texts?.length ? (
-            <ul className="fb-texts" aria-label={copy.jawaban.jawabanTeks}>
+            // A list that scrolls on its own takes focus, so it scrolls from the keyboard too.
+            <ul
+              className="fb-texts"
+              aria-label={fill(copy.jawaban.jawabanUntuk, {
+                pertanyaan: q.label,
+              })}
+              tabIndex={0}
+            >
               {q.texts.map((t, j) => (
                 <li key={j}>{t}</li>
               ))}
             </ul>
           ) : null}
           {q.files?.length ? (
-            <ul className="fb-texts">
+            <ul
+              className="fb-texts"
+              aria-label={fill(copy.jawaban.fileUntuk, { pertanyaan: q.label })}
+              tabIndex={0}
+            >
               {q.files.map((f) => {
                 const href = fileHref(f.url, MEDIA_BASE);
                 return (

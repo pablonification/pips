@@ -204,6 +204,24 @@ function SlugEditor({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => setFocus('slug', { shouldSelect: true }), [setFocus]);
+  // Escape in the field leaves the editor and keeps the dialog: caught before the dialog's own listener on the
+  // document sees it.
+  const doneRef = useRef(onDone);
+  doneRef.current = onDone;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (
+        e.key !== 'Escape' ||
+        !(e.target as Element | null)?.matches?.('[data-slug-field]')
+      )
+        return;
+      e.stopPropagation();
+      e.preventDefault();
+      doneRef.current();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, []);
   // The local rules at once; whether another form holds it about 300 ms after the last key.
   useEffect(() => {
     if (slug === form.slug)
@@ -287,16 +305,12 @@ function SlugEditor({
           aria-labelledby="fb-lk-t fb-lk-pre"
           aria-describedby="fb-lk-st fb-lk-h"
           aria-invalid={bad || undefined}
+          data-slug-field=""
           {...field}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
               void save();
-            }
-            if (e.key === 'Escape') {
-              e.preventDefault();
-              e.stopPropagation();
-              onDone();
             }
           }}
         />
