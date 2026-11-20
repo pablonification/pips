@@ -17,7 +17,7 @@ import { storedFileCheck } from '../src/lib/form-model';
 import { EMPTY_DETAILS } from '../src/lib/member-details';
 import postgres from 'postgres';
 import { callRouter } from './support/router';
-import { testUser, type TestUser } from './support/session';
+import { sessionCookie, testUser, type TestUser } from './support/session';
 
 const NOW = new Date('2026-10-08T06:35:00.000Z');
 const STORE = 'https://media.example.com';
@@ -1064,4 +1064,20 @@ test('Live Counting & Rekap Form serve only forms made before the builder: a new
     const ok = await asMember(people.raka, 'GET', `/form/${pixel.id}/${path}`);
     assert.equal(ok.status, 200, path);
   }
+});
+
+test("the export's file name carries only safe characters, whatever an old form's name holds", async () => {
+  const old = form({ ownerId: null, slug: 'Form "PIXEL"/2025' });
+  store.forms.set(old.id, old);
+  const res = await manage.request(
+    `/form/${old.id}/answers/export?format=csv`,
+    {
+      headers: { Cookie: await sessionCookie(people.raka) },
+    },
+  );
+  assert.equal(res.status, 200);
+  assert.equal(
+    res.headers.get('content-disposition'),
+    'attachment; filename="Form-PIXEL-2025-jawaban.csv"',
+  );
 });

@@ -497,7 +497,8 @@ export function createFormManageRouter(deps: FormManageDeps = databaseDeps) {
       found.form,
       await deps.getResponsesForSummary(formId),
     );
-    const name = `${found.form.slug}-jawaban.${format}`;
+    // A form made before the builder may hold a name the link rules never checked.
+    const name = `${found.form.slug.replace(/[^a-z0-9-]+/gi, '-')}-jawaban.${format}`;
     c.header('Content-Disposition', `attachment; filename="${name}"`);
     c.header('Cache-Control', 'no-store');
     if (format === 'csv') {
