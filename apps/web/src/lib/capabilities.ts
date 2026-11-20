@@ -3,6 +3,50 @@ import type { UserWithRoles } from '~/api/generated';
 type Role = UserWithRoles['roles'][number];
 
 /**
+ * Every role: a pengurus is a member who holds at least one (`apps/api/src/db/roles-group.ts`). A record, so a role
+ * added to the API and missing here fails the type check.
+ */
+const EVERY_ROLE: Record<Role, true> = {
+  ring1: true,
+  ring12: true,
+  sekjen: true,
+  capitalcatalyst: true,
+  people: true,
+  peopledev: true,
+  peoplemanage: true,
+  internal: true,
+  clubnhobies: true,
+  household: true,
+  kinship: true,
+  welfarenakademik: true,
+  akademik: true,
+  welfare: true,
+  externalnrelations: true,
+  alumnirelations: true,
+  comserv: true,
+  extracampus: true,
+  intracampus: true,
+  tie: true,
+  cardev: true,
+  cnc: true,
+  techdev: true,
+  cnb: true,
+  medcon: true,
+  visdes: true,
+  iit: true,
+  iitfinance: true,
+  iithr: true,
+  iitmarketing: true,
+  iitoperational: true,
+  iittech: true,
+  de: true,
+  dpp: true,
+  curhatadmin: true,
+  admin: true,
+};
+const PENGURUS_ROLES = Object.keys(EVERY_ROLE) as Role[];
+
+/**
  * What each role may do, mirroring the server's checks. Every pengurus action
  * renders through `can()`; members never see an action they can't complete. `tests/capabilities.test.ts` reads
  * the API's source and fails if a row here drifts from it.
@@ -30,6 +74,10 @@ export const CAPABILITY_ROLES = {
   editCourseCatalog: ['akademik', 'admin'],
   /** Change or delete a competition in Info Lomba: `competitions.controller.ts`, the same forRoles(…, ['cnc']). */
   manageCompetition: ['cnc'],
+  /** Kelola › Form, the builder: any pengurus (`route-access.ts`, POST /api/form). The form's own access decides the rest. */
+  buildForms: PENGURUS_ROLES,
+  /** "Semua form" in Kelola › Form, and editing any form: `form-manage.controller.ts`, admin. */
+  manageAllForms: ['admin'],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Capability = keyof typeof CAPABILITY_ROLES;

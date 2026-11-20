@@ -85,6 +85,25 @@ const SERVER: Record<Capability, () => string[]> = {
     assert.match(src, /roles\.includes\('ring1'\)/);
     return ['ring1'];
   },
+  buildForms: () =>
+    routeRoles(
+      'POST /api/form',
+      'GET /api/form/manage/list',
+      'GET /api/form/{formId}/manage',
+      'PATCH /api/form/{formId}',
+      'POST /api/form/{formId}/publish',
+      'GET /api/form/{formId}/answers/summary',
+    ),
+  manageAllForms: () => {
+    // Every form in the list, and editing any form: the handler reads the caller's roles for 'admin'.
+    const src = api('controllers/form-manage.controller.ts');
+    assert.match(
+      src,
+      /\.includes\('admin'\)[\s\S]{0,120}Every form is for admin only/,
+    );
+    assert.match(api('lib/form-rules.ts'), /asAdmin/);
+    return ['admin'];
+  },
   respondCurhat: () => {
     // The role is one constant, used by the Welfare list, pins and the room access rule.
     const role = /CURHAT_ADMIN_ROLE\s*=\s*'([a-z0-9]+)'/.exec(
@@ -139,10 +158,12 @@ test('Raka (akademik, admin) gets exactly the tools his roles allow', () => {
     .filter((c) => can(raka, c))
     .sort();
   assert.deepEqual(granted, [
+    'buildForms',
     'createAkademikEvent',
     'createTestimonial',
     'editCourseCatalog',
     'liveCounting',
+    'manageAllForms',
     'moderateContent',
     'spartaData',
   ]);

@@ -40,10 +40,11 @@ test('the timezone of this run is not WIB', () => {
   assert.notEqual(new Date(NOW).getHours(), 13);
 });
 
-test('kelolaServices: Raka gets the three rows in the registry order', () => {
+test('kelolaServices: Raka gets the four rows in the registry order, Form first', () => {
   assert.deepEqual(
     kelolaServices(raka).map((s) => [s.label, s.icon, s.destination]),
     [
+      ['Form', 'form', '/kelola/form'],
       ['Live Counting & Rekap Form', 'grafik', '/kelola/live'],
       ['Data SPARTA Magang', 'kelola', '/kelola/sparta'],
       ['Tambah acara Akademik', 'kalender', '/kelola/acara'],
@@ -51,7 +52,7 @@ test('kelolaServices: Raka gets the three rows in the registry order', () => {
   );
   assert.deepEqual(
     kelolaServices(people).map((s) => s.label),
-    ['Data SPARTA Magang'],
+    ['Form', 'Data SPARTA Magang'],
   );
   assert.deepEqual(kelolaServices(nadia), []);
 });
@@ -89,10 +90,10 @@ test('gateRedirect: sends away only after the session check answered', () => {
 
 // Tambah acara Akademik is akademik's only, since the server lets only akademik add an Akademik event; a ring1 row
 // would lead to a 403. So ring1 alone has no Kelola tool.
-test('kelolaAccess: akademik alone has Tambah acara Akademik only; ring1 alone has none', () => {
+test('kelolaAccess: akademik alone has Form and Tambah acara Akademik; ring1 alone has Form only', () => {
   assert.deepEqual(
     kelolaServices(akademik).map((s) => s.label),
-    ['Tambah acara Akademik'],
+    ['Form', 'Tambah acara Akademik'],
   );
   assert.deepEqual(kelolaAccess(akademik, 'hub'), { allowed: true });
   assert.deepEqual(kelolaAccess(akademik, 'live'), {
@@ -103,11 +104,14 @@ test('kelolaAccess: akademik alone has Tambah acara Akademik only; ring1 alone h
     allowed: false,
     to: '/kelola',
   });
-  assert.deepEqual(kelolaServices(ring1), []);
-  assert.deepEqual(kelolaAccess(ring1, 'hub'), {
-    allowed: false,
-    to: '/layanan',
-  });
+  // Any pengurus builds forms, so every role has Kelola.
+  assert.deepEqual(
+    kelolaServices(ring1).map((s) => s.label),
+    ['Form'],
+  );
+  assert.deepEqual(kelolaAccess(ring1, 'hub'), { allowed: true });
+  assert.deepEqual(kelolaAccess(ring1, 'form'), { allowed: true });
+  assert.deepEqual(kelolaAccess(akademik, 'form'), { allowed: true });
 });
 
 test('formsEntry: one forwards, two list, none is empty', () => {

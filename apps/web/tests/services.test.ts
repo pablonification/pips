@@ -62,20 +62,20 @@ test("Raka's Kelola group holds his tools only", () => {
   const kelola = servicesByGroup(raka, NOW).find((g) => g.group === 'Kelola');
   assert.deepEqual(
     kelola?.services.map((s) => s.id),
-    ['live', 'sparta-data', 'acara'],
+    ['form-builder', 'live', 'sparta-data', 'acara'],
   );
   assert.deepEqual(
     visibleServices({ roles: ['peoplemanage'] }, NOW)
       .filter((s) => s.group === 'Kelola')
       .map((s) => s.id),
-    ['sparta-data'],
+    ['form-builder', 'sparta-data'],
   );
   assert.deepEqual(
     visibleServices({ roles: ['ring1'] }, NOW)
       .filter((s) => s.group === 'Kelola')
       .map((s) => s.id),
-    [],
-    'ring1 adds Himpunan events from Kalender; the Kelola row is for Akademik events',
+    ['form-builder'],
+    'ring1 adds Himpunan events from Kalender; the Kelola row is for Akademik events; any pengurus builds forms',
   );
 });
 
