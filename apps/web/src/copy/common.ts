@@ -46,6 +46,9 @@ export const common = {
     // Kelola's Live Counting pages ("Kelola › Live Counting"); the page's own heading is
     // the service's full name.
     liveCounting: 'Live Counting',
+    // Rekap Form's page title (its screen uses kelola.rekap.judul): here, so the route table that every page loads
+    // doesn't bring all of Kelola's words with it.
+    rekapForm: 'Rekap Form',
     judulDokumen: '{judul} · PIPS!',
   },
   // Global search.

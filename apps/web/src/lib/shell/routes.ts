@@ -1,6 +1,5 @@
 import type { FileRouteTypes } from '~/routeTree.gen';
 import { common } from '~/copy/common';
-import { kelola } from '~/copy/kelola';
 import { mulai } from '~/copy/mulai';
 import { serviceById } from '~/lib/services';
 
@@ -136,7 +135,7 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     parent: '/kelola',
   },
   '/kelola/live/$formId/rekap': {
-    title: kelola.rekap.judul,
+    title: common.shell.rekapForm,
     parent: '/kelola/live/$formId',
   },
   '/kelola/sparta': {
