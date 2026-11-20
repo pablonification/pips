@@ -14,6 +14,7 @@ interface Expect {
   testi: boolean;
 }
 
+// Any role builds forms, so every pengurus has Form first in Kelola; a member with no role has no Kelola.
 const MATRIX: Record<string, { roles: string[]; want: Expect }> = {
   'no roles': {
     roles: [],
@@ -22,7 +23,7 @@ const MATRIX: Record<string, { roles: string[]; want: Expect }> = {
   akademik: {
     roles: ['akademik'],
     want: {
-      kelola: ['Tambah acara Akademik'],
+      kelola: ['Form', 'Tambah acara Akademik'],
       acara: 'Tambah acara Akademik',
       lomba: false,
       testi: true,
@@ -31,7 +32,7 @@ const MATRIX: Record<string, { roles: string[]; want: Expect }> = {
   ring1: {
     roles: ['ring1'],
     want: {
-      kelola: [],
+      kelola: ['Form'],
       acara: 'Tambah acara Himpunan',
       lomba: false,
       testi: false,
@@ -39,12 +40,12 @@ const MATRIX: Record<string, { roles: string[]; want: Expect }> = {
   },
   cnc: {
     roles: ['cnc'],
-    want: { kelola: [], acara: null, lomba: true, testi: false },
+    want: { kelola: ['Form'], acara: null, lomba: true, testi: false },
   },
   admin: {
     roles: ['admin'],
     want: {
-      kelola: ['Live Counting & Rekap Form', 'Data SPARTA Magang'],
+      kelola: ['Form', 'Live Counting & Rekap Form', 'Data SPARTA Magang'],
       acara: null,
       lomba: false,
       testi: false,
@@ -53,7 +54,7 @@ const MATRIX: Record<string, { roles: string[]; want: Expect }> = {
   peoplemanage: {
     roles: ['peoplemanage'],
     want: {
-      kelola: ['Data SPARTA Magang'],
+      kelola: ['Form', 'Data SPARTA Magang'],
       acara: null,
       lomba: false,
       testi: false,
@@ -61,12 +62,17 @@ const MATRIX: Record<string, { roles: string[]; want: Expect }> = {
   },
   curhatadmin: {
     roles: ['curhatadmin'],
-    want: { kelola: ['Curhat Yuk!'], acara: null, lomba: false, testi: false },
+    want: {
+      kelola: ['Form', 'Curhat Yuk!'],
+      acara: null,
+      lomba: false,
+      testi: false,
+    },
   },
 };
 
 const KELOLA_TOOL =
-  /^(Live Counting & Rekap Form|Data SPARTA Magang|Tambah acara Akademik|Curhat Yuk!)/;
+  /^(Form|Live Counting & Rekap Form|Data SPARTA Magang|Tambah acara Akademik|Curhat Yuk!)/;
 
 /** Kelola's rows as the hub lists them, or none when Kelola sends the member away. */
 async function kelolaRows(page: Page): Promise<string[]> {
@@ -86,6 +92,7 @@ async function kelolaRows(page: Page): Promise<string[]> {
   if (!onKelola()) return [];
   const names: string[] = [];
   for (const label of [
+    'Form',
     'Live Counting & Rekap Form',
     'Data SPARTA Magang',
     'Tambah acara Akademik',
