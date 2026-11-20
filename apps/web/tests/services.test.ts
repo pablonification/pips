@@ -13,6 +13,8 @@ import {
   type Service,
   visibleServices,
 } from '../src/lib/services';
+import { ICONS_BY_KEY } from '../src/components/icons/by-key';
+import { ICONS, type IconKey } from '../src/components/icons/registry';
 
 const all = SERVICES as readonly Service[];
 const NOW = new Date('2026-10-08T13:35:00+07:00'); // a fixed "now"
@@ -126,6 +128,12 @@ test('every entry has a description, an owner, an icon key and lower-case synony
     for (const w of s.synonyms)
       assert.equal(w, w.toLowerCase(), `${s.id}: ${w}`);
   }
+});
+
+test("the icons shown by key are the registry's own, and every service's is among them", () => {
+  for (const [key, icon] of Object.entries(ICONS_BY_KEY))
+    assert.equal(icon, ICONS[key as IconKey], key);
+  for (const s of all) assert.ok(s.icon in ICONS_BY_KEY, s.id);
 });
 
 test('Magang SPARTA is hidden from its deadline (23 Agustus 2026, 23.59 WIB)', () => {

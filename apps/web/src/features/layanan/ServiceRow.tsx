@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { RowButton, Tile } from '~/components/garis';
 import { IconLanjut } from '~/components/icons/lanjut';
 import { IconLuar } from '~/components/icons/luar';
-import { ICONS } from '~/components/icons/registry';
+import { ICONS_BY_KEY } from '~/components/icons/by-key';
 import { common } from '~/copy/common';
 import type { Service } from '~/lib/services';
 
@@ -16,7 +16,7 @@ export function ServiceRow({
   service: Service;
   badge?: ReactNode;
 }) {
-  const Icon = ICONS[s.icon];
+  const Icon = ICONS_BY_KEY[s.icon];
   const inner = (
     <span className="g-svc-row">
       <Tile>

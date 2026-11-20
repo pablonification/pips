@@ -76,7 +76,7 @@ const item = (
   id,
   group,
   label,
-  icon: 'cari',
+  icon: 'folder',
   hint: '',
   run: () => {},
   ...extra,
