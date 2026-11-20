@@ -51,7 +51,8 @@ export const ROUTES = {
   '/layanan/curhat/$roomId': { url: '/layanan/curhat/r1', as: [NADIA] },
   '/layanan/form': { url: '/layanan/form', as: BOTH },
   '/layanan/form/$formId': { url: '/layanan/form/pixel', as: [NADIA] },
-  '/f/$name': { url: '/f/rencana-ta-2023', as: [NADIA] },
+  // Raka (admin) may manage it: Kelola form ini beside the way to his own forms.
+  '/f/$name': { url: '/f/rencana-ta-2023', as: BOTH },
   '/layanan/sparta': { url: '/layanan/sparta', as: BOTH },
   '/layanan/testi': { url: '/layanan/testi', as: [NADIA] },
   '/layanan/testi/$type': {
