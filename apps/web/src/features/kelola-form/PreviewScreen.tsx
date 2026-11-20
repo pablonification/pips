@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import type { ManageForm } from '~/api/generated';
 import {
   Button,
@@ -10,6 +10,7 @@ import {
 } from '~/components/garis';
 import { IconMata } from '~/components/icons/mata';
 import { PageBody, usePageTitle } from '~/components/shell/page';
+import { setTitleFor } from '~/components/shell/shell-state';
 import { kelolaForm as copy } from '~/copy/kelola-form';
 import { loadFormIsi } from '~/features/form/load';
 import { manageFormQuery } from './data';
@@ -30,6 +31,13 @@ const loading = (
 export function PreviewScreen({ formId }: { formId: string }) {
   const form = useQuery(manageFormQuery(formId));
   usePageTitle(copy.pratinjau.judul);
+  // Opened straight from its address, the breadcrumb to the builder still reads the form's title.
+  const title = form.data
+    ? form.data.title.trim() || copy.daftar.tanpaJudul
+    : null;
+  useEffect(() => {
+    if (title) setTitleFor(`/kelola/form/${formId}`, title);
+  }, [formId, title]);
   if (form.isPending) return loading;
   if (form.isError)
     return (

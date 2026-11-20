@@ -1046,6 +1046,18 @@ test("Pratinjau: the member's own form with its cover and rules, the agreement s
   await expect(
     main(page).getByRole('textbox', { name: /Nomor WhatsApp/ }),
   ).toHaveValue('');
+  // Opened straight from its address in a new tab (which knows no page titles yet), the breadcrumb to the
+  // builder still names the form.
+  if (desk(testInfo)) {
+    const tab = await page.context().newPage();
+    await tab.goto('/kelola/form/wisuda/pratinjau');
+    await expect(
+      tab
+        .getByRole('navigation', { name: 'Jejak halaman' })
+        .getByRole('link', { name: 'Daftar panitia Wisuda Oktober' }),
+    ).toBeVisible();
+    await tab.close();
+  }
 
   await main(page).getByRole('button', { name: 'Lanjut' }).click();
   await expect(
