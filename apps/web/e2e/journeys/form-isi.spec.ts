@@ -465,6 +465,13 @@ test.describe('A form’s link', () => {
       main(page).getByText('Yang bisa mengisi: angkatan 2023.'),
     ).toBeVisible();
     await expect(main(page).locator('.fq')).toHaveCount(0);
+    // Nadia manages no form: only the way to her own forms.
+    await expect(
+      main(page).getByRole('link', { name: 'Kelola form ini' }),
+    ).toHaveCount(0);
+    await expect(
+      main(page).getByRole('link', { name: 'Lihat form untukmu' }),
+    ).toBeVisible();
     await strictGates(page, testInfo, 'link-other', null);
   });
 
