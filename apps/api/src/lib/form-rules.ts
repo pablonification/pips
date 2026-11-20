@@ -1,6 +1,6 @@
 /**
  * The rules of the form builder, with no database: what a form's definition may hold, what it needs before it is
- * published, which edits lose answers, its short name, and who may do what with it (docs/adr/0022-*).
+ * published, which edits lose answers, its short name, and who may do what with it (docs/adr/0023-*).
  */
 import {
   CHOICE_TYPES,

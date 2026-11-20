@@ -1,6 +1,6 @@
 /**
  * What a form is made of, with no database and no HTTP, so the API, its tests and the web app's pretend API share one
- * description (docs/forms-api.md, docs/adr/0022-*). The stored JSON in `forms.sections` and `form_responses.answers`
+ * description (docs/forms-api.md, docs/adr/0023-*). The stored JSON in `forms.sections` and `form_responses.answers`
  * has these shapes.
  */
 

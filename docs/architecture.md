@@ -28,9 +28,9 @@ description when it arrives (a bad one gets a 400). The answer is not checked on
 | `types/` | The zod descriptions of the data. Despite the name they are checks that run, not only types. | `curhat.types.ts` |
 | `controllers/` | The handlers: read the request, check permission, call repositories, answer. `api.controller.ts` lists every router; `router-factory.ts` makes a router that needs a session. | `programme-window.controller.ts` |
 | `repositories/` | Every database query, as plain functions that take the database first. | `chatroom.repo.ts` |
-| `lib/` | Rules with no database and no HTTP: who may delete, when a form is open, how long a push may be, the rate limiter. Most have a unit test. | `authorization.ts`, `curhat.ts` |
+| `lib/` | Rules with no database and no HTTP: who may delete, when a form is open, how long a push may be, the rate limiter. Most have a unit test. The form builder's rules (`form-model.ts`, `form-answers.ts`, `form-rules.ts`, `form-summary.ts`, `member-details.ts`) are also what the web app's pretend API answers with. | `authorization.ts`, `curhat.ts` |
 | `middlewares/` | Two checks before a handler: "has one of these roles", and "may fill the SPARTA form". | `role.middleware.ts` |
-| `websocket/` | The live connection: reading the session from the cookie, Curhat messages, the Live Counting room. | `connection.ts`, `curhat.ts` |
+| `websocket/` | The live connection: reading the session from the cookie, Curhat messages, a form's room for its live count (admin, or pengurus who manage the form). | `connection.ts`, `curhat.ts` |
 | `mcp/` | The tools an AI app gets at `/mcp`. Each calls one `/api` route in the process as the member; the route decides. No Curhat tool. The endpoint is `controllers/mcp.controller.ts`, its OAuth sign-in `controllers/oauth.controller.ts`. | `tools.ts` |
 | `cron/` | Two jobs, in production only: day-before reminders for calendar events (every minute), and the copy of PRISMA's Google calendar (every ten minutes, decision 20). | `calendar-cron.ts`, `calendar-sync.ts` |
 | `db/` | The schema (every table), the connection, the migrate command, seed scripts. | `schema.ts`, `migrate.ts` |
@@ -42,6 +42,10 @@ writes the API's description to a file with no server, and `tests/` holds the AP
 takes its storage as a parameter so a test can pass a fake (`programme-window.controller.ts`, with
 `controllers/deps.ts`). Copy the second. It is what lets a route test run with no database
 ([decision 4](adr/0004-controllers-take-their-storage-as-a-parameter-so-route-tests-need-no-database.md)).
+
+**Forms** have two controllers: `form.controller.ts` for members (lists, a form, sending, Ubah jawaban, a form's
+link, Data diri) and `form-manage.controller.ts` for the builder (pengurus only; the handler decides by the form's
+owner and who it is shared with). Every route, who may call it and its answers are in [forms-api.md](forms-api.md).
 
 **Who may do what.** Every route has a row in `lib/route-access.ts`: anyone, any signed-in member, or named roles,
 with a note for what the handler decides further. A role-only route wraps its route in `forRoles(route, roles,

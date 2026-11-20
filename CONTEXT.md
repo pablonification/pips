@@ -86,8 +86,19 @@ keep up to three; every message carries an id made on the device (`clientMessage
 says only "Pesan baru di Curhat Yuk!". Welfare uses the inbox under Kelola.
 _Avoid_: "chat", "Curhat" without "Yuk!", "hotline".
 
-**Form** — Forms HMIF sends to an angkatan, open between `opens_at` and `closes_at` (`forms` table).
-**Live Counting & Rekap Form** is the admin's live view of who has filled a form, and its summary.
+**Form** — Forms sent to an angkatan, open between `opens_at` and `closes_at` (`forms` table). Any pengurus builds
+them in Kelola › Form: a form is a **draft** until published, has an owner, and is **shared** with other pengurus as
+**Lihat jawaban** (sees it and its answers) or **Edit** (also changes it); admin edits every form. Its **link** is
+`app.hmif.dev/f/<short name>` (`forms.slug`). A form may **request** profile fields, which the member sees and agrees
+to at the end (the **agreement step**) instead of typing them; the **Jawaban** tab shows the answers summed up, one by
+one, and as an Excel file. Decision 22, `docs/forms-api.md`.
+**Live Counting & Rekap Form** is the admin's live view of who has filled a form made before the builder (the PIXEL
+form), and its summary.
+
+**Data diri** — A member's saved details (Profil › Data diri, `member_details`): contacts, address, emergency contact,
+health, birth date, Foto KTM, Foto diri. Given once, sent with a form only when it requests them and the member
+agrees. Account facts (name, NIM, program studi, angkatan, kampus, student email) come from `users` and are never
+typed. Code: `SavedDetails`, `/api/user/details`.
 
 **Magang SPARTA** — The internship division choice for angkatan 2025 (plus a few approved exceptions), with a
 closing date. **Data SPARTA Magang** is the admin's table of the submissions. Code: `internship_*`.

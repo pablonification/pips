@@ -128,7 +128,12 @@ compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy
    - 0033: Kalender's copy of PRISMA's Google calendar: three new columns on `calendar_event` (`synced`, `all_day`,
      `location`), one on `calendar_group` (`synced`), all with defaults, and the row for PRISMA - DE HMIF ITB;
    - 0034: apps connected through MCP: three new empty tables (`oauth_clients`, `oauth_authorizations`,
-     `oauth_tokens`).
+     `oauth_tokens`);
+   - 0035: the form builder (decision 23): two new empty tables (`form_collaborators`, `member_details`), new
+     columns on `forms` (owner, publishing time, requested fields and three settings, all with defaults or empty) and
+     on `form_responses` (`profile`, `updated_at`), and `forms.opens_at` may now be empty (only on a draft). Every
+     existing form gets its creation time as its publishing time, so nothing changes for members. Today's app ignores
+     the new columns and never sees a draft (a draft is not active).
 
    They only add things, and today's app keeps working on the migrated database: it ignores the new columns, the
    read marks and the prefill key.
@@ -163,6 +168,12 @@ compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy
    the browser's console,
    enforce the policy: in `apps/web/scripts/csp.mjs` change `Content-Security-Policy-Report-Only` to
    `Content-Security-Policy`, and redeploy the web (only the Dokploy image sends it).
+
+## Forms built by pengurus
+
+The form builder (decision 23, `docs/forms-api.md`) needs only migration 0035, applied as in "The switch", step 3. No
+new setting: file answers and the photos in Data diri go to the same storage as every upload (`R2_*`), and the
+Excel export is written by the API itself.
 
 ## Apps connected through MCP
 
