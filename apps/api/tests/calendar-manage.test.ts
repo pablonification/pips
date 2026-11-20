@@ -24,6 +24,7 @@ const group = (category: 'akademik' | 'himpunan'): CalendarGroup => ({
   category,
   code: category === 'akademik' ? 'if2024' : null,
   googleCalendarUrl: `${category}@group.calendar.google.com`,
+  synced: false,
 });
 
 type StoredEvent = Awaited<ReturnType<CalendarDeps['getCalendarEventById']>>;
@@ -42,6 +43,9 @@ const stored = (
   end: new Date('2026-10-06T08:00:00.000Z'),
   googleCalendarUrl: 'https://calendar.google.com/event?eid=1',
   googleCalendarId: 'gcal-1',
+  synced: false,
+  allDay: false,
+  location: null,
   calendarGroup: group('akademik'),
   ...over,
 });
@@ -291,6 +295,58 @@ test('DELETE /calendar/event/{id}: an unknown event is 404', async () => {
   const { router } = setup(['akademik'], { event: null as never });
   const res = await callRouter(router, raka, 'DELETE', '/calendar/event/nope');
   assert.equal(res.status, 404);
+});
+
+test("an event copied from PRISMA's Google calendar is changed there: PUT and DELETE answer 409, even for ring1, and Google is never asked", async () => {
+  const synced = stored({
+    category: 'himpunan',
+    courseId: null,
+    synced: true,
+    calendarGroup: { ...group('himpunan'), synced: true },
+  });
+  const { router, calls, deleted } = setup(['ring1', 'admin'], {
+    event: synced,
+  });
+  const put = await callRouter(router, raka, 'PUT', '/calendar/event/ev-1', {
+    title: 'Diganti',
+  });
+  assert.equal(put.status, 409);
+  const del = await callRouter(router, raka, 'DELETE', '/calendar/event/ev-1');
+  assert.equal(del.status, 409);
+  assert.deepEqual(calls, []);
+  assert.deepEqual(deleted, []);
+});
+
+test('PUT and POST bodies cannot mark an event synced, all-day or give it a place', async () => {
+  const { router, deps } = setup(['akademik']);
+  let written: Record<string, unknown> | undefined;
+  deps.updateCalendarEvent = async (data, eventId) => {
+    written = data as Record<string, unknown>;
+    return { ...stored(), ...data, id: eventId } as never;
+  };
+  const res = await callRouter(router, raka, 'PUT', '/calendar/event/ev-1', {
+    title: 'Kuis 1b',
+    synced: true,
+    allDay: true,
+    location: 'Labtek V',
+  });
+  assert.equal(res.status, 200);
+  assert.deepEqual(written, { title: 'Kuis 1b' });
+  let created: Record<string, unknown> | undefined;
+  deps.createCalendarEvent = async (data) => {
+    created = data as Record<string, unknown>;
+    return { id: 'ev-new', ...data } as never;
+  };
+  const post = await callRouter(router, raka, 'POST', '/calendar/event', {
+    ...kuis2,
+    synced: true,
+    allDay: true,
+    location: 'Labtek V',
+  });
+  assert.equal(post.status, 201);
+  assert.equal(created?.synced, undefined);
+  assert.equal(created?.allDay, undefined);
+  assert.equal(created?.location, undefined);
 });
 
 test('when Google already removed the event (410 Gone), the row is deleted too', async () => {

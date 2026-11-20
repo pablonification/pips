@@ -117,6 +117,7 @@ export class CalendarService {
         400: `Bad request`,
         403: `Error`,
         404: `Error`,
+        409: `Error`,
       },
     });
   }
@@ -139,6 +140,7 @@ export class CalendarService {
         400: `Bad request`,
         403: `Error`,
         404: `Error`,
+        409: `Error`,
       },
     });
   }
@@ -152,6 +154,7 @@ export class CalendarService {
     category: 'akademik' | 'himpunan';
     code: string | null;
     googleCalendarUrl: string | null;
+    synced: boolean;
   }>> {
     return this.httpRequest.request({
       method: 'GET',

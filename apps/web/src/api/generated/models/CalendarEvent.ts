@@ -15,5 +15,8 @@ export type CalendarEvent = {
   end: string;
   googleCalendarUrl: string;
   googleCalendarId: string;
+  synced: boolean;
+  allDay: boolean;
+  location: string | null;
 };
 

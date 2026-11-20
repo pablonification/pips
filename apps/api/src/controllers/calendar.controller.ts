@@ -56,6 +56,9 @@ export interface GoogleCalendarApi {
   getCalendar: (calendarId: string) => Promise<void>;
 }
 
+/** An event copied from a synced Google calendar is changed there, never in the app. */
+export const SYNCED_EVENT = 'This event is changed in its Google calendar';
+
 /** What a client is told when Google Calendar refuses a change. */
 export const GOOGLE_CALENDAR_FAILED = 'Google Calendar refused the change';
 
@@ -286,6 +289,9 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
     if (!eventDB) {
       return c.json({ error: 'Event not found' }, 404);
     }
+    if (eventDB.synced) {
+      return c.json({ error: SYNCED_EVENT }, 409);
+    }
 
     const roles = await deps.getUserRoles(c.var.user.id);
     if (eventDB.category === 'akademik') {
@@ -372,6 +378,9 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       const eventDB = await deps.getCalendarEventById({ eventId });
       if (!eventDB?.calendarGroup.googleCalendarUrl) {
         return c.json({ error: 'Event not found' }, 404);
+      }
+      if (eventDB.synced) {
+        return c.json({ error: SYNCED_EVENT }, 409);
       }
 
       const roles = await deps.getUserRoles(c.var.user.id);

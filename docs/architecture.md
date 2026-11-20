@@ -29,7 +29,7 @@ description when it arrives (a bad one gets a 400). The answer is not checked on
 | `lib/` | Rules with no database and no HTTP: who may delete, when a form is open, how long a push may be, the rate limiter. Most have a unit test. | `authorization.ts`, `curhat.ts` |
 | `middlewares/` | Two checks before a handler: "has one of these roles", and "may fill the SPARTA form". | `role.middleware.ts` |
 | `websocket/` | The live connection: reading the session from the cookie, Curhat messages, the Live Counting room. | `connection.ts`, `curhat.ts` |
-| `cron/` | One job, every minute, in production only: day-before reminders for calendar events. | `calendar-cron.ts` |
+| `cron/` | Two jobs, in production only: day-before reminders for calendar events (every minute), and the copy of PRISMA's Google calendar (every ten minutes, decision 20). | `calendar-cron.ts`, `calendar-sync.ts` |
 | `db/` | The schema (every table), the connection, the migrate command, seed scripts. | `schema.ts`, `migrate.ts` |
 
 Next to `src`: `drizzle/` holds the migrations (one SQL file per change, numbered), `apps/api/scripts/openapi.ts`

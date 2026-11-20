@@ -1,6 +1,7 @@
 import { eventsInMonth, wibMonthRange } from '~/lib/calendar-month';
+import type { SyncPlan } from '~/lib/calendar-sync';
 import { prefixTsQuery } from '~/lib/search';
-import { and, asc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, gte, inArray, lt, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { Database } from '~/db/drizzle';
 import { first, firstSure } from '~/db/helper';
@@ -82,6 +83,8 @@ export function getCalendarGroupByCategory(
     where: and(
       eq(calendarGroup.category, category),
       code ? eq(calendarGroup.code, code) : undefined,
+      // A synced calendar is PRISMA's own: the app never adds events to it.
+      eq(calendarGroup.synced, false),
     ),
   });
 }
@@ -254,4 +257,72 @@ export async function getCalendarEventsStartingBetween(
     .from(calendarEvent)
     .where(and(gte(calendarEvent.start, from), lt(calendarEvent.start, until)))
     .orderBy(asc(calendarEvent.start));
+}
+
+/** The Google calendars Kalender copies (`calendar_group.synced`). */
+export async function getSyncedCalendarGroups(db: Database) {
+  return await db.query.calendarGroup.findMany({
+    where: eq(calendarGroup.synced, true),
+  });
+}
+
+/** A synced calendar's rows that overlap `from`–`until`, the window Google was asked for. */
+export async function getSyncedEventsBetween(
+  db: Database,
+  calendarGroupId: string,
+  from: Date,
+  until: Date,
+) {
+  return await db
+    .select()
+    .from(calendarEvent)
+    .where(
+      and(
+        eq(calendarEvent.calendarGroupId, calendarGroupId),
+        eq(calendarEvent.synced, true),
+        gt(calendarEvent.end, from),
+        lt(calendarEvent.start, until),
+      ),
+    );
+}
+
+/** Applies one calendar's sync in one transaction: a sync that fails halfway leaves the rows as they were. */
+export async function applySyncPlan(
+  db: Database,
+  group: CalendarGroup,
+  plan: SyncPlan,
+) {
+  if (!plan.insert.length && !plan.update.length && !plan.remove.length) return;
+  await db.transaction(async (tx) => {
+    if (plan.remove.length) {
+      await tx
+        .delete(calendarEvent)
+        .where(
+          and(
+            inArray(calendarEvent.id, plan.remove),
+            eq(calendarEvent.calendarGroupId, group.id),
+            eq(calendarEvent.synced, true),
+          ),
+        );
+    }
+    for (const { id, event } of plan.update) {
+      await tx
+        .update(calendarEvent)
+        .set(event)
+        .where(and(eq(calendarEvent.id, id), eq(calendarEvent.synced, true)));
+    }
+    if (plan.insert.length) {
+      await tx.insert(calendarEvent).values(
+        plan.insert.map((event) => ({
+          ...event,
+          calendarGroupId: group.id,
+          category: group.category,
+          courseId: null,
+          academicYear: null,
+          academicSemesterCode: null,
+          synced: true,
+        })),
+      );
+    }
+  });
 }

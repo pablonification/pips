@@ -589,6 +589,8 @@ export const calendarGroup = pgTable('calendar_group', {
   category: text('category', { enum: ['akademik', 'himpunan'] }).notNull(),
   code: text('code'),
   googleCalendarUrl: text('google_calendar_url'),
+  // Kalender copies this Google calendar's events (cron/calendar-sync.ts); the app never adds to it.
+  synced: boolean('synced').notNull().default(false),
 });
 
 export type CalendarGroup = InferSelectModel<typeof calendarGroup>;
@@ -618,6 +620,11 @@ export const calendarEvent = pgTable(
     end: timestamp('end', { withTimezone: true }).notNull(),
     googleCalendarUrl: text('google_calendar_url').notNull(),
     googleCalendarId: text('google_calendar_id').notNull(),
+    // A copy of an event in a synced Google calendar: changed there, never in the app.
+    synced: boolean('synced').notNull().default(false),
+    // From midnight to midnight in WIB, for as many days as it spans (Google's all-day events).
+    allDay: boolean('all_day').notNull().default(false),
+    location: text('location'),
   },
   (t) => ({
     titleSearchIdx: index('title_search_idx').using(

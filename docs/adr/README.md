@@ -32,3 +32,4 @@ Each record is named `NNNN-a-sentence-that-states-the-decision.md` and follows t
 | [17](0017-journeys-run-a-production-build-against-a-pretend-api-on-a-fixed-clock.md) | Journeys run against a pretend API on a fixed clock | The pretend API can drift from the real one; timer bugs hide |
 | [18](0018-every-journey-passes-quality-gates-and-screens-are-held-by-screenshots.md) | Quality gates on every journey, and screenshot references | Two sets of pictures to record; pixel checks fail on harmless changes |
 | [19](0019-every-pull-request-runs-every-journey-in-all-six-projects.md) | Every pull request runs every journey in all six projects | Five CI machines for every change, even a one-word fix |
+| [20](0020-kalender-copies-prismas-google-calendar-every-ten-minutes.md) | Kalender copies PRISMA's Google calendar every ten minutes | Changes arrive up to ten minutes late; the calendar must be shared with the service account |

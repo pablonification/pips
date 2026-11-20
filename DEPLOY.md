@@ -26,6 +26,10 @@ Only a person with the right access can do these:
   (`calendar_group`: one per major and angkatan, the electives and Himpunan), so the service account must be shared
   with "Make changes to events" on each of them. Without the file the rest of the app works; Kalender's changes keep
   failing as they do today.
+- **PRISMA's calendar in Kalender.** Kalender copies PRISMA - DE HMIF ITB every ten minutes with the same key file
+  (decision 20). PRISMA's calendar owner shares it with the service account's address (the key's `client_email`)
+  with "See all event details". Until both the file and the share are there, the API logs one line saying which is
+  missing, and Kalender shows only the app's own events.
 - **A person with a phone** for the checks after the switch, with today's app installed on it (to see the old app
   update itself), and a member account with `curhatadmin` on another device for Curhat.
 
@@ -118,7 +122,9 @@ compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy
      place);
    - 0031: the Google calendars of the 2024 and 2025 angkatan (IF and STI), and the STI elective calendar renamed to
      the code the app looks for, so adding an event for those courses stops failing. Only adds missing rows;
-   - 0032: angkatan 2025 named PIXEL (renamed, or added if missing; nothing changes if another year holds the name).
+   - 0032: angkatan 2025 named PIXEL (renamed, or added if missing; nothing changes if another year holds the name);
+   - 0033: Kalender's copy of PRISMA's Google calendar: three new columns on `calendar_event` (`synced`, `all_day`,
+     `location`), one on `calendar_group` (`synced`), all with defaults, and the row for PRISMA - DE HMIF ITB.
 
    They only add things, and today's app keeps working on the migrated database: it ignores the new columns, the
    read marks and the prefill key.
