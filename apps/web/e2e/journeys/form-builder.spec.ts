@@ -380,12 +380,14 @@ test('duplicate, delete with Urungkan, a new section and its removal', async ({
   await expect(
     main(page).getByLabel('Pertanyaan 2', { exact: true }),
   ).toHaveValue('Mau bantu di divisi apa?');
+  await expect
+    .poll(() =>
+      questionsIn(lastPatch(api))
+        .map((q) => q.label)
+        .slice(0, 2),
+    )
+    .toEqual(['Mau bantu di divisi apa?', 'Mau bantu di divisi apa?']);
   await saved(page);
-  expect(
-    questionsIn(lastPatch(api))
-      .map((q) => q.label)
-      .slice(0, 2),
-  ).toEqual(['Mau bantu di divisi apa?', 'Mau bantu di divisi apa?']);
   // On a draft a question goes at once, with Urungkan.
   await main(page).getByRole('button', { name: 'Hapus pertanyaan' }).click();
   await expect(dialog(page, /Hapus pertanyaan/)).toHaveCount(0);
@@ -397,21 +399,24 @@ test('duplicate, delete with Urungkan, a new section and its removal', async ({
     main(page).getByLabel('Pertanyaan 2', { exact: true }),
   ).toHaveValue('Mau bantu di divisi apa?');
   await expect(restRow(page, 'Mau bantu di divisi apa?')).toHaveCount(1);
+  await expect.poll(() => questionsIn(lastPatch(api)).length).toBe(7);
   await saved(page);
-  expect(questionsIn(lastPatch(api))).toHaveLength(7);
   // Bagian baru, at the end, its title in focus.
   await main(page).getByRole('button', { name: 'Bagian baru' }).click();
   const title = main(page).getByLabel('Judul bagian 3');
   await expect(title).toBeFocused();
   await title.fill('Penutup');
+  await expect
+    .poll(() =>
+      lastPatch(api).sections?.map((s) => (s as { title?: string }).title),
+    )
+    .toEqual(['Peran', 'Tentang kamu', 'Penutup']);
   await saved(page);
-  expect(
-    lastPatch(api).sections?.map((s) => (s as { title?: string }).title),
-  ).toEqual(['Peran', 'Tentang kamu', 'Penutup']);
   await main(page).getByRole('button', { name: 'Hapus bagian' }).last().click();
   await expect(toastText(page, 'Bagian dihapus.')).toBeVisible();
+  // The bar can trail a removal by a frame, so wait for the save itself.
+  await expect.poll(() => lastPatch(api).sections?.length).toBe(2);
   await saved(page);
-  expect(lastPatch(api).sections).toHaveLength(2);
 });
 
 test('reorder with the keyboard: Space lifts, arrows move, Space drops, Escape puts it back', async ({
