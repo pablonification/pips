@@ -84,6 +84,14 @@ function Shell({
           onPointerDownOutside={(e) => {
             if (fromToast(e.target)) e.preventDefault();
           }}
+          // A field that answers Escape itself (`data-own-escape`, an editor inside the dialog) keeps the dialog open.
+          onEscapeKeyDown={(e) => {
+            if (
+              document.activeElement instanceof Element &&
+              document.activeElement.closest('[data-own-escape]')
+            )
+              e.preventDefault();
+          }}
           onInteractOutside={(e) => {
             if (fromToast(e.target)) e.preventDefault();
           }}

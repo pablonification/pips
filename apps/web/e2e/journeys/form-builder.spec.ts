@@ -600,6 +600,7 @@ test.describe('Bagikan', () => {
     ).toBeFocused();
     // Escape leaves the editor and keeps the dialog.
     await d.getByRole('button', { name: 'Ubah nama tautan' }).click();
+    await expect(field).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(d).toBeVisible();
     await expect(
