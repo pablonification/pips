@@ -1,6 +1,5 @@
 import * as DM from '@radix-ui/react-dropdown-menu';
 import type { ReactNode } from 'react';
-import { IconCentang } from '~/components/icons/centang';
 import { cn } from '~/lib/utils';
 import { rememberMenuOpener } from './menu-opener';
 
@@ -93,64 +92,5 @@ export function MenuItem({
         {hint ? <span className="hint">{hint}</span> : null}
       </span>
     </DM.Item>
-  );
-}
-
-/** A line between groups of items. */
-export function MenuSeparator() {
-  return <DM.Separator />;
-}
-
-interface MenuRadioGroupProps<V extends string> {
-  value: V;
-  onValueChange: (value: V) => void;
-  /** What the group chooses, for screen readers ("Jenis pertanyaan"). */
-  label?: string;
-  children: ReactNode;
-}
-
-/** One choice among the items inside (MenuRadioItem): the chosen one is ticked and read as checked. */
-export function MenuRadioGroup<V extends string>({
-  value,
-  onValueChange,
-  label,
-  children,
-}: MenuRadioGroupProps<V>) {
-  return (
-    <DM.RadioGroup
-      value={value}
-      onValueChange={(v) => onValueChange(v as V)}
-      aria-label={label}
-    >
-      {children}
-    </DM.RadioGroup>
-  );
-}
-
-export function MenuRadioItem({
-  value,
-  children,
-  icon,
-  hint,
-}: {
-  value: string;
-  children: ReactNode;
-  icon?: ReactNode;
-  hint?: ReactNode;
-}) {
-  return (
-    <DM.RadioItem
-      value={value}
-      onSelect={(e) => rememberMenuOpener(e.currentTarget as Element | null)}
-    >
-      {icon}
-      <span>
-        {children}
-        {hint ? <span className="hint">{hint}</span> : null}
-      </span>
-      <DM.ItemIndicator className="ck">
-        <IconCentang size={16} />
-      </DM.ItemIndicator>
-    </DM.RadioItem>
   );
 }

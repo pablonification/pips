@@ -546,10 +546,6 @@ function AccessPart({ form }: { form: ManageForm }) {
                     }
                   >
                     <MenuRadioGroup
-                      value={role}
-                      onValueChange={(v) =>
-                        void change(person, v as 'view' | 'edit')
-                      }
                       label={fill(copy.akses.aksesOrang, {
                         nama: person.fullName,
                       })}
@@ -557,7 +553,8 @@ function AccessPart({ form }: { form: ManageForm }) {
                       {(['view', 'edit'] as const).map((r) => (
                         <MenuRadioItem
                           key={r}
-                          value={r}
+                          checked={role === r}
+                          onSelect={() => void change(person, r)}
                           icon={ROLE_ICON[r]}
                           hint={copy.akses.peranIsi[r]}
                         >

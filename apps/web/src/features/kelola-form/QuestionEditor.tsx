@@ -181,18 +181,15 @@ export function QuestionEditor({
             </button>
           }
         >
-          <MenuRadioGroup
-            value={q.type}
-            onValueChange={(v) => onKind(v as QuestionKind)}
-            label={copy.susun.jenis}
-          >
+          <MenuRadioGroup label={copy.susun.jenis}>
             {KIND_GROUPS.map((group, g) => (
               <div key={g} role="none">
                 {g ? <MenuSeparator /> : null}
                 {group.map((k) => (
                   <MenuRadioItem
                     key={k}
-                    value={k}
+                    checked={q.type === k}
+                    onSelect={() => onKind(k)}
                     icon={<KindIcon kind={k} size={20} />}
                   >
                     {kindName(k)}

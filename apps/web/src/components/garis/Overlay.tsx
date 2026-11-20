@@ -79,11 +79,6 @@ function Shell({
             className,
           )}
           role={role}
-          // A toast's Urungkan belongs to what the dialog just did: pressing it never closes the dialog. Radix decides
-          // on the click, when the toast has already left the page, so the toast is matched, not its region.
-          onPointerDownOutside={(e) => {
-            if (fromToast(e.target)) e.preventDefault();
-          }}
           // A field that answers Escape itself (`data-own-escape`, an editor inside the dialog) keeps the dialog open.
           onEscapeKeyDown={(e) => {
             if (
@@ -92,6 +87,9 @@ function Shell({
             )
               e.preventDefault();
           }}
+          // A toast's Urungkan belongs to what the dialog just did: pressing it never closes the dialog (Radix asks
+          // this for a pointer-down and for focus moving out). It decides on the click, when the toast has already
+          // left the page, so the toast is matched, not its region.
           onInteractOutside={(e) => {
             if (fromToast(e.target)) e.preventDefault();
           }}
