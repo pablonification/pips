@@ -1,6 +1,8 @@
 # Build from the repository root: docker build -f apps/api/Dockerfile .
 # turbo prune keeps only what the API needs, with the shared lockfile trimmed to match.
 FROM node:22-alpine AS base
+# Pull in Alpine security fixes (zlib, openssl) published after the node image was built.
+RUN apk upgrade --no-cache
 RUN corepack enable && npm install -g turbo@2.11.7
 WORKDIR /repo
 
@@ -10,9 +12,14 @@ RUN turbo prune api --docker
 
 FROM base
 COPY --from=prune /repo/out/json/ .
-# The API runs its TypeScript through tsx (a dev dependency), so install everything, as `pnpm start` needs.
-RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
+# The API runs its TypeScript through tsx, which is a regular dependency, so a production install is enough. Lint,
+# type and migration tooling (eslint, drizzle-kit, old esbuild copies) stays out of the image.
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --prod
 COPY --from=prune /repo/out/full/ .
+# The install is done: drop npm, corepack, pnpm and turbo. The API runs on `node` + tsx alone, and these tools only
+# add copies of brace-expansion, glob, minimatch, ip-address, tar, etc. that scanners flag.
+RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+           /usr/local/bin/pnpm /usr/local/bin/pnpx /usr/local/bin/turbo /root/.cache /root/.local /root/.npm
 WORKDIR /repo/apps/api
 ENV NODE_ENV=production \
     PORT=5000
