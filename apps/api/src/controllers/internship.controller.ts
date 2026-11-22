@@ -1,5 +1,4 @@
-import { databaseError } from '~/lib/database-error';
-import postgres from 'postgres';
+import { databaseError, isPostgresError } from '~/lib/database-error';
 import { db } from '~/db/drizzle';
 import { spartaWindowFor } from '~/lib/sparta-window';
 import { internshipEligibilityMiddleware } from '~/middlewares/internship-eligibility.middleware';
@@ -79,7 +78,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
         const department = await createDepartment(db, data);
         return c.json(department, 201);
       } catch (err) {
-        if (err instanceof postgres.PostgresError) {
+        if (isPostgresError(err)) {
           return c.json(databaseError(err), 400);
         }
         throw err;
@@ -128,7 +127,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
         const division = await createDivision(db, data);
         return c.json(division, 201);
       } catch (err) {
-        if (err instanceof postgres.PostgresError) {
+        if (isPostgresError(err)) {
           return c.json(databaseError(err), 400);
         }
         throw err;
@@ -199,7 +198,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
       if (err instanceof Error && err.message === 'LOCKED') {
         return c.json({ error: 'Submission is already locked' }, 409);
       }
-      if (err instanceof postgres.PostgresError) {
+      if (isPostgresError(err)) {
         return c.json(databaseError(err), 400);
       }
       throw err;
@@ -231,7 +230,7 @@ export function createInternshipRouter(deps: InternshipDeps = databaseDeps) {
       if (err instanceof Error && err.message === 'LOCKED') {
         return c.json({ error: 'Submission is already locked' }, 409);
       }
-      if (err instanceof postgres.PostgresError) {
+      if (isPostgresError(err)) {
         return c.json(databaseError(err), 400);
       }
       throw err;

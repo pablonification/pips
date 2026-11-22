@@ -1,4 +1,4 @@
-import postgres from 'postgres';
+import { isPostgresError, postgresError } from '~/lib/database-error';
 import { db } from '~/db/drizzle';
 import { COURSE_CATALOG_MANAGER_ROLES } from '~/lib/authorization';
 import { forRoles } from '~/middlewares/role.middleware';
@@ -47,8 +47,8 @@ export function createCourseRouter(
       const newUserCourse = await createUserCourse(db, data, userId);
       return c.json(newUserCourse, 201);
     } catch (err) {
-      if (err instanceof postgres.PostgresError) {
-        if (err.code === '23503')
+      if (isPostgresError(err)) {
+        if (postgresError(err)?.code === '23503')
           return c.json({ error: 'Course not found' }, 404);
         return c.json({ error: 'Course has already been taken' }, 400);
       }
@@ -108,7 +108,7 @@ export function createCourseRouter(
         const newCourse = CourseSchema.parse(await createCourse(db, data));
         return c.json(newCourse, 201);
       } catch (err) {
-        if (err instanceof postgres.PostgresError)
+        if (isPostgresError(err))
           return c.json({ error: 'Course has already been created' }, 400);
         throw err;
       }

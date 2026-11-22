@@ -34,6 +34,7 @@ let client: import('postgres').Sql;
 let db: import('../../src/db/drizzle').Database;
 let schema: typeof import('../../src/db/schema');
 let repo: typeof import('../../src/repositories/form.repo');
+let postgresError: typeof import('../../src/lib/database-error').postgresError;
 
 const USERS = [
   ['fb-dimas', '13523905', 2023],
@@ -68,6 +69,7 @@ before(async () => {
   const { inArray } = await import('drizzle-orm');
   schema = await import('../../src/db/schema');
   repo = await import('../../src/repositories/form.repo');
+  ({ postgresError } = await import('../../src/lib/database-error'));
   client = postgres(testUrl, { max: 4, onnotice: () => {} });
   db = drizzle(client, { schema });
   await migrate(db, { migrationsFolder: './drizzle' });
@@ -174,7 +176,7 @@ test('short names are unique: one form holds a name at a time', async () => {
   });
   await assert.rejects(
     repo.updateForm(db, taken.id, { slug: 'fb-makrab' }),
-    (e: { code?: string }) => e.code === '23505',
+    (e) => postgresError(e)?.code === '23505',
   );
   assert.equal(await repo.slugTaken(db, 'fb-makrab', taken.id), true);
   const makrab = await repo.getFormBySlug(db, 'fb-makrab');
@@ -274,7 +276,7 @@ test('responses: one per member, the profile kept as sent, numbered oldest first
   });
   await assert.rejects(
     repo.createFormResponse(db, makrab.id, 'fb-nadia', { answers: [] }),
-    (e: { code?: string }) => e.code === '23505',
+    (e) => postgresError(e)?.code === '23505',
   );
   const page = await repo.getResponsesPage(db, makrab.id, 2, 1);
   assert.equal(page.total, 2);

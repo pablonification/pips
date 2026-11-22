@@ -1,5 +1,4 @@
-import { databaseError } from '~/lib/database-error';
-import postgres from 'postgres';
+import { databaseError, isPostgresError } from '~/lib/database-error';
 import { toNimFinderResult } from '~/lib/nim-finder';
 import { getUserByNimOrName } from '~/repositories/user-finder.repo';
 import { getUserRoute } from '~/routes/user-finder.route';
@@ -22,7 +21,7 @@ export function createUserFinderRouter(
       const users = await deps.getUserByNimOrName(q);
       return c.json(users.map(toNimFinderResult), 200);
     } catch (error) {
-      if (error instanceof postgres.PostgresError) {
+      if (isPostgresError(error)) {
         return c.json(databaseError(error), 400);
       }
       throw error;

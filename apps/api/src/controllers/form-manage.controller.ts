@@ -1,4 +1,4 @@
-import postgres from 'postgres';
+import { postgresError } from '~/lib/database-error';
 import { rolesEnums } from '~/db/roles-group';
 import { createId, type Form } from '~/db/schema';
 import { NEW_FORM_FIELDS, PROFILE_FIELDS, questionsOf } from '~/lib/form-model';
@@ -106,7 +106,7 @@ const databaseDeps: FormManageDeps = {
 };
 
 const isUniqueViolation = (err: unknown) =>
-  err instanceof postgres.PostgresError && err.code === '23505';
+  postgresError(err)?.code === '23505';
 
 export function createFormManageRouter(deps: FormManageDeps = databaseDeps) {
   const router = createAuthRouter();

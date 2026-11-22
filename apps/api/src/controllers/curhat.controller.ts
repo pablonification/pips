@@ -1,3 +1,4 @@
+import { isPostgresError } from '~/lib/database-error';
 import {
   createChatroomRoute,
   deleteChatroomRoute,
@@ -20,7 +21,6 @@ import {
 import { db } from '~/db/drizzle';
 import { animals, colors, uniqueNamesGenerator } from 'unique-names-generator';
 import { getUserRoles } from '~/repositories/user-role.repo';
-import postgres from 'postgres';
 import type { Chatroom } from '~/db/schema';
 import { TChatroom } from '~/types/curhat.types';
 import {
@@ -208,7 +208,7 @@ export function createCurhatRouter(deps: CurhatDeps = databaseDeps) {
         return c.json({ message: 'Chatroom unpinned' }, 200);
       }
     } catch (e) {
-      if (e instanceof postgres.PostgresError) {
+      if (isPostgresError(e)) {
         return c.json({ error: 'Failed to pin chatroom' }, 400);
       } else {
         return c.json({ error: 'Something went wrong' }, 500);

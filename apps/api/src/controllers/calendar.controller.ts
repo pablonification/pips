@@ -1,8 +1,7 @@
 import * as Sentry from '@sentry/node';
-import { databaseError } from '~/lib/database-error';
+import { databaseError, isPostgresError } from '~/lib/database-error';
 import { GaxiosError } from 'gaxios';
 import { calendar, type calendar_v3 } from 'googleapis/build/src/apis/calendar';
-import postgres from 'postgres';
 import { calendarEvent, CalendarGroup } from '~/db/schema';
 import {
   ENDS_BEFORE_START,
@@ -258,7 +257,7 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
 
       return c.json(data, 200);
     } catch (error) {
-      if (error instanceof postgres.PostgresError) {
+      if (isPostgresError(error)) {
         return c.json(databaseError(error), 400);
       }
       throw error;
@@ -274,7 +273,7 @@ export function createCalendarRouter(deps: CalendarDeps = databaseDeps) {
       if (!data) return c.json("error: 'Event not found'", 404);
       return c.json(data, 200);
     } catch (error) {
-      if (error instanceof postgres.PostgresError) {
+      if (isPostgresError(error)) {
         return c.json(databaseError(error), 400);
       }
       throw error;

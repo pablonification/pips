@@ -1,6 +1,8 @@
 // Tandai semua dibaca: `POST /info/read-all` marks the signed-in member's own feed read, for
 // them only, and says how many posts it marked. The SQL itself runs in tests/db/info-read-all.test.ts.
 import { strict as assert } from 'node:assert';
+import { DrizzleQueryError } from 'drizzle-orm/errors';
+import postgres from 'postgres';
 import { before, test } from 'node:test';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
 import type { InfoDeps } from '../src/controllers/info.controller';
@@ -58,12 +60,16 @@ test('signed out: 401, and nothing is marked', async () => {
 
 test('marking a post that does not exist read answers 404, not 500', async () => {
   const router = createInfoRouter({
+    // What drizzle throws: the driver's error, wrapped with the query.
     createReadInfo: async () => {
-      throw Object.assign(
-        new Error(
-          'insert or update on table "user_read_infos" violates foreign key constraint',
-        ),
-        { code: '23503' },
+      throw new DrizzleQueryError(
+        'insert into "user_read_infos" ("user_id", "info_id") values ($1, $2)',
+        ['u-nadia', 'no-such-post'],
+        new (postgres as any).PostgresError({
+          message:
+            'insert or update on table "user_read_infos" violates foreign key constraint',
+          code: '23503',
+        }),
       );
     },
   } as unknown as InfoDeps);

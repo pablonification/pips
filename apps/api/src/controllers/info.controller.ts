@@ -1,5 +1,8 @@
-import { databaseError } from '~/lib/database-error';
-import postgres from 'postgres';
+import {
+  databaseError,
+  isPostgresError,
+  postgresError,
+} from '~/lib/database-error';
 import { withAuthor } from '~/lib/author';
 import { canDeleteContent } from '~/lib/authorization';
 import { runInBackground } from '~/lib/background';
@@ -84,7 +87,7 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
         await deps.createReadInfo(data);
       } catch (error) {
         // The read mark points at a post that doesn't exist (a foreign-key violation).
-        if ((error as { code?: string } | null)?.code === '23503') {
+        if (postgresError(error)?.code === '23503') {
           return c.json({ error: 'Info not found' }, 404);
         }
         throw error;
@@ -168,8 +171,7 @@ export function createInfoRouter(deps: InfoDeps = databaseDeps) {
 
       return c.json(info, 201);
     } catch (err) {
-      if (err instanceof postgres.PostgresError)
-        return c.json(databaseError(err), 400);
+      if (isPostgresError(err)) return c.json(databaseError(err), 400);
       throw err;
     }
   });
