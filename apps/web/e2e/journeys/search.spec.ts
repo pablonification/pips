@@ -305,7 +305,12 @@ test('arrows move through the results, up from the first goes back to the field;
 }) => {
   await openSearch(page);
   await field(page).fill('uts');
-  await expect(options(page).first()).toBeVisible();
+  // Wait for the announcement: arriving above the device's own result, it would shift the list between two keys.
+  await expect(
+    options(page).filter({
+      hasText: 'Jadwal UTS Ganjil 2026/2027 sudah keluar',
+    }),
+  ).toBeVisible();
   const first = await options(page).first().textContent();
   await page.keyboard.press('ArrowDown');
   await expect(options(page).nth(1)).toHaveAttribute('aria-selected', 'true');

@@ -45,7 +45,7 @@ test.describe('Nadia', () => {
       .toEqual(['Kuliah', 'Teman dan himpunan', 'Kesempatan', 'Administrasi']);
     expect(await rowNames(page)).toEqual(MEMBER_ROWS);
     await expect(row(page, /^Ding Dong/)).toContainText(
-      'Folder materi mata kuliahmu semester ini',
+      'Materi kuliah semester ini',
     );
     // Badges: Curhat's unread count by name, Form's open forms as a tag.
     await expect(row(page, /^Curhat Yuk!/)).toHaveAccessibleName(

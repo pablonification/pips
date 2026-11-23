@@ -166,7 +166,7 @@ test.describe('the list', () => {
     );
     expect(names).toEqual(['Teal Koala', 'Amber Hero']);
     await expect(
-      main(page).getByText('Anonim. Namamu tidak ditampilkan ke tim Welfare.'),
+      main(page).getByText('Namamu tidak ditampilkan ke tim Welfare.'),
     ).toBeVisible();
     await expect(main(page).getByText('2 dari 3 ruang dipakai')).toBeVisible();
     await expect(newRoom(page)).toBeEnabled();
