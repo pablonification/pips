@@ -37,7 +37,6 @@ import {
   hostOf,
   linkKind,
   myReaction,
-  previewImageSrc,
   reactionLabel,
   REACTION_KEYS,
   reactionTotal,
@@ -155,13 +154,12 @@ function LinkCard({
   const host = hostOf(url);
   const title = (og as { ogTitle?: string } | null)?.ogTitle || url;
   const [broken, setBroken] = useState(false);
-  const image = broken
-    ? null
-    : previewImageSrc(
-        og?.ogImage?.[0]?.url,
-        og?.requestUrl || url,
-        import.meta.env.VITE_API_URL ?? '',
-      );
+  // The API made it absolute and http(s); it is fetched there, so the member's browser never asks the other site.
+  const ogImage = og?.ogImage?.[0]?.url;
+  const image =
+    ogImage && !broken
+      ? `${import.meta.env.VITE_API_URL ?? ''}/api/open-graph/image?url=${encodeURIComponent(ogImage)}`
+      : null;
   if (kind === 'gform')
     return (
       <button
@@ -182,56 +180,44 @@ function LinkCard({
         </span>
       </button>
     );
-  const end = (
-    <span className="end">
-      <IconLuar size={16} />
-      <span className="sr-only">{t.post.situsLuar}</span>
-    </span>
-  );
   // With the site's own image: the image on top, then the host, title and description.
-  if (image)
-    return (
-      <a
-        ref={ref}
-        className="g-lp rich"
-        href={absoluteUrl(url)}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+  return (
+    <a
+      ref={ref}
+      className={image ? 'g-lp rich' : 'g-lp'}
+      href={absoluteUrl(url)}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {image ? (
         <Media
           src={image}
           alt=""
           ratio="1.91 / 1"
           onError={() => setBroken(true)}
         />
-        <span className="body">
-          <span className="min-w-0 flex-1">
-            <span className="host">{host}</span>
-            <span className="ttl">{title}</span>
-            {og?.ogDescription ? (
-              <span className="desc">{og.ogDescription}</span>
-            ) : null}
-          </span>
-          {end}
+      ) : (
+        <Tile>
+          {kind === 'sheet' ? (
+            <IconLembar size={20} />
+          ) : (
+            <IconTautan size={20} />
+          )}
+        </Tile>
+      )}
+      <span className="body">
+        <span className="min-w-0 flex-1">
+          <span className="host">{host}</span>
+          <span className="ttl">{title}</span>
+          {image && og?.ogDescription ? (
+            <span className="desc">{og.ogDescription}</span>
+          ) : null}
         </span>
-      </a>
-    );
-  return (
-    <a
-      ref={ref}
-      className="g-lp"
-      href={absoluteUrl(url)}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <Tile>
-        {kind === 'sheet' ? <IconLembar size={20} /> : <IconTautan size={20} />}
-      </Tile>
-      <span className="min-w-0 flex-1">
-        <span className="host">{host}</span>
-        <span className="ttl">{title}</span>
+        <span className="end">
+          <IconLuar size={16} />
+          <span className="sr-only">{t.post.situsLuar}</span>
+        </span>
       </span>
-      {end}
     </a>
   );
 }

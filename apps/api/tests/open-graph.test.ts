@@ -326,3 +326,25 @@ test("a preview's image at an internal address is refused before any request", a
   }
   assert.deepEqual(hits, []);
 });
+
+test("a preview's images are made absolute against the page, and only http(s) ones are kept", async () => {
+  const { previewImages } =
+    await import('../src/controllers/open-graph.controller');
+  assert.deepEqual(
+    previewImages(
+      [
+        { url: '/og/a.png' },
+        { url: 'https://cdn.example.com/b.jpg?v=2' },
+        { url: 'javascript:alert(1)' },
+        { url: 'data:image/png;base64,AAAA' },
+        { url: '  ' },
+      ],
+      'https://s.example.org/beasiswa/',
+    ),
+    [
+      { url: 'https://s.example.org/og/a.png' },
+      { url: 'https://cdn.example.com/b.jpg?v=2' },
+    ],
+  );
+  assert.equal(previewImages(undefined, 'https://s.example.org/'), undefined);
+});

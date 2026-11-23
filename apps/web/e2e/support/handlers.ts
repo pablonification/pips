@@ -172,7 +172,7 @@ export const defaultHandlers: Record<string, Handler> = {
     // One link gives its image and description, as a site with proper Open Graph tags does.
     const rich = url.includes('s.hmif.dev')
       ? {
-          ogImage: [{ url: '/og/beasiswa.png' }],
+          ogImage: [{ url: 'https://s.hmif.dev/og/beasiswa.png' }],
           ogDescription:
             'Daftar beasiswa yang sedang buka untuk mahasiswa STEI, diperbarui tiap minggu.',
         }

@@ -203,6 +203,9 @@
     outline: 0;
     background: var(--bg-muted);
   }
+  .g-lp .body {
+    display: contents;
+  }
   .g-lp.rich .body {
     display: flex;
     align-items: flex-start;

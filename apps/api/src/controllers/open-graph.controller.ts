@@ -27,6 +27,28 @@ function decode(body: Buffer, contentType: string) {
 }
 
 /**
+ * A page's og:image entries as absolute http(s) addresses, made against the page they came from (after redirects);
+ * any other kind (`javascript:`, `data:`) is dropped. The web app shows them through `/open-graph/image`.
+ */
+export function previewImages(
+  images: Array<{ url: string }> | undefined,
+  pageUrl: string,
+) {
+  return images?.flatMap((image) => {
+    // A blank one would resolve to the page itself.
+    if (!image.url?.trim()) return [];
+    try {
+      const at = new URL(image.url.trim(), pageUrl);
+      return at.protocol === 'https:' || at.protocol === 'http:'
+        ? [{ ...image, url: at.href }]
+        : [];
+    } catch {
+      return [];
+    }
+  });
+}
+
+/**
  * Link previews for members' posts, signed in only. The page is fetched here under `fetchPage`'s limits (public
  * addresses only, redirects checked, 5 s, 1 MiB), and open-graph-scraper only reads the HTML: it never fetches.
  */
@@ -44,8 +66,10 @@ export function createOpenGraphRouter(fetchOptions: FetchPageOptions = {}) {
       );
 
     let html: string;
+    let pageUrl = url;
     try {
       const page = await fetchPage(url, fetchOptions);
+      pageUrl = page.url;
       if (page.status >= 400) {
         return fail(
           `${page.status} ${STATUS_CODES[page.status] ?? 'Error'}`.trim(),
@@ -72,7 +96,15 @@ export function createOpenGraphRouter(fetchOptions: FetchPageOptions = {}) {
     } catch {
       return fail('Page has no preview');
     }
-    return c.json(OgObjectSchema.parse({ ...result, requestUrl: url }), 200);
+    const { ogImage } = result as { ogImage?: Array<{ url: string }> };
+    return c.json(
+      OgObjectSchema.parse({
+        ...result,
+        ogImage: previewImages(ogImage, pageUrl),
+        requestUrl: url,
+      }),
+      200,
+    );
   });
 
   router.openapi(getOpenGraphImage, async (c) => {

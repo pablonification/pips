@@ -24,7 +24,6 @@ import {
   hostOf,
   isDefaultView,
   linkKind,
-  previewImageSrc,
   menuLabel,
   menuModel,
   myReaction,
@@ -584,33 +583,4 @@ test('a link alone on the last lines folds into its card; links inside the text 
     displayText('Cek tautannya:\nhttps://a.id/x lalu isi'),
     'Cek tautannya:\nhttps://a.id/x lalu isi',
   );
-});
-
-test("a preview's image is shown through the API, made absolute against its page, and only http(s)", () => {
-  const api = 'https://app-api.example.test/';
-  assert.equal(
-    previewImageSrc('/og/a.png', 's.hmif.dev/beasiswa', api),
-    `https://app-api.example.test/api/open-graph/image?url=${encodeURIComponent('https://s.hmif.dev/og/a.png')}`,
-  );
-  assert.equal(
-    previewImageSrc(
-      'https://cdn.example.com/x.jpg?v=2',
-      'https://site.example/p',
-      '',
-    ),
-    `/api/open-graph/image?url=${encodeURIComponent('https://cdn.example.com/x.jpg?v=2')}`,
-  );
-  for (const image of [
-    undefined,
-    '',
-    '  ',
-    'javascript:alert(1)',
-    'data:image/png;base64,AAAA',
-    'ftp://x.example/a.png',
-  ])
-    assert.equal(
-      previewImageSrc(image, 'https://site.example/p', api),
-      null,
-      String(image),
-    );
 });
