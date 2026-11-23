@@ -577,7 +577,7 @@ test.describe('Kredit', () => {
     await strictGates(page, testInfo, 'kredit', 'Profil');
   });
 
-  test('credits in the server’s usual shape: a group, roles and teams as cards, Lead and Team, name over angkatan and NIM', async ({
+  test('credits in the server’s usual shape: one group, its roles and teams as rows, Lead and Team, name over angkatan and NIM', async ({
     page,
     db,
   }, testInfo) => {
@@ -622,7 +622,7 @@ test.describe('Kredit', () => {
       'Backend',
     ]);
     const frontend = main(page)
-      .locator('.g-kredit-card')
+      .locator('.g-kredit-row')
       .filter({ has: page.getByRole('heading', { name: 'Frontend' }) });
     await expect(frontend.getByRole('heading', { level: 4 })).toHaveText([
       'Lead',
@@ -645,21 +645,23 @@ test.describe('Kredit', () => {
         .getByText("IF'21 · 13521003")
         .evaluate((el) => getComputedStyle(el).fontVariantNumeric),
     ).toContain('tabular-nums');
-    // Roles side by side from the tablet up; one column on phones.
-    const owner = (await main(page)
-      .locator('.g-kredit-card')
-      .first()
+    // One group has nothing to set apart: no line and no square.
+    await expect(main(page).locator('.g-kredit-mark')).toHaveCount(0);
+    // A team's name above its people on phones; beside them from the tablet up.
+    const name = (await frontend
+      .getByRole('heading', { level: 3 })
       .boundingBox())!;
-    const lead = (await main(page)
-      .locator('.g-kredit-card')
-      .nth(1)
-      .boundingBox())!;
-    if (layoutOf(testInfo) === 'phone') expect(lead.y).toBeGreaterThan(owner.y);
-    else expect(lead.y).toBe(owner.y);
-    await strictGates(page, testInfo, 'kredit-cards', 'Profil');
+    const first = (await frontend.getByRole('listitem').first().boundingBox())!;
+    if (layoutOf(testInfo) === 'phone') {
+      expect(first.y).toBeGreaterThan(name.y + name.height - 1);
+    } else {
+      expect(first.x).toBeGreaterThan(name.x + name.width);
+      expect(first.y).toBeLessThan(name.y + name.height + 40);
+    }
+    await strictGates(page, testInfo, 'kredit-rows', 'Profil');
   });
 
-  test('two teams, one after the other, and each person’s photo when they have one', async ({
+  test('two groups along a line, the newest first and larger, and each person’s photo when they have one', async ({
     page,
     db,
   }, testInfo) => {
@@ -686,10 +688,22 @@ test.describe('Kredit', () => {
       },
     };
     await page.goto('/profil/kredit');
+    // The server writes the groups oldest first; the page shows the newest first.
     await expect(main(page).getByRole('heading', { level: 2 })).toHaveText([
-      'Panitia Khusus (versi pertama)',
       'Redesign',
+      'Panitia Khusus (versi pertama)',
     ]);
+    await expect(main(page).getByRole('heading', { level: 3 })).toHaveText([
+      'Lead & Implementer',
+      'Project Owner',
+      'Frontend',
+    ]);
+    // A square on the line for each group, hidden from screen readers; the newest one gold.
+    const marks = main(page).locator('.g-kredit-mark');
+    await expect(marks).toHaveCount(2);
+    for (const mark of await marks.all())
+      await expect(mark).toHaveAttribute('aria-hidden', 'true');
+    await expect(main(page).locator('.newest .g-kredit-mark')).toHaveCount(1);
     const person = (name: string) =>
       main(page).getByRole('listitem').filter({ hasText: name });
     const photo = person('Raka Pratama').locator('img');
@@ -698,6 +712,11 @@ test.describe('Kredit', () => {
       .poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth))
       .toBeGreaterThan(0);
     await expect(photo).toHaveAttribute('alt', '');
+    // The newest group's people are large; the older groups' are the usual size.
+    expect((await photo.boundingBox())!.width).toBe(72);
+    expect(
+      (await person('Nadia Putri').locator('.g-avatar').boundingBox())!.width,
+    ).toBe(34);
     // A photo that fails to load leaves the initials; no photo at all shows them too.
     await expect(person('Sinta Dewi').locator('img')).toHaveCount(0);
     await expect(person('Sinta Dewi')).toContainText('SD');

@@ -3,38 +3,77 @@
   and course rows. Sign-in and first run reuse these and the components' rules. Colours come only from tokens.css.
 */
 @layer components {
-  /* Kredit: the server's credits as cards, from the components' card, ruled list and
-     avatar. A group's roles sit side by side as small cards; its teams as cards with Lead and Team. */
-  .g-kredit {
-    display: grid;
-    gap: 28px;
+  /* Kredit: a garis down the page, a square on it for each group, the newest group first and gold. One group alone
+     has no line and no square. Layout that utilities already cover stays in KreditScreen. */
+  .g-kredit.line {
+    position: relative;
+    gap: 36px;
+    padding-left: 30px;
   }
-  .g-kredit-grid {
+  .g-kredit.line::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 10px;
+    bottom: 0;
+    width: 1.5px;
+    background: linear-gradient(var(--border-strong) 70%, transparent);
+  }
+  /* --px-rim frames the gold square so it holds on near-white. */
+  .g-kredit-mark {
+    position: absolute;
+    left: -28px;
+    top: 7px;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--bg-app);
+    box-shadow: inset 0 0 0 1.5px var(--border-strong);
+  }
+  .newest > .g-kredit-mark {
+    left: -30px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+    background: var(--gold);
+    box-shadow: 0 0 0 1.5px var(--px-rim);
+  }
+  .g-kredit-feature,
+  .g-kredit-people {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
     gap: 14px;
     align-items: start;
   }
+  .g-kredit-people {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+    gap: 10px 18px;
+  }
   .g-kredit-card {
-    display: grid;
-    gap: 12px;
-    padding: 16px 16px 6px;
+    padding: 18px;
   }
-  .g-kredit-card.role {
-    gap: 2px;
+  .g-kredit-big.g-avatar {
+    width: 72px;
+    height: 72px;
+    font-size: 20px;
   }
-  .g-kredit-part {
-    display: grid;
-    gap: 2px;
+  .g-kredit-mid.g-avatar {
+    width: 52px;
+    height: 52px;
+    font-size: 15px;
   }
-  .g-kredit-part + .g-kredit-part {
-    padding-top: 4px;
+  .g-kredit-row {
+    gap: 10px;
+    padding: 14px 0;
   }
-  .g-kredit-person {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 0;
+  .g-kredit-row + .g-kredit-row {
+    border-top: 1px solid var(--border);
+  }
+  @media (min-width: 640px) {
+    .g-kredit-row {
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 18px;
+    }
   }
 
   /* The member card: a gold plaque with HMIF's official logo on an ink plate. The card adds no lettering of its own. */

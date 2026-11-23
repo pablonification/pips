@@ -6,7 +6,6 @@ import {
   Avatar,
   Card,
   ErrorState,
-  RuledList,
   Skeleton,
   SkeletonBar,
   SkeletonBlock,
@@ -18,9 +17,10 @@ import { initialsOf } from '~/lib/shell/names';
 import { cn } from '~/lib/utils';
 import {
   dropTitle,
+  isRole,
+  newestFirst,
   parseCredits,
   personLine,
-  runs,
   type CreditGroup,
   type CreditPerson,
   type CreditSection,
@@ -67,10 +67,22 @@ const overrides = {
 /** The credited members' photos by NIM (`photos` of `GET /api/markdown/credits`); initials for anyone without one. */
 type Photos = Record<string, string>;
 
-function Person({ p, photos }: { p: CreditPerson; photos: Photos }) {
+function Person({
+  p,
+  photos,
+  face,
+}: {
+  p: CreditPerson;
+  photos: Photos;
+  face?: string;
+}) {
   return (
-    <li className="g-kredit-person">
-      <Avatar initials={initialsOf(p.name)} picture={photos[p.nim]} />
+    <li className="flex items-center gap-3">
+      <Avatar
+        initials={initialsOf(p.name)}
+        picture={photos[p.nim]}
+        className={face}
+      />
       <span className="min-w-0">
         <span className="block t-sub">{p.name}</span>
         <span className="block t-cap text-fg-2 num">{personLine(p)}</span>
@@ -79,35 +91,80 @@ function Person({ p, photos }: { p: CreditPerson; photos: Photos }) {
   );
 }
 
-function Section({
+function Parts({
   s,
-  role,
   photos,
+  face,
 }: {
   s: CreditSection;
-  role: boolean;
   photos: Photos;
+  face?: string;
 }) {
+  return s.parts.map((part, i) => (
+    <div key={i} className="grid gap-1.5">
+      {part.label ? <h4 className="t-micro text-fg-3">{part.label}</h4> : null}
+      <ul className="g-kredit-people">
+        {part.people.map((p) => (
+          <Person
+            key={`${p.nim}-${p.name}`}
+            p={p}
+            photos={photos}
+            face={face}
+          />
+        ))}
+      </ul>
+    </div>
+  ));
+}
+
+/** The newest group: a large card per role or team. One person alone in a role sits beside a large photo. */
+function Feature({ s, photos }: { s: CreditSection; photos: Photos }) {
+  const solo = isRole(s) && s.parts[0].people.length === 1;
+  if (solo) {
+    const p = s.parts[0].people[0];
+    return (
+      <Card className="g-kredit-card grid gap-3">
+        <ul>
+          <li className="flex items-center gap-4">
+            <Avatar
+              initials={initialsOf(p.name)}
+              picture={photos[p.nim]}
+              className="g-kredit-big"
+            />
+            <span className="min-w-0">
+              <h3 className="t-cap text-fg-2">{s.title}</h3>
+              <span className="block t-title">{p.name}</span>
+              <span className="block t-cap text-fg-2 num">{personLine(p)}</span>
+            </span>
+          </li>
+        </ul>
+      </Card>
+    );
+  }
   return (
-    <Card className={cn('g-kredit-card', role && 'role')}>
-      <h3 className={role ? 't-label text-fg-2' : 't-heading'}>{s.title}</h3>
-      {s.parts.map((part, i) => (
-        <div key={i} className="g-kredit-part">
-          {part.label ? (
-            <h4 className="t-micro text-fg-3">{part.label}</h4>
-          ) : null}
-          <RuledList>
-            {part.people.map((p) => (
-              <Person key={`${p.nim}-${p.name}`} p={p} photos={photos} />
-            ))}
-          </RuledList>
-        </div>
-      ))}
+    <Card className="g-kredit-card grid gap-3">
+      <h3 className="t-label text-fg-2">{s.title}</h3>
+      <Parts s={s} photos={photos} face="g-kredit-mid" />
     </Card>
   );
 }
 
-/** The credits as a designed page: a group's title, its roles as small cards, its teams as cards with Lead and Team. */
+/** An older group's role or team: its name, then its people beside it from the tablet up. */
+function Row({ s, photos }: { s: CreditSection; photos: Photos }) {
+  return (
+    <div className="g-kredit-row grid">
+      <h3 className="t-label text-fg-2">{s.title}</h3>
+      <div className="grid gap-3">
+        <Parts s={s} photos={photos} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The credits along a garis, newest group first: the newest as large cards, the older ones as rows. One group alone
+ * has nothing to set apart, so it shows as rows with no line.
+ */
 function Credits({
   groups,
   photos,
@@ -115,27 +172,46 @@ function Credits({
   groups: CreditGroup[];
   photos: Photos;
 }) {
+  const line = groups.length > 1;
   return (
-    <div className="g-kredit">
-      {groups.map((g, i) => (
-        <section key={i} className="grid gap-3.5">
-          {g.title ? <h2 className="t-title">{g.title}</h2> : null}
-          {runs(g.sections).map((run, j) => (
-            <div key={j} className={cn('g-kredit-grid', run.role && 'roles')}>
-              {run.sections.map((s, k) => (
-                <Section key={k} s={s} role={run.role} photos={photos} />
-              ))}
-            </div>
-          ))}
-        </section>
-      ))}
+    <div className={cn('g-kredit grid', line && 'line')}>
+      {newestFirst(groups).map((g, i) => {
+        const featured = line && i === 0;
+        return (
+          <section
+            key={i}
+            className={cn(
+              'relative grid content-start gap-3.5',
+              featured && 'newest',
+            )}
+          >
+            {line ? (
+              <span className="g-kredit-mark" aria-hidden="true" />
+            ) : null}
+            {g.title ? <h2 className="t-title">{g.title}</h2> : null}
+            {featured ? (
+              <div className="g-kredit-feature">
+                {g.sections.map((s, j) => (
+                  <Feature key={j} s={s} photos={photos} />
+                ))}
+              </div>
+            ) : (
+              <div>
+                {g.sections.map((s, j) => (
+                  <Row key={j} s={s} photos={photos} />
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
 }
 
 /**
- * Profil › Kredit: `GET /api/markdown/credits`. Credits in the shape `parseCredits` knows show as cards, each person
- * with their photo when they have one; anything else renders as markdown. Either way without the text's own "Credits" title: the page's title says it.
+ * Profil › Kredit: `GET /api/markdown/credits`. Credits in the shape `parseCredits` knows show along a garis, each person
+ * with their photo when they have one, newest group first; anything else renders as markdown. Either way without the text's own "Credits" title: the page's title says it.
  */
 export function KreditScreen() {
   const credits = useQuery(creditsQuery());
