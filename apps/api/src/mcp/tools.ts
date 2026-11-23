@@ -16,7 +16,7 @@ export interface ApiAnswer {
 
 /** One request to the API as the member: `path` under `/api`, `query` as the address's query, `body` as JSON. */
 export type ApiCall = (
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   path: string,
   options?: {
     query?: Record<string, string | number | boolean | string[] | undefined>;
@@ -81,6 +81,40 @@ const formAnswers = z
     }),
   )
   .min(1);
+
+/** A saved detail in Data diri (`lib/member-details.ts`): a value sets it, null removes it, left out keeps it. */
+const detail = z.string().nullable().optional();
+
+/** One Magang SPARTA submission as its routes take it (`types/internship.types.ts`). */
+const spartaSubmission = {
+  kelas: z.string().describe('Your class, as K01'),
+  idLine: z.string().describe('Your LINE id'),
+  pengalamanOrganisasi: z.string().optional(),
+  kesibukan: z
+    .array(
+      z.object({
+        jabatan: z.string(),
+        organisasi: z.string(),
+        periode: z.string(),
+      }),
+    )
+    .optional()
+    .describe('What else you are busy with this period'),
+  choices: z
+    .array(
+      z.object({
+        divisionId: z.string(),
+        priorityOrder: z.number().int().min(1).max(4),
+        answers: z.array(
+          z.object({ questionId: z.string(), answer: z.string() }),
+        ),
+      }),
+    )
+    .max(4)
+    .describe(
+      'Your divisions by priority, 1 first: each division and each priority once, with the answers to that division’s questions',
+    ),
+};
 
 interface ToolSpec<S extends ZodRawShape> {
   name: string;
@@ -200,10 +234,46 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
       })),
   }),
   tool({
+    name: 'get_my_details',
+    title: 'My Data diri',
+    description:
+      'Data diri: the account facts (never changed here) and the details you saved for forms that request them (WhatsApp, LINE, Instagram, address, hometown, emergency contact, health, birth date, photos), each null until given. Some are sensitive (address, emergency contact, health, birth date): repeat them only to the member.',
+    write: false,
+    input: {},
+    run: async (_a, api) => answer(await api('GET', '/user/details')),
+  }),
+  tool({
+    name: 'update_my_details',
+    title: 'Change my Data diri',
+    description:
+      'Saves or removes details in Data diri, which forms that request them send along with an answer once the member agrees. A value sets one, null removes it, a detail left out stays. Phone numbers need at least nine digits; birthDate is YYYY-MM-DD. Name, NIM, major, angkatan, campus and email come from the account and can’t be changed; the two photos are added in the app (Profil › Data diri).',
+    write: true,
+    idempotent: true,
+    input: {
+      whatsapp: detail,
+      line: detail,
+      instagram: detail,
+      address: detail.describe('Where you live while studying'),
+      hometown: detail,
+      emergencyContact: z
+        .object({
+          name: z.string(),
+          relation: z.enum(['Ayah', 'Ibu', 'Wali', 'Saudara', 'Lainnya']),
+          phone: z.string(),
+        })
+        .nullable()
+        .optional(),
+      health: detail.describe('Health conditions the committee should know'),
+      birthDate: detail,
+    },
+    run: async (a, api) =>
+      answer(await api('PATCH', '/user/details', { body: a })),
+  }),
+  tool({
     name: 'list_my_courses',
     title: 'My courses this semester',
     description:
-      "The courses you take this semester (Mata kuliahku), with each course's Ding Dong folder.",
+      "The courses you added to Mata kuliahku for this semester, with each course's Ding Dong folder. It is what you chose in PIPS!, not your enrollment at ITB: it decides which course Pengumuman and Kalender events reach you.",
     write: false,
     input: {},
     run: async (_args, api) =>
@@ -213,6 +283,47 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
           class: r.class,
           dingdongUrl: r.course?.dingdongUrl,
         })),
+      ),
+  }),
+  tool({
+    name: 'add_my_courses',
+    title: 'Add courses to Mata kuliahku',
+    description:
+      'Adds courses to Mata kuliahku for this semester, by their ids from search_courses. A course already there stays once.',
+    write: true,
+    idempotent: true,
+    input: {
+      courseIds: z.array(z.string().min(1)).min(1).max(30),
+    },
+    run: async (a, api) =>
+      answer(
+        await api('PUT', '/course/take/batch', {
+          body: a.courseIds.map((courseId) => ({ courseId })),
+        }),
+        (rows) =>
+          (rows as any[]).map((r) => ({
+            courseId: r.courseId,
+            class: r.class,
+          })),
+      ),
+  }),
+  tool({
+    name: 'remove_my_courses',
+    title: 'Remove courses from Mata kuliahku',
+    description:
+      'Removes courses from Mata kuliahku. Their course Pengumuman and Kalender events stop reaching you.',
+    write: true,
+    destructive: true,
+    idempotent: true,
+    input: {
+      courseIds: z.array(z.string().min(1)).min(1).max(30),
+    },
+    run: async (a, api) =>
+      answer(
+        await api('DELETE', '/course/take/batch', {
+          body: { courseIds: a.courseIds },
+        }),
+        () => ({ removed: a.courseIds }),
       ),
   }),
 
@@ -352,6 +463,56 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
       answer(await api('DELETE', `/info/${id(a.announcementId)}`), () => ({
         deleted: a.announcementId,
       })),
+  }),
+  tool({
+    name: 'renotify_announcement',
+    title: 'Notify again about a Pengumuman',
+    description:
+      'Sends the push notification for a Pengumuman you wrote once more, to the same audience. Only its author, and only while the app allows it again (a few hours after the last one).',
+    write: true,
+    input: { infoId: z.string().min(1) },
+    run: async (a, api) =>
+      answer(await api('POST', `/info/${id(a.infoId)}/renotify`), () => ({
+        notified: a.infoId,
+      })),
+  }),
+  tool({
+    name: 'get_notification_settings',
+    title: 'Notification settings',
+    description:
+      'The Pengumuman categories and whether each sends you push notifications (muted ones don’t; their posts still show in Pengumuman).',
+    write: false,
+    input: {},
+    run: async (_a, api) => {
+      const categories = await api('GET', '/category');
+      if (categories.status >= 400) return refusal(categories);
+      const muted = await api('GET', '/unsubscribe/categories');
+      if (muted.status >= 400) return refusal(muted);
+      const mutedIds = new Set<string>((muted.body as any)?.categoryId ?? []);
+      return text(
+        ((categories.body as any).categories as any[]).map((c) => ({
+          id: c.id,
+          name: c.name,
+          muted: mutedIds.has(c.id),
+        })),
+      );
+    },
+  }),
+  tool({
+    name: 'set_notification_category',
+    title: 'Mute or unmute a category',
+    description:
+      'Turns push notifications for one Pengumuman category off (muted true) or back on (muted false). The ids come from get_notification_settings.',
+    write: true,
+    idempotent: true,
+    input: { categoryId: z.string().min(1), muted: z.boolean() },
+    run: async (a, api) =>
+      answer(
+        await api(a.muted ? 'POST' : 'DELETE', '/unsubscribe/category', {
+          body: { categoryId: a.categoryId },
+        }),
+        () => ({ categoryId: a.categoryId, muted: a.muted }),
+      ),
   }),
   tool({
     name: 'mark_announcement_read',
@@ -933,6 +1094,200 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
     input: { formId: z.string().min(1) },
     run: async (a, api) =>
       answer(await api('GET', `/form/${id(a.formId)}/answers/summary`)),
+  }),
+  tool({
+    name: 'create_form',
+    title: 'Make a form (Kelola › Form)',
+    description:
+      'Makes a new draft form that you own, with one untitled section holding one multiple-choice question, requesting Nama and NIM. Members never see a draft. Shape it with update_form, then publish_form. For pengurus.',
+    write: true,
+    input: { title: z.string().max(200).optional() },
+    run: async (a, api) =>
+      answer(await api('POST', '/form', { body: { title: a.title } })),
+  }),
+  tool({
+    name: 'get_managed_form',
+    title: 'A form you manage',
+    description:
+      'A form as its builder sees it: title, sections and questions (with their ids), angkatan, opening and closing times, requested profile fields, its link name, state, how many answered out of its angkatan, and who it is shared with. For its owner, those it is shared with, and admin.',
+    write: false,
+    input: { formId: z.string().min(1) },
+    run: async (a, api) => {
+      const form = await api('GET', `/form/${id(a.formId)}/manage`);
+      if (form.status >= 400) return refusal(form);
+      const access = await api('GET', `/form/${id(a.formId)}/access`);
+      return text({
+        ...(form.body as object),
+        sharedWith: access.status < 400 ? access.body : undefined,
+      });
+    },
+  }),
+  tool({
+    name: 'update_form',
+    title: 'Change a form',
+    description:
+      'Changes any of a form’s title, description, sections, angkatan, opening and closing times (ISO, or null), requested profile fields, the sent screen’s words (thanks) and whether members may change what they sent (allowEdit). Send only what changes; sections replace every section, so read get_managed_form first and keep each question’s id. Question kinds: text, textarea, radio, checkbox, dropdown, rating, date, time, file; a question may have options, optional, other ("Lainnya", radio and checkbox only), description, scale {min, max} and dependsOn {questionId, value}. To close a form now, set closesAt to the current time. If the form has answers and the change removes a question or changes its kind, the route answers 409 with what would be lost: tell the member, and send again with confirmBreaking true only after they agree, since those answers are deleted for good. For the owner, people with Edit, and admin.',
+    write: true,
+    idempotent: true,
+    input: {
+      formId: z.string().min(1),
+      title: z.string().optional(),
+      description: z.string().nullable().optional(),
+      sections: z
+        .array(z.record(z.unknown()))
+        .optional()
+        .describe(
+          'Every section: { id, title, description?, questions: [...] }',
+        ),
+      eligibleAngkatan: z.array(z.number().int()).optional(),
+      opensAt: z.string().nullable().optional(),
+      closesAt: z.string().nullable().optional(),
+      requestedFields: z
+        .array(
+          z.enum([
+            'fullName',
+            'nim',
+            'major',
+            'angkatan',
+            'campus',
+            'email',
+            'whatsapp',
+            'line',
+            'instagram',
+            'address',
+            'hometown',
+            'emergencyContact',
+            'health',
+            'birthDate',
+            'studentCardPhoto',
+            'photo',
+          ]),
+        )
+        .optional(),
+      thanks: z.string().nullable().optional(),
+      allowEdit: z.boolean().optional(),
+      confirmBreaking: z.boolean().optional(),
+    },
+    run: async ({ formId, ...body }, api) =>
+      answer(await api('PATCH', `/form/${id(formId)}`, { body })),
+  }),
+  tool({
+    name: 'publish_form',
+    title: 'Publish a form',
+    description:
+      'Publishes a draft form to its angkatan. It opens now unless an opening time was set. A form that isn’t ready answers 400 with its problems (no_title, no_questions, unwritten_question, one_option, no_angkatan, closes_before_opening, already_closed). For the owner, people with Edit, and admin.',
+    write: true,
+    input: { formId: z.string().min(1) },
+    run: async (a, api) =>
+      answer(await api('POST', `/form/${id(a.formId)}/publish`)),
+  }),
+  tool({
+    name: 'rename_form_link',
+    title: 'Change a form’s link',
+    description:
+      'Gives a form a new short name for its link (app.hmif.dev/f/<name>): lower case letters, numbers and single hyphens. The old link stops working at once. For the owner, people with Edit, and admin.',
+    write: true,
+    idempotent: true,
+    input: { formId: z.string().min(1), slug: z.string().min(1).max(100) },
+    run: async (a, api) =>
+      answer(
+        await api('PUT', `/form/${id(a.formId)}/slug`, {
+          body: { slug: a.slug },
+        }),
+        (f) => ({ id: f.id, link: f.slug }),
+      ),
+  }),
+  tool({
+    name: 'find_form_collaborators',
+    title: 'Find someone to share a form with',
+    description:
+      'Finds members by name or NIM (at least 3 characters) to share a form with, with whether each is pengurus (only pengurus can be added) and their current access. For the owner, people with Edit, and admin.',
+    write: false,
+    input: { formId: z.string().min(1), search: z.string().min(3).max(100) },
+    run: async (a, api) =>
+      answer(
+        await api('GET', `/form/${id(a.formId)}/access/search`, {
+          query: { search: a.search },
+        }),
+      ),
+  }),
+  tool({
+    name: 'share_form',
+    title: 'Share a form',
+    description:
+      'Shares a form with a pengurus, or changes what they may do: view sees the form and its answers, edit also changes it and who it is shared with. The ids come from find_form_collaborators. For the owner, people with Edit, and admin.',
+    write: true,
+    idempotent: true,
+    input: {
+      formId: z.string().min(1),
+      userId: z.string().min(1),
+      role: z.enum(['view', 'edit']),
+    },
+    run: async (a, api) =>
+      answer(
+        await api('PUT', `/form/${id(a.formId)}/access/${id(a.userId)}`, {
+          body: { role: a.role },
+        }),
+      ),
+  }),
+  tool({
+    name: 'unshare_form',
+    title: 'Stop sharing a form',
+    description:
+      'Removes someone’s access to a form. The owner’s can’t be removed. For the owner, people with Edit, and admin.',
+    write: true,
+    destructive: true,
+    idempotent: true,
+    input: { formId: z.string().min(1), userId: z.string().min(1) },
+    run: async (a, api) =>
+      answer(
+        await api('DELETE', `/form/${id(a.formId)}/access/${id(a.userId)}`),
+      ),
+  }),
+  tool({
+    name: 'get_my_sparta_application',
+    title: 'My Magang SPARTA application',
+    description:
+      'Whether Magang SPARTA is open for you, and your application: saved draft or sent (submittedAt; a sent one can no longer change). The divisions and their questions are in list_sparta_divisions.',
+    write: false,
+    input: {},
+    run: async (_a, api) => {
+      const window = await api('GET', '/internship/window');
+      if (window.status >= 400) return refusal(window);
+      const mine = await api('GET', '/internship/submission');
+      if (mine.status >= 400) return refusal(mine);
+      return text({ window: window.body, application: mine.body });
+    },
+  }),
+  tool({
+    name: 'save_sparta_application',
+    title: 'Save my Magang SPARTA draft',
+    description:
+      'Saves your Magang SPARTA application as a draft, replacing the saved one: up to 4 divisions so far, Kelas and ID Line may still be empty. Only while SPARTA is open for you, and not after sending. A question asking for a file can’t be answered here; the member adds it in the app (Layanan › Magang SPARTA).',
+    write: true,
+    idempotent: true,
+    input: {
+      ...spartaSubmission,
+      kelas: z.string(),
+      idLine: z.string(),
+    },
+    run: async (a, api) =>
+      answer(await api('PUT', '/internship/submission', { body: a })),
+  }),
+  tool({
+    name: 'submit_sparta_application',
+    title: 'Send my Magang SPARTA application',
+    description:
+      'Sends your Magang SPARTA application for good: exactly 4 divisions by priority, Kelas, ID Line and every required answer. After this it is locked and can’t change, so send it only when the member said to. Only while SPARTA is open for you. A required file answer must be added in the app first.',
+    write: true,
+    input: {
+      ...spartaSubmission,
+      kelas: z.string().min(1),
+      idLine: z.string().min(1),
+      choices: spartaSubmission.choices.length(4),
+    },
+    run: async (a, api) =>
+      answer(await api('POST', '/internship/submission/submit', { body: a })),
   }),
   tool({
     name: 'list_sparta_divisions',
