@@ -119,8 +119,9 @@ export const isi = {
   },
   dataDiri: {
     terisi: '{jumlah} dari {semua} terisi',
-    catatanJudul: 'Diisi sekali, dipakai di banyak form.',
-    catatan: 'Form hanya mengambil yang dimintanya, setelah kamu setujui.',
+    catatanJudul: 'Diisi sekali, akan digunakan ulang di form lain.',
+    catatan:
+      'Form hanya akan mengambil data yang dimintanya, setelah kamu setujui.',
     dariAkun: 'Dari akun',
     dariAkunIsi: 'Dari akun ITB-mu.',
     belumDiisi: 'Belum diisi',

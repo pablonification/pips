@@ -5,22 +5,19 @@
 export const hubungkan = {
   // The heading; {nama} is the app's own name.
   judul: '{nama} ingin memakai PIPS! atas namamu',
-  // Where the browser returns after Izinkan or Tolak.
-  kembaliKe: 'Setelah ini kamu kembali ke {host}.',
+  // Under Izinkan and Tolak: where the browser returns after either.
+  kembaliKe: 'Lalu kembali ke {host}.',
   bolehLabel: 'Yang boleh dilakukan aplikasi ini',
-  baca: 'Membaca yang bisa kamu lihat',
+  // The access, in English as apps name it; the same words name it in Aplikasi terhubung (copy/aplikasi.ts). Read is
+  // everything the member can see; Write adds changes, so it says so.
+  baca: 'Read',
   bacaIsi:
     'Pengumuman, Kalender, Form, Info Lomba, Testi Matkul dan NIM Finder.',
-  // When the app asks to change things too, the member chooses: both, or reading only. The same words name the
-  // access in Aplikasi terhubung (copy/aplikasi.ts).
-  bacaUbah: 'Baca dan ubah',
-  bacaUbahIsi:
-    'Juga mengirim, mengubah dan menghapus atas namamu, misalnya komentar atau jawaban Form.',
-  hanyaBaca: 'Hanya baca',
-  hanyaBacaIsi: 'Membaca yang bisa kamu lihat, tanpa mengubah apa pun.',
-  // The privacy note: the app has only the member's own access, never Curhat.
+  ubah: 'Write',
+  ubahIsi: 'Juga mengirim, mengubah dan menghapus atas namamu.',
+  // The privacy note: never Curhat, and the member can take it back.
   aksesmu:
-    'Aplikasi ini hanya bisa melakukan yang boleh kamu lakukan di PIPS!. Curhat Yuk! tidak termasuk. Kamu bisa memutusnya kapan saja di Profil.',
+    'Curhat Yuk! tidak termasuk. Kamu bisa memutusnya kapan saja di Profil.',
   izinkan: 'Izinkan',
   tolak: 'Tolak',
   // After a choice, while the browser leaves for the app.

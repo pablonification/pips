@@ -14,9 +14,7 @@ export function appLine(
   },
   now: number = Date.now(),
 ) {
-  const akses = app.scopes.includes('pips.write')
-    ? copy.bacaUbah
-    : copy.hanyaBaca;
+  const akses = app.scopes.includes('pips.write') ? copy.ubah : copy.baca;
   const sejak = fill(copy.sejak, { tanggal: rel(app.connectedAt, now) });
   const dipakai = app.lastUsedAt
     ? fill(copy.dipakai, { tanggal: rel(app.lastUsedAt, now) })

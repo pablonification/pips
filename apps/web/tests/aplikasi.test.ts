@@ -21,7 +21,7 @@ test("a connected app's line says what it may do, when it was connected and last
       },
       NOW,
     ),
-    'Baca dan ubah · Terhubung 20 menit lalu · Terakhir dipakai 10 menit lalu',
+    'Write · Terhubung 20 menit lalu · Terakhir dipakai 10 menit lalu',
   );
   assert.equal(
     appLine(
@@ -32,7 +32,7 @@ test("a connected app's line says what it may do, when it was connected and last
       },
       NOW,
     ),
-    'Hanya baca · Terhubung kemarin · Belum dipakai',
+    'Read · Terhubung kemarin · Belum dipakai',
   );
 });
 

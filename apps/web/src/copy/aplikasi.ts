@@ -4,8 +4,8 @@
  */
 export const aplikasi = {
   // What a connected app may do, as the consent page's choice names it (copy/hubungkan.ts).
-  hanyaBaca: 'Hanya baca',
-  bacaUbah: 'Baca dan ubah',
+  baca: 'Read',
+  ubah: 'Write',
   // A connected app's line: when it was connected, and when it was last used.
   sejak: 'Terhubung {tanggal}',
   dipakai: 'Terakhir dipakai {tanggal}',

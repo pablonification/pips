@@ -23,6 +23,7 @@ import { PageBody, PageTitle } from '~/components/shell/page';
 import { hubungkan as copy } from '~/copy/hubungkan';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
+import { AppMark } from './AppMark';
 import { consentRequestQuery } from './data';
 import { appName } from './name';
 
@@ -46,10 +47,10 @@ function Expired() {
 }
 
 /**
- * The consent page (`/hubungkan?permintaan=…`): an app asks to use PIPS! as the member, through MCP. It names the
- * app as plain text and where the browser returns, says what it may do, and offers Izinkan and Tolak. When the app
- * asks to change things too, the member chooses Baca dan ubah or Hanya baca; the API grants no more than that. A
- * focused flow. Either choice sends the browser back to the app.
+ * The consent page (`/hubungkan?permintaan=…`): an app asks to use PIPS! as the member, through MCP. It shows the
+ * app's mark (by the host it returns to) and its name as plain text, says what it may do, offers Izinkan and Tolak,
+ * and names where the browser returns. When the app asks to change things too, the member chooses Write or Read; the
+ * API grants no more than that. A focused flow. Either choice sends the browser back to the app.
  */
 export function HubungkanScreen({ requestId }: { requestId?: string }) {
   const request = useQuery({
@@ -128,7 +129,7 @@ export function HubungkanScreen({ requestId }: { requestId?: string }) {
         writeAsked && !readOnly ? ['pips.read', 'pips.write'] : ['pips.read'],
     });
   };
-  const choice = (value: boolean, title: string, line: string) => (
+  const choice = (value: boolean, title: string, line?: string) => (
     <Radio
       name={choiceName}
       checked={readOnly === value}
@@ -137,24 +138,24 @@ export function HubungkanScreen({ requestId }: { requestId?: string }) {
     >
       <span className="min-w-0 flex-1 py-0.5">
         <span className="block t-sub">{title}</span>
-        <span className="block t-cap text-fg-2">{line}</span>
+        {line ? <span className="block t-cap text-fg-2">{line}</span> : null}
       </span>
     </Radio>
   );
   return (
     <PageBody className="gap-5">
-      <div className="grid gap-1.5">
+      <div className="grid justify-items-start gap-4">
+        <Tile>
+          <AppMark returnHost={redirectHost} />
+        </Tile>
         <PageTitle className="disp">
           {fill(copy.judul, { nama: appName(clientName) })}
         </PageTitle>
-        <p className="t-body text-fg-2">
-          {fill(copy.kembaliKe, { host: redirectHost })}
-        </p>
       </div>
       {writeAsked ? (
         <fieldset className="g-opts" aria-label={copy.bolehLabel}>
-          {choice(false, copy.bacaUbah, copy.bacaUbahIsi)}
-          {choice(true, copy.hanyaBaca, copy.hanyaBacaIsi)}
+          {choice(false, copy.ubah, copy.ubahIsi)}
+          {choice(true, copy.baca)}
         </fieldset>
       ) : (
         <Card className="px-4 py-1">
@@ -193,6 +194,9 @@ export function HubungkanScreen({ requestId }: { requestId?: string }) {
             ? copy.mengalihkan
             : copy.tolak}
         </Button>
+        <p className="text-center t-cap text-fg-2">
+          {fill(copy.kembaliKe, { host: redirectHost })}
+        </p>
       </div>
     </PageBody>
   );
