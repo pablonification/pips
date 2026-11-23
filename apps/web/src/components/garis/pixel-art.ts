@@ -1,7 +1,8 @@
 /**
  * The six reactions as 10 × 10 pixel art, and their names.
  * Each letter is a colour class in components.css: # rim (ink, bronze in dark mode), o gold, w white, r red,
- * c cream, l blue, b bronze; . is empty.
+ * c cream, l blue, b bronze, n orange, d deep orange, y yellow, i ink in both themes (an open mouth stays dark when
+ * the rim turns bronze); . is empty. Rayakan is a party popper, not a face, so it never reads as Senyum lebar.
  */
 export const PIXEL_REACTIONS = {
   grin: [
@@ -29,15 +30,15 @@ export const PIXEL_REACTIONS = {
     '..######..',
   ],
   fire: [
-    '....##....',
-    '...#oo#...',
-    '..#oooo#..',
-    '..#oooo#..',
-    '.#oorroo#.',
-    '.#orrrro#.',
-    '#oorccroo#',
-    '#oorccroo#',
-    '.#oorroo#.',
+    '.....#....',
+    '....#d#...',
+    '...#dn#.#.',
+    '..#dnnd#d#',
+    '.#dnnyndd#',
+    '#d#nyynnd#',
+    '#dnnyyyyn#',
+    '#dnyycyyn#',
+    '.#nyccyn#.',
     '..######..',
   ],
   cry: [
@@ -54,27 +55,27 @@ export const PIXEL_REACTIONS = {
   ],
   screaming: [
     '..######..',
-    '.#oooooo#.',
-    '#oooooooo#',
-    '#owwoowwo#',
+    '.#l#ll#l#.',
+    '#llllllll#',
+    '#lwwllwwl#',
     '#ow#oo#wo#',
-    '#oooooooo#',
     '#ooo##ooo#',
-    '#oo####oo#',
-    '.#o####o#.',
+    '#oo#ii#oo#',
+    '#oo#ii#oo#',
+    '.#oo##oo#.',
     '..######..',
   ],
   party: [
-    'c.######.r',
-    '.#oooooo#.',
-    '#oooooooo#',
-    '#o#oooo#o#',
-    '##o#oo#o##',
-    '#oooooooo#',
-    '#o######o#',
-    '#o#rrrr#o#',
-    '.#o####o#.',
-    'l.######.c',
+    '.l..c...r.',
+    '...r..l...',
+    'c.....r.c.',
+    '..l..##...',
+    '....#cc#.l',
+    '...#rcc#..',
+    '..#orr#.r.',
+    '.#oor#....',
+    '#oo#......',
+    '##........',
   ],
 } as const;
 
@@ -102,6 +103,10 @@ const COLOUR_CLASS: Record<string, string> = {
   c: 'c',
   l: 'l',
   b: 'b',
+  n: 'n',
+  d: 'd',
+  y: 'y',
+  i: 'i',
 };
 
 interface PixelRun {

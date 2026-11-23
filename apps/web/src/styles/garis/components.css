@@ -48,6 +48,18 @@
   .g-px .b {
     fill: var(--px-bronze);
   }
+  .g-px .n {
+    fill: var(--px-orange);
+  }
+  .g-px .d {
+    fill: var(--px-orange-deep);
+  }
+  .g-px .y {
+    fill: var(--px-yellow);
+  }
+  .g-px .i {
+    fill: var(--px-ink);
+  }
   /* 2 px inside semibold buttons and the active tab; an icon's own stroke renders 1.5 px. */
   :is(.g-btn, .g-icons-bold) .g-ic.s16 {
     stroke-width: 3;
