@@ -1,6 +1,6 @@
 /**
  * What `POST /media/upload` signs. Only the kinds of file the web app uploads: images (Pengumuman's photos, Info
- * Lomba's poster) and the documents a SPARTA file answer carries (a CV, a portfolio). The content type comes from
+ * Lomba's poster) and the documents a form's file answer carries (a CV, a portfolio). The content type comes from
  * the extension and is part of the signature, so storage serves the file as that type and nothing else (never HTML
  * or script; no SVG either, since an SVG can carry a script that runs on the media domain). The web app's file
  * inputs accept the same list (`apps/web/src/lib/upload-policy.ts`); keep the two in step.

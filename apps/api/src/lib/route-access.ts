@@ -211,30 +211,6 @@ export const ROUTE_ACCESS: Record<string, RouteAccess> = {
     checkedIn: 'handler',
   },
 
-  // Magang SPARTA
-  'GET /api/internship/window': { who: 'member' },
-  'GET /api/internship/departments': { who: 'member' },
-  'POST /api/internship/departments': { who: ['peoplemanage', 'admin'] },
-  'PUT /api/internship/departments/{id}': { who: ['peoplemanage', 'admin'] },
-  'DELETE /api/internship/departments/{id}': { who: ['peoplemanage', 'admin'] },
-  'POST /api/internship/divisions': { who: ['peoplemanage', 'admin'] },
-  'PUT /api/internship/divisions/{id}': { who: ['peoplemanage', 'admin'] },
-  'DELETE /api/internship/divisions/{id}': { who: ['peoplemanage', 'admin'] },
-  'GET /api/internship/submission': {
-    who: 'member',
-    note: 'their own; only the angkatan SPARTA is for (401)',
-  },
-  'PUT /api/internship/submission': {
-    who: 'member',
-    note: 'their own; only the angkatan SPARTA is for (401)',
-  },
-  'POST /api/internship/submission/submit': {
-    who: 'member',
-    note: 'their own; only the angkatan SPARTA is for (401)',
-  },
-  'GET /api/internship/submissions': { who: ['peoplemanage', 'admin'] },
-  'GET /api/internship/submissions/{id}': { who: ['peoplemanage', 'admin'] },
-
   // Form
   'GET /api/form': { who: 'member', note: 'forms for their angkatan' },
   'GET /api/form/{formId}': {

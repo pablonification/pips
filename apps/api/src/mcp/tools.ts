@@ -85,37 +85,6 @@ const formAnswers = z
 /** A saved detail in Data diri (`lib/member-details.ts`): a value sets it, null removes it, left out keeps it. */
 const detail = z.string().nullable().optional();
 
-/** One Magang SPARTA submission as its routes take it (`types/internship.types.ts`). */
-const spartaSubmission = {
-  kelas: z.string().describe('Your class, as K01'),
-  idLine: z.string().describe('Your LINE id'),
-  pengalamanOrganisasi: z.string().optional(),
-  kesibukan: z
-    .array(
-      z.object({
-        jabatan: z.string(),
-        organisasi: z.string(),
-        periode: z.string(),
-      }),
-    )
-    .optional()
-    .describe('What else you are busy with this period'),
-  choices: z
-    .array(
-      z.object({
-        divisionId: z.string(),
-        priorityOrder: z.number().int().min(1).max(4),
-        answers: z.array(
-          z.object({ questionId: z.string(), answer: z.string() }),
-        ),
-      }),
-    )
-    .max(4)
-    .describe(
-      'Your divisions by priority, 1 first: each division and each priority once, with the answers to that division’s questions',
-    ),
-};
-
 interface ToolSpec<S extends ZodRawShape> {
   name: string;
   title: string;
@@ -218,7 +187,7 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
     name: 'get_my_profile',
     title: 'My profile',
     description:
-      'The signed-in member (anggota): name, NIM, major, angkatan and roles (none listed for a plain anggota). Roles decide what else you may do: akademik adds Akademik events and testimonials, ring1 Himpunan events, cnc competitions in Info Lomba, admin Rekap Form, peoplemanage and admin Data SPARTA Magang.',
+      'The signed-in member (anggota): name, NIM, major, angkatan and roles (none listed for a plain anggota). Roles decide what else you may do: akademik adds Akademik events and testimonials, ring1 Himpunan events, cnc competitions in Info Lomba and admin Rekap Form.',
     write: false,
     input: {},
     run: async (_args, api) =>
@@ -1243,92 +1212,6 @@ export const TOOLS: Array<ToolSpec<ZodRawShape>> = [
       answer(
         await api('DELETE', `/form/${id(a.formId)}/access/${id(a.userId)}`),
       ),
-  }),
-  tool({
-    name: 'get_my_sparta_application',
-    title: 'My Magang SPARTA application',
-    description:
-      'Whether Magang SPARTA is open for you, and your application: saved draft or sent (submittedAt; a sent one can no longer change). The divisions and their questions are in list_sparta_divisions.',
-    write: false,
-    input: {},
-    run: async (_a, api) => {
-      const window = await api('GET', '/internship/window');
-      if (window.status >= 400) return refusal(window);
-      const mine = await api('GET', '/internship/submission');
-      if (mine.status >= 400) return refusal(mine);
-      return text({ window: window.body, application: mine.body });
-    },
-  }),
-  tool({
-    name: 'save_sparta_application',
-    title: 'Save my Magang SPARTA draft',
-    description:
-      'Saves your Magang SPARTA application as a draft, replacing the saved one: up to 4 divisions so far, Kelas and ID Line may still be empty. Only while SPARTA is open for you, and not after sending. A question asking for a file can’t be answered here; the member adds it in the app (Layanan › Magang SPARTA).',
-    write: true,
-    idempotent: true,
-    input: {
-      ...spartaSubmission,
-      kelas: z.string(),
-      idLine: z.string(),
-    },
-    run: async (a, api) =>
-      answer(await api('PUT', '/internship/submission', { body: a })),
-  }),
-  tool({
-    name: 'submit_sparta_application',
-    title: 'Send my Magang SPARTA application',
-    description:
-      'Sends your Magang SPARTA application for good: exactly 4 divisions by priority, Kelas, ID Line and every required answer. After this it is locked and can’t change, so send it only when the member said to. Only while SPARTA is open for you. A required file answer must be added in the app first.',
-    write: true,
-    input: {
-      ...spartaSubmission,
-      kelas: z.string().min(1),
-      idLine: z.string().min(1),
-      choices: spartaSubmission.choices.length(4),
-    },
-    run: async (a, api) =>
-      answer(await api('POST', '/internship/submission/submit', { body: a })),
-  }),
-  tool({
-    name: 'list_sparta_divisions',
-    title: 'Magang SPARTA departments',
-    description:
-      'The departments and divisions members choose in Magang SPARTA.',
-    write: false,
-    input: {},
-    run: async (_a, api) => answer(await api('GET', '/internship/departments')),
-  }),
-  tool({
-    name: 'list_sparta_submissions',
-    title: 'Data SPARTA Magang',
-    description:
-      'Magang SPARTA submissions, by division or lock state. Needs the peoplemanage or admin role.',
-    write: false,
-    input: {
-      divisionId: z.string().optional(),
-      locked: z.boolean().optional(),
-      offset,
-    },
-    run: async (a, api) =>
-      answer(
-        await api('GET', '/internship/submissions', {
-          query: {
-            divisionId: a.divisionId,
-            locked: a.locked === undefined ? undefined : String(a.locked),
-            offset: a.offset,
-          },
-        }),
-      ),
-  }),
-  tool({
-    name: 'get_sparta_submission',
-    title: 'One SPARTA submission',
-    description:
-      'One Magang SPARTA submission in full. Needs the peoplemanage or admin role.',
-    write: false,
-    input: { submissionId: z.string().min(1) },
-    run: async (a, api) =>
-      answer(await api('GET', `/internship/submissions/${id(a.submissionId)}`)),
   }),
 ];
 

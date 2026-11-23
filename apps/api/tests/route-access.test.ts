@@ -97,9 +97,6 @@ before(async () => {
       fakeDeps(),
     ),
     (
-      await import('../src/controllers/internship.controller')
-    ).createInternshipRouter(fakeDeps()),
-    (
       await import('../src/controllers/programme-window.controller')
     ).createProgrammeWindowRouter(fakeDeps()),
     (await import('../src/controllers/push.controller')).createPushRouter(

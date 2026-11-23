@@ -13,10 +13,10 @@ const raka = testUser('u-raka', { nim: '13524045', angkatan: 2024 });
 function row(over: Partial<ProgrammeWindow>): ProgrammeWindow {
   return {
     id: 'w1',
-    slug: 'sparta-2027',
+    slug: 'lomba-2027',
     kind: 'programme',
-    label: 'Magang SPARTA',
-    route: '/layanan/sparta',
+    label: 'Lomba 2027',
+    route: '/layanan/lomba',
     opensAt: new Date('2026-10-01T00:00:00Z'),
     closesAt: null,
     eligibleAngkatan: [],
@@ -65,10 +65,10 @@ test('GET /programme-windows: the windows open now for you, without the eligibil
     windows: [
       {
         id: 'open',
-        slug: 'sparta-2027',
+        slug: 'lomba-2027',
         kind: 'programme',
-        label: 'Magang SPARTA',
-        route: '/layanan/sparta',
+        label: 'Lomba 2027',
+        route: '/layanan/lomba',
         opensAt: '2026-10-01T00:00:00.000Z',
         closesAt: null,
       },

@@ -1,6 +1,6 @@
 /**
- * The one window rule for everything that opens and closes on the server's clock: forms (`form-status.ts`),
- * Magang SPARTA (`sparta-window.ts`) and the programme windows (`GET /programme-windows`).
+ * The one window rule for everything that opens and closes on the server's clock: forms (`form-status.ts`)
+ * and the programme windows (`GET /programme-windows`).
  * A window is open from `opensAt` (inclusive; null: already open) until `closesAt` (exclusive; null: until switched
  * off), while it is active.
  */
@@ -62,7 +62,7 @@ export function isWindowOpenFor(
 const APP_ORIGIN = 'https://app.invalid';
 
 /**
- * Where a window leads: an app path (`/layanan/sparta`) or an `https://` address. Control characters are refused
+ * Where a window leads: an app path (`/layanan/lomba`) or an `https://` address. Control characters are refused
  * (browsers drop tabs and newlines, turning `/\t/evil.com` into `//evil.com`), and an app path must stay on the
  * app's origin once parsed.
  */

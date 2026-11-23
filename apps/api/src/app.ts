@@ -72,7 +72,6 @@ const OPENAPI_CONFIG = {
     { name: 'competitions', description: 'Competitions API' },
     { name: 'markdown', description: 'Markdown API' },
     { name: 'curhat', description: 'Curhat API' },
-    { name: 'internship', description: 'Internship API' },
     { name: 'form', description: 'Form API' },
     { name: 'programme-window', description: 'Programme windows API' },
     { name: 'oauth', description: 'Apps connected through MCP' },
