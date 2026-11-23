@@ -15,6 +15,7 @@ import {
 import type { CollaboratorRole } from '../src/lib/form-model';
 import { storedFileCheck } from '../src/lib/form-model';
 import { EMPTY_DETAILS } from '../src/lib/member-details';
+import { DrizzleQueryError } from 'drizzle-orm/errors';
 import postgres from 'postgres';
 import { callRouter } from './support/router';
 import { sessionCookie, testUser, type TestUser } from './support/session';
@@ -96,11 +97,16 @@ const sections = (): FormSection[] => [
   },
 ];
 
-/** What the database throws on a second response by the same member (the unique key on form and member). */
+/** What drizzle throws on a second response by the same member (the unique key on form and member). */
 function uniqueViolation() {
-  const err = Object.create(postgres.PostgresError.prototype);
-  err.code = '23505';
-  return err;
+  return new DrizzleQueryError(
+    'insert into "form_responses" ("form_id", "user_id") values ($1, $2)',
+    [],
+    new (postgres as any).PostgresError({
+      message: 'duplicate key value violates unique constraint',
+      code: '23505',
+    }),
+  );
 }
 
 interface Store {

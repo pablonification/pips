@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert';
+import { DrizzleQueryError } from 'drizzle-orm/errors';
 import postgres from 'postgres';
 import { before, test } from 'node:test';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
@@ -68,4 +69,41 @@ test("the database's own message never reaches the client", async () => {
   );
   assert.equal(info.status, 400);
   assert.deepEqual(info.body, { error: 'Invalid request' });
+});
+
+test("a refusal wrapped by drizzle is still the database's, and its parameters stay out of the log", async () => {
+  const logged: unknown[] = [];
+  const quiet = (logger as any).error;
+  (logger as any).error = (entry: unknown) => {
+    logged.push(entry);
+    return logger;
+  };
+  try {
+    const wrapped = new Proxy(
+      {},
+      {
+        get: () => async () => {
+          throw new DrizzleQueryError(
+            'insert into "comments" ("content", "replied_info_id") values ($1, $2)',
+            ['isi rahasia', 'missing'],
+            dbError(),
+          );
+        },
+      },
+    ) as any;
+    const res = await callRouter(
+      createCommentRouter(wrapped),
+      nadia,
+      'POST',
+      '/comment',
+      { content: 'isi rahasia', repliedInfoId: 'missing' },
+    );
+    assert.equal(res.status, 400);
+    assert.deepEqual(res.body, { error: 'Invalid request' });
+    assert.deepEqual(logged, [
+      { type: 'database', message: SECRET_DETAIL, code: '23503' },
+    ]);
+  } finally {
+    (logger as any).error = quiet;
+  }
 });

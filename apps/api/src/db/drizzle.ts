@@ -1,4 +1,8 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
+import type { PgDatabase } from 'drizzle-orm/pg-core';
+import {
+  drizzle,
+  type PostgresJsQueryResultHKT,
+} from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { env } from '~/configs/env.config';
 import * as schema from './schema';
@@ -19,7 +23,9 @@ export const db = drizzle(client, {
   schema,
   logger: env.NODE_ENV !== 'production',
 });
-export type Database = typeof db;
+// Not `typeof db`: since drizzle-orm 0.45 that type carries `$client`, which a transaction does not have. The base
+// class accepts both the database and a transaction.
+export type Database = PgDatabase<PostgresJsQueryResultHKT, typeof schema>;
 
 /** Closes the pool at shutdown: queries already running get `timeoutSeconds` to finish. */
 export async function closeDatabase(timeoutSeconds = 5) {

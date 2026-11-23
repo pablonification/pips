@@ -116,7 +116,9 @@ test('plain drizzle migrate fails on production’s records (the bug this guards
   try {
     await assert.rejects(
       migrate(drizzle(sql), { migrationsFolder: FOLDER }),
-      /duplicate key value|already exists/,
+      // drizzle wraps the driver's error: the database's own message is its cause.
+      (e: { cause?: { message?: string } }) =>
+        /duplicate key value|already exists/.test(String(e.cause?.message)),
     );
   } finally {
     await sql.end();

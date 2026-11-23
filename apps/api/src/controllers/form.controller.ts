@@ -1,7 +1,10 @@
-import postgres from 'postgres';
 import { env } from '~/configs/env.config';
 import type { Form } from '~/db/schema';
-import { databaseError } from '~/lib/database-error';
+import {
+  databaseError,
+  isPostgresError,
+  postgresError,
+} from '~/lib/database-error';
 import {
   findInvalidAnswer,
   findMissingRequiredQuestions,
@@ -381,8 +384,8 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
 
       return c.json(response, 201);
     } catch (err) {
-      if (err instanceof postgres.PostgresError) {
-        if (err.code === '23505') {
+      if (isPostgresError(err)) {
+        if (postgresError(err)?.code === '23505') {
           return c.json(
             { error: 'Already submitted a response for this form' },
             409,

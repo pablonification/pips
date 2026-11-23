@@ -1,5 +1,4 @@
-import { databaseError } from '~/lib/database-error';
-import postgres from 'postgres';
+import { databaseError, isPostgresError } from '~/lib/database-error';
 import { toAuthor, withAuthor } from '~/lib/author';
 import { canDeleteContent, canEditContent } from '~/lib/authorization';
 import {
@@ -79,8 +78,7 @@ export function createCommentRouter(deps: CommentDeps = databaseDeps) {
       const comment = await deps.createComment(data, userId);
       return c.json({ ...comment, creator: toAuthor(c.var.user) }, 201);
     } catch (err) {
-      if (err instanceof postgres.PostgresError)
-        return c.json(databaseError(err), 400);
+      if (isPostgresError(err)) return c.json(databaseError(err), 400);
       throw err;
     }
   });

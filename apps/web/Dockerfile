@@ -29,6 +29,8 @@ RUN turbo run build --filter=web
 RUN node apps/web/scripts/csp.mjs apps/web/dist/index.html > /repo/csp.caddy
 
 FROM caddy:2-alpine
+# Pull in Alpine security fixes (zlib, openssl) published after the caddy image was built.
+RUN apk upgrade --no-cache
 COPY --from=build /repo/apps/web/dist /srv
 COPY apps/web/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /repo/csp.caddy /etc/caddy/csp.caddy
