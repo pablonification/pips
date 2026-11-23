@@ -150,6 +150,11 @@ html.dark,
   --px-cream: #fbe3a1;
   --px-blue: #7cc7f2;
   --px-bronze: #966f16;
+  /* Keren's flame, and Kaget's open mouth, which stays ink when the rim turns bronze. */
+  --px-orange: #f47b20;
+  --px-orange-deep: #c2410c;
+  --px-yellow: #ffd84a;
+  --px-ink: #1b1508;
   /* Claude's own colour, for its mark in Profil › Aplikasi terhubung. */
   --brand-claude: #d97757;
 
