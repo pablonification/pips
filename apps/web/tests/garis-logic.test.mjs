@@ -121,8 +121,15 @@ test('the six pixel reactions are 10 × 10, named as the app names them', () => 
   assert.deepEqual(Object.values(PIXEL_REACTION_LABELS), ['Senyum lebar', 'Suka banget', 'Keren', 'Sedih', 'Kaget', 'Rayakan']);
   for (const k of PIXEL_REACTION_KEYS) {
     assert.equal(PIXEL_REACTIONS[k].length, 10, k);
-    for (const row of PIXEL_REACTIONS[k]) assert.match(row, /^[.#owrclb]{10}$/, k);
+    for (const row of PIXEL_REACTIONS[k]) assert.match(row, /^[.#owrclbndyi]{10}$/, k);
   }
+});
+
+test('Keren is an orange flame, Kaget has an open mouth, and Rayakan looks nothing like Senyum lebar', () => {
+  const art = (k) => PIXEL_REACTIONS[k].join('');
+  assert.ok((art('fire').match(/[nd]/g) ?? []).length > (art('fire').match(/o/g) ?? []).length, 'mostly orange');
+  assert.match(art('screaming'), /i/, 'an open mouth');
+  for (const row of PIXEL_REACTIONS.party) assert.ok(!PIXEL_REACTIONS.grin.includes(row), `Rayakan shares ${row} with Senyum lebar`);
 });
 
 test('pixel runs cover every non-empty pixel exactly once, with the rim as class k', () => {
