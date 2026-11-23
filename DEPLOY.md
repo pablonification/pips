@@ -80,7 +80,7 @@ Set these as build arguments (Dokploy's build-time arguments), since the app is 
 | `VITE_API_URL` | `https://app-api.hmif.dev` | the API |
 | `VITE_GOOGLE_CLIENT_ID` | today's value | Google sign-in |
 | `VITE_VAPID_KEY` | the API's `VAPID_PUBLIC_KEY` | notifications |
-| `VITE_MEDIA_URL` | the API's `R2_PUBLIC_URL` | **the image build stops without it**: only files there become links in Data SPARTA Magang, and the content policy names it |
+| `VITE_MEDIA_URL` | the API's `R2_PUBLIC_URL` | **the image build stops without it**: only files there become links in a form's file answers, and the content policy names it |
 | `VITE_SENTRY_DSN` | optional | error monitoring |
 
 The Frontend's `NEXT_PUBLIC_API_URL` is unused and can go.
@@ -113,7 +113,7 @@ compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy
    It first repairs the migration records' id counter (production's fell behind, which made `drizzle-kit migrate`
    fail with `Key (id)=(23) already exists`), then:
 
-   - 0024, 0025: SPARTA and form tables production already has (`if not exists`, no change);
+   - 0024, 0025: form tables, and the internship tables the removed Magang SPARTA used, that production already has (`if not exists`, no change);
    - 0026: a form's closing time (a new empty column);
    - 0027: programme windows (a new empty table);
    - 0028: a Curhat message's device id (a new empty column and a unique index), so a resent message is saved once;

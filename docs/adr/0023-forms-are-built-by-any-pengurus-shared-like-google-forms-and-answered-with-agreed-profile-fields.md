@@ -8,7 +8,7 @@ Until now a form was a row an admin added by hand (the PIXEL form), read through
 owner approved a form builder for every pengurus and a new member form (the locked forms prototype, `forms-v1`):
 Google Forms' page and kinds of question, sharing with roles, a link of the form's own, an Excel export, and the
 8ehradioitb flow where a form asks only its own questions and requests profile fields the member sees and agrees to
-at the end. Two things had to stay true: today's PIXEL form and Magang SPARTA keep working for members, and a member
+at the end. Two things had to stay true: today's PIXEL form and Magang SPARTA keep working for members (Magang SPARTA was removed on 2026-11-23), and a member
 sees only what their angkatan and roles allow, decided by the server.
 
 ## Decision
