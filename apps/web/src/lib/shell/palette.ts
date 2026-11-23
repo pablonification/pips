@@ -14,7 +14,7 @@ export interface PaletteItem {
   label: string;
   icon: IconByKey;
   /** The short line at the right ("Situs luar", a date, "Ding Dong"). */
-  hint: string;
+  hint?: string;
   /** More words it is found by, lower case. */
   keywords?: string;
   /** Shown before anything is typed, in the actions group. */

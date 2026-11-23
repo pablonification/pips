@@ -1146,9 +1146,7 @@ function Interactive() {
               disabled
               hint="Bisa lagi mulai 15.30"
               onSelect={() =>
-                toast.success(
-                  'Umumkan ulang bisa lagi mulai 15.30. Jeda 3 jam supaya anggota tidak kebanjiran notifikasi.',
-                )
+                toast.success('Umumkan ulang bisa lagi mulai 15.30.')
               }
             >
               Umumkan ulang

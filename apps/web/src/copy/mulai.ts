@@ -5,7 +5,6 @@ export const mulai = {
   // The page's name in the top bar, the document title and back.
   judul: 'Mulai',
   // One line under the greeting.
-  isi: 'Atur ini dulu supaya PIPS! langsung berguna untukmu.',
   matkul: 'Atur mata kuliah semester ini',
   matkulIsi: 'Ding Dong dan acara Akademik masih kosong.',
   atur: 'Atur',
@@ -14,7 +13,6 @@ export const mulai = {
   nyalakan: 'Nyalakan',
   pasang: 'Pasang PIPS!',
   // Installing is optional.
-  pasangIsi: 'Pilihan: buka PIPS! langsung dari layar utama.',
   pasangTombol: 'Pasang',
   // A step that's done, as icon, word and colour.
   selesai: 'Selesai',

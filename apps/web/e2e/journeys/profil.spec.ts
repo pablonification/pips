@@ -256,7 +256,7 @@ test.describe('Raka', () => {
     await keluar.click();
     await expect(confirm(page)).toBeVisible();
     await expect(confirm(page)).toContainText(
-      'Kamu perlu masuk lagi dengan email mahasiswa (NIM@std.stei.itb.ac.id). Notifikasi di perangkat ini berhenti sampai kamu masuk lagi.',
+      'Notifikasi di perangkat ini berhenti sampai kamu masuk lagi.',
     );
     await expect(
       confirm(page).getByRole('button', { name: 'Batal' }),

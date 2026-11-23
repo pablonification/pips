@@ -110,7 +110,7 @@ test('Nadia answers the PIXEL form, sends it, and it is marked as answered', asy
       .click();
     expect((await sent).status()).toBeLessThan(300);
     await expect(
-      main(page).getByRole('heading', { name: 'Terima kasih sudah mengisi!' }),
+      main(page).getByRole('heading', { name: 'Terima kasih sudah mengisi.' }),
     ).toBeVisible();
     await page.goto('/layanan/form');
   }

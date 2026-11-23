@@ -338,7 +338,7 @@ const ctx = {
 };
 const draft = (d: Partial<Draft>): Draft => ({ ...freshDraft(), ...d });
 
-test('composer: one audience kind, Grup-ku only with groups; the request body', () => {
+test('composer: one audience kind, Grupku only with groups; the request body', () => {
   assert.deepEqual(audienceKinds(nadia.groups), ['all', 'angkatan']);
   assert.deepEqual(audienceKinds(raka.groups), ['all', 'angkatan', 'group']);
   assert.deepEqual(
@@ -373,7 +373,7 @@ test('composer: one audience kind, Grup-ku only with groups; the request body', 
   ]);
 });
 
-test('composer: content 1–1,000 after trimming, at least one category, a value for Angkatan or Grup-ku; focus order', () => {
+test('composer: content 1–1,000 after trimming, at least one category, a value for Angkatan or Grupku; focus order', () => {
   const e = validateDraft(draft({ body: '   ' }));
   assert.deepEqual(e, {
     body: 'Isi pengumuman belum ditulis.',

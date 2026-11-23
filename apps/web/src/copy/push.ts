@@ -27,15 +27,13 @@ export const push = {
     aktif: 'Notifikasi menyala di perangkat ini',
     kirimUji: 'Kirim notifikasi uji',
     belum: 'Notifikasi belum menyala di perangkat ini',
-    belumIsi:
-      'Tanpa ini, pengumuman baru, pengingat H-1, dan balasan Curhat tidak akan sampai.',
     nyalakan: 'Nyalakan notifikasi',
     diblokir: 'Notifikasi diblokir di perangkat ini',
     diblokirIsi:
       'Izin notifikasi untuk PIPS! pernah ditolak. Izinkan lagi lewat ikon di samping alamat situs, atau lewat info aplikasi kalau PIPS! terpasang, lalu buka lagi.',
     perluPasang: 'Pasang PIPS! dulu untuk menyalakan notifikasi',
     perluPasangIsi:
-      'Di iPhone, notifikasi hanya sampai lewat PIPS! yang terpasang di layar utama. Pasang dulu, lalu buka PIPS! dari sana.',
+      'Di iPhone, notifikasi hanya sampai lewat PIPS! yang terpasang di layar utama.',
     pasang: 'Pasang PIPS!',
     tidakDidukung: 'Browser ini tidak mendukung notifikasi',
     tidakDidukungIsi:

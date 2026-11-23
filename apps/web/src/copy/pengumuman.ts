@@ -90,8 +90,7 @@ export const pengumuman = {
     umumkanUlang: 'Umumkan ulang',
     umumkanUlangHint: 'Kirim notifikasi lagi ke sasaran',
     bisaLagi: 'Bisa lagi mulai {jam}',
-    terkunci:
-      'Umumkan ulang bisa lagi mulai {jam}. Jeda 3 jam supaya anggota tidak kebanjiran notifikasi.',
+    terkunci: 'Umumkan ulang bisa lagi mulai {jam}.',
     diumumkanUlang: 'Diumumkan ulang. Notifikasi dikirim lagi ke {sasaran}.',
     hapus: 'Hapus pengumuman',
     sebagaiAdmin: 'Sebagai admin',
@@ -128,7 +127,7 @@ export const pengumuman = {
     untukSiapa: 'Untuk siapa',
     semua: 'Semua',
     angkatan: 'Angkatan',
-    grupku: 'Grup-ku',
+    grupku: 'Grupku',
     pilihAngkatan: 'Pilih angkatan',
     pilihGrup: 'Pilih grup',
     foto: 'Foto',

@@ -2,7 +2,6 @@
 export const curhat = {
   daftar: {
     // The privacy note. HMIF Welfare has not confirmed its wording yet.
-    anonim: 'Anonim.',
     anonimIsi: 'Namamu tidak ditampilkan ke tim Welfare.',
     kamu: 'Kamu',
     welfare: 'Welfare',
@@ -13,9 +12,8 @@ export const curhat = {
     mulai: 'Mulai ruang baru',
     penuh: 'Hapus salah satu ruang untuk membuat yang baru.',
     penuhToast: 'Maksimal 3 ruang. Hapus salah satu ruang dulu.',
-    dibuat: 'Ruang “{nama}” dibuat. Namamu tetap tersembunyi.',
+    dibuat: 'Ruang “{nama}” dibuat.',
     kosongJudul: 'Belum ada ruang cerita',
-    kosongIsi: 'Mulai ruang baru untuk ngobrol dengan tim Welfare HMIF.',
     // The loading and error states, and a room that couldn't be started.
     memuat: 'Memuat ruang…',
     gagal: 'Ruang cerita gagal dimuat.',

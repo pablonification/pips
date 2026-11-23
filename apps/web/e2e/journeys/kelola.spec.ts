@@ -131,15 +131,11 @@ test.describe('Kelola hub', () => {
     const links = listLinks(page);
     await expect(links).toHaveCount(3);
     // Form first: any pengurus builds forms.
-    await expect(links.nth(0)).toHaveAccessibleName(
-      /^Form Buat form dan lihat jawabannya/,
-    );
+    await expect(links.nth(0)).toHaveAccessibleName(/^Form Buat dan bagikan/);
     await expect(links.nth(1)).toHaveAccessibleName(
-      /^Live Counting & Rekap Form Pengisi form secara realtime, rekap, dan analitik/,
+      /^Live Counting & Rekap Form$/,
     );
-    await expect(links.nth(2)).toHaveAccessibleName(
-      /^Tambah acara Akademik Kuis, UTS, dan tenggat per mata kuliah/,
-    );
+    await expect(links.nth(2)).toHaveAccessibleName(/^Tambah acara Akademik$/);
     await strictGates(page, testInfo, 'kelola', lit(testInfo));
 
     await links.nth(0).click();

@@ -69,7 +69,6 @@ export function DingdongScreen() {
     <>
       <DeskHead title={serviceById('dingdong').label} />
       <PageBody className="gap-3.5">
-        <p className="t-sm text-fg-2">{copy.deskripsi}</p>
         <Loaded
           query={courses}
           failed={copy.gagal}

@@ -186,7 +186,7 @@ export function CurhatList() {
             ))}
           </RuledList>
         ) : (
-          <EmptyState title={t.daftar.kosongJudul} text={t.daftar.kosongIsi} />
+          <EmptyState title={t.daftar.kosongJudul} />
         )}
         <NewRoom count={list.length} />
       </>
@@ -216,10 +216,7 @@ export function CurhatList() {
           <ConnectionBanner updatedAt={rooms.dataUpdatedAt} />
         ) : null}
         <NoteBox icon={<IconKunci size={20} />}>
-          <p>
-            <b className="font-semibold text-fg">{t.daftar.anonim}</b>{' '}
-            {t.daftar.anonimIsi}
-          </p>
+          <p>{t.daftar.anonimIsi}</p>
         </NoteBox>
         {inner}
       </PageBody>

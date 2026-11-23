@@ -37,11 +37,6 @@ test.describe('Ding Dong', () => {
     db,
   }, testInfo) => {
     await page.goto('/layanan/dingdong');
-    await expect(
-      main(page).getByText(
-        'Folder Google Drive berisi materi, soal, dan catatan untuk mata kuliah yang kamu atur semester ini.',
-      ),
-    ).toBeVisible();
     await expect(folders(page)).toHaveCount(6);
     // In code order, each named by its code and full name, then where it leads.
     const names = await folders(page).evaluateAll((els) =>

@@ -160,8 +160,7 @@ export const kelolaForm = {
   nudge: {
     sudahDiminta:
       '{field} sudah kamu minta dari profil anggota. Pertanyaan ini tidak perlu.',
-    adaDiProfil:
-      '{field} sudah ada di profil anggota. Minta dari profil supaya mereka tidak mengetiknya lagi.',
+    adaDiProfil: '{field} sudah ada di profil anggota. Minta dari profil saja.',
     hapusPertanyaan: 'Hapus pertanyaan',
     mintaDariProfil: 'Minta dari profil',
     diminta: '{field} sekarang diminta dari profil.',
@@ -169,7 +168,7 @@ export const kelolaForm = {
   // "Ikut terkirim dari profil anggota".
   profil: {
     judul: 'Ikut terkirim dari profil anggota',
-    isi: 'Pilih yang benar-benar kamu pakai. Anggota tidak mengetiknya lagi: mereka melihat datanya dan menyetujui sebelum mengirim.',
+    isi: 'Anggota melihat dan menyetujuinya sebelum mengirim.',
     sensitif: 'sensitif',
     tidakAda: 'Tidak ada',
     grup: {
@@ -216,7 +215,7 @@ export const kelolaForm = {
     satuJawaban: 'Satu jawaban per anggota.',
     bolehUbah: 'Boleh mengubah jawaban sampai form ditutup',
     setelahMengirim: 'Setelah mengirim',
-    terimaKasih: 'Terima kasih sudah mengisi!',
+    terimaKasih: 'Terima kasih sudah mengisi.',
     tutupSekarang: 'Tutup form sekarang',
     tutupJudul: 'Tutup form sekarang?',
     tutupIsi:

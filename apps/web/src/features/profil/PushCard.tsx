@@ -54,7 +54,6 @@ export function PushCard({ onInstall }: { onInstall?: () => void }) {
     return (
       <Card className="grid gap-2 p-4">
         <p className="t-sub">{copy.kartu.belum}</p>
-        <p className="t-sm text-fg-2">{copy.kartu.belumIsi}</p>
         <Button
           variant="gold"
           className="justify-self-start"

@@ -64,7 +64,7 @@ test.describe('Nadia', () => {
     await expect(cats.getByRole('checkbox')).toHaveCount(1);
     await expect(cats.getByRole('checkbox', { name: 'Umum' })).toBeVisible();
     await expect(c.getByRole('radio')).toHaveCount(2);
-    await expect(c.getByRole('radio', { name: 'Grup-ku' })).toHaveCount(0);
+    await expect(c.getByRole('radio', { name: 'Grupku' })).toHaveCount(0);
 
     // An empty submit: content and category errors, focus on the content.
     await c.getByRole('button', { name: 'Umumkan' }).click();
@@ -467,7 +467,7 @@ test.describe('Nadia', () => {
 test.describe('Raka', () => {
   test.use({ persona: 'pengurus' });
 
-  test('Grup-ku lists his four groups and sends roles as forGroups', async ({
+  test('Grupku lists his four groups and sends roles as forGroups', async ({
     page,
     api,
   }, testInfo) => {
@@ -482,7 +482,7 @@ test.describe('Raka', () => {
       .getByRole('group', { name: 'Kategori' })
       .getByRole('checkbox', { name: 'Himpunan' })
       .click();
-    await c.getByText('Grup-ku', { exact: true }).click();
+    await c.getByText('Grupku', { exact: true }).click();
     const groups = c.getByRole('group', { name: 'Pilih grup' });
     await expect(groups.getByRole('checkbox')).toHaveText([
       'Welfare and Academics',

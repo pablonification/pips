@@ -43,11 +43,11 @@ export const form = {
     kirim: 'Kirim',
     // While it sends, and when it can't.
     mengirim: 'Mengirim…',
-    berhasil: 'Form berhasil dikirim!',
+    berhasil: 'Jawabanmu terkirim.',
     gagal: 'Jawabanmu belum terkirim. Periksa koneksimu, lalu coba lagi.',
   },
   selesai: {
-    judul: 'Terima kasih sudah mengisi!',
+    judul: 'Terima kasih sudah mengisi.',
     isi: 'Jawabanmu sudah terkirim.',
     kembali: 'Kembali ke Beranda',
   },

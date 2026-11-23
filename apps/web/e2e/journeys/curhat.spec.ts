@@ -195,11 +195,6 @@ test.describe('the list', () => {
         main(page).getByText('Belum ada ruang cerita'),
       ).toBeVisible();
       await expect(
-        main(page).getByText(
-          'Mulai ruang baru untuk ngobrol dengan tim Welfare HMIF.',
-        ),
-      ).toBeVisible();
-      await expect(
         main(page).getByText('0 dari 3 ruang dipakai'),
       ).toBeVisible();
       await expect(newRoom(page)).toBeVisible();
@@ -221,9 +216,7 @@ test.describe('starting a room', () => {
       .toBe(true);
     await newRoom(page).click();
     await expect(page).toHaveURL(/\/layanan\/curhat\/e2e-room-3$/);
-    await expect(
-      toastText(page, 'Ruang “Lime Otter” dibuat. Namamu tetap tersembunyi.'),
-    ).toBeVisible();
+    await expect(toastText(page, 'Ruang “Lime Otter” dibuat.')).toBeVisible();
     await expect(
       main(page).getByText(
         'Tulis pesan pertamamu. Tim Welfare membalas di sini.',
