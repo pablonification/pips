@@ -3,8 +3,8 @@ import { fill } from '~/copy/fill';
 import { rel } from '~/lib/dates';
 
 /**
- * A connected app's line: what it may do, when it was connected and last used. "Hanya baca · Terhubung kemarin ·
- * Terakhir dipakai 40 menit lalu", or "Baca dan ubah · … · Belum dipakai".
+ * A connected app's line: what it may do, when it was connected and last used. "Read · Terhubung kemarin ·
+ * Terakhir dipakai 40 menit lalu", or "Write · … · Belum dipakai".
  */
 export function appLine(
   app: {
