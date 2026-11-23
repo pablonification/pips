@@ -228,6 +228,10 @@ export function createApp({
     rateLimit(previews, async (c) => await sessionUserId(c, env.JWT_SECRET)),
   );
   app.use(
+    '/api/open-graph/image',
+    rateLimit(previews, async (c) => await sessionUserId(c, env.JWT_SECRET)),
+  );
+  app.use(
     '/api/user/nim',
     rateLimit(nimSearches, async (c) => await sessionUserId(c, env.JWT_SECRET)),
   );

@@ -3,10 +3,12 @@ import { STATUS_CODES } from 'node:http';
 import {
   fetchPage,
   FetchPageError,
+  MAX_PREVIEW_IMAGE_BYTES,
+  previewImageType,
   UnsafeAddressError,
   type FetchPageOptions,
 } from '~/lib/safe-fetch';
-import { getOpenGraph } from '~/routes/open-graph.route';
+import { getOpenGraph, getOpenGraphImage } from '~/routes/open-graph.route';
 import { OpenGraphErrorSchema, OgObjectSchema } from '~/types/open-graph.types';
 import { createAuthRouter } from './router-factory';
 
@@ -71,6 +73,46 @@ export function createOpenGraphRouter(fetchOptions: FetchPageOptions = {}) {
       return fail('Page has no preview');
     }
     return c.json(OgObjectSchema.parse({ ...result, requestUrl: url }), 200);
+  });
+
+  router.openapi(getOpenGraphImage, async (c) => {
+    const { url } = c.req.valid('query');
+    const fail = (error: string) =>
+      c.json(
+        OpenGraphErrorSchema.parse({ error, errorDetails: {}, success: false }),
+        400,
+      );
+    let page: Awaited<ReturnType<typeof fetchPage>>;
+    try {
+      // One byte over the limit, so a larger image shows as larger instead of arriving cut.
+      page = await fetchPage(url, {
+        ...fetchOptions,
+        maxBytes: MAX_PREVIEW_IMAGE_BYTES + 1,
+      });
+    } catch (err) {
+      if (err instanceof UnsafeAddressError || err instanceof FetchPageError) {
+        return fail(err.message);
+      }
+      throw err;
+    }
+    if (page.status >= 400) {
+      return fail(
+        `${page.status} ${STATUS_CODES[page.status] ?? 'Error'}`.trim(),
+      );
+    }
+    if (page.body.length > MAX_PREVIEW_IMAGE_BYTES)
+      return fail('Image too large');
+    const type = previewImageType(page.body);
+    if (!type) return fail('Not an image');
+    return c.body(new Uint8Array(page.body), 200, {
+      'Content-Type': type,
+      'Cache-Control': `private, max-age=${60 * 60 * 24}`,
+      'X-Content-Type-Options': 'nosniff',
+      // Opened on its own, the answer is an inert image: no script, no frame, nothing loaded beside it.
+      'Content-Security-Policy': "default-src 'none'; sandbox",
+      // The web app is on the same site (app.hmif.dev and app-api.hmif.dev); no other site may embed it.
+      'Cross-Origin-Resource-Policy': 'same-site',
+    });
   });
 
   return router;

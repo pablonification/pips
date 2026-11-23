@@ -467,6 +467,27 @@ function placeOf(url: string) {
 export const absoluteUrl = (url: string) =>
   /^https?:\/\//i.test(url) ? url : `https://${url}`;
 
+/**
+ * Where a link preview's image is shown from: the API (`/api/open-graph/image`), which fetches it, so the member's
+ * browser never asks the other site. The page's own og:image, made absolute against the page; null when it has none
+ * or it isn't an http(s) address.
+ */
+export function previewImageSrc(
+  image: string | undefined,
+  pageUrl: string,
+  apiBase: string,
+) {
+  if (!image?.trim()) return null;
+  let at: URL;
+  try {
+    at = new URL(image.trim(), absoluteUrl(pageUrl.trim()));
+  } catch {
+    return null;
+  }
+  if (at.protocol !== 'https:' && at.protocol !== 'http:') return null;
+  return `${apiBase.replace(/\/+$/, '')}/api/open-graph/image?url=${encodeURIComponent(at.href)}`;
+}
+
 /** "docs.google.com" */
 export function hostOf(url: string) {
   try {

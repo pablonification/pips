@@ -38,3 +38,35 @@ export const getOpenGraph = createRoute({
     401: authorizaitonErrorResponse,
   },
 });
+
+export const getOpenGraphImage = createRoute({
+  operationId: 'openGraphImage',
+  tags: ['open-graph'],
+  method: 'get',
+  path: '/open-graph/image',
+  description:
+    "A link preview's image, fetched here so the member's browser never asks the other site: PNG, JPEG, GIF or WebP, at most 2 MiB",
+  request: {
+    query: OpenGraphScrapeRequestSchema,
+  },
+  responses: {
+    200: {
+      description: 'The image',
+      content: {
+        'image/png': { schema: z.string().openapi({ format: 'binary' }) },
+        'image/jpeg': { schema: z.string().openapi({ format: 'binary' }) },
+        'image/gif': { schema: z.string().openapi({ format: 'binary' }) },
+        'image/webp': { schema: z.string().openapi({ format: 'binary' }) },
+      },
+    },
+    400: {
+      description: 'Not an image, too large, or not reachable',
+      content: {
+        'application/json': {
+          schema: z.union([OpenGraphErrorSchema, ValidationErrorSchema]),
+        },
+      },
+    },
+    401: authorizaitonErrorResponse,
+  },
+});

@@ -188,6 +188,38 @@
     color: var(--text-3);
     flex: none;
   }
+  /* A link whose site gives an image: the image across the top, the words under it. */
+  .g-lp.rich {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+    /* On a wide desktop column the image would fill it; a preview stays preview-sized. */
+    max-width: 480px;
+  }
+  .g-lp.rich .g-media {
+    border-radius: 0;
+    outline: 0;
+    background: var(--bg-muted);
+  }
+  .g-lp.rich .body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px 12px;
+  }
+  .g-lp .desc {
+    display: -webkit-box;
+    margin-top: 2px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-2);
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
 
   /* The reaction picker, under the card or the reactions */
   .g-picker {
