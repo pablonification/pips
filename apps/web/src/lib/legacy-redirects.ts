@@ -23,7 +23,7 @@ export const LEGACY_REDIRECTS: ReadonlyArray<
   ['/home/curhat', '/layanan/curhat'],
   ['/home/form', '/layanan/form'],
   ['/home/form/$formId', '/layanan/form/$formId'],
-  // Removed: Magang SPARTA is gone; its old addresses go to Layanan and Kelola.
+  // Magang SPARTA's old addresses: the service no longer exists, so they land on its hubs.
   ['/home/internship', '/layanan'],
   ['/home/internship/admin', '/kelola'],
   ['/home/internship/admin/$submissionId', '/kelola'],
