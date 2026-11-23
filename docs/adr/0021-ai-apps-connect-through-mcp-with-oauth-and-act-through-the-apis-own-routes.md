@@ -68,4 +68,5 @@ angkatan, the author of a post, Curhat's anonymity) without writing them a secon
 
 When a route a tool calls changes its checks or shape (update the tool's description), when members want an app to
 reach Curhat (no: see above), or when the API runs as more than one process (the rate limits and the in-process
-dispatch both assume one).
+dispatch both assume one). A tool to delete a form waits until the owner decides who may delete one; the others in
+Kelola › Form (make, change, publish, rename the link, share) are tools.

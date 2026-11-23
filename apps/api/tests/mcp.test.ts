@@ -30,6 +30,9 @@ const seen: Array<{
   origin: string | null;
 }> = [];
 const createdEvents: unknown[] = [];
+const createdForms: Array<{ ownerId: string; title: string }> = [];
+/** Data diri as the database keeps it, by member. */
+const savedDetails = new Map<string, Record<string, unknown>>();
 
 /** An access token for `user` with `scope`, stored as the token endpoint would store it. */
 async function grant(user: { id: string }, scope = 'pips.read pips.write') {
@@ -119,6 +122,15 @@ before(async () => {
   };
   const forms = createFormRouter({
     getUserRoles,
+    getMemberDetails: async (userId: string) => ({
+      whatsapp: null,
+      line: null,
+      ...savedDetails.get(userId),
+    }),
+    saveMemberDetails: async (userId: string, change: object) => {
+      savedDetails.set(userId, { ...savedDetails.get(userId), ...change });
+    },
+    isStoredFile: () => false,
     getFormById: async () => form,
     getFormResponsesList: async () => ({
       responses: [{ id: 'r-1', nim: '13525901', fullName: 'Member anggota-1' }],
@@ -134,6 +146,28 @@ before(async () => {
       userId === akademik.id ? 'owner' : null,
     getResponsesForSummary: async () => [],
     countAudience: async () => 132,
+    slugTaken: async () => false,
+    createForm: async (row: any) => {
+      createdForms.push(row);
+      return {
+        id: 'form-new',
+        description: null,
+        closesAt: null,
+        allowEdit: false,
+        thanks: null,
+        slugCustom: false,
+        createdAt: new Date('2026-10-08T00:00:00Z'),
+        updatedAt: new Date('2026-10-08T00:00:00Z'),
+        ...row,
+      };
+    },
+    getPerson: async (userId: string) => ({
+      id: userId,
+      fullName: `Member ${userId}`,
+      nim: '13524902',
+      picture: null,
+    }),
+    getFormResponsesCount: async () => 0,
   } as any);
 
   // Posts as the database answers them: only the member's angkatan sees a post aimed at it.
@@ -195,6 +229,16 @@ test('initialize and tools/list: the PIPS! tools, and no Curhat, push, upload or
     'add_calendar_event',
     'submit_form',
     'get_form_responses',
+    'update_my_details',
+    'add_my_courses',
+    'remove_my_courses',
+    'renotify_announcement',
+    'set_notification_category',
+    'create_form',
+    'update_form',
+    'publish_form',
+    'share_form',
+    'submit_sparta_application',
   ])
     assert.ok(names.includes(name), name);
   for (const t of tools) {
@@ -206,8 +250,17 @@ test('initialize and tools/list: the PIPS! tools, and no Curhat, push, upload or
     assert.doesNotMatch(t.name, /curhat/i);
     assert.equal(typeof t.annotations?.readOnlyHint, 'boolean', t.name);
   }
-  const del = tools.find((t) => t.name === 'delete_announcement');
-  assert.equal(del?.annotations?.destructiveHint, true);
+  for (const name of [
+    'delete_announcement',
+    'remove_my_courses',
+    'unshare_form',
+  ])
+    assert.equal(
+      tools.find((t) => t.name === name)?.annotations?.destructiveHint,
+      true,
+      name,
+    );
+  assert.ok(!names.includes('delete_form'), 'who may delete a form is open');
   assert.equal(
     tools.find((t) => t.name === 'list_announcements')?.annotations
       ?.readOnlyHint,
@@ -374,4 +427,58 @@ test('a member removed from users, or a revoked token, can no longer connect', a
   const revocable = await grant(anggota);
   await store.deps.revokeApp(anggota.id, 'client-1', store.clock.now);
   await assert.rejects(connect(revocable));
+});
+
+test("Data diri: a tool changes only the member's own details, through PATCH, and the route's checks refuse a bad one", async () => {
+  const client = await connect(await grant(anggota));
+  const ok = await client.callTool({
+    name: 'update_my_details',
+    arguments: { whatsapp: '0812 3456 7890' },
+  });
+  assert.equal(ok.isError, undefined, textOf(ok));
+  assert.equal(JSON.parse(textOf(ok)).saved.whatsapp, '0812 3456 7890');
+  assert.deepEqual(savedDetails.get(anggota.id), {
+    whatsapp: '0812 3456 7890',
+  });
+  assert.ok(
+    seen.some(
+      (r) => r.method === 'PATCH' && r.path === '/api/user/details' && r.cookie,
+    ),
+  );
+
+  const refused = await client.callTool({
+    name: 'update_my_details',
+    arguments: { whatsapp: '12' },
+  });
+  assert.equal(refused.isError, true);
+  assert.match(textOf(refused), /^400 Bad request: .*phone/);
+  assert.equal(savedDetails.get(anggota.id)?.whatsapp, '0812 3456 7890');
+  await client.close();
+});
+
+test('making a form: refused to a plain anggota by the route, a draft owned by the pengurus who asked', async () => {
+  const plain = await connect(await grant(anggota));
+  const refused = await plain.callTool({
+    name: 'create_form',
+    arguments: { title: 'Daftar panitia' },
+  });
+  assert.equal(refused.isError, true);
+  assert.match(textOf(refused), /^401 /);
+  assert.equal(createdForms.length, 0);
+  await plain.close();
+
+  const pengurus = await connect(await grant(akademik));
+  const ok = await pengurus.callTool({
+    name: 'create_form',
+    arguments: { title: 'Daftar panitia' },
+  });
+  assert.equal(ok.isError, undefined, textOf(ok));
+  const made = JSON.parse(textOf(ok));
+  assert.equal(made.title, 'Daftar panitia');
+  assert.equal(made.publishedAt, undefined, 'a draft');
+  assert.deepEqual(
+    createdForms.map((f) => [f.ownerId, f.title]),
+    [[akademik.id, 'Daftar panitia']],
+  );
+  await pengurus.close();
 });
