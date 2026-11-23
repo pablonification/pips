@@ -13,6 +13,7 @@ import {
   narrowScope,
   parseScope,
   redirectWith,
+  returnHost,
   scopeIncludes,
   verifyPkce,
 } from '../src/lib/oauth';
@@ -78,6 +79,29 @@ test('a redirect URI must be registered exactly; a loopback one may change its p
   assert.ok(
     !matchesRegisteredRedirect('http://localhost:51234/callback', registered),
   );
+});
+
+test('an app shows a mark only when every sign-in can return to one web host', () => {
+  assert.equal(
+    returnHost(['https://claude.ai/api/mcp/auth_callback']),
+    'claude.ai',
+  );
+  assert.equal(
+    returnHost(['https://Claude.ai/a', 'https://claude.ai/b']),
+    'claude.ai',
+  );
+  // A second host, or a loopback address it could have used instead, and the app is no one in particular.
+  assert.equal(
+    returnHost(['https://claude.ai/cb', 'https://client.example.com/cb']),
+    null,
+  );
+  assert.equal(
+    returnHost(['https://claude.ai/cb', 'http://127.0.0.1:8080/cb']),
+    null,
+  );
+  assert.equal(returnHost(['http://localhost/cb']), null);
+  assert.equal(returnHost([]), null);
+  assert.equal(returnHost(['not a url']), null);
 });
 
 test('a client name is plain text: no control or direction marks, spaces collapsed, length capped', () => {

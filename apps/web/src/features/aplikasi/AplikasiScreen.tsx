@@ -14,7 +14,6 @@ import {
   Tile,
   toast,
 } from '~/components/garis';
-import { IconTautan } from '~/components/icons/tautan';
 import { DeskHead, PageBody } from '~/components/shell/page';
 import { aplikasi as copy } from '~/copy/aplikasi';
 import { common } from '~/copy/common';
@@ -22,6 +21,7 @@ import { fill } from '~/copy/fill';
 import { useDelayed } from '~/hooks/useDelayed';
 import { CONNECTED_APPS_QUERY_KEY, connectedAppsQuery } from './data';
 import { appName } from './name';
+import { AppMark } from './AppMark';
 import { appLine, mcpAddress } from './rules';
 
 /**
@@ -92,7 +92,7 @@ export function AplikasiScreen() {
               <li key={app.clientId}>
                 <Item center className="flex-wrap">
                   <Tile>
-                    <IconTautan size={20} />
+                    <AppMark returnHost={app.returnHost} />
                   </Tile>
                   <span className="min-w-0 flex-1">
                     <span className="block t-sub break-words">

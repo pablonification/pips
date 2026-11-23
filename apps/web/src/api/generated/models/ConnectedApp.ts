@@ -8,6 +8,7 @@ export type ConnectedApp = {
   name: string;
   connectedAt: string;
   lastUsedAt: string;
+  returnHost: string | null;
   scopes: Array<OAuthScope>;
 };
 

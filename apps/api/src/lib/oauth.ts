@@ -175,6 +175,28 @@ export function redirectWith(
   return url.toString();
 }
 
+/**
+ * The one web host an app's sign-ins can return to, or null. Only when every registered redirect URI is `https:` on
+ * that host: a code goes only to a registered URI, so the app is that site. An app that also lists another host or a
+ * loopback address could have used either, so it gets null, never the first one listed.
+ */
+export function returnHost(redirectUris: readonly string[]) {
+  let host: string | null = null;
+  for (const uri of redirectUris) {
+    let url: URL;
+    try {
+      url = new URL(uri);
+    } catch {
+      return null;
+    }
+    if (url.protocol !== 'https:' || !url.hostname) return null;
+    const h = url.hostname.toLowerCase();
+    if (host !== null && h !== host) return null;
+    host = h;
+  }
+  return host;
+}
+
 /** The host a redirect goes back to, as the consent page shows it. */
 export function redirectHost(redirectUri: string) {
   return new URL(redirectUri).host;

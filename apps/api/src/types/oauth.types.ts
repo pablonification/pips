@@ -53,6 +53,8 @@ export const ConnectedAppSchema = z
     name: z.string(),
     connectedAt: z.union([z.string(), z.date()]),
     lastUsedAt: z.union([z.string(), z.date()]).nullable(),
+    /** The one web host its sign-ins return to (`lib/oauth.ts` `returnHost`), so the app can show its mark; else null. */
+    returnHost: z.string().nullable(),
     /** What the app may do now: `pips.read` alone, or with `pips.write`. */
     scopes: z.array(ScopeSchema),
   })

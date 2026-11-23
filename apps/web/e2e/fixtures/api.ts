@@ -804,6 +804,7 @@ const connectedApps: ConnectedApp[] = [
     name: 'Claude',
     connectedAt: wib(10, 2, 20, 15),
     lastUsedAt: wib(10, 8, 12, 35),
+    returnHost: 'claude.ai',
     scopes: ['pips.read', 'pips.write'],
   },
   {
@@ -811,6 +812,7 @@ const connectedApps: ConnectedApp[] = [
     name: 'Catatan Kuliah',
     connectedAt: wib(10, 1, 9, 0),
     lastUsedAt: wib(10, 1, 9, 5),
+    returnHost: null,
     scopes: ['pips.read'],
   },
 ];

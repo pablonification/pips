@@ -404,9 +404,10 @@ test('the member may allow reading only: the code and its tokens carry pips.read
   for (const name of ['post_announcement', 'add_calendar_event'])
     assert.ok(!tools.some((t) => t.name === name), name);
 
-  // Aplikasi terhubung says it may only read.
+  // Aplikasi terhubung says it may only read, and names the one host the app's sign-ins return to.
   const listed = await asMember('/oauth/apps');
   assert.deepEqual(listed.body.apps[0].scopes, ['pips.read']);
+  assert.equal(listed.body.apps[0].returnHost, 'client.example.com');
 
   // A refresh can't win write back.
   const wider = await token({

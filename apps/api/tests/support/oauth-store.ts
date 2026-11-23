@@ -1,5 +1,6 @@
 import type { OAuthDeps } from '../../src/controllers/oauth.controller';
 import type { NewToken } from '../../src/repositories/oauth.repo';
+import { returnHost } from '../../src/lib/oauth';
 import type {
   OAuthAuthorization,
   OAuthClient,
@@ -152,6 +153,7 @@ export function memoryOAuthStore(users: Record<string, Partial<User>> = {}) {
           name: string;
           connectedAt: Date;
           lastUsedAt: Date | null;
+          returnHost: string | null;
           scopes: Array<'pips.read' | 'pips.write'>;
         }
       >();
@@ -163,6 +165,7 @@ export function memoryOAuthStore(users: Record<string, Partial<User>> = {}) {
           name: clients.get(t.clientId)?.name ?? '',
           connectedAt: t.createdAt,
           lastUsedAt: null,
+          returnHost: returnHost(clients.get(t.clientId)?.redirectUris ?? []),
           scopes: ['pips.read'],
         };
         if (!t.rotatedAt && t.scope.split(' ').includes('pips.write'))

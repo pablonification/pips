@@ -29,3 +29,15 @@ export function mcpAddress(apiUrl: string | undefined, origin: string) {
   const base = (apiUrl || origin).replace(/\/+$/, '');
   return `${base}/mcp`;
 }
+
+/** The hosts whose apps PIPS! knows by their mark. Only a host proven by every sign-in (the API's `returnHost`). */
+const MARKS: Record<string, 'claude' | 'chatgpt'> = {
+  'claude.ai': 'claude',
+  'chatgpt.com': 'chatgpt',
+  'chat.openai.com': 'chatgpt',
+};
+
+/** Which mark a connected app shows, by the host its sign-ins return to; null keeps the link icon. */
+export function appMark(returnHost: string | null | undefined) {
+  return (returnHost && MARKS[returnHost]) || null;
+}
