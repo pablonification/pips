@@ -128,18 +128,35 @@ type LookupCallback = (
   family?: number,
 ) => void;
 
+/** Lookups that fail this way may succeed a moment later: production's resolvers drop queries now and then. */
+const TRANSIENT_LOOKUP = new Set(['EAI_AGAIN', 'ETIMEOUT']);
+const LOOKUP_ATTEMPTS = 3;
+
 /** `dns.lookup` that refuses a name if any of its addresses isn't allowed. */
 function guardedLookup(isAllowedAddress: (ip: string) => boolean) {
   return (
     hostname: string,
     options: dns.LookupOptions,
     callback: LookupCallback,
+    attempt = 1,
   ) => {
     dns.lookup(
       hostname,
       { all: true, family: options.family ?? 0 },
       (err, addresses) => {
         if (err) {
+          if (
+            attempt < LOOKUP_ATTEMPTS &&
+            TRANSIENT_LOOKUP.has(err.code ?? '')
+          ) {
+            guardedLookup(isAllowedAddress)(
+              hostname,
+              options,
+              callback,
+              attempt + 1,
+            );
+            return;
+          }
           callback(err, []);
           return;
         }

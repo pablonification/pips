@@ -25,5 +25,5 @@ export async function callRouter(
   } catch {
     parsed = text;
   }
-  return { status: res.status, body: parsed };
+  return { status: res.status, headers: res.headers, body: parsed };
 }

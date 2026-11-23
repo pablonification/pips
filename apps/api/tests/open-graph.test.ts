@@ -1,7 +1,8 @@
 import { strict as assert } from 'node:assert';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { after, before, test } from 'node:test';
+import dns from 'node:dns';
+import { after, before, mock, test } from 'node:test';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
 import { sessionCookie, testUser } from './support/session';
 import { callRouter } from './support/router';
@@ -206,6 +207,58 @@ test('fetchPage stops at a size and a time limit', async () => {
   assert.ok(Date.now() - start < 2000);
 });
 
+test("fetchPage asks again when a name's lookup fails for a moment", async () => {
+  // The server's resolver sometimes answers EAI_AGAIN for a name it resolves a second later.
+  let calls = 0;
+  const lookup = mock.method(dns, 'lookup', ((
+    _host: string,
+    _options: object,
+    callback: (err: NodeJS.ErrnoException | null, addresses?: object[]) => void,
+  ) => {
+    calls++;
+    if (calls === 1) {
+      const err: NodeJS.ErrnoException = new Error('getaddrinfo EAI_AGAIN');
+      err.code = 'EAI_AGAIN';
+      callback(err);
+      return;
+    }
+    callback(null, [{ address: '127.0.0.1', family: 4 }]);
+  }) as never);
+  try {
+    const page = await fetchPage(
+      `http://flaky.example:${port}/page`,
+      thisServerOnly(),
+    );
+    assert.match(page.body.toString(), /Gemastik/);
+    assert.equal(calls, 2);
+  } finally {
+    lookup.mock.restore();
+  }
+});
+
+test("a name that doesn't exist is not asked again", async () => {
+  let calls = 0;
+  const lookup = mock.method(dns, 'lookup', ((
+    _host: string,
+    _options: object,
+    callback: (err: NodeJS.ErrnoException | null) => void,
+  ) => {
+    calls++;
+    const err: NodeJS.ErrnoException = new Error('getaddrinfo ENOTFOUND');
+    err.code = 'ENOTFOUND';
+    callback(err);
+  }) as never);
+  try {
+    await assert.rejects(
+      fetchPage(`http://nowhere.example:${port}/page`, thisServerOnly()),
+      /Page not found/,
+    );
+    assert.equal(calls, 1);
+  } finally {
+    lookup.mock.restore();
+  }
+});
+
 const nadia = testUser('u-nadia');
 
 test('previews need a session', async () => {
@@ -247,6 +300,10 @@ test('a public page still gets its preview, as before', async () => {
   assert.equal(ok.body.ogTitle, 'Gemastik 2026');
   assert.equal(ok.body.success, true);
   assert.equal(ok.body.requestUrl, local('/page'));
+  assert.match(
+    ok.headers.get('cache-control') ?? '',
+    /^private, max-age=86400/,
+  );
 
   const missing = await callRouter(
     router,
@@ -256,6 +313,8 @@ test('a public page still gets its preview, as before', async () => {
   );
   assert.equal(missing.status, 400);
   assert.equal(missing.body.error, '404 Not Found');
+  // A failure may be over a moment later: the member's browser keeps none of it.
+  assert.equal(missing.headers.get('cache-control'), 'no-store');
 
   const pdf = await callRouter(
     router,
