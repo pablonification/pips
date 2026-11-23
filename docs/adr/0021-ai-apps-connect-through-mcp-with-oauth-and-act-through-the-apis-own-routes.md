@@ -37,7 +37,9 @@ angkatan, the author of a post, Curhat's anonymity) without writing them a secon
 - **Never a tool:** Curhat Yuk! (a model reading or writing in a room is exactly what its anonymity promise rules
   out), push devices, sign-in routes, file uploads and the test sign-in. There is no tool that sends a request of the
   model's choosing; each tool names its route.
-- **The member sees and revokes apps** in Profil › Aplikasi terhubung (`/profil/aplikasi`). Revoking ends every token
+- **The member sees and revokes apps** in Profil › Aplikasi terhubung (`/profil/aplikasi`). An app shows its own mark (Claude, ChatGPT) only when
+  every redirect URI it registered is `https:` on that app's host (`returnHost` in `lib/oauth.ts`), never by the
+  name it gave itself, which anyone can copy; any other app shows the link icon. Revoking ends every token
   that app holds for them at once. A member removed from `users` loses every token with them (the foreign key), and a
   token for a member who no longer exists is refused anyway.
 

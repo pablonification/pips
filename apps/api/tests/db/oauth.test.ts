@@ -303,6 +303,7 @@ test('Aplikasi terhubung lists the app; revoking it, or removing the member, clo
     (a: { clientId: string }) => a.clientId === clientId,
   );
   assert.equal(row.name, 'oa-listed');
+  assert.equal(row.returnHost, new URL(REDIRECT).hostname);
   assert.ok(row.connectedAt);
   assert.ok(row.lastUsedAt);
 

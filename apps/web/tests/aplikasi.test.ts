@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { appName } from '../src/features/aplikasi/name';
-import { appLine, mcpAddress } from '../src/features/aplikasi/rules';
+import { appLine, appMark, mcpAddress } from '../src/features/aplikasi/rules';
 
 const NOW = Date.parse('2026-10-08T06:35:00Z'); // Kamis 8 Oktober 2026, 13.35 WIB
 
@@ -53,4 +53,15 @@ test('the MCP address is the API’s own, or this site’s when the API shares i
     mcpAddress(undefined, 'http://localhost:5173'),
     'http://localhost:5173/mcp',
   );
+});
+
+test('a connected app shows its mark only by the host its sign-ins return to, never by its name', () => {
+  assert.equal(appMark('claude.ai'), 'claude');
+  assert.equal(appMark('chatgpt.com'), 'chatgpt');
+  assert.equal(appMark('chat.openai.com'), 'chatgpt');
+  // A look-alike host, a sub-domain, or no single host (the API's null) keeps the link icon.
+  assert.equal(appMark('claude.ai.example.com'), null);
+  assert.equal(appMark('evil.claude.ai'), null);
+  assert.equal(appMark(null), null);
+  assert.equal(appMark(undefined), null);
 });

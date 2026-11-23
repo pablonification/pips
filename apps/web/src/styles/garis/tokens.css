@@ -150,6 +150,8 @@ html.dark,
   --px-cream: #fbe3a1;
   --px-blue: #7cc7f2;
   --px-bronze: #966f16;
+  /* Claude's own colour, for its mark in Profil › Aplikasi terhubung. */
+  --brand-claude: #d97757;
 
   /* Motion. */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

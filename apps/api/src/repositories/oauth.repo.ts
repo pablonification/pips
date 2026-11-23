@@ -1,6 +1,6 @@
 import { and, desc, eq, gt, inArray, isNull, lt, sql } from 'drizzle-orm';
 import type { Database } from '~/db/drizzle';
-import { READ_SCOPE, WRITE_SCOPE } from '~/lib/oauth';
+import { READ_SCOPE, WRITE_SCOPE, returnHost } from '~/lib/oauth';
 import { first } from '~/db/helper';
 import {
   type OAuthAuthorization,
@@ -289,6 +289,7 @@ export async function listConnectedApps(
     .select({
       clientId: oauthClients.id,
       name: oauthClients.name,
+      redirectUris: oauthClients.redirectUris,
       connectedAt: sql<Date>`min(${oauthTokens.createdAt})`.mapWith(
         (v: string | Date) => new Date(v),
       ),
@@ -312,8 +313,9 @@ export async function listConnectedApps(
     )
     .groupBy(oauthClients.id, oauthClients.name)
     .orderBy(desc(sql`min(${oauthTokens.createdAt})`));
-  return rows.map(({ canWrite, ...app }) => ({
+  return rows.map(({ canWrite, redirectUris, ...app }) => ({
     ...app,
+    returnHost: returnHost(redirectUris),
     scopes: canWrite ? [READ_SCOPE, WRITE_SCOPE] : [READ_SCOPE],
   }));
 }
