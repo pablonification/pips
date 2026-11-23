@@ -89,6 +89,7 @@ export { loginWeb } from './loginWeb';
 export { logout } from './logout';
 export { logoutPush } from './logoutPush';
 export { openFormLink } from './openFormLink';
+export { openGraphImage } from './openGraphImage';
 export { openGraphScrape } from './openGraphScrape';
 export { pinChatroom } from './pinChatroom';
 export { postCalendarEvent } from './postCalendarEvent';

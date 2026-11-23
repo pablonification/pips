@@ -46,13 +46,15 @@ export function contentSecurityPolicy({
       "'unsafe-inline'",
       'https://accounts.google.com/gsi/style',
     ],
-    // Members' Google photos, files from the store, and pictures picked for an upload before it is sent.
+    // Members' Google photos, files from the store, pictures picked for an upload before it is sent, and link
+    // previews' images, which the API fetches so the member's browser never asks the other site.
     'img-src': [
       "'self'",
       'data:',
       'blob:',
       'https://lh3.googleusercontent.com',
       media,
+      api,
     ],
     'font-src': ["'self'"],
     // Uploads go straight to storage, at the address the API signs (R2's, not the file store's public one).

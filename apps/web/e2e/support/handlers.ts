@@ -19,6 +19,8 @@ import {
   toCsv,
 } from '../../../api/src/lib/form-summary';
 import { toXlsx } from '../../../api/src/lib/form-xlsx';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import {
   accessList,
   accessOf,
@@ -41,6 +43,13 @@ import {
   viewOnly,
 } from './forms';
 import { reply, type Handler } from './mock';
+
+/** A link preview's image as the API passes it on: a real PNG, so the card draws it. */
+const PREVIEW_IMAGE = readFileSync(
+  fileURLToPath(
+    new URL('../fixtures/posters/hology-uiux.png', import.meta.url),
+  ),
+);
 
 const PAGE = 10;
 /** What a generated client method resolves to: `ok<R<typeof api.getListInfo>>(...)` type-checks a response. */
@@ -160,6 +169,14 @@ export const defaultHandlers: Record<string, Handler> = {
     const title = Object.entries(titles).find(([host]) =>
       url.includes(host),
     )?.[1];
+    // One link gives its image and description, as a site with proper Open Graph tags does.
+    const rich = url.includes('s.hmif.dev')
+      ? {
+          ogImage: [{ url: 'https://s.hmif.dev/og/beasiswa.png' }],
+          ogDescription:
+            'Daftar beasiswa yang sedang buka untuk mahasiswa STEI, diperbarui tiap minggu.',
+        }
+      : {};
     return ok<R<typeof api.openGraphScrape>>(
       title
         ? {
@@ -168,10 +185,17 @@ export const defaultHandlers: Record<string, Handler> = {
             ogUrl: url,
             ogSiteName: new URL(url.startsWith('http') ? url : `https://${url}`)
               .host,
+            requestUrl: url,
+            ...rich,
           }
         : { success: false },
     );
   }),
+  'GET /api/open-graph/image': signedIn(({ query }) =>
+    (query.get('url') ?? '').endsWith('/og/beasiswa.png')
+      ? reply.file(PREVIEW_IMAGE, 'image/png')
+      : reply.status(400, { success: false, error: 'Not an image' }),
+  ),
 
   // Calendar
   'GET /api/calendar/me': signedIn(({ db, query }) => {

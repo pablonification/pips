@@ -265,3 +265,31 @@ export async function fetchPage(
     };
   }
 }
+
+/** The largest preview image passed on, in bytes (2 MiB): a larger one is refused, never cut. */
+export const MAX_PREVIEW_IMAGE_BYTES = 2 * 1024 * 1024;
+
+/**
+ * The image type `body` really is, by its first bytes, or undefined: PNG, JPEG, GIF or WebP only. Never what the
+ * site's header claims, and never SVG, which can carry a script that would run on the API's own address.
+ */
+export function previewImageType(body: Buffer) {
+  const starts = (bytes: number[], at = 0) =>
+    bytes.every((b, i) => body[at + i] === b);
+  if (starts([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+    return 'image/png';
+  if (starts([0xff, 0xd8, 0xff])) return 'image/jpeg';
+  if (
+    body
+      .subarray(0, 6)
+      .toString('latin1')
+      .match(/^GIF8[79]a$/)
+  )
+    return 'image/gif';
+  if (
+    body.subarray(0, 4).toString('latin1') === 'RIFF' &&
+    body.subarray(8, 12).toString('latin1') === 'WEBP'
+  )
+    return 'image/webp';
+  return undefined;
+}

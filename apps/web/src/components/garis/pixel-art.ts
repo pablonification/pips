@@ -95,20 +95,6 @@ export const PIXEL_REACTION_LABELS: Record<PixelReactionKey, string> = {
   party: 'Rayakan',
 };
 
-const COLOUR_CLASS: Record<string, string> = {
-  '#': 'k',
-  o: 'o',
-  w: 'w',
-  r: 'r',
-  c: 'c',
-  l: 'l',
-  b: 'b',
-  n: 'n',
-  d: 'd',
-  y: 'y',
-  i: 'i',
-};
-
 interface PixelRun {
   x: number;
   y: number;
@@ -125,7 +111,8 @@ export function pixelRuns(key: PixelReactionKey): PixelRun[] {
       const ch = row[x];
       let n = 1;
       while (x + n < row.length && row[x + n] === ch) n++;
-      if (ch !== '.') runs.push({ x, y, width: n, colour: COLOUR_CLASS[ch] });
+      if (ch !== '.')
+        runs.push({ x, y, width: n, colour: ch === '#' ? 'k' : ch });
       x += n;
     }
   });

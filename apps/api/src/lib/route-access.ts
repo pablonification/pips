@@ -93,6 +93,7 @@ export const ROUTE_ACCESS: Record<string, RouteAccess> = {
 
   'POST /api/media/upload': { who: 'member' },
   'GET /api/open-graph': { who: 'member' },
+  'GET /api/open-graph/image': { who: 'member' },
   'GET /api/markdown/credits': { who: 'member' },
   'GET /api/programme-windows': { who: 'member' },
 

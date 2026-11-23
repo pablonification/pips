@@ -3,7 +3,7 @@ import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { after, before, test } from 'node:test';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
-import { testUser } from './support/session';
+import { sessionCookie, testUser } from './support/session';
 import { callRouter } from './support/router';
 
 // Pages served on 127.0.0.1 (a port the OS picks). The real guard refuses them; tests that need a page widen the
@@ -21,6 +21,11 @@ before(async () => {
     await import('../src/controllers/open-graph.controller'));
   ({ createApp } = await import('../src/app'));
 });
+
+// The first bytes of a PNG and a little more: enough for the type check, which reads only the start.
+const PNG = Buffer.from([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13,
+]);
 
 let server: Server;
 let port: number;
@@ -55,6 +60,21 @@ before(async () => {
       pump();
     } else if (at.pathname === '/slow') {
       // Never answers.
+    } else if (at.pathname === '/img.png') {
+      res.setHeader('Content-Type', 'image/png');
+      res.end(PNG);
+    } else if (at.pathname === '/lies.png') {
+      // An HTML page that calls itself an image.
+      res.setHeader('Content-Type', 'image/png');
+      res.end('<html><script>alert(1)</script></html>');
+    } else if (at.pathname === '/mark.svg') {
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.end(
+        '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+      );
+    } else if (at.pathname === '/huge.png') {
+      res.setHeader('Content-Type', 'image/png');
+      res.end(Buffer.concat([PNG, Buffer.alloc(3 * 1024 * 1024)]));
     } else if (at.pathname === '/pdf') {
       res.setHeader('Content-Type', 'application/pdf');
       res.end('%PDF-1.4');
@@ -244,4 +264,87 @@ test('a public page still gets its preview, as before', async () => {
     `/open-graph?url=${encodeURIComponent(local('/pdf'))}`,
   );
   assert.equal(pdf.status, 400);
+});
+
+test("a preview's image comes back as the image it really is, inert, and only to a member", async () => {
+  const router = createOpenGraphRouter(thisServerOnly());
+  const get = async (path: string, signedIn = true) =>
+    await router.request(
+      `/open-graph/image?url=${encodeURIComponent(local(path))}`,
+      {
+        headers: signedIn ? { Cookie: await sessionCookie(nadia) } : {},
+      },
+    );
+
+  const ok = await get('/img.png');
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers.get('content-type'), 'image/png');
+  assert.equal(ok.headers.get('x-content-type-options'), 'nosniff');
+  assert.match(
+    ok.headers.get('content-security-policy') ?? '',
+    /default-src 'none'; sandbox/,
+  );
+  assert.equal(ok.headers.get('cross-origin-resource-policy'), 'same-site');
+  assert.match(ok.headers.get('cache-control') ?? '', /^private/);
+  assert.deepEqual(Buffer.from(await ok.arrayBuffer()), PNG);
+
+  // What the site's header says is never trusted: a page or an SVG with a script is refused, and so is anything
+  // larger than 2 MiB (refused, not cut).
+  for (const path of [
+    '/lies.png',
+    '/mark.svg',
+    '/huge.png',
+    '/page',
+    '/missing.png',
+  ]) {
+    const res = await get(path);
+    assert.equal(res.status, 400, path);
+    assert.equal(
+      ((await res.json()) as { success: boolean }).success,
+      false,
+      path,
+    );
+  }
+
+  assert.equal((await get('/img.png', false)).status, 401);
+});
+
+test("a preview's image at an internal address is refused before any request", async () => {
+  hits = [];
+  const router = createOpenGraphRouter();
+  for (const url of [
+    local('/img.png'),
+    'http://169.254.169.254/latest/meta-data/',
+  ]) {
+    const res = await router.request(
+      `/open-graph/image?url=${encodeURIComponent(url)}`,
+      {
+        headers: { Cookie: await sessionCookie(nadia) },
+      },
+    );
+    assert.equal(res.status, 400, url);
+  }
+  assert.deepEqual(hits, []);
+});
+
+test("a preview's images are made absolute against the page, and only http(s) ones are kept", async () => {
+  const { previewImages } =
+    await import('../src/controllers/open-graph.controller');
+  assert.deepEqual(
+    previewImages(
+      [
+        { url: '/og/a.png' },
+        { url: 'https://cdn.example.com/b.jpg?v=2' },
+        { url: 'javascript:alert(1)' },
+        { url: 'data:image/png;base64,AAAA' },
+        { url: '  ' },
+      ],
+      'https://s.example.org/beasiswa/',
+    ),
+    [
+      { url: 'https://s.example.org/og/a.png' },
+      { url: 'https://cdn.example.com/b.jpg?v=2' },
+    ],
+  );
+  assert.equal(previewImages(undefined, 'https://s.example.org/'), undefined);
 });

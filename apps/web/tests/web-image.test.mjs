@@ -93,6 +93,7 @@ test('the policy allows the app, Google sign-in, the API and its socket, the fil
     'blob:',
     'https://lh3.googleusercontent.com',
     'https://media.example.test',
+    'https://app-api.example.test',
   ]);
   assert.deepEqual(p['connect-src'], [
     "'self'",

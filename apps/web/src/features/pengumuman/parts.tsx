@@ -153,6 +153,13 @@ function LinkCard({
   const kind = linkKind(url, og as never);
   const host = hostOf(url);
   const title = (og as { ogTitle?: string } | null)?.ogTitle || url;
+  const [broken, setBroken] = useState(false);
+  // The API made it absolute and http(s); it is fetched there, so the member's browser never asks the other site.
+  const ogImage = og?.ogImage?.[0]?.url;
+  const image =
+    ogImage && !broken
+      ? `${import.meta.env.VITE_API_URL ?? ''}/api/open-graph/image?url=${encodeURIComponent(ogImage)}`
+      : null;
   if (kind === 'gform')
     return (
       <button
@@ -173,24 +180,43 @@ function LinkCard({
         </span>
       </button>
     );
+  // With the site's own image: the image on top, then the host, title and description.
   return (
     <a
       ref={ref}
-      className="g-lp"
+      className={image ? 'g-lp rich' : 'g-lp'}
       href={absoluteUrl(url)}
       target="_blank"
       rel="noopener noreferrer"
     >
-      <Tile>
-        {kind === 'sheet' ? <IconLembar size={20} /> : <IconTautan size={20} />}
-      </Tile>
-      <span className="min-w-0 flex-1">
-        <span className="host">{host}</span>
-        <span className="ttl">{title}</span>
-      </span>
-      <span className="end">
-        <IconLuar size={16} />
-        <span className="sr-only">{t.post.situsLuar}</span>
+      {image ? (
+        <Media
+          src={image}
+          alt=""
+          ratio="1.91 / 1"
+          onError={() => setBroken(true)}
+        />
+      ) : (
+        <Tile>
+          {kind === 'sheet' ? (
+            <IconLembar size={20} />
+          ) : (
+            <IconTautan size={20} />
+          )}
+        </Tile>
+      )}
+      <span className="body">
+        <span className="min-w-0 flex-1">
+          <span className="host">{host}</span>
+          <span className="ttl">{title}</span>
+          {image && og?.ogDescription ? (
+            <span className="desc">{og.ogDescription}</span>
+          ) : null}
+        </span>
+        <span className="end">
+          <IconLuar size={16} />
+          <span className="sr-only">{t.post.situsLuar}</span>
+        </span>
       </span>
     </a>
   );
