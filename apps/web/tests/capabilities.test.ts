@@ -55,17 +55,6 @@ const SERVER: Record<Capability, () => string[]> = {
       'GET /api/form/{formId}/responses/count',
       'GET /api/form/{formId}/analytics',
     ),
-  spartaData: () =>
-    routeRoles(
-      'GET /api/internship/submissions',
-      'GET /api/internship/submissions/{id}',
-      'POST /api/internship/departments',
-      'PUT /api/internship/departments/{id}',
-      'DELETE /api/internship/departments/{id}',
-      'POST /api/internship/divisions',
-      'PUT /api/internship/divisions/{id}',
-      'DELETE /api/internship/divisions/{id}',
-    ),
   moderateContent: () =>
     constant(api('lib/authorization.ts'), 'CONTENT_MODERATOR_ROLES'),
   editCourseCatalog: () =>
@@ -169,12 +158,10 @@ test('Raka (akademik, admin) gets exactly the tools his roles allow', () => {
     'liveCounting',
     'manageAllForms',
     'moderateContent',
-    'spartaData',
   ]);
   assert.equal(canCreateEvent(raka), true);
   assert.equal(canCreateEvent({ roles: ['ring1'] }), true);
   assert.equal(canCreateEvent({ roles: ['cnc'] }), false);
-  assert.equal(can({ roles: ['peoplemanage'] }, 'spartaData'), true);
   assert.equal(can({ roles: ['peoplemanage'] }, 'liveCounting'), false);
 });
 

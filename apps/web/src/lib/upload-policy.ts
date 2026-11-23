@@ -33,7 +33,7 @@ export const UPLOAD_TYPES: Readonly<Record<string, string>> = {
 /** The largest file the API signs (25 MiB). */
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
-/** Photos and posters take images only; a SPARTA file answer takes any allowed file. */
+/** Photos and posters take images only; a form's file answer takes any allowed file. */
 export type UploadKind = 'image' | 'file';
 
 const allowed = (kind: UploadKind) =>

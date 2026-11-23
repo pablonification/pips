@@ -1,7 +1,6 @@
 /**
- * Times for Form and Magang SPARTA, always in WIB (UTC+7, no daylight saving), as these screens say them:
- * "Sab 12 Sep, 13.00" on a card, "Sabtu, 12 September 2026, 13.00 WIB" on the form, "Min, 23 Agu 2026 pukul 23.59"
- * for SPARTA. Hand-rolled, so they don't depend on the browser's locale data.
+ * Times for Form, always in WIB (UTC+7, no daylight saving), as these screens say them:
+ * "Sab 12 Sep, 13.00" on a card, "Sabtu, 12 September 2026, 13.00 WIB" on the form. Hand-rolled, so they don't depend on the browser's locale data.
  */
 import { WIB_OFFSET_MS } from '../dates';
 
@@ -58,12 +57,6 @@ export function shortWhen(at: string | Date | number): string {
 export function longWhen(at: string | Date | number): string {
   const w = wib(at);
   return `${HARI[w.day]}, ${w.date} ${BULAN[w.month]} ${w.year}, ${w.time} WIB`;
-}
-
-/** "Min, 23 Agu 2026 pukul 23.59": SPARTA's deadline. */
-export function deadlineWhen(at: string | Date | number): string {
-  const w = wib(at);
-  return `${HARI_PENDEK[w.day]}, ${w.date} ${BULAN_PENDEK[w.month]} ${w.year} pukul ${w.time}`;
 }
 
 /** "07.45": the offline banner's last update. */

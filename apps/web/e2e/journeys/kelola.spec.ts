@@ -1,7 +1,7 @@
 /**
- * Kelola: the hub, choosing a form, Live Counting with its socket, Rekap Form, the CSV exports and Data SPARTA
- * Magang with one submission. Persona Raka (akademik, admin) unless noted; Nadia (no roles) and a peoplemanage-only
- * member through the harness's `roles` option. Every journey runs at phone, tablet and desktop size, light and dark;
+ * Kelola: the hub, choosing a form, Live Counting with its socket, Rekap Form and the CSV export. Persona Raka
+ * (akademik, admin) unless noted; Nadia (no roles) and a peoplemanage-only member through the harness's `roles`
+ * option. Every journey runs at phone, tablet and desktop size, light and dark;
  * each screen passes the strict gates.
  */
 import fs from 'node:fs';
@@ -34,8 +34,6 @@ const ADMIN_CALLS = [
   'GET /api/form/:formId/responses',
   'GET /api/form/:formId/responses/count',
   'GET /api/form/:formId/analytics',
-  'GET /api/internship/submissions',
-  'GET /api/internship/submissions/:id',
 ];
 const adminCalls = (api: ApiMock) =>
   ADMIN_CALLS.flatMap((spec) => api.calls(spec));
@@ -51,9 +49,6 @@ test("Beranda's Kelola section leads to the hub", async ({ page }) => {
   await expect(page).toHaveURL(/\/kelola$/);
   await expect(
     listLinks(page).filter({ hasText: 'Live Counting & Rekap Form' }),
-  ).toBeVisible();
-  await expect(
-    listLinks(page).filter({ hasText: 'Data SPARTA Magang' }),
   ).toBeVisible();
 });
 
@@ -129,12 +124,12 @@ async function readDownload(download: Download) {
 // ---------------------------------------------------------------- The hub
 
 test.describe('Kelola hub', () => {
-  test("Raka's four rows, in order, each reaching its place", async ({
+  test("Raka's three rows, in order, each reaching its place", async ({
     page,
   }, testInfo) => {
     await page.goto('/kelola');
     const links = listLinks(page);
-    await expect(links).toHaveCount(4);
+    await expect(links).toHaveCount(3);
     // Form first: any pengurus builds forms.
     await expect(links.nth(0)).toHaveAccessibleName(
       /^Form Buat form dan lihat jawabannya/,
@@ -143,9 +138,6 @@ test.describe('Kelola hub', () => {
       /^Live Counting & Rekap Form Pengisi form secara realtime, rekap, dan analitik/,
     );
     await expect(links.nth(2)).toHaveAccessibleName(
-      /^Data SPARTA Magang Pilihan divisi magang angkatan 2025 · ditutup 23 Agu 2026/,
-    );
-    await expect(links.nth(3)).toHaveAccessibleName(
       /^Tambah acara Akademik Kuis, UTS, dan tenggat per mata kuliah/,
     );
     await strictGates(page, testInfo, 'kelola', lit(testInfo));
@@ -158,11 +150,6 @@ test.describe('Kelola hub', () => {
     await expect(page).toHaveURL(/\/kelola\/live\/pixel$/);
     await page.goBack();
     await expect(page).toHaveURL(/\/kelola$/);
-    await main(page)
-      .getByRole('link', { name: /^Data SPARTA Magang/ })
-      .click();
-    await expect(page).toHaveURL(/\/kelola\/sparta$/);
-    await page.goBack();
     await main(page)
       .getByRole('link', { name: /^Tambah acara Akademik/ })
       .click();
@@ -197,23 +184,18 @@ test.describe('Kelola hub', () => {
   test.describe('a peoplemanage-only member', () => {
     test.use({ roles: { only: ['peoplemanage'] } });
 
-    test('sees Form and Data SPARTA Magang only, and is sent from Live Counting to Kelola', async ({
+    test('sees Form only, and is sent from Live Counting to Kelola', async ({
       page,
       api,
     }) => {
       await page.goto('/kelola');
-      await expect(listLinks(page)).toHaveCount(2);
+      await expect(listLinks(page)).toHaveCount(1);
       await expect(listLinks(page).nth(0)).toHaveAccessibleName(/^Form/);
-      await expect(listLinks(page).nth(1)).toHaveAccessibleName(
-        /^Data SPARTA Magang/,
-      );
       await page.goto('/kelola/live/pixel');
       await expect(page).toHaveURL(/\/kelola$/);
-      await expect(listLinks(page)).toHaveCount(2);
+      await expect(listLinks(page)).toHaveCount(1);
       expect(api.calls('GET /api/form/:formId/responses/count')).toEqual([]);
       expect(api.calls('GET /api/form/:formId/analytics')).toEqual([]);
-      await page.goto('/kelola/sparta');
-      await expect(main(page).getByText('3 pendaftar')).toBeVisible();
     });
   });
 
@@ -242,8 +224,6 @@ test.describe('Kelola hub', () => {
         '/kelola/live',
         '/kelola/live/pixel',
         '/kelola/live/pixel/rekap',
-        '/kelola/sparta',
-        '/kelola/sparta/sub-13525071',
       ]) {
         await page.goto(path);
         await expect(page).toHaveURL(/\/layanan$/);
@@ -266,9 +246,9 @@ test.describe('Kelola hub', () => {
       if (user)
         localStorage.setItem('user', JSON.stringify({ ...user, roles: [] }));
     });
-    await page.goto('/kelola/sparta');
-    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-    await expect(page).toHaveURL(/\/kelola\/sparta$/);
+    await page.goto('/kelola/live/pixel');
+    await expect(plaque(page)).toContainText('142');
+    await expect(page).toHaveURL(/\/kelola\/live\/pixel$/);
   });
 
   test.describe('the session check can’t answer (the API down)', () => {
@@ -282,7 +262,7 @@ test.describe('Kelola hub', () => {
         if (user)
           localStorage.setItem('user', JSON.stringify({ ...user, roles: [] }));
       });
-      await page.goto('/kelola/sparta');
+      await page.goto('/kelola/live/pixel');
       await expect(page).toHaveURL(/\/layanan$/);
       await expect(navLink(page, 'Layanan')).toBeVisible();
     });
@@ -292,10 +272,10 @@ test.describe('Kelola hub', () => {
       api,
     }) => {
       api.on('GET /api/me', reply.abort('failed'));
-      await page.goto('/kelola/sparta');
-      await expect(main(page).getByText('3 pendaftar')).toBeVisible();
+      await page.goto('/kelola/live/pixel');
+      await expect(plaque(page)).toContainText('142');
       await page.waitForTimeout(1_500);
-      await expect(page).toHaveURL(/\/kelola\/sparta$/);
+      await expect(page).toHaveURL(/\/kelola\/live\/pixel$/);
     });
   });
 
@@ -955,516 +935,5 @@ test.describe('Rekap Form', () => {
         .getByRole('link', { name: 'Live Counting' })
         .click();
     await expect(page).toHaveURL(/\/kelola\/live\/pixel$/);
-  });
-});
-
-// ---------------------------------------------------------------- Data SPARTA Magang
-
-const table = (page: Page) => main(page).locator('table.g-sparta-table');
-const spartaRows = (page: Page) => main(page).locator('.g-sparta-rows > li');
-/** The names shown, whichever layout shows them. */
-async function namesShown(page: Page, testInfo: TestInfo) {
-  return touch(testInfo)
-    ? spartaRows(page).locator('.top > :first-child').allTextContents()
-    : table(page).locator('tbody tr td:first-child').allTextContents();
-}
-
-test.describe('Data SPARTA Magang', () => {
-  test('the table or labelled rows, every filter, search, the count and the URL', async ({
-    page,
-  }, testInfo) => {
-    await page.goto('/kelola/sparta');
-    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-    // One tree : the other layout's isn't in the page at all.
-    if (touch(testInfo)) {
-      await expect(table(page)).toHaveCount(0);
-      await expect(spartaRows(page)).toHaveCount(3);
-      await expect(spartaRows(page).first()).toContainText('Bima Santoso');
-      await expect(spartaRows(page).first()).toContainText('Terkunci');
-      await expect(spartaRows(page).first()).toContainText('NIM13525071');
-    } else {
-      await expect(table(page)).toBeVisible();
-      await expect(spartaRows(page)).toHaveCount(0);
-      await expect(table(page).locator('thead th')).toHaveText([
-        'Nama',
-        'NIM',
-        'Jurusan',
-        'Kelas',
-        'Status',
-        'Pilihan 1',
-        'Pilihan 2',
-        'Pilihan 3',
-        'Pilihan 4',
-      ]);
-      await expect(table(page).locator('tbody tr').first()).toHaveText(
-        /Bima Santoso\s*13525071\s*IF\s*IF K2\s*Terkunci\s*Akademik\s*Welfare\s*Competition and Community\s*Career Development/,
-      );
-    }
-    // Nadia's partial draft: Draf, and "–" for the missing fourth priority.
-    const nadiaText = touch(testInfo)
-      ? spartaRows(page).nth(2)
-      : table(page).locator('tbody tr').nth(2);
-    await expect(nadiaText).toContainText('Nadia Putri');
-    await expect(nadiaText).toContainText('Draf');
-    await expect(nadiaText).toContainText('–');
-    await strictGates(page, testInfo, 'sparta-table', lit(testInfo));
-
-    // Status.
-    await main(page).getByRole('radio', { name: 'Draf' }).check();
-    await expect(main(page).getByText('1 pendaftar')).toBeVisible();
-    expect(await namesShown(page, testInfo)).toEqual(['Nadia Putri']);
-    await main(page).getByRole('radio', { name: 'Semua', exact: true }).check();
-    // Division alone: any choice of it.
-    await main(page)
-      .getByLabel('Divisi', { exact: true })
-      .selectOption({ label: 'Career Development · Career Development' });
-    expect(await namesShown(page, testInfo)).toEqual([
-      'Bima Santoso',
-      'Tasya Amelia',
-    ]);
-    // Priority and division: that division at that priority.
-    await main(page)
-      .getByLabel('Pilihan', { exact: true })
-      .selectOption({ label: 'Pilihan 3' });
-    await expect(
-      main(page).getByText('Tidak ada pendaftar yang cocok'),
-    ).toBeVisible();
-    await main(page)
-      .getByLabel('Pilihan', { exact: true })
-      .selectOption({ label: 'Pilihan 4' });
-    await expect(main(page).getByText('2 pendaftar')).toBeVisible();
-    await expect(page).toHaveURL(/divisi=div-cardev/);
-    await expect(page).toHaveURL(/pilihan=4/);
-    // Kept through a reload.
-    await page.reload();
-    await expect(main(page).getByText('2 pendaftar')).toBeVisible();
-    await expect(main(page).getByLabel('Pilihan', { exact: true })).toHaveValue(
-      '4',
-    );
-    // Priority alone.
-    await main(page)
-      .getByLabel('Divisi', { exact: true })
-      .selectOption({ label: 'Semua divisi' });
-    await expect(main(page).getByText('2 pendaftar')).toBeVisible();
-    await main(page)
-      .getByLabel('Pilihan', { exact: true })
-      .selectOption({ label: 'Semua pilihan' });
-    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-    // Search by name and by NIM, any case.
-    const search = main(page).getByRole('searchbox', {
-      name: 'Cari nama atau NIM',
-    });
-    await search.fill('TASYA');
-    expect(await namesShown(page, testInfo)).toEqual(['Tasya Amelia']);
-    await search.fill('13525071');
-    expect(await namesShown(page, testInfo)).toEqual(['Bima Santoso']);
-    // The router writes a string of digits quoted (q=%2213525071%22), so it reads back as text.
-    await expect(page).toHaveURL(/q=(%22)?13525071/);
-    // Back from a submission keeps the filters.
-    await (
-      touch(testInfo)
-        ? spartaRows(page).first().getByRole('link')
-        : table(page).getByRole('link', { name: 'Bima Santoso' })
-    ).click();
-    await expect(page).toHaveURL(/\/kelola\/sparta\/sub-13525071$/);
-    await page.goBack();
-    // The router writes a string of digits quoted (q=%2213525071%22), so it reads back as text.
-    await expect(page).toHaveURL(/q=(%22)?13525071/);
-    await expect(main(page).getByText('1 pendaftar')).toBeVisible();
-    // Nothing matching, then the filters cleared.
-    await search.fill('zzz');
-    await expect(
-      main(page).getByText('Tidak ada pendaftar yang cocok'),
-    ).toBeVisible();
-    await expect(
-      main(page).getByRole('button', { name: 'Export CSV' }),
-    ).toBeDisabled();
-    await strictGates(page, testInfo, 'sparta-no-match', lit(testInfo));
-    await main(page).getByRole('button', { name: 'Hapus filter' }).click();
-    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-    // The search box is cleared too, and the next letters search afresh.
-    await expect(search).toHaveValue('');
-    await expect(page).not.toHaveURL(/q=/);
-    await search.pressSequentially('tas');
-    await expect(main(page).getByText('1 pendaftar')).toBeVisible();
-    expect(await namesShown(page, testInfo)).toEqual(['Tasya Amelia']);
-    // Opened from a link with a search, the box shows it.
-    await page.goto('/kelola/sparta?q=bima');
-    await expect(search).toHaveValue('bima');
-    await expect(main(page).getByText('1 pendaftar')).toBeVisible();
-  });
-
-  // The URL follows the box when typing pauses or the box loses focus, not at every letter.
-  test('a row tapped right after typing still keeps the search for Back', async ({
-    page,
-  }, testInfo) => {
-    await page.goto('/kelola/sparta');
-    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-    const search = main(page).getByRole('searchbox', {
-      name: 'Cari nama atau NIM',
-    });
-    await search.pressSequentially('tas');
-    await expect(main(page).getByText('1 pendaftar')).toBeVisible();
-    // At once, before typing has paused long enough for the URL to follow.
-    await (
-      touch(testInfo)
-        ? spartaRows(page).first().getByRole('link')
-        : table(page).getByRole('link', { name: 'Tasya Amelia' })
-    ).click();
-    await expect(page).toHaveURL(/\/kelola\/sparta\/sub-[^/?]+$/);
-    await page.goBack();
-    await expect(page).toHaveURL(/\/kelola\/sparta\?q=tas$/);
-    await expect(search).toHaveValue('tas');
-    await expect(main(page).getByText('1 pendaftar')).toBeVisible();
-  });
-
-  test("the filters' labels line up", async ({ page }) => {
-    await page.goto('/kelola/sparta');
-    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-    const labels = main(page).locator('.g-sparta-filters .t-label');
-    await expect(labels).toHaveText(['Divisi', 'Pilihan', 'Status']);
-    const size = page.viewportSize()!;
-    for (const width of [834, 1024, 1440]) {
-      await page.setViewportSize({ width, height: size.height });
-      await expect
-        .poll(
-          async () => {
-            const tops = await labels.evaluateAll((els) =>
-              els.map((el) => Math.round(el.getBoundingClientRect().top)),
-            );
-            return Math.max(...tops) - Math.min(...tops);
-          },
-          { message: `labels at ${width} px` },
-        )
-        .toBe(0);
-    }
-    await page.setViewportSize(size);
-  });
-
-  test('300 submissions: one tree, and typing a search keeps up @solo', async ({
-    page,
-    db,
-  }, testInfo) => {
-    const base = db.internshipSubmissions[0];
-    db.internshipSubmissions = Array.from({ length: 300 }, (_, i) => ({
-      ...base,
-      id: `sub-${i}`,
-      nim: `1352${String(i).padStart(4, '0')}`,
-      fullName: `Pendaftar ${i + 1}`,
-    }));
-    await page.goto('/kelola/sparta');
-    await expect(main(page).getByText('300 pendaftar')).toBeVisible();
-    if (touch(testInfo)) {
-      await expect(spartaRows(page)).toHaveCount(300);
-      await expect(table(page)).toHaveCount(0);
-    } else {
-      await expect(table(page).locator('tbody tr')).toHaveCount(300);
-      await expect(spartaRows(page)).toHaveCount(0);
-    }
-    // Typing keeps up on a phone-speed CPU (4× slowdown): the list filters from a deferred query and re-renders only
-    // when the rows shown change, so most keystrokes cost no long main-thread task (over 50 ms, measured by the
-    // browser). Re-rendering both trees on each of the 12 keystrokes would make 12 long tasks; the filter makes 2 to 3.
-    // Up to three typings, judged by the best: a shared CI machine only ever adds long tasks, while slow typing costs one on every keystroke, every time.
-    const cdp = await page.context().newCDPSession(page);
-    await page.evaluate(() => {
-      const w = window as unknown as { __long: number[] };
-      w.__long = [];
-      new PerformanceObserver((list) => {
-        for (const e of list.getEntries()) w.__long.push(e.duration);
-      }).observe({ type: 'longtask' });
-    });
-    const search = main(page).getByRole('searchbox', {
-      name: 'Cari nama atau NIM',
-    });
-    const attempts: number[][] = [];
-    for (let i = 0; i < 3; i++) {
-      if (i) {
-        await search.fill('');
-        await expect(main(page).getByText('300 pendaftar')).toBeVisible();
-      }
-      await page.evaluate(() => {
-        (window as unknown as { __long: number[] }).__long = [];
-      });
-      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-      await search.pressSequentially('pendaftar 29', { delay: 30 });
-      await expect(search).toHaveValue('pendaftar 29');
-      // "Pendaftar 29" and "Pendaftar 290" to "Pendaftar 299".
-      await expect(main(page).getByText('11 pendaftar')).toBeVisible();
-      attempts.push(
-        await page.evaluate(
-          () => (window as unknown as { __long: number[] }).__long,
-        ),
-      );
-      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
-      if (attempts[i].length <= 6) break;
-    }
-    expect(
-      Math.min(...attempts.map((a) => a.length)),
-      `long tasks per typing: ${attempts.map((a) => `[${a.join(', ')}]`).join(' ')}`,
-    ).toBeLessThanOrEqual(6);
-    expect(await namesShown(page, testInfo)).toHaveLength(11);
-  });
-
-  test('Export of exactly the rows shown', async ({ page }) => {
-    await page.goto('/kelola/sparta?status=terkunci');
-    await expect(main(page).getByText('2 pendaftar')).toBeVisible();
-    const download = page.waitForEvent('download');
-    await main(page).getByRole('button', { name: 'Export CSV' }).click();
-    const file = await download;
-    expect(file.suggestedFilename()).toMatch(
-      /^internship-submissions-2026-10-08-06-3\d-\d\d\.csv$/,
-    );
-    const text = await readDownload(file);
-    expect(text.startsWith('﻿Nama,NIM,Jurusan,Kelas,ID Line,Status,')).toBe(
-      true,
-    );
-    const lines = text.slice(1).split('\n');
-    expect(lines).toHaveLength(3);
-    expect(lines[1]).toMatch(
-      /^Bima Santoso,13525071,IF,IF K2,e2e\.bima,Terkunci,Panitia SPARTA 2025,,Welfare and Academics - Akademik,Kenapa kamu tertarik di Akademik\?: /,
-    );
-    expect(lines[2]).toMatch(/^Tasya Amelia,18225012,STI,/);
-    await expect(
-      page.getByText('Data 2 pendaftar diunduh sebagai CSV.'),
-    ).toBeVisible();
-  });
-
-  test('Statistik pilihan: per department or division, first choice or all', async ({
-    page,
-  }) => {
-    await page.goto('/kelola/sparta');
-    const bars = main(page).locator('.g-hbars .g-hbar');
-    await expect(bars).toHaveText([/^Welfare and Academics\s*3$/]);
-    // "Semua pilihan" names only the Pilihan filter's option; the statistics count every choice as "Pilihan 1–4".
-    await expect(
-      main(page).getByRole('radio', { name: 'Semua pilihan' }),
-    ).toHaveCount(0);
-    await main(page).getByRole('radio', { name: 'Pilihan 1–4' }).check();
-    await expect(bars).toHaveText([
-      /^Welfare and Academics\s*6$/,
-      /^Competition and Community\s*3$/,
-      /^Career Development\s*2$/,
-    ]);
-    await main(page).getByRole('radio', { name: 'Per divisi' }).check();
-    await expect(bars).toHaveText([
-      /^Welfare and Academics · Akademik\s*3$/,
-      /^Welfare and Academics · Welfare\s*3$/,
-      /^Competition and Community · Competition and Community\s*3$/,
-      /^Career Development · Career Development\s*2$/,
-    ]);
-    // At 320 px the long labels sit above the bars, so a label column can't leave them a few pixels wide.
-    const size = page.viewportSize()!;
-    await page.setViewportSize({ width: 320, height: size.height });
-    await expect
-      .poll(() =>
-        bars
-          .first()
-          .locator('.trk')
-          .evaluate((el) => el.clientWidth),
-      )
-      .toBeGreaterThan(150);
-    await page.setViewportSize(size);
-    // It counts what matches the status filter.
-    await main(page).getByRole('radio', { name: 'Draf' }).check();
-    await expect(bars).toHaveText([
-      /Akademik\s*1$/,
-      /Welfare\s*1$/,
-      /Competition and Community\s*1$/,
-    ]);
-  });
-
-  test('25 submissions load as two requests, at offset 0 and 20', async ({
-    page,
-    api,
-    db,
-  }) => {
-    const base = db.internshipSubmissions[0];
-    db.internshipSubmissions = Array.from({ length: 25 }, (_, i) => ({
-      ...base,
-      id: `sub-${i}`,
-      nim: `135250${String(i).padStart(2, '0')}`,
-      fullName: `Pendaftar ${i + 1}`,
-    }));
-    await page.goto('/kelola/sparta');
-    await expect(main(page).getByText('25 pendaftar')).toBeVisible();
-    expect(
-      api.calls('GET /api/internship/submissions').map((c) => c.query),
-    ).toEqual(['?offset=0', '?offset=20']);
-  });
-
-  test('none at all', async ({ page, db }, testInfo) => {
-    db.internshipSubmissions = [];
-    await page.goto('/kelola/sparta');
-    await expect(main(page).getByText('Belum ada pendaftar')).toBeVisible();
-    // One message: no statistics, toolbar, count or Export with nothing to act on.
-    await expect(
-      main(page).getByText('Belum ada data pilihan untuk ditampilkan.'),
-    ).toHaveCount(0);
-    await expect(main(page).getByRole('searchbox')).toHaveCount(0);
-    await expect(main(page).getByRole('combobox')).toHaveCount(0);
-    await expect(main(page).getByText('0 pendaftar')).toHaveCount(0);
-    await expect(
-      main(page).getByRole('button', { name: 'Export CSV' }),
-    ).toHaveCount(0);
-    await expect(
-      main(page).getByRole('heading', { name: 'Statistik pilihan' }),
-    ).toHaveCount(0);
-    await strictGates(page, testInfo, 'sparta-empty', lit(testInfo));
-  });
-
-  test('503, then Coba lagi', async ({ page, api }) => {
-    api.on('GET /api/internship/submissions', reply.status(503));
-    await page.goto('/kelola/sparta');
-    const failed = main(page)
-      .getByRole('alert')
-      .filter({ hasText: 'Data SPARTA gagal dimuat.' });
-    await expect(failed).toBeVisible();
-    api.on(
-      'GET /api/internship/submissions',
-      defaultHandlers['GET /api/internship/submissions'],
-    );
-    await failed.getByRole('button', { name: 'Coba lagi' }).click();
-    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-  });
-
-  test('offline keeps the table under the banner', async ({ page, api }) => {
-    await page.goto('/kelola/sparta');
-    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-    await api.setOffline(true);
-    await expect(main(page).locator('.g-offline')).toBeVisible();
-    await expect(main(page).getByText('3 pendaftar')).toBeVisible();
-    await api.setOffline(false);
-  });
-
-  test("Bima's submission: four choices in order, their questions and answers", async ({
-    page,
-  }, testInfo) => {
-    await page.goto('/kelola/sparta/sub-13525071');
-    if (touch(testInfo))
-      await expect(
-        page.getByRole('heading', { name: 'Bima Santoso', level: 1 }),
-      ).toBeVisible();
-    else
-      await expect(
-        main(page).getByRole('heading', { name: 'Bima Santoso', level: 1 }),
-      ).toBeVisible();
-    await expect(main(page).getByText('13525071 · IF · IF K2')).toBeVisible();
-    await expect(main(page).getByText('Terkunci')).toBeVisible();
-    await expect(main(page).getByText('e2e.bima')).toBeVisible();
-    await expect(main(page).getByText('Panitia SPARTA 2025')).toBeVisible();
-    await expect(main(page).locator('.g-choice-card h3')).toHaveText([
-      'Prioritas 1: Akademik',
-      'Prioritas 2: Welfare',
-      'Prioritas 3: Competition and Community',
-      'Prioritas 4: Career Development',
-    ]);
-    await expect(main(page).locator('.g-choice-card').first()).toContainText(
-      'Welfare and Academics',
-    );
-    await expect(main(page).locator('.g-choice-card').first()).toContainText(
-      'Kenapa kamu tertarik di Akademik?',
-    );
-    await expect(main(page).locator('.g-choice-card').first()).toContainText(
-      'Aku ingin bantu rekap jadwal ujian angkatan.',
-    );
-    await strictGates(page, testInfo, 'sparta-submission', lit(testInfo));
-    if (!touch(testInfo))
-      await expect(
-        page.getByRole('navigation', { name: 'Jejak halaman' }),
-      ).toHaveText(/Kelola\s*Data SPARTA Magang\s*Bima Santoso/);
-  });
-
-  test("Nadia's partial draft shows what it has, with –", async ({
-    page,
-    db,
-  }) => {
-    const nadia = db.internshipSubmissions[2];
-    nadia.kelas = '';
-    nadia.idLine = '';
-    await page.goto('/kelola/sparta/sub-13525045');
-    await expect(main(page).getByText('13525045 · IF · –')).toBeVisible();
-    await expect(main(page).getByText('Draf')).toBeVisible();
-    await expect(main(page).locator('.g-choice-card h3')).toHaveText([
-      'Prioritas 1: Akademik',
-      'Prioritas 2: Welfare',
-      'Prioritas 3: Competition and Community',
-    ]);
-    await expect(main(page).locator('.g-choice-card dd').first()).toHaveText(
-      '–',
-    );
-  });
-
-  test('a division that no longer exists, and a file answer', async ({
-    page,
-    db,
-  }) => {
-    const bima = db.internshipSubmissions[0];
-    bima.choices![3].divisionId = 'div-hilang';
-    db.internshipDepartments[0].divisions![0].questions.push({
-      id: 'dq9',
-      label: 'Portofolio',
-      type: 'file',
-      required: false,
-    });
-    bima.choices![0].answers.push({
-      questionId: 'dq9',
-      answer: 'https://media.pips.test/sparta/portofolio.pdf',
-    });
-    await page.goto('/kelola/sparta/sub-13525071');
-    await expect(
-      main(page).getByText('Prioritas 4: Divisi tidak ditemukan'),
-    ).toBeVisible();
-    const file = main(page).getByRole('link', { name: /Lihat file/ });
-    await expect(file).toHaveAttribute(
-      'href',
-      'https://media.pips.test/sparta/portofolio.pdf',
-    );
-    await expect(file).toHaveAttribute('target', '_blank');
-  });
-
-  // A member's file answer is any text they saved. Only a file in the app's storage
-  // (VITE_MEDIA_URL, https://media.pips.test in the harness) becomes a link; anything else is plain text.
-  test("a file answer that isn't in the app's storage is plain text, never a link", async ({
-    page,
-    db,
-  }) => {
-    db.internshipDepartments[0].divisions![0].questions.push({
-      id: 'dq9',
-      label: 'Portofolio',
-      type: 'file',
-      required: false,
-    });
-    const answers = db.internshipSubmissions[0].choices![0].answers;
-    answers.push({ questionId: 'dq9', answer: '' });
-    for (const answer of [
-      'javascript:alert(document.cookie)',
-      ' JavaScript:alert(1)',
-      'java\tscript:alert(1)',
-      'data:text/html,<script>alert(1)</script>',
-      '//evil.example/cv.pdf',
-      'https://evil.example/login',
-      'https://media.pips.test@evil.example/cv.pdf',
-    ]) {
-      answers[answers.length - 1].answer = answer;
-      await page.goto('/kelola/sparta/sub-13525071');
-      const card = main(page).locator('.g-choice-card').first();
-      await expect(card.getByText('Portofolio')).toBeVisible();
-      await expect(card.locator('dd').last()).toHaveText(answer.trim());
-      await expect(
-        main(page).getByRole('link', { name: /Lihat file/ }),
-      ).toHaveCount(0);
-      await expect(card.locator('a')).toHaveCount(0);
-    }
-  });
-
-  test('an unknown submission', async ({ page }) => {
-    await page.goto('/kelola/sparta/sub-tidak-ada');
-    await expect(
-      main(page).getByText('Pendaftar tidak ditemukan'),
-    ).toBeVisible();
-    await main(page)
-      .getByRole('link', { name: 'Ke Data SPARTA Magang' })
-      .click();
-    await expect(page).toHaveURL(/\/kelola\/sparta$/);
   });
 });

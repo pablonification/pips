@@ -51,15 +51,6 @@ const ZOD: Record<string, z.ZodTypeAny> = {
     q: z.string().optional().catch(undefined),
     halaman: z.number().int().min(1).optional().catch(undefined),
   }),
-  spartaDataSearchSchema: z.object({
-    q: z.string().optional().catch(undefined),
-    divisi: z.string().min(1).optional().catch(undefined),
-    pilihan: z
-      .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
-      .optional()
-      .catch(undefined),
-    status: z.enum(['terkunci', 'draf']).optional().catch(undefined),
-  }),
   inboxSearchSchema: query.extend({
     unread: z.boolean().optional().catch(undefined),
   }),

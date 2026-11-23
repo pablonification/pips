@@ -9,8 +9,6 @@ import {
   type Db,
   formSectionsVisibleFor,
   formStatusFor,
-  isSpartaEligible,
-  spartaWindowFor,
 } from '../fixtures/api';
 import { tidySlug, slugProblem } from '../../../api/src/lib/form-rules';
 import {
@@ -70,11 +68,8 @@ const withRole: (roles: readonly string[], h: Handler) => Handler = (
       ? h(req)
       : reply.status(401, { error: 'Unauthorized' }),
   );
-/** `form.controller.ts` FORM_ADMIN_ROLES and `internship.controller.ts` SPARTA_ADMIN_ROLES. */
+/** `form.controller.ts` FORM_ADMIN_ROLES. */
 const FORM_ADMIN = ['admin'];
-const SPARTA_ADMIN = ['peoplemanage', 'admin'];
-/** `internship.repo.ts` SUBMISSIONS_PER_PAGE. */
-const SUBMISSIONS_PER_PAGE = 20;
 /** The builder's routes are for pengurus (any role), as `forRoles(…, PENGURUS)` answers: 401 "Unauthorized". */
 const pengurus: (h: Handler) => Handler = (h) =>
   signedIn((req) => (isPengurus(req.db) ? h(req) : unauthorized()));
@@ -566,43 +561,6 @@ export const defaultHandlers: Record<string, Handler> = {
             headers,
           );
     },
-  ),
-
-  // SPARTA Magang (closed; kept for the admin table)
-  'GET /api/internship/departments': signedIn(({ db }) =>
-    ok<R<typeof api.getInternshipDepartments>>({
-      departments: db.internshipDepartments,
-    }),
-  ),
-  // As the API answers: 401 for a member SPARTA isn't for, 200 null when there's no submission yet.
-  'GET /api/internship/submission': signedIn(({ db }) =>
-    !isSpartaEligible(db.me!)
-      ? reply.status(401, {
-          error: 'You are not eligible to access SPARTA internship form',
-        })
-      : ok<R<typeof api.getMyInternshipSubmission> | null>(
-          db.internshipSubmissions.find((s) => s.userId === db.me!.id) ?? null,
-        ),
-  ),
-  'GET /api/internship/window': signedIn(({ db }) =>
-    ok<R<typeof api.getInternshipWindow>>(spartaWindowFor(db)),
-  ),
-  'GET /api/internship/submissions': withRole(SPARTA_ADMIN, ({ db, query }) => {
-    const locked = query.get('locked');
-    const list = db.internshipSubmissions.filter(
-      (s) => locked == null || String(s.isLocked) === locked,
-    );
-    const offset = Number(query.get('offset') ?? 0);
-    return ok<R<typeof api.listInternshipSubmissions>>({
-      submissions: list.slice(offset, offset + SUBMISSIONS_PER_PAGE),
-    });
-  }),
-  'GET /api/internship/submissions/:id': withRole(
-    SPARTA_ADMIN,
-    ({ db, params }) =>
-      ok<R<typeof api.getInternshipSubmissionById> | undefined>(
-        db.internshipSubmissions.find((s) => s.id === params.id),
-      ) ?? notFound('submission'),
   ),
 
   // Apps connected through MCP: the consent page's request, and Profil › Aplikasi terhubung. Approving, denying and

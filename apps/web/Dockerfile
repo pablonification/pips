@@ -15,7 +15,7 @@ COPY --from=prune /repo/out/full/ .
 ARG VITE_API_URL
 ARG VITE_GOOGLE_CLIENT_ID
 ARG VITE_VAPID_KEY
-# The API's R2_PUBLIC_URL: only files there become links in Data SPARTA Magang. Optional.
+# The API's R2_PUBLIC_URL: only files there become links in a form's file answers. Optional.
 ARG VITE_MEDIA_URL
 # Error monitoring (src/instrument.ts). Optional: without it Sentry stays off.
 ARG VITE_SENTRY_DSN

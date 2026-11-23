@@ -223,8 +223,8 @@ test('the failure message shows at most six characters of the value', () => {
   assert.ok(!found.shown.includes(unknown));
 });
 
-test('the SPARTA and early-access numbers are allowed only in their own files', () => {
-  assert.equal(behaviourHashes.size, 5);
+test('the early-access numbers are allowed only in their own files', () => {
+  assert.equal(behaviourHashes.size, 2);
   const stand = madeUpNim('135', '29765');
   const hashes = new Set([sha256(stand)]);
   const [listed] = behaviourFiles;

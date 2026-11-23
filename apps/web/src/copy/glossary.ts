@@ -30,8 +30,6 @@ export const HOUSE_TERMS = [
   'Masuk',
   'Keluar',
   'Kelola',
-  'Magang SPARTA',
-  'Data SPARTA Magang',
   'Live Counting & Rekap Form',
 ] as const;
 
@@ -168,7 +166,6 @@ export const ACRONYMS = [
   'HMIF',
   'ITB',
   'NIM',
-  'SPARTA',
   'PIXEL',
   'IF',
   'STI',
@@ -185,7 +182,7 @@ export const ACRONYMS = [
   'IT',
   // The LINE app, whose in-app browser can't install PIPS!.
   'LINE',
-  // Magang SPARTA asks for your ID LINE.
+  // Forms ask for your ID LINE.
   'ID',
   // The upload limit, "maks. 25 MB" (lib/upload-policy.ts).
   'MB',

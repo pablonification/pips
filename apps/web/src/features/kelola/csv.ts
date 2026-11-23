@@ -1,17 +1,11 @@
 /*
- * Kelola's two CSV files: headers, column order, cell values, file names and the UTF-8 BOM are fixed, so admins'
- * spreadsheets keep reading them. Times are WIB whatever the device's zone, and a `\r` in a cell is quoted
+ * Kelola's CSV file: headers, column order, cell values, file name and the UTF-8 BOM are fixed, so admins'
+ * spreadsheets keep reading it. Times are WIB whatever the device's zone, and a `\r` in a cell is quoted
  * (src/lib/csv.ts). Pure: the screens download what these return.
  */
-import type {
-  AdminFormResponseItem,
-  FormSection,
-  InternshipDivision,
-  InternshipSubmission,
-} from '~/api/generated';
+import type { AdminFormResponseItem, FormSection } from '~/api/generated';
 import { rowsToCsv } from '~/lib/csv';
 import { wib } from '~/lib/dates';
-import { PRIORITIES, type DivisionInfo } from './rules';
 
 export interface CsvFile {
   filename: string;
@@ -66,64 +60,6 @@ export function responsesCsv(
   const safeTitle = formTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return {
     filename: `${safeTitle}-responses-${fileStamp(now)}.csv`,
-    content: rowsToCsv(headers, rows),
-  };
-}
-
-/** `internship-submissions-{timestamp}.csv`: one row per submission, each priority's division and answers. */
-export function submissionsCsv(
-  submissions: readonly InternshipSubmission[],
-  divisions: readonly DivisionInfo[],
-  divisionsById: ReadonlyMap<string, InternshipDivision>,
-  now: number | Date = Date.now(),
-): CsvFile {
-  const infoById = new Map(divisions.map((d) => [d.id, d]));
-  const headers = [
-    'Nama',
-    'NIM',
-    'Jurusan',
-    'Kelas',
-    'ID Line',
-    'Status',
-    'Pengalaman Organisasi',
-    'Kesibukan',
-    ...PRIORITIES.flatMap((p) => [
-      `Divisi Pilihan ${p}`,
-      `Jawaban Pilihan ${p}`,
-    ]),
-  ];
-  const rows = submissions.map((sub) => [
-    sub.fullName,
-    sub.nim,
-    sub.jurusan,
-    sub.kelas,
-    sub.idLine,
-    sub.isLocked ? 'Terkunci' : 'Draft',
-    sub.pengalamanOrganisasi ?? '',
-    (sub.kesibukan ?? [])
-      .map((k) => `${k.jabatan} - ${k.organisasi} (${k.periode})`)
-      .join('; '),
-    ...PRIORITIES.flatMap((p) => {
-      const choice = sub.choices?.find((c) => c.priorityOrder === p);
-      if (!choice) return ['', ''];
-      const info = infoById.get(choice.divisionId);
-      const division = divisionsById.get(choice.divisionId);
-      const label = info ? `${info.departmentName} - ${info.name}` : '-';
-      const answers = division
-        ? (division.questions ?? [])
-            .map((q) => {
-              const a = choice.answers.find((x) => x.questionId === q.id);
-              return `${q.label}: ${a?.answer || '-'}`;
-            })
-            .join(' | ')
-        : '';
-      return [label, answers];
-    }),
-  ]);
-  // The ISO time (UTC) with ":" and "T" as "-".
-  const stamp = new Date(now).toISOString().slice(0, 19).replace(/[:T]/g, '-');
-  return {
-    filename: `internship-submissions-${stamp}.csv`,
     content: rowsToCsv(headers, rows),
   };
 }

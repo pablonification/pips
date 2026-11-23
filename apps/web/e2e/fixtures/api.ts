@@ -23,8 +23,6 @@ import type {
   FormQuestion,
   FormResponse,
   Info,
-  InternshipDepartment,
-  InternshipSubmission,
   ListChatroom,
   Credits,
   OAuthRequest,
@@ -492,40 +490,6 @@ export function formSectionsVisibleFor(
   );
 }
 
-/** Magang SPARTA's audience and window, as the API has them (apps/api/src/lib/sparta-window.ts). */
-const SPARTA_ELIGIBLE_ANGKATAN = [2025];
-const SPARTA_ELIGIBLE_NIMS = ['13524108', '18224053', '18224112'];
-/** Closed Minggu, 23 Agustus 2026, 23.59 WIB; no known opening. Tests open it by changing `db.spartaWindow`. */
-export const SPARTA_WINDOW = {
-  opensAt: null as string | null,
-  closesAt: '2026-08-23T16:59:00.000Z' as string | null,
-};
-
-export function isSpartaEligible(user: { angkatan: number; nim: string }) {
-  return (
-    SPARTA_ELIGIBLE_ANGKATAN.includes(user.angkatan) ||
-    SPARTA_ELIGIBLE_NIMS.includes(user.nim)
-  );
-}
-
-/** GET /api/internship/window for the signed-in member. */
-export function spartaWindowFor(db: Pick<Db, 'me' | 'spartaWindow'>) {
-  const { opensAt, closesAt } = db.spartaWindow;
-  const now = Date.parse(NOW);
-  const status: 'not_opened' | 'open' | 'closed' =
-    closesAt && now >= Date.parse(closesAt)
-      ? 'closed'
-      : opensAt && now < Date.parse(opensAt)
-        ? 'not_opened'
-        : 'open';
-  return {
-    opensAt,
-    closesAt,
-    status,
-    eligible: !!db.me && isSpartaEligible(db.me),
-  };
-}
-
 /** A form without its questions or a member's status, as the admin list returns it. */
 function formSummary(form: FormDetail): AdminFormListItem {
   const summary: Partial<FormDetail> = { ...form };
@@ -627,158 +591,6 @@ const formAnalytics = {
   ],
 };
 
-/** SPARTA Magang has no other sample data; these are fictional samples for the admin table (see fixtures/NOTES.md). */
-const internshipDepartments: InternshipDepartment[] = [
-  {
-    id: 'dept-akademik',
-    name: 'Welfare and Academics',
-    order: 1,
-    divisions: [
-      {
-        id: 'div-akademik',
-        departmentId: 'dept-akademik',
-        name: 'Akademik',
-        quotaMin: 2,
-        quotaIdeal: 4,
-        quotaMax: 6,
-        questions: [
-          {
-            id: 'dq1',
-            label: 'Kenapa kamu tertarik di Akademik?',
-            type: 'textarea',
-            required: true,
-          },
-        ],
-        questionsRaw: null,
-        description: 'Mengurus Testi Matkul dan rekap jadwal ujian.',
-        order: 1,
-      },
-      {
-        id: 'div-welfare',
-        departmentId: 'dept-akademik',
-        name: 'Welfare',
-        quotaMin: 2,
-        quotaIdeal: 3,
-        quotaMax: 5,
-        questions: [
-          {
-            id: 'dq2',
-            label: 'Ceritakan pengalamanmu mendengarkan teman.',
-            type: 'textarea',
-            required: true,
-          },
-        ],
-        questionsRaw: null,
-        description: 'Menemani anggota lewat Curhat Yuk!.',
-        order: 2,
-      },
-    ],
-  },
-  {
-    id: 'dept-cnc',
-    name: 'Competition and Community',
-    order: 2,
-    divisions: [
-      {
-        id: 'div-cnc',
-        departmentId: 'dept-cnc',
-        name: 'Competition and Community',
-        quotaMin: 2,
-        quotaIdeal: 4,
-        quotaMax: 6,
-        questions: [
-          {
-            id: 'dq3',
-            label: 'Lomba apa yang pernah kamu ikuti?',
-            type: 'textarea',
-            required: true,
-          },
-        ],
-        questionsRaw: null,
-        description: 'Mengelola Info Lomba.',
-        order: 1,
-      },
-    ],
-  },
-  {
-    id: 'dept-cardev',
-    name: 'Career Development',
-    order: 3,
-    divisions: [
-      {
-        id: 'div-cardev',
-        departmentId: 'dept-cardev',
-        name: 'Career Development',
-        quotaMin: 2,
-        quotaIdeal: 3,
-        quotaMax: 5,
-        questions: [
-          {
-            id: 'dq4',
-            label: 'Acara karier apa yang ingin kamu buat?',
-            type: 'textarea',
-            required: true,
-          },
-        ],
-        questionsRaw: null,
-        description: 'Mengelola LowonginAja! dan acara karier.',
-        order: 1,
-      },
-    ],
-  },
-];
-/** Each division's first question, answered with the sample submissions' choices. */
-const SPARTA_ANSWERS: Record<string, [string, string]> = {
-  'div-akademik': ['dq1', 'Aku ingin bantu rekap jadwal ujian angkatan.'],
-  'div-welfare': ['dq2', 'Sering jadi tempat cerita teman sekamar.'],
-  'div-cnc': ['dq3', 'Gemastik 2025, kategori pengembangan perangkat lunak.'],
-  'div-cardev': ['dq4', 'Webinar persiapan magang untuk angkatan.'],
-};
-
-/**
- * Bima and Tasya sent theirs (four choices, as the API requires). Nadia's is a partial draft, as the app saves
- * one: three choices, not sent (no submittedAt).
- */
-function internshipSubmissions(): InternshipSubmission[] {
-  const people: PersonKey[] = ['bima', 'tasya', 'nadia'];
-  return people.map((k, i) => {
-    const p = PEOPLE[k];
-    const locked = i < 2;
-    const divisions = locked
-      ? ['div-akademik', 'div-welfare', 'div-cnc', 'div-cardev']
-      : ['div-akademik', 'div-welfare', 'div-cnc'];
-    return {
-      id: `sub-${p.nim}`,
-      userId: userId(p.nim),
-      nim: p.nim,
-      fullName: p.name,
-      jurusan: majorOf(p.nim),
-      kelas: majorOf(p.nim) === 'IF' ? 'IF K2' : 'STI Ganjil',
-      idLine: `e2e.${k}`,
-      pengalamanOrganisasi: i === 0 ? 'Panitia SPARTA 2025' : null,
-      kesibukan: [],
-      isLocked: locked,
-      submittedAt: locked ? wib(8, 20 + i, 21) : null,
-      createdAt: wib(8, 15 + i, 10),
-      updatedAt: wib(8, 20 + i, 21),
-      choices: divisions.map((divisionId, order) => ({
-        id: `choice-${p.nim}-${order}`,
-        submissionId: `sub-${p.nim}`,
-        divisionId,
-        priorityOrder: order + 1,
-        answers: locked
-          ? [
-              {
-                questionId: SPARTA_ANSWERS[divisionId][0],
-                answer: SPARTA_ANSWERS[divisionId][1],
-              },
-            ]
-          : [],
-      })),
-    };
-  });
-}
-
 const credits: Credits = {
   id: 'credits',
   content: '# Credits\n\nPIPS! dibuat dan dirawat oleh HMIF ITB.',
@@ -870,10 +682,6 @@ export interface Db {
   competitions: Competition[];
   testimonials: Testimoni[];
   members: User[];
-  internshipDepartments: InternshipDepartment[];
-  internshipSubmissions: InternshipSubmission[];
-  /** SPARTA's window (`SPARTA_WINDOW`, closed); a test may open it. */
-  spartaWindow: { opensAt: string | null; closesAt: string | null };
   credits: Credits;
   /** Apps waiting on the consent page, by request id; answered ones are removed. */
   oauthRequests: Record<string, OAuthRequest>;
@@ -1019,9 +827,6 @@ export function buildDb(
             membershipStatus: 'Anggota Biasa',
           };
     }),
-    internshipDepartments,
-    internshipSubmissions: internshipSubmissions(),
-    spartaWindow: { ...SPARTA_WINDOW },
     credits,
     oauthRequests: persona ? { ...oauthRequests } : {},
     connectedApps: persona ? [...connectedApps] : [],

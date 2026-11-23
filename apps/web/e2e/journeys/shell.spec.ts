@@ -353,7 +353,6 @@ test.describe('focused flows', () => {
     ['/layanan/form/pixel', 'Form Analisis Kondisi PIXEL'],
     // The room's own name (usePageTitle).
     ['/layanan/curhat/r1', 'Teal Koala'],
-    ['/layanan/sparta', 'Magang SPARTA'],
   ] as const) {
     test(`${path} hides the tab bar and rail and keeps back @phone-only`, async ({
       page,

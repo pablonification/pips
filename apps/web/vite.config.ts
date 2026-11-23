@@ -284,6 +284,13 @@ export default defineConfig(({ mode }) => {
             groups: [
               // Everything the entry loads before any route, in the entry's own file.
               { name: 'app', tags: ['$initial'], priority: 4 },
+              // React Query whole, so the part a page uses only when it sends something (`useMutation`) is not left
+              // for the shared `ui` chunk, which sign-in would then have to load (docs/adr/0022-*).
+              {
+                name: 'app',
+                test: /node_modules[\\/]@tanstack[\\/](react-query|query-core)[\\/]/,
+                priority: 5,
+              },
               // Small leaves most screens share: the Garis icons, the copy, Kalender's pieces that Beranda,
               // Kalender and search share, and the push state and prompt (Beranda, first run, Notifikasi and search
               // use them; on their own they would be two more requests before Beranda's content), and Beranda's

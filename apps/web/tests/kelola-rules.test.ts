@@ -5,26 +5,18 @@ process.env.TZ = 'America/Los_Angeles';
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { buildDb } from '../e2e/fixtures/api';
-import type { InternshipSubmission } from '../src/api/generated';
 import {
-  divisionsOf,
-  filterSubmissions,
   formCaption,
   formIsOpen,
   formsEntry,
-  hasFilters,
   kelolaAccess,
   kelolaServices,
   gateRedirect,
   liveTotal,
-  orDash,
   pageCount,
   plaqueLine,
-  priorityName,
   questionBars,
   rowTime,
-  sameItems,
-  spartaStats,
 } from '../src/features/kelola/rules';
 import { shortWhen } from '../src/lib/form/format';
 import { parentOf, trailOf } from '../src/lib/shell/routes';
@@ -40,33 +32,31 @@ test('the timezone of this run is not WIB', () => {
   assert.notEqual(new Date(NOW).getHours(), 13);
 });
 
-test('kelolaServices: Raka gets the four rows in the registry order, Form first', () => {
+test('kelolaServices: Raka gets the three rows in the registry order, Form first', () => {
   assert.deepEqual(
     kelolaServices(raka).map((s) => [s.label, s.icon, s.destination]),
     [
       ['Form', 'form', '/kelola/form'],
       ['Live Counting & Rekap Form', 'grafik', '/kelola/live'],
-      ['Data SPARTA Magang', 'kelola', '/kelola/sparta'],
       ['Tambah acara Akademik', 'kalender', '/kelola/acara'],
     ],
   );
   assert.deepEqual(
     kelolaServices(people).map((s) => s.label),
-    ['Form', 'Data SPARTA Magang'],
+    ['Form'],
   );
   assert.deepEqual(kelolaServices(nadia), []);
 });
 
-test('kelolaAccess: Raka everywhere; peoplemanage only SPARTA; Nadia nowhere', () => {
-  for (const page of ['hub', 'live', 'sparta'] as const)
+test('kelolaAccess: Raka everywhere; peoplemanage only the hub; Nadia nowhere', () => {
+  for (const page of ['hub', 'live'] as const)
     assert.deepEqual(kelolaAccess(raka, page), { allowed: true });
   assert.deepEqual(kelolaAccess(people, 'hub'), { allowed: true });
-  assert.deepEqual(kelolaAccess(people, 'sparta'), { allowed: true });
   assert.deepEqual(kelolaAccess(people, 'live'), {
     allowed: false,
     to: '/kelola',
   });
-  for (const page of ['hub', 'live', 'sparta'] as const)
+  for (const page of ['hub', 'live'] as const)
     assert.deepEqual(kelolaAccess(nadia, page), {
       allowed: false,
       to: '/layanan',
@@ -80,12 +70,12 @@ test('kelolaAccess: Raka everywhere; peoplemanage only SPARTA; Nadia nowhere', (
 // The member saved on the device may lack a role just given: nobody is sent away before the session check has
 // answered in this visit.
 test('gateRedirect: sends away only after the session check answered', () => {
-  const denied = kelolaAccess(nadia, 'sparta');
+  const denied = kelolaAccess(nadia, 'live');
   assert.equal(gateRedirect(denied, false), null);
   assert.equal(gateRedirect(denied, true), '/layanan');
   assert.equal(gateRedirect(kelolaAccess(people, 'live'), true), '/kelola');
-  assert.equal(gateRedirect(kelolaAccess(raka, 'sparta'), false), null);
-  assert.equal(gateRedirect(kelolaAccess(raka, 'sparta'), true), null);
+  assert.equal(gateRedirect(kelolaAccess(raka, 'live'), false), null);
+  assert.equal(gateRedirect(kelolaAccess(raka, 'live'), true), null);
 });
 
 // Tambah acara Akademik is akademik's only, since the server lets only akademik add an Akademik event; a ring1 row
@@ -97,10 +87,6 @@ test('kelolaAccess: akademik alone has Form and Tambah acara Akademik; ring1 alo
   );
   assert.deepEqual(kelolaAccess(akademik, 'hub'), { allowed: true });
   assert.deepEqual(kelolaAccess(akademik, 'live'), {
-    allowed: false,
-    to: '/kelola',
-  });
-  assert.deepEqual(kelolaAccess(akademik, 'sparta'), {
     allowed: false,
     to: '/kelola',
   });
@@ -148,8 +134,6 @@ test('back parents: no form page goes back to /kelola/live, which can forward to
   assert.equal(parentOf('/kelola/live'), '/kelola');
   assert.equal(parentOf('/kelola/live/$formId'), '/kelola');
   assert.equal(parentOf('/kelola/live/$formId/rekap'), '/kelola/live/$formId');
-  assert.equal(parentOf('/kelola/sparta'), '/kelola');
-  assert.equal(parentOf('/kelola/sparta/$submissionId'), '/kelola/sparta');
   for (const p of [
     '/kelola/live/$formId',
     '/kelola/live/$formId/rekap',
@@ -264,170 +248,4 @@ test('pageCount: 20 a page, at least one', () => {
   assert.equal(pageCount(20), 1);
   assert.equal(pageCount(21), 2);
   assert.equal(pageCount(142), 8);
-});
-
-// ---------- SPARTA ----------
-
-const db = buildDb('pengurus');
-const divisions = divisionsOf(db.internshipDepartments);
-const byId = new Map(divisions.map((d) => [d.id, d]));
-const [bima, tasya, nadiaDraft] = db.internshipSubmissions;
-const sub = (
-  id: string,
-  over: Partial<InternshipSubmission>,
-  choices: string[],
-): InternshipSubmission => ({
-  ...bima,
-  id,
-  ...over,
-  choices: choices.map((divisionId, i) => ({
-    id: `${id}-${i}`,
-    submissionId: id,
-    divisionId,
-    priorityOrder: i + 1,
-    answers: [],
-  })),
-});
-const subs = [
-  sub('a', { fullName: 'Ayu Lestari', nim: '13525001', isLocked: true }, [
-    'div-cnc',
-    'div-akademik',
-  ]),
-  sub('b', { fullName: 'Bayu Saputra', nim: '18225002', isLocked: false }, [
-    'div-akademik',
-    'div-cnc',
-    'div-welfare',
-  ]),
-  sub('c', { fullName: 'Citra Ayu', nim: '13525003', isLocked: true }, [
-    'div-welfare',
-  ]),
-];
-const ids = (list: InternshipSubmission[]) => list.map((s) => s.id);
-
-test('divisionsOf: every division with its department, in order', () => {
-  assert.deepEqual(
-    divisions.map((d) => `${d.departmentName}/${d.name}`),
-    [
-      'Welfare and Academics/Akademik',
-      'Welfare and Academics/Welfare',
-      'Competition and Community/Competition and Community',
-      'Career Development/Career Development',
-    ],
-  );
-});
-
-test('filter: division alone matches any choice of it', () => {
-  assert.deepEqual(ids(filterSubmissions(subs, { divisi: 'div-cnc' })), [
-    'a',
-    'b',
-  ]);
-});
-
-test('filter: priority alone needs a choice at that priority', () => {
-  assert.deepEqual(ids(filterSubmissions(subs, { pilihan: 2 })), ['a', 'b']);
-  assert.deepEqual(ids(filterSubmissions(subs, { pilihan: 3 })), ['b']);
-  assert.deepEqual(ids(filterSubmissions(subs, { pilihan: 4 })), []);
-});
-
-test('filter: priority and division need that division at that priority', () => {
-  assert.deepEqual(
-    ids(filterSubmissions(subs, { pilihan: 1, divisi: 'div-cnc' })),
-    ['a'],
-  );
-  assert.deepEqual(
-    ids(filterSubmissions(subs, { pilihan: 2, divisi: 'div-cnc' })),
-    ['b'],
-  );
-});
-
-test('filter: status and search (name or NIM, any case) apply on top', () => {
-  assert.deepEqual(ids(filterSubmissions(subs, { status: 'terkunci' })), [
-    'a',
-    'c',
-  ]);
-  assert.deepEqual(ids(filterSubmissions(subs, { status: 'draf' })), ['b']);
-  assert.deepEqual(ids(filterSubmissions(subs, { q: 'AYU' })), ['a', 'b', 'c']);
-  assert.deepEqual(ids(filterSubmissions(subs, { q: ' citra ' })), ['c']);
-  assert.deepEqual(ids(filterSubmissions(subs, { q: '182250' })), ['b']);
-  assert.deepEqual(
-    ids(
-      filterSubmissions(subs, {
-        q: 'ayu',
-        status: 'terkunci',
-        divisi: 'div-welfare',
-      }),
-    ),
-    ['c'],
-  );
-  assert.equal(hasFilters({}), false);
-  assert.equal(hasFilters({ q: '  ' }), false);
-  assert.equal(hasFilters({ status: 'draf' }), true);
-});
-
-test('statistics: first choice or all, per department or per division, highest first', () => {
-  assert.deepEqual(
-    spartaStats(subs, divisions, 'divisi', 'pertama').map((r) => [
-      r.label,
-      r.count,
-    ]),
-    [
-      ['Competition and Community · Competition and Community', 1],
-      ['Welfare and Academics · Akademik', 1],
-      ['Welfare and Academics · Welfare', 1],
-    ],
-  );
-  assert.deepEqual(
-    spartaStats(subs, divisions, 'departemen', 'semua').map((r) => [
-      r.label,
-      r.count,
-    ]),
-    [
-      ['Welfare and Academics', 4],
-      ['Competition and Community', 2],
-    ],
-  );
-  assert.deepEqual(
-    spartaStats(subs, divisions, 'departemen', 'pertama').map((r) => [
-      r.label,
-      r.count,
-    ]),
-    [
-      ['Welfare and Academics', 2],
-      ['Competition and Community', 1],
-    ],
-  );
-  // A division that no longer exists is left out, as today.
-  assert.deepEqual(
-    spartaStats([sub('x', {}, ['gone'])], divisions, 'divisi', 'semua'),
-    [],
-  );
-  assert.deepEqual(spartaStats([], divisions, 'divisi', 'semua'), []);
-});
-
-test('"–" for empty fields and missing priorities (a partial draft)', () => {
-  assert.equal(orDash(''), '–');
-  assert.equal(orDash('  '), '–');
-  assert.equal(orDash(null), '–');
-  assert.equal(orDash('IF K2'), 'IF K2');
-  assert.equal(nadiaDraft.choices?.length, 3);
-  assert.equal(priorityName(nadiaDraft, 1, byId), 'Akademik');
-  assert.equal(priorityName(nadiaDraft, 4, byId), '–');
-  assert.equal(priorityName(tasya, 4, byId), 'Career Development');
-  assert.equal(priorityName(sub('y', {}, ['gone']), 1, byId), '–');
-});
-
-// A search that still matches the same rows keeps the list, so its 300 rows
-// don't render again on every keystroke.
-test('sameItems: the same rows in the same order, by identity', () => {
-  const [a, b] = subs;
-  // Two searches that match the same rows: new arrays, the same items.
-  const one = filterSubmissions(subs, {});
-  const two = filterSubmissions(subs, { status: undefined });
-  assert.notEqual(one, two);
-  assert.equal(sameItems(one, two), true);
-  assert.equal(sameItems([a, b], [a, b]), true);
-  assert.equal(sameItems([], []), true);
-  assert.equal(sameItems([a, b], [b, a]), false);
-  assert.equal(sameItems([a], [a, b]), false);
-  assert.equal(sameItems([a], [{ ...a }]), false);
 });

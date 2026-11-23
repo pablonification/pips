@@ -101,11 +101,6 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
   },
   // A form's link: the form itself opens at its own page; this one shows the states a link can land on.
   '/f/$name': { title: svc('form'), parent: '/layanan/form' },
-  '/layanan/sparta': {
-    title: svc('sparta'),
-    parent: '/layanan',
-    focused: true,
-  },
   // Testi Matkul's levels: titles and the list's parent come from the URL (src/features/testi/shell.ts).
   '/layanan/testi': { title: svc('testi'), parent: '/layanan' },
   '/layanan/testi/$type': {
@@ -152,14 +147,6 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: common.shell.pratinjau,
     parent: '/kelola/form/$formId',
     focused: true,
-  },
-  '/kelola/sparta': {
-    title: svc('sparta-data'),
-    parent: '/kelola',
-  },
-  '/kelola/sparta/$submissionId': {
-    title: svc('sparta-data'),
-    parent: '/kelola/sparta',
   },
   // Welfare's Curhat inbox; a room is a focused flow, as the member's (breadcrumbs Kelola › Curhat Yuk! › room).
   '/kelola/curhat': { title: svc('curhat'), parent: '/kelola' },

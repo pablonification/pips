@@ -13,8 +13,8 @@
  * - `push`: this device's notifications, `'off'` (permission default, not subscribed), `'on'` (granted and
  *   subscribed) or `'blocked'` (denied); null (default) follows the persona: off for Nadia, on
  *   for Raka. See push.ts for the stub and its helpers (`answerPermission`, `pushDevice`).
- * - `roles`: the persona's roles for this test. A list adds roles (`roles: ['peoplemanage']`); `{ only: [...] }`
- *   replaces them (`roles: { only: ['peoplemanage'] }` is a peoplemanage-only member). Applied in the `db` fixture
+ * - `roles`: the persona's roles for this test. A list adds roles (`roles: ['curhatadmin']`); `{ only: [...] }`
+ *   replaces them (`roles: { only: ['curhatadmin'] }` is a curhatadmin-only member). Applied in the `db` fixture
  *   before the context seeds the session, so `GET /api/me` and the cached user agree. null (default) keeps them.
  * - `motion`: `'off'` (default) adds the no-motion stylesheet below; `'on'` leaves the app's own transitions, for
  *   the review recordings (pair it with `reducedMotion: 'no-preference'`).

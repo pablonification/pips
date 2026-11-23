@@ -70,7 +70,7 @@ function putFile(
 }
 
 /**
- * An upload, shared by Pengumuman's photos, Info Lomba's poster (images) and SPARTA's file answers: check the file's
+ * An upload, shared by Pengumuman's photos, Info Lomba's poster (images) and a form's file answers: check the file's
  * type and size here, ask for an upload address just before sending (it expires in 60 s), then PUT the file with
  * progress. Resolves to the file's address; rejects with `UploadRefused` when the type or size isn't allowed (here or
  * by the API), so the screen can say which.

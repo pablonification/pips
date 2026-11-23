@@ -18,20 +18,13 @@ const fromStates = (ids: string[]) =>
 
 /** States with committed references. Same shape as capture/states.ts. */
 export const VISUAL_STATES: CaptureState[] = [
-  // Live Counting and the Data SPARTA Magang table.
+  // Live Counting.
   {
     id: 'kelola-live',
     title: 'Live Counting',
     persona: 'pengurus',
     path: '/kelola/live/pixel',
     ready: (p) => p.getByRole('main').getByText('Tidak tertarik'),
-  },
-  {
-    id: 'kelola-sparta',
-    title: 'Data SPARTA Magang',
-    persona: 'pengurus',
-    path: '/kelola/sparta',
-    ready: (p) => p.getByRole('main').getByText('3 pendaftar'),
   },
   // Beranda's and Kalender's main views, the event sheet and search.
   {

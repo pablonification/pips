@@ -43,7 +43,6 @@ const ROUTES: Route[] = [
   { path: '/layanan/curhat/r1' },
   { path: '/layanan/form' },
   { path: '/layanan/form/pixel' },
-  { path: '/layanan/sparta' },
   { path: '/profil' },
   { path: '/profil/matkul' },
   { path: '/profil/matkul/tambah' },
@@ -54,8 +53,6 @@ const ROUTES: Route[] = [
   { path: '/kelola/live', persona: 'pengurus' },
   { path: '/kelola/live/pixel', persona: 'pengurus' },
   { path: '/kelola/live/pixel/rekap', persona: 'pengurus' },
-  { path: '/kelola/sparta', persona: 'pengurus' },
-  { path: '/kelola/sparta/sub-13525071', persona: 'pengurus' },
   { path: '/kelola/curhat', persona: 'pengurus', roles: ['curhatadmin'] },
   { path: '/kelola/curhat/r1', persona: 'pengurus', roles: ['curhatadmin'] },
 ];

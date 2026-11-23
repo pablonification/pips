@@ -1,11 +1,7 @@
 import { queryOptions, type QueryClient } from '@tanstack/react-query';
 import * as api from '~/api/generated/operations';
 import { FORM_QUERY_KEY, ME_QUERY_KEY } from '~/api/constants';
-import type {
-  AdminFormResponseItem,
-  InternshipSubmission,
-  UserWithRoles,
-} from '~/api/generated';
+import type { AdminFormResponseItem, UserWithRoles } from '~/api/generated';
 import {
   kelolaAccess,
   LATEST_COUNT,
@@ -95,33 +91,6 @@ export async function fetchAllResponses(
     if (responses.length < EXPORT_PAGE_SIZE) return all;
   }
 }
-
-const SUBMISSIONS_PER_PAGE = 20;
-
-/**
- * Every SPARTA submission, oldest first: offset 0, 20, 40 … until a page shorter than 20. Never `locked` or
- * `divisionId`: the API filters a division after paging (pages come back short), so filtering is on the device.
- */
-export const spartaSubmissionsQuery = () =>
-  queryOptions({
-    queryKey: ['internship', 'admin', 'submissions'],
-    queryFn: async () => {
-      const all: InternshipSubmission[] = [];
-      for (let offset = 0; ; offset += SUBMISSIONS_PER_PAGE) {
-        const { submissions } = await api.listInternshipSubmissions({
-          offset,
-        });
-        all.push(...submissions);
-        if (submissions.length < SUBMISSIONS_PER_PAGE) return all;
-      }
-    },
-  });
-
-export const spartaSubmissionByIdQuery = (id: string) =>
-  queryOptions({
-    queryKey: ['internship', 'admin', 'submission', id],
-    queryFn: () => api.getInternshipSubmissionById({ id }),
-  });
 
 /** For loaders: whether the cached member may open a Kelola page, so no admin request goes out before the guard. */
 export function mayLoad(client: QueryClient, page: KelolaPage): boolean {

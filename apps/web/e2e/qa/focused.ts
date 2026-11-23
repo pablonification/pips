@@ -6,7 +6,6 @@ export const FOCUSED_ROUTES: readonly string[] = [
   '/pengumuman/tulis',
   '/layanan/curhat/$roomId',
   '/layanan/form/$formId',
-  '/layanan/sparta',
   '/kelola/curhat/$roomId',
   '/kelola/form/$formId',
   '/kelola/form/$formId/pratinjau',
