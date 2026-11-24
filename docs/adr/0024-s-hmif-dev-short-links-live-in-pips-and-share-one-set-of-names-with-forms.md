@@ -51,9 +51,23 @@ four pairs differ only in capitals. They must keep working exactly as they are.
 - **Matching and claiming.** At every sign-in (and at the import) an unclaimed old account is attached by the
   member's student email, then by their NIM found in the old email or username; no notice. Claiming is two steps: the
   username or email and password say which links would move and return a 10-minute token, and the token moves them,
-  so the password is sent once. One bcrypt comparison always runs (a stand-in hash when no account matches), five
-  wrong passwords lock the member and the account for 15 minutes, a two-factor account needs an admin, and after
-  `SHORTLINK_CLAIM_UNTIL` the claim answers 410 and the import's `--forget-passwords` deletes the hashes.
+  so the password is sent once. A two-factor account needs an admin, and after `SHORTLINK_CLAIM_UNTIL` the claim
+  answers 410 and the import's `--forget-passwords` deletes the hashes.
+- **The claim's comparison is slow on purpose, so it is guarded** (`short-link.controller.ts`, `lib/short-link.ts`).
+  Lynx hashed at bcrypt cost 15 (about 2.4 s of CPU per comparison with `bcryptjs` on a 4-thread machine; cost 10 is
+  about 90 ms).
+  - **A wrong username takes as long as a wrong password.** One comparison always runs. When no account matches, it is
+    against a stand-in in bcrypt's form with a random salt and checksum (matches nothing, costs nothing to make) at the
+    imported hashes' most common cost (the higher on a tie), read from the database once there are hashes and kept;
+    before the import, Lynx's own 15. The import's dry run prints the costs. An account whose hash has another cost
+    answers at its own cost, so if the dry run shows a mix, a fast or slow answer hints that an account exists.
+  - **Tries count before the comparison.** Each lookup first counts one try against the member and (when one matches)
+    the old account, under row locks; any key already locked answers 429 `{ until }` without comparing. The fifth
+    counted try locks for 15 minutes; a right password gives its own try back, so earlier wrong ones still count (a
+    member who owns an old account can't use it to wipe their count). Tries sent at once can't pass five.
+  - **The CPU is bounded.** One lookup per member at a time, and at most two comparisons in the whole API
+    (`CLAIM_MAX_COMPARES`); beyond either, 429 with no `until` at once (busy, try again shortly), counting nothing. No
+    queue, so a flood costs at most two comparisons' CPU while every redirect is still answered between them.
 - **Admin's changes tell the holder** by web push (`lib/short-link.ts`, `ownerPush`), with no setting to turn it off
   and nothing else when push is off.
 - **The import** (`apps/api/scripts/short-links-import.ts`) reads `mongoexport` JSON, writes everything in one
@@ -82,9 +96,12 @@ four pairs differ only in capitals. They must keep working exactly as they are.
 - A crash loses up to five seconds of click counts.
 - Old names no browser can send (with `#`, a space at either end, `\`, `.` or `..` segments) can't open; the import's
   dry run lists them.
+- Claiming is slow (seconds per try) and, when two members claim at the same moment, a third is told to try again
+  shortly.
 - Admin's pushes have no off switch; a member with push off learns of the change only by opening Tautan pendek.
 
 ## When to revisit
 
 When claiming ends (delete the hashes; the claim routes could go), if the API ever runs as more than one process (the
-click counter and the locks assume one), or if members ask to release an older name.
+click counter, the one-lookup-per-member rule and the cap of two comparisons assume one; the try counts are in the
+database and hold across processes), or if members ask to release an older name.
