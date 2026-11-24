@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link as RouterLink, useNavigate } from '@tanstack/react-router';
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { ApiError, type ShortLinkProblem } from '~/api/generated';
 import {
   Button,
@@ -429,6 +429,11 @@ function NameEditor({ link, onDone }: { link: Link; onDone: () => void }) {
     linkId: link.id,
   });
   const empty = tried && !name;
+  // Once, when the editor opens: the name selected, ready to be typed over or moved through.
+  useEffect(() => {
+    input.current?.focus();
+    input.current?.select();
+  }, []);
 
   const save = async () => {
     if (saving) return;
@@ -470,13 +475,7 @@ function NameEditor({ link, onDone }: { link: Link; onDone: () => void }) {
           {copy.buat.namaPendek}
         </span>
         <NameInput
-          inputRef={(el) => {
-            if (el && !input.current) {
-              el.focus();
-              el.select();
-            }
-            input.current = el;
-          }}
+          inputRef={input}
           value={name}
           onChange={(v) => {
             setName(v);

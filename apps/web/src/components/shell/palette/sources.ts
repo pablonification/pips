@@ -2,8 +2,9 @@
  * What global search searches Each source is a hook that returns its
  * items in the order they should appear; `usePaletteItems` joins them, and `paletteResults` ranks and groups
  * them (src/lib/shell/palette.ts). Sources, in order:
- * - Tindakan: Buat pengumuman and Tambah mata kuliah to start; Nyalakan notifikasi while it's off on this device, and
- *   the switch to the other theme, only when the query finds them;
+ * - Tindakan: Buat pengumuman and Tambah mata kuliah to start; Nyalakan notifikasi while it's off on this device,
+ *   Buat tautan pendek, Ambil tautan lama s.hmif.dev while Tautan pendek last said claiming is open, and the switch to
+ *   the other theme, only when the query finds them;
  * - Layanan: the service registry, the pinned ones as "Pintasan" to start, without a member row a Kelola row
  *   replaces (`searchableServices`: Welfare finds Curhat Yuk! once, as the inbox);
  * - Pengumuman: `GET /info?search=` from 3 characters;
@@ -12,13 +13,19 @@
  * - Orang: `GET /user/nim?search=` from 3 characters, opening NIM Finder with the name.
  * The two API sources wait for typing to pause, join when they answer, and are left out if they fail.
  */
-import { useQuery } from '@tanstack/react-query';
+import {
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
 import * as api from '~/api/generated/operations';
+import type { ShortLinkList } from '~/api/generated';
 import { INFO_LIST_QUERY_KEY } from '~/api/constants';
 import { openPushPrompt, usePushState } from '~/components/push';
 import { cari } from '~/copy/cari';
+import { tautan } from '~/copy/tautan';
 import { common } from '~/copy/common';
 import {
   asksApi,
@@ -32,6 +39,7 @@ import {
 } from '~/features/cari/rules';
 import { useCourses, useMonthsEvents } from '~/features/kalender/data';
 import { useOpenEvent } from '~/features/kalender/open';
+import { shortLinkKeys } from '~/features/tautan/queries';
 import { evLabel } from '~/features/kalender/rules';
 import useSession from '~/hooks/auth/useSession';
 import { rel } from '~/lib/dates';
@@ -78,6 +86,11 @@ function useServiceItems(): PaletteItem[] {
 
 function useActionItems(): PaletteItem[] {
   const navigate = useNavigate();
+  const client = useQueryClient();
+  // Taking old s.hmif.dev links is offered while the window is open, as Tautan pendek last said.
+  const claimOpen = !!client.getQueryData<InfiniteData<ShortLinkList>>(
+    shortLinkKeys.mine('', 'new'),
+  )?.pages[0]?.claim.open;
   const push = usePushState();
   const { theme, setPreference } = useTheme();
   const pushOff =
@@ -119,6 +132,26 @@ function useActionItems(): PaletteItem[] {
         run: () => void openPushPrompt(),
       });
     items.push({
+      id: 'tindakan:buat-tautan',
+      group: common.palette.tindakan,
+      label: tautan.cariAksi.buat.label,
+      icon: 'pendek',
+      hint: tautan.judul,
+      keywords: tautan.cariAksi.buat.kata,
+      run: () =>
+        void navigate({ to: '/layanan/tautan', search: { buat: 'tautan' } }),
+    });
+    if (claimOpen)
+      items.push({
+        id: 'tindakan:ambil-tautan',
+        group: common.palette.tindakan,
+        label: tautan.cariAksi.ambil.label,
+        icon: 'ambil',
+        hint: tautan.judul,
+        keywords: tautan.cariAksi.ambil.kata,
+        run: () => void navigate({ to: '/layanan/tautan/ambil' }),
+      });
+    items.push({
       id: 'tindakan:tema',
       group: common.palette.tindakan,
       label: dark ? common.palette.keTerang : common.palette.keGelap,
@@ -128,7 +161,7 @@ function useActionItems(): PaletteItem[] {
       run: () => setPreference(dark ? 'light' : 'dark'),
     });
     return items;
-  }, [navigate, pushOff, theme, setPreference]);
+  }, [navigate, pushOff, theme, setPreference, claimOpen]);
 }
 
 /** The query once typing has paused. */

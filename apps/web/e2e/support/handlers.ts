@@ -41,6 +41,7 @@ import {
   viewOnly,
 } from './forms';
 import { reply, type Handler } from './mock';
+import { shortLinkHolder, shortLinkReads } from './short-links';
 
 /** A link preview's image as the API passes it on: a real PNG, so the card draws it. */
 const PREVIEW_IMAGE = readFileSync(
@@ -110,6 +111,8 @@ function listInfos(infos: Info[], q: URLSearchParams): Info[] {
 }
 
 export const defaultHandlers: Record<string, Handler> = {
+  // Tautan pendek (support/short-links.ts).
+  ...shortLinkReads,
   // Session and profile
   'GET /api/me': signedIn(({ db }) => ok<R<typeof api.getMe>>(db.me!)),
   'GET /api/user/academic': signedIn(({ db }) =>
@@ -503,18 +506,17 @@ export const defaultHandlers: Record<string, Handler> = {
     if (!found) return formNotFound();
     if (!found.access.canEdit) return viewOnly();
     const slug = tidySlug(query.get('slug') ?? '');
-    // Compared without capitals, as the API's names are.
-    const holder = db.formStore.find(
-      (f) =>
-        f.slug.toLowerCase() === slug.toLowerCase() && f.id !== params.formId,
-    );
-    const problem = slugProblem(slug) ?? (holder ? ('taken' as const) : null);
+    // Forms and short links share one set of names, compared without capitals, as the API's are.
+    const held = slugProblem(slug)
+      ? null
+      : shortLinkHolder(db, slug, `form-${params.formId}`);
+    const problem = slugProblem(slug) ?? held?.problem ?? null;
     return ok<R<typeof api.checkFormSlug>>({
       slug,
       available: problem === null,
       problem,
-      heldAs: problem === 'taken' && holder ? holder.slug : null,
-      heldBy: problem === 'taken' ? 'form' : null,
+      heldAs: (held && 'heldAs' in held && held.heldAs) || null,
+      heldBy: (held && 'heldBy' in held && held.heldBy) || null,
     });
   }),
   'GET /api/form/:formId/answers/summary': pengurus(({ db, params }) => {

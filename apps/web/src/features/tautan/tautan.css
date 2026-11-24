@@ -440,8 +440,19 @@
   .sl-give-res .t-cap {
     flex: none;
   }
+  /* "Juga 2 tautan lain dari akun lama …": a quiet choice, the whole line its target. */
   .sl-all {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     min-height: 44px;
+    font-size: 13px;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+  .sl-all input {
+    margin: 0;
+    accent-color: var(--text);
   }
 
   /* ---- s.hmif.dev/<no such name>: no app around it ---- */
@@ -524,7 +535,7 @@
 
   /* ---- Desktop ---- */
   @media (min-width: 1024px) {
-    .sl-wrap {
+    .g-body.sl-wrap {
       max-width: 980px;
       display: grid;
       gap: 6px;

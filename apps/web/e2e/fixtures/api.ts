@@ -63,6 +63,14 @@ import {
   type ReactionKey,
 } from './prototype';
 import { sampleDetails, sampleForms, type StoredForm } from './forms';
+import {
+  CLAIM_UNTIL,
+  sampleGoneNames,
+  sampleOldAccounts,
+  sampleShortLinks,
+  type OldAccount,
+  type StoredShortLink,
+} from './short-links';
 
 export { NOW, PERSONAS, type PersonaKey };
 export { MEDIA_STORE, type StoredForm } from './forms';
@@ -687,6 +695,21 @@ export interface Db {
   oauthRequests: Record<string, OAuthRequest>;
   /** Profil › Aplikasi terhubung. */
   connectedApps: ConnectedApp[];
+  /** Tautan pendek: every s.hmif.dev link (fixtures/short-links.ts), forms' links aside (they come from `formStore`). */
+  shortLinks: StoredShortLink[];
+  /** Deleted names, without capitals: never given out again. */
+  shortLinkGone: string[];
+  /** Old s.hmif.dev accounts, by login, for claiming. */
+  oldAccounts: Record<string, OldAccount>;
+  /** Wrong passwords in a row (five lock the claim for 15 minutes). */
+  claimTries: number;
+  /** Whether old accounts can still be claimed, and until when. */
+  shortLinkClaim: { open: boolean; until: string | null };
+  /** What a link's last holder reads after an admin moved or deleted it, by link id. */
+  shortLinkLandings: Record<
+    string,
+    { state: 'moved' | 'deleted'; name: string; movedTo: string | null }
+  >;
   /** The push subscriptions the API holds for this member (`POST /api/push/register`); none at first. */
   pushSubscriptions: Array<{
     endpoint: string;
@@ -831,6 +854,12 @@ export function buildDb(
     oauthRequests: persona ? { ...oauthRequests } : {},
     connectedApps: persona ? [...connectedApps] : [],
     pushSubscriptions: [],
+    shortLinks: persona ? sampleShortLinks() : [],
+    shortLinkGone: sampleGoneNames(),
+    oldAccounts: sampleOldAccounts(),
+    claimTries: 0,
+    shortLinkClaim: { open: true, until: CLAIM_UNTIL },
+    shortLinkLandings: {},
   };
   return structuredClone(db);
 }

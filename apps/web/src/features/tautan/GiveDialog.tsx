@@ -3,7 +3,6 @@ import { useState } from 'react';
 import {
   Avatar,
   Button,
-  Checkbox,
   Modal,
   RowButton,
   RuledList,
@@ -167,16 +166,17 @@ export function GiveDialog({
         </p>
       ) : null}
       {others > 0 && link.oldAccount ? (
-        <Checkbox
-          className="sl-all"
-          checked={all}
-          onChange={(e) => setAll(e.target.checked)}
-        >
+        <label className="sl-all">
+          <input
+            type="checkbox"
+            checked={all}
+            onChange={(e) => setAll(e.target.checked)}
+          />
           {fill(g.jugaLainnya, {
             jumlah: others,
             akun: link.oldAccount.username,
           })}
-        </Checkbox>
+        </label>
       ) : null}
     </Modal>
   );

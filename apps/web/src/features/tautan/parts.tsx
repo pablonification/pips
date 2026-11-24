@@ -215,7 +215,7 @@ export function LinkRow({
               </span>
             )}
             {a ? (
-              <span className="sl-own block t-cap">
+              <span className="sl-own t-cap">
                 {a.owner ? (
                   <span className="text-fg-2">{a.owner.fullName}</span>
                 ) : (
