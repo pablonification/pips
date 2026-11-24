@@ -16,7 +16,7 @@ import { IconSalin } from '~/components/icons/salin';
 import { IconTautan } from '~/components/icons/tautan';
 import { kelolaForm as copy } from '~/copy/kelola-form';
 import { cn } from '~/lib/utils';
-import { LINK_HOST, linkOf } from './rules';
+import { SHORT_HOST as LINK_HOST, shortUrl as linkOf } from '~/lib/short-name';
 
 /** A form's state for whoever manages it: icon, word and colour. */
 export function MakerStatus({ status }: { status: FormManageStatus }) {

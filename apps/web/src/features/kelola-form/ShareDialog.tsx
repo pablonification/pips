@@ -51,15 +51,16 @@ import {
   searchPeople,
   setAccess,
 } from './queries';
+import { audienceLabel, whenShort } from './rules';
+import { namaPendek } from '~/copy/nama-pendek';
 import {
-  audienceLabel,
-  LINK_HOST,
-  linkOf,
-  slugProblem,
-  tidySlug,
-  whenShort,
-  type SlugProblem,
-} from './rules';
+  SHORT_HOST as LINK_HOST,
+  nameMessage,
+  nameProblem as slugProblem,
+  shortUrl as linkOf,
+  tidyName as tidySlug,
+  type NameRefusal,
+} from '~/lib/short-name';
 
 /**
  * Bagikan, in two parts named for who each is for: "Tautan untuk anggota" (the form's address, Ubah, Salin tautan,
@@ -108,6 +109,7 @@ export function LinkPart({
   const angkatan = useQuery(angkatanQuery());
   const editBtn = useRef<HTMLButtonElement>(null);
   const canShare = typeof navigator !== 'undefined' && 'share' in navigator;
+  // A published form also opens at its app.hmif.dev/f/ address and at its older names.
   const notes = [
     !form.publishedAt
       ? copy.tautan.setelahTerbit
@@ -116,6 +118,7 @@ export function LinkPart({
             angkatan: audienceLabel(form.eligibleAngkatan, angkatan.data, true),
           })
         : '',
+    form.publishedAt ? copy.tautan.lamaTetap : '',
   ].filter(Boolean);
   return (
     <section className="fb-lk" aria-labelledby="fb-lk-t">
@@ -182,7 +185,7 @@ export function ShareSheetButton({
   );
 }
 
-type Status = { ok: boolean; problem: SlugProblem | null; checking: boolean };
+type Status = { ok: boolean; refusal: NameRefusal | null; checking: boolean };
 
 function SlugEditor({
   form,
@@ -199,7 +202,7 @@ function SlugEditor({
   const slug = watch('slug');
   const [status, setStatus] = useState<Status>({
     ok: true,
-    problem: null,
+    refusal: null,
     checking: false,
   });
   const [tried, setTried] = useState(false);
@@ -209,21 +212,32 @@ function SlugEditor({
   // The local rules at once; whether another form holds it about 300 ms after the last key.
   useEffect(() => {
     if (slug === form.slug)
-      return setStatus({ ok: true, problem: null, checking: false });
+      return setStatus({ ok: true, refusal: null, checking: false });
     const local = slugProblem(slug);
-    if (local) return setStatus({ ok: false, problem: local, checking: false });
-    setStatus({ ok: false, problem: null, checking: true });
+    if (local)
+      return setStatus({
+        ok: false,
+        refusal: { problem: local },
+        checking: false,
+      });
+    setStatus({ ok: false, refusal: null, checking: true });
     const t = setTimeout(() => {
       checkSlug(form.id, slug)
         .then((r) => {
           if (r.slug === slug)
             setStatus({
               ok: r.available,
-              problem: r.available ? null : (r.problem ?? 'taken'),
+              refusal: r.available
+                ? null
+                : {
+                    problem: r.problem ?? 'taken',
+                    heldAs: r.heldAs,
+                    heldBy: r.heldBy,
+                  },
               checking: false,
             });
         })
-        .catch(() => setStatus({ ok: true, problem: null, checking: false }));
+        .catch(() => setStatus({ ok: true, refusal: null, checking: false }));
     }, 300);
     return () => clearTimeout(t);
   }, [slug, form.id, form.slug]);
@@ -244,9 +258,10 @@ function SlugEditor({
   const save = handleSubmit(async ({ slug: v }) => {
     if (v === form.slug) return onDone();
     const local = slugProblem(v);
-    if (local || status.problem) {
+    if (local || status.refusal) {
       setTried(true);
-      if (local) setStatus({ ok: false, problem: local, checking: false });
+      if (local)
+        setStatus({ ok: false, refusal: { problem: local }, checking: false });
       setFocus('slug');
       return;
     }
@@ -259,12 +274,12 @@ function SlugEditor({
       );
       onDone();
     } catch (e) {
-      const problem =
-        e instanceof ApiError
-          ? (e.body?.problem as SlugProblem | undefined)
+      const refusal =
+        e instanceof ApiError && e.body?.problem
+          ? (e.body as NameRefusal)
           : undefined;
-      if (problem) {
-        setStatus({ ok: false, problem, checking: false });
+      if (refusal) {
+        setStatus({ ok: false, refusal, checking: false });
         setTried(true);
         setFocus('slug');
       } else toast.error(copy.tautan.gagal);
@@ -272,7 +287,7 @@ function SlugEditor({
       setSaving(false);
     }
   });
-  const bad = tried && !!status.problem;
+  const bad = tried && !!status.refusal;
   return (
     <div className="fb-lk-edit">
       <label className="fb-lk-field">
@@ -282,12 +297,11 @@ function SlugEditor({
         <input
           className="fb-lf"
           type="text"
-          maxLength={40}
           autoComplete="off"
           autoCapitalize="none"
           spellCheck={false}
           aria-labelledby="fb-lk-t fb-lk-pre"
-          aria-describedby="fb-lk-st fb-lk-h"
+          aria-describedby={form.publishedAt ? 'fb-lk-st fb-lk-h' : 'fb-lk-st'}
           aria-invalid={bad || undefined}
           data-own-escape=""
           {...field}
@@ -303,23 +317,24 @@ function SlugEditor({
       </label>
       <p className="fb-lk-st" id="fb-lk-st" role="status">
         {status.checking ? (
-          <span className="wait">{copy.tautan.memeriksa}</span>
-        ) : status.problem ? (
+          <span className="wait">{namaPendek.memeriksa}</span>
+        ) : status.refusal ? (
           <span className="no">
             <IconPeringatan size={16} />
-            {copy.tautan.masalah[status.problem]}
+            {nameMessage(status.refusal, slug)}
           </span>
         ) : slug !== form.slug && status.ok ? (
           <span className="ok">
             <IconCentang size={16} />
-            {copy.tautan.tersedia}
+            {namaPendek.tersedia}
           </span>
         ) : null}
       </p>
-      <p className="t-cap text-fg-3" id="fb-lk-h">
-        {copy.tautan.aturan}
-        {form.publishedAt ? ` ${copy.tautan.lamaBerhenti}` : ''}
-      </p>
+      {form.publishedAt ? (
+        <p className="t-cap text-fg-3" id="fb-lk-h">
+          {copy.tautan.lamaTetap}
+        </p>
+      ) : null}
       <div className="fb-acts">
         <Button
           variant="gold"
