@@ -88,6 +88,16 @@ test('the OpenAPI document lists the API and is the same whenever it is generate
   );
 });
 
+test('search engines keep out: robots.txt disallows everything, and every answer says noindex', async () => {
+  const robots = await app.request('/robots.txt');
+  assert.equal(robots.status, 200);
+  assert.equal(await robots.text(), 'User-agent: *\nDisallow: /\n');
+  for (const path of ['/', '/robots.txt', '/api/me', '/api/nothing-here']) {
+    const res = await app.request(path);
+    assert.equal(res.headers.get('x-robots-tag'), 'noindex, nofollow', path);
+  }
+});
+
 test('/health: 200 while the database answers, 503 when it fails or hangs', async () => {
   const { createApp } = await import('../src/app');
   const up = createApp({ checkDatabase: async () => [{ '?column?': 1 }] });
