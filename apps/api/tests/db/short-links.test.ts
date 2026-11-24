@@ -38,6 +38,7 @@ let formRepo: typeof import('../../src/repositories/form.repo');
 let lib: typeof import('../../src/lib/short-link');
 let importer: typeof import('../../scripts/short-links-import');
 let eq: typeof import('drizzle-orm').eq;
+let inArray: typeof import('drizzle-orm').inArray;
 let postgresError: typeof import('../../src/lib/database-error').postgresError;
 
 const USERS = [
@@ -72,7 +73,7 @@ before(async () => {
   formRepo = await import('../../src/repositories/form.repo');
   lib = await import('../../src/lib/short-link');
   importer = await import('../../scripts/short-links-import');
-  ({ eq } = await import('drizzle-orm'));
+  ({ eq, inArray } = await import('drizzle-orm'));
   ({ postgresError } = await import('../../src/lib/database-error'));
   client = postgres(testUrl, { max: 6, onnotice: () => {} });
   db = drizzle(client, { schema });
@@ -260,7 +261,8 @@ test('forms share the names: a draft’s name follows it, a published form keeps
     publishedAt: null,
     isActive: false,
   });
-  const linkId = await repo.formLinkId(db, 'sl-form-draft');
+  const [{ id: linkId }] =
+    await client`select id from short_links where form_id = 'sl-form-draft'`;
   assert.ok(linkId);
   assert.deepEqual(await repo.nameHolder(db, 'SL-DRAF-FORM'), {
     held: 'taken',
@@ -503,6 +505,13 @@ test('claiming: one member wins a race, every unheld link moves, and matching go
   );
 });
 
+/** The claim's lock rows for these keys. */
+const claimLocks = async (keys: string[]) =>
+  await db
+    .select()
+    .from(schema.shortLinkClaimLocks)
+    .where(inArray(schema.shortLinkClaimLocks.key, keys));
+
 test('claim tries count before the comparison under row locks: of eight at once, exactly five pass', async () => {
   const at = new Date('2026-12-02T03:00:00Z');
   const keys = ['user:sl-nadia', 'account:sl-x'];
@@ -517,17 +526,17 @@ test('claim tries count before the comparison under row locks: of eight at once,
   for (const r of results)
     if ('locked' in r)
       assert.equal(r.locked.toISOString(), '2026-12-02T03:15:00.000Z');
-  const [account] = await repo.getClaimLocks(db, ['account:sl-x']);
+  const [account] = await claimLocks(['account:sl-x']);
   assert.equal(account.tries, 5);
   assert.equal(account.lockedUntil?.toISOString(), '2026-12-02T03:15:00.000Z');
   // A right password gives its try back: four still counted, and no lock.
   await repo.giveBackClaimTry(db, ['account:sl-x']);
-  const [back] = await repo.getClaimLocks(db, ['account:sl-x']);
+  const [back] = await claimLocks(['account:sl-x']);
   assert.equal(back.tries, 4);
   assert.equal(back.lockedUntil, null);
   // Given back to nothing, the rows go.
   for (let i = 0; i < 4; i++) await repo.giveBackClaimTry(db, keys);
-  assert.equal((await repo.getClaimLocks(db, keys)).length, 0);
+  assert.equal((await claimLocks(keys)).length, 0);
 });
 
 test('an unknown login is compared at the old accounts’ most common hash cost', async () => {

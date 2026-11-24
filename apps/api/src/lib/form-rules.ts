@@ -15,13 +15,7 @@ import {
   type FormSection,
   type QuestionType,
 } from './form-model';
-import {
-  NAME_MAX,
-  NAME_MIN,
-  nameProblem,
-  tidyName,
-  type NameProblem,
-} from './short-link';
+import { NAME_MAX, NAME_MIN, nameProblem, tidyName } from './short-link';
 
 const has = (s: string | undefined) => !!s && s.trim() !== '';
 
@@ -198,8 +192,6 @@ export function dropLostAnswers(
 
 export const SLUG_MIN = NAME_MIN;
 export const SLUG_MAX = NAME_MAX;
-
-export type SlugProblem = NameProblem;
 
 /** Spaces become hyphens, as the field does while typing; capitals stay. */
 export const tidySlug = tidyName;

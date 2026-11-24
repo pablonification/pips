@@ -147,15 +147,6 @@ export async function formNameTaken(
   return (await nameHolder(db, name, { formId: exceptFormId })) !== null;
 }
 
-/** The link of form `formId`, if it has one. */
-export async function formLinkId(db: Database, formId: string) {
-  const [row] = await db
-    .select({ id: shortLinks.id })
-    .from(shortLinks)
-    .where(eq(shortLinks.formId, formId));
-  return row?.id ?? null;
-}
-
 /** The form a name opens: its current name or an older one, exactly first, then the one match without capitals. */
 export async function formIdByName(db: Database, name: string) {
   const rows = await db
@@ -674,25 +665,7 @@ export async function matchMemberAccounts(
   return moved;
 }
 
-/** Old accounts' password hashes, gone for good once claiming has ended. Returns how many were deleted. */
-export async function forgetAccountPasswords(db: Database) {
-  const rows = await db
-    .update(shortLinkAccounts)
-    .set({ passwordHash: null, updatedAt: new Date() })
-    .where(isNotNull(shortLinkAccounts.passwordHash))
-    .returning({ id: shortLinkAccounts.id });
-  return rows.length;
-}
-
 // The claim's locks.
-
-export async function getClaimLocks(db: Database, keys: string[]) {
-  if (keys.length === 0) return [];
-  return await db
-    .select()
-    .from(shortLinkClaimLocks)
-    .where(inArray(shortLinkClaimLocks.key, keys));
-}
 
 /**
  * Counts one try against every key before its password is compared, under row locks taken in one order, so tries
