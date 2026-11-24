@@ -194,7 +194,6 @@ test('…and lets good copy through', () => {
     'Form untuk angkatan PIXEL, 13 SKS, 15.00 WIB',
     'Ke Beranda',
     'Live Counting & Rekap Form',
-    'Data SPARTA Magang',
     'Google Calendar',
     'Halo, Pips!',
   ]) {

@@ -85,14 +85,6 @@ export const rekapSearchSchema = object({
     typeof v === 'number' && Number.isInteger(v) && v >= 1 ? v : INVALID,
 });
 
-/** Data SPARTA Magang: the search and every filter, so reload, Back and a shared link keep them. */
-export const spartaDataSearchSchema = object({
-  q: string,
-  divisi: nonEmpty,
-  pilihan: literal(1, 2, 3, 4),
-  status: literal('terkunci', 'draf'),
-});
-
 /**
  * Curhat Yuk!'s inbox for Welfare: the search (`q`; a number is kept as its text, as `querySearchSchema`) and
  * the Belum dibaca toggle (`unread`, the name Pengumuman uses).

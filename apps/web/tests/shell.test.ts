@@ -84,8 +84,8 @@ test('document titles: the live page is "Live Counting & Rekap Form" in the brow
   assert.equal(documentTitleOf('/kelola/live'), 'Live Counting');
   assert.equal(documentTitleOf('/profil/matkul'), 'Mata kuliahku');
   assert.equal(
-    documentTitleOf('/kelola/sparta/$submissionId', {}, 'Bima Santoso'),
-    'Bima Santoso',
+    documentTitleOf('/kelola/curhat/$roomId', {}, 'Teal Koala'),
+    'Teal Koala',
   );
   assert.equal(documentTitleOf(null), 'PIPS!');
   for (const p of PATHS)
@@ -93,7 +93,7 @@ test('document titles: the live page is "Live Counting & Rekap Form" in the brow
       assert.equal(documentTitleOf(p, { id: 'x' }), titleOf(p, { id: 'x' }), p);
 });
 
-test('focused flows are the form, the composer, a Curhat room and Magang SPARTA, first run, connecting an app, and the form builder', () => {
+test('focused flows are the form, the composer, a Curhat room, first run, connecting an app, and the form builder', () => {
   assert.deepEqual(PATHS.filter((p) => ROUTE_META[p].focused).sort(), [
     // An app connecting through MCP asks the member, then the browser leaves for the app.
     '/hubungkan',
@@ -104,7 +104,6 @@ test('focused flows are the form, the composer, a Curhat room and Magang SPARTA,
     '/kelola/form/$formId/pratinjau',
     '/layanan/curhat/$roomId',
     '/layanan/form/$formId',
-    '/layanan/sparta',
     // First run: a one-off checklist that ends on Beranda, with its own two ways out.
     '/mulai',
     '/pengumuman/tulis',

@@ -53,7 +53,6 @@ export const ROUTES = {
   '/layanan/form/$formId': { url: '/layanan/form/pixel', as: [NADIA] },
   // Raka (admin) may manage it: Kelola form ini beside the way to his own forms.
   '/f/$name': { url: '/f/rencana-ta-2023', as: BOTH },
-  '/layanan/sparta': { url: '/layanan/sparta', as: BOTH },
   '/layanan/testi': { url: '/layanan/testi', as: [NADIA] },
   '/layanan/testi/$type': {
     url: '/layanan/testi/teknik-informatika',
@@ -77,11 +76,6 @@ export const ROUTES = {
   '/kelola/live': { url: '/kelola/live', as: [RAKA] },
   '/kelola/live/$formId': { url: '/kelola/live/pixel', as: [RAKA] },
   '/kelola/live/$formId/rekap': { url: '/kelola/live/pixel/rekap', as: [RAKA] },
-  '/kelola/sparta': { url: '/kelola/sparta', as: [RAKA] },
-  '/kelola/sparta/$submissionId': {
-    url: '/kelola/sparta/sub-13525071',
-    as: [RAKA],
-  },
   '/kelola/curhat': { url: '/kelola/curhat', as: [WELFARE] },
   '/kelola/curhat/$roomId': { url: '/kelola/curhat/r1', as: [WELFARE] },
   '/profil': { url: '/profil', as: BOTH },

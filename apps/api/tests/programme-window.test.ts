@@ -41,7 +41,7 @@ test('no closing time stays open; no opening time is already open; switched off 
     windowStatus({ opensAt, closesAt, isActive: false }, 0),
     'closed',
   );
-  // isActive left out means active (SPARTA's window has no switch).
+  // isActive left out means active.
   assert.equal(
     windowStatus({ opensAt: null, closesAt }, ms(closesAt)),
     'closed',
@@ -98,7 +98,7 @@ test('a window is open for a member when it is open now and they are eligible', 
 
 test('a route is an app path or an https address', () => {
   for (const ok of [
-    '/layanan/sparta',
+    '/layanan/lomba',
     '/',
     '/kalender?hari=2026-10-08',
     'https://hmif.dev/pemilu',
@@ -106,7 +106,7 @@ test('a route is an app path or an https address', () => {
     assert.equal(isValidWindowRoute(ok), true, ok);
   for (const bad of [
     '',
-    'layanan/sparta',
+    'layanan/lomba',
     '//evil.com',
     '/\\evil.com',
     'http://hmif.dev',
@@ -123,8 +123,8 @@ test('a route with a control character is refused', () => {
     '/\t/evil.com',
     '/\n/evil.com',
     '/\r/evil.com',
-    '/layanan\u0000/sparta',
-    '/layanan/sparta\u007f',
+    '/layanan\u0000/lomba',
+    '/layanan/lomba\u007f',
     'https://hmif.dev/\n',
   ])
     assert.equal(isValidWindowRoute(bad), false, JSON.stringify(bad));

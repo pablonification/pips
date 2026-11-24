@@ -33,12 +33,10 @@ division role `welfare`. Code: `CURHAT_ADMIN_ROLE` in `apps/api/src/lib/curhat.t
 
 **role** — A string in `user_roles` (the list is `rolesEnums` in `apps/api/src/db/roles-group.ts`). Most roles name a
 division and give no special rights. These do:
-- `admin`: delete others' announcements and comments, edit the course catalogue, run Live Counting and Rekap Form,
-  read Data SPARTA Magang.
+- `admin`: delete others' announcements and comments, edit the course catalogue, run Live Counting and Rekap Form.
 - `akademik`: add Akademik events and testimonials, edit the course catalogue.
 - `ring1`: add Himpunan events and send a push to everyone.
 - `cnc`: add, change and delete competitions in Info Lomba.
-- `peoplemanage`: read Data SPARTA Magang.
 - `curhatadmin`: read and answer every Curhat room.
 A category can also list the roles allowed to post in it (`categories.roles_allowed`).
 
@@ -100,9 +98,6 @@ health, birth date, Foto KTM, Foto diri. Given once, sent with a form only when 
 agrees. Account facts (name, NIM, program studi, angkatan, kampus, student email) come from `users` and are never
 typed. Code: `SavedDetails`, `/api/user/details`.
 
-**Magang SPARTA** — The internship division choice for angkatan 2025 (plus a few approved exceptions), with a
-closing date. **Data SPARTA Magang** is the admin's table of the submissions. Code: `internship_*`.
-
 **Beasiswa, LowonginAja!, Bayar Kas!, Surat & Proposal** — Links to outside pages, opened in a new tab: registry
 entries with `kind: 'external'`.
 
@@ -111,8 +106,8 @@ MCP, after approving it on the consent page `/hubungkan`, either to read only (H
 things (Baca dan ubah). Profil lists them at `/profil/aplikasi` with which of the two each may do, and each can be
 revoked. Code: `oauth_clients`, `oauth_tokens`, `/api/oauth/apps`.
 
-**Kelola** — The area for pengurus, shown only to roles that may do something in it (Live Counting, Data SPARTA
-Magang, adding events, competitions and testimonials, the Curhat inbox). Paths under `/kelola`.
+**Kelola** — The area for pengurus, shown only to roles that may do something in it (Live Counting, adding events,
+competitions and testimonials, the Curhat inbox). Paths under `/kelola`.
 _Avoid_: "Admin Dashboard".
 
 ## The code's own words
@@ -145,8 +140,12 @@ same checks apply; Curhat Yuk! is never a tool (`apps/api/src/mcp/tools.ts`, dec
 
 **programme window** — A period in which something is open to chosen people: a row of `programme_windows` with a
 label, a route, an open and close time and the eligible angkatan or NIMs, served by `GET /programme-windows`. Forms
-and Magang SPARTA use the same window rule (`apps/api/src/lib/programme-window.ts`). The web app does not read the
+use the same window rule (`apps/api/src/lib/programme-window.ts`). The web app does not read the
 route yet.
+
+**`internship_*` tables** — What Magang SPARTA, the internship division choice, left in the database. The feature
+(screens, API routes, MCP tools) was removed on 2026-11-23, but the tables and their data stay, and nothing reads or
+writes them. Do not drop them in a migration without the owner's word.
 
 **journey** — A browser test of what a member does, step by step (`apps/web/e2e/journeys/`). Each runs at phone,
 tablet and desktop size in light and dark: six **projects** (`apps/web/e2e/playwright.config.ts`).

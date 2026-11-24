@@ -26,9 +26,10 @@ const REDIRECTS: Array<[from: string, to: string]> = [
   ['/home/curhat', '/layanan/curhat'],
   ['/home/form', '/layanan/form'],
   ['/home/form/pixel', '/layanan/form/pixel'],
-  ['/home/internship', '/layanan/sparta'],
-  ['/home/internship/admin', '/kelola/sparta'],
-  ['/home/internship/admin/sub-13525071', '/kelola/sparta/sub-13525071'],
+  // Magang SPARTA is gone: its old addresses land on Layanan and Kelola.
+  ['/home/internship', '/layanan'],
+  ['/home/internship/admin', '/kelola'],
+  ['/home/internship/admin/sub-13525071', '/kelola'],
   ['/home/admin', '/kelola'],
   // /kelola/live forwards to the only active form (replace), so the old link lands on its live page.
   ['/home/admin/forms', '/kelola/live/pixel'],

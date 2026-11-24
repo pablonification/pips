@@ -82,16 +82,16 @@ test('relative, protocol-relative and look-alike addresses never link', () => {
 
 test("with the app's storage known, only files under it link", () => {
   assert.equal(
-    fileHref('https://media.hmif.dev/sparta/cv.pdf', STORAGE),
-    'https://media.hmif.dev/sparta/cv.pdf',
+    fileHref('https://media.hmif.dev/form/cv.pdf', STORAGE),
+    'https://media.hmif.dev/form/cv.pdf',
   );
   assert.equal(
-    fileHref('HTTPS://MEDIA.HMIF.DEV/sparta/cv.pdf', STORAGE),
-    'https://media.hmif.dev/sparta/cv.pdf',
+    fileHref('HTTPS://MEDIA.HMIF.DEV/form/cv.pdf', STORAGE),
+    'https://media.hmif.dev/form/cv.pdf',
   );
   for (const answer of [
     'https://files.hmif.dev/cv.pdf',
-    'http://media.hmif.dev/sparta/cv.pdf', // another origin: http, not https
+    'http://media.hmif.dev/form/cv.pdf', // another origin: http, not https
     'https://media.hmif.dev:8443/cv.pdf',
     'https://media.hmif.dev.evil.example/cv.pdf',
     'https://evilmedia.hmif.dev/cv.pdf',

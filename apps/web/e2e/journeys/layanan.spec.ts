@@ -130,20 +130,6 @@ test.describe('Nadia', () => {
     );
     await expect(row(page, /^Form/)).not.toContainText('belum diisi');
   });
-
-  test.describe('before Magang SPARTA closed', () => {
-    test.use({ now: '2026-08-20T09:00:00+07:00' });
-    test('it shows in Kesempatan; under today’s date it is hidden', async ({
-      page,
-    }) => {
-      await page.goto('/layanan');
-      await expect.poll(() => rowNames(page)).toContain('Magang SPARTA');
-      await expect(row(page, /^Magang SPARTA/)).toHaveAttribute(
-        'href',
-        '/layanan/sparta',
-      );
-    });
-  });
 });
 
 test('one h1 in the page at every layout, none hidden by CSS', async ({
@@ -157,7 +143,7 @@ test('one h1 in the page at every layout, none hidden by CSS', async ({
 test.describe('Raka', () => {
   test.use({ persona: 'pengurus', push: 'on' });
 
-  test('Kelola last, with his three tools', async ({ page }, testInfo) => {
+  test('Kelola last, with his tools', async ({ page }, testInfo) => {
     await page.goto('/layanan');
     await expect
       .poll(() => groupTitles(page))
@@ -168,26 +154,18 @@ test.describe('Raka', () => {
         'Administrasi',
         'Kelola',
       ]);
-    expect((await rowNames(page)).slice(-3)).toEqual([
+    expect((await rowNames(page)).slice(-2)).toEqual([
       'Live Counting & Rekap Form',
-      'Data SPARTA Magang',
       'Tambah acara Akademik',
     ]);
     await expect(row(page, /^Live Counting/)).toHaveAttribute(
       'href',
       '/kelola/live',
     );
-    await expect(row(page, /^Data SPARTA Magang/)).toHaveAttribute(
-      'href',
-      '/kelola/sparta',
-    );
     // /kelola/acara forwards to the add-event dialog over Kalender (/kalender?tambah=acara; manage-events.spec.ts).
     await expect(row(page, /^Tambah acara Akademik/)).toHaveAttribute(
       'href',
       '/kelola/acara',
-    );
-    await expect(row(page, /^Data SPARTA Magang/)).toContainText(
-      'Pilihan divisi magang angkatan 2025 · ditutup 23 Agu 2026',
     );
     await strictGates(page, testInfo, 'layanan-raka', 'Layanan');
   });

@@ -1021,7 +1021,7 @@ test.describe('the member card under reduced motion', () => {
 
 // A page change must not put the device's old copy of the member's semester back into the
 // cache as if fresh, or Profil shows it instead of the server's. It must not redraw every screen
-// that reads it either, or each letter typed in Data SPARTA Magang's search stalls a slow phone.
+// that reads it either, or each letter typed in a search box stalls a slow phone.
 test("a page change keeps the server's semester, not the device's old copy", async ({
   page,
   db,

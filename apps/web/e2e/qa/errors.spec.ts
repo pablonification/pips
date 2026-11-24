@@ -145,7 +145,6 @@ const NOT_FOUND: {
   { url: '/layanan/curhat/tidak-ada', who: 'anggota' },
   { url: '/layanan/testi/teknik-informatika/3/tidak-ada', who: 'anggota' },
   { url: '/layanan/form/tidak-ada', who: 'anggota' },
-  { url: '/kelola/sparta/tidak-ada', who: 'pengurus' },
   { url: '/kelola/live/tidak-ada', who: 'pengurus' },
   { url: '/kelola/curhat/tidak-ada', who: 'pengurus', roles: ['curhatadmin'] },
 ];

@@ -340,7 +340,7 @@ test.describe('who gets in', () => {
     expect(api.calls('GET /api/me').length).toBeGreaterThan(checks);
     await expect(page).not.toHaveURL(/\/login/);
     // Still signed in, with his other tools (Form, which every pengurus has, among them).
-    await expect(main(page).getByRole('list').getByRole('link')).toHaveCount(4);
+    await expect(main(page).getByRole('list').getByRole('link')).toHaveCount(3);
   });
 
   test('a role taken away while replying: refused as forbidden, no toast, the gate sends Raka on', async ({

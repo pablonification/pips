@@ -29,7 +29,7 @@ description when it arrives (a bad one gets a 400). The answer is not checked on
 | `controllers/` | The handlers: read the request, check permission, call repositories, answer. `api.controller.ts` lists every router; `router-factory.ts` makes a router that needs a session. | `programme-window.controller.ts` |
 | `repositories/` | Every database query, as plain functions that take the database first. | `chatroom.repo.ts` |
 | `lib/` | Rules with no database and no HTTP: who may delete, when a form is open, how long a push may be, the rate limiter. Most have a unit test. The form builder's rules (`form-model.ts`, `form-answers.ts`, `form-rules.ts`, `form-summary.ts`, `member-details.ts`) are also what the web app's pretend API answers with. | `authorization.ts`, `curhat.ts` |
-| `middlewares/` | Two checks before a handler: "has one of these roles", and "may fill the SPARTA form". | `role.middleware.ts` |
+| `middlewares/` | One check before a handler: "has one of these roles". | `role.middleware.ts` |
 | `websocket/` | The live connection: reading the session from the cookie, Curhat messages, a form's room for its live count (admin, or pengurus who manage the form). | `connection.ts`, `curhat.ts` |
 | `mcp/` | The tools an AI app gets at `/mcp`. Each calls one `/api` route in the process as the member; the route decides. No Curhat tool. The endpoint is `controllers/mcp.controller.ts`, its OAuth sign-in `controllers/oauth.controller.ts`. | `tools.ts` |
 | `cron/` | Two jobs, in production only: day-before reminders for calendar events (every minute), and the copy of PRISMA's Google calendar (every ten minutes, decision 20). | `calendar-cron.ts`, `calendar-sync.ts` |
@@ -74,13 +74,13 @@ from **copy**.
 | `sw.ts` | The service worker: stores the app's files so it opens offline, shows push notifications, opens the right page when one is tapped. | `sw.ts` |
 
 **Which folder to copy.** `features/beranda/` and `features/kalender/` have the whole pattern. Some features differ:
-the PIXEL form's screen (a form made before the builder) and SPARTA are in `components/form/` (with their rules in
+the PIXEL form's screen (a form made before the builder) is in `components/form/` (with its rules in
 `lib/form/`), and `routes/_app/_left-navbar/` is only "inside the shell" despite its name. Do not copy those layouts.
 A form made in the builder, its link (`/f/<name>`) and Profil › Data diri are `features/form/`.
 
 **Names.** The API keeps the database's English words; the web code keeps the members' Indonesian ones. An
 announcement is `info` in the API and `pengumuman` in the web app; a competition is `competitions` and `lomba`;
-Magang SPARTA is `internship` and `sparta`; sign-in is `auth` and `masuk`. Do not rename the API: it changes the
+sign-in is `auth` and `masuk`. Do not rename the API: it changes the
 generated client everywhere.
 
 **Two pages you will touch.** `lib/shell/routes.ts` is the table of pages; TypeScript refuses to build until a new

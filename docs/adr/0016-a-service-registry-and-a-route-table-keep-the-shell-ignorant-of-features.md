@@ -27,8 +27,8 @@ were typed by hand, adding a service would mean editing a dozen places.
   step is missing.
 - "Features register with the shell at start" is indirect. It needs explaining once, and a registration that is
   never called fails quietly until its page opens.
-- A service can carry opening and closing times written in the registry itself (Magang SPARTA has a fixed closing
-  date). They are a copy of what the server decides, and the two can disagree (see CONTEXT.md, programme window).
+- A service can carry opening and closing times written in the registry itself (Magang SPARTA had a fixed closing
+  date; it was removed on 2026-11-23, and no service uses this today). They are a copy of what the server decides, and the two can disagree (see CONTEXT.md, programme window).
 
 ## When to revisit
 When the table needs more than titles and parents, or when registration at start-up becomes hard to follow. A

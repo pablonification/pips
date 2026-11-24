@@ -34,7 +34,7 @@ Garis and journey are explained in [CONTEXT.md](CONTEXT.md). Read it once.
 | `apps/web/src/routes/` | One small file per address; it names a screen. |
 | `apps/web/src/features/<name>/` | One folder per area members know. Copy `beranda` or `kalender`. |
 | `apps/web/src/components/garis/`, `components/icons/`, `styles/garis/` | The design system. |
-| `apps/web/src/components/form/`, `lib/form/` | The Form and Magang SPARTA screens and their rules. |
+| `apps/web/src/components/form/`, `lib/form/` | The PIXEL form's screen and its rules. |
 | `apps/web/src/components/shell/`, `lib/shell/routes.ts` | The frame around every page, and the table of pages. |
 | `apps/web/src/lib/services.ts`, `lib/capabilities.ts` | The service list, and who may do what. |
 | `apps/web/src/api/generated/` | The API client. Generated; never edit by hand. |

@@ -49,8 +49,10 @@ Two facts decide the shape of a fix:
   new route grows only the pages that call it, and the entry only when a loader prefetches it.
 - A feature module a loader imports still brings its other requests into the entry, so a loader's queries can live in
   a file of their own and a feature's sends in another (`components/form/data.ts` and `send.ts`). `sparta-data.ts`
-  keeps its writes on purpose: they keep React Query's `useMutation` in the entry, which sign-in needs; without them
-  it lands in the shared `ui` chunk and sign-in would load all of it.
+  kept its writes on purpose: they kept React Query's `useMutation` in the entry, which sign-in needs; without them
+  it landed in the shared `ui` chunk and sign-in loaded all of it. Magang SPARTA, and with it that file, was removed
+  on 2026-11-23; `vite.config.ts` now puts all of React Query in the `app` chunk instead, so no page depends on
+  which module happens to keep it in the entry.
 
 ## When to revisit
 

@@ -474,7 +474,7 @@ export const STATES: CaptureState[] = [
     title: 'Kelola hub',
     persona: 'pengurus',
     path: '/kelola',
-    ready: (p) => p.getByRole('link', { name: /Data SPARTA Magang/ }),
+    ready: (p) => p.getByRole('link', { name: /Live Counting/ }),
   },
   {
     id: 'admin-forms',
@@ -491,23 +491,6 @@ export const STATES: CaptureState[] = [
     path: '/kelola/live/pixel',
     // The plaque, the newest five and both charts.
     ready: (p) => p.locator('.g-hbars').nth(1),
-  },
-  {
-    id: 'sparta-table',
-    title: 'Data SPARTA Magang table',
-    persona: 'pengurus',
-    path: '/kelola/sparta',
-    ready: (p) =>
-      p
-        .locator('a[href="/kelola/sparta/sub-13525071"]')
-        .locator('visible=true'),
-  },
-  {
-    id: 'sparta-submission',
-    title: 'SPARTA submission detail',
-    persona: 'pengurus',
-    path: '/kelola/sparta/sub-13525071',
-    ready: (p) => p.getByText('Prioritas 1: Akademik'),
   },
   // The services' finished states (for VISUAL_STATES, once recorded in the CI container).
   {

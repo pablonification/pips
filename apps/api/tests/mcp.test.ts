@@ -238,9 +238,12 @@ test('initialize and tools/list: the PIPS! tools, and no Curhat, push, upload or
     'update_form',
     'publish_form',
     'share_form',
-    'submit_sparta_application',
   ])
     assert.ok(names.includes(name), name);
+  assert.ok(
+    !names.some((n) => /sparta|internship/i.test(n)),
+    'Magang SPARTA is gone',
+  );
   for (const t of tools) {
     assert.doesNotMatch(
       `${t.name} ${t.description ?? ''}`,

@@ -1,5 +1,5 @@
 /**
- * Kelola: the hub, Live Counting, Rekap Form and Data SPARTA Magang. The hub's rows come from the service
+ * Kelola: the hub, Live Counting and Rekap Form. The hub's rows come from the service
  * registry.
  */
 export const kelola = {
@@ -33,7 +33,6 @@ export const kelola = {
     tombol: 'Export CSV',
     mengekspor: 'Mengekspor…',
     jawaban: 'Rekap {jumlah} jawaban diunduh sebagai CSV.',
-    sparta: 'Data {jumlah} pendaftar diunduh sebagai CSV.',
     gagal: 'CSV gagal diunduh.',
   },
   rekap: {
@@ -51,58 +50,5 @@ export const kelola = {
     halamanSebelumnya: 'Halaman sebelumnya',
     halamanBerikutnya: 'Halaman berikutnya',
     halaman: '{nomor} / {jumlah}',
-  },
-  sparta: {
-    memuat: 'Memuat data SPARTA…',
-    gagal: 'Data SPARTA gagal dimuat.',
-    divisi: 'Divisi',
-    semuaDivisi: 'Semua divisi',
-    divisiOpsi: '{departemen} · {divisi}',
-    pilihan: 'Pilihan',
-    semuaPilihan: 'Semua pilihan',
-    pilihanKe: 'Pilihan {nomor}',
-    status: 'Status',
-    semuaStatus: 'Semua',
-    terkunci: 'Terkunci',
-    draf: 'Draf',
-    jumlah: '{jumlah} pendaftar',
-    statistik: 'Statistik pilihan',
-    perDepartemen: 'Per departemen',
-    perDivisi: 'Per divisi',
-    pilihanPertama: 'Pilihan 1 saja',
-    // Not "Semua pilihan": that's the Pilihan filter's "any priority" on the same screen.
-    semuaPilihanStat: 'Pilihan 1–4',
-    kelompok: 'Kelompokkan',
-    hitung: 'Hitung',
-    statistikKosong: 'Belum ada data pilihan untuk ditampilkan.',
-    tabel: 'Pendaftar Magang SPARTA',
-    nama: 'Nama',
-    nim: 'NIM',
-    jurusan: 'Jurusan',
-    kelas: 'Kelas',
-    kosong: 'Belum ada pendaftar',
-    kosongIsi:
-      'Pilihan divisi yang disimpan atau dikirim anggota muncul di sini.',
-    tidakCocok: 'Tidak ada pendaftar yang cocok',
-    tidakCocokIsi: 'Ubah pencarian atau filternya.',
-    hapusFilter: 'Hapus filter',
-    kosongTanda: '–',
-  },
-  // One submission.
-  pendaftar: {
-    memuat: 'Memuat pendaftar…',
-    gagal: 'Data pendaftar gagal dimuat.',
-    ringkas: '{nim} · {jurusan} · {kelas}',
-    idLine: 'ID LINE',
-    pengalaman: 'Pengalaman organisasi',
-    kesibukan: 'Kesibukan saat ini',
-    kesibukanBaris: '{jabatan} · {organisasi} ({periode})',
-    pilihanDivisi: 'Pilihan divisi',
-    prioritas: 'Prioritas {nomor}: {divisi}',
-    divisiHilang: 'Divisi tidak ditemukan',
-    lihatFile: 'Lihat file',
-    tidakDitemukan: 'Pendaftar tidak ditemukan',
-    tidakDitemukanIsi: 'Mungkin datanya sudah dihapus.',
-    kembali: 'Ke Data SPARTA Magang',
   },
 } as const;

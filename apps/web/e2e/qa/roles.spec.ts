@@ -45,7 +45,7 @@ const MATRIX: Record<string, { roles: string[]; want: Expect }> = {
   admin: {
     roles: ['admin'],
     want: {
-      kelola: ['Form', 'Live Counting & Rekap Form', 'Data SPARTA Magang'],
+      kelola: ['Form', 'Live Counting & Rekap Form'],
       acara: null,
       lomba: false,
       testi: false,
@@ -54,7 +54,7 @@ const MATRIX: Record<string, { roles: string[]; want: Expect }> = {
   peoplemanage: {
     roles: ['peoplemanage'],
     want: {
-      kelola: ['Form', 'Data SPARTA Magang'],
+      kelola: ['Form'],
       acara: null,
       lomba: false,
       testi: false,
@@ -72,7 +72,7 @@ const MATRIX: Record<string, { roles: string[]; want: Expect }> = {
 };
 
 const KELOLA_TOOL =
-  /^(Form|Live Counting & Rekap Form|Data SPARTA Magang|Tambah acara Akademik|Curhat Yuk!)/;
+  /^(Form|Live Counting & Rekap Form|Tambah acara Akademik|Curhat Yuk!)/;
 
 /** Kelola's rows as the hub lists them, or none when Kelola sends the member away. */
 async function kelolaRows(page: Page): Promise<string[]> {
@@ -94,7 +94,6 @@ async function kelolaRows(page: Page): Promise<string[]> {
   for (const label of [
     'Form',
     'Live Counting & Rekap Form',
-    'Data SPARTA Magang',
     'Tambah acara Akademik',
     'Curhat Yuk!',
   ])

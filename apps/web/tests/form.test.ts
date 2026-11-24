@@ -8,7 +8,6 @@ import { form as copy } from '../src/copy/form';
 import { decodeDraft, encodeDraft } from '../src/lib/form/draft-store';
 import {
   clockWhen,
-  deadlineWhen,
   longWhen,
   remaining,
   shortWhen,
@@ -252,14 +251,10 @@ test('eligible by angkatan, as the server checks before anything else', () => {
   assert.equal(isEligible(pixelForm, { angkatan: 2024 }), false);
 });
 
-test('times in WIB: card, form page, SPARTA deadline, clock', () => {
+test('times in WIB: card, form page, clock', () => {
   const opens = '2026-09-12T06:00:00.000Z'; // Sabtu 13.00 WIB
   assert.equal(shortWhen(opens), 'Sab 12 Sep, 13.00');
   assert.equal(longWhen(opens), 'Sabtu, 12 September 2026, 13.00 WIB');
-  assert.equal(
-    deadlineWhen('2026-08-23T16:59:00.000Z'),
-    'Min, 23 Agu 2026 pukul 23.59',
-  );
   assert.equal(clockWhen('2026-10-08T00:45:00.000Z'), '07.45');
   // Just before midnight WIB is still the same day; just after is the next.
   assert.equal(shortWhen('2026-10-08T16:59:00.000Z'), 'Kam 8 Okt, 23.59');

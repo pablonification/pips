@@ -18,7 +18,7 @@ Object.assign(process.env, {
   VITE_SENTRY_DSN: '',
   VITE_ANALYTICS_ID: '',
   VITE_ENABLE_TEST_LOGIN: 'false',
-  VITE_MEDIA_URL: 'https://media.pips.test', // the file storage; only files there link from a SPARTA answer
+  VITE_MEDIA_URL: 'https://media.pips.test', // the file storage; only files there link from a form's file answer
 });
 
 const reuse =

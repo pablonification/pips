@@ -7,10 +7,8 @@ import type {
   CalendarEvent,
   CommentWithReactions,
   Competition,
-  DraftInternshipSubmission,
   FormAnswer,
   Info,
-  InternshipSubmission,
   ReactionAggregate,
   UpdateForm,
   Testimoni,
@@ -20,8 +18,6 @@ import {
   NOW,
   authorOf,
   formStatusFor,
-  isSpartaEligible,
-  spartaWindowFor,
   type Db,
   type StoredForm,
 } from '../fixtures/api';
@@ -488,73 +484,6 @@ export const pinRoom: Handler = ({ db, params, body }) => {
   room.isPinned = isPinned;
   return { message: isPinned ? 'Chatroom pinned' : 'Chatroom unpinned' };
 };
-
-// Magang SPARTA (as `apps/api/src/controllers/internship.controller.ts`).
-
-function saveSparta(db: Db, body: unknown, submit: boolean) {
-  if (!isSpartaEligible(db.me!))
-    return reply.status(401, {
-      error: 'You are not eligible to access SPARTA internship form',
-    });
-  if (spartaWindowFor(db).status !== 'open')
-    return reply.status(403, {
-      error: 'SPARTA is not taking applications now',
-    });
-  const data = body as DraftInternshipSubmission;
-  const divisions = data.choices.map((c) => c.divisionId);
-  const priorities = data.choices.map((c) => c.priorityOrder);
-  const draftOk =
-    data.choices.length <= 4 &&
-    new Set(divisions).size === divisions.length &&
-    new Set(priorities).size === priorities.length &&
-    priorities.every((p) => p >= 1 && p <= 4);
-  const strictOk =
-    data.kelas.length > 0 &&
-    data.idLine.length > 0 &&
-    data.choices.length === 4;
-  if (!draftOk || (submit && !strictOk))
-    return reply.status(400, { error: 'Invalid submission' });
-  const me = db.me!;
-  const existing = db.internshipSubmissions.find((s) => s.userId === me.id);
-  if (existing?.isLocked)
-    return reply.status(409, { error: 'Submission is already locked' });
-  const id = existing?.id ?? `sub-${me.nim}`;
-  const saved: InternshipSubmission = {
-    id,
-    userId: me.id,
-    nim: me.nim,
-    fullName: me.fullName,
-    jurusan: me.major,
-    kelas: data.kelas,
-    idLine: data.idLine,
-    pengalamanOrganisasi: data.pengalamanOrganisasi ?? null,
-    kesibukan: data.kesibukan ?? [],
-    isLocked: submit,
-    submittedAt: submit ? NOW : null,
-    createdAt: existing?.createdAt ?? NOW,
-    updatedAt: NOW,
-    choices: data.choices.map((c, i) => ({
-      id: `choice-${me.nim}-${i}`,
-      submissionId: id,
-      divisionId: c.divisionId,
-      priorityOrder: c.priorityOrder,
-      answers: c.answers,
-    })),
-  };
-  db.internshipSubmissions = [
-    ...db.internshipSubmissions.filter((s) => s.id !== id),
-    saved,
-  ];
-  return saved;
-}
-
-/** PUT /api/internship/submission — save a draft (may be partial); 403 outside the window. */
-export const saveSpartaDraft: Handler = ({ db, body }) =>
-  saveSparta(db, body, false);
-
-/** POST /api/internship/submission/submit — send and lock (all of it required); 403 outside the window. */
-export const submitSparta: Handler = ({ db, body }) =>
-  saveSparta(db, body, true);
 
 /* ---- Courses, notification categories, push, sign-in and sign-out ---- */
 

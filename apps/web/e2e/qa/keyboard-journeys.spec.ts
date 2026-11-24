@@ -313,56 +313,6 @@ test('Form PIXEL: an error on the first section takes focus; Sebelumnya and Lanj
     .toBe(true);
 });
 
-test.describe('Magang SPARTA', () => {
-  test('Magang SPARTA (season open): Mulai, the first error focused, choose divisions and reorder them', async ({
-    page,
-    api,
-    db,
-  }) => {
-    db.spartaWindow = {
-      opensAt: '2026-09-30T17:00:00.000Z',
-      closesAt: '2026-10-31T16:59:00.000Z',
-    };
-    db.internshipSubmissions = db.internshipSubmissions.filter(
-      (s) => s.userId !== db.me!.id,
-    );
-    api.on('PUT /api/internship/submission', writes.saveSpartaDraft);
-    await page.goto('/layanan/sparta');
-    const mulai = page.getByRole('button', { name: 'Mulai' });
-    await tabTo(page, mulai);
-    await page.keyboard.press('Enter');
-    const lanjut = page.getByRole('button', { name: 'Lanjut' });
-    await tabTo(page, lanjut);
-    await page.keyboard.press('Enter');
-    await expect(page.getByLabel('Kelas')).toBeFocused();
-    await page.keyboard.type('IF K2');
-    const line = page.getByLabel(/ID LINE/);
-    await tabTo(page, line);
-    await page.keyboard.type('nadia.putri');
-    await tabTo(page, lanjut);
-    await page.keyboard.press('Enter');
-    await expect
-      .poll(() => api.calls('PUT /api/internship/submission').length)
-      .toBeGreaterThan(0);
-    // Step 2 explains the divisions; Lanjut to choosing them.
-    await tabTo(page, lanjut);
-    await page.keyboard.press('Enter');
-    const boxes = main(page).getByRole('checkbox');
-    await expect(boxes.first()).toBeVisible();
-    for (let i = 0; i < 4; i++) {
-      await tabTo(page, boxes.nth(i));
-      await page.keyboard.press('Space');
-      await expect(boxes.nth(i)).toBeChecked();
-    }
-    const up = main(page)
-      .getByRole('button', { name: /^Naikkan / })
-      .last();
-    await tabTo(page, up);
-    await page.keyboard.press('Enter');
-    await expect(main(page).getByRole('status').first()).toBeAttached();
-  });
-});
-
 test('Mata kuliahku: remove a course and undo it, no swipe; Notifikasi: a switch says its category and state', async ({
   page,
   api,
@@ -393,7 +343,7 @@ test('Mata kuliahku: remove a course and undo it, no swipe; Notifikasi: a switch
 
 test.describe('Kelola', () => {
   test.use({ persona: 'pengurus' });
-  test('Live Counting and Data SPARTA Magang: every control by keyboard, charts with a text alternative', async ({
+  test('Live Counting: every control by keyboard, charts with a text alternative', async ({
     page,
   }) => {
     await page.goto('/kelola/live/pixel');
@@ -420,20 +370,5 @@ test.describe('Kelola', () => {
     await tabTo(page, semua);
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/rekap/);
-    await page.goto('/kelola/sparta');
-    // A radio group is one Tab stop (its chosen option); the arrows move within it.
-    const draf = page.getByRole('radio', { name: 'Draf' });
-    const chosen = draf
-      .locator('xpath=ancestor::*[@role="radiogroup" or self::fieldset][1]')
-      .getByRole('radio', { checked: true });
-    await tabTo(page, chosen);
-    for (
-      let i = 0;
-      i < 3 && !(await draf.evaluate((el) => el === document.activeElement));
-      i++
-    )
-      await page.keyboard.press('ArrowRight');
-    await expect(draf).toBeFocused();
-    await expect(page).toHaveURL(/status=draf/);
   });
 });

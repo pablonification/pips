@@ -19,12 +19,7 @@ test('groups in order; Kelola only with a capability, last', () => {
   assert.equal(groups.at(-1)?.group, 'Kelola');
   assert.deepEqual(
     groups.at(-1)?.services.map((s) => s.label),
-    [
-      'Form',
-      'Live Counting & Rekap Form',
-      'Data SPARTA Magang',
-      'Tambah acara Akademik',
-    ],
+    ['Form', 'Live Counting & Rekap Form', 'Tambah acara Akademik'],
   );
 });
 
@@ -51,20 +46,12 @@ test('Kelola per role', () => {
     servicesByGroup({ roles }, now)
       .find((g) => g.group === 'Kelola')
       ?.services.map((s) => s.id) ?? [];
-  assert.deepEqual(kelola(['admin']), ['form-builder', 'live', 'sparta-data']);
-  assert.deepEqual(kelola(['peoplemanage']), ['form-builder', 'sparta-data']);
+  assert.deepEqual(kelola(['admin']), ['form-builder', 'live']);
+  assert.deepEqual(kelola(['peoplemanage']), ['form-builder']);
   assert.deepEqual(kelola(['akademik']), ['form-builder', 'acara']);
   // Any role builds forms.
   assert.deepEqual(kelola(['cnc']), ['form-builder']);
   assert.deepEqual(kelola([]), []);
-});
-
-test('an entry past validUntil is hidden, and shown before it', () => {
-  const ids = (at: Date) =>
-    servicesByGroup(nadia, at).flatMap((g) => g.services.map((s) => s.id));
-  assert.ok(ids(new Date('2026-08-23T23:58:00+07:00')).includes('sparta'));
-  assert.ok(!ids(new Date('2026-08-23T23:59:00+07:00')).includes('sparta'));
-  assert.ok(!ids(now).includes('sparta'));
 });
 
 test('badges: Curhat’s unread summed, Form’s open count, none at 0 or while unknown', () => {

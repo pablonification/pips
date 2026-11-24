@@ -143,20 +143,6 @@ export const SERVICES = [
     icon: 'lomba',
   },
   {
-    // Seasonal: hidden from lists after its deadline, but its route stays.
-    id: 'sparta',
-    label: 'Magang SPARTA',
-    description: 'Pilihan divisi magang angkatan 2025',
-    group: 'Kesempatan',
-    kind: 'internal',
-    destination: '/layanan/sparta',
-    owner: 'peoplemanage',
-    // SPARTA's closing time on the server (apps/api/src/lib/sparta-window.ts), from which it is closed.
-    validUntil: '2026-08-23T23:59:00+07:00',
-    synonyms: ['sparta', 'magang', 'divisi'],
-    icon: 'kelola',
-  },
-  {
     id: 'beasiswa',
     label: 'Beasiswa',
     description: 'Mading Beasiswa HMIF',
@@ -226,18 +212,6 @@ export const SERVICES = [
     capability: 'liveCounting',
     synonyms: ['admin', 'form', 'live', 'rekap'],
     icon: 'grafik',
-  },
-  {
-    id: 'sparta-data',
-    label: 'Data SPARTA Magang',
-    description: 'Pilihan divisi magang angkatan 2025 · ditutup 23 Agu 2026',
-    group: 'Kelola',
-    kind: 'internal',
-    destination: '/kelola/sparta',
-    owner: 'peoplemanage',
-    capability: 'spartaData',
-    synonyms: ['sparta', 'magang', 'admin'],
-    icon: 'kelola',
   },
   {
     // `akademik` only: the server lets only `akademik` add a course's Akademik event (calendar.controller.ts).

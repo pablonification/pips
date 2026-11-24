@@ -1,8 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { AdminFormResponseItem } from '~/api/generated';
-import { Button, Tag, toast } from '~/components/garis';
-import { IconKunci } from '~/components/icons/kunci';
-import { IconLembar } from '~/components/icons/lembar';
+import { Button, toast } from '~/components/garis';
 import { IconUnduh } from '~/components/icons/unduh';
 import { common } from '~/copy/common';
 import { kelola as copy } from '~/copy/kelola';
@@ -36,15 +34,9 @@ export function ResponseRow({
 }
 
 /** One question's bars: the value, a track filled to count / max, and the count. */
-export function Bars({
-  bars,
-  wide = false,
-}: {
-  bars: readonly Bar[];
-  wide?: boolean;
-}) {
+export function Bars({ bars }: { bars: readonly Bar[] }) {
   return (
-    <div className={wide ? 'g-hbars wide' : 'g-hbars'}>
+    <div className="g-hbars">
       {bars.map((b) => (
         <div className="g-hbar" key={b.label}>
           <span>{b.label}</span>
@@ -55,17 +47,6 @@ export function Bars({
         </div>
       ))}
     </div>
-  );
-}
-
-/** A SPARTA submission's status: icon, word and colour. */
-export function SpartaStatusTag({ locked }: { locked: boolean }) {
-  return locked ? (
-    <Tag tone="success" icon={<IconKunci size={16} />}>
-      {copy.sparta.terkunci}
-    </Tag>
-  ) : (
-    <Tag icon={<IconLembar size={16} />}>{copy.sparta.draf}</Tag>
   );
 }
 

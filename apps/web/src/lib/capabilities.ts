@@ -26,8 +26,6 @@ export const CAPABILITY_ROLES = {
   broadcastPush: ['ring1'],
   /** Live Counting & Rekap Form: `form.controller.ts`, FORM_ADMIN_ROLES. */
   liveCounting: ['admin'],
-  /** Data SPARTA Magang: `internship.controller.ts`, SPARTA_ADMIN_ROLES. */
-  spartaData: ['admin', 'peoplemanage'],
   /** Answer Curhat rooms as Welfare: `curhat.controller.ts`. */
   respondCurhat: ['curhatadmin'],
   /** Remove other members' announcements and comments: `lib/authorization.ts`, CONTENT_MODERATOR_ROLES. */

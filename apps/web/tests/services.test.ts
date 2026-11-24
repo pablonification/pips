@@ -39,7 +39,6 @@ test("members' names, exactly as they know them", () => {
     'Surat & Proposal',
     'Form',
     'Live Counting & Rekap Form',
-    'Data SPARTA Magang',
   ]) {
     assert.ok(labels.includes(name), name);
   }
@@ -64,13 +63,13 @@ test("Raka's Kelola group holds his tools only", () => {
   const kelola = servicesByGroup(raka, NOW).find((g) => g.group === 'Kelola');
   assert.deepEqual(
     kelola?.services.map((s) => s.id),
-    ['form-builder', 'live', 'sparta-data', 'acara'],
+    ['form-builder', 'live', 'acara'],
   );
   assert.deepEqual(
     visibleServices({ roles: ['peoplemanage'] }, NOW)
       .filter((s) => s.group === 'Kelola')
       .map((s) => s.id),
-    ['form-builder', 'sparta-data'],
+    ['form-builder'],
   );
   assert.deepEqual(
     visibleServices({ roles: ['ring1'] }, NOW)
@@ -136,26 +135,24 @@ test("the icons shown by key are the registry's own, and every service's is amon
   for (const s of all) assert.ok(s.icon in ICONS_BY_KEY, s.id);
 });
 
-test('Magang SPARTA is hidden from its deadline (23 Agustus 2026, 23.59 WIB)', () => {
-  const sparta = all.find((s) => s.id === 'sparta')!;
+test('a service can end: hidden from its deadline, shown before it', () => {
+  const ending: Service = {
+    ...all[0],
+    id: 'x',
+    validUntil: '2026-08-23T23:59:00+07:00',
+  };
   assert.equal(
-    isServiceActive(sparta, new Date('2026-08-23T23:58:59+07:00')),
+    isServiceActive(ending, new Date('2026-08-23T23:58:59+07:00')),
     true,
   );
   assert.equal(
-    isServiceActive(sparta, new Date('2026-08-23T23:59:00+07:00')),
+    isServiceActive(ending, new Date('2026-08-23T23:59:00+07:00')),
     false,
   );
   assert.equal(
-    isServiceActive(sparta, new Date('2026-08-24T00:00:00+07:00')),
+    isServiceActive(ending, new Date('2026-08-24T00:00:00+07:00')),
     false,
   );
-  assert.ok(
-    visibleServices(nadia, new Date('2026-08-20T12:00:00+07:00')).some(
-      (s) => s.id === 'sparta',
-    ),
-  );
-  assert.ok(!visibleServices(nadia, NOW).some((s) => s.id === 'sparta'));
 });
 
 test('a service can start later', () => {
@@ -206,18 +203,6 @@ test('search matches names, descriptions and synonyms, ignoring case', () => {
     searchServices('rekap', raka, NOW).map((s) => s.id),
     ['live'],
   );
-});
-
-// The registry must not hide SPARTA at 23.59.59, 59 seconds after the server closed it.
-test("SPARTA's registry deadline is the server's closing time", () => {
-  const sparta = all.find((s) => s.id === 'sparta')!;
-  const server = fs.readFileSync(
-    path.resolve(import.meta.dirname, '../../api/src/lib/sparta-window.ts'),
-    'utf8',
-  );
-  const closesAt = /closesAt: new Date\('([^']+)'\)/.exec(server)?.[1];
-  assert.ok(closesAt, 'SPARTA_WINDOW.closesAt in sparta-window.ts');
-  assert.equal(Date.parse(sparta.validUntil!), Date.parse(closesAt));
 });
 
 // Welfare must not see "Curhat Yuk!" twice in global search, both leading to the inbox.

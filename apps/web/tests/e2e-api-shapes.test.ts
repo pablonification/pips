@@ -1,4 +1,4 @@
-// The e2e harness answers forms, SPARTA, Curhat's unread count and NIM Finder as the API does.
+// The e2e harness answers forms, Curhat's unread count and NIM Finder as the API does.
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { buildDb, type Db } from '../e2e/fixtures/api';
@@ -100,46 +100,6 @@ test('PIXEL q1 and q2 ask for prefill', () => {
       ['q2', 'nim'],
     ],
   );
-});
-
-// The harness answers 200 null when a member has no SPARTA submission, as the API does.
-test('SPARTA: 200 null without a submission, 401 for a member it is not for, and the window', () => {
-  const nadia = buildDb('anggota');
-  nadia.internshipSubmissions = [];
-  assert.equal(call(get('/api/internship/submission'), nadia), null);
-  const raka = buildDb('pengurus');
-  assert.equal(call(get('/api/internship/submission'), raka).status, 401);
-  assert.deepEqual(call(get('/api/internship/window'), nadia), {
-    opensAt: null,
-    closesAt: '2026-08-23T16:59:00.000Z',
-    status: 'closed',
-    eligible: true,
-  });
-  assert.equal(call(get('/api/internship/window'), raka).eligible, false);
-});
-
-test('SPARTA writes: 403 while closed; a partial draft saves once open; sending needs it all and locks', () => {
-  const db = buildDb('anggota');
-  const draft = { kelas: '', idLine: '', kesibukan: [], choices: [] };
-  assert.equal(call(writes.saveSpartaDraft, db, { body: draft }).status, 403);
-  db.spartaWindow = { opensAt: null, closesAt: '2026-10-31T16:59:00.000Z' };
-  assert.equal(
-    call(writes.saveSpartaDraft, db, { body: draft }).isLocked,
-    false,
-  );
-  assert.equal(call(writes.submitSparta, db, { body: draft }).status, 400);
-  const full = {
-    kelas: 'IF K2',
-    idLine: 'nadia.p',
-    kesibukan: [],
-    choices: [1, 2, 3, 4].map((n) => ({
-      divisionId: `d${n}`,
-      priorityOrder: n,
-      answers: [],
-    })),
-  };
-  assert.equal(call(writes.submitSparta, db, { body: full }).isLocked, true);
-  assert.equal(call(writes.saveSpartaDraft, db, { body: full }).status, 409);
 });
 
 test('Curhat unread: only messages from others without a read mark; reading clears it', () => {
@@ -246,16 +206,11 @@ test('admin endpoints answer 401 without the role, as roleMiddleware', () => {
   const raka = buildDb('pengurus');
   const people = buildDb('pengurus', { only: ['peoplemanage'] });
   const form = { params: { formId: 'pixel' } };
-  const sub = { params: { id: raka.internshipSubmissions[0].id } };
   const formAdmin = [
     ['/api/form/admin/list', {}],
     ['/api/form/:formId/responses', form],
     ['/api/form/:formId/responses/count', form],
     ['/api/form/:formId/analytics', form],
-  ] as const;
-  const spartaAdmin = [
-    ['/api/internship/submissions', {}],
-    ['/api/internship/submissions/:id', sub],
   ] as const;
   for (const [route, opts] of formAdmin) {
     for (const db of [nadia, people]) {
@@ -265,34 +220,4 @@ test('admin endpoints answer 401 without the role, as roleMiddleware', () => {
     }
     assert.equal(call(get(route), raka, opts).status, undefined, route);
   }
-  for (const [route, opts] of spartaAdmin) {
-    assert.equal(call(get(route), nadia, opts).status, 401, route);
-    assert.equal(call(get(route), raka, opts).status, undefined, route);
-    assert.equal(call(get(route), people, opts).status, undefined, route);
-  }
-});
-
-// SPARTA's submissions come 20 a page (SUBMISSIONS_PER_PAGE in the API), oldest first.
-test('SPARTA submissions page by 20, as the API', () => {
-  const db = buildDb('pengurus');
-  const base = db.internshipSubmissions[0];
-  db.internshipSubmissions = Array.from({ length: 25 }, (_, i) => ({
-    ...base,
-    id: `sub-${i}`,
-  }));
-  const page = (offset: number) =>
-    (
-      call(get('/api/internship/submissions'), db, {
-        query: `offset=${offset}`,
-      }) as unknown as { submissions: { id: string }[] }
-    ).submissions.map((s) => s.id);
-  assert.equal(page(0).length, 20);
-  assert.deepEqual(page(20), [
-    'sub-20',
-    'sub-21',
-    'sub-22',
-    'sub-23',
-    'sub-24',
-  ]);
-  assert.deepEqual(page(40), []);
 });

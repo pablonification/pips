@@ -115,7 +115,8 @@ README has the table. They run in CI; run one with its project, for example
 
 A journey tagged `@solo` times the browser's main thread, and another test running beside it spoils the number. Solo
 journeys run on their own: `pnpm --filter web e2e:solo` (one worker), and CI gives them their own job. Do not tag a
-journey `@solo` for anything but timing.
+journey `@solo` for anything but timing. None is tagged today (the only one timed Magang SPARTA's search), so the run
+passes with no tests until one is.
 
 ## Journeys against the real API
 

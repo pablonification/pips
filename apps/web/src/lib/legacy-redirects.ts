@@ -23,9 +23,10 @@ export const LEGACY_REDIRECTS: ReadonlyArray<
   ['/home/curhat', '/layanan/curhat'],
   ['/home/form', '/layanan/form'],
   ['/home/form/$formId', '/layanan/form/$formId'],
-  ['/home/internship', '/layanan/sparta'],
-  ['/home/internship/admin', '/kelola/sparta'],
-  ['/home/internship/admin/$submissionId', '/kelola/sparta/$submissionId'],
+  // Magang SPARTA's old addresses: the service no longer exists, so they land on its hubs.
+  ['/home/internship', '/layanan'],
+  ['/home/internship/admin', '/kelola'],
+  ['/home/internship/admin/$submissionId', '/kelola'],
   ['/home/admin', '/kelola'],
   ['/home/admin/forms', '/kelola/live'],
   ['/home/admin/forms/$formId', '/kelola/live/$formId'],
