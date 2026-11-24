@@ -6,6 +6,7 @@
 import type { Page } from '@playwright/test';
 import type { TestInfo } from '@playwright/test';
 import { isPhone } from '../support/app';
+import { defaultHandlers } from '../support/handlers';
 import { reply, type ApiMock } from '../support/mock';
 import { toastText } from '../support/pengumuman';
 import { shortLinkWrites } from '../support/short-links';
@@ -120,6 +121,22 @@ test.describe('Ambil tautan lama', () => {
     await go.click({ force: true });
     expect(api.calls('POST /api/short-links/claim/lookup')).toHaveLength(sent);
     await strictGates(page, testInfo, 'claim-locked', 'Layanan');
+  });
+
+  test('when the window can’t be read, the page says so with Coba lagi instead of loading for good', async ({
+    page,
+    api,
+  }) => {
+    api.on('GET /api/short-links', reply.status(503, { error: 'down' }));
+    await page.goto('/layanan/tautan/ambil');
+    await expect(main(page).getByText('Tautanmu gagal dimuat.')).toBeVisible();
+    api.on('GET /api/short-links', (req) =>
+      defaultHandlers['GET /api/short-links'](req),
+    );
+    await main(page).getByRole('button', { name: 'Coba lagi' }).click();
+    await expect(
+      main(page).getByLabel('Nama pengguna atau email'),
+    ).toBeVisible();
   });
 
   test('a 429 without a time is the service being busy, not a lock', async ({

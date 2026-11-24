@@ -10,6 +10,7 @@ import {
 import {
   Button,
   EmptyState,
+  ErrorState,
   RuledList,
   Skeleton,
   SkeletonRow,
@@ -23,6 +24,7 @@ import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
 import { tautan as copy } from '~/copy/tautan';
 import { useNow } from '~/hooks/useNow';
+import { useOnline } from '~/hooks/useOnline';
 import { hm } from '~/lib/dates';
 import { Address, FieldError, SlState } from './parts';
 import {
@@ -58,6 +60,7 @@ export function ClaimScreen() {
   const client = useQueryClient();
   const navigate = useNavigate();
   // The list's first page says whether claiming is open, and until when.
+  const online = useOnline();
   const list = useInfiniteQuery(myLinksQuery());
   const claim = list.data?.pages[0]?.claim;
   const [step, setStep] = useState<Step>({ kind: 'form' });
@@ -72,7 +75,16 @@ export function ClaimScreen() {
   }, [step]);
 
   let inner;
-  if (!claim)
+  if (!claim && (list.isError || !online))
+    inner = (
+      <ErrorState
+        title={copy.daftar.gagal}
+        text={online ? undefined : copy.daftar.periksaKoneksi}
+        onRetry={() => void list.refetch()}
+        retrying={online && list.isFetching}
+      />
+    );
+  else if (!claim)
     inner = (
       <Skeleton label={copy.daftar.memuat}>
         <SkeletonRow lines={['80%']} />
