@@ -20,14 +20,14 @@ export const masuk = {
       judul: 'Pengumuman',
       isi: 'Info terpusat akademik dan himpunan dari HMIF.',
     },
-    { judul: 'Kalender', isi: 'Kegiatan internal kalender dan akademik ITB.' },
+    { judul: 'Kalender', isi: 'Kalender kegiatan internal dan akademik ITB.' },
     {
       judul: 'Layanan',
       isi: 'Ding Dong, Testi Matkul, NIM Finder, dan lainnya.',
     },
     {
       judul: 'Curhat Yuk!',
-      isi: 'Misuh secara anonim ke Welfare ITB.',
+      isi: 'Misuh secara anonim ke Welfare HMIF.',
     },
   ],
   // Screen-reader labels of the slides.
