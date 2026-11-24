@@ -67,6 +67,8 @@ Keep today's environment. These change:
 | `APP_ENV` | leave unset | unset means production; `staging` or `development` allow the test sign-in routes |
 | `API_PUBLIC_URL` | **add** `https://app-api.hmif.dev` | AI apps connecting through MCP: the OAuth issuer, and `<it>/mcp` the address their tokens are for. Unset, it says `http://localhost:5000` and no app can sign in |
 | `WEB_APP_URL` | add `https://app.hmif.dev`, or leave it unset when `ALLOWED_ORIGINS` lists that address first | where an app's sign-in sends the member to approve it (`/hubungkan`) |
+| `SHORTLINK_HOST` | leave unset (it is `s.hmif.dev`) | every request whose `Host` is this is a short link's redirect, and nothing else answers there |
+| `SHORTLINK_CLAIM_UNTIL` | **add** an ISO time three months after the switch, for example `2027-03-01T23:59:00+07:00` | claiming old s.hmif.dev links ends then; unset leaves it open |
 | `SENTRY_DSN`, `DB_STATEMENT_TIMEOUT_MS` | optional | error monitoring; a stuck database statement is cancelled after 15 s by default |
 
 The full list is `apps/api/.env.example`.
@@ -202,6 +204,40 @@ The app opens PIPS! to approve it on `/hubungkan`, signed in as usual, where the
 curl -s https://app-api.hmif.dev/.well-known/oauth-protected-resource/mcp   # "resource": "https://app-api.hmif.dev/mcp"
 curl -si -X POST https://app-api.hmif.dev/mcp | grep -i www-authenticate     # Bearer resource_metadata="…"
 ```
+
+## Tautan pendek (s.hmif.dev)
+
+s.hmif.dev moves from its own app (Lynx, on MongoDB) into the API (decision 24, `docs/short-links-api.md`). It
+needs migration 0037, applied as in "The switch", step 3, and these steps, in this order:
+
+1. **Settings** on the Backend: `SHORTLINK_CLAIM_UNTIL` (see "API settings"); `WEB_APP_URL` or `ALLOWED_ORIGINS`
+   listing `https://app.hmif.dev` first, since the redirect sends forms, `/` and unknown names there.
+2. **Export Lynx** into a folder only you can read (`mkdir -m 700`): the password hashes are secrets.
+   ```bash
+   mongoexport --uri "$LYNX_MONGO_URI" --collection links --out links.json
+   mongoexport --uri "$LYNX_MONGO_URI" --collection accounts --out accounts.json
+   ```
+3. **Dry run**, from the new API image (it has `tsx` and the script), with the files mounted. It changes nothing and
+   prints counts: links, accounts, matched by email and by NIM, unmatched, names breaking today's rule, names that
+   differ only in capitals, names no browser can open, links that aren't http(s), and the hash kinds. Add `--list`
+   to see the names behind the last two counts (for the report, not a channel).
+   ```bash
+   DATABASE_URL=… SHORTLINK_CLAIM_UNTIL=… npx tsx scripts/short-links-import.ts \
+     --links /import/links.json --accounts /import/accounts.json --dry-run
+   ```
+4. **Import**: the same without `--dry-run`. One transaction; members matched by their student email or a NIM in the
+   old email or username get their links with no notice, and the rest wait to be claimed.
+5. **Move the domain:** in Dokploy, take `s.hmif.dev` off the Shortener app and add it to the Backend (same port as
+   the API's own domain). Then check from outside: a name (302 to its destination), the same name in other
+   capitals, a name with odd characters, a form's name (302 to `https://app.hmif.dev/f/…`), `/` (to
+   `/layanan/tautan`), and a name that doesn't exist (to `/tautan-tidak-ditemukan?nama=…`). Every answer has
+   `Cache-Control: no-store`.
+6. **Import again** to catch links made on the old service in between; it adds only what is new or changed there.
+7. Scale the Shortener to 0 (keep it and its MongoDB until the owner says so) and delete the export folder.
+8. **When claiming ends:** `npx tsx scripts/short-links-import.ts --forget-passwords` deletes the old password
+   hashes (it refuses before `SHORTLINK_CLAIM_UNTIL`).
+
+The redirect counts clicks in memory and writes them every five seconds; a shutdown writes what is left.
 
 ## Going back
 
