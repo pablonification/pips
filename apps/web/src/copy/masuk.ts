@@ -18,16 +18,16 @@ export const masuk = {
   slides: [
     {
       judul: 'Pengumuman',
-      isi: 'Info dari HMIF untuk angkatan dan grupmu.',
+      isi: 'Info terpusat akademik dan himpunan dari HMIF.',
     },
-    { judul: 'Kalender', isi: 'Kuis, ujian, dan acara HMIF.' },
+    { judul: 'Kalender', isi: 'Kegiatan internal kalender dan akademik ITB.' },
     {
       judul: 'Layanan',
       isi: 'Ding Dong, Testi Matkul, NIM Finder, dan lainnya.',
     },
     {
       judul: 'Curhat Yuk!',
-      isi: 'Cerita ke Welfare HMIF. Namamu tidak ditampilkan.',
+      isi: 'Misuh secara anonim ke Welfare ITB.',
     },
   ],
   // Screen-reader labels of the slides.

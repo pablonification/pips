@@ -28,14 +28,15 @@ function Badge({ badge }: { badge: ServiceBadge | null }) {
 }
 
 /**
- * Layanan: the registry's groups in order, then Kelola for pengurus through the capability map. No search box: global
- * search finds services too. One column on phones and tablets, two on desktop.
+ * Layanan: the registry's member groups in order. Kelola isn't here: pengurus reach it from Profil on phones and
+ * tablets and from the sidebar on desktop. No search box: global search finds services too. One column on phones and
+ * tablets, two on desktop.
  */
 export function LayananScreen() {
   const me = useSession();
   const unread = useQuery(curhatUnreadQuery());
   const forms = useQuery(formListQuery());
-  const groups = servicesByGroup(me);
+  const groups = servicesByGroup(me).filter((g) => g.group !== 'Kelola');
   // The page's title once: the desk head's from 1024 px, this one below.
   const desk = useMediaQuery(DESKTOP_QUERY);
   const data = {

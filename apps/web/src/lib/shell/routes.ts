@@ -115,10 +115,10 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: svc('testi'),
     parent: '/layanan/testi/$type/$semester',
   },
-  // Kelola: last in Layanan on phones and tablets, its own sidebar item on desktop.
+  // Kelola: a row in Profil on phones and tablets, its own sidebar item on desktop.
   '/kelola': {
     title: nav.kelola,
-    parent: '/layanan',
+    parent: '/profil',
     deskRoot: 'kelola',
   },
   // A form's pages go back to the hub, never to /kelola/live, which forwards to the only form (a loop).
@@ -276,7 +276,7 @@ export function parentOf(
 export type Layout = 'touch' | 'desk';
 
 /**
- * Which navigation item is lit: on phones and tablets one of the four tabs (Kelola belongs to Layanan, Profil to
+ * Which navigation item is lit: on phones and tablets one of the four tabs (Kelola and Profil to
  * where you came from, and to no tab when it was opened directly); on desktop also
  * Kelola and Profil, which have their own place in the sidebar.
  */

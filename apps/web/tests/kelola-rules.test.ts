@@ -130,7 +130,7 @@ test('formCaption: Dibuka, or Ditutup once past closesAt, in WIB', () => {
 });
 
 test('back parents: no form page goes back to /kelola/live, which can forward to it', () => {
-  assert.equal(parentOf('/kelola'), '/layanan');
+  assert.equal(parentOf('/kelola'), '/profil');
   assert.equal(parentOf('/kelola/live'), '/kelola');
   assert.equal(parentOf('/kelola/live/$formId'), '/kelola');
   assert.equal(parentOf('/kelola/live/$formId/rekap'), '/kelola/live/$formId');
