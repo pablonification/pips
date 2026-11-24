@@ -222,7 +222,7 @@ needs migration 0037, applied as in "The switch", step 3, and these steps, in th
    differ only in capitals, names no browser can open, links that aren't http(s), and the hash kinds. Add `--list`
    to see the names behind the last two counts (for the report, not a channel).
    ```bash
-   DATABASE_URL=… SHORTLINK_CLAIM_UNTIL=… npx tsx scripts/short-links-import.ts \
+   DATABASE_URL=… SHORTLINK_CLAIM_UNTIL=… node --import tsx scripts/short-links-import.ts \
      --links /import/links.json --accounts /import/accounts.json --dry-run
    ```
 4. **Import**: the same without `--dry-run`. One transaction; members matched by their student email or a NIM in the
@@ -234,7 +234,7 @@ needs migration 0037, applied as in "The switch", step 3, and these steps, in th
    `Cache-Control: no-store`.
 6. **Import again** to catch links made on the old service in between; it adds only what is new or changed there.
 7. Scale the Shortener to 0 (keep it and its MongoDB until the owner says so) and delete the export folder.
-8. **When claiming ends:** `npx tsx scripts/short-links-import.ts --forget-passwords` deletes the old password
+8. **When claiming ends:** `node --import tsx scripts/short-links-import.ts --forget-passwords` deletes the old password
    hashes (it refuses before `SHORTLINK_CLAIM_UNTIL`).
 
 The redirect counts clicks in memory and writes them every five seconds; a shutdown writes what is left.
