@@ -385,17 +385,22 @@ export const deleteForm: Handler = ({ db, params }) => {
   return reply.text('', 204);
 };
 
-/** PUT /api/form/:formId/slug — 400 with `problem` for a name the link can't have, 409 when another form holds it. */
+/** PUT /api/form/:formId/slug — 400 with `problem` for a name the link can't have, 409 when another form holds it (without capitals). */
 export const renameFormSlug: Handler = ({ db, params, body }) => {
   const found = editable(db, params.formId);
   if ('error' in found) return found.error;
   const slug = tidySlug((body as { slug: string }).slug);
   const problem = slugProblem(slug);
   if (problem) return reply.status(400, { error: 'Not a short name', problem });
-  if (db.formStore.some((f) => f.slug === slug && f !== found.form))
+  const holder = db.formStore.find(
+    (f) => f.slug.toLowerCase() === slug.toLowerCase() && f !== found.form,
+  );
+  if (holder)
     return reply.status(409, {
-      error: 'Another form holds it',
+      error: 'The name is held',
       problem: 'taken',
+      heldAs: holder.slug,
+      heldBy: 'form',
     });
   Object.assign(found.form, { slug, slugCustom: true, updatedAt: NOW });
   return manageView(db, found.form);

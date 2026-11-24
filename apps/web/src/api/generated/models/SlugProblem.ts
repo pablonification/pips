@@ -4,6 +4,8 @@
 /* eslint-disable */
 export type SlugProblem = {
   error: string;
-  problem: 'too_short' | 'too_long' | 'characters' | 'hyphens' | 'taken';
+  problem: 'too_short' | 'too_long' | 'characters' | 'hyphens' | 'taken' | 'used';
+  heldAs?: string;
+  heldBy?: 'link' | 'form';
 };
 

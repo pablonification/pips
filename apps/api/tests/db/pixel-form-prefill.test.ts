@@ -58,6 +58,8 @@ before(async () => {
     questions: s.questions.map(({ prefill: _prefill, ...q }) => q),
   }));
   const slugs = [PIXEL_FORM_SLUG, 'pf-another-form'];
+  // A published form's names outlive it (reserved), so a second run lets go of this file's names first.
+  await client`delete from short_links where id in (select link_id from short_link_names where name = any(${slugs}))`;
   await db.delete(schema.forms).where(inArray(schema.forms.slug, slugs));
   await db.insert(schema.forms).values(
     slugs.map((slug) => ({

@@ -35,6 +35,8 @@ export function usePlaceholderEnv(overrides: Record<string, string> = {}) {
     'CLIENT_IP_HEADER',
     'DEV_LOGIN_EMAIL',
     'DEV_LOGIN_PASSWORD_HASH',
+    'SHORTLINK_HOST',
+    'SHORTLINK_CLAIM_UNTIL',
   ]) {
     if (!(key in overrides)) delete process.env[key];
   }

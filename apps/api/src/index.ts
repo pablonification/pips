@@ -17,6 +17,7 @@ import { env } from './configs/env.config';
 import { calendarCron } from './cron/calendar-cron';
 import { calendarSyncCron } from './cron/calendar-sync';
 import { setupCron } from './cron/setup';
+import { flushClicks } from './controllers/short-link-redirect';
 import { closeDatabase } from './db/drizzle';
 import setupWebsocket, { getIo } from './websocket/setup';
 import { logger } from './logger';
@@ -60,6 +61,7 @@ const shutdown = createShutdown({
     io.engine.close();
   },
   closeDatabase: async () => {
+    await flushClicks();
     await closeDatabase();
   },
   exit: (code) => process.exit(code),

@@ -10,12 +10,12 @@ import {
   numberedSlug,
   publishProblems,
   slugFromTitle,
-  slugProblem,
   tidySlug,
   type FormAccess,
 } from '~/lib/form-rules';
 import { exportTable, summarize, toCsv } from '~/lib/form-summary';
 import { toXlsx } from '~/lib/form-xlsx';
+import { isRuleProblem, nameRefusal } from '~/lib/short-link';
 import { forRoles } from '~/middlewares/role.middleware';
 import {
   countAudience,
@@ -33,6 +33,7 @@ import {
   removeCollaborator,
   searchPeople,
   setCollaborator,
+  slugHolder,
   slugTaken,
   updateForm,
   updateFormDroppingAnswers,
@@ -71,6 +72,7 @@ export interface FormManageDeps {
   updateFormDroppingAnswers: WithoutDb<typeof updateFormDroppingAnswers>;
   deleteForm: WithoutDb<typeof deleteForm>;
   slugTaken: WithoutDb<typeof slugTaken>;
+  slugHolder: WithoutDb<typeof slugHolder>;
   getPerson: WithoutDb<typeof getPerson>;
   getFormResponsesCount: WithoutDb<typeof getFormResponsesCount>;
   countAudience: WithoutDb<typeof countAudience>;
@@ -93,6 +95,7 @@ const databaseDeps: FormManageDeps = {
   updateFormDroppingAnswers: withDb(updateFormDroppingAnswers),
   deleteForm: withDb(deleteForm),
   slugTaken: withDb(slugTaken),
+  slugHolder: withDb(slugHolder),
   getPerson: withDb(getPerson),
   getFormResponsesCount: withDb(getFormResponsesCount),
   countAudience: withDb(countAudience),
@@ -360,6 +363,10 @@ export function createFormManageRouter(deps: FormManageDeps = databaseDeps) {
     return c.body(null, 204);
   });
 
+  /** Why a name can't be this form's: the one rule, then whether a link or another form holds it, now or once. */
+  const slugRefusal = async (slug: string, formId: string) =>
+    await nameRefusal(slug, async (n) => await deps.slugHolder(n, formId));
+
   router.openapi(pengurus(checkFormSlugRoute), async (c) => {
     const { formId } = c.req.valid('param');
     const found = await load(formId, c.var.user.id);
@@ -367,10 +374,18 @@ export function createFormManageRouter(deps: FormManageDeps = databaseDeps) {
     if (!found.access.canEdit)
       return c.json({ error: 'You may only see this form' }, 403);
     const slug = tidySlug(c.req.valid('query').slug);
-    const problem =
-      slugProblem(slug) ??
-      ((await deps.slugTaken(slug, formId)) ? ('taken' as const) : null);
-    return c.json({ slug, available: problem === null, problem }, 200);
+    const refusal =
+      slug === found.form.slug ? null : await slugRefusal(slug, formId);
+    return c.json(
+      {
+        slug,
+        available: refusal === null,
+        problem: refusal?.problem ?? null,
+        heldAs: refusal?.heldAs ?? null,
+        heldBy: refusal?.heldBy ?? null,
+      },
+      200,
+    );
   });
 
   router.openapi(pengurus(renameFormSlugRoute), async (c) => {
@@ -380,20 +395,25 @@ export function createFormManageRouter(deps: FormManageDeps = databaseDeps) {
     if (!found.access.canEdit)
       return c.json({ error: 'You may only see this form' }, 403);
     const slug = tidySlug(c.req.valid('json').slug);
-    const problem = slugProblem(slug);
-    if (problem) return c.json({ error: 'Not a short name', problem }, 400);
-    if (await deps.slugTaken(slug, formId))
-      return c.json(
-        { error: 'Another form holds it', problem: 'taken' as const },
-        409,
-      );
+    if (slug === found.form.slug)
+      return c.json(await view(found.form, found.access), 200);
+    const refusal = await slugRefusal(slug, formId);
+    if (refusal && isRuleProblem(refusal))
+      return c.json({ error: 'Not a short name', ...refusal }, 400);
+    if (refusal) return c.json({ error: 'The name is held', ...refusal }, 409);
     try {
+      // A published form keeps its old name working (the names' trigger, migration 0037).
       const saved = await deps.updateForm(formId, { slug, slugCustom: true });
       return c.json(await view(saved, found.access), 200);
     } catch (err) {
       if (!isUniqueViolation(err)) throw err;
       return c.json(
-        { error: 'Another form holds it', problem: 'taken' as const },
+        {
+          error: 'The name is held',
+          ...((await slugRefusal(slug, formId)) ?? {
+            problem: 'taken' as const,
+          }),
+        },
         409,
       );
     }

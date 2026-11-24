@@ -73,6 +73,8 @@ before(async () => {
   client = postgres(testUrl, { max: 4, onnotice: () => {} });
   db = drizzle(client, { schema });
   await migrate(db, { migrationsFolder: './drizzle' });
+  // A published form's names outlive it (reserved), so a second run lets go of this file's names first.
+  await client`delete from short_links where id in (select link_id from short_link_names where name = any(${SLUGS}))`;
   await db.delete(schema.forms).where(inArray(schema.forms.slug, SLUGS));
   await db.delete(schema.users).where(
     inArray(

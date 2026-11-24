@@ -7,7 +7,6 @@ import {
   ilike,
   inArray,
   isNotNull,
-  ne,
   or,
   sql,
 } from 'drizzle-orm';
@@ -33,6 +32,7 @@ import type { FormRelation } from '~/lib/form-rules';
 import type { DetailsChange } from '~/lib/member-details';
 import { nimFinderSearch } from '~/lib/nim-finder';
 import { ListFormResponsesQuerySchema } from '~/types/form.types';
+import { formIdByName, formNameTaken, nameHolder } from './short-link.repo';
 
 type Form = typeof forms.$inferSelect;
 type FormInsert = typeof forms.$inferInsert;
@@ -51,26 +51,28 @@ export async function getFormById(db: Database, formId: string) {
   });
 }
 
+/** The form a name opens: its current name or an older one (they keep working), as the names say. */
 export async function getFormBySlug(db: Database, slug: string) {
-  return await db.query.forms.findFirst({ where: eq(forms.slug, slug) });
+  const formId = await formIdByName(db, slug);
+  return formId ? await getFormById(db, formId) : undefined;
 }
 
-/** Whether a form other than `exceptFormId` holds this short name. */
+/** Whether a link or another form holds this name, now or once (forms and short links share the names). */
 export async function slugTaken(
   db: Database,
   slug: string,
   exceptFormId: string | null,
 ) {
-  const rows = await db
-    .select({ id: forms.id })
-    .from(forms)
-    .where(
-      exceptFormId
-        ? and(eq(forms.slug, slug), ne(forms.id, exceptFormId))
-        : eq(forms.slug, slug),
-    )
-    .limit(1);
-  return rows.length > 0;
+  return await formNameTaken(db, slug, exceptFormId);
+}
+
+/** Who holds this name, apart from form `exceptFormId`'s own names; null when it's free. */
+export async function slugHolder(
+  db: Database,
+  slug: string,
+  exceptFormId: string | null,
+) {
+  return await nameHolder(db, slug, { formId: exceptFormId });
 }
 
 /** The form's owner's name, for the agreement sentence. */

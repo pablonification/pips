@@ -268,7 +268,14 @@ test('a new form, its title naming its link, publishing, renaming, and a breakin
       ...id,
       query: 'slug=Makrab 2026',
     }),
-    { slug: 'makrab-2026', available: false, problem: 'taken' },
+    // Capitals stay as typed and are compared without them, as the API's shared names are.
+    {
+      slug: 'Makrab-2026',
+      available: false,
+      problem: 'taken',
+      heldAs: 'makrab-2026',
+      heldBy: 'form',
+    },
   );
 
   // On a form with answers, removing a question asks first; then its answers go.

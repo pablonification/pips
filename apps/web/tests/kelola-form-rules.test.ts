@@ -254,7 +254,10 @@ test('the short name: tidied while typing, and refused for what the server refus
     );
   for (const v of [
     'ab',
-    'a'.repeat(41),
+    'a!',
+    'a'.repeat(50),
+    'a'.repeat(51),
+    'Makrab-IF',
     'makrab_2026',
     'makrab--2026',
     '-makrab',

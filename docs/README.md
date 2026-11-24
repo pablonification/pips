@@ -12,6 +12,7 @@ change that makes a doc wrong fixes that doc in the same pull request.
 | [testing.md](testing.md) | You are about to write or run a test, or a check failed in CI. |
 | [design-system.md](design-system.md) | You are building or changing a screen. |
 | [forms-api.md](forms-api.md) | You are building a form screen: the member's form, Data diri, or the form builder. |
+| [short-links-api.md](short-links-api.md) | You are building Tautan pendek (s.hmif.dev): the member's links, claiming, Kelola, or a form's link. |
 | [adr/](adr/README.md) | You wonder why something is the way it is, or want to change a big choice. |
 
 First time here: [CONTRIBUTING.md](../CONTRIBUTING.md) gets you from `git clone` to a running app and a first change.

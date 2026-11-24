@@ -33,6 +33,8 @@ let testUrl: string;
 /** Removes every seeded row this file can tell apart, so other files see the database as they left it. */
 async function removeSeed() {
   // Before the members: a form outlives its owner (no owner), so it would stay behind.
+  // A published form's names outlive it (reserved): let go of the seed forms' links and names first.
+  await client`delete from short_links where form_id like 'seed-%'`;
   await client`delete from forms where id like 'seed-%'`;
   await client`delete from users where id like 'seed-%'`;
   await client`delete from calendar_group where id like 'seed-%'`;

@@ -10,7 +10,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { REAL_API_PORT, REAL_WEB_URL } from './ports.mjs';
+import { REAL_API_PORT, REAL_SHORT_HOST, REAL_WEB_URL } from './ports.mjs';
 import { REAL_BYPASS_KEY } from './secrets.mjs';
 
 const apiDir = path.resolve(
@@ -49,6 +49,7 @@ const env = {
   LISTEN_HOST: '127.0.0.1',
   CLIENT_IP_HEADER: 'none',
   ALLOWED_ORIGINS: JSON.stringify([REAL_WEB_URL]),
+  SHORTLINK_HOST: REAL_SHORT_HOST,
   JWT_SECRET: 'e2e-real-api-session-key-not-a-secret-0123456789',
   TOKEN_EXPIRATION: '3600',
   LOGIN_BYPASS_KEY: REAL_BYPASS_KEY,
@@ -68,6 +69,7 @@ for (const key of [
   'AXIOM_TOKEN',
   'DEV_LOGIN_EMAIL',
   'DEV_LOGIN_PASSWORD_HASH',
+  'SHORTLINK_CLAIM_UNTIL',
 ])
   delete env[key];
 

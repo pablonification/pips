@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "test:db": "tsx --test --test-concurrency=1 tests/db/*.test.ts",
-    "openapi": "tsx scripts/openapi.ts"
+    "openapi": "tsx scripts/openapi.ts",
+    "short-links:import": "tsx scripts/short-links-import.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.556.0",
@@ -27,6 +28,7 @@
     "@paralleldrive/cuid2": "^2.2.2",
     "@sentry/node": "^11.16.0",
     "@sentry/profiling-node": "^11.16.0",
+    "bcryptjs": "^3.0.3",
     "cron": "^3.1.7",
     "cross-env": "^7.0.3",
     "dayjs": "^1.11.13",

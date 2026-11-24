@@ -503,15 +503,18 @@ export const defaultHandlers: Record<string, Handler> = {
     if (!found) return formNotFound();
     if (!found.access.canEdit) return viewOnly();
     const slug = tidySlug(query.get('slug') ?? '');
-    const problem =
-      slugProblem(slug) ??
-      (db.formStore.some((f) => f.slug === slug && f.id !== params.formId)
-        ? ('taken' as const)
-        : null);
+    // Compared without capitals, as the API's names are.
+    const holder = db.formStore.find(
+      (f) =>
+        f.slug.toLowerCase() === slug.toLowerCase() && f.id !== params.formId,
+    );
+    const problem = slugProblem(slug) ?? (holder ? ('taken' as const) : null);
     return ok<R<typeof api.checkFormSlug>>({
       slug,
       available: problem === null,
       problem,
+      heldAs: problem === 'taken' && holder ? holder.slug : null,
+      heldBy: problem === 'taken' ? 'form' : null,
     });
   }),
   'GET /api/form/:formId/answers/summary': pengurus(({ db, params }) => {

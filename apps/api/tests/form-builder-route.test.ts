@@ -209,7 +209,17 @@ const manageDeps: FormManageDeps = {
     store.responses = store.responses.filter((r) => r.formId !== id);
   },
   slugTaken: async (slug, except) =>
-    [...store.forms.values()].some((f) => f.slug === slug && f.id !== except),
+    [...store.forms.values()].some(
+      (f) => f.slug.toLowerCase() === slug.toLowerCase() && f.id !== except,
+    ),
+  slugHolder: async (slug, except) => {
+    const f = [...store.forms.values()].find(
+      (x) => x.slug.toLowerCase() === slug.toLowerCase() && x.id !== except,
+    );
+    return f
+      ? { held: 'taken' as const, heldAs: f.slug, heldBy: 'form' as const }
+      : null;
+  },
   getPerson: async (id) => person(id),
   getFormResponsesCount: async (id) => responsesOf(id).length,
   countAudience: async (angkatan) =>
@@ -265,8 +275,12 @@ const memberDeps: FormDeps = {
   getActiveForms: async () =>
     [...store.forms.values()].filter((f) => f.isActive && f.publishedAt),
   getFormById: async (id) => store.forms.get(id),
+  // As the names do: exactly, then without capitals.
   getFormBySlug: async (slug) =>
-    [...store.forms.values()].find((f) => f.slug === slug),
+    [...store.forms.values()].find((f) => f.slug === slug) ??
+    [...store.forms.values()].find(
+      (f) => f.slug.toLowerCase() === slug.toLowerCase(),
+    ),
   getFormRelation: async (f, userId) => relation(f, userId),
   getOwnerName: async (id) => {
     const p = person(id);
@@ -585,7 +599,8 @@ test('a published form keeps an angkatan and an opening time, and closes after i
   assert.equal(closed.body.status, 'closed');
 });
 
-test('renaming the link: rules, taken names, who may; the old name is let go', async () => {
+test('renaming the link: the one name rule, taken names compared without capitals, who may', async () => {
+  // That a published form's old name keeps opening it is the names' trigger's work: tests/db/short-links.test.ts.
   const other = form({ ownerId: 'u-kevin', slug: 'kevin-form' });
   store.forms.set(other.id, other);
   const path = `/form/${makrab.id}/slug`;
@@ -597,42 +612,69 @@ test('renaming the link: rules, taken names, who may; the old name is let go', a
     (await as(people.dimas, 'PUT', path, { slug: 'mak--rab' })).status,
     400,
   );
-  const taken = await as(people.dimas, 'PUT', path, { slug: 'kevin-form' });
+  assert.equal(
+    (await as(people.dimas, 'PUT', path, { slug: 'makrab_2026' })).body
+      .problem,
+    'characters',
+  );
+  const taken = await as(people.dimas, 'PUT', path, { slug: 'Kevin-Form' });
   assert.equal(taken.status, 409);
-  assert.equal(taken.body.problem, 'taken');
+  assert.deepEqual(
+    { ...taken.body, error: undefined },
+    {
+      error: undefined,
+      problem: 'taken',
+      heldAs: 'kevin-form',
+      heldBy: 'form',
+    },
+  );
   assert.equal(
     (await as(people.salsa, 'PUT', path, { slug: 'makrab-seru' })).status,
     403,
   );
+  // Capitals stay, for reading; spaces become hyphens.
   const renamed = await as(people.aulia, 'PUT', path, { slug: 'Makrab Seru' });
   assert.equal(renamed.status, 200);
-  assert.equal(renamed.body.slug, 'makrab-seru');
+  assert.equal(renamed.body.slug, 'Makrab-Seru');
   assert.equal(renamed.body.slugCustom, true);
-  // The old link finds nothing now; another form may take the name.
   assert.equal(
-    (await asMember(people.nadia, 'GET', '/form-link/makrab-2026')).status,
-    404,
-  );
-  assert.equal(
-    (
-      await as(
-        people.kevin,
-        'GET',
-        `/form/${other.id}/slug-check?slug=makrab-2026`,
-      )
-    ).body.available,
-    true,
+    (await asMember(people.nadia, 'GET', '/form-link/Makrab-Seru')).status,
+    200,
   );
   const check = await as(
     people.kevin,
     'GET',
-    `/form/${other.id}/slug-check?slug=Makrab Seru`,
+    `/form/${other.id}/slug-check?slug=makrab seru`,
   );
   assert.deepEqual(check.body, {
     slug: 'makrab-seru',
     available: false,
     problem: 'taken',
+    heldAs: 'Makrab-Seru',
+    heldBy: 'form',
   });
+  // Up to 50 characters now, as short links.
+  assert.equal(
+    (
+      await as(
+        people.kevin,
+        'GET',
+        `/form/${other.id}/slug-check?slug=${'a'.repeat(50)}`,
+      )
+    ).body.available,
+    true,
+  );
+  // The form's own name is free to it.
+  assert.equal(
+    (
+      await as(
+        people.kevin,
+        'GET',
+        `/form/${other.id}/slug-check?slug=kevin-form`,
+      )
+    ).body.available,
+    true,
+  );
   assert.equal(
     (await as(people.salsa, 'GET', `/form/${makrab.id}/slug-check?slug=abc`))
       .status,

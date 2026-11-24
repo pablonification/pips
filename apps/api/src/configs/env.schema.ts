@@ -49,6 +49,21 @@ export const EnvSchema = z.object({
     .url()
     .optional()
     .transform((v) => v?.replace(/\/+$/, '')),
+  // The host whose every request is a short link's redirect (s.hmif.dev): no API route answers there. Another
+  // host (tests, staging) can stand in.
+  SHORTLINK_HOST: z
+    .string()
+    .default('s.hmif.dev')
+    .transform((v) => v.trim().toLowerCase()),
+  // When claiming old s.hmif.dev links ends (an ISO time, about three months after the switch); unset keeps it open.
+  // A value that isn't a time counts as unset, so a typo never stops the API.
+  SHORTLINK_CLAIM_UNTIL: z
+    .string()
+    .optional()
+    .transform((v) => {
+      const at = v ? new Date(v) : undefined;
+      return at && !Number.isNaN(at.getTime()) ? at : undefined;
+    }),
   VAPID_PUBLIC_KEY: z.string(),
   VAPID_PRIVATE_KEY: z.string(),
   VAPID_MAILTO: z.string().email().optional(),

@@ -499,20 +499,20 @@ export function publishChecks(
 /* ---------------- The short name ---------------- */
 
 export const SLUG_MIN = 3;
-export const SLUG_MAX = 40;
+export const SLUG_MAX = 50;
 export type SlugProblem = keyof typeof copy.tautan.masalah;
 
-/** Capitals become lower case and spaces or underscores hyphens, while typing. */
-export const tidySlug = (v: string) => v.toLowerCase().replace(/[\s_]+/g, '-');
+/** Spaces become hyphens while typing; capitals stay, for reading. Forms and short links share the rule. */
+export const tidySlug = (v: string) => v.replace(/\s+/g, '-');
 
-/** What the server would refuse in the name, before asking it whether another form holds it. */
+/** What the server would refuse in the name, in the field's order, before asking whether a link or form holds it. */
 export function slugProblem(
   slug: string,
-): Exclude<SlugProblem, 'taken'> | null {
+): Exclude<SlugProblem, 'taken' | 'used'> | null {
+  if (/[^A-Za-z0-9-]/.test(slug)) return 'characters';
   if (slug.length < SLUG_MIN) return 'too_short';
   if (slug.length > SLUG_MAX) return 'too_long';
-  if (/[^a-z0-9-]/.test(slug)) return 'characters';
-  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return 'hyphens';
+  if (!/^[A-Za-z0-9]+(-[A-Za-z0-9]+)*$/.test(slug)) return 'hyphens';
   return null;
 }
 
