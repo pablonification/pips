@@ -252,8 +252,8 @@ export async function importShortLinks(
         const [found] = await tx<
           Array<{
             id: string;
-            updated_at: Date;
-            lynx_modified_at: Date | null;
+            updated_at: Date | string;
+            lynx_modified_at: Date | string | null;
             lynx_visits: number | null;
             deleted_at: Date | null;
             account_id: string | null;
@@ -269,12 +269,14 @@ export async function importShortLinks(
             update short_links set clicks = clicks + ${grew}, lynx_visits = ${l.visits},
               account_id = coalesce(account_id, ${accountId})
             where id = ${found.id}`;
+          // A Date, or a string when the client is shared with drizzle (which turns off the driver's date parsing).
+          const ms = (v: Date | string) => new Date(v).getTime();
           const lynxChanged =
             !found.lynx_modified_at ||
-            l.modifiedAt.getTime() > found.lynx_modified_at.getTime();
+            l.modifiedAt.getTime() > ms(found.lynx_modified_at);
           const pipsUnchanged =
             !!found.lynx_modified_at &&
-            found.updated_at.getTime() === found.lynx_modified_at.getTime();
+            ms(found.updated_at) === ms(found.lynx_modified_at);
           if (!lynxChanged || found.deleted_at) continue;
           if (!pipsUnchanged) {
             report.changedOnBothSides++;
@@ -291,8 +293,8 @@ export async function importShortLinks(
             }
           }
           await tx`
-            update short_links set destination = ${l.destination}, updated_at = ${l.modifiedAt},
-              lynx_modified_at = ${l.modifiedAt}
+            update short_links set destination = ${l.destination}, updated_at = ${l.modifiedAt.toISOString()}::timestamptz,
+              lynx_modified_at = ${l.modifiedAt.toISOString()}::timestamptz
             where id = ${found.id}`;
           report.linksUpdated++;
           continue;
@@ -313,13 +315,13 @@ export async function importShortLinks(
           insert into short_links (id, destination, owner_id, account_id, lynx_id, lynx_visits, lynx_modified_at,
             clicks, created_at, updated_at)
           values (${id}, ${l.destination}, ${owner?.claimed_by ?? null}, ${accountId}, ${l.lynxId}, ${l.visits},
-            ${l.modifiedAt}, ${l.visits}, ${l.createdAt}, ${l.modifiedAt})`;
+            ${l.modifiedAt.toISOString()}::timestamptz, ${l.visits}, ${l.createdAt.toISOString()}::timestamptz, ${l.modifiedAt.toISOString()}::timestamptz)`;
         // An old name that differs only in capitals from one already here keeps working by its exact name.
         await tx`
           insert into short_link_names (name, link_id, is_current, holds_fold, created_at)
           values (${l.slug}, ${id}, true,
             not exists (select 1 from short_link_names where folded = lower(${l.slug}) and holds_fold),
-            ${l.createdAt})`;
+            ${l.createdAt.toISOString()}::timestamptz)`;
         report.linksAdded++;
       }
 

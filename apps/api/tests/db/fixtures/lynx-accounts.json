@@ -1,0 +1,67 @@
+[
+  {
+    "_id": {
+      "$oid": "64a000000000000000000001"
+    },
+    "id": "acc-email",
+    "username": "slnadia",
+    "email": "13525961@std.stei.itb.ac.id",
+    "password": "$2b$04$vOtSv5mQLAuGjugv9T/fzeccPk7u99HzS6F..JgZLrmAi9gfWVuMy",
+    "role": "user",
+    "twoFactorAuthentication": false
+  },
+  {
+    "_id": {
+      "$oid": "64a000000000000000000002"
+    },
+    "id": "acc-nim-user",
+    "username": "bima13525962",
+    "email": "bima.santoso@example.com",
+    "password": "$2a$04$vOtSv5mQLAuGjugv9T/fzeccPk7u99HzS6F..JgZLrmAi9gfWVuMy",
+    "role": "user",
+    "twoFactorAuthentication": false
+  },
+  {
+    "_id": {
+      "$oid": "64a000000000000000000003"
+    },
+    "id": "acc-nim-mail",
+    "username": "tasyaw",
+    "email": "tasya.13525963@example.com",
+    "password": "$2b$04$vOtSv5mQLAuGjugv9T/fzeccPk7u99HzS6F..JgZLrmAi9gfWVuMy",
+    "role": "user"
+  },
+  {
+    "_id": {
+      "$oid": "64a000000000000000000004"
+    },
+    "id": "acc-old",
+    "username": "panitia.semnas",
+    "email": "semnas@example.org",
+    "password": "$2a$04$vOtSv5mQLAuGjugv9T/fzeccPk7u99HzS6F..JgZLrmAi9gfWVuMy",
+    "role": "user",
+    "twoFactorAuthentication": false
+  },
+  {
+    "_id": {
+      "$oid": "64a000000000000000000005"
+    },
+    "id": "acc-2fa",
+    "username": "humas.ext",
+    "email": "humas@example.org",
+    "password": "$2b$04$vOtSv5mQLAuGjugv9T/fzeccPk7u99HzS6F..JgZLrmAi9gfWVuMy",
+    "role": "admin",
+    "twoFactorAuthentication": true
+  },
+  {
+    "_id": {
+      "$oid": "64a000000000000000000006"
+    },
+    "id": "acc-empty",
+    "username": "kosong.saja",
+    "email": null,
+    "password": "$2b$04$vOtSv5mQLAuGjugv9T/fzeccPk7u99HzS6F..JgZLrmAi9gfWVuMy",
+    "role": "user",
+    "twoFactorAuthentication": false
+  }
+]

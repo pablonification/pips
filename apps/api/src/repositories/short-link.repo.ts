@@ -31,6 +31,9 @@ import {
   type RedirectRow,
 } from '~/lib/short-link';
 
+/** The first row, or null: a destructured `[row]` is typed as always there. */
+const first = <T>(rows: T[]): T | null => rows[0] ?? null;
+
 /** A name another link or form holds (or a deleted one held), refused by the names' unique indexes. */
 export class NameTakenError extends Error {
   constructor() {
@@ -415,7 +418,7 @@ export async function getPerson(db: Database, userId: string) {
     .select({ id: users.id, fullName: users.fullName, nim: users.nim })
     .from(users)
     .where(eq(users.id, userId));
-  return row ?? null;
+  return first(row ? [row] : []);
 }
 
 export async function getMemberByNim(db: Database, nim: string) {
@@ -423,7 +426,7 @@ export async function getMemberByNim(db: Database, nim: string) {
     .select({ id: users.id, fullName: users.fullName, nim: users.nim })
     .from(users)
     .where(eq(users.nim, nim));
-  return row ?? null;
+  return first(row ? [row] : []);
 }
 
 export async function getAccount(db: Database, accountId: string) {
@@ -431,7 +434,7 @@ export async function getAccount(db: Database, accountId: string) {
     .select()
     .from(shortLinkAccounts)
     .where(eq(shortLinkAccounts.id, accountId));
-  return row ?? null;
+  return first(row ? [row] : []);
 }
 
 /** An old account's links nobody in PIPS! holds yet: what claiming it moves. */
