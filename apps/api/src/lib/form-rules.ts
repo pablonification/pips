@@ -15,6 +15,13 @@ import {
   type FormSection,
   type QuestionType,
 } from './form-model';
+import {
+  NAME_MAX,
+  NAME_MIN,
+  nameProblem,
+  tidyName,
+  type NameProblem,
+} from './short-link';
 
 const has = (s: string | undefined) => !!s && s.trim() !== '';
 
@@ -187,29 +194,18 @@ export function dropLostAnswers(
   return answers.filter((a) => !gone.has(a.questionId));
 }
 
-// The short name: app.hmif.dev/f/<slug>.
+// The short name: s.hmif.dev/<slug>. Forms and short links share one set of names and one rule (lib/short-link.ts).
 
-export const SLUG_MIN = 3;
-export const SLUG_MAX = 40;
-const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+export const SLUG_MIN = NAME_MIN;
+export const SLUG_MAX = NAME_MAX;
 
-export type SlugProblem = 'too_short' | 'too_long' | 'characters' | 'hyphens';
+export type SlugProblem = NameProblem;
 
-/** Capitals become lower case and spaces or underscores hyphens, as the field does while typing. */
-export const tidySlug = (v: string) =>
-  v
-    .trim()
-    .toLowerCase()
-    .replace(/[\s_]+/g, '-');
+/** Spaces become hyphens, as the field does while typing; capitals stay. */
+export const tidySlug = tidyName;
 
-/** Why a short name can't be used, before asking whether another form holds it; null when its form is fine. */
-export function slugProblem(slug: string): SlugProblem | null {
-  if (slug.length < SLUG_MIN) return 'too_short';
-  if (slug.length > SLUG_MAX) return 'too_long';
-  if (/[^a-z0-9-]/.test(slug)) return 'characters';
-  if (!SLUG.test(slug)) return 'hyphens';
-  return null;
-}
+/** Why a short name can't be used, before asking whether a link or form holds it; null when its form is fine. */
+export const slugProblem = nameProblem;
 
 /** A short name from a title: "Daftar panitia Wisuda Oktober" → `daftar-panitia-wisuda-oktober`. */
 export function slugFromTitle(title: string): string {

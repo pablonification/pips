@@ -423,15 +423,20 @@ test('kinds that keep answers, as the prototype lists them', () => {
   assert.equal(keepsAnswers('date', 'time'), false);
 });
 
-test('short names: lower case, digits and hyphens, 3 to 40, a hyphen only between', () => {
-  assert.equal(tidySlug(' Makrab_2026 Seru '), 'makrab-2026-seru');
+test('short names follow the one rule shared with short links: letters, digits and hyphens, 3 to 50', () => {
+  assert.equal(tidySlug(' Makrab 2026  Seru '), 'Makrab-2026-Seru');
   assert.equal(slugProblem('ab'), 'too_short');
-  assert.equal(slugProblem('a'.repeat(41)), 'too_long');
+  assert.equal(slugProblem('a'.repeat(50)), null);
+  assert.equal(slugProblem('a'.repeat(51)), 'too_long');
   assert.equal(slugProblem('makrab!'), 'characters');
+  assert.equal(slugProblem('makrab_2026'), 'characters');
+  // The field says what is wrong first: a character it can't have, before the length.
+  assert.equal(slugProblem('a!'), 'characters');
   assert.equal(slugProblem('-makrab'), 'hyphens');
   assert.equal(slugProblem('makrab-'), 'hyphens');
   assert.equal(slugProblem('mak--rab'), 'hyphens');
   assert.equal(slugProblem('makrab-2026'), null);
+  assert.equal(slugProblem('BayarKasHMIF'), null);
   assert.equal(
     slugFromTitle('Daftar panitia Wisuda Oktober'),
     'daftar-panitia-wisuda-oktober',
@@ -446,8 +451,8 @@ test('short names: lower case, digits and hyphens, 3 to 40, a hyphen only betwee
   assert.equal(slugProblem(long), null);
   assert.equal(numberedSlug('makrab', 1), 'makrab');
   assert.equal(numberedSlug('makrab', 2), 'makrab-2');
-  const cut = numberedSlug(`${'a'.repeat(38)}-b`, 12);
-  assert.equal(cut.length <= 40 && slugProblem(cut) === null, true, cut);
+  const cut = numberedSlug(`${'a'.repeat(48)}-b`, 12);
+  assert.equal(cut.length <= 50 && slugProblem(cut) === null, true, cut);
 });
 
 test('access: owner and Edit edit, Lihat jawaban sees, admin edits every form and is told whose it is', () => {

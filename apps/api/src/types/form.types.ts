@@ -441,28 +441,36 @@ export const SlugCheckQuerySchema = z.object({
     .openapi({ param: { in: 'query', description: 'The name as typed' } }),
 });
 
+const SLUG_PROBLEMS = [
+  'too_short',
+  'too_long',
+  'characters',
+  'hyphens',
+  'taken',
+  'used',
+] as const;
+
 export const SlugCheckSchema = z
   .object({
-    /** The name tidied as the field does (lower case, hyphens). */
+    /** The name tidied as the field does (spaces as hyphens; capitals kept). */
     slug: z.string(),
     available: z.boolean(),
-    /** Why not: too_short, too_long, characters, hyphens, taken (another form holds it). Null when available. */
-    problem: z
-      .enum(['too_short', 'too_long', 'characters', 'hyphens', 'taken'])
-      .nullable(),
+    /**
+     * Why not: too_short, too_long, characters, hyphens; taken (a short link or another form holds it, perhaps in
+     * other capitals: heldAs); used (a deleted link had it). Null when available. Forms and short links share the names.
+     */
+    problem: z.enum(SLUG_PROBLEMS).nullable(),
+    heldAs: z.string().nullable(),
+    heldBy: z.enum(['link', 'form']).nullable(),
   })
   .openapi('SlugCheck');
 
 export const SlugProblemSchema = z
   .object({
     error: z.string(),
-    problem: z.enum([
-      'too_short',
-      'too_long',
-      'characters',
-      'hyphens',
-      'taken',
-    ]),
+    problem: z.enum(SLUG_PROBLEMS),
+    heldAs: z.string().optional(),
+    heldBy: z.enum(['link', 'form']).optional(),
   })
   .openapi('SlugProblem');
 

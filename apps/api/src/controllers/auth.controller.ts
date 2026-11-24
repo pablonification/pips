@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { randomBytes } from 'node:crypto';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
+import { matchMemberAccounts } from '~/repositories/short-link.repo';
 import { env } from '~/configs/env.config';
 import { db } from '~/db/drizzle';
 import { angkatan, users } from '~/db/schema';
@@ -115,6 +116,8 @@ loginRouter.openapi(loginAccessTokenRoute, async (c) => {
   const token = await generateJWT(tokenPayload);
 
   runInBackground('Last sign-in update', updateUserLastLogin(db, user.id));
+  // Old s.hmif.dev accounts with this member's email or NIM become theirs, links and all (docs/adr/0024-*).
+  runInBackground('Old short links', matchMemberAccounts(db, user));
 
   setCookie(c, SESSION_COOKIE, token, sessionCookieOptions());
   return c.json(tokenPayload, 200);
@@ -172,6 +175,8 @@ loginRouter.openapi(authCallbackRoute, async (c) => {
   }
 
   runInBackground('Last sign-in update', updateUserLastLogin(db, user.id));
+  // Old s.hmif.dev accounts with this member's email or NIM become theirs, links and all (docs/adr/0024-*).
+  runInBackground('Old short links', matchMemberAccounts(db, user));
 
   const tokenPayload = JWTPayloadSchema.parse({ ...user, picture });
   const token = await generateJWT(tokenPayload);

@@ -1,6 +1,6 @@
 # 23. Forms are built by any pengurus, shared like Google Forms, and answered with profile fields the member agrees to
 
-Status: accepted.
+Status: accepted; how a form's link is named and kept is superseded by [24](0024-s-hmif-dev-short-links-live-in-pips-and-share-one-set-of-names-with-forms.md) (the link is `s.hmif.dev/<name>`, and old names keep working).
 
 ## Context
 

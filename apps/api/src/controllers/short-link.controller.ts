@@ -9,12 +9,12 @@ import {
   CLAIM_MAX_TRIES,
   claimOpen,
   destinationProblem,
-  nameProblem,
+  isRuleProblem,
+  nameRefusal,
   ownerPush,
   randomName,
   tidyName,
   type ClaimLock,
-  type NameProblem,
   type OwnerPush,
 } from '~/lib/short-link';
 import { forRoles } from '~/middlewares/role.middleware';
@@ -249,23 +249,9 @@ export function createShortLinkRouter(deps: ShortLinkDeps = databaseDeps) {
     return { ok: true, link, admin } as const;
   }
 
-  type Refusal =
-    | { problem: NameProblem | 'used'; heldAs?: undefined; heldBy?: undefined }
-    | { problem: 'taken'; heldAs: string; heldBy: 'link' | 'form' };
-
   /** Why a new name can't be this link's (or a new link's), or null. */
-  async function nameRefusal(
-    name: string,
-    linkId: string | null,
-  ): Promise<Refusal | null> {
-    const problem = nameProblem(name);
-    if (problem) return { problem };
-    const holder = await deps.nameHolder(name, { linkId });
-    if (!holder) return null;
-    return holder.held === 'used'
-      ? { problem: 'used' }
-      : { problem: 'taken', heldAs: holder.heldAs, heldBy: holder.heldBy };
-  }
+  const refusalFor = async (name: string, linkId: string | null) =>
+    await nameRefusal(name, async (n) => await deps.nameHolder(n, { linkId }));
 
   router.openapi(listShortLinksRoute, async (c) => {
     const user = c.var.user;
@@ -299,7 +285,7 @@ export function createShortLinkRouter(deps: ShortLinkDeps = databaseDeps) {
   router.openapi(checkShortLinkNameRoute, async (c) => {
     const { name: typed, linkId } = c.req.valid('query');
     const name = tidyName(typed);
-    const refusal = await nameRefusal(name, linkId ?? null);
+    const refusal = await refusalFor(name, linkId ?? null);
     return c.json(
       {
         name,
@@ -324,12 +310,8 @@ export function createShortLinkRouter(deps: ShortLinkDeps = databaseDeps) {
       );
     const typed = tidyName(input.name ?? '');
     if (typed) {
-      const refusal = await nameRefusal(typed, null);
-      if (
-        refusal?.problem &&
-        refusal.problem !== 'taken' &&
-        refusal.problem !== 'used'
-      )
+      const refusal = await refusalFor(typed, null);
+      if (refusal && isRuleProblem(refusal))
         return c.json({ error: 'Not a name a link can have', ...refusal }, 400);
       if (refusal)
         return c.json({ error: 'The name is held', ...refusal }, 409);
@@ -342,7 +324,7 @@ export function createShortLinkRouter(deps: ShortLinkDeps = databaseDeps) {
       } catch (err) {
         if (!(err instanceof NameTakenError)) throw err;
         if (typed) {
-          const refusal = await nameRefusal(typed, null);
+          const refusal = await refusalFor(typed, null);
           return c.json(
             {
               error: 'The name is held',
@@ -559,12 +541,8 @@ export function createShortLinkRouter(deps: ShortLinkDeps = databaseDeps) {
         : c.json({ error: 'A form’s link changes in the form' }, 409);
     const name = tidyName(c.req.valid('json').name);
     if (name !== found.link.name) {
-      const refusal = await nameRefusal(name, id);
-      if (
-        refusal?.problem &&
-        refusal.problem !== 'taken' &&
-        refusal.problem !== 'used'
-      )
+      const refusal = await refusalFor(name, id);
+      if (refusal && isRuleProblem(refusal))
         return c.json({ error: 'Not a name a link can have', ...refusal }, 400);
       if (refusal)
         return c.json({ error: 'The name is held', ...refusal }, 409);
@@ -572,7 +550,7 @@ export function createShortLinkRouter(deps: ShortLinkDeps = databaseDeps) {
         await deps.renameLink(id, name);
       } catch (err) {
         if (!(err instanceof NameTakenError)) throw err;
-        const again = await nameRefusal(name, id);
+        const again = await refusalFor(name, id);
         return c.json(
           {
             error: 'The name is held',

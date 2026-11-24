@@ -14,6 +14,33 @@ export type NameProblem = 'characters' | 'too_short' | 'too_long' | 'hyphens';
 /** What holds a name that is otherwise fine: another link or form now (`taken`), or a deleted one (`used`). */
 export type NameHeld = 'taken' | 'used';
 
+/** Why a name can't be had: the rule, or who holds it (`heldAs`: the name as held, capitals and all). */
+export type NameRefusal =
+  | { problem: NameProblem | 'used'; heldAs?: undefined; heldBy?: undefined }
+  | { problem: 'taken'; heldAs: string; heldBy: 'link' | 'form' };
+
+/** The refusal for a name: its rule first, then what holds it (looked up only when the rule passes). */
+export async function nameRefusal(
+  name: string,
+  holderOf: (name: string) => Promise<{
+    held: NameHeld;
+    heldAs: string;
+    heldBy: 'link' | 'form';
+  } | null>,
+): Promise<NameRefusal | null> {
+  const problem = nameProblem(name);
+  if (problem) return { problem };
+  const holder = await holderOf(name);
+  if (!holder) return null;
+  return holder.held === 'used'
+    ? { problem: 'used' }
+    : { problem: 'taken', heldAs: holder.heldAs, heldBy: holder.heldBy };
+}
+
+/** Whether a refusal is the name's own fault (400) rather than someone holding it (409). */
+export const isRuleProblem = (r: NameRefusal) =>
+  r.problem !== 'taken' && r.problem !== 'used';
+
 /** Spaces become hyphens, as the field does while typing; capitals stay, for reading (BayarKasHMIF). */
 export const tidyName = (v: string) => v.trim().replace(/\s+/g, '-');
 

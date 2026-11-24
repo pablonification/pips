@@ -419,7 +419,7 @@ export const renameFormSlugRoute = createRoute({
   method: 'put',
   path: '/form/{formId}/slug',
   description:
-    "Changes the form's short name (owner, Edit, admin). The old name is let go: its link no longer opens the form.",
+    "Changes the form's short name (owner, Edit, admin), s.hmif.dev/<name>. A published form's old name keeps opening it; a draft's is let go. Names are shared with short links and compared without capitals.",
   request: {
     params: FormIdParamSchema,
     body: { content: { 'application/json': { schema: SlugBodySchema } } },
@@ -430,7 +430,10 @@ export const renameFormSlugRoute = createRoute({
     401: errorResponse,
     403: errorResponse,
     404: errorResponse,
-    409: json('Another form holds it', SlugProblemSchema),
+    409: json(
+      'A link or another form holds it, or once did',
+      SlugProblemSchema,
+    ),
   },
 });
 

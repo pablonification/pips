@@ -428,7 +428,7 @@ export function createFormRouter(deps: FormDeps = databaseDeps) {
   formRouter.openapi(openFormLinkRoute, async (c) => {
     const { name } = c.req.valid('param');
     const user = c.var.user;
-    const form = await deps.getFormBySlug(name.toLowerCase());
+    const form = await deps.getFormBySlug(name);
     if (!form) return c.json({ error: 'Form not found' }, 404);
     const manage = await canManage(form, user.id);
     const base = {
