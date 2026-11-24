@@ -5,9 +5,9 @@ import { test } from 'node:test';
 import {
   dropTitle,
   isRole,
+  newestFirst,
   parseCredits,
   personLine,
-  runs,
 } from '../src/features/profil/credits';
 
 const SAMPLE = [
@@ -61,14 +61,8 @@ test('the credits’ shape: a group, its roles and teams, Lead and Team, each pe
     ],
   );
   assert.equal(personLine(fe.parts[1].people[0]), "STI'21 · 18221004");
-  // Roles together, then teams together.
-  assert.deepEqual(
-    runs(g.sections).map((r) => [r.role, r.sections.length]),
-    [
-      [true, 2],
-      [false, 2],
-    ],
-  );
+  // A role has its people straight under it; a team has Lead and Team.
+  assert.deepEqual(g.sections.map(isRole), [true, true, false, false]);
   assert.ok(isRole(g.sections[1]));
   assert.ok(!isRole(fe));
 });
@@ -123,4 +117,49 @@ test('the text’s own "Credits" title goes (the page’s title says it); other 
   assert.equal(dropTitle('#  kredit\nIsi'), 'Isi');
   assert.equal(dropTitle('# Tim PIPS!\nIsi'), '# Tim PIPS!\nIsi');
   assert.equal(dropTitle('Isi\n# Credits'), 'Isi\n# Credits');
+});
+
+test('the newest group first: the server writes its groups oldest first, and the page reverses them', () => {
+  const groups = parseCredits(
+    [
+      '# Credits',
+      '## Panitia Khusus (versi pertama)',
+      '### Project Owner',
+      "Nadia Putri - IF'21 - 13521901",
+      '## Redesign',
+      '### Lead & Implementer',
+      "Raka Pratama - STI'23 - 18223902",
+      '## Perawatan',
+      '### Backend',
+      '#### Lead',
+      "Sinta Dewi - IF'24 - 13524903",
+    ].join('\n'),
+  );
+  assert.ok(groups);
+  const shown = newestFirst(groups);
+  assert.deepEqual(
+    shown.map((g) => g.title),
+    ['Perawatan', 'Redesign', 'Panitia Khusus (versi pertama)'],
+  );
+  // The parsed groups stay in the server's order, and each group's own teams keep theirs.
+  assert.deepEqual(
+    groups.map((g) => g.title),
+    ['Panitia Khusus (versi pertama)', 'Redesign', 'Perawatan'],
+  );
+  assert.equal(shown[0], groups[2]);
+});
+
+test('one group, or teams with no group, show as they are', () => {
+  const one = parseCredits(
+    "## Tim\n### Frontend\nNadia Putri - IF'21 - 13521901",
+  );
+  assert.ok(one);
+  assert.deepEqual(newestFirst(one), one);
+  const none = parseCredits("### Frontend\nNadia Putri - IF'21 - 13521901");
+  assert.ok(none);
+  assert.deepEqual(
+    newestFirst(none).map((g) => g.title),
+    [null],
+  );
+  assert.deepEqual(newestFirst([]), []);
 });

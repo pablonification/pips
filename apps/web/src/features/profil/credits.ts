@@ -94,23 +94,13 @@ export function parseCredits(markdown: string): CreditGroup[] | null {
   return full ? groups : null;
 }
 
-/** A role (Project Owner): its people straight under it, no Lead or Team. Roles sit together as small cards. */
+/** A role (Project Owner): its people straight under it, no Lead or Team. */
 export const isRole = (s: CreditSection) =>
   s.parts.length === 1 && s.parts[0].label === null;
 
-/** A group's sections in runs of roles and of teams, in their order, so each run lays out as one grid. */
-export function runs(
-  sections: CreditSection[],
-): { role: boolean; sections: CreditSection[] }[] {
-  const out: { role: boolean; sections: CreditSection[] }[] = [];
-  for (const s of sections) {
-    const role = isRole(s);
-    const last = out.at(-1);
-    if (last && last.role === role) last.sections.push(s);
-    else out.push({ role, sections: [s] });
-  }
-  return out;
-}
-
 /** "IF'21 · 13521901". */
 export const personLine = (p: CreditPerson) => `${p.angkatan} · ${p.nim}`;
+
+/** The server writes its groups oldest first; the page shows the newest first. */
+export const newestFirst = (groups: CreditGroup[]): CreditGroup[] =>
+  [...groups].reverse();
