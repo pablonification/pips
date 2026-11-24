@@ -6,7 +6,7 @@ import type { ManageForm } from '../models/ManageForm';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { http } from '../../http';
 /**
- * Changes the form's short name (owner, Edit, admin). The old name is let go: its link no longer opens the form.
+ * Changes the form's short name (owner, Edit, admin), s.hmif.dev/<name>. A published form's old name keeps opening it; a draft's is let go. Names are shared with short links and compared without capitals.
  * @returns ManageForm The form
  * @throws ApiError
  */
@@ -35,7 +35,7 @@ export function renameFormSlug({
       401: `Error`,
       403: `Error`,
       404: `Error`,
-      409: `Another form holds it`,
+      409: `A link or another form holds it, or once did`,
     },
   });
 }

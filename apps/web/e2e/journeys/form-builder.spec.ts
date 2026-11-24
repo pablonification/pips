@@ -579,7 +579,7 @@ test.describe('Bagikan', () => {
     await expect(field).toBeFocused();
     await field.fill('');
     await field.pressSequentially('Makrab IF');
-    await expect(field).toHaveValue('makrab-if');
+    await expect(field).toHaveValue('Makrab-IF');
     await expect(d.getByText('Tersedia')).toBeVisible();
     await field.fill('ab');
     await expect(d.getByText('Minimal 3 karakter')).toBeVisible();
@@ -595,9 +595,7 @@ test.describe('Bagikan', () => {
     expect(api.calls('PUT /api/form/:formId/slug')).toHaveLength(0);
     await field.fill('makrab-if-2026');
     await expect(d.getByText('Tersedia')).toBeVisible();
-    await expect(
-      d.getByText('Tautan lama tidak bisa dibuka lagi.'),
-    ).toBeVisible();
+    await expect(d.getByText('Tautan lama tetap bisa dibuka.')).toBeVisible();
     await strictGates(page, testInfo, 'share-link-edit', null);
     await d.getByRole('button', { name: 'Simpan' }).click();
     await expect(d.getByText('app.hmif.dev/f/makrab-if-2026')).toBeVisible();

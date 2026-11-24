@@ -5,6 +5,8 @@
 export type SlugCheck = {
   slug: string;
   available: boolean;
-  problem: 'too_short' | 'too_long' | 'characters' | 'hyphens' | 'taken' | null;
+  problem: 'too_short' | 'too_long' | 'characters' | 'hyphens' | 'taken' | 'used' | null;
+  heldAs: string | null;
+  heldBy: 'link' | 'form' | null;
 };
 

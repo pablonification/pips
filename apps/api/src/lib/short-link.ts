@@ -1,5 +1,4 @@
 import { randomInt } from 'node:crypto';
-import type { PushData } from './push-manager';
 
 // Tautan pendek (docs/adr/0024-*): the rules for names, destinations, the redirect and the claim, with no database.
 
@@ -318,7 +317,13 @@ export type OwnerPush =
   | { kind: 'destination'; linkId: string; name: string }
   | { kind: 'renamed'; linkId: string; name: string; from: string };
 
-export function ownerPush(p: OwnerPush, shortHost: string): PushData {
+/** A push as `lib/push-manager.ts` sends it; written out here so this file imports nothing (the web app reads it). */
+export interface OwnerPushData {
+  title: string;
+  options: { body: string; data: { url: string } };
+}
+
+export function ownerPush(p: OwnerPush, shortHost: string): OwnerPushData {
   const at = (name: string) => `${hostName(shortHost)}/${name}`;
   const url = SHORT_LINK_PATHS.link(p.linkId);
   switch (p.kind) {
