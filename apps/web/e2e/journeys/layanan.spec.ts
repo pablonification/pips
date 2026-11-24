@@ -143,30 +143,16 @@ test('one h1 in the page at every layout, none hidden by CSS', async ({
 test.describe('Raka', () => {
   test.use({ persona: 'pengurus', push: 'on' });
 
-  test('Kelola last, with his tools', async ({ page }, testInfo) => {
+  test('no Kelola group: his tools are in Kelola, reached from Profil or the sidebar', async ({
+    page,
+  }, testInfo) => {
     await page.goto('/layanan');
     await expect
       .poll(() => groupTitles(page))
-      .toEqual([
-        'Kuliah',
-        'Teman dan himpunan',
-        'Kesempatan',
-        'Administrasi',
-        'Kelola',
-      ]);
-    expect((await rowNames(page)).slice(-2)).toEqual([
-      'Live Counting & Rekap Form',
-      'Tambah acara Akademik',
-    ]);
-    await expect(row(page, /^Live Counting/)).toHaveAttribute(
-      'href',
-      '/kelola/live',
-    );
-    // /kelola/acara forwards to the add-event dialog over Kalender (/kalender?tambah=acara; manage-events.spec.ts).
-    await expect(row(page, /^Tambah acara Akademik/)).toHaveAttribute(
-      'href',
-      '/kelola/acara',
-    );
+      .toEqual(['Kuliah', 'Teman dan himpunan', 'Kesempatan', 'Administrasi']);
+    const names = await rowNames(page);
+    expect(names).not.toContain('Live Counting & Rekap Form');
+    expect(names).not.toContain('Tambah acara Akademik');
     await strictGates(page, testInfo, 'layanan-raka', 'Layanan');
   });
 });

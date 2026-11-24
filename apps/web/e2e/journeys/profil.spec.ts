@@ -190,7 +190,7 @@ test.describe('Nadia', () => {
 test.describe('Raka', () => {
   test.use({ persona: 'pengurus' });
 
-  test('his card, Grup with his groups, this device on, and no Kelola entry in Profil', async ({
+  test('his card, Grup with his groups, this device on, and Kelola as a row on phones and tablets', async ({
     page,
   }, testInfo) => {
     await page.goto('/profil');
@@ -212,8 +212,10 @@ test.describe('Raka', () => {
         name: /^Notifikasi\s*Menyala di perangkat ini$/,
       }),
     ).toBeVisible();
-    // Kelola is last in Layanan, not in Profil.
-    await expect(main(page).getByText('Kelola')).toHaveCount(0);
+    // Kelola's way in on phones and tablets; desktop has it in the sidebar instead.
+    const kelola = main(page).getByRole('link', { name: /^Kelola/ });
+    if (layoutOf(testInfo) === 'desktop') await expect(kelola).toHaveCount(0);
+    else await expect(kelola).toHaveAttribute('href', '/kelola');
     await strictGates(page, testInfo, 'profil-raka', 'Profil');
   });
 

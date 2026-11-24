@@ -22,7 +22,8 @@ test.use({ persona: 'pengurus' });
 
 const main = (page: Page) => page.getByRole('main');
 const touch = (testInfo: TestInfo) => layoutOf(testInfo) !== 'desktop';
-const lit = (testInfo: TestInfo) => (touch(testInfo) ? 'Layanan' : 'Kelola');
+/** Kelola opens from Profil on touch, so a page opened directly lights no tab there. */
+const lit = (testInfo: TestInfo) => (touch(testInfo) ? null : 'Kelola');
 const plaque = (page: Page) => main(page).locator('.g-live-plaque');
 const square = (page: Page) => plaque(page).locator('[data-live]');
 const rows = (page: Page) => main(page).locator('li.g-resp');
@@ -152,18 +153,30 @@ test.describe('Kelola hub', () => {
     await expect(page).toHaveURL(/\/kalender/);
   });
 
-  test('desktop: Kelola in the sidebar; touch: last in Layanan', async ({
+  test('desktop: Kelola in the sidebar; touch: a row in Profil, not in Layanan', async ({
     page,
   }, testInfo) => {
     await page.goto('/layanan');
+    await expect(
+      main(page).getByRole('heading', { name: 'Kelola' }),
+    ).toHaveCount(0);
+    await expect(
+      main(page).getByRole('link', { name: /^Live Counting & Rekap Form/ }),
+    ).toHaveCount(0);
     if (touch(testInfo)) {
-      await expect(
-        main(page).getByRole('heading', { name: 'Kelola' }),
-      ).toBeVisible();
+      await page.goto('/profil');
+      await main(page)
+        .getByRole('link', { name: /^Kelola/ })
+        .click();
+      await expect(page).toHaveURL(/\/kelola$/);
       await main(page)
         .getByRole('link', { name: /^Live Counting & Rekap Form/ })
         .click();
     } else {
+      await page.goto('/profil');
+      await expect(
+        main(page).getByRole('link', { name: /^Kelola/ }),
+      ).toHaveCount(0);
       await page
         .getByRole('navigation', { name: 'Navigasi utama' })
         .getByRole('link', { name: /^Kelola/ })
@@ -275,7 +288,7 @@ test.describe('Kelola hub', () => {
     });
   });
 
-  test('back from a deep-linked live page lands on Kelola, then Layanan; no loop', async ({
+  test('back from a deep-linked live page lands on Kelola, then Profil; no loop', async ({
     page,
   }, testInfo) => {
     await page.goto('/kelola/live/pixel');
@@ -283,8 +296,8 @@ test.describe('Kelola hub', () => {
     if (touch(testInfo)) {
       await page.getByRole('button', { name: 'Kembali ke Kelola' }).click();
       await expect(page).toHaveURL(/\/kelola$/);
-      await page.getByRole('button', { name: 'Kembali ke Layanan' }).click();
-      await expect(page).toHaveURL(/\/layanan$/);
+      await page.getByRole('button', { name: 'Kembali ke Profil' }).click();
+      await expect(page).toHaveURL(/\/profil$/);
     } else {
       const crumbs = page.getByRole('navigation', { name: 'Jejak halaman' });
       await expect(crumbs).toHaveText(/Kelola\s*Live Counting/);

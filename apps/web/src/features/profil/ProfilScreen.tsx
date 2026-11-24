@@ -23,6 +23,7 @@ import {
   toast,
 } from '~/components/garis';
 import { IconGelap } from '~/components/icons/gelap';
+import { IconKelola } from '~/components/icons/kelola';
 import { IconKeluar } from '~/components/icons/keluar';
 import { IconKredit } from '~/components/icons/kredit';
 import { IconLanjut } from '~/components/icons/lanjut';
@@ -34,6 +35,7 @@ import { IconSistem } from '~/components/icons/sistem';
 import { IconTautan } from '~/components/icons/tautan';
 import { IconTerang } from '~/components/icons/terang';
 import { pushStatusWords, usePushState } from '~/components/push';
+import { DESKTOP_QUERY, useMediaQuery } from '~/components/garis/useMediaQuery';
 import { DeskHead, PageBody } from '~/components/shell/page';
 import { common } from '~/copy/common';
 import { fill } from '~/copy/fill';
@@ -43,6 +45,7 @@ import { myDetailsQuery } from '~/features/form/queries';
 import { filledCount, SAVED } from '~/features/form/rules';
 import useLogout from '~/hooks/auth/useLogout';
 import useSession from '~/hooks/auth/useSession';
+import { servicesByGroup } from '~/lib/services';
 import { useTheme } from '~/lib/theme/useTheme';
 import { cn } from '~/lib/utils';
 import { openInstallSheet } from './install-store';
@@ -109,7 +112,8 @@ function SettingRow({
     | '/profil/matkul'
     | '/profil/notifikasi'
     | '/profil/aplikasi'
-    | '/profil/kredit';
+    | '/profil/kredit'
+    | '/kelola';
   onClick?: () => void;
 }) {
   const inner = (
@@ -212,6 +216,9 @@ function Keluar() {
  */
 export function ProfilScreen() {
   const me = useSession();
+  // Kelola's way in on phones and tablets; desktop has it in the sidebar.
+  const desk = useMediaQuery(DESKTOP_QUERY);
+  const kelola = !desk && servicesByGroup(me).some((g) => g.group === 'Kelola');
   const academic = useQuery(userAcademicQuery());
   const groups = useQuery({ ...groupsQuery(), enabled: me.roles.length > 0 });
   const courses = useQuery(currentCoursesQuery());
@@ -283,6 +290,13 @@ export function ProfilScreen() {
         </div>
         <div className="grid gap-5 lg:max-w-130 lg:gap-3">
           <RuledList>
+            {kelola ? (
+              <SettingRow
+                icon={<IconKelola size={20} />}
+                title={common.nav.kelola}
+                to="/kelola"
+              />
+            ) : null}
             <SettingRow
               icon={<IconProfil size={20} />}
               title={common.shell.dataDiri}

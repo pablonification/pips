@@ -117,8 +117,12 @@ test('the lit item: the tab a page is under; Kelola and Profil have their own on
     'layanan',
   );
   assert.equal(activeItem('/pengumuman/$id', 'desk'), 'pengumuman');
-  // Kelola is in Layanan on phones and tablets, its own sidebar item on desktop.
-  assert.equal(activeItem('/kelola/live/$formId', 'touch'), 'layanan');
+  // Kelola opens from Profil on phones and tablets, so it keeps the tab you came from lit; on desktop it has its own.
+  assert.equal(
+    activeItem('/kelola/live/$formId', 'touch', 'beranda'),
+    'beranda',
+  );
+  assert.equal(activeItem('/kelola/live/$formId', 'touch', null), null);
   assert.equal(activeItem('/kelola/live/$formId', 'desk'), 'kelola');
   // Profil keeps the tab you came from lit on phones; on desktop it is your name.
   assert.equal(
@@ -133,12 +137,12 @@ test('the lit item: the tab a page is under; Kelola and Profil have their own on
   assert.equal(activeItem('/', 'touch', null), 'beranda');
 });
 
-test('back without history goes up: Profil to the tab you were last on, Kelola to Layanan', () => {
+test('back without history goes up: Profil to the tab you were last on, Kelola to Profil', () => {
   assert.equal(parentOf('/layanan/dingdong'), '/layanan');
   assert.equal(parentOf('/profil', 'pengumuman'), '/pengumuman');
   assert.equal(parentOf('/profil'), '/');
   assert.equal(parentOf('/profil', null), '/');
-  assert.equal(parentOf('/kelola'), '/layanan');
+  assert.equal(parentOf('/kelola'), '/profil');
   assert.equal(parentOf('/layanan/curhat/$roomId'), '/layanan/curhat');
   assert.equal(parentOf('/kalender'), null);
   assert.equal(

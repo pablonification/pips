@@ -84,7 +84,7 @@ test('the keyboard header, the greeting, the slides and Masuk dengan akun STEI, 
     SLIDES,
   );
   await expect(
-    carousel(page).getByText('Info dari HMIF untuk angkatan dan grupmu.'),
+    carousel(page).getByText('Info terpusat akademik dan himpunan dari HMIF.'),
   ).toBeVisible();
   await expect(carousel(page)).toHaveAttribute(
     'aria-roledescription',
