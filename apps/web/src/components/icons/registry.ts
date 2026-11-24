@@ -71,6 +71,8 @@ import { IconUnggah } from './unggah';
 import { IconBagian } from './bagian';
 import { IconAtas } from './atas';
 import { IconPensil } from './pensil';
+import { GlyphPendek, IconPendek } from './pendek';
+import { IconAmbil } from './ambil';
 
 export const ICON_KEYS = [
   'beranda',
@@ -141,6 +143,8 @@ export const ICON_KEYS = [
   'bagian',
   'atas',
   'pensil',
+  'pendek',
+  'ambil',
 ] as const;
 export type IconKey = (typeof ICON_KEYS)[number];
 export const GLYPH_KEYS = [
@@ -155,6 +159,7 @@ export const GLYPH_KEYS = [
   'surat',
   'form',
   'layanan',
+  'pendek',
 ] as const;
 export type GlyphKey = (typeof GLYPH_KEYS)[number];
 
@@ -227,6 +232,8 @@ export const ICONS: Record<IconKey, ComponentType<IconProps>> = {
   bagian: IconBagian,
   atas: IconAtas,
   pensil: IconPensil,
+  pendek: IconPendek,
+  ambil: IconAmbil,
 };
 
 export const GLYPHS: Record<
@@ -244,6 +251,7 @@ export const GLYPHS: Record<
   surat: GlyphSurat,
   form: GlyphForm,
   layanan: GlyphLayanan,
+  pendek: GlyphPendek,
 };
 
 /** What each icon means, as the prototype's design-system page names it. */
@@ -316,4 +324,6 @@ export const ICON_LABELS: Record<IconKey, string> = {
   bagian: 'Bagian',
   atas: 'Ke atas',
   pensil: 'Edit',
+  pendek: 'Tautan pendek',
+  ambil: 'Ambil tautan lama',
 };
