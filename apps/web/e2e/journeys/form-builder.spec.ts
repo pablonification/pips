@@ -20,8 +20,8 @@ test.use({ persona: 'pengurus' });
 
 const main = (page: Page) => page.getByRole('main');
 const desk = (testInfo: TestInfo) => layoutOf(testInfo) === 'desktop';
-/** The tab lit on Kelola's pages: Layanan on phones and tablets, Kelola on desktop. */
-const lit = (testInfo: TestInfo) => (desk(testInfo) ? 'Kelola' : 'Layanan');
+/** Kelola opens from Profil on phones and tablets, so a page opened directly lights no tab there. */
+const lit = (testInfo: TestInfo) => (desk(testInfo) ? 'Kelola' : null);
 const dialog = (page: Page, name: string | RegExp) =>
   page
     .getByRole('dialog', { name })

@@ -117,13 +117,20 @@ for (const [name, { roles, want }] of Object.entries(MATRIX))
         'phone and desktop, light',
       );
       expect(await kelolaRows(page)).toEqual(want.kelola);
-      // Kelola in the navigation only with a tool in it (the sidebar on desktop, Layanan's last group on touch).
+      // Kelola's way in only with a tool in it (the sidebar on desktop, a row in Profil on touch).
       if (layoutOf(testInfo) === 'desktop')
         await expect(
           page
             .getByRole('navigation', { name: 'Navigasi utama' })
             .getByRole('link', { name: /^Kelola/ }),
         ).toHaveCount(want.kelola.length ? 1 : 0);
+      else {
+        await page.goto('/profil');
+        await expect(page.locator('h1:visible')).toHaveCount(1);
+        await expect(
+          page.locator('main').getByRole('link', { name: /^Kelola/ }),
+        ).toHaveCount(want.kelola.length ? 1 : 0);
+      }
 
       await page.goto('/kalender');
       await expect(page.locator('h1:visible')).toHaveCount(1);

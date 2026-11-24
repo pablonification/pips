@@ -33,8 +33,8 @@ const NADIA_EMAIL = email(NADIA.nim);
 const main = (page: Page) => page.getByRole('main');
 const touch = (t: TestInfo) => layoutOf(t) !== 'desktop';
 const isDesk = (t: TestInfo) => layoutOf(t) === 'desktop';
-/** The lit item: Kelola sits in Layanan on phones and tablets, its own sidebar item on desktop. */
-const lit = (t: TestInfo) => (touch(t) ? 'Layanan' : 'Kelola');
+/** The lit item: Kelola opens from Profil on phones and tablets (no tab when opened directly), its own sidebar item on desktop. */
+const lit = (t: TestInfo) => (touch(t) ? null : 'Kelola');
 /** A room is a focused flow: no tab bar or rail on phones and tablets; the sidebar stays on desktop. */
 const roomLit = (t: TestInfo) => (touch(t) ? null : 'Kelola');
 const roomLinks = (page: Page) =>
@@ -133,14 +133,12 @@ const fromMember = (id: string, chatroomId: string, content: string) => ({
 // ---------------------------------------------------------------- Ways in
 
 test.describe('ways in', () => {
-  test('Layanan’s Kelola group and the hub have the inbox row; the member row leads there too, with the inbox’s count', async ({
+  test('the hub has the inbox row, Layanan doesn’t; the member row leads there, with the inbox’s count', async ({
     page,
   }, testInfo) => {
     await page.goto('/layanan');
-    const kelolaRow = main(page).locator('a[href="/kelola/curhat"]');
-    await expect(kelolaRow).toHaveAccessibleName(
-      /^Curhat Yuk!.*Balas ruang curhat anggota/,
-    );
+    await expect(main(page).getByRole('link').first()).toBeVisible();
+    await expect(main(page).locator('a[href="/kelola/curhat"]')).toHaveCount(0);
     // The member row keeps its words, and its count is the inbox's unread total (the API counts every room).
     const memberRow = main(page).locator('a[href="/layanan/curhat"]');
     await expect(memberRow).toContainText('Anonim, dengan tim Welfare');
@@ -226,7 +224,7 @@ test.describe('ways in', () => {
   test.describe('a Welfare member with no other tool', () => {
     test.use({ roles: { only: ['curhatadmin'] } });
 
-    test('Kelola is in the sidebar, and the hub and Layanan’s Kelola group hold Form, which every pengurus has, and the Curhat row', async ({
+    test('Kelola is in the sidebar or Profil, and the hub holds Form, which every pengurus has, and the Curhat row', async ({
       page,
     }, testInfo) => {
       if (isDesk(testInfo)) {
@@ -242,11 +240,15 @@ test.describe('ways in', () => {
       await expect(links).toHaveCount(2);
       await expect(links.nth(0)).toHaveAccessibleName(/^Form/);
       await expect(links.nth(1)).toHaveAccessibleName(/^Curhat Yuk!/);
+      if (!isDesk(testInfo)) {
+        await page.goto('/profil');
+        await expect(
+          main(page).getByRole('link', { name: /^Kelola/ }),
+        ).toHaveAttribute('href', '/kelola');
+      }
       await page.goto('/layanan');
-      await expect(
-        main(page).getByRole('heading', { name: 'Kelola' }),
-      ).toBeVisible();
-      await expect(main(page).locator('a[href^="/kelola"]')).toHaveCount(2);
+      await expect(main(page).getByRole('link').first()).toBeVisible();
+      await expect(main(page).locator('a[href^="/kelola"]')).toHaveCount(0);
       await page.goto('/kelola/curhat');
       await expect(row(page, 'Teal Koala')).toBeVisible();
     });
@@ -1120,7 +1122,8 @@ test.describe('live', () => {
 
   test('leaving the inbox closes its connection', async ({ page, api }) => {
     await page.goto('/layanan');
-    await main(page).locator('a[href="/kelola/curhat"]').click();
+    // Welfare's Curhat Yuk! row in Layanan leads to the inbox, replacing its own entry.
+    await main(page).locator('a[href="/layanan/curhat"]').click();
     await expect(row(page, 'Teal Koala')).toBeVisible();
     await socketReady(api);
     // Out of the area in the app (a reload would end the page, not the area).
@@ -1235,7 +1238,7 @@ test.describe('gates at every size', () => {
         page,
         testInfo,
         `inbox-list-${width}`,
-        width < 1024 ? 'Layanan' : 'Kelola',
+        width < 1024 ? null : 'Kelola',
       );
       await row(page, 'Teal Koala').click();
       await expect(log(page)).toBeVisible();

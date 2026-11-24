@@ -702,13 +702,13 @@ test.describe('Kelola', () => {
     );
   });
 
-  test('on phones and tablets Kelola belongs to Layanan @phone-only', async ({
+  test('on phones and tablets Kelola opens from Profil and lights no tab when opened directly @phone-only', async ({
     page,
   }) => {
     await page.goto('/kelola');
     await expect(mainNav(page).getByRole('link')).toHaveCount(4);
-    await expectLit(page, 'Layanan');
-    await expect(backButton(page)).toHaveAccessibleName('Kembali ke Layanan');
+    await expect(mainNav(page).locator('[aria-current="page"]')).toHaveCount(0);
+    await expect(backButton(page)).toHaveAccessibleName('Kembali ke Profil');
   });
 });
 

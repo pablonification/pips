@@ -1,5 +1,5 @@
 /**
- * Managing calendar events. Tambah acara Akademik from Kalender, Layanan's Kelola row
+ * Managing calendar events. Tambah acara Akademik from Kalender, Kelola's row
  * and the Kelola hub; its validation, request, result, failures, busy state and ways out. Who sees what, by role:
  * Himpunan events for `ring1` and the Seg for both roles, nothing for members. Ubah acara and Hapus
  * acara in the event detail. Phone, tablet and desktop, light and dark, with strict gates.
@@ -129,10 +129,8 @@ test.describe('Raka adds an Akademik event', () => {
     await expectTitleFocused(page);
   });
 
-  test('from Layanan’s Kelola row: the dialog over Kalender', async ({
-    page,
-  }) => {
-    await page.goto('/layanan');
+  test('from Kelola’s row: the dialog over Kalender', async ({ page }) => {
+    await page.goto('/kelola');
     await main(page)
       .getByRole('link', { name: /^Tambah acara Akademik/ })
       .click();
@@ -734,7 +732,7 @@ test.describe('Raka: what a change or a delete meets', () => {
 test.describe('Raka on a phone', () => {
   test.use({ persona: 'pengurus' });
 
-  test('after Back closes Tambah acara, a dialog from Layanan’s Kelola row closes in place @phone-only', async ({
+  test('after Back closes Tambah acara, a dialog from Kelola’s row closes in place @phone-only', async ({
     page,
   }) => {
     await page.goto('/kalender');
@@ -743,8 +741,12 @@ test.describe('Raka on a phone', () => {
     await page.goBack();
     await expect(addDialog(page)).toBeHidden();
     await expect(page).not.toHaveURL(/tambah=/);
-    await navLink(page, 'Layanan').click();
-    await expect(page).toHaveURL(/\/layanan$/);
+    await navLink(page, 'Profil').click();
+    await expect(page).toHaveURL(/\/profil$/);
+    await main(page)
+      .getByRole('link', { name: /^Kelola/ })
+      .click();
+    await expect(page).toHaveURL(/\/kelola$/);
     await main(page)
       .getByRole('link', { name: /^Tambah acara Akademik/ })
       .click();
