@@ -1,6 +1,7 @@
 // Runs against a real, throwaway PostgreSQL, as curhat.test.ts: `TEST_DATABASE_URL=postgres://…/pips_test… pnpm --filter api test:db`.
 //
-// Angkatan 2025 is called PIXEL. Migration 0032 names its row so, or adds it, without ever breaking the unique name.
+// Angkatan 2025 is called PIXEL by 0032 (which names its row so, or adds it, without ever breaking the unique name), and
+// written Pixel from 0036.
 import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -11,6 +12,10 @@ const url = process.env.TEST_DATABASE_URL;
 const MIGRATION = path.resolve(
   import.meta.dirname,
   '../../drizzle/0032_angkatan_pixel.sql',
+);
+const RENAME = path.resolve(
+  import.meta.dirname,
+  '../../drizzle/0036_angkatan_pixel_name.sql',
 );
 
 function throwawayUrl(): string {
@@ -55,8 +60,8 @@ after(async () => {
   await client?.end();
 });
 
-async function runMigration() {
-  const statements = readFileSync(MIGRATION, 'utf8')
+async function runMigration(file = MIGRATION) {
+  const statements = readFileSync(file, 'utf8')
     .split('--> statement-breakpoint')
     .map((s) => s.trim())
     .filter(Boolean);
@@ -106,5 +111,23 @@ test('if another year already holds the name, 0032 leaves every row alone instea
   assert.deepEqual(await names(), [
     [2024, 'PIXEL'],
     [2025, '2025'],
+  ]);
+});
+
+test('0036 writes 0032’s PIXEL as Pixel, leaves any other name alone, and changes nothing on a second run', async () => {
+  await client`insert into angkatan (id, year, name) values
+    ('ap-2024', 2024, 'Proxy'), ('ap-2025', 2025, 'PIXEL')`;
+  for (let run = 1; run <= 2; run += 1) {
+    await runMigration(RENAME);
+    assert.deepEqual(await names(), [
+      [2024, 'Proxy'],
+      [2025, 'Pixel'],
+    ]);
+  }
+  await client`update angkatan set name = 'Piksel' where year = 2025`;
+  await runMigration(RENAME);
+  assert.deepEqual(await names(), [
+    [2024, 'Proxy'],
+    [2025, 'Piksel'],
   ]);
 });

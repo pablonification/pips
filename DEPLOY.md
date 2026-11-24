@@ -134,6 +134,8 @@ compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy
      on `form_responses` (`profile`, `updated_at`), and `forms.opens_at` may now be empty (only on a draft). Every
      existing form gets its creation time as its publishing time, so nothing changes for members. Today's app ignores
      the new columns and never sees a draft (a draft is not active).
+   - 0036: angkatan 2025 written Pixel instead of PIXEL (only a row named exactly PIXEL; production already reads
+     Pixel, so there it changes nothing);
 
    They only add things, and today's app keeps working on the migrated database: it ignores the new columns, the
    read marks and the prefill key.

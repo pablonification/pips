@@ -83,7 +83,7 @@ export function sampleHmif(now: Date) {
 
   const angkatanRows: Array<Row<typeof angkatan>> = [
     { id: 'seed-angkatan-2024', year: 2024, name: 'Contoh 2024' },
-    { id: 'seed-angkatan-2025', year: 2025, name: 'PIXEL' },
+    { id: 'seed-angkatan-2025', year: 2025, name: 'Pixel' },
   ];
 
   const userRows: Array<Row<typeof users>> = [
