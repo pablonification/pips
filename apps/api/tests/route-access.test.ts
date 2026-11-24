@@ -99,6 +99,9 @@ before(async () => {
     (
       await import('../src/controllers/programme-window.controller')
     ).createProgrammeWindowRouter(fakeDeps()),
+    (
+      await import('../src/controllers/short-link.controller')
+    ).createShortLinkRouter(fakeDeps()),
     (await import('../src/controllers/push.controller')).createPushRouter(
       fakeDeps(),
     ),

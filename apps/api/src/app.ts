@@ -21,6 +21,11 @@ import {
   type OAuthDeps,
 } from './controllers/oauth.controller';
 import { defaultHook } from './controllers/router-factory';
+import {
+  databaseClickCounter,
+  shortLinkRedirect,
+  type ShortLinkRedirectDeps,
+} from './controllers/short-link-redirect';
 import { db } from './db/drizzle';
 import { MAX_BODY_BYTES, RATE_LIMITS, RATE_WINDOW_MS } from './lib/limits';
 import { isAllowedOrigin, SAFE_METHODS } from './lib/origin';
@@ -31,7 +36,9 @@ import {
   sessionUserId,
 } from './lib/rate-limit';
 import { redactedQuery } from './lib/redact';
+import { webAppUrl } from './lib/short-link';
 import { isShuttingDown } from './lib/shutdown';
+import { addClicks, findRedirectRows } from './repositories/short-link.repo';
 import { logger } from './logger';
 import {
   CurhatJoinAckSchema,
@@ -75,6 +82,7 @@ const OPENAPI_CONFIG = {
     { name: 'form', description: 'Form API' },
     { name: 'programme-window', description: 'Programme windows API' },
     { name: 'oauth', description: 'Apps connected through MCP' },
+    { name: 'short-link', description: 'Tautan pendek (s.hmif.dev)' },
   ],
 };
 
@@ -115,6 +123,10 @@ interface AppOptions {
   checkDatabase?: () => Promise<unknown>;
   /** Storage for OAuth and MCP (tests pass a fake). */
   oauth?: OAuthDeps;
+  /** The short-link host's lookup and click counter (tests pass fakes). */
+  shortLinks?: ShortLinkRedirectDeps;
+  /** Settings for the short-link host, read per request (tests). */
+  shortLinkSettings?: () => { shortHost: string; webAppUrl: string };
 }
 
 /** Health checks give up on the database after this long, so a stuck pool reads as down, not as a hung check. */
@@ -124,6 +136,16 @@ export function createApp({
   rateLimits,
   checkDatabase = async () => await db.execute(sql`select 1`),
   oauth = databaseOAuthDeps,
+  shortLinks = {
+    findRows: async (candidates) => await findRedirectRows(db, candidates),
+    clicks: databaseClickCounter(async (counts) => {
+      await addClicks(db, counts);
+    }),
+  },
+  shortLinkSettings = () => ({
+    shortHost: env.SHORTLINK_HOST,
+    webAppUrl: webAppUrl(env),
+  }),
 }: AppOptions = {}) {
   const limits = { ...RATE_LIMITS, ...rateLimits };
   const app = new OpenAPIHono<{
@@ -167,6 +189,9 @@ export function createApp({
       userId: isCurhatPath(path) ? undefined : c.get('user' as any)?.id,
     });
   });
+
+  // s.hmif.dev: answered only by the redirect, before any other middleware or route can (docs/adr/0024-*).
+  app.use('*', shortLinkRedirect(shortLinkSettings, shortLinks));
 
   app.use(
     '/api/*',

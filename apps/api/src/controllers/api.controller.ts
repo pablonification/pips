@@ -19,6 +19,7 @@ import { curhatRouter } from './curhat.controller';
 import { formManageRouter } from './form-manage.controller';
 import { formRouter } from './form.controller';
 import { programmeWindowRouter } from './programme-window.controller';
+import { shortLinkRouter } from './short-link.controller';
 
 const unprotectedApiRouter = new OpenAPIHono();
 unprotectedApiRouter.route('/', loginRouter);
@@ -45,6 +46,7 @@ protectedApiRouter.route('/', curhatRouter);
 protectedApiRouter.route('/', formRouter);
 protectedApiRouter.route('/', formManageRouter);
 protectedApiRouter.route('/', programmeWindowRouter);
+protectedApiRouter.route('/', shortLinkRouter);
 
 export const apiRouter = new OpenAPIHono();
 apiRouter.route('/', unprotectedApiRouter);

@@ -6,6 +6,8 @@ type Role = (typeof rolesEnums)[number];
 const PENGURUS = rolesEnums;
 const FORM_VIEWERS =
   "the form's owner, those it is shared with (Lihat jawaban or Edit), or admin; 404 for anyone else";
+const SHORT_LINK_HOLDER =
+  'the link’s holder (a form’s link: the form’s maker, to see it) or admin; 404 for anyone else';
 const FORM_EDITORS =
   "the form's owner, those it is shared with as Edit, or admin (403 for Lihat jawaban)";
 
@@ -272,4 +274,23 @@ export const ROUTE_ACCESS: Record<string, RouteAccess> = {
   'GET /api/form/{formId}/responses': { who: ['admin'] },
   'GET /api/form/{formId}/responses/count': { who: ['admin'] },
   'GET /api/form/{formId}/analytics': { who: ['admin'] },
+
+  // Tautan pendek (s.hmif.dev, docs/adr/0024-*). The redirect itself is not a route: it answers only on SHORTLINK_HOST.
+  'GET /api/short-links': { who: 'member', note: 'only their own links' },
+  'POST /api/short-links': { who: 'member' },
+  'GET /api/short-links/name-check': { who: 'member' },
+  'GET /api/short-links/all': { who: ['admin'] },
+  'POST /api/short-links/claim/lookup': {
+    who: 'member',
+    note: 'with the old account’s password; five wrong ones lock it 15 minutes',
+  },
+  'POST /api/short-links/claim': {
+    who: 'member',
+    note: 'with the token step 1 gave this member',
+  },
+  'GET /api/short-links/{id}': { who: 'member', note: SHORT_LINK_HOLDER },
+  'PATCH /api/short-links/{id}': { who: 'member', note: SHORT_LINK_HOLDER },
+  'PUT /api/short-links/{id}/name': { who: 'member', note: SHORT_LINK_HOLDER },
+  'DELETE /api/short-links/{id}': { who: 'member', note: SHORT_LINK_HOLDER },
+  'POST /api/short-links/{id}/give': { who: ['admin'] },
 };
