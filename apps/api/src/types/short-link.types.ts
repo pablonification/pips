@@ -258,8 +258,13 @@ export const ClaimWrongSchema = z
   })
   .openapi('ShortLinkClaimWrong');
 
+/**
+ * 429. With `until`: too many wrong passwords, locked until then (Terlalu banyak percobaan. Coba lagi pukul HH.MM).
+ * Without it: busy, try again shortly; this member's previous lookup is still running, or the API is comparing as
+ * many passwords as it runs at once. Nothing was compared or counted.
+ */
 export const ClaimLockedSchema = z
-  .object({ error: z.string(), until: z.string().datetime() })
+  .object({ error: z.string(), until: z.string().datetime().optional() })
   .openapi('ShortLinkClaimLocked');
 
 export const ClaimTakeSchema = z

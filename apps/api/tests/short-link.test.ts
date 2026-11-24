@@ -5,9 +5,13 @@ import { before, test } from 'node:test';
 import { usePlaceholderEnv } from '../scripts/placeholder-env';
 import { createClickCounter } from '../src/lib/click-counter';
 import {
-  afterWrongTry,
+  bcryptCost,
   CLAIM_LOCK_MS,
   claimOpen,
+  countTry,
+  giveBackTry,
+  lockedUntil,
+  unmatchableBcryptHash,
   destinationProblem,
   isShortHost,
   nameCandidates,
@@ -223,22 +227,57 @@ test('a NIM found in an old account: eight digits in the email first, then the u
   assert.equal(nimFromAccount(null, 'arkav.panitia'), null);
 });
 
-test('five wrong passwords in a row lock 15 minutes; older tries are forgotten', () => {
+test('five tries in a row lock 15 minutes; older tries are forgotten; a right one is given back', () => {
   const t0 = new Date('2026-12-02T03:00:00Z');
-  let lock = afterWrongTry(null, t0);
+  let lock = countTry(null, t0);
   for (let i = 2; i <= 4; i++) {
-    lock = afterWrongTry(lock, new Date(t0.getTime() + i * 1000));
+    lock = countTry(lock, new Date(t0.getTime() + i * 1000));
     assert.equal(lock.tries, i);
-    assert.equal(lock.lockedUntil, null);
+    assert.equal(lockedUntil(lock, t0), undefined);
   }
   const fifth = new Date(t0.getTime() + 5000);
-  lock = afterWrongTry(lock, fifth);
-  assert.equal(lock.lockedUntil?.getTime(), fifth.getTime() + CLAIM_LOCK_MS);
-  const later = afterWrongTry(
+  lock = countTry(lock, fifth);
+  assert.equal(lock.tries, 5);
+  assert.equal(
+    lockedUntil(lock, fifth)?.getTime(),
+    fifth.getTime() + CLAIM_LOCK_MS,
+  );
+  // Over once the 15 minutes have passed.
+  assert.equal(
+    lockedUntil(lock, new Date(fifth.getTime() + CLAIM_LOCK_MS)),
+    undefined,
+  );
+  // The fifth turned out right: four counted, and not locked.
+  assert.deepEqual(giveBackTry(lock), {
+    tries: 4,
+    lastTryAt: fifth,
+    lockedUntil: null,
+  });
+  assert.equal(
+    giveBackTry({ tries: 1, lastTryAt: t0, lockedUntil: null }),
+    null,
+  );
+  const later = countTry(
     { tries: 4, lastTryAt: t0, lockedUntil: null },
     new Date(t0.getTime() + CLAIM_LOCK_MS + 1),
   );
   assert.equal(later.tries, 1);
+});
+
+test('an unknown login’s stand-in hash has the asked cost, matches nothing and costs nothing to make', async () => {
+  const bcrypt = (await import('bcryptjs')).default;
+  assert.equal(bcryptCost('$2a$15$' + 'x'.repeat(53)), 15);
+  assert.equal(bcryptCost('$2b$04$' + 'x'.repeat(53)), 4);
+  assert.equal(bcryptCost('hash:rahasia'), null);
+  assert.equal(bcryptCost(null), null);
+  const a = unmatchableBcryptHash(6);
+  assert.match(a, /^\$2b\$06\$[./A-Za-z0-9]{53}$/);
+  assert.equal(bcrypt.getRounds(a), 6);
+  assert.notEqual(a, unmatchableBcryptHash(6));
+  assert.equal(await bcrypt.compare('', a), false);
+  assert.equal(await bcrypt.compare('rahasia', a), false);
+  assert.equal(bcryptCost(unmatchableBcryptHash(40)), 31);
+  assert.equal(bcryptCost(unmatchableBcryptHash(1)), 4);
 });
 
 test('claiming is open until the end the setting names, or always with none', () => {

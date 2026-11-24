@@ -503,29 +503,67 @@ test('claiming: one member wins a race, every unheld link moves, and matching go
   );
 });
 
-test('wrong claims under a row lock: five at once lock, and the count is exact', async () => {
+test('claim tries count before the comparison under row locks: of eight at once, exactly five pass', async () => {
   const at = new Date('2026-12-02T03:00:00Z');
-  await Promise.all(
+  const keys = ['user:sl-nadia', 'account:sl-x'];
+  const results = await Promise.all(
     Array.from(
-      { length: 4 },
-      async () => await repo.recordWrongClaim(db, ['user:sl-nadia'], at),
+      { length: 8 },
+      async (_, i) =>
+        await repo.reserveClaimTry(db, i % 2 ? keys : [keys[1]], at),
     ),
   );
-  const [four] = await repo.getClaimLocks(db, ['user:sl-nadia']);
-  assert.equal(four.tries, 4);
-  assert.equal(four.lockedUntil, null);
-  const after5 = await repo.recordWrongClaim(
-    db,
-    ['user:sl-nadia', 'account:sl-x'],
-    at,
+  assert.equal(results.filter((r) => 'locks' in r).length, 5);
+  for (const r of results)
+    if ('locked' in r)
+      assert.equal(r.locked.toISOString(), '2026-12-02T03:15:00.000Z');
+  const [account] = await repo.getClaimLocks(db, ['account:sl-x']);
+  assert.equal(account.tries, 5);
+  assert.equal(account.lockedUntil?.toISOString(), '2026-12-02T03:15:00.000Z');
+  // A right password gives its try back: four still counted, and no lock.
+  await repo.giveBackClaimTry(db, ['account:sl-x']);
+  const [back] = await repo.getClaimLocks(db, ['account:sl-x']);
+  assert.equal(back.tries, 4);
+  assert.equal(back.lockedUntil, null);
+  // Given back to nothing, the rows go.
+  for (let i = 0; i < 4; i++) await repo.giveBackClaimTry(db, keys);
+  assert.equal((await repo.getClaimLocks(db, keys)).length, 0);
+});
+
+test('an unknown login is compared at the old accounts’ most common hash cost', async () => {
+  const rollback = new Error('rollback');
+  await assert.rejects(
+    db.transaction(async (tx) => {
+      await tx.update(schema.shortLinkAccounts).set({ passwordHash: null });
+      assert.equal(await repo.commonHashCost(tx), null);
+      const hash = (prefix: string, cost: string) =>
+        `$${prefix}$${cost}$${'b'.repeat(53)}`;
+      await tx.insert(schema.shortLinkAccounts).values(
+        [
+          hash('2a', '15'),
+          hash('2b', '15'),
+          hash('2b', '10'),
+          hash('2a', '12'),
+          hash('2a', '12'),
+          'not a bcrypt hash',
+        ].map((passwordHash, i) => ({
+          lynxId: `sl-cost-${i}`,
+          username: `sl.cost${i}`,
+          passwordHash,
+        })),
+      );
+      // A tie goes to the higher cost, the slower one.
+      assert.equal(await repo.commonHashCost(tx), 15);
+      await tx.insert(schema.shortLinkAccounts).values({
+        lynxId: 'sl-cost-x',
+        username: 'sl.costx',
+        passwordHash: hash('2b', '12'),
+      });
+      assert.equal(await repo.commonHashCost(tx), 12);
+      throw rollback;
+    }),
+    rollback,
   );
-  assert.equal(
-    after5.get('user:sl-nadia')?.lockedUntil?.toISOString(),
-    '2026-12-02T03:15:00.000Z',
-  );
-  assert.equal(after5.get('account:sl-x')?.tries, 1);
-  await repo.clearClaimLocks(db, ['user:sl-nadia', 'account:sl-x']);
-  assert.equal((await repo.getClaimLocks(db, ['user:sl-nadia'])).length, 0);
 });
 
 test('giving a link with its account: the rest move, the account counts as claimed, the last holder is kept', async () => {

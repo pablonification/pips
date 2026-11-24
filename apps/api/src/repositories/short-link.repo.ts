@@ -25,7 +25,9 @@ import {
 import { postgresError } from '~/lib/database-error';
 import { escapeLike } from '~/lib/nim-finder';
 import {
-  afterWrongTry,
+  countTry,
+  giveBackTry,
+  lockedUntil,
   type ClaimLock,
   type NameHeld,
   type RedirectRow,
@@ -692,15 +694,20 @@ export async function getClaimLocks(db: Database, keys: string[]) {
     .where(inArray(shortLinkClaimLocks.key, keys));
 }
 
-/** Counts one wrong password against each key, under a row lock, and returns the locks after it. */
-export async function recordWrongClaim(
+/**
+ * Counts one try against every key before its password is compared, under row locks taken in one order, so tries
+ * sent at once are counted one after another and none passes the limit. Counts nothing and answers `locked` (the
+ * latest time) when any key is locked now.
+ */
+export async function reserveClaimTry(
   db: Database,
   keys: string[],
   now: Date,
-): Promise<Map<string, ClaimLock>> {
+): Promise<{ locked: Date } | { locks: Map<string, ClaimLock> }> {
+  const sorted = [...new Set(keys)].sort();
   return await db.transaction(async (tx) => {
-    const out = new Map<string, ClaimLock>();
-    for (const key of keys) {
+    const rows = new Map<string, ClaimLock>();
+    for (const key of sorted) {
       await tx
         .insert(shortLinkClaimLocks)
         .values({ key, tries: 0, lastTryAt: new Date(0) })
@@ -710,23 +717,71 @@ export async function recordWrongClaim(
         .from(shortLinkClaimLocks)
         .where(eq(shortLinkClaimLocks.key, key))
         .for('update');
-      const next = afterWrongTry(
-        row.lastTryAt.getTime() === 0 ? null : row,
-        now,
-      );
+      rows.set(key, row);
+    }
+    let locked: Date | undefined;
+    for (const row of rows.values()) {
+      const until = lockedUntil(row, now);
+      if (until && (!locked || until > locked)) locked = until;
+    }
+    if (locked) return { locked };
+    const out = new Map<string, ClaimLock>();
+    for (const [key, row] of rows) {
+      const next = countTry(row.lastTryAt.getTime() === 0 ? null : row, now);
       await tx
         .update(shortLinkClaimLocks)
         .set(next)
         .where(eq(shortLinkClaimLocks.key, key));
       out.set(key, next);
     }
-    return out;
+    return { locks: out };
   });
 }
 
-export async function clearClaimLocks(db: Database, keys: string[]) {
-  if (keys.length === 0) return;
-  await db
-    .delete(shortLinkClaimLocks)
-    .where(inArray(shortLinkClaimLocks.key, keys));
+/** Gives back the try {@link reserveClaimTry} counted, once its password was right. */
+export async function giveBackClaimTry(db: Database, keys: string[]) {
+  const sorted = [...new Set(keys)].sort();
+  await db.transaction(async (tx) => {
+    for (const key of sorted) {
+      const [row] = await tx
+        .select()
+        .from(shortLinkClaimLocks)
+        .where(eq(shortLinkClaimLocks.key, key))
+        .for('update');
+      if (!row) continue;
+      const next = giveBackTry(row);
+      if (next)
+        await tx
+          .update(shortLinkClaimLocks)
+          .set(next)
+          .where(eq(shortLinkClaimLocks.key, key));
+      else
+        await tx
+          .delete(shortLinkClaimLocks)
+          .where(eq(shortLinkClaimLocks.key, key));
+    }
+  });
+}
+
+/** The cost in a bcrypt hash, as a POSIX pattern for `substring … from`: `$2b$15$…` gives 15. */
+const BCRYPT_COST = '^\\$2[abxy]?\\$([0-9]{2})\\$';
+
+/**
+ * The most common cost among the old accounts' password hashes (the higher on a tie), or null when none is left. An
+ * unknown login is compared at this cost, so it answers as slowly as most real accounts.
+ */
+export async function commonHashCost(db: Database) {
+  const [row] = await db
+    .select({
+      cost: sql<number>`substring(${shortLinkAccounts.passwordHash} from ${BCRYPT_COST})::int`,
+      n: sql<number>`count(*)::int`,
+    })
+    .from(shortLinkAccounts)
+    .where(
+      sql`substring(${shortLinkAccounts.passwordHash} from ${BCRYPT_COST}) is not null`,
+    )
+    .groupBy(sql`1`)
+    .orderBy(sql`2 desc`, sql`1 desc`)
+    .limit(1);
+  return row?.cost ?? null;
 }

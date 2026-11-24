@@ -6,6 +6,8 @@ import { runInBackground } from '~/lib/background';
 import { JWT_ALG } from '~/lib/jwt';
 import { sendNotificationToAll, type PushData } from '~/lib/push-manager';
 import {
+  CLAIM_DEFAULT_HASH_COST,
+  CLAIM_MAX_COMPARES,
   CLAIM_MAX_TRIES,
   claimOpen,
   destinationProblem,
@@ -14,7 +16,7 @@ import {
   ownerPush,
   randomName,
   tidyName,
-  type ClaimLock,
+  unmatchableBcryptHash,
   type OwnerPush,
 } from '~/lib/short-link';
 import { forRoles } from '~/middlewares/role.middleware';
@@ -24,23 +26,23 @@ import {
 } from '~/repositories/push.repo';
 import {
   claimAccount,
-  clearClaimLocks,
+  commonHashCost,
   countMemberLinks,
   createLink,
   deleteLink,
   findAccountsByLogin,
   getAccount,
-  getClaimLocks,
   getLink,
   getMemberByNim,
   getPerson,
+  giveBackClaimTry,
   giveLink,
   listAllLinks,
   listMemberLinks,
   nameHolder,
   NameTakenError,
-  recordWrongClaim,
   renameLink,
+  reserveClaimTry,
   setDestination,
   unclaimedAccountLinks,
   type LinkRow,
@@ -67,12 +69,9 @@ const CLAIM_TOKEN_SECONDS = 10 * 60;
 const CLAIM_PURPOSE = 'short-link-claim';
 
 /**
- * A bcrypt hash of nothing anyone types, compared when no account matches, so a wrong username takes as long as a
- * wrong password. Cost 10, the old service's default.
+ * The imported hashes' most common cost, read once there are some. Until then (and with none left) Lynx's own cost.
  */
-let dummyHash: Promise<string> | undefined;
-const getDummyHash = async () =>
-  await (dummyHash ??= bcrypt.hash(`no account ${Math.random()}`, 10));
+let importedHashCost: number | undefined;
 
 export interface ShortLinkDeps {
   getUserRoles: WithoutDb<typeof getUserRoles>;
@@ -92,9 +91,10 @@ export interface ShortLinkDeps {
   giveLink: WithoutDb<typeof giveLink>;
   findAccountsByLogin: WithoutDb<typeof findAccountsByLogin>;
   claimAccount: WithoutDb<typeof claimAccount>;
-  getClaimLocks: WithoutDb<typeof getClaimLocks>;
-  recordWrongClaim: WithoutDb<typeof recordWrongClaim>;
-  clearClaimLocks: WithoutDb<typeof clearClaimLocks>;
+  reserveClaimTry: WithoutDb<typeof reserveClaimTry>;
+  giveBackClaimTry: WithoutDb<typeof giveBackClaimTry>;
+  /** The bcrypt cost an unknown login is compared at, so it takes as long as a real account's comparison. */
+  dummyHashCost: () => Promise<number>;
   /** Sends `push` to every device of `userId`; awaited by nothing (the answer doesn't wait for push services). */
   notify: (userId: string, push: PushData) => Promise<void>;
   /** Settings, read when a request comes. */
@@ -132,9 +132,12 @@ const databaseDeps: ShortLinkDeps = {
   giveLink: withDb(giveLink),
   findAccountsByLogin: withDb(findAccountsByLogin),
   claimAccount: withDb(claimAccount),
-  getClaimLocks: withDb(getClaimLocks),
-  recordWrongClaim: withDb(recordWrongClaim),
-  clearClaimLocks: withDb(clearClaimLocks),
+  reserveClaimTry: withDb(reserveClaimTry),
+  giveBackClaimTry: withDb(giveBackClaimTry),
+  dummyHashCost: async () => {
+    importedHashCost ??= (await commonHashCost(db)) ?? undefined;
+    return importedHashCost ?? CLAIM_DEFAULT_HASH_COST;
+  },
   notify: async (userId, push) => {
     await notifyDevices(db, userId, push);
   },
@@ -148,8 +151,14 @@ const databaseDeps: ShortLinkDeps = {
 
 const iso = (d: Date) => d.toISOString();
 
-export function createShortLinkRouter(deps: ShortLinkDeps = databaseDeps) {
+export function createShortLinkRouter(
+  deps: ShortLinkDeps = databaseDeps,
+  { maxClaimCompares = CLAIM_MAX_COMPARES } = {},
+) {
   const router = createAuthRouter();
+  /** Members with a claim lookup running, and how many passwords are being compared now (in this process). */
+  const lookingUp = new Set<string>();
+  let comparing = 0;
   const isAdmin = async (userId: string) =>
     (await deps.getUserRoles(userId)).includes('admin');
 
@@ -381,87 +390,96 @@ export function createShortLinkRouter(deps: ShortLinkDeps = databaseDeps) {
     const now = deps.now();
     if (!claimOpen(claimUntil, now))
       return c.json({ error: 'Claiming has ended' }, 410);
-    const memberKey = `user:${user.id}`;
-    const [account] = await deps.findAccountsByLogin(login);
-    const accountKey = account ? `account:${account.id}` : null;
-    const keys = accountKey ? [memberKey, accountKey] : [memberKey];
-    const locks = new Map(
-      (await deps.getClaimLocks(keys)).map((l) => [l.key, l as ClaimLock]),
-    );
-    /** The latest time any of the keys stays locked until, or undefined when none is locked now. */
-    const lockedUntil = (m: Map<string, ClaimLock>, only = keys) => {
-      let until: Date | undefined;
-      for (const k of only) {
-        const at = m.get(k)?.lockedUntil;
-        if (at && at > now && (!until || at > until)) until = at;
-      }
-      return until;
-    };
-    const memberLocked = lockedUntil(locks, [memberKey]);
-    if (memberLocked)
-      return c.json({ error: 'Too many tries', until: iso(memberLocked) }, 429);
-    // Always one bcrypt comparison, account or not, so the answer takes as long either way.
-    const matches = await deps.compare(
-      password,
-      account?.passwordHash ?? (await getDummyHash()),
-    );
-    const locked = lockedUntil(locks);
-    if (locked)
-      return c.json({ error: 'Too many tries', until: iso(locked) }, 429);
-    if (!account?.passwordHash || !matches) {
-      const after = await deps.recordWrongClaim(keys, now);
-      const nowLocked = lockedUntil(after);
-      if (nowLocked)
-        return c.json({ error: 'Too many tries', until: iso(nowLocked) }, 429);
-      return c.json(
-        {
-          error: 'Username or password wrong',
-          triesLeft: CLAIM_MAX_TRIES - (after.get(memberKey)?.tries ?? 0),
-        },
-        401,
-      );
+    // A comparison costs seconds of CPU: one lookup per member at a time, and a few in the whole API, refused at
+    // once beyond that (429 with no `until`) rather than queued.
+    if (lookingUp.has(user.id))
+      return c.json({ error: 'A lookup is already running' }, 429);
+    if (comparing >= maxClaimCompares)
+      return c.json({ error: 'Busy, try again shortly' }, 429);
+    lookingUp.add(user.id);
+    comparing++;
+    try {
+      return await lookUp();
+    } finally {
+      comparing--;
+      lookingUp.delete(user.id);
     }
-    await deps.clearClaimLocks(keys);
-    const answer = (
-      state: 'found' | 'empty' | 'taken' | 'mine' | 'two_factor',
-      extra: {
-        links?: Array<{
-          id: string;
-          name: string;
-          destination: string | null;
-          clicks: number;
-        }>;
-        claimedAt?: Date | null;
-        token?: string | null;
-      } = {},
-    ) =>
-      c.json(
-        {
-          state,
-          account: account.username,
-          links: extra.links ?? [],
-          claimedAt: extra.claimedAt ? iso(extra.claimedAt) : null,
-          token: extra.token ?? null,
-        },
-        200,
+
+    async function lookUp() {
+      const memberKey = `user:${user.id}`;
+      const [account] = await deps.findAccountsByLogin(login);
+      const keys = account ? [memberKey, `account:${account.id}`] : [memberKey];
+      // The try is counted before the comparison, so tries sent at once can't pass the limit; a right one is given back.
+      const reserved = await deps.reserveClaimTry(keys, now);
+      if ('locked' in reserved)
+        return c.json(
+          { error: 'Too many tries', until: iso(reserved.locked) },
+          429,
+        );
+      // Always one bcrypt comparison, account or not, at the accounts' cost, so the answer takes as long either way.
+      const matches = await deps.compare(
+        password,
+        account?.passwordHash ??
+          unmatchableBcryptHash(await deps.dummyHashCost()),
       );
-    if (account.claimedBy === user.id) return answer('mine');
-    if (account.claimedBy)
-      return answer('taken', { claimedAt: account.claimedAt });
-    if (account.twoFactor) return answer('two_factor');
-    const links = await deps.unclaimedAccountLinks(account.id);
-    if (links.length === 0) return answer('empty');
-    const token = await sign(
-      {
-        purpose: CLAIM_PURPOSE,
-        sub: user.id,
-        acct: account.id,
-        exp: Math.floor(now.getTime() / 1000) + CLAIM_TOKEN_SECONDS,
-      },
-      env.JWT_SECRET,
-      JWT_ALG,
-    );
-    return answer('found', { links, token });
+      if (!account?.passwordHash || !matches) {
+        let locked: Date | undefined;
+        for (const l of reserved.locks.values())
+          if (l.lockedUntil && (!locked || l.lockedUntil > locked))
+            locked = l.lockedUntil;
+        if (locked)
+          return c.json({ error: 'Too many tries', until: iso(locked) }, 429);
+        return c.json(
+          {
+            error: 'Username or password wrong',
+            triesLeft:
+              CLAIM_MAX_TRIES - (reserved.locks.get(memberKey)?.tries ?? 0),
+          },
+          401,
+        );
+      }
+      await deps.giveBackClaimTry(keys);
+      const answer = (
+        state: 'found' | 'empty' | 'taken' | 'mine' | 'two_factor',
+        extra: {
+          links?: Array<{
+            id: string;
+            name: string;
+            destination: string | null;
+            clicks: number;
+          }>;
+          claimedAt?: Date | null;
+          token?: string | null;
+        } = {},
+      ) =>
+        c.json(
+          {
+            state,
+            account: account.username,
+            links: extra.links ?? [],
+            claimedAt: extra.claimedAt ? iso(extra.claimedAt) : null,
+            token: extra.token ?? null,
+          },
+          200,
+        );
+      if (account.claimedBy === user.id) return answer('mine');
+      if (account.claimedBy)
+        return answer('taken', { claimedAt: account.claimedAt });
+      if (account.twoFactor) return answer('two_factor');
+      const links = await deps.unclaimedAccountLinks(account.id);
+      if (links.length === 0) return answer('empty');
+      const token = await sign(
+        {
+          purpose: CLAIM_PURPOSE,
+          sub: user.id,
+          acct: account.id,
+          exp: Math.floor(now.getTime() / 1000) + CLAIM_TOKEN_SECONDS,
+        },
+        env.JWT_SECRET,
+        JWT_ALG,
+      );
+      return answer('found', { links, token });
+    }
   });
 
   router.openapi(claimShortLinksRoute, async (c) => {

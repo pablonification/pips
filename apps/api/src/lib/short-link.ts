@@ -279,15 +279,24 @@ export interface ClaimLock {
   lockedUntil: Date | null;
 }
 
-/** Whether a lock row blocks a try now. */
-export const isLocked = (lock: ClaimLock | null | undefined, now: Date) =>
-  !!lock?.lockedUntil && lock.lockedUntil > now;
+/**
+ * How many password comparisons the whole API runs at once. A comparison at Lynx's cost 15 takes seconds of CPU on the
+ * thread that also answers every redirect, so a claim beyond this answers 429 at once instead of queueing.
+ */
+export const CLAIM_MAX_COMPARES = 2;
+/** The cost Lynx hashes with (its `saltRounds`), used for an unknown login until imported hashes say otherwise. */
+export const CLAIM_DEFAULT_HASH_COST = 15;
+
+/** When a lock row stops blocking tries, or undefined when it doesn't block one now. */
+export const lockedUntil = (lock: ClaimLock | null | undefined, now: Date) =>
+  lock?.lockedUntil && lock.lockedUntil > now ? lock.lockedUntil : undefined;
 
 /**
- * The lock after one more wrong password. Tries older than the lock's length are forgotten; the fifth in a row locks
- * it for 15 minutes and starts the count again.
+ * The lock after one more try, counted before its password is compared so that tries sent at once can't pass the
+ * limit. Tries older than the lock's length are forgotten; the fifth in a row locks for 15 minutes. A try that turns
+ * out right is given back ({@link giveBackTry}).
  */
-export function afterWrongTry(
+export function countTry(
   lock: ClaimLock | null | undefined,
   now: Date,
 ): ClaimLock {
@@ -296,13 +305,39 @@ export function afterWrongTry(
       ? lock.tries
       : 0;
   const tries = recent + 1;
-  if (tries >= CLAIM_MAX_TRIES)
-    return {
-      tries: 0,
-      lastTryAt: now,
-      lockedUntil: new Date(now.getTime() + CLAIM_LOCK_MS),
-    };
-  return { tries, lastTryAt: now, lockedUntil: null };
+  return {
+    tries,
+    lastTryAt: now,
+    lockedUntil:
+      tries >= CLAIM_MAX_TRIES ? new Date(now.getTime() + CLAIM_LOCK_MS) : null,
+  };
+}
+
+/** The lock after a counted try turned out right: one try fewer, so not locked; null when nothing is left to keep. */
+export function giveBackTry(lock: ClaimLock): ClaimLock | null {
+  const tries = lock.tries - 1;
+  return tries > 0 ? { ...lock, tries, lockedUntil: null } : null;
+}
+
+/** The cost written in a bcrypt hash (`$2b$15$…` is 15), or null when it isn't one. */
+export function bcryptCost(hash: string | null | undefined) {
+  const m = hash?.match(/^\$2[abxy]?\$(\d\d)\$/);
+  return m ? Number(m[1]) : null;
+}
+
+const BCRYPT_ALPHABET =
+  './ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+/**
+ * A hash in bcrypt's form with a random salt and checksum, which no password matches. Comparing against it costs as
+ * much as comparing against a real hash of that cost, so an unknown login answers as slowly as a real account, and
+ * making it costs nothing.
+ */
+export function unmatchableBcryptHash(cost: number) {
+  const c = Math.min(31, Math.max(4, Math.round(cost)));
+  let rest = '';
+  for (let i = 0; i < 53; i++) rest += BCRYPT_ALPHABET[randomInt(64)];
+  return `$2b$${String(c).padStart(2, '0')}$${rest}`;
 }
 
 /** Whether claiming is still open: until the end the setting names, or always when it names none. */
