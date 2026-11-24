@@ -37,6 +37,7 @@ import {
   hostOf,
   linkKind,
   myReaction,
+  previewStaleTime,
   reactionLabel,
   REACTION_KEYS,
   reactionTotal,
@@ -133,8 +134,7 @@ function useOpenGraph(url: string, enabled: boolean) {
     queryKey: ['openGraph', url],
     queryFn: () => api.openGraphScrape({ url: absoluteUrl(url) }),
     enabled,
-    // A preview is good for a day.
-    staleTime: 1000 * 60 * 60 * 24,
+    staleTime: (query) => previewStaleTime(query.state.data),
     retry: false,
   });
 }

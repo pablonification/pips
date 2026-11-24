@@ -31,6 +31,7 @@ import {
   nextReaction,
   notifyLine,
   pageUnreadIds,
+  previewStaleTime,
   reactionCounts,
   renotifyAvailableAt,
   renotifyFailure,
@@ -583,4 +584,10 @@ test('a link alone on the last lines folds into its card; links inside the text 
     displayText('Cek tautannya:\nhttps://a.id/x lalu isi'),
     'Cek tautannya:\nhttps://a.id/x lalu isi',
   );
+});
+
+test("a link's preview stays a day once it came, and is asked again after a failure", () => {
+  assert.equal(previewStaleTime({ success: true }), 24 * 60 * 60 * 1000);
+  assert.equal(previewStaleTime({ success: false }), 0);
+  assert.equal(previewStaleTime(undefined), 0);
 });

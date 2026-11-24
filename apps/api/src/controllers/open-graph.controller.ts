@@ -57,12 +57,12 @@ export function createOpenGraphRouter(fetchOptions: FetchPageOptions = {}) {
 
   router.openapi(getOpenGraph, async (c) => {
     const { url } = c.req.valid('query');
-    // Per member: a preview is good for a day.
-    c.header('Cache-Control', `private, max-age=${60 * 60 * 24}`);
+    // A failure may be over a moment later (a resolver that dropped the query), so only a preview is kept.
     const fail = (error: string) =>
       c.json(
         OpenGraphErrorSchema.parse({ error, errorDetails: {}, success: false }),
         400,
+        { 'Cache-Control': 'no-store' },
       );
 
     let html: string;
@@ -97,6 +97,8 @@ export function createOpenGraphRouter(fetchOptions: FetchPageOptions = {}) {
       return fail('Page has no preview');
     }
     const { ogImage } = result as { ogImage?: Array<{ url: string }> };
+    // Per member: a preview is good for a day.
+    c.header('Cache-Control', `private, max-age=${60 * 60 * 24}`);
     return c.json(
       OgObjectSchema.parse({
         ...result,

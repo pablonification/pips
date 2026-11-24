@@ -476,6 +476,13 @@ export function hostOf(url: string) {
   }
 }
 
+/**
+ * How long a link's preview stays fresh: a day once the site answered, none after a failure, which may be a resolver
+ * that dropped the query (so the next look asks again).
+ */
+export const previewStaleTime = (preview: { success?: boolean } | undefined) =>
+  preview?.success ? 1000 * 60 * 60 * 24 : 0;
+
 /* ================= Text ================= */
 
 /**
