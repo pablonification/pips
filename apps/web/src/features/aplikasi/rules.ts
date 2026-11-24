@@ -3,8 +3,8 @@ import { fill } from '~/copy/fill';
 import { rel } from '~/lib/dates';
 
 /**
- * A connected app's line: what it may do, when it was connected and last used. "Hanya baca · Terhubung kemarin ·
- * Terakhir dipakai 40 menit lalu", or "Baca dan ubah · … · Belum dipakai".
+ * A connected app's line: what it may do, when it was connected and last used. "Read · Terhubung kemarin ·
+ * Terakhir dipakai 40 menit lalu", or "Write · … · Belum dipakai".
  */
 export function appLine(
   app: {
@@ -14,9 +14,7 @@ export function appLine(
   },
   now: number = Date.now(),
 ) {
-  const akses = app.scopes.includes('pips.write')
-    ? copy.bacaUbah
-    : copy.hanyaBaca;
+  const akses = app.scopes.includes('pips.write') ? copy.ubah : copy.baca;
   const sejak = fill(copy.sejak, { tanggal: rel(app.connectedAt, now) });
   const dipakai = app.lastUsedAt
     ? fill(copy.dipakai, { tanggal: rel(app.lastUsedAt, now) })

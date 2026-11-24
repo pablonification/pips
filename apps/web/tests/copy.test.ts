@@ -185,7 +185,7 @@ test('…and lets good copy through', () => {
   for (const text of [
     'Cari di PIPS!',
     'Ding Dong, Testi Matkul dan NIM Finder',
-    'Ngobrol anonim dengan tim Welfare HMIF',
+    'Anonim, dengan tim Welfare',
     'Curhat Yuk! menyimpan maksimal 3 ruang',
     'Ruang Curhat-mu tersimpan',
     'Kembali ke {judul}',

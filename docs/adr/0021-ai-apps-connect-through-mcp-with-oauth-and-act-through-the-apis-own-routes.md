@@ -25,7 +25,7 @@ angkatan, the author of a post, Curhat's anonymity) without writing them a secon
   `/hubungkan` with only the request's id. That page reads and answers the request through ordinary member routes
   under `/api/oauth/…`, so the session cookie and the origin check for writes apply as everywhere else. The app's
   name is shown as plain text, with the host it returns to. When the app asks for `pips.write`, the member chooses
-  Baca dan ubah or Hanya baca. Approval may only narrow what the app asked for (`narrowScope`), never widen it, and
+  Write or Read. Approval may only narrow what the app asked for (`narrowScope`), never widen it, and
   always keeps `pips.read`; the code and every token after it carry the narrowed scopes. Most MCP apps ask for every
   scope the server lists, so without this choice a member couldn't connect one to read only.
 - **Every tool calls an existing route, in the process, as the member.** For each MCP request the API checks the

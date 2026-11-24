@@ -32,7 +32,7 @@ const confirmSheet = (page: Page) =>
   page.getByRole('alertdialog', { name: 'Kirim jawaban?' });
 const saved = (page: Page) => main(page).getByText('Draf tersimpan');
 const plaque = (page: Page) =>
-  main(page).getByRole('heading', { name: 'Terima kasih sudah mengisi!' });
+  main(page).getByRole('heading', { name: 'Terima kasih sudah mengisi.' });
 
 /** No tab bar or rail in the focused flow on phones and tablets; the sidebar stays on desktop. */
 async function expectFocusedFlow(page: Page, testInfo: TestInfo) {
@@ -466,7 +466,7 @@ test('the PIXEL form end to end: prefill, required errors, Other, rating by keyb
   await expect(plaque(page)).toBeVisible();
   await expect(plaque(page)).toBeFocused();
   await expect(main(page).getByText('Jawabanmu sudah terkirim.')).toBeVisible();
-  await expect(page.getByText('Form berhasil dikirim!')).toBeVisible();
+  await expect(page.getByText('Jawabanmu terkirim.')).toBeVisible();
   await expectFocusedFlow(page, testInfo);
   await gates(page, testInfo, 'form-done');
 

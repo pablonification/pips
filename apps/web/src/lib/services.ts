@@ -39,7 +39,8 @@ interface ServiceBase {
   id: string;
   /** The name members know. Never renamed. */
   label: string;
-  description: string;
+  /** A line under the name, only where the name alone doesn't say what the service is. */
+  description?: string;
   group: ServiceGroup;
   /**
    * Who keeps it running: the role key of the team behind it where the code shows one, otherwise `pips` (the
@@ -77,7 +78,7 @@ export const SERVICES = [
   {
     id: 'dingdong',
     label: 'Ding Dong',
-    description: 'Folder materi mata kuliahmu semester ini',
+    description: 'Materi kuliah semester ini',
     group: 'Kuliah',
     kind: 'internal',
     destination: '/layanan/dingdong',
@@ -88,7 +89,6 @@ export const SERVICES = [
   {
     id: 'testi',
     label: 'Testi Matkul',
-    description: 'Cerita kakak tingkat tentang tiap mata kuliah',
     group: 'Kuliah',
     kind: 'internal',
     destination: '/layanan/testi',
@@ -100,7 +100,6 @@ export const SERVICES = [
   {
     id: 'nim',
     label: 'NIM Finder',
-    description: 'Cari teman lewat nama atau NIM',
     group: 'Teman dan himpunan',
     kind: 'internal',
     destination: '/layanan/nim',
@@ -111,7 +110,7 @@ export const SERVICES = [
   {
     id: 'curhat',
     label: 'Curhat Yuk!',
-    description: 'Ngobrol anonim dengan tim Welfare HMIF',
+    description: 'Anonim, dengan tim Welfare',
     group: 'Teman dan himpunan',
     kind: 'internal',
     destination: '/layanan/curhat',
@@ -122,7 +121,7 @@ export const SERVICES = [
   {
     id: 'form',
     label: 'Form',
-    description: 'Form dari HMIF untuk angkatanmu',
+    description: 'Yang dibuka untuk angkatanmu',
     group: 'Teman dan himpunan',
     kind: 'internal',
     destination: '/layanan/form',
@@ -134,7 +133,6 @@ export const SERVICES = [
   {
     id: 'lomba',
     label: 'Info Lomba',
-    description: 'Lomba yang pendaftarannya masih buka',
     group: 'Kesempatan',
     kind: 'internal',
     destination: '/layanan/lomba',
@@ -145,7 +143,6 @@ export const SERVICES = [
   {
     id: 'beasiswa',
     label: 'Beasiswa',
-    description: 'Mading Beasiswa HMIF',
     group: 'Kesempatan',
     kind: 'external',
     destination: 'https://s.hmif.dev/MadingBeasiswa',
@@ -156,7 +153,7 @@ export const SERVICES = [
   {
     id: 'lowongan',
     label: 'LowonginAja!',
-    description: 'Lowongan magang dan kerja',
+    description: 'Magang dan kerja',
     group: 'Kesempatan',
     kind: 'external',
     destination: 'https://s.hmif.dev/LowonginAja!',
@@ -168,7 +165,6 @@ export const SERVICES = [
   {
     id: 'kas',
     label: 'Bayar Kas!',
-    description: 'Bayar iuran kas HMIF',
     group: 'Administrasi',
     kind: 'external',
     destination: 'https://s.hmif.dev/BayarKasHMIF',
@@ -179,7 +175,6 @@ export const SERVICES = [
   {
     id: 'surat',
     label: 'Surat & Proposal',
-    description: 'Layanan administrasi HMIF 2025/2026',
     group: 'Administrasi',
     kind: 'external',
     destination: 'https://s.hmif.dev/LayananAdministrasiHMIF2526',
@@ -192,7 +187,7 @@ export const SERVICES = [
     // Any pengurus builds forms and sees the ones shared with them; admin sees every form.
     id: 'form-builder',
     label: 'Form',
-    description: 'Buat form dan lihat jawabannya',
+    description: 'Buat dan bagikan',
     group: 'Kelola',
     kind: 'internal',
     destination: '/kelola/form',
@@ -204,7 +199,6 @@ export const SERVICES = [
   {
     id: 'live',
     label: 'Live Counting & Rekap Form',
-    description: 'Pengisi form secara realtime, rekap, dan analitik',
     group: 'Kelola',
     kind: 'internal',
     destination: '/kelola/live',
@@ -219,7 +213,6 @@ export const SERVICES = [
     // /kalender?tambah=acara, the dialog over Kalender (a destination is a typed path, without a query).
     id: 'acara',
     label: 'Tambah acara Akademik',
-    description: 'Kuis, UTS, dan tenggat per mata kuliah',
     group: 'Kelola',
     kind: 'internal',
     destination: '/kelola/acara',
@@ -334,7 +327,9 @@ export function searchServices(
   const terms = fold(query).split(/\s+/).filter(Boolean);
   if (terms.length === 0) return [];
   return searchableServices(user, now).filter((s) => {
-    const haystack = fold([s.label, s.description, ...s.synonyms].join(' '));
+    const haystack = fold(
+      [s.label, s.description ?? '', ...s.synonyms].join(' '),
+    );
     return terms.every((t) => haystack.includes(t));
   });
 }

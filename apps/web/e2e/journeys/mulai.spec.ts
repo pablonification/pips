@@ -173,9 +173,6 @@ test.describe('not installed', () => {
   }) => {
     await page.goto('/mulai');
     const pasang = step(page, 'Pasang PIPS!');
-    await expect(pasang).toContainText(
-      'Pilihan: buka PIPS! langsung dari layar utama.',
-    );
     await pasang.getByRole('button', { name: 'Pasang' }).click();
     await expect(
       page.getByRole('dialog', { name: 'Pasang PIPS!' }),

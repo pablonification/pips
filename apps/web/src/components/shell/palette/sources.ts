@@ -67,7 +67,8 @@ function useServiceItems(): PaletteItem[] {
         label: s.label,
         icon: s.icon,
         hint: s.kind === 'external' ? common.palette.situsLuar : s.description,
-        keywords: `${s.synonyms.join(' ')} ${s.description}`.toLowerCase(),
+        keywords:
+          `${s.synonyms.join(' ')} ${s.description ?? ''}`.toLowerCase(),
         pinned: (PINNED_SERVICES as readonly string[]).includes(s.id),
         run: () => openService(s, navigate),
       })),

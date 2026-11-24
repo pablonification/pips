@@ -808,10 +808,7 @@ test.describe('the author (Raka, admin)', () => {
     // Focusable while locked, and pressing it says why (Playwright waits for aria-disabled items, so force).
     await locked.click({ force: true });
     await expect(
-      toastText(
-        page,
-        'Umumkan ulang bisa lagi mulai 15.30. Jeda 3 jam supaya anggota tidak kebanjiran notifikasi.',
-      ),
+      toastText(page, 'Umumkan ulang bisa lagi mulai 15.30.'),
     ).toBeVisible();
     // It stays open, and nothing was sent.
     await expect(locked).toBeVisible();

@@ -143,9 +143,7 @@ test.describe('ways in', () => {
     );
     // The member row keeps its words, and its count is the inbox's unread total (the API counts every room).
     const memberRow = main(page).locator('a[href="/layanan/curhat"]');
-    await expect(memberRow).toContainText(
-      'Ngobrol anonim dengan tim Welfare HMIF',
-    );
+    await expect(memberRow).toContainText('Anonim, dengan tim Welfare');
     await expect(memberRow).toHaveAccessibleName(/2 pesan baru/);
     await memberRow.click();
     await expect(page).toHaveURL(/\/kelola\/curhat$/);
@@ -218,7 +216,7 @@ test.describe('ways in', () => {
     await expect(options).toContainText('Balas ruang curhat anggota');
     await expect(
       palette.getByRole('option').filter({
-        hasText: 'Ngobrol anonim dengan tim Welfare HMIF',
+        hasText: 'Anonim, dengan tim Welfare',
       }),
     ).toHaveCount(0);
     await options.click();
@@ -294,9 +292,7 @@ test.describe('who gets in', () => {
         .getByRole('option')
         .filter({ hasText: 'Curhat Yuk!' });
       await expect(options).toHaveCount(1);
-      await expect(options).toContainText(
-        'Ngobrol anonim dengan tim Welfare HMIF',
-      );
+      await expect(options).toContainText('Anonim, dengan tim Welfare');
     });
   });
 

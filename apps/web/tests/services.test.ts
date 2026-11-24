@@ -119,9 +119,15 @@ test('internal destinations are routes in the route tree', () => {
   }
 });
 
-test('every entry has a description, an owner, an icon key and lower-case synonyms', () => {
+test('every entry has an owner, an icon key and lower-case synonyms; a description only when it adds something', () => {
   for (const s of all) {
-    assert.ok(s.description.length > 0, s.id);
+    if (s.description !== undefined) {
+      assert.ok(s.description.trim().length > 0, s.id);
+      assert.ok(
+        !s.description.toLowerCase().includes(s.label.toLowerCase()),
+        `${s.id}: the description repeats the name`,
+      );
+    }
     assert.ok(s.owner.length > 0, s.id);
     assert.ok(s.icon.length > 0, s.id);
     for (const w of s.synonyms)
@@ -224,4 +230,11 @@ test('Welfare finds Curhat Yuk! once in global search, as the inbox; Layanan and
     searchableServices(raka, NOW).map((s) => s.id),
     visibleServices(raka, NOW).map((s) => s.id),
   );
+});
+
+test('two entries with the same name each say which one they are', () => {
+  for (const s of all) {
+    const twins = all.filter((o) => o.label === s.label);
+    if (twins.length > 1) assert.ok(s.description, s.id);
+  }
 });

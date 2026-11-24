@@ -1,7 +1,5 @@
 /** Ding Dong: the course-folder list, its toasts and its load and offline states. */
 export const dingdong = {
-  deskripsi:
-    'Folder Google Drive berisi materi, soal, dan catatan untuk mata kuliah yang kamu atur semester ini.',
   belumAdaFolder: 'Belum ada folder',
   // The toast for a course without a folder (also Testi Matkul's "Buka Ding Dong" then).
   folderBelumTersedia: 'Folder Ding Dong untuk {kode} belum tersedia.',

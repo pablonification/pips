@@ -7,7 +7,7 @@ import { ICONS_BY_KEY } from '~/components/icons/by-key';
 import { common } from '~/copy/common';
 import type { Service } from '~/lib/services';
 
-/** One service: icon tile, the members' name, its description, then a badge and a chevron, or the external mark for
+/** One service: icon tile, the members' name, its description if it has one, then a badge and a chevron, or the external mark for
  * a site outside PIPS! (a new tab). Layanan and the Kelola hub share it, so their rows can't drift. */
 export function ServiceRow({
   service: s,
@@ -24,7 +24,9 @@ export function ServiceRow({
       </Tile>
       <span className="min-w-0 flex-1">
         <span className="block t-sub">{s.label}</span>
-        <span className="block t-cap text-fg-2">{s.description}</span>
+        {s.description ? (
+          <span className="block t-cap text-fg-2">{s.description}</span>
+        ) : null}
       </span>
       {badge}
       {s.kind === 'external' ? (

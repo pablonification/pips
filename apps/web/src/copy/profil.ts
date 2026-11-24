@@ -28,7 +28,7 @@ export const profil = {
   keluar: {
     tombol: 'Keluar',
     judul: 'Keluar dari PIPS!?',
-    isi: 'Kamu perlu masuk lagi dengan email mahasiswa (NIM@std.stei.itb.ac.id). Notifikasi di perangkat ini berhenti sampai kamu masuk lagi.',
+    isi: 'Notifikasi di perangkat ini berhenti sampai kamu masuk lagi.',
     batal: 'Batal',
     // Sign-out failed; the member stays signed in.
     gagal: 'Gagal keluar. Periksa koneksimu, lalu coba lagi.',
@@ -37,11 +37,10 @@ export const profil = {
   },
   notifikasi: {
     kategori: 'Kategori pengumuman',
-    wajib: 'Wajib dari HMIF, tidak bisa dimatikan',
+    wajib: 'Wajib dari HMIF',
     akademik: 'Termasuk pengingat H-1 acara mata kuliah',
     wajibToast: 'Kategori {nama} wajib dari HMIF dan tidak bisa dimatikan.',
-    catatan:
-      'Ini hanya mengatur notifikasi. Semua pengumuman tetap muncul di Pengumuman.',
+    catatan: 'Hanya notifikasi. Semua pengumuman tetap muncul di Pengumuman.',
     // A mute or unmute failed and the switch went back.
     gagal: 'Notifikasi {nama} gagal diubah. Periksa koneksimu, lalu coba lagi.',
   },
@@ -67,9 +66,8 @@ export const profil = {
     tidakAda: 'Tidak ada mata kuliah untuk “{kata}”.',
     tambahkan: 'Tambahkan',
     tambahkanJumlah: '({jumlah})',
-    pilihDulu: 'Pilih mata kuliah yang mau kamu tambahkan.',
-    ditambahkan:
-      '{jumlah} mata kuliah ditambahkan. Ding Dong dan Kalender ikut diperbarui.',
+    pilihDulu: 'Pilih mata kuliah dulu.',
+    ditambahkan: '{jumlah} mata kuliah ditambahkan.',
     // Sending the picks, and its failure (the picks stay).
     menambahkan: 'Menambahkan…',
     gagal: 'Mata kuliah gagal ditambahkan. Periksa koneksimu, lalu coba lagi.',
@@ -82,7 +80,7 @@ export const profil = {
   // The Pasang PIPS! prompt.
   pasang: {
     judul: 'Pasang PIPS!',
-    isi: 'Buka PIPS! langsung dari layar utama, seperti aplikasi lain. Di iPhone, notifikasi juga hanya sampai lewat PIPS! yang terpasang.',
+    isi: 'Buka PIPS! langsung dari layar utama. Di iPhone, notifikasi hanya sampai lewat PIPS! yang terpasang.',
     tombol: 'Pasang PIPS!',
     terpasang: 'PIPS! sudah terpasang di perangkat ini.',
     berhasil: 'PIPS! terpasang di perangkat ini.',

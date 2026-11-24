@@ -365,7 +365,7 @@ export function composeBody(d: Draft) {
   return body;
 }
 
-/** The audience choices: Grup-ku only for members with groups (`GET /api/auth/groups` not empty). */
+/** The audience choices: Grupku only for members with groups (`GET /api/auth/groups` not empty). */
 export function audienceKinds(groups: readonly UserGroup[]): AudienceKind[] {
   return groups.length ? ['all', 'angkatan', 'group'] : ['all', 'angkatan'];
 }

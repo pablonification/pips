@@ -59,24 +59,23 @@ export const isi = {
   setuju: {
     judul: 'Ikut terkirim bersama jawabanmu',
     penerima:
-      '{nama}, pembuat form ini, dan pengurus yang ia beri akses menerima data di bawah dari profilmu. Kamu tidak perlu mengetiknya lagi.',
+      '{nama}, pembuat form ini, dan pengurus yang ia beri akses menerima data di bawah dari profilmu.',
     penerimaTanpaNama:
-      'Pembuat form ini dan pengurus yang ia beri akses menerima data di bawah dari profilmu. Kamu tidak perlu mengetiknya lagi.',
+      'Pembuat form ini dan pengurus yang ia beri akses menerima data di bawah dari profilmu.',
     belumAda: 'Belum ada',
     ubah: 'Ubah',
     ubahLabel: 'Ubah {label}',
     batal: 'Batal',
     supayaTerkirim: '{alasan} supaya bisa dikirim',
     ikutDiperbarui: 'Data dirimu ikut diperbarui.',
-    cukupSekali:
-      'Cukup sekali. Tersimpan di data dirimu untuk form berikutnya.',
+    cukupSekali: 'Tersimpan di data dirimu untuk form berikutnya.',
     persetujuan: 'Aku setuju data di atas dikirim bersama jawabanku.',
     centangDulu: 'Centang persetujuan ini untuk mengirim',
     kembali: 'Kembali',
     kePertanyaanLabel: 'Kembali ke pertanyaan',
   },
   terkirim: {
-    terimaKasih: 'Terima kasih sudah mengisi!',
+    terimaKasih: 'Terima kasih sudah mengisi.',
     terkirim: 'Terkirim {waktu}.',
     diperbarui: 'Diperbarui {waktu}.',
     yangDikirim: 'Yang kamu kirim',
@@ -120,11 +119,11 @@ export const isi = {
   },
   dataDiri: {
     terisi: '{jumlah} dari {semua} terisi',
-    catatanJudul: 'Diisi sekali, dipakai di banyak form.',
+    catatanJudul: 'Diisi sekali, akan digunakan ulang di form lain.',
     catatan:
-      'Form hanya mengambil yang diminta pembuatnya, dan kamu selalu melihat serta menyetujuinya sebelum mengirim.',
+      'Form hanya akan mengambil data yang dimintanya, setelah kamu setujui.',
     dariAkun: 'Dari akun',
-    dariAkunIsi: 'Ikut dari akun ITB-mu, jadi tidak diisi di sini.',
+    dariAkunIsi: 'Dari akun ITB-mu.',
     belumDiisi: 'Belum diisi',
     isi: 'Isi',
     ubah: 'Ubah',

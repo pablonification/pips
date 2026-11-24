@@ -227,7 +227,7 @@ export function sampleForms(): StoredForm[] {
   const base = {
     slugCustom: true,
     isActive: true,
-    thanks: 'Terima kasih sudah mengisi!',
+    thanks: 'Terima kasih sudah mengisi.',
     allowEdit: false,
     shared: [] as StoredForm['shared'],
     responses: [] as StoredResponse[],

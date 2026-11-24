@@ -99,7 +99,7 @@ export default function Palette() {
                           <Icon size={17} />
                         </span>
                         <span className="label">{item.label}</span>
-                        <small>{item.hint}</small>
+                        {item.hint ? <small>{item.hint}</small> : null}
                       </Command.Item>
                     );
                   })}

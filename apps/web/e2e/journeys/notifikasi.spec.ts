@@ -35,11 +35,6 @@ test.describe('the device card', () => {
     await expect(
       main(page).getByText('Notifikasi belum menyala di perangkat ini'),
     ).toBeVisible();
-    await expect(
-      main(page).getByText(
-        'Tanpa ini, pengumuman baru, pengingat H-1, dan balasan Curhat tidak akan sampai.',
-      ),
-    ).toBeVisible();
     await strictGates(page, testInfo, 'notifikasi-belum', 'Profil');
 
     const open = main(page).getByRole('button', {
@@ -351,7 +346,7 @@ test.describe('Kategori pengumuman', () => {
       'Termasuk pengingat H-1 acara mata kuliah',
     );
     await expect(sw(page, 'Himpunan')).toHaveAccessibleDescription(
-      'Wajib dari HMIF, tidak bisa dimatikan',
+      'Wajib dari HMIF',
     );
 
     await sw(page, 'Lomba').click();

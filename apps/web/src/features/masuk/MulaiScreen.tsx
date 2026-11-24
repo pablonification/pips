@@ -92,12 +92,9 @@ export function MulaiScreen() {
 
   return (
     <PageBody className="gap-5">
-      <div className="grid gap-1.5">
-        <PageTitle className="disp">
-          {fill(common.shell.halo, { nama: me.fullName.split(' ')[0] })}
-        </PageTitle>
-        <p className="t-body text-fg-2">{copy.isi}</p>
-      </div>
+      <PageTitle className="disp">
+        {fill(common.shell.halo, { nama: me.fullName.split(' ')[0] })}
+      </PageTitle>
       <Card className="px-4 py-1">
         <RuledList aria-label={copy.langkah}>
           <Step
@@ -157,7 +154,6 @@ export function MulaiScreen() {
             <Step
               icon={<IconPasang size={20} />}
               title={copy.pasang}
-              sub={copy.pasangIsi}
               done={false}
               action={
                 <Button variant="paper" size="sm" onClick={openInstallSheet}>

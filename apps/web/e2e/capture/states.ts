@@ -428,11 +428,11 @@ export const STATES: CaptureState[] = [
       // Let the success toast leave so the capture shows the page itself. Wait for it to appear first: waiting
       // only for "hidden" passed at once while the request was still running, and the toast then showed up in
       // some captures and not in others.
-      const toast = p.getByText('Form berhasil dikirim!');
+      const toast = p.getByText('Jawabanmu terkirim.');
       await toast.waitFor({ state: 'visible', timeout: 10_000 });
       await toast.waitFor({ state: 'hidden', timeout: 10_000 });
     },
-    ready: (p) => p.getByText('Terima kasih sudah mengisi!'),
+    ready: (p) => p.getByText('Terima kasih sudah mengisi.'),
   },
 
   // Profil (reaches the states the old Settings had)

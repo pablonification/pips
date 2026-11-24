@@ -27,7 +27,7 @@ const approvals = (api: { calls: (k: string) => Array<{ body: unknown }> }) =>
   api.calls('POST /api/oauth/requests/:requestId/approve').map((c) => c.body);
 
 test.describe('the consent page', () => {
-  test('names the app as plain text, offers Baca dan ubah or Hanya baca, and Izinkan returns to the app with its code', async ({
+  test('names the app as plain text, offers Write or Read, and Izinkan returns to the app with its code', async ({
     page,
     api,
   }, testInfo) => {
@@ -45,24 +45,17 @@ test.describe('the consent page', () => {
     ).toBeVisible();
     await expect(page).toHaveTitle('Hubungkan aplikasi · PIPS!');
     await expect(
-      main(page).getByText('Setelah ini kamu kembali ke claude.ai.'),
+      main(page).getByText('Lalu kembali ke claude.ai.'),
     ).toBeVisible();
     const may = main(page).getByRole('group', {
       name: 'Yang boleh dilakukan aplikasi ini',
     });
     await expect(may.getByRole('radio')).toHaveCount(2);
-    // What the app asked for is chosen first; each choice says what it means in one line.
-    await expect(
-      may.getByRole('radio', { name: /^Baca dan ubah/ }),
-    ).toBeChecked();
-    await expect(
-      may.getByRole('radio', { name: /^Hanya baca/ }),
-    ).not.toBeChecked();
+    // What the app asked for is chosen first; Write says what it adds, Read needs no line.
+    await expect(may.getByRole('radio', { name: /^Write/ })).toBeChecked();
+    await expect(may.getByRole('radio', { name: /^Read/ })).not.toBeChecked();
     await expect(may).toContainText(
       'Juga mengirim, mengubah dan menghapus atas namamu',
-    );
-    await expect(may).toContainText(
-      'Membaca yang bisa kamu lihat, tanpa mengubah apa pun.',
     );
     await expect(main(page)).toContainText('Curhat Yuk! tidak termasuk.');
     // The app's name is never a link.
@@ -82,7 +75,7 @@ test.describe('the consent page', () => {
     expect(approvals(api)).toEqual([{ scopes: ['pips.read', 'pips.write'] }]);
   });
 
-  test('Hanya baca lets the app read only: Izinkan sends only pips.read', async ({
+  test('Read lets the app read only: Izinkan sends only pips.read', async ({
     page,
     api,
   }, testInfo) => {
@@ -95,19 +88,15 @@ test.describe('the consent page', () => {
       name: 'Yang boleh dilakukan aplikasi ini',
     });
     // The whole row is the target, and arrow keys move the choice.
-    await may.getByText('Hanya baca', { exact: true }).click();
-    await expect(may.getByRole('radio', { name: /^Hanya baca/ })).toBeChecked();
-    await expect(
-      may.getByRole('radio', { name: /^Baca dan ubah/ }),
-    ).not.toBeChecked();
+    await may.getByText('Read', { exact: true }).click();
+    await expect(may.getByRole('radio', { name: /^Read/ })).toBeChecked();
+    await expect(may.getByRole('radio', { name: /^Write/ })).not.toBeChecked();
     await strictGates(page, testInfo, 'hubungkan-hanya-baca', null);
-    await may.getByRole('radio', { name: /^Hanya baca/ }).focus();
+    await may.getByRole('radio', { name: /^Read/ }).focus();
     await page.keyboard.press('ArrowUp');
-    await expect(
-      may.getByRole('radio', { name: /^Baca dan ubah/ }),
-    ).toBeChecked();
+    await expect(may.getByRole('radio', { name: /^Write/ })).toBeChecked();
     await page.keyboard.press('ArrowDown');
-    await expect(may.getByRole('radio', { name: /^Hanya baca/ })).toBeChecked();
+    await expect(may.getByRole('radio', { name: /^Read/ })).toBeChecked();
 
     await main(page).getByRole('button', { name: 'Izinkan' }).click();
     await expect(page).toHaveURL(`${APP}/callback?code=c0de&state=s1`);
@@ -129,7 +118,7 @@ test.describe('the consent page', () => {
       name: 'Yang boleh dilakukan aplikasi ini',
     });
     await expect(may.getByRole('listitem')).toHaveCount(1);
-    await expect(may).toContainText('Membaca yang bisa kamu lihat');
+    await expect(may).toContainText('Read');
     await expect(main(page).getByRole('radio')).toHaveCount(0);
     await main(page).getByRole('button', { name: 'Tolak' }).click();
     await expect(page).toHaveURL(
@@ -275,12 +264,12 @@ test.describe('Profil › Aplikasi terhubung', () => {
     await expect(page).toHaveURL(/\/profil\/aplikasi$/);
     await expect(page).toHaveTitle('Aplikasi terhubung · PIPS!');
     const row = main(page).getByRole('listitem').filter({ hasText: 'Claude' });
-    await expect(row).toContainText('Baca dan ubah · Terhubung');
+    await expect(row).toContainText('Write · Terhubung');
     await expect(row).toContainText('Terakhir dipakai 1 jam lalu');
     const readOnly = main(page)
       .getByRole('listitem')
       .filter({ hasText: 'Catatan Kuliah' });
-    await expect(readOnly).toContainText('Hanya baca · Terhubung');
+    await expect(readOnly).toContainText('Read · Terhubung');
     await expect(
       row.getByRole('button', { name: 'Putuskan Claude' }),
     ).toBeVisible();

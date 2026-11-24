@@ -339,12 +339,7 @@ test.describe('Tambah mata kuliah', () => {
     await addButton(page).click();
 
     await expect(page).toHaveURL(/\/profil\/matkul$/);
-    await expect(
-      toastText(
-        page,
-        '1 mata kuliah ditambahkan. Ding Dong dan Kalender ikut diperbarui.',
-      ),
-    ).toBeVisible();
+    await expect(toastText(page, '1 mata kuliah ditambahkan.')).toBeVisible();
     expect(api.calls('PUT /api/course/take/batch')[0].body).toEqual([
       { courseId: 'course-IF2211' },
     ]);
@@ -374,12 +369,7 @@ test.describe('Tambah mata kuliah', () => {
       await row(page, 'IF2211').click();
       await addButton(page).click();
       await expect(page).toHaveURL(/\/profil\/matkul$/);
-      await expect(
-        toastText(
-          page,
-          '1 mata kuliah ditambahkan. Ding Dong dan Kalender ikut diperbarui.',
-        ),
-      ).toBeVisible();
+      await expect(toastText(page, '1 mata kuliah ditambahkan.')).toBeVisible();
       await expect.poll(() => codes(page)).toHaveLength(7);
       expect(errors).toEqual([]);
     });
@@ -466,9 +456,7 @@ test.describe('Tambah mata kuliah', () => {
     await expect(addButton(page)).not.toHaveText(/\(/);
     // aria-disabled, not disabled: it still answers a press with the hint (Playwright waits for neither, so force).
     await addButton(page).click({ force: true });
-    await expect(
-      toastText(page, 'Pilih mata kuliah yang mau kamu tambahkan.'),
-    ).toBeVisible();
+    await expect(toastText(page, 'Pilih mata kuliah dulu.')).toBeVisible();
     expect(api.writes).toEqual([]);
     await expect(page).toHaveURL(/\/profil\/matkul\/tambah$/);
   });
@@ -600,12 +588,7 @@ test.describe('Tambah mata kuliah', () => {
     await addButton(page).click();
 
     await expect(page).toHaveURL(/\/profil\/matkul$/);
-    await expect(
-      toastText(
-        page,
-        '2 mata kuliah ditambahkan. Ding Dong dan Kalender ikut diperbarui.',
-      ),
-    ).toBeVisible();
+    await expect(toastText(page, '2 mata kuliah ditambahkan.')).toBeVisible();
     expect(api.calls('PUT /api/course/take/batch')[1].body).toEqual([
       { courseId: 'course-IF2224' },
       { courseId: 'course-IF2211' },

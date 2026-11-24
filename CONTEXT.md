@@ -102,8 +102,8 @@ typed. Code: `SavedDetails`, `/api/user/details`.
 entries with `kind: 'external'`.
 
 **Aplikasi terhubung** (connected app) — An AI app (Claude, ChatGPT, Claude Code) a member let act as them through
-MCP, after approving it on the consent page `/hubungkan`, either to read only (Hanya baca) or to read and change
-things (Baca dan ubah). Profil lists them at `/profil/aplikasi` with which of the two each may do, and each can be
+MCP, after approving it on the consent page `/hubungkan`, either to read only (Read) or to read and change
+things (Write). Profil lists them at `/profil/aplikasi` with which of the two each may do, and each can be
 revoked. Code: `oauth_clients`, `oauth_tokens`, `/api/oauth/apps`.
 
 **Kelola** — The area for pengurus, shown only to roles that may do something in it (Live Counting, adding events,
