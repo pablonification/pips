@@ -89,12 +89,17 @@ The web image's server (`apps/web/Caddyfile`) gives the app's own paths `index.h
 compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY` and a
 `Content-Security-Policy-Report-Only` built from the arguments above.
 
-Search engines may list only production's sign-in page (`/login`, and `/`, which sends there): every other page, and
+Search engines may list only production's sign-in page `/login` and `/`, which sends there. Every other page, and
 every page on any other address, answers `X-Robots-Tag: noindex, nofollow`. The server decides by the request's
-host, so the proxy in front must pass it on, as Traefik (Dokploy) does. Production's address is `app.hmif.dev`;
-if it ever moves, set the runtime setting `SITE_HOST` on the Frontend and change the address in `index.html`,
-`public/robots.txt` and `public/sitemap.xml` (`tests/seo.test.mjs` keeps them in step). The link-preview picture is
-`public/og-image.png`, a capture of the sign-in page: `node scripts/og/build-og-image.mjs` in `apps/web` makes it again.
+host, so the proxy in front must pass it on, as Traefik (Dokploy) does. Production's address is `app.hmif.dev`.
+If it ever moves, set the runtime setting `SITE_HOST` on the Frontend and change the address in `index.html`,
+`public/preview-square.html`, `public/robots.txt` and `public/sitemap.xml` (`tests/seo.test.mjs` keeps them in step).
+
+A link's preview picture is `public/og-image.png`, a capture of the sign-in page that
+`node scripts/og/build-og-image.mjs` in `apps/web` makes again. LINE crops a preview to a small square, so its
+crawler (`line-poker` in its user agent) gets `public/preview-square.html` instead, the same head with the HMIF logo
+on ink (`og-image-square.png`, from `apps/web/scripts/icons/build-icons.py`). LINE keeps a preview for a while, so a link
+shared before a change may show the old one.
 
 ## The switch
 

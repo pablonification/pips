@@ -12,8 +12,8 @@
 	# Google sign-in, an upload, a post with a picture and an open Curhat room on staging leave no report in the
 	# browser's console.
 	import /etc/caddy/csp.caddy
-	# Search engines list only production's sign-in page (and / which sends there): every other page is a member's, and
-	# staging, a preview or the image on another address never. SITE_HOST is production's address.
+	# Search engines list only production's sign-in page and /, which sends there. Every other page is a member's, and
+	# staging, a preview or the image on another address is never listed. SITE_HOST is production's address.
 	@noindex {
 		not path /assets/*
 		not path_regexp \.[^/]*$
@@ -23,7 +23,17 @@
 		}
 	}
 	header @noindex X-Robots-Tag "noindex, nofollow"
+	# LINE shows a link's picture as a small square, which would crop the wide one, so its crawler (line-poker in its
+	# user agent) gets the same head with the HMIF logo as the picture. Only its crawler, never LINE's in-app browser.
+	@linePreview {
+		header_regexp User-Agent (?i)line-poker
+		not path /assets/*
+		not path_regexp \.[^/]*$
+	}
+	rewrite @linePreview /preview-square.html
+	header /preview-square.html X-Robots-Tag "noindex, nofollow"
 	@app {
+		not header_regexp User-Agent (?i)line-poker
 		not path /assets/*
 		not path_regexp \.[^/]*$
 		not file

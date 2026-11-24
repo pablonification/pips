@@ -27,6 +27,9 @@ function build(changes = {}) {
     'index.html':
       '<!doctype html><meta property="og:image" content="https://app.hmif.dev/og-image.png" /><div id="root"></div>',
     'og-image.png': 'png',
+    'preview-square.html':
+      '<!doctype html><meta property="og:image" content="https://app.hmif.dev/og-image-square.png" />',
+    'og-image-square.png': 'png',
     'robots.txt': 'User-agent: *',
     'sitemap.xml': '<urlset/>',
     'assets/index-a.js': 'console.info("app")',
@@ -218,7 +221,7 @@ test("the web app's own package.json lists no build tool as a runtime dependency
   assert.deepEqual(buildToolsInDependencies(pkg), []);
 });
 
-test('search and link previews: robots.txt, sitemap.xml and the og:image index.html names must be in the build', () => {
+test('robots.txt, sitemap.xml, the square preview and the og:image each head names must be in the build', () => {
   assert.match(
     verify(build({ 'robots.txt': null })).join(),
     /robots\.txt: missing/,
@@ -229,12 +232,34 @@ test('search and link previews: robots.txt, sitemap.xml and the og:image index.h
   );
   assert.match(
     verify(build({ 'og-image.png': null })).join(),
-    /og-image\.png: og:image is not in the build/,
+    /og-image\.png: the og:image of index\.html is not in the build/,
   );
   assert.match(
     verify(
       build({ 'index.html': '<!doctype html><div id="root"></div>' }),
     ).join(),
     /index\.html: no og:image/,
+  );
+});
+
+test("LINE's square preview must be in the build with its picture, and never in the precache", () => {
+  assert.match(
+    verify(build({ 'preview-square.html': null })).join(),
+    /preview-square\.html: missing/,
+  );
+  assert.match(
+    verify(build({ 'og-image-square.png': null })).join(),
+    /og-image-square\.png: the og:image of preview-square\.html is not in the build/,
+  );
+  assert.match(
+    verify(
+      build({
+        'sw.js': CLEAN_SW.replace(
+          '{"revision":"1","url":"index.html"}',
+          '{"revision":"1","url":"index.html"},{"revision":"9","url":"preview-square.html"}',
+        ),
+      }),
+    ).join(),
+    /precache: preview-square\.html \(only for LINE's crawler\)/,
   );
 });
