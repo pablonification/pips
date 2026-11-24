@@ -33,14 +33,16 @@ import {
   repeatedOptions,
   rowCaption,
   sharedAs,
-  slugProblem,
   splitForms,
-  tidySlug,
   toItems,
   toSections,
   withKind,
   type QuestionItem,
 } from '../src/features/kelola-form/rules';
+import {
+  nameProblem as slugProblem,
+  tidyName as tidySlug,
+} from '../src/lib/short-name';
 
 const NOW = Date.parse('2026-10-08T13:35:00+07:00');
 const ANGKATAN = [

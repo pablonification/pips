@@ -30,7 +30,8 @@ type ServiceIconKey =
   | 'surat'
   | 'grafik'
   | 'kelola'
-  | 'kalender';
+  | 'kalender'
+  | 'pendek';
 
 /** A path in the app's route tree, checked by TypeScript. */
 type AppPath = FileRouteTypes['to'];
@@ -182,6 +183,18 @@ export const SERVICES = [
     synonyms: ['surat', 'proposal', 'administrasi', 'peminjaman'],
     icon: 'surat',
   },
+  {
+    // Members know it by its address, so that is its line.
+    id: 'tautan',
+    label: 'Tautan pendek',
+    description: 's.hmif.dev',
+    group: 'Administrasi',
+    kind: 'internal',
+    destination: '/layanan/tautan',
+    owner: 'pips',
+    synonyms: ['tautan', 'link', 'shortener', 's.hmif.dev', 'singkat', 'url'],
+    icon: 'pendek',
+  },
   // Kelola: only the user's own tools.
   {
     // Any pengurus builds forms and sees the ones shared with them; admin sees every form.
@@ -220,6 +233,20 @@ export const SERVICES = [
     capability: 'createAkademikEvent',
     synonyms: ['acara', 'kalender', 'tambah'],
     icon: 'kalender',
+  },
+  {
+    // Every s.hmif.dev link with its owner, and the old accounts' links nobody has taken. Its line tells it apart from
+    // the member's own Tautan pendek in global search.
+    id: 'kelola-tautan',
+    label: 'Tautan pendek',
+    description: 'Semua tautan s.hmif.dev',
+    group: 'Kelola',
+    kind: 'internal',
+    destination: '/kelola/tautan',
+    owner: 'pips',
+    capability: 'manageShortLinks',
+    synonyms: ['tautan', 'link', 's.hmif.dev', 'admin', 'klaim'],
+    icon: 'pendek',
   },
   // Welfare's inbox.
   {

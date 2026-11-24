@@ -95,6 +95,8 @@ const SERVER: Record<Capability, () => string[]> = {
     assert.match(api('lib/form-rules.ts'), /asAdmin/);
     return ['admin'];
   },
+  manageShortLinks: () =>
+    routeRoles('GET /api/short-links/all', 'POST /api/short-links/{id}/give'),
   respondCurhat: () => {
     // The role is one constant, used by the Welfare list, pins and the room access rule.
     const role = /CURHAT_ADMIN_ROLE\s*=\s*'([a-z0-9]+)'/.exec(
@@ -157,6 +159,7 @@ test('Raka (akademik, admin) gets exactly the tools his roles allow', () => {
     'editCourseCatalog',
     'liveCounting',
     'manageAllForms',
+    'manageShortLinks',
     'moderateContent',
   ]);
   assert.equal(canCreateEvent(raka), true);

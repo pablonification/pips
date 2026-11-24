@@ -125,18 +125,21 @@ async function readDownload(download: Download) {
 // ---------------------------------------------------------------- The hub
 
 test.describe('Kelola hub', () => {
-  test("Raka's three rows, in order, each reaching its place", async ({
+  test("Raka's four rows, in order, each reaching its place", async ({
     page,
   }, testInfo) => {
     await page.goto('/kelola');
     const links = listLinks(page);
-    await expect(links).toHaveCount(3);
+    await expect(links).toHaveCount(4);
     // Form first: any pengurus builds forms.
     await expect(links.nth(0)).toHaveAccessibleName(/^Form Buat dan bagikan/);
     await expect(links.nth(1)).toHaveAccessibleName(
       /^Live Counting & Rekap Form$/,
     );
     await expect(links.nth(2)).toHaveAccessibleName(/^Tambah acara Akademik$/);
+    await expect(links.nth(3)).toHaveAccessibleName(
+      /^Tautan pendek Semua tautan s\.hmif\.dev$/,
+    );
     await strictGates(page, testInfo, 'kelola', lit(testInfo));
 
     await links.nth(0).click();
@@ -145,6 +148,10 @@ test.describe('Kelola hub', () => {
     await expect(page).toHaveURL(/\/kelola$/);
     await links.nth(1).click();
     await expect(page).toHaveURL(/\/kelola\/live\/pixel$/);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/kelola$/);
+    await links.nth(3).click();
+    await expect(page).toHaveURL(/\/kelola\/tautan$/);
     await page.goBack();
     await expect(page).toHaveURL(/\/kelola$/);
     await main(page)

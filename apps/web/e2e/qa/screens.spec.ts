@@ -31,7 +31,7 @@ import {
 } from './probe';
 
 /** Pages without the shell: sign-in and first run have no navigation and no skip link. */
-const NO_SHELL = new Set(['/login', '/mulai']);
+const NO_SHELL = new Set(['/login', '/mulai', '/tautan-tidak-ditemukan']);
 /** Focused flows: no tab bar or rail on phones and tablets. */
 const FOCUSED = new Set(FOCUSED_ROUTES);
 

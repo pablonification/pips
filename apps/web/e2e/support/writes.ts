@@ -58,6 +58,7 @@ import {
   viewOnly,
 } from './forms';
 import { reply, type Handler } from './mock';
+import { shortLinkHolder } from './short-links';
 
 function setReaction(
   agg: ReactionAggregate,
@@ -392,16 +393,8 @@ export const renameFormSlug: Handler = ({ db, params, body }) => {
   const slug = tidySlug((body as { slug: string }).slug);
   const problem = slugProblem(slug);
   if (problem) return reply.status(400, { error: 'Not a short name', problem });
-  const holder = db.formStore.find(
-    (f) => f.slug.toLowerCase() === slug.toLowerCase() && f !== found.form,
-  );
-  if (holder)
-    return reply.status(409, {
-      error: 'The name is held',
-      problem: 'taken',
-      heldAs: holder.slug,
-      heldBy: 'form',
-    });
+  const held = shortLinkHolder(db, slug, `form-${found.form.id}`);
+  if (held) return reply.status(409, { error: 'The name is held', ...held });
   Object.assign(found.form, { slug, slugCustom: true, updatedAt: NOW });
   return manageView(db, found.form);
 };

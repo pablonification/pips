@@ -19,7 +19,12 @@ test('groups in order; Kelola only with a capability, last', () => {
   assert.equal(groups.at(-1)?.group, 'Kelola');
   assert.deepEqual(
     groups.at(-1)?.services.map((s) => s.label),
-    ['Form', 'Live Counting & Rekap Form', 'Tambah acara Akademik'],
+    [
+      'Form',
+      'Live Counting & Rekap Form',
+      'Tambah acara Akademik',
+      'Tautan pendek',
+    ],
   );
 });
 
@@ -38,6 +43,7 @@ test('rows in their order, with the members’ names', () => {
     'LowonginAja!',
     'Bayar Kas!',
     'Surat & Proposal',
+    'Tautan pendek',
   ]);
 });
 
@@ -46,7 +52,11 @@ test('Kelola per role', () => {
     servicesByGroup({ roles }, now)
       .find((g) => g.group === 'Kelola')
       ?.services.map((s) => s.id) ?? [];
-  assert.deepEqual(kelola(['admin']), ['form-builder', 'live']);
+  assert.deepEqual(kelola(['admin']), [
+    'form-builder',
+    'live',
+    'kelola-tautan',
+  ]);
   assert.deepEqual(kelola(['peoplemanage']), ['form-builder']);
   assert.deepEqual(kelola(['akademik']), ['form-builder', 'acara']);
   // Any role builds forms.

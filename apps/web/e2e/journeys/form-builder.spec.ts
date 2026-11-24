@@ -537,7 +537,7 @@ test('Terbitkan: what stops it, Setelan to fix it, then the link to copy', async
   const done = dialog(page, 'Form diterbitkan');
   await expect(done).toBeVisible();
   await expect(
-    done.getByText('app.hmif.dev/f/daftar-panitia-wisuda-oktober'),
+    done.getByText('s.hmif.dev/daftar-panitia-wisuda-oktober'),
   ).toBeVisible();
   const copy = done.getByRole('button', { name: 'Salin tautan' });
   await expect(copy).toBeFocused();
@@ -547,7 +547,7 @@ test('Terbitkan: what stops it, Setelan to fix it, then the link to copy', async
     done.getByRole('button', { name: 'Tautan disalin' }),
   ).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    'https://app.hmif.dev/f/daftar-panitia-wisuda-oktober',
+    'https://s.hmif.dev/daftar-panitia-wisuda-oktober',
   );
   await done.getByRole('button', { name: 'Selesai' }).click();
   await expect(action(page, 'Terbitkan')).toHaveCount(0);
@@ -569,7 +569,7 @@ test.describe('Bagikan', () => {
     await openBuilder(page, 'makrab');
     await action(page, /^Bagikan( form)?$/).click();
     const d = dialog(page, 'Bagikan “Daftar Makrab HMIF 2026”');
-    await expect(d.getByText('app.hmif.dev/f/makrab-2026')).toBeVisible();
+    await expect(d.getByText('s.hmif.dev/makrab-2026')).toBeVisible();
     await expect(
       d.getByText('Hanya angkatan 2025 · PIXEL yang bisa mengisi.'),
     ).toBeVisible();
@@ -598,7 +598,7 @@ test.describe('Bagikan', () => {
     await expect(d.getByText('Tautan lama tetap bisa dibuka.')).toBeVisible();
     await strictGates(page, testInfo, 'share-link-edit', null);
     await d.getByRole('button', { name: 'Simpan' }).click();
-    await expect(d.getByText('app.hmif.dev/f/makrab-if-2026')).toBeVisible();
+    await expect(d.getByText('s.hmif.dev/makrab-if-2026')).toBeVisible();
     expect(api.calls('PUT /api/form/:formId/slug')[0]?.body).toEqual({
       slug: 'makrab-if-2026',
     });
@@ -822,7 +822,7 @@ test.describe('a pengurus who may only look', () => {
     await action(page, /^Salin tautan( form)?$/).click();
     await expect(toastText(page, 'Tautan disalin.')).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-      'https://app.hmif.dev/f/feedback-welpar-2025',
+      'https://s.hmif.dev/feedback-welpar-2025',
     );
     await tab(page, 'Pertanyaan').check();
     await expect(

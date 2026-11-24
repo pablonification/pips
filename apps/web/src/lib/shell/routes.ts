@@ -28,7 +28,10 @@ export const DESTINATION_PATH = {
 } as const satisfies Record<Destination, ShellPath>;
 
 /** Every page inside the shell. Sign-in and the design-system gallery have no shell. */
-export type ShellPath = Exclude<FileRouteTypes['to'], '/login' | '/dev/garis'>;
+export type ShellPath = Exclude<
+  FileRouteTypes['to'],
+  '/login' | '/dev/garis' | '/tautan-tidak-ditemukan'
+>;
 
 /** The page above a Profil page on phones: the destination you came from (`LAST_ROOT`). */
 export const LAST_ROOT = 'last-root' as const;
@@ -99,6 +102,13 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     parent: '/layanan/form',
     focused: true,
   },
+  // Tautan pendek: a link's title comes from its name (usePageTitle).
+  '/layanan/tautan': { title: svc('tautan'), parent: '/layanan' },
+  '/layanan/tautan/$id': { title: svc('tautan'), parent: '/layanan/tautan' },
+  '/layanan/tautan/ambil': {
+    title: common.shell.ambilTautanLama,
+    parent: '/layanan/tautan',
+  },
   // A form's link: the form itself opens at its own page; this one shows the states a link can land on.
   '/f/$name': { title: svc('form'), parent: '/layanan/form' },
   // Testi Matkul's levels: titles and the list's parent come from the URL (src/features/testi/shell.ts).
@@ -154,6 +164,11 @@ export const ROUTE_META: Record<ShellPath, RouteMeta> = {
     title: common.shell.ruang,
     parent: '/kelola/curhat',
     focused: true,
+  },
+  '/kelola/tautan': { title: svc('kelola-tautan'), parent: '/kelola' },
+  '/kelola/tautan/$id': {
+    title: svc('kelola-tautan'),
+    parent: '/kelola/tautan',
   },
   '/kelola/acara': { title: nav.kelola, parent: '/kelola' },
   '/kelola/lomba': { title: nav.kelola, parent: '/kelola' },

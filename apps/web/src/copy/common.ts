@@ -39,6 +39,7 @@ export const common = {
     notifikasi: 'Notifikasi',
     kredit: 'Kredit',
     aplikasiTerhubung: 'Aplikasi terhubung',
+    ambilTautanLama: 'Ambil tautan lama',
     // An app connecting through MCP asks the member to approve it.
     hubungkanAplikasi: 'Hubungkan aplikasi',
     // An app connected through MCP that gave itself no name.

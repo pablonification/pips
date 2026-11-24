@@ -67,7 +67,9 @@
     "unggah": "<path d=\"M5.5 3.5h9l4 4v13h-13z\"/><path d=\"M12 17.5V11M9.25 13.5 12 10.75l2.75 2.75\"/>",
     "bagian": "<path d=\"M3.5 5h17v5.5h-17zM3.5 13.5h17V19h-17z\"/>",
     "atas": "<path d=\"M5.5 14.5 12 8l6.5 6.5\"/>",
-    "pensil": "<path d=\"M4.5 19.5v-4.25L15.25 4.5l4.25 4.25L8.75 19.5z\"/><path d=\"M12.5 7.25l4.25 4.25\"/>"
+    "pensil": "<path d=\"M4.5 19.5v-4.25L15.25 4.5l4.25 4.25L8.75 19.5z\"/><path d=\"M12.5 7.25l4.25 4.25\"/>",
+    "pendek": "<path d=\"M10 15.5H7a3.5 3.5 0 0 1 0-7h3\"/><path d=\"M7.5 12H20M16 8l4 4-4 4\"/>",
+    "ambil": "<path d=\"M13.5 4.5h6v15h-6\"/><path d=\"m9.5 8 4 4-4 4M3.5 12h10\"/>"
   },
   "IC_FILL": {
     "folder": "<path class=\"gf\" d=\"M3.5 11h17v8h-17z\"/>",
@@ -80,7 +82,8 @@
     "lowongan": "<path class=\"gf\" d=\"M3.5 12.5h17V20h-17z\"/>",
     "surat": "<path class=\"gf\" d=\"M3.5 5.5h17v13h-17z\"/>",
     "form": "<path class=\"gf\" d=\"M9 3h6v3H9z\"/>",
-    "layanan": "<path class=\"gf\" d=\"M4 4h6.5v6.5H4z\"/>"
+    "layanan": "<path class=\"gf\" d=\"M4 4h6.5v6.5H4z\"/>",
+    "pendek": "<path class=\"gf\" d=\"M7 8.5h3v7H7a3.5 3.5 0 0 1 0-7z\"/>"
   },
   "ICON_LABELS": {
     "beranda": "Beranda",
@@ -150,6 +153,8 @@
     "unggah": "Unggah file",
     "bagian": "Bagian",
     "atas": "Ke atas",
-    "pensil": "Edit"
+    "pensil": "Edit",
+    "pendek": "Tautan pendek",
+    "ambil": "Ambil tautan lama"
   }
 }

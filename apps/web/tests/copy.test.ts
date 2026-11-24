@@ -55,9 +55,10 @@ export function glossaryProblems(text: string): string[] {
     if (re.test(plain)) problems.push(`"${banned}": use ${use}`);
   }
 
-  // A branded name (capitals inside, punctuation or several words) must be spelled exactly as the registry has it.
+  // A branded name (capitals inside, or punctuation) must be spelled exactly as the registry has it. A name in sentence
+  // case is ordinary words, written as the sentence needs ("Tautan pendek", "Buat tautan pendek").
   const branded = [...SERVICE_NAMES, 'PIPS!'].filter(
-    (n) => /[A-Z].*[A-Z]|[!&]|\s/.test(n.slice(1)) || n === 'PIPS!',
+    (n) => /\p{Lu}|[!&]/u.test(n.slice(1)) || n === 'PIPS!',
   );
   for (const name of branded) {
     const core = letters(name);

@@ -11,7 +11,7 @@ import { expect, test } from '../support/test';
 import { contrastRatio, over, parseColor, type Rgba } from './lib';
 import { openSettled, QA_LAYOUT, readStop, type Stop } from './probe';
 
-const NO_SHELL = new Set(['/login', '/mulai']);
+const NO_SHELL = new Set(['/login', '/mulai', '/tautan-tidak-ditemukan']);
 const MAX = 40;
 
 /** The colour behind a ring: its layers, see-through ones blended down onto the first opaque one. */
