@@ -182,16 +182,4 @@ export const tautan = {
     ejaan: 'Periksa lagi ejaannya.',
     bukaPips: 'Buka PIPS!',
   },
-
-  /** Global search's two actions. */
-  cariAksi: {
-    buat: {
-      label: 'Buat tautan pendek',
-      kata: 's.hmif.dev link shortener singkat',
-    },
-    ambil: {
-      label: 'Ambil tautan lama s.hmif.dev',
-      kata: 'klaim akun lama shortener',
-    },
-  },
 } as const;

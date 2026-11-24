@@ -25,7 +25,6 @@ import type { ShortLinkList } from '~/api/generated';
 import { INFO_LIST_QUERY_KEY } from '~/api/constants';
 import { openPushPrompt, usePushState } from '~/components/push';
 import { cari } from '~/copy/cari';
-import { tautan } from '~/copy/tautan';
 import { common } from '~/copy/common';
 import {
   asksApi,
@@ -39,7 +38,7 @@ import {
 } from '~/features/cari/rules';
 import { useCourses, useMonthsEvents } from '~/features/kalender/data';
 import { useOpenEvent } from '~/features/kalender/open';
-import { shortLinkKeys } from '~/features/tautan/queries';
+import { shortLinkKeys } from '~/features/tautan/keys';
 import { evLabel } from '~/features/kalender/rules';
 import useSession from '~/hooks/auth/useSession';
 import { rel } from '~/lib/dates';
@@ -134,10 +133,10 @@ function useActionItems(): PaletteItem[] {
     items.push({
       id: 'tindakan:buat-tautan',
       group: common.palette.tindakan,
-      label: tautan.cariAksi.buat.label,
+      label: cari.buatTautan.label,
       icon: 'pendek',
-      hint: tautan.judul,
-      keywords: tautan.cariAksi.buat.kata,
+      hint: cari.buatTautan.hint,
+      keywords: cari.buatTautan.kata,
       run: () =>
         void navigate({ to: '/layanan/tautan', search: { buat: 'tautan' } }),
     });
@@ -145,10 +144,10 @@ function useActionItems(): PaletteItem[] {
       items.push({
         id: 'tindakan:ambil-tautan',
         group: common.palette.tindakan,
-        label: tautan.cariAksi.ambil.label,
+        label: cari.ambilTautan.label,
         icon: 'ambil',
-        hint: tautan.judul,
-        keywords: tautan.cariAksi.ambil.kata,
+        hint: cari.ambilTautan.hint,
+        keywords: cari.ambilTautan.kata,
         run: () => void navigate({ to: '/layanan/tautan/ambil' }),
       });
     items.push({

@@ -19,6 +19,16 @@ export const cari = {
     hint: 'Mata kuliahku',
     kata: 'matkul sks course',
   },
+  buatTautan: {
+    label: 'Buat tautan pendek',
+    hint: 'Tautan pendek',
+    kata: 's.hmif.dev link shortener singkat',
+  },
+  ambilTautan: {
+    label: 'Ambil tautan lama s.hmif.dev',
+    hint: 'Tautan pendek',
+    kata: 'klaim akun lama shortener',
+  },
   nyalakanNotifikasi: {
     label: 'Nyalakan notifikasi',
     hint: 'Profil',

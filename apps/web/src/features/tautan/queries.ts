@@ -33,18 +33,9 @@ export type Link = Omit<ShortLink, 'form' | 'owner'> & {
   owner: ShortLinkPerson | null;
 };
 
-export type Order = 'new' | 'clicks';
-export type AdminView = 'all' | 'unclaimed';
+import { shortLinkKeys, type AdminView, type Order } from './keys';
 
-const ROOT = 'short-links';
-export const shortLinkKeys = {
-  all: [ROOT] as const,
-  mine: (search: string, order: Order) =>
-    [ROOT, 'mine', { search, order }] as const,
-  link: (id: string) => [ROOT, 'link', id] as const,
-  admin: (search: string, view: AdminView) =>
-    [ROOT, 'admin', { search, view }] as const,
-};
+export { shortLinkKeys, type AdminView, type Order };
 
 /** The member's links, 50 at a time; `claim` says whether old accounts can still be claimed, and until when. */
 export const myLinksQuery = (search = '', order: Order = 'new') =>

@@ -84,9 +84,12 @@ function buildMetaOutsideDist(): Plugin {
 /** Never in a search engine: everything but production (the Caddyfile decides there). */
 const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow' };
 
-/** Words and icons only the form's pages use: Kelola › Form (src/features/kelola-form), and the member's form. */
+/**
+ * Words and icons only a few pages use: Kelola › Form (src/features/kelola-form), the member's form, and Tautan pendek
+ * (whose name messages forms' Bagikan shares).
+ */
 const BUILDER_ONLY =
-  /[\\/]src[\\/](copy[\\/]kelola-form\.ts|components[\\/]icons[\\/](pegang|salin|mata|cabang|teks|paragraf|radio|kotak|dropdown|skala|unggah|bagian|atas|pensil)\.tsx)$/;
+  /[\\/]src[\\/](copy[\\/](kelola-form|tautan|nama-pendek)\.ts|components[\\/]icons[\\/](pegang|salin|mata|cabang|teks|paragraf|radio|kotak|dropdown|skala|unggah|bagian|atas|pensil)\.tsx)$/;
 
 // https://vitejs.dev/config/
 
@@ -226,7 +229,9 @@ export default defineConfig(({ mode }) => {
         // The service worker (src/sw.ts) caches only what this precaches plus same-origin images; see its header.
         // Precache: the app shell and every route chunk, never public/prototypes/. Nor the form builder's own code
         // (src/features/kelola-form/Builder.tsx and what only it loads, @dnd-kit with it): only pengurus open it, it
-        // works only online, and every member's device would otherwise download it (the 1.5 MiB budget).
+        // works only online, and every member's device would otherwise download it (the 1.5 MiB budget). Nor Tautan
+        // pendek's (src/features/tautan): making, changing and claiming need the server, and its list isn't kept on
+        // the device, so offline it could show nothing anyway.
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,woff2}', 'logo/hmif.png'],
           // preview-square.html is only for LINE's crawler (the Caddyfile).
@@ -235,6 +240,7 @@ export default defineConfig(({ mode }) => {
             '**/*.map',
             'assets/Builder-*.js',
             'preview-square.html',
+            'assets/TautanPendek-*.js',
           ],
         },
       }),
@@ -319,6 +325,15 @@ export default defineConfig(({ mode }) => {
                   ) && !BUILDER_ONLY.test(id),
                 minShareCount: 2,
                 priority: 3,
+              },
+              // Tautan pendek's code and words in one chunk of their own, which the precache leaves out (above). Its
+              // query keys stay out, for global search.
+              {
+                name: 'TautanPendek',
+                test: /[\\/]src[\\/](features[\\/]tautan[\\/](?!keys\.ts$)|copy[\\/]tautan\.ts$)/,
+                priority: 3,
+                // Only these files: what they import stays in the chunks other pages share.
+                includeDependenciesRecursively: false,
               },
               // Other shared code: one chunk per set of routes that use it, so no route loads code it doesn't use.
               {

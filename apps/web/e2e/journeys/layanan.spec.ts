@@ -27,6 +27,7 @@ const MEMBER_ROWS = [
   'LowonginAja!',
   'Bayar Kas!',
   'Surat & Proposal',
+  'Tautan pendek',
 ];
 
 test.describe('Nadia', () => {
@@ -47,6 +48,7 @@ test.describe('Nadia', () => {
     await expect(row(page, /^Ding Dong/)).toContainText(
       'Materi kuliah semester ini',
     );
+    await expect(row(page, /^Tautan pendek/)).toContainText('s.hmif.dev');
     // Badges: Curhat's unread count by name, Form's open forms as a tag.
     await expect(row(page, /^Curhat Yuk!/)).toHaveAccessibleName(
       /1 pesan baru/,
@@ -72,6 +74,7 @@ test.describe('Nadia', () => {
       ['Curhat Yuk!', '/layanan/curhat'],
       ['Form', '/layanan/form'],
       ['Info Lomba', '/layanan/lomba'],
+      ['Tautan pendek', '/layanan/tautan'],
     ];
     for (const [name, href] of expected)
       await expect(
