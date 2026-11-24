@@ -32,6 +32,17 @@ async function lookUp(page: Page, login: string, password: string) {
   await main(page).getByRole('button', { name: 'Cari tautanku' }).click();
 }
 
+/**
+ * Sends the password again and waits for the answer: a wrong one empties the field, so the next try is typed only
+ * after it (otherwise a slow answer can empty a password typed for the next try).
+ */
+async function tryAgain(page: Page, password: string) {
+  const pass = main(page).getByLabel('Kata sandi s.hmif.dev');
+  await pass.fill(password);
+  await main(page).getByRole('button', { name: 'Cari tautanku' }).click();
+  await expect(pass).toHaveValue('');
+}
+
 test.describe('Ambil tautan lama', () => {
   test('the old username and password, the links that would move, then they are yours', async ({
     page,
@@ -95,22 +106,17 @@ test.describe('Ambil tautan lama', () => {
     );
     await expect(pass).toHaveValue('');
     await expect(pass).toBeFocused();
-    await pass.fill('salah');
-    await main(page).getByRole('button', { name: 'Cari tautanku' }).click();
+    await tryAgain(page, 'salah');
     await expect(alert).toHaveText(
       'Nama pengguna atau kata sandi tidak cocok.',
     );
-    await pass.fill('salah');
-    await main(page).getByRole('button', { name: 'Cari tautanku' }).click();
+    await tryAgain(page, 'salah');
     await expect(alert).toHaveText(
       'Nama pengguna atau kata sandi tidak cocok. Sisa 2 percobaan.',
     );
     await expect(pass).toHaveAttribute('aria-invalid', 'true');
     await strictGates(page, testInfo, 'claim-wrong', 'Layanan');
-    for (let i = 0; i < 2; i++) {
-      await pass.fill('salah');
-      await main(page).getByRole('button', { name: 'Cari tautanku' }).click();
-    }
+    for (let i = 0; i < 2; i++) await tryAgain(page, 'salah');
     await expect(alert).toHaveText(
       'Terlalu banyak percobaan. Coba lagi pukul 13.50.',
     );

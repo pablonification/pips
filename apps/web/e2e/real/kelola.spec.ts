@@ -37,7 +37,7 @@ test.describe('the pengurus', () => {
     problems,
   }) => {
     await page.goto('/kelola');
-    await expect(tools(page)).toHaveCount(3);
+    await expect(tools(page)).toHaveCount(4);
     // Form first: any pengurus builds forms.
     await expect(tools(page).nth(0)).toHaveAccessibleName(/^Form/);
     await expect(tools(page).nth(1)).toHaveAccessibleName(
@@ -46,6 +46,8 @@ test.describe('the pengurus', () => {
     await expect(tools(page).nth(2)).toHaveAccessibleName(
       /^Tambah acara Akademik/,
     );
+    // Tautan pendek: admin's.
+    await expect(tools(page).nth(3)).toHaveAccessibleName(/^Tautan pendek/);
     // No Curhat inbox: that is Welfare's.
     await expect(
       main(page).getByRole('link', { name: /^Curhat Yuk!/ }),
