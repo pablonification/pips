@@ -356,19 +356,22 @@ export const lookUpShortLinkClaim: Handler = signedIn(({ db, body }) => {
   const b = body as { login: string; password: string };
   const key = accountOf(db, b.login);
   const acct = key ? db.oldAccounts[key] : null;
+  const locked = () =>
+    reply.status(429, {
+      error: 'Too many tries',
+      until: new Date(Date.parse(NOW) + 15 * 60_000).toISOString(),
+    });
+  // Locked, even the right password waits.
+  if (db.claimTries >= 5) return locked();
   if (!acct || acct.password !== b.password) {
     db.claimTries += 1;
-    if (db.claimTries >= 5)
-      return reply.status(429, {
-        error: 'Too many tries',
-        until: new Date(Date.parse(NOW) + 15 * 60_000).toISOString(),
-      });
+    if (db.claimTries >= 5) return locked();
     return reply.status(401, {
       error: 'Wrong',
       triesLeft: 5 - db.claimTries,
     });
   }
-  db.claimTries = 0;
+  // A right password doesn't wipe the wrong ones before it; the lock clears them after 15 minutes.
   const me = db.me!.nim;
   const links = db.shortLinks.filter((l) => l.oldAccount === key && !l.owner);
   const base = { account: key!, links: [], claimedAt: null, token: null };

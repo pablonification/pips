@@ -4,6 +4,7 @@
  * line that says the owner is told). Phone, tablet and desktop, light and dark, with strict gates.
  */
 import type { Page } from '@playwright/test';
+import type { TestInfo } from '@playwright/test';
 import { isPhone } from '../support/app';
 import { reply, type ApiMock } from '../support/mock';
 import { toastText } from '../support/pengumuman';
@@ -12,6 +13,8 @@ import { strictGates } from '../support/strict';
 import { expect, test } from '../support/test';
 
 const main = (page: Page) => page.getByRole('main');
+/** Kelola is a sidebar item on desktop; on phones and tablets its pages light the tab you came from (none here). */
+const kelolaLit = (t: TestInfo) => (isPhone(t) ? null : ('Kelola' as const));
 const rows = (page: Page) =>
   main(page)
     .locator('li.sl-row')
@@ -114,7 +117,7 @@ test.describe('Ambil tautan lama', () => {
     await expect(go).toHaveAttribute('aria-disabled', 'true');
     const sent = api.calls('POST /api/short-links/claim/lookup').length;
     await pass.fill('rahasia');
-    await go.click();
+    await go.click({ force: true });
     expect(api.calls('POST /api/short-links/claim/lookup')).toHaveLength(sent);
     await strictGates(page, testInfo, 'claim-locked', 'Layanan');
   });
@@ -220,17 +223,17 @@ test.describe('Kelola › Tautan pendek', () => {
     await row.click();
     await expect(page).toHaveURL(/\/kelola\/tautan$/);
     await expect(main(page).getByRole('status').first()).toHaveText(
-      '193 tautan',
+      '191 tautan',
     );
     await expect(rows(page)).toHaveCount(50);
     await expect(rows(page).filter({ hasText: 'LowonginAja!' })).toHaveCount(0);
-    await strictGates(page, testInfo, 'admin-all', 'Kelola');
+    await strictGates(page, testInfo, 'admin-all', kelolaLit(testInfo));
     await main(page).getByRole('radio', { name: 'Belum diambil' }).check();
     await expect(main(page).getByRole('status').first()).toHaveText(
       '10 tautan dari 5 akun lama',
     );
     await expect(rows(page).first()).toContainText('Belum diambil');
-    await strictGates(page, testInfo, 'admin-old', 'Kelola');
+    await strictGates(page, testInfo, 'admin-old', kelolaLit(testInfo));
     await main(page).getByRole('radio', { name: 'Semua' }).check();
     await main(page).getByRole('searchbox').fill('aulia');
     await expect(main(page).getByRole('status').first()).toHaveText('3 tautan');
@@ -248,7 +251,7 @@ test.describe('Kelola › Tautan pendek', () => {
     const facts = main(page).locator('.sl-facts');
     await expect(facts).toContainText('Belum diambil');
     await expect(facts).toContainText('Akun lama panitia.semnas');
-    await strictGates(page, testInfo, 'admin-link-old', 'Kelola');
+    await strictGates(page, testInfo, 'admin-link-old', kelolaLit(testInfo));
     await main(page)
       .getByRole('button', { name: 'Berikan ke anggota' })
       .click();
@@ -327,7 +330,7 @@ test.describe('Kelola › Tautan pendek', () => {
     await expect(
       main(page).getByRole('button', { name: 'Ubah nama pendek' }),
     ).toBeVisible();
-    await strictGates(page, testInfo, 'admin-link', 'Kelola');
+    await strictGates(page, testInfo, 'admin-link', kelolaLit(testInfo));
   });
 });
 

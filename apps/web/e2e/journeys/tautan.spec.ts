@@ -344,6 +344,10 @@ test.describe('Tautan pendek', () => {
       sheet(page).getByText('Nama ini sudah pernah dipakai'),
     ).toBeVisible();
   });
+});
+
+test.describe('Tautan pendek, Raka', () => {
+  test.use({ persona: 'pengurus' });
 
   test('a form’s link is in its maker’s list, marked Form, and only opens the form', async ({
     page,

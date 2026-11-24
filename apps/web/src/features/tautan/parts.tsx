@@ -419,11 +419,14 @@ export function NameInput({
         onKeyDown={onKeyDown}
         onChange={(e) => {
           const el = e.target;
-          const pos = el.selectionStart;
           const tidy = tidyName(el.value);
+          // The DOM first, caret and all, so React finds nothing to change and the caret stays where it was typed.
+          if (tidy !== el.value) {
+            const pos = el.selectionStart;
+            el.value = tidy;
+            el.setSelectionRange(pos, pos);
+          }
           onChange(tidy);
-          if (tidy !== el.value)
-            requestAnimationFrame(() => el.setSelectionRange(pos, pos));
         }}
       />
     </label>
