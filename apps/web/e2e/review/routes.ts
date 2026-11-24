@@ -66,6 +66,14 @@ export const ROUTES = {
     url: '/layanan/testi/teknik-informatika/3/course-IF2110',
     as: BOTH,
   },
+  '/layanan/tautan': { url: '/layanan/tautan', as: BOTH },
+  '/layanan/tautan/$id': { url: '/layanan/tautan/l-kalkulus', as: [NADIA] },
+  '/layanan/tautan/ambil': { url: '/layanan/tautan/ambil', as: [NADIA] },
+  // No sign-in: anyone who followed a wrong s.hmif.dev link reads it.
+  '/tautan-tidak-ditemukan': {
+    url: '/tautan-tidak-ditemukan?nama=makrab-2027',
+    as: [{ key: 'signed-out', use: { persona: null, signedIn: false } }],
+  },
   '/kelola': { url: '/kelola', as: [RAKA] },
   '/kelola/form': { url: '/kelola/form', as: [RAKA] },
   '/kelola/form/$formId': { url: '/kelola/form/wisuda', as: [RAKA] },
@@ -77,6 +85,8 @@ export const ROUTES = {
   '/kelola/live/$formId': { url: '/kelola/live/pixel', as: [RAKA] },
   '/kelola/live/$formId/rekap': { url: '/kelola/live/pixel/rekap', as: [RAKA] },
   '/kelola/curhat': { url: '/kelola/curhat', as: [WELFARE] },
+  '/kelola/tautan': { url: '/kelola/tautan', as: [RAKA] },
+  '/kelola/tautan/$id': { url: '/kelola/tautan/l-semnas', as: [RAKA] },
   '/kelola/curhat/$roomId': { url: '/kelola/curhat/r1', as: [WELFARE] },
   '/profil': { url: '/profil', as: BOTH },
   '/profil/matkul': { url: '/profil/matkul', as: [NADIA] },

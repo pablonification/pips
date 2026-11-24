@@ -38,7 +38,11 @@ test('every route inside the app has an entry, and every entry is a route', () =
   const to = /to:\n((?:\s+\| '[^']+'\n)+)/.exec(tree)![1];
   const routes = [...to.matchAll(/'([^']+)'/g)]
     .map((m) => m[1])
-    .filter((p) => p !== '/login' && p !== '/dev/garis');
+    // Outside the shell: sign-in, the gallery, and the page an unknown s.hmif.dev name opens.
+    .filter(
+      (p) =>
+        p !== '/login' && p !== '/dev/garis' && p !== '/tautan-tidak-ditemukan',
+    );
   assert.deepEqual([...routes].sort(), [...PATHS].sort());
 });
 
@@ -227,6 +231,7 @@ test('a router match’s path maps to the table, trailing slash or not', () => {
   assert.equal(shellPath('/pengumuman/$id/'), '/pengumuman/$id');
   assert.equal(shellPath('/login/'), null);
   assert.equal(shellPath('/dev/garis'), null);
+  assert.equal(shellPath('/tautan-tidak-ditemukan'), null);
   assert.deepEqual(Object.values(DESTINATION_PATH), [
     '/',
     '/pengumuman',

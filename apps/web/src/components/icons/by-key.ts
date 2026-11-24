@@ -20,6 +20,8 @@ import { IconLonceng } from './lonceng';
 import { IconTerang } from './terang';
 import { IconGelap } from './gelap';
 import { IconProfil } from './profil';
+import { IconPendek } from './pendek';
+import { IconAmbil } from './ambil';
 
 export const ICONS_BY_KEY = {
   folder: IconFolder,
@@ -41,6 +43,8 @@ export const ICONS_BY_KEY = {
   terang: IconTerang,
   gelap: IconGelap,
   profil: IconProfil,
+  pendek: IconPendek,
+  ambil: IconAmbil,
 };
 
 export type IconByKey = keyof typeof ICONS_BY_KEY;

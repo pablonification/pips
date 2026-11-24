@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as TautanTidakDitemukanRouteImport } from './routes/tautan-tidak-ditemukan'
 import { Route as AppLeftNavbarRouteImport } from './routes/_app/_left-navbar'
 import { Route as AppHubungkanRouteImport } from './routes/_app/hubungkan'
 import { Route as AppKalenderRouteImport } from './routes/_app/kalender'
@@ -37,6 +38,8 @@ import { Route as AppLeftNavbarKelolaCurhatIndexRouteImport } from './routes/_ap
 import { Route as AppLeftNavbarKelolaCurhatRoomIdRouteImport } from './routes/_app/_left-navbar/kelola/curhat/$roomId'
 import { Route as AppLeftNavbarKelolaFormIndexRouteImport } from './routes/_app/_left-navbar/kelola/form/index'
 import { Route as AppLeftNavbarKelolaLiveIndexRouteImport } from './routes/_app/_left-navbar/kelola/live/index'
+import { Route as AppLeftNavbarKelolaTautanIndexRouteImport } from './routes/_app/_left-navbar/kelola/tautan/index'
+import { Route as AppLeftNavbarKelolaTautanIdRouteImport } from './routes/_app/_left-navbar/kelola/tautan/$id'
 import { Route as AppLeftNavbarLayananCurhatIndexRouteImport } from './routes/_app/_left-navbar/layanan/curhat/index'
 import { Route as AppLeftNavbarLayananCurhatRoomIdRouteImport } from './routes/_app/_left-navbar/layanan/curhat/$roomId'
 import { Route as AppLeftNavbarLayananDingdongIndexRouteImport } from './routes/_app/_left-navbar/layanan/dingdong/index'
@@ -44,6 +47,9 @@ import { Route as AppLeftNavbarLayananFormIndexRouteImport } from './routes/_app
 import { Route as AppLeftNavbarLayananFormFormIdRouteImport } from './routes/_app/_left-navbar/layanan/form/$formId'
 import { Route as AppLeftNavbarLayananLombaIndexRouteImport } from './routes/_app/_left-navbar/layanan/lomba/index'
 import { Route as AppLeftNavbarLayananNimIndexRouteImport } from './routes/_app/_left-navbar/layanan/nim/index'
+import { Route as AppLeftNavbarLayananTautanIndexRouteImport } from './routes/_app/_left-navbar/layanan/tautan/index'
+import { Route as AppLeftNavbarLayananTautanIdRouteImport } from './routes/_app/_left-navbar/layanan/tautan/$id'
+import { Route as AppLeftNavbarLayananTautanAmbilRouteImport } from './routes/_app/_left-navbar/layanan/tautan/ambil'
 import { Route as AppLeftNavbarLayananTestiIndexRouteImport } from './routes/_app/_left-navbar/layanan/testi/index'
 import { Route as AppLeftNavbarPengumumanIdIndexRouteImport } from './routes/_app/_left-navbar/pengumuman/$id/index'
 import { Route as AppLeftNavbarPengumumanTulisIndexRouteImport } from './routes/_app/_left-navbar/pengumuman/tulis/index'
@@ -63,6 +69,11 @@ import { Route as AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRouteImport 
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TautanTidakDitemukanRoute = TautanTidakDitemukanRouteImport.update({
+  id: '/tautan-tidak-ditemukan',
+  path: '/tautan-tidak-ditemukan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppLeftNavbarRoute = AppLeftNavbarRouteImport.update({
@@ -214,6 +225,18 @@ const AppLeftNavbarKelolaLiveIndexRoute =
     path: '/kelola/live/',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
+const AppLeftNavbarKelolaTautanIndexRoute =
+  AppLeftNavbarKelolaTautanIndexRouteImport.update({
+    id: '/kelola/tautan/',
+    path: '/kelola/tautan/',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarKelolaTautanIdRoute =
+  AppLeftNavbarKelolaTautanIdRouteImport.update({
+    id: '/kelola/tautan/$id',
+    path: '/kelola/tautan/$id',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
 const AppLeftNavbarLayananCurhatIndexRoute =
   AppLeftNavbarLayananCurhatIndexRouteImport.update({
     id: '/',
@@ -254,6 +277,24 @@ const AppLeftNavbarLayananNimIndexRoute =
   AppLeftNavbarLayananNimIndexRouteImport.update({
     id: '/layanan/nim/',
     path: '/layanan/nim/',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarLayananTautanIndexRoute =
+  AppLeftNavbarLayananTautanIndexRouteImport.update({
+    id: '/layanan/tautan/',
+    path: '/layanan/tautan/',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarLayananTautanIdRoute =
+  AppLeftNavbarLayananTautanIdRouteImport.update({
+    id: '/layanan/tautan/$id',
+    path: '/layanan/tautan/$id',
+    getParentRoute: () => AppLeftNavbarRoute,
+  } as any)
+const AppLeftNavbarLayananTautanAmbilRoute =
+  AppLeftNavbarLayananTautanAmbilRouteImport.update({
+    id: '/layanan/tautan/ambil',
+    path: '/layanan/tautan/ambil',
     getParentRoute: () => AppLeftNavbarRoute,
   } as any)
 const AppLeftNavbarLayananTestiIndexRoute =
@@ -355,6 +396,7 @@ const AppLeftNavbarLayananTestiTypeSemesterCourseIdIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppLeftNavbarIndexRoute
+  '/tautan-tidak-ditemukan': typeof TautanTidakDitemukanRoute
   '/hubungkan': typeof AppHubungkanRoute
   '/kalender': typeof AppKalenderRouteWithChildren
   '/mulai': typeof AppMulaiRoute
@@ -376,16 +418,21 @@ export interface FileRoutesByFullPath {
   '/pengumuman/': typeof AppLeftNavbarPengumumanIndexRoute
   '/profil/': typeof AppLeftNavbarProfilIndexRoute
   '/kelola/curhat/$roomId': typeof AppLeftNavbarKelolaCurhatRoomIdRoute
+  '/kelola/tautan/$id': typeof AppLeftNavbarKelolaTautanIdRoute
   '/layanan/curhat/$roomId': typeof AppLeftNavbarLayananCurhatRoomIdRoute
   '/layanan/form/$formId': typeof AppLeftNavbarLayananFormFormIdRoute
+  '/layanan/tautan/$id': typeof AppLeftNavbarLayananTautanIdRoute
+  '/layanan/tautan/ambil': typeof AppLeftNavbarLayananTautanAmbilRoute
   '/kelola/curhat/': typeof AppLeftNavbarKelolaCurhatIndexRoute
   '/kelola/form/': typeof AppLeftNavbarKelolaFormIndexRoute
   '/kelola/live/': typeof AppLeftNavbarKelolaLiveIndexRoute
+  '/kelola/tautan/': typeof AppLeftNavbarKelolaTautanIndexRoute
   '/layanan/curhat/': typeof AppLeftNavbarLayananCurhatIndexRoute
   '/layanan/dingdong/': typeof AppLeftNavbarLayananDingdongIndexRoute
   '/layanan/form/': typeof AppLeftNavbarLayananFormIndexRoute
   '/layanan/lomba/': typeof AppLeftNavbarLayananLombaIndexRoute
   '/layanan/nim/': typeof AppLeftNavbarLayananNimIndexRoute
+  '/layanan/tautan/': typeof AppLeftNavbarLayananTautanIndexRoute
   '/layanan/testi/': typeof AppLeftNavbarLayananTestiIndexRoute
   '/pengumuman/$id/': typeof AppLeftNavbarPengumumanIdIndexRoute
   '/pengumuman/tulis/': typeof AppLeftNavbarPengumumanTulisIndexRoute
@@ -405,6 +452,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppLeftNavbarIndexRoute
+  '/tautan-tidak-ditemukan': typeof TautanTidakDitemukanRoute
   '/hubungkan': typeof AppHubungkanRoute
   '/mulai': typeof AppMulaiRoute
   '/dev/garis': typeof DevGarisRoute
@@ -420,16 +468,21 @@ export interface FileRoutesByTo {
   '/layanan': typeof AppLeftNavbarLayananIndexRoute
   '/pengumuman': typeof AppLeftNavbarPengumumanIndexRoute
   '/kelola/curhat/$roomId': typeof AppLeftNavbarKelolaCurhatRoomIdRoute
+  '/kelola/tautan/$id': typeof AppLeftNavbarKelolaTautanIdRoute
   '/layanan/curhat/$roomId': typeof AppLeftNavbarLayananCurhatRoomIdRoute
   '/layanan/form/$formId': typeof AppLeftNavbarLayananFormFormIdRoute
+  '/layanan/tautan/$id': typeof AppLeftNavbarLayananTautanIdRoute
+  '/layanan/tautan/ambil': typeof AppLeftNavbarLayananTautanAmbilRoute
   '/kelola/curhat': typeof AppLeftNavbarKelolaCurhatIndexRoute
   '/kelola/form': typeof AppLeftNavbarKelolaFormIndexRoute
   '/kelola/live': typeof AppLeftNavbarKelolaLiveIndexRoute
+  '/kelola/tautan': typeof AppLeftNavbarKelolaTautanIndexRoute
   '/layanan/curhat': typeof AppLeftNavbarLayananCurhatIndexRoute
   '/layanan/dingdong': typeof AppLeftNavbarLayananDingdongIndexRoute
   '/layanan/form': typeof AppLeftNavbarLayananFormIndexRoute
   '/layanan/lomba': typeof AppLeftNavbarLayananLombaIndexRoute
   '/layanan/nim': typeof AppLeftNavbarLayananNimIndexRoute
+  '/layanan/tautan': typeof AppLeftNavbarLayananTautanIndexRoute
   '/layanan/testi': typeof AppLeftNavbarLayananTestiIndexRoute
   '/pengumuman/$id': typeof AppLeftNavbarPengumumanIdIndexRoute
   '/pengumuman/tulis': typeof AppLeftNavbarPengumumanTulisIndexRoute
@@ -450,6 +503,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/tautan-tidak-ditemukan': typeof TautanTidakDitemukanRoute
   '/_app/_left-navbar': typeof AppLeftNavbarRouteWithChildren
   '/_app/hubungkan': typeof AppHubungkanRoute
   '/_app/kalender': typeof AppKalenderRouteWithChildren
@@ -474,16 +528,21 @@ export interface FileRoutesById {
   '/_app/_left-navbar/pengumuman/': typeof AppLeftNavbarPengumumanIndexRoute
   '/_app/_left-navbar/profil/': typeof AppLeftNavbarProfilIndexRoute
   '/_app/_left-navbar/kelola/curhat/$roomId': typeof AppLeftNavbarKelolaCurhatRoomIdRoute
+  '/_app/_left-navbar/kelola/tautan/$id': typeof AppLeftNavbarKelolaTautanIdRoute
   '/_app/_left-navbar/layanan/curhat/$roomId': typeof AppLeftNavbarLayananCurhatRoomIdRoute
   '/_app/_left-navbar/layanan/form/$formId': typeof AppLeftNavbarLayananFormFormIdRoute
+  '/_app/_left-navbar/layanan/tautan/$id': typeof AppLeftNavbarLayananTautanIdRoute
+  '/_app/_left-navbar/layanan/tautan/ambil': typeof AppLeftNavbarLayananTautanAmbilRoute
   '/_app/_left-navbar/kelola/curhat/': typeof AppLeftNavbarKelolaCurhatIndexRoute
   '/_app/_left-navbar/kelola/form/': typeof AppLeftNavbarKelolaFormIndexRoute
   '/_app/_left-navbar/kelola/live/': typeof AppLeftNavbarKelolaLiveIndexRoute
+  '/_app/_left-navbar/kelola/tautan/': typeof AppLeftNavbarKelolaTautanIndexRoute
   '/_app/_left-navbar/layanan/curhat/': typeof AppLeftNavbarLayananCurhatIndexRoute
   '/_app/_left-navbar/layanan/dingdong/': typeof AppLeftNavbarLayananDingdongIndexRoute
   '/_app/_left-navbar/layanan/form/': typeof AppLeftNavbarLayananFormIndexRoute
   '/_app/_left-navbar/layanan/lomba/': typeof AppLeftNavbarLayananLombaIndexRoute
   '/_app/_left-navbar/layanan/nim/': typeof AppLeftNavbarLayananNimIndexRoute
+  '/_app/_left-navbar/layanan/tautan/': typeof AppLeftNavbarLayananTautanIndexRoute
   '/_app/_left-navbar/layanan/testi/': typeof AppLeftNavbarLayananTestiIndexRoute
   '/_app/_left-navbar/pengumuman/$id/': typeof AppLeftNavbarPengumumanIdIndexRoute
   '/_app/_left-navbar/pengumuman/tulis/': typeof AppLeftNavbarPengumumanTulisIndexRoute
@@ -505,6 +564,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/tautan-tidak-ditemukan'
     | '/hubungkan'
     | '/kalender'
     | '/mulai'
@@ -526,16 +586,21 @@ export interface FileRouteTypes {
     | '/pengumuman/'
     | '/profil/'
     | '/kelola/curhat/$roomId'
+    | '/kelola/tautan/$id'
     | '/layanan/curhat/$roomId'
     | '/layanan/form/$formId'
+    | '/layanan/tautan/$id'
+    | '/layanan/tautan/ambil'
     | '/kelola/curhat/'
     | '/kelola/form/'
     | '/kelola/live/'
+    | '/kelola/tautan/'
     | '/layanan/curhat/'
     | '/layanan/dingdong/'
     | '/layanan/form/'
     | '/layanan/lomba/'
     | '/layanan/nim/'
+    | '/layanan/tautan/'
     | '/layanan/testi/'
     | '/pengumuman/$id/'
     | '/pengumuman/tulis/'
@@ -555,6 +620,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/tautan-tidak-ditemukan'
     | '/hubungkan'
     | '/mulai'
     | '/dev/garis'
@@ -570,16 +636,21 @@ export interface FileRouteTypes {
     | '/layanan'
     | '/pengumuman'
     | '/kelola/curhat/$roomId'
+    | '/kelola/tautan/$id'
     | '/layanan/curhat/$roomId'
     | '/layanan/form/$formId'
+    | '/layanan/tautan/$id'
+    | '/layanan/tautan/ambil'
     | '/kelola/curhat'
     | '/kelola/form'
     | '/kelola/live'
+    | '/kelola/tautan'
     | '/layanan/curhat'
     | '/layanan/dingdong'
     | '/layanan/form'
     | '/layanan/lomba'
     | '/layanan/nim'
+    | '/layanan/tautan'
     | '/layanan/testi'
     | '/pengumuman/$id'
     | '/pengumuman/tulis'
@@ -599,6 +670,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/tautan-tidak-ditemukan'
     | '/_app/_left-navbar'
     | '/_app/hubungkan'
     | '/_app/kalender'
@@ -623,16 +695,21 @@ export interface FileRouteTypes {
     | '/_app/_left-navbar/pengumuman/'
     | '/_app/_left-navbar/profil/'
     | '/_app/_left-navbar/kelola/curhat/$roomId'
+    | '/_app/_left-navbar/kelola/tautan/$id'
     | '/_app/_left-navbar/layanan/curhat/$roomId'
     | '/_app/_left-navbar/layanan/form/$formId'
+    | '/_app/_left-navbar/layanan/tautan/$id'
+    | '/_app/_left-navbar/layanan/tautan/ambil'
     | '/_app/_left-navbar/kelola/curhat/'
     | '/_app/_left-navbar/kelola/form/'
     | '/_app/_left-navbar/kelola/live/'
+    | '/_app/_left-navbar/kelola/tautan/'
     | '/_app/_left-navbar/layanan/curhat/'
     | '/_app/_left-navbar/layanan/dingdong/'
     | '/_app/_left-navbar/layanan/form/'
     | '/_app/_left-navbar/layanan/lomba/'
     | '/_app/_left-navbar/layanan/nim/'
+    | '/_app/_left-navbar/layanan/tautan/'
     | '/_app/_left-navbar/layanan/testi/'
     | '/_app/_left-navbar/pengumuman/$id/'
     | '/_app/_left-navbar/pengumuman/tulis/'
@@ -653,6 +730,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  TautanTidakDitemukanRoute: typeof TautanTidakDitemukanRoute
   DevGarisRoute: typeof DevGarisRoute
   LoginIndexRoute: typeof LoginIndexRoute
 }
@@ -664,6 +742,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tautan-tidak-ditemukan': {
+      id: '/tautan-tidak-ditemukan'
+      path: '/tautan-tidak-ditemukan'
+      fullPath: '/tautan-tidak-ditemukan'
+      preLoaderRoute: typeof TautanTidakDitemukanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/_left-navbar': {
@@ -855,6 +940,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeftNavbarKelolaLiveIndexRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
+    '/_app/_left-navbar/kelola/tautan/': {
+      id: '/_app/_left-navbar/kelola/tautan/'
+      path: '/kelola/tautan'
+      fullPath: '/kelola/tautan/'
+      preLoaderRoute: typeof AppLeftNavbarKelolaTautanIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/kelola/tautan/$id': {
+      id: '/_app/_left-navbar/kelola/tautan/$id'
+      path: '/kelola/tautan/$id'
+      fullPath: '/kelola/tautan/$id'
+      preLoaderRoute: typeof AppLeftNavbarKelolaTautanIdRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
     '/_app/_left-navbar/layanan/curhat/': {
       id: '/_app/_left-navbar/layanan/curhat/'
       path: '/'
@@ -902,6 +1001,27 @@ declare module '@tanstack/react-router' {
       path: '/layanan/nim'
       fullPath: '/layanan/nim/'
       preLoaderRoute: typeof AppLeftNavbarLayananNimIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/layanan/tautan/': {
+      id: '/_app/_left-navbar/layanan/tautan/'
+      path: '/layanan/tautan'
+      fullPath: '/layanan/tautan/'
+      preLoaderRoute: typeof AppLeftNavbarLayananTautanIndexRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/layanan/tautan/$id': {
+      id: '/_app/_left-navbar/layanan/tautan/$id'
+      path: '/layanan/tautan/$id'
+      fullPath: '/layanan/tautan/$id'
+      preLoaderRoute: typeof AppLeftNavbarLayananTautanIdRouteImport
+      parentRoute: typeof AppLeftNavbarRoute
+    }
+    '/_app/_left-navbar/layanan/tautan/ambil': {
+      id: '/_app/_left-navbar/layanan/tautan/ambil'
+      path: '/layanan/tautan/ambil'
+      fullPath: '/layanan/tautan/ambil'
+      preLoaderRoute: typeof AppLeftNavbarLayananTautanAmbilRouteImport
       parentRoute: typeof AppLeftNavbarRoute
     }
     '/_app/_left-navbar/layanan/testi/': {
@@ -1148,13 +1268,18 @@ interface AppLeftNavbarRouteChildren {
   AppLeftNavbarLayananTestiRoute: typeof AppLeftNavbarLayananTestiRouteWithChildren
   AppLeftNavbarKelolaIndexRoute: typeof AppLeftNavbarKelolaIndexRoute
   AppLeftNavbarLayananIndexRoute: typeof AppLeftNavbarLayananIndexRoute
+  AppLeftNavbarKelolaTautanIdRoute: typeof AppLeftNavbarKelolaTautanIdRoute
   AppLeftNavbarLayananFormFormIdRoute: typeof AppLeftNavbarLayananFormFormIdRoute
+  AppLeftNavbarLayananTautanIdRoute: typeof AppLeftNavbarLayananTautanIdRoute
+  AppLeftNavbarLayananTautanAmbilRoute: typeof AppLeftNavbarLayananTautanAmbilRoute
   AppLeftNavbarKelolaFormIndexRoute: typeof AppLeftNavbarKelolaFormIndexRoute
   AppLeftNavbarKelolaLiveIndexRoute: typeof AppLeftNavbarKelolaLiveIndexRoute
+  AppLeftNavbarKelolaTautanIndexRoute: typeof AppLeftNavbarKelolaTautanIndexRoute
   AppLeftNavbarLayananDingdongIndexRoute: typeof AppLeftNavbarLayananDingdongIndexRoute
   AppLeftNavbarLayananFormIndexRoute: typeof AppLeftNavbarLayananFormIndexRoute
   AppLeftNavbarLayananLombaIndexRoute: typeof AppLeftNavbarLayananLombaIndexRoute
   AppLeftNavbarLayananNimIndexRoute: typeof AppLeftNavbarLayananNimIndexRoute
+  AppLeftNavbarLayananTautanIndexRoute: typeof AppLeftNavbarLayananTautanIndexRoute
   AppLeftNavbarKelolaFormFormIdPratinjauRoute: typeof AppLeftNavbarKelolaFormFormIdPratinjauRoute
   AppLeftNavbarKelolaLiveFormIdRekapRoute: typeof AppLeftNavbarKelolaLiveFormIdRekapRoute
   AppLeftNavbarKelolaFormFormIdIndexRoute: typeof AppLeftNavbarKelolaFormFormIdIndexRoute
@@ -1178,14 +1303,19 @@ const AppLeftNavbarRouteChildren: AppLeftNavbarRouteChildren = {
   AppLeftNavbarLayananTestiRoute: AppLeftNavbarLayananTestiRouteWithChildren,
   AppLeftNavbarKelolaIndexRoute: AppLeftNavbarKelolaIndexRoute,
   AppLeftNavbarLayananIndexRoute: AppLeftNavbarLayananIndexRoute,
+  AppLeftNavbarKelolaTautanIdRoute: AppLeftNavbarKelolaTautanIdRoute,
   AppLeftNavbarLayananFormFormIdRoute: AppLeftNavbarLayananFormFormIdRoute,
+  AppLeftNavbarLayananTautanIdRoute: AppLeftNavbarLayananTautanIdRoute,
+  AppLeftNavbarLayananTautanAmbilRoute: AppLeftNavbarLayananTautanAmbilRoute,
   AppLeftNavbarKelolaFormIndexRoute: AppLeftNavbarKelolaFormIndexRoute,
   AppLeftNavbarKelolaLiveIndexRoute: AppLeftNavbarKelolaLiveIndexRoute,
+  AppLeftNavbarKelolaTautanIndexRoute: AppLeftNavbarKelolaTautanIndexRoute,
   AppLeftNavbarLayananDingdongIndexRoute:
     AppLeftNavbarLayananDingdongIndexRoute,
   AppLeftNavbarLayananFormIndexRoute: AppLeftNavbarLayananFormIndexRoute,
   AppLeftNavbarLayananLombaIndexRoute: AppLeftNavbarLayananLombaIndexRoute,
   AppLeftNavbarLayananNimIndexRoute: AppLeftNavbarLayananNimIndexRoute,
+  AppLeftNavbarLayananTautanIndexRoute: AppLeftNavbarLayananTautanIndexRoute,
   AppLeftNavbarKelolaFormFormIdPratinjauRoute:
     AppLeftNavbarKelolaFormFormIdPratinjauRoute,
   AppLeftNavbarKelolaLiveFormIdRekapRoute:
@@ -1234,6 +1364,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  TautanTidakDitemukanRoute: TautanTidakDitemukanRoute,
   DevGarisRoute: DevGarisRoute,
   LoginIndexRoute: LoginIndexRoute,
 }

@@ -38,6 +38,8 @@ export const CAPABILITY_ROLES = {
   buildForms: ANY_ROLE,
   /** "Semua form" in Kelola › Form, and editing any form: `form-manage.controller.ts`, admin. */
   manageAllForms: ['admin'],
+  /** Kelola › Tautan pendek: every link, giving, changing and deleting any of them: `short-link.controller.ts`, admin. */
+  manageShortLinks: ['admin'],
 } as const satisfies Record<string, readonly Role[] | typeof ANY_ROLE>;
 
 export type Capability = keyof typeof CAPABILITY_ROLES;

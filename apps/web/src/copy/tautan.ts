@@ -102,9 +102,8 @@ export const tautan = {
   },
 
   ambil: {
-    judul: 'Ambil tautan lama',
-    untuk:
-      'Untuk akun s.hmif.dev selain email mahasiswa. Bisa sampai {tanggal}.',
+    untuk: 'Untuk akun s.hmif.dev selain email mahasiswa.',
+    bisaSampai: 'Bisa sampai {tanggal}.',
     pengguna: 'Nama pengguna atau email',
     sandi: 'Kata sandi s.hmif.dev',
     isiKeduanya: 'Isi nama pengguna dan kata sandinya',
@@ -124,12 +123,13 @@ export const tautan = {
     selesai: '{jumlah} tautan sekarang milikmu',
     lihatTautanku: 'Lihat tautanku',
     diambil: 'Tautan akun ini sudah diambil',
+    hariIni: 'hari ini',
     diambilIsi:
       'Diambil anggota lain {hari} pukul {waktu}. Kalau bukan kamu, hubungi admin HMIF.',
     kosong: 'Akun ini tidak punya tautan',
     milikmu: 'Tautan akun ini sudah ada di daftarmu',
-    duaLangkah:
-      'Akun ini memakai verifikasi dua langkah. Minta admin HMIF memindahkan tautanmu.',
+    duaLangkah: 'Akun ini memakai verifikasi dua langkah.',
+    duaLangkahIsi: 'Minta admin HMIF memindahkan tautanmu.',
     cobaAkunLain: 'Coba akun lain',
     berakhir: 'Pengambilan tautan lama sudah berakhir.',
     kedaluwarsa: 'Waktunya habis. Cari tautanmu lagi.',
@@ -161,6 +161,11 @@ export const tautan = {
     mencari: 'Mencari…',
     gagalCari: 'Pencarian gagal. Coba lagi.',
     dipilih: 'Dipilih',
+    nimProgram: '{nim} · {program}',
+    program: {
+      IF: 'Teknik Informatika',
+      STI: 'Sistem dan Teknologi Informasi',
+    },
     diberiTahu:
       '{nama}, pemiliknya sekarang, akan diberi tahu lewat notifikasi.',
     jugaLainnya: 'Juga {jumlah} tautan lain dari akun lama {akun}',

@@ -54,7 +54,7 @@ test('Layanan for Nadia, group by group and in order', () => {
       ['Kuliah', ['dingdong', 'testi']],
       ['Teman dan himpunan', ['nim', 'curhat', 'form']],
       ['Kesempatan', ['lomba', 'beasiswa', 'lowongan']],
-      ['Administrasi', ['kas', 'surat']],
+      ['Administrasi', ['kas', 'surat', 'tautan']],
     ],
   );
 });
@@ -63,7 +63,7 @@ test("Raka's Kelola group holds his tools only", () => {
   const kelola = servicesByGroup(raka, NOW).find((g) => g.group === 'Kelola');
   assert.deepEqual(
     kelola?.services.map((s) => s.id),
-    ['form-builder', 'live', 'acara'],
+    ['form-builder', 'live', 'acara', 'kelola-tautan'],
   );
   assert.deepEqual(
     visibleServices({ roles: ['peoplemanage'] }, NOW)

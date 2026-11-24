@@ -32,13 +32,14 @@ test('the timezone of this run is not WIB', () => {
   assert.notEqual(new Date(NOW).getHours(), 13);
 });
 
-test('kelolaServices: Raka gets the three rows in the registry order, Form first', () => {
+test('kelolaServices: Raka gets the four rows in the registry order, Form first', () => {
   assert.deepEqual(
     kelolaServices(raka).map((s) => [s.label, s.icon, s.destination]),
     [
       ['Form', 'form', '/kelola/form'],
       ['Live Counting & Rekap Form', 'grafik', '/kelola/live'],
       ['Tambah acara Akademik', 'kalender', '/kelola/acara'],
+      ['Tautan pendek', 'pendek', '/kelola/tautan'],
     ],
   );
   assert.deepEqual(

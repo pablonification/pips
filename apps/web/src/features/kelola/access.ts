@@ -7,7 +7,7 @@ import { visibleServices, type Service } from '~/lib/services';
 
 type WithRoles = { roles?: readonly string[] | null } | null | undefined;
 
-export type KelolaPage = 'hub' | 'form' | 'live' | 'curhat';
+export type KelolaPage = 'hub' | 'form' | 'live' | 'curhat' | 'tautan';
 
 /** The Kelola rows this member has, in the registry's order (the hub and Layanan's Kelola group). */
 export function kelolaServices(user: WithRoles, now = new Date()): Service[] {
@@ -31,7 +31,9 @@ export function kelolaAccess(
         ? can(user, 'buildForms')
         : page === 'live'
           ? can(user, 'liveCounting')
-          : can(user, 'respondCurhat');
+          : page === 'tautan'
+            ? can(user, 'manageShortLinks')
+            : can(user, 'respondCurhat');
   if (allowed) return { allowed: true };
   return {
     allowed: false,
