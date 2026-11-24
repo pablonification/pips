@@ -17,7 +17,8 @@ even to a page that needs a tenth of it.
   doesn't use.
 - `apps/web/scripts/budgets.mjs` (limits in `apps/web/scripts/lib/budgets.mjs`) measures a production build: the
   JavaScript each route loads before it first renders (the cap is 205 KiB gzipped), the service worker's offline store
-  (1.5 MiB), and the fonts (exactly two files). CI runs it as its own step after the build and fails over the cap. The
+  (1.5 MiB), and the fonts (exactly two files). Two parts that work only online stay out of the offline store, each in
+  a chunk of its own: Kelola › Form's builder and Tautan pendek. CI runs it as its own step after the build and fails over the cap. The
   largest route sits just under it: see today's numbers with `pnpm --filter web budgets` after a build.
 
 ## What else was possible

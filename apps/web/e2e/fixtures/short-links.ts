@@ -399,9 +399,3 @@ export const FORM_CLICKS: Record<string, number> = {
   ta: 98,
   belajar: 0,
 };
-
-export const personOf = (key: PersonKey) => ({
-  id: `user-${PEOPLE[key].nim}`,
-  fullName: PEOPLE[key].name,
-  nim: PEOPLE[key].nim,
-});
