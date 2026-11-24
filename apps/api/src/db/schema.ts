@@ -1430,3 +1430,135 @@ export const oauthTokens = pgTable(
 export type OAuthClient = InferSelectModel<typeof oauthClients>;
 export type OAuthAuthorization = InferSelectModel<typeof oauthAuthorizations>;
 export type OAuthToken = InferSelectModel<typeof oauthTokens>;
+
+// Tautan pendek: the s.hmif.dev short links, moved into PIPS! (docs/adr/0024-*). A link's names, a form's names and
+// the names of deleted links are one set (`short_link_names`): forms.slug is kept in it by triggers (migration
+// 0037), never by hand.
+
+/** An account of the old s.hmif.dev service (Lynx), kept so its links can be matched or claimed. */
+export const shortLinkAccounts = pgTable(
+  'short_link_accounts',
+  {
+    id: text('id').primaryKey().$defaultFn(createId),
+    lynxId: text('lynx_id').notNull().unique(),
+    username: text('username').notNull(),
+    email: text('email'),
+    // A student number found in the old email or username, for matching a member.
+    nim: text('nim'),
+    // bcrypt, from the old service; deleted when the claim window ends.
+    passwordHash: text('password_hash'),
+    twoFactor: boolean('two_factor').notNull().default(false),
+    claimedBy: text('claimed_by').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }),
+    claimedVia: text('claimed_via', {
+      enum: ['email', 'nim', 'password', 'admin'],
+    }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    usernameIdx: index('short_link_accounts_username_idx').on(
+      sql`lower(${t.username})`,
+    ),
+    emailIdx: index('short_link_accounts_email_idx').on(sql`lower(${t.email})`),
+    nimIdx: index().on(t.nim),
+    claimedByIdx: index().on(t.claimedBy),
+  }),
+);
+
+/**
+ * A short link, or a form's link (`formId`, no destination). Deleting only sets `deletedAt`: its names stay, so they
+ * are never given out again.
+ */
+export const shortLinks = pgTable(
+  'short_links',
+  {
+    id: text('id').primaryKey().$defaultFn(createId),
+    // An http(s) address; anything else imported is kept but never redirected to. Null for a form's link.
+    destination: text('destination'),
+    formId: text('form_id')
+      .unique()
+      .references(() => forms.id, { onDelete: 'set null' }),
+    // Null while nobody in PIPS! holds it (an old account's link not yet claimed), and for a form's link, whose
+    // owner is the form's.
+    ownerId: text('owner_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    // Who held it before an admin moved it, so their push can open a page that says so.
+    previousOwnerId: text('previous_owner_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    accountId: text('account_id').references(() => shortLinkAccounts.id, {
+      onDelete: 'set null',
+    }),
+    // The import's key, and what it last read, so running it again adds only what changed on the old service.
+    lynxId: text('lynx_id').unique(),
+    lynxVisits: integer('lynx_visits'),
+    lynxModifiedAt: timestamp('lynx_modified_at', { withTimezone: true }),
+    clicks: integer('clicks').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (t) => ({
+    ownerIdx: index().on(t.ownerId),
+    previousOwnerIdx: index().on(t.previousOwnerId),
+    accountIdx: index().on(t.accountId),
+  }),
+);
+
+/**
+ * Every name s.hmif.dev answers or has answered: each link's current name, its older names (they keep working) and
+ * the names of deleted links (reserved). `name` is exact; `folded` is it without capitals. Exactly one row of each
+ * folded form `holdsFold`, so a new name that differs only in capitals is refused by the index even under a race;
+ * the old service's twins (names that differ only in capitals) keep their extra rows with `holdsFold` false.
+ */
+export const shortLinkNames = pgTable(
+  'short_link_names',
+  {
+    name: text('name').primaryKey(),
+    folded: text('folded')
+      .notNull()
+      .generatedAlwaysAs(sql`lower(name)`),
+    linkId: text('link_id')
+      .notNull()
+      .references(() => shortLinks.id, { onDelete: 'cascade' }),
+    isCurrent: boolean('is_current').notNull().default(true),
+    holdsFold: boolean('holds_fold').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    foldedIdx: index().on(t.folded),
+    foldIdx: uniqueIndex('short_link_names_fold_idx')
+      .on(t.folded)
+      .where(sql`holds_fold`),
+    currentIdx: uniqueIndex('short_link_names_current_idx')
+      .on(t.linkId)
+      .where(sql`is_current`),
+    linkIdx: index().on(t.linkId),
+  }),
+);
+
+/** Wrong claim passwords, per old account (`account:<id>`) and per member (`user:<id>`): five lock it a while. */
+export const shortLinkClaimLocks = pgTable('short_link_claim_locks', {
+  key: text('key').primaryKey(),
+  tries: integer('tries').notNull().default(0),
+  lastTryAt: timestamp('last_try_at', { withTimezone: true }).notNull(),
+  lockedUntil: timestamp('locked_until', { withTimezone: true }),
+});
+
+export type ShortLink = InferSelectModel<typeof shortLinks>;
+export type ShortLinkName = InferSelectModel<typeof shortLinkNames>;
+export type ShortLinkAccount = InferSelectModel<typeof shortLinkAccounts>;
