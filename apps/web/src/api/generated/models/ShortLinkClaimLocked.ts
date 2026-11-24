@@ -4,6 +4,6 @@
 /* eslint-disable */
 export type ShortLinkClaimLocked = {
   error: string;
-  until: string;
+  until?: string;
 };
 

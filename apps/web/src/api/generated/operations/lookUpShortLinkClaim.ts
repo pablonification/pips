@@ -7,7 +7,7 @@ import type { ShortLinkClaimLookup } from '../models/ShortLinkClaimLookup';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { http } from '../../http';
 /**
- * Ambil tautan lama, step 1: the old s.hmif.dev username or email and password. Says which links would move; moves nothing. Five wrong passwords lock 15 minutes, per old account and per member.
+ * Ambil tautan lama, step 1: the old s.hmif.dev username or email and password. Says which links would move; moves nothing. Five wrong passwords lock 15 minutes, per old account and per member; each try counts before its password is compared, and a right one is given back. One lookup per member at a time, and only a few in the whole API: beyond that it answers 429 without `until` at once (busy, try again shortly). `two_factor`: the account had two-step sign-in, so its links are moved by an admin (Akun ini memakai verifikasi dua langkah. Minta admin HMIF memindahkan tautanmu.).
  * @returns ShortLinkClaimLookup What claiming this account would do
  * @throws ApiError
  */
@@ -24,7 +24,7 @@ export function lookUpShortLinkClaim({
     errors: {
       401: `Username or password wrong`,
       410: `Claiming has ended`,
-      429: `Too many wrong passwords`,
+      429: `Too many wrong passwords (with \`until\`), or busy (without it)`,
     },
   });
 }
