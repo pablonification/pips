@@ -171,6 +171,17 @@ jobs:
             test "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:3000$path")" = 404
           done
           test "$(docker exec web find /srv -name '.vite' -o -name '*.map' | wc -l)" = 0
+      - name: The web image lets search engines list production's sign-in page and nothing else
+        run: |
+          for path in /robots.txt /sitemap.xml /og-image.png; do
+            curl -fsS -o /dev/null "http://127.0.0.1:3000$path"
+          done
+          for path in / /login; do
+            test -z "$(curl -fsSI -H 'Host: app.hmif.dev' "http://127.0.0.1:3000$path" | grep -i '^x-robots-tag')"
+          done
+          curl -fsSI -H 'Host: app.hmif.dev' http://127.0.0.1:3000/pengumuman | grep -qi '^x-robots-tag: noindex'
+          # Any other address (staging, a preview, the bare image) is never listed.
+          curl -fsSI http://127.0.0.1:3000/login | grep -qi '^x-robots-tag: noindex'
       - name: The api image starts and serves until it needs its database
         run: |
           # Placeholder settings only: nothing here is a real secret, and the database address leads nowhere.
@@ -187,6 +198,7 @@ jobs:
             pips-api
           for i in $(seq 1 60); do curl -fsS http://127.0.0.1:5000/ -o /dev/null && break; sleep 1; done
           curl -fsS http://127.0.0.1:5000/ | grep -q 'Server runs successfully'
+          curl -fsSI http://127.0.0.1:5000/ | grep -qi '^x-robots-tag: noindex'
           docker logs api 2>&1 | grep -q 'Server is running on port 5000'
           # Routes that need the database answer; /api/me without a session is 401 before any query.
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5000/api/me)" = 401

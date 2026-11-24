@@ -37,10 +37,71 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <!-- Google shows a site's icon only at a multiple of 48 px. -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
     <meta name="msapplication-TileColor" content="#1B1508" />
     <title>PIPS!</title>
+    <!--
+      Search and link previews. Every page of the app serves this same file, so these describe PIPS! itself, never a
+      member's page: a shared link to a post shows PIPS!, not the post (only members may read it). The address is
+      production's; the Caddyfile keeps every page but sign-in out of search, and staging or a preview out entirely.
+      tests/seo.test.mjs keeps the tags, robots.txt, sitemap.xml, the Caddyfile and the picture in step.
+      The picture is the sign-in page itself: scripts/og/build-og-image.mjs.
+    -->
+    <meta
+      name="description"
+      content="Aplikasi resmi HMIF ITB untuk anggotanya: pengumuman, kalender kegiatan dan akademik, Testi Matkul, NIM Finder, Curhat Yuk!, dan layanan lainnya."
+    />
+    <link rel="canonical" href="https://app.hmif.dev/login" />
+    <meta name="application-name" content="PIPS!" />
+    <meta name="apple-mobile-web-app-title" content="PIPS!" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PIPS!" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:url" content="https://app.hmif.dev/" />
+    <meta property="og:title" content="PIPS! · HMIF ITB" />
+    <meta
+      property="og:description"
+      content="Aplikasi resmi HMIF ITB untuk anggotanya: pengumuman, kalender kegiatan dan akademik, Testi Matkul, NIM Finder, Curhat Yuk!, dan layanan lainnya."
+    />
+    <meta property="og:image" content="https://app.hmif.dev/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="PIPS! dari HMIF ITB: papan tombol layanan berwarna emas di samping logo HMIF ITB."
+    />
+    <!-- X reads the title, description and picture from og:. -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:image:alt"
+      content="PIPS! dari HMIF ITB: papan tombol layanan berwarna emas di samping logo HMIF ITB."
+    />
+    <!-- The site's name in Google's results ("PIPS!", not "app.hmif.dev"), and whose it is. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "PIPS!",
+        "alternateName": ["PIPS", "PIPS! HMIF ITB"],
+        "url": "https://app.hmif.dev/",
+        "inLanguage": "id",
+        "publisher": {
+          "@type": "Organization",
+          "name": "Himpunan Mahasiswa Informatika ITB",
+          "alternateName": "HMIF ITB",
+          "logo": "https://app.hmif.dev/logo/hmif.png"
+        }
+      }
+    </script>
   </head>
   <body>
+    <noscript>
+      <p style="padding: 24px; font-family: system-ui, sans-serif">
+        PIPS! butuh JavaScript. Nyalakan JavaScript di browsermu, lalu muat ulang halaman ini.
+      </p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

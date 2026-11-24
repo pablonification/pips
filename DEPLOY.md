@@ -89,6 +89,13 @@ The web image's server (`apps/web/Caddyfile`) gives the app's own paths `index.h
 compresses and revalidates every response, and sends `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY` and a
 `Content-Security-Policy-Report-Only` built from the arguments above.
 
+Search engines may list only production's sign-in page (`/login`, and `/`, which sends there): every other page, and
+every page on any other address, answers `X-Robots-Tag: noindex, nofollow`. The server decides by the request's
+host, so the proxy in front must pass it on, as Traefik (Dokploy) does. Production's address is `app.hmif.dev`;
+if it ever moves, set the runtime setting `SITE_HOST` on the Frontend and change the address in `index.html`,
+`public/robots.txt` and `public/sitemap.xml` (`tests/seo.test.mjs` keeps them in step). The link-preview picture is
+`public/og-image.png`, a capture of the sign-in page: `node scripts/og/build-og-image.mjs` in `apps/web` makes it again.
+
 ## The switch
 
 1. **Back up.**

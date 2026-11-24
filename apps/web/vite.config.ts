@@ -81,6 +81,9 @@ function buildMetaOutsideDist(): Plugin {
   };
 }
 
+/** Never in a search engine: everything but production (the Caddyfile decides there). */
+const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow' };
+
 /** Words and icons only the form's pages use: Kelola › Form (src/features/kelola-form), and the member's form. */
 const BUILDER_ONLY =
   /[\\/]src[\\/](copy[\\/]kelola-form\.ts|components[\\/]icons[\\/](pegang|salin|mata|cabang|teks|paragraf|radio|kotak|dropdown|skala|unggah|bagian|atas|pensil)\.tsx)$/;
@@ -110,6 +113,8 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       strictPort: true,
       allowedHosts: ['staging.hmif.dev'],
+      // Staging runs on this server: search engines list none of it (production's are in the Caddyfile).
+      headers: NOINDEX,
       // `xfwd` tells the API the address the browser used (X-Forwarded-Host), so it knows the app's requests as its
       // own origin (apps/api/src/lib/origin.ts) whatever ALLOWED_ORIGINS says.
       proxy: {
@@ -119,6 +124,7 @@ export default defineConfig(({ mode }) => {
         '/doc': apiOrigin,
       },
     },
+    preview: { headers: NOINDEX },
     resolve: {
       alias: {
         '~': path.resolve(import.meta.dirname, './src'),
@@ -185,6 +191,8 @@ export default defineConfig(({ mode }) => {
               label: 'Halaman masuk PIPS!',
             },
           ],
+          // The installed app's identity: fixed, so a later change to start_url never makes it a second app.
+          id: '/',
           start_url: '/',
           scope: '/',
           // Long-press shortcuts on the installed app's icon: the primary destinations' URLs.

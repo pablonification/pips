@@ -1,0 +1,6 @@
+# PIPS! is for HMIF ITB members: the only public page is sign-in (sitemap.xml). Crawlers may fetch every page, so
+# they see each one's X-Robots-Tag: noindex (the Caddyfile); a page they can't fetch could still be listed by its link.
+User-agent: *
+Allow: /
+
+Sitemap: https://app.hmif.dev/sitemap.xml

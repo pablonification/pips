@@ -173,6 +173,8 @@ test('every dependency is imported, or used by a config or script for a reason l
  */
 const PUBLIC_ALLOWED = {
   'public/favicon.ico': 'browsers request it by convention',
+  'public/robots.txt':
+    'crawlers request it by convention (it names sitemap.xml)',
   'public/browserconfig.xml':
     'Windows asks for it by convention (it names mstile-150x150.png)',
   'public/android-chrome-384x384.png':
@@ -190,12 +192,13 @@ const PUBLIC_ALLOWED = {
   'public/splash.png': 'old splash, kept until HMIF signs off the new one',
 };
 
-test('every public file is referenced by the app, the manifest, the service worker or browserconfig.xml', () => {
+test('every public file is referenced by the app, the manifest, the service worker, browserconfig.xml or robots.txt', () => {
   const referrers = [
     ...files('src').filter((f) => CODE.test(f) || f.endsWith('.css')),
     'index.html',
     'vite.config.ts',
     'public/browserconfig.xml',
+    'public/robots.txt',
   ]
     .map(read)
     .join('\n');

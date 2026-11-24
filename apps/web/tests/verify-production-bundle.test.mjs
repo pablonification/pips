@@ -24,7 +24,11 @@ const CLEAN_SW = [
 function build(changes = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pips-bundle-'));
   const files = {
-    'index.html': '<!doctype html><div id="root"></div>',
+    'index.html':
+      '<!doctype html><meta property="og:image" content="https://app.hmif.dev/og-image.png" /><div id="root"></div>',
+    'og-image.png': 'png',
+    'robots.txt': 'User-agent: *',
+    'sitemap.xml': '<urlset/>',
     'assets/index-a.js': 'console.info("app")',
     'logo/hmif.png': 'png',
     'android-chrome-192x192.png': 'png',
@@ -177,7 +181,7 @@ test('index.html with a comment naming a work item fails', () => {
     verify(
       build({
         'index.html':
-          '<!doctype html><!-- Theme before first paint --><div id="root"></div>',
+          '<!doctype html><!-- Theme before first paint --><meta property="og:image" content="https://app.hmif.dev/og-image.png" /><div id="root"></div>',
       }),
     ),
     [],
@@ -212,4 +216,25 @@ test("the web app's own package.json lists no build tool as a runtime dependency
     fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
   );
   assert.deepEqual(buildToolsInDependencies(pkg), []);
+});
+
+test('search and link previews: robots.txt, sitemap.xml and the og:image index.html names must be in the build', () => {
+  assert.match(
+    verify(build({ 'robots.txt': null })).join(),
+    /robots\.txt: missing/,
+  );
+  assert.match(
+    verify(build({ 'sitemap.xml': null })).join(),
+    /sitemap\.xml: missing/,
+  );
+  assert.match(
+    verify(build({ 'og-image.png': null })).join(),
+    /og-image\.png: og:image is not in the build/,
+  );
+  assert.match(
+    verify(
+      build({ 'index.html': '<!doctype html><div id="root"></div>' }),
+    ).join(),
+    /index\.html: no og:image/,
+  );
 });

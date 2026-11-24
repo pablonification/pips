@@ -14,10 +14,14 @@ const origin = (url) => {
   }
 };
 
-/** The hashes of the inline scripts in `html` (scripts without `src`). */
+/**
+ * The hashes of the inline scripts in `html` (scripts without `src`). A data block such as the structured data
+ * (`type="application/ld+json"`) never runs, so the policy doesn't name it.
+ */
 function inlineScriptHashes(html) {
   return [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
     .filter(([, attrs]) => !/\bsrc=/.test(attrs))
+    .filter(([, attrs]) => !/\btype="application\/ld\+json"/.test(attrs))
     .map(
       ([, , body]) =>
         `'sha256-${createHash('sha256').update(body).digest('base64')}'`,
