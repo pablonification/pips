@@ -192,13 +192,15 @@ const PUBLIC_ALLOWED = {
   'public/splash.png': 'old splash, kept until HMIF signs off the new one',
 };
 
-test('every public file is referenced by the app, the manifest, the service worker, browserconfig.xml or robots.txt', () => {
+test('every public file is referenced by the app, the manifest, the service worker, browserconfig.xml, robots.txt, the Caddyfile or the square preview', () => {
   const referrers = [
     ...files('src').filter((f) => CODE.test(f) || f.endsWith('.css')),
     'index.html',
     'vite.config.ts',
     'public/browserconfig.xml',
     'public/robots.txt',
+    'public/preview-square.html',
+    'Caddyfile',
   ]
     .map(read)
     .join('\n');

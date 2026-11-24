@@ -182,6 +182,18 @@ jobs:
           curl -fsSI -H 'Host: app.hmif.dev' http://127.0.0.1:3000/pengumuman | grep -qi '^x-robots-tag: noindex'
           # Any other address (staging, a preview, the bare image) is never listed.
           curl -fsSI http://127.0.0.1:3000/login | grep -qi '^x-robots-tag: noindex'
+      - name: The web image gives LINE's crawler the square preview, and every other client the app
+        run: |
+          line='facebookexternalhit/1.1;line-poker/1.0'
+          for path in / /login /pengumuman; do
+            curl -fsS -A "$line" "http://127.0.0.1:3000$path" | grep -q 'property="og:image" content="https://app.hmif.dev/og-image-square.png"'
+          done
+          curl -fsS -o /dev/null http://127.0.0.1:3000/og-image-square.png
+          for agent in 'facebookexternalhit/1.1' 'WhatsApp/2.23' 'Mozilla/5.0 (iPhone) Mobile Line/14.18.0'; do
+            html="$(curl -fsS -A "$agent" http://127.0.0.1:3000/login)"
+            grep -q '<div id="root">' <<<"$html"
+            grep -q 'property="og:image" content="https://app.hmif.dev/og-image.png"' <<<"$html"
+          done
       - name: The api image starts and serves until it needs its database
         run: |
           # Placeholder settings only: nothing here is a real secret, and the database address leads nowhere.

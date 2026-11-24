@@ -229,7 +229,13 @@ export default defineConfig(({ mode }) => {
         // works only online, and every member's device would otherwise download it (the 1.5 MiB budget).
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,woff2}', 'logo/hmif.png'],
-          globIgnores: ['prototypes/**', '**/*.map', 'assets/Builder-*.js'],
+          // preview-square.html is only for LINE's crawler (the Caddyfile).
+          globIgnores: [
+            'prototypes/**',
+            '**/*.map',
+            'assets/Builder-*.js',
+            'preview-square.html',
+          ],
         },
       }),
       // The router plugin must come before the React plugin. Every page's component loads on demand; the two layouts

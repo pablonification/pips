@@ -5,7 +5,8 @@
 // - build metadata the server would hand out: a dot folder (`.vite/`) or `chunk-modules.json` (the budget check
 //   reads them from dist-meta/, beside the build);
 // - a comment in index.html naming a work item;
-// - no robots.txt or sitemap.xml, or an og:image that isn't in the build (search and link previews);
+// - no robots.txt, sitemap.xml or preview-square.html (LINE's head), an og:image that isn't in the build, or
+//   preview-square.html in the precache (search and link previews);
 // - a build tool in package.json's runtime dependencies;
 // - a precache (`self.__WB_MANIFEST` in sw.js) beyond the app shell and route chunks: no prototypes, no source maps,
 //   no images but the official logo and the manifest's icons, and at most 1.5 MiB;
@@ -84,17 +85,21 @@ export function verify(dir) {
   for (const f of all.filter((f) => /\.(js|css)$/.test(f)))
     if (/[#@] sourceMappingURL=/.test(readFileSync(join(dir, f), 'utf8')))
       problems.push(`${f}: points at a source map`);
-  for (const f of ['robots.txt', 'sitemap.xml'])
-    if (!all.includes(f)) problems.push(`${f}: missing (search engines)`);
-  if (all.includes('index.html')) {
-    const html = readFileSync(join(dir, 'index.html'), 'utf8');
+  for (const f of ['robots.txt', 'sitemap.xml', 'preview-square.html'])
+    if (!all.includes(f))
+      problems.push(`${f}: missing (search engines and link previews)`);
+  for (const page of ['index.html', 'preview-square.html']) {
+    if (!all.includes(page)) continue;
     const image =
       /<meta property="og:image" content="https:\/\/[^/"]+\/([^"]+)"/.exec(
-        html,
+        readFileSync(join(dir, page), 'utf8'),
       )?.[1];
-    if (!image) problems.push('index.html: no og:image (link previews)');
+    if (!image) problems.push(`${page}: no og:image (link previews)`);
     else if (!all.includes(image))
-      problems.push(`${image}: og:image is not in the build`);
+      problems.push(`${image}: the og:image of ${page} is not in the build`);
+  }
+  if (all.includes('index.html')) {
+    const html = readFileSync(join(dir, 'index.html'), 'utf8');
     for (const [, comment] of html.matchAll(/<!--([\s\S]*?)-->/g)) {
       const label = WORK_ITEM.exec(comment);
       if (label)
@@ -117,6 +122,8 @@ export function verify(dir) {
     if (f.startsWith('prototypes/'))
       problems.push(`precache: ${f} (review prototypes)`);
     if (f.endsWith('.map')) problems.push(`precache: ${f} (a source map)`);
+    if (f === 'preview-square.html')
+      problems.push(`precache: ${f} (only for LINE's crawler)`);
     if (/\.(png|jpe?g|gif|webp|avif|svg|ico)$/.test(f) && !images.has(f))
       problems.push(`precache: ${f} (an image outside the shell)`);
     if (existsSync(join(dir, f))) bytes += statSync(join(dir, f)).size;

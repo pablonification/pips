@@ -42,15 +42,16 @@
     <meta name="msapplication-TileColor" content="#1B1508" />
     <title>PIPS!</title>
     <!--
-      Search and link previews. Every page of the app serves this same file, so these describe PIPS! itself, never a
-      member's page: a shared link to a post shows PIPS!, not the post (only members may read it). The address is
-      production's; the Caddyfile keeps every page but sign-in out of search, and staging or a preview out entirely.
-      tests/seo.test.mjs keeps the tags, robots.txt, sitemap.xml, the Caddyfile and the picture in step.
-      The picture is the sign-in page itself: scripts/og/build-og-image.mjs.
+      Search and link previews. Every page of the app serves this same file, so these tags describe PIPS! itself and
+      never a member's page. A shared link to a post shows PIPS!, not the post, since only members may read it. The
+      address is production's. The Caddyfile keeps every page but sign-in out of search, keeps staging and previews
+      out entirely, and gives LINE's crawler public/preview-square.html, whose picture is the HMIF logo, because LINE
+      crops a preview to a small square. tests/seo.test.mjs keeps both heads, robots.txt, sitemap.xml, the Caddyfile
+      and the pictures in step. The wide picture is the sign-in page itself (scripts/og/build-og-image.mjs).
     -->
     <meta
       name="description"
-      content="Aplikasi resmi HMIF ITB untuk anggotanya: pengumuman, kalender kegiatan dan akademik, Testi Matkul, NIM Finder, Curhat Yuk!, dan layanan lainnya."
+      content="Aplikasi resmi HMIF ITB untuk pengumuman, kalender kegiatan dan akademik, Testi Matkul, NIM Finder, Curhat Yuk!, dan layanan anggota lainnya."
     />
     <link rel="canonical" href="https://app.hmif.dev/login" />
     <meta name="application-name" content="PIPS!" />
@@ -62,7 +63,7 @@
     <meta property="og:title" content="PIPS! · HMIF ITB" />
     <meta
       property="og:description"
-      content="Aplikasi resmi HMIF ITB untuk anggotanya: pengumuman, kalender kegiatan dan akademik, Testi Matkul, NIM Finder, Curhat Yuk!, dan layanan lainnya."
+      content="Aplikasi resmi HMIF ITB untuk pengumuman, kalender kegiatan dan akademik, Testi Matkul, NIM Finder, Curhat Yuk!, dan layanan anggota lainnya."
     />
     <meta property="og:image" content="https://app.hmif.dev/og-image.png" />
     <meta property="og:image:type" content="image/png" />
@@ -70,13 +71,13 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="PIPS! dari HMIF ITB: papan tombol layanan berwarna emas di samping logo HMIF ITB."
+      content="Papan tombol layanan PIPS! berwarna emas di samping logo HMIF ITB"
     />
-    <!-- X reads the title, description and picture from og:. -->
+    <!-- X reads the title, description and picture from the og tags. -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:image:alt"
-      content="PIPS! dari HMIF ITB: papan tombol layanan berwarna emas di samping logo HMIF ITB."
+      content="Papan tombol layanan PIPS! berwarna emas di samping logo HMIF ITB"
     />
     <!-- The site's name in Google's results ("PIPS!", not "app.hmif.dev"), and whose it is. -->
     <script type="application/ld+json">

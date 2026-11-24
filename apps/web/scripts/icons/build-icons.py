@@ -31,6 +31,8 @@ ICONS = [
     ("mstile-150x150.png", 270, 0.70),
     ("push-icon-192x192.png", 192, 0.70),
     ("push-badge-96x96.png", 96, 0.86),
+    # The link preview LINE shows as a small square (public/preview-square.html), where the wide og-image.png crops.
+    ("og-image-square.png", 600, 0.70),
     ("favicon-32x32.png", 32, 0.90),
     ("favicon-16x16.png", 16, 0.90),
 ]
