@@ -130,6 +130,12 @@ export function createApp({
     Variables: RequestIdVariables;
   }>({ defaultHook });
   app.use('*', requestId());
+  // The API is not a website: no search engine lists its answers, its pages or the pictures it fetches for link
+  // previews. robots.txt below asks crawlers not to come at all; this covers a link they find anyway.
+  app.use('*', async (c, next) => {
+    await next();
+    c.header('X-Robots-Tag', 'noindex, nofollow');
+  });
 
   app.onError((err, c) => {
     if (err instanceof HTTPException) {
@@ -275,6 +281,7 @@ export function createApp({
     }),
   );
   app.get('/', (c) => c.json({ message: 'Server runs successfully' }));
+  app.get('/robots.txt', (c) => c.text('User-agent: *\nDisallow: /\n'));
   // For load balancers and monitoring: 200 while the API can reach its database, 503 when it can't or is shutting down.
   app.get('/health', async (c) => {
     if (isShuttingDown()) {

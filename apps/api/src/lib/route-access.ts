@@ -33,6 +33,7 @@ export type RouteAccess =
 export const ROUTE_ACCESS: Record<string, RouteAccess> = {
   'GET /': { who: 'anyone' },
   'GET /health': { who: 'anyone' },
+  'GET /robots.txt': { who: 'anyone', note: 'asks every crawler to stay out' },
   'GET /doc': { who: 'anyone', note: 'development and staging only' },
   'GET /swagger': { who: 'anyone', note: 'development and staging only' },
 
